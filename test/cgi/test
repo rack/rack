@@ -1,0 +1,9 @@
+#!/usr/bin/env ruby
+# -*- ruby -*-
+
+$: << File.join(File.dirname(__FILE__), "..", "..", "lib")
+
+require 'rack/handler/cgi'
+require 'rack/testrequest'
+
+Rack::Handler::CGI.serve(TestRequest.new)
