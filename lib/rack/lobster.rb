@@ -25,9 +25,30 @@ module Rack
       "<a href='#{href}'>flip!</a>"]
     ]
   }
+
+  Lobster2 = lambda { |env|
+    req = Request.new(env)
+    if req.GET["flip"] == "left"
+      lobster = LobsterString.split("\n").
+        map { |line| line.ljust(42).reverse }.
+        join("\n")
+      href = "?flip=right"
+    else
+      lobster = LobsterString
+      href = "?flip=left"
+    end
+
+    Response.new.finish do |res|
+      res.write "<title>Lobstericious!</title>"
+      res.write "<pre>"
+      res.write lobster
+      res.write "</pre>"
+      res.write "<a href='#{href}'>flip!</a>"
+    end
+  }
 end
 
 if $0 == __FILE__
   require 'rack'
-  Rack::Handler::WEBrick.run Rack::Lint.new(Rack::Lobster), :Port => 9202
+  Rack::Handler::WEBrick.run Rack::Lint.new(Rack::Lobster2), :Port => 9202
 end
