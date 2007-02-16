@@ -61,14 +61,15 @@ module Rack
 
 
     def finish(&block)
-      block.call  if block
+      @block = block
       [status.to_i, header.to_hash, self]
     end
     alias to_a finish           # For *response
 
-    def each(&block)
-      @writer = block
-      @body.each(&block)
+    def each(&callback)
+      @body.each(&callback)
+      @writer = callback
+      @block.call(self)  if @block
     end
 
     def write(str)
