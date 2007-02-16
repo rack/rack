@@ -8,6 +8,8 @@ module Rack
   autoload :Lint, "rack/lint"
   autoload :File, "rack/file"
 
+  autoload :Request, "rack/request"
+
   module Handler
     autoload :CGI, "rack/handler/cgi"
     autoload :Mongrel, "rack/handler/mongrel"
