@@ -7,8 +7,10 @@ module Rack
 
   autoload :Lint, "rack/lint"
   autoload :File, "rack/file"
+  autoload :Utils, "rack/utils"
 
   autoload :Request, "rack/request"
+  autoload :Response, "rack/response"
 
   module Handler
     autoload :CGI, "rack/handler/cgi"
