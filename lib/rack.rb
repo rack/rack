@@ -6,6 +6,7 @@ module Rack
   end
 
   autoload :Lint, "rack/lint"
+  autoload :File, "rack/file"
 
   module Handler
     autoload :CGI, "rack/handler/cgi"
