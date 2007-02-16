@@ -4,6 +4,13 @@ require 'stringio'
 module Rack
   module Handler
     class WEBrick < WEBrick::HTTPServlet::AbstractServlet
+      def self.run(app, options={})
+        server = ::WEBrick::HTTPServer.new(options)
+        server.mount "/", Rack::Handler::WEBrick, app
+        trap(:INT) { server.shutdown }
+        server.start
+      end
+      
       def initialize(server, app)
         super server
         @app = app
@@ -28,7 +35,7 @@ module Rack
         env["QUERY_STRING"] ||= ""
         env["REQUEST_PATH"] ||= "/"
         env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
-        
+
         status, headers, body = @app.call(env)
         res.status = status.to_i
         headers.each { |k, vs|
