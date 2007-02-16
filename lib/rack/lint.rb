@@ -69,10 +69,14 @@ module Rack
       }
 
       assert("SCRIPT_NAME must start with /") {
-        !env.include?("SCRIPT_NAME") || env["SCRIPT_NAME"] =~ /\A\//
+        !env.include?("SCRIPT_NAME") ||
+        env["SCRIPT_NAME"] == "" ||
+        env["SCRIPT_NAME"] =~ /\A\//
       }
       assert("PATH_INFO must start with /") {
-        !env.include?("PATH_INFO") || env["PATH_INFO"] =~ /\A\//
+        !env.include?("PATH_INFO") ||
+        env["PATH_INFO"] == "" ||
+        env["PATH_INFO"] =~ /\A\//
       }
       assert("Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}") {
         !env.include?("CONTENT_LENGTH") || env["CONTENT_LENGTH"] =~ /\A\d+\z/
