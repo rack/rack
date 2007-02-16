@@ -2,6 +2,7 @@ require 'test/spec'
 
 $: << "/home/chris/src/mongrel/lib"
 require 'rack/handler/mongrel'
+require 'rack/lint'
 require 'rack/testrequest'
 
 Thread.abort_on_exception = true
@@ -13,7 +14,8 @@ context "Rack::Handler::Mongrel" do
   
   setup do
     server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
-    server.register('/test', Rack::Handler::Mongrel.new(TestRequest.new))
+    server.register('/test',
+                    Rack::Handler::Mongrel.new(Rack::Lint.new(TestRequest.new)))
     @acc = server.run
   end
 
@@ -46,6 +48,7 @@ context "Rack::Handler::Mongrel" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/test"
+    response["PATH_INFO"].should.be.nil
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 
@@ -53,6 +56,7 @@ context "Rack::Handler::Mongrel" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/test/foo"
+    response["PATH_INFO"].should.equal "/foo"
     response["QUERY_STRING"].should.equal "quux=1"
   end
 

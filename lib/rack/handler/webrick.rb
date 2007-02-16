@@ -27,6 +27,7 @@ module Rack
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
         env["QUERY_STRING"] ||= ""
         env["REQUEST_PATH"] ||= "/"
+        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
         
         status, headers, body = @app.call(env)
         res.status = status.to_i

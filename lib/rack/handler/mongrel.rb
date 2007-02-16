@@ -10,7 +10,9 @@ module Rack
       
       def process(request, response)
         env = {}.replace(request.params)
-        
+        env.delete "HTTP_CONTENT_TYPE"
+        env.delete "HTTP_CONTENT_LENGTH"
+
         env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
         
         env.update({"rack.version" => [0,1],
@@ -24,6 +26,7 @@ module Rack
                      "rack.url_scheme" => "http",
                    })
         env["QUERY_STRING"] ||= ""
+        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
         
         status, headers, body = @app.call(env)
         

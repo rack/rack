@@ -1,6 +1,7 @@
 require 'test/spec'
 
 require 'rack/handler/webrick'
+require 'rack/lint'
 require 'rack/testrequest'
 
 Thread.abort_on_exception = true
@@ -13,7 +14,8 @@ context "Rack::Handler::WEBrick" do
                                       :Port => @port=9202,
                                       :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                       :AccessLog => [])
-    @server.mount "/test", Rack::Handler::WEBrick, TestRequest.new
+    @server.mount "/test", Rack::Handler::WEBrick,
+      Rack::Lint.new(TestRequest.new)
     Thread.new { @server.start }
     trap(:INT) { @server.shutdown }
   end
@@ -47,6 +49,7 @@ context "Rack::Handler::WEBrick" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/"
+    response["PATH_INFO"].should.be.nil
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 

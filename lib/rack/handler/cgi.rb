@@ -3,7 +3,8 @@ module Rack
     class CGI
       def self.serve(app)
         env = ENV.to_hash
-        
+        env.delete "HTTP_CONTENT_LENGTH"
+
         env.update({"rack.version" => [0,1],
                      "rack.input" => STDIN,
                      "rack.errors" => STDERR,
