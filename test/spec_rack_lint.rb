@@ -2,30 +2,13 @@ require 'test/spec'
 require 'stringio'
 
 require 'rack/lint'
+require 'rack/testrequest'
 
 context "Rack::Lint" do
-  TEST_ENV = {
-    "REQUEST_METHOD" => "GET",
-    "SERVER_NAME" => "example.org",
-    "SERVER_PORT" => "8080",
-    "QUERY_STRING" => "",
-    "rack.version" => [0,1],
-    "rack.input" => StringIO.new,
-    "rack.errors" => StringIO.new,
-    "rack.multithread" => true,
-    "rack.multiprocess" => true,
-    "rack.run_once" => false,
-    "rack.url_scheme" => "http",
-    "PATH_INFO" => "/",
-  }
-
-  def env(modifier)
-    e = TEST_ENV.dup
-    e.update modifier
-    e.delete_if { |k, v| v.nil? }
-    e
+  def env(*args)
+    TestRequest.env(*args)
   end
-
+  
   specify "passes valid request" do
     lambda {
       Rack::Lint.new(lambda { |env|
