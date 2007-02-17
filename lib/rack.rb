@@ -11,6 +11,7 @@ module Rack
   autoload :File, "rack/file"
   autoload :Utils, "rack/utils"
   autoload :ShowExceptions, "rack/showexceptions"
+  autoload :URLMap, "rack/urlmap"
 
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"
