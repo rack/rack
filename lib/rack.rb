@@ -1,3 +1,5 @@
+$: << File.expand_path(File.dirname(__FILE__))
+
 module Rack
   VERSION = [0,1]
 

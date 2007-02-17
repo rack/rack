@@ -1,6 +1,5 @@
 require 'test/spec'
 
-$: << "/home/chris/src/mongrel/lib"
 require 'rack/handler/mongrel'
 require 'rack/lint'
 require 'rack/testrequest'
