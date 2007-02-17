@@ -33,7 +33,7 @@ class TestRequest
 
   module Helpers
     attr_reader :status, :response
-    
+
     def GET(path, header={})
       Net::HTTP.start(@host, @port) { |http|
         user = header.delete(:user)
@@ -52,7 +52,7 @@ class TestRequest
       Net::HTTP.start(@host, @port) { |http|
         user = header.delete(:user)
         passwd = header.delete(:passwd)
-        
+
         post = Net::HTTP::Post.new(path, header)
         post.form_data = formdata
         post.basic_auth user, passwd  if user && passwd

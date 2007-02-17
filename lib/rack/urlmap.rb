@@ -1,6 +1,6 @@
 module Rack
   class URLMap
-    def initialize(map)      
+    def initialize(map)
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2

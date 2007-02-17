@@ -6,24 +6,24 @@ module Rack
     def escape(s)
       s.to_s.gsub(/([^ a-zA-Z0-9_.-]+)/n) {
         '%'+$1.unpack('H2'*$1.size).join('%').upcase
-      }.tr(' ', '+') 
+      }.tr(' ', '+')
     end
     module_function :escape
-    
+
     # Unescapes a URI escaped string. (Stolen from Camping).
     def unescape(s)
       s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
         [$1.delete('%')].pack('H*')
-      } 
+      }
     end
     module_function :unescape
-    
+
     # Stolen from Mongrel:
-    # Parses a query string by breaking it up at the '&' 
+    # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;'.
-    
+
     def parse_query(qs, d = '&;')
       params = {}
       (qs||'').split(/[#{d}] */n).inject(params) { |h,p|
@@ -38,7 +38,7 @@ module Rack
           params[k] = v
         end
       }
-      
+
       return params
     end
     module_function :parse_query
@@ -56,7 +56,7 @@ module Rack
       def initialize(hash={})
         hash.each { |k, v| self[k] = v }
       end
-      
+
       def to_hash
         {}.replace(self)
       end
@@ -64,7 +64,7 @@ module Rack
       def [](k)
         super capitalize(k)
       end
-      
+
       def []=(k, v)
         super capitalize(k), v
       end

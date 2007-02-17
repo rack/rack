@@ -18,7 +18,7 @@ module Rack
       lobster = LobsterString
       href = "?flip"
     end
-    
+
     [200, {"Content-Type" => "text/html"},
      ["<title>Lobstericious!</title>",
       "<pre>", lobster, "</pre>",

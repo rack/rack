@@ -2,7 +2,7 @@ module Rack
   class File
     attr_accessor :root
     attr_accessor :path
-    
+
     def initialize(root)
       @root = root
     end
@@ -12,7 +12,7 @@ module Rack
     end
 
     F = ::File
-    
+
     def _call(env)
       if env["PATH_INFO"].include? ".."
         return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]]

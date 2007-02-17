@@ -32,7 +32,7 @@ module Rack
       assert("env #{env.inspect} is not a Hash, but #{env.class}") {
         env.instance_of? Hash
       }
-      
+
       %w[REQUEST_METHOD SERVER_NAME SERVER_PORT
          QUERY_STRING
          rack.version rack.input rack.errors
