@@ -12,7 +12,6 @@ module Rack
     def script_name; @env["SCRIPT_NAME"].to_s                 end
     def path_info;   @env["PATH_INFO"].to_s                   end
     def host;        @env["HTTP_HOST"] || @env["SERVER_NAME"] end
-    def path_info;   @env["PATH_INFO"].to_s                   end
     def port;        @env["SERVER_PORT"].to_i                 end
 
     def GET
