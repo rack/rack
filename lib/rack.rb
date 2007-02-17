@@ -10,6 +10,7 @@ module Rack
   autoload :Lint, "rack/lint"
   autoload :File, "rack/file"
   autoload :Utils, "rack/utils"
+  autoload :ShowExceptions, "rack/showexceptions"
 
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"

@@ -33,6 +33,8 @@ module Rack
         map { |line| line.ljust(42).reverse }.
         join("\n")
       href = "?flip=right"
+    elsif req.GET["flip"] == "crash"
+      raise "Lobster crashed"
     else
       lobster = LobsterString
       href = "?flip=left"
@@ -43,12 +45,16 @@ module Rack
       res.write "<pre>"
       res.write lobster
       res.write "</pre>"
-      res.write "<a href='#{href}'>flip!</a>"
+      res.write "<p><a href='#{href}'>flip!</a></p>"
+      res.write "<p><a href='?flip=crash'>crash!</a></p>"
     end
   }
 end
 
 if $0 == __FILE__
   require 'rack'
-  Rack::Handler::WEBrick.run Rack::Lint.new(Rack::Lobster2), :Port => 9202
+  require 'rack/showexceptions'
+  Rack::Handler::WEBrick.run \
+    Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster2)),
+    :Port => 9202
 end

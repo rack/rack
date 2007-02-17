@@ -43,6 +43,15 @@ module Rack
     end
     module_function :parse_query
 
+    def escape_html(string)
+      string.to_s.gsub("&", "&amp;").
+        gsub("<", "&lt;").
+        gsub(">", "&gt;").
+        gsub("'", "&#39;").
+        gsub('"', "&quot;")
+    end
+    module_function :escape_html
+
     class HeaderHash < Hash
       def initialize(hash={})
         hash.each { |k, v| self[k] = v }
