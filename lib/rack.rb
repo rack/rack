@@ -12,6 +12,7 @@ module Rack
   autoload :Utils, "rack/utils"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :URLMap, "rack/urlmap"
+  autoload :CommonLogger, "rack/commonlogger"
 
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"
