@@ -12,15 +12,19 @@ module Rack
     VERSION.join(".")
   end
 
-  autoload :Lint, "rack/lint"
+  autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
-  autoload :Utils, "rack/utils"
+  autoload :Lint, "rack/lint"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :URLMap, "rack/urlmap"
-  autoload :CommonLogger, "rack/commonlogger"
+  autoload :Utils, "rack/utils"
 
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"
+
+  module Adapter
+    autoload :Camping, "rack/adapter/camping"
+  end
 
   module Handler
     autoload :CGI, "rack/handler/cgi"
