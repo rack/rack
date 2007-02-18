@@ -11,6 +11,12 @@ context "Rack::Request" do
     req.body.should.respond_to? :gets
     req.scheme.should.equal "http"
     req.method.should.equal "GET"
+
+    req.should.be.get
+    req.should.not.be.post
+    req.should.not.be.put
+    req.should.not.be.delete
+
     req.script_name.should.equal ""
     req.path_info.should.equal "/"
     req.host.should.equal "example.org"
@@ -48,5 +54,23 @@ context "Rack::Request" do
   specify "can parse cookies" do
     req = Rack::Request.new(TestRequest.env({"HTTP_COOKIE" => "foo=bar;quux=h&m"}))
     req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
+  end
+
+  specify "provides setters" do
+    req = Rack::Request.new(e=TestRequest.env({}))
+    req.script_name.should.equal ""
+    req.script_name = "/foo"
+    req.script_name.should.equal "/foo"
+    e["SCRIPT_NAME"].should.equal "/foo"
+
+    req.path_info.should.equal "/"
+    req.path_info = "/foo"
+    req.path_info.should.equal "/foo"
+    e["PATH_INFO"].should.equal "/foo"
+  end
+
+  specify "provides the original env" do
+    req = Rack::Request.new(e=TestRequest.env({}))
+    req.env.should.be e
   end
 end
