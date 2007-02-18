@@ -183,7 +183,7 @@ TEMPLATE = <<'HTML'
     <td><code><%=h frames.first.filename %></code>: in <code><%=h frames.first.function %></code>, line <%=h frames.first.lineno %></td>
   </tr><tr>
     <th>Web</th>
-    <td><code><%=h req.method %> <%=h(req.host + path)%></code></td>
+    <td><code><%=h req.request_method %> <%=h(req.host + path)%></code></td>
   </tr></table>
 
   <h3>Jump to:</h3>

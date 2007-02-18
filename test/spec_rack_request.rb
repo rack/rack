@@ -10,7 +10,7 @@ context "Rack::Request" do
 
     req.body.should.respond_to? :gets
     req.scheme.should.equal "http"
-    req.method.should.equal "GET"
+    req.request_method.should.equal "GET"
 
     req.should.be.get
     req.should.not.be.post
