@@ -11,7 +11,8 @@ module Rack
       @writer = lambda { |x| @body << x }
     end
 
-    attr_reader :status, :header, :body
+    attr_reader :header
+    attr_accessor :status, :body
 
     def [](key)
       header[key]
