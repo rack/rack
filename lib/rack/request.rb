@@ -25,12 +25,24 @@ module Rack
     def delete?;         request_method == "DELETE"               end
 
     def GET
-      Utils.parse_query(@env["QUERY_STRING"])
+      if @env["rack.request.query_string"] == @env["QUERY_STRING"]
+        @env["rack.request.query_hash"]
+      else
+        @env["rack.request.query_string"] = @env["QUERY_STRING"]
+        @env["rack.request.query_hash"] =
+          Utils.parse_query(@env["QUERY_STRING"])
+      end
     end
 
     def POST
-      @env["rack.request.formvars"] ||= body.read
-      Utils.parse_query(@env["rack.request.formvars"])
+      if @env["rack.request.form_input"] == @env["rack.input"]
+        @env["rack.request.form_hash"]
+      else
+        @env["rack.request.form_input"] = @env["rack.input"]
+        @env["rack.request.form_vars"] = body.read
+        @env["rack.request.form_hash"] =
+          Utils.parse_query(@env["rack.request.form_vars"])
+      end
     end
 
     def params
@@ -38,7 +50,14 @@ module Rack
     end
 
     def cookies
-      Utils.parse_query(@env["HTTP_COOKIE"], ';,')   # XXX sure?
+      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
+        @env["rack.request.cookie_hash"]
+      else
+        @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
+        # XXX sure?
+        @env["rack.request.cookie_hash"] =
+          Utils.parse_query(@env["rack.request.cookie_string"], ';,')
+      end
     end
 
     def xhr?

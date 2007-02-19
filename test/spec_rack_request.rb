@@ -43,6 +43,23 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+
+  specify "can cache, but invalidates the cache" do
+    req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=quux",
+                              "rack.input" => StringIO.new("foo=bar&quux=bla")))
+    req.GET.should.equal "foo" => "quux"
+    req.GET.should.equal "foo" => "quux"
+    req.env["QUERY_STRING"] = "bla=foo"
+    req.GET.should.equal "bla" => "foo"
+    req.GET.should.equal "bla" => "foo"
+
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
+    req.env["rack.input"] = StringIO.new("foo=bla&quux=bar")
+    req.POST.should.equal "foo" => "bla", "quux" => "bar"
+    req.POST.should.equal "foo" => "bla", "quux" => "bar"
+  end
+
   specify "can figure out if called via XHR" do
     req = Rack::Request.new(TestRequest.env({}))
     req.should.not.be.xhr
@@ -54,6 +71,9 @@ context "Rack::Request" do
   specify "can parse cookies" do
     req = Rack::Request.new(TestRequest.env({"HTTP_COOKIE" => "foo=bar;quux=h&m"}))
     req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
+    req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
+    req.env.delete("HTTP_COOKIE")
+    req.cookies.should.equal({})
   end
 
   specify "provides setters" do
