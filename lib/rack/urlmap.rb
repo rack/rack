@@ -18,7 +18,9 @@ module Rack
       @mapping.each { |host, location, app|
         if (env["HTTP_HOST"] == host ||
             env["SERVER_NAME"] == host ||
-            (host == nil && env["HTTP_HOST"] == env["SERVER_NAME"])) &&
+            (host == nil && (env["HTTP_HOST"] == env["SERVER_NAME"] ||
+                             env["HTTP_HOST"] ==
+                             "#{env["SERVER_NAME"]}:#{env["SERVER_PORT"]}"))) &&
            location == path[0, location.size] && (path[location.size] == nil ||
                                                   path[location.size] == ?/)
           env["SCRIPT_NAME"] = location.dup

@@ -115,5 +115,11 @@ context "Rack::URLMap" do
                                                   "HTTP_HOST" => "example.org"}))
     status.should.equal 200
     headers["X-Position"].should.equal "default.org"
+
+    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
+                                        "HTTP_HOST" => "example.org:9292",
+                                        "SERVER_PORT" => "9292"}))
+    status.should.equal 200
+    headers["X-Position"].should.equal "default.org"
   end
 end
