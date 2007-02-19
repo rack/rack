@@ -19,7 +19,7 @@ module Rack
 
     def pretty(env, exception)
       req = Rack::Request.new(env)
-      path = req.script_name + req.path_info
+      path = (req.script_name + req.path_info).squeeze("/")
 
       frames = exception.backtrace.map { |line|
         frame = OpenStruct.new
