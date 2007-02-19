@@ -50,6 +50,8 @@ module Rack
     end
 
     def cookies
+      return {}  unless @env["HTTP_COOKIE"]
+
       if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
         @env["rack.request.cookie_hash"]
       else
