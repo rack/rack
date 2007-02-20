@@ -41,6 +41,7 @@ module Rack
           STDOUT.print part
           STDOUT.flush
         }
+        body.close  if body.respond_to? :close
       end
     end
   end

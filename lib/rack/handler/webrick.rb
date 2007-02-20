@@ -46,6 +46,7 @@ module Rack
         body.each { |part|
           res.body << part
         }
+        body.close  if body.respond_to? :close
       end
     end
   end
