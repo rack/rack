@@ -51,15 +51,19 @@ module Rack
       end
       
       class RailsDispatcher::CGIStub
-        def initialize(env) @env = env end
-        def env_table() @env end
-        def params() {} end
-        def cookies() {} end
-        def query_string() @env["QUERY_STRING"] end
+        def initialize(env) @request = Request.new(env) end
+        def env_table() @request.env end
+        def params() @request.params end
+        def cookies() @request.cookies end
+        def query_string() @request.env["QUERY_STRING"] end
+          
+        def [](key)
+          # FIXME: This is probably just wrong
+          @request.env[key] || @request.cookies[key]
+        end
 
         def key?(key)
-          p "Rack::CGI#key? called with #{key.inspect}"
-          false
+          (self[key]) ? true : false
         end
       end
     end
