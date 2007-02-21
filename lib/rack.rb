@@ -14,7 +14,9 @@ module Rack
 
   autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
+  autoload :ForwardRequest, "rack/recursive"
   autoload :Lint, "rack/lint"
+  autoload :Recursive, "rack/recursive"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"
