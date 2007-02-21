@@ -21,8 +21,12 @@ module Rack
         env["REQUEST_PATH"] ||= "/"
         
         status, headers, body = app.call(env)
-        send_headers status, headers
-        send_body body
+        begin
+          send_headers status, headers
+          send_body body
+        ensure
+          body.close  if body.respond_to? :close
+        end
       end
       
       def self.send_headers(status, headers)
@@ -41,7 +45,6 @@ module Rack
           STDOUT.print part
           STDOUT.flush
         }
-        body.close  if body.respond_to? :close
       end
     end
   end

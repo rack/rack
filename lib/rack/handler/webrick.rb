@@ -37,16 +37,19 @@ module Rack
         env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
 
         status, headers, body = @app.call(env)
-        res.status = status.to_i
-        headers.each { |k, vs|
-          vs.each { |v|
-            res[k] = v
+        begin
+          res.status = status.to_i
+          headers.each { |k, vs|
+            vs.each { |v|
+              res[k] = v
+            }
           }
-        }
-        body.each { |part|
-          res.body << part
-        }
-        body.close  if body.respond_to? :close
+          body.each { |part|
+            res.body << part
+          }
+        ensure
+          body.close  if body.respond_to? :close
+        end
       end
     end
   end
