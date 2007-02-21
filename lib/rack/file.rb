@@ -19,7 +19,7 @@ module Rack
       end
 
       @path = F.join(@root, env["PATH_INFO"])
-      ext = F.extname(@path)
+      ext = F.extname(@path)[1..-1]
 
       if F.file?(@path) && F.readable?(@path)
         [200, {
