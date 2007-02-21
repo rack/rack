@@ -26,6 +26,7 @@ module Rack
 
   module Adapter
     autoload :Camping, "rack/adapter/camping"
+    autoload :Rails, "rack/adapter/rails"
   end
 
   module Handler
