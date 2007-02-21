@@ -13,7 +13,7 @@ module Rack
     end
 
     def call(env)
-      path = "#{env["SCRIPT_NAME"]}#{env["PATH_INFO"]}".squeeze("/")
+      path = env["PATH_INFO"].to_s.squeeze("/")
 
       @mapping.each { |host, location, app|
         if (env["HTTP_HOST"] == host ||

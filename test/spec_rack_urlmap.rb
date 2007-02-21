@@ -41,34 +41,17 @@ context "Rack::URLMap" do
     headers["X-Position"].should.equal "/bar"
     headers["X-PathInfo"].should.equal "/"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/foo"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo"
-    headers["X-PathInfo"].should.equal "/"
-
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/foo",
-                                                  "PATH_INFO" => "/quux"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo"
-    headers["X-PathInfo"].should.equal "/quux"
-
     status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
                                                   "PATH_INFO" => "/foo/quux"}))
     status.should.equal 200
     headers["X-Position"].should.equal "/foo"
     headers["X-PathInfo"].should.equal "/quux"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/foo/quux",
-                                                  "PATH_INFO" => nil}))
+    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/bleh",
+                                                  "PATH_INFO" => "/foo/quux"}))
     status.should.equal 200
     headers["X-Position"].should.equal "/foo"
     headers["X-PathInfo"].should.equal "/quux"
-
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/foo/bar",
-                                                  "PATH_INFO" => nil}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo/bar"
-    headers["X-PathInfo"].should.equal "/"
   end
 
   specify "dispatches hosts correctly" do
@@ -121,5 +104,22 @@ context "Rack::URLMap" do
                                         "SERVER_PORT" => "9292"}))
     status.should.equal 200
     headers["X-Position"].should.equal "default.org"
+  end
+
+  specify "should be nestable" do
+    map = Rack::URLMap.new("/foo" =>
+                           Rack::URLMap.new("/bar" =>  lambda { |env|
+                                              [200,
+                                               { "Content-Type" => "text/plain",
+                                                 "X-Position" => "/foo/bar",
+                                                 "X-PathInfo" => env["PATH_INFO"],
+                                               }, [""]]}
+                                            )
+                           )
+
+    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
+                                                    "PATH_INFO" => "/foo/bar"}))
+    status.should.equal 200
+    headers["X-Position"].should.equal "/foo/bar"
   end
 end
