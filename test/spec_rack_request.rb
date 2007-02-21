@@ -93,4 +93,20 @@ context "Rack::Request" do
     req = Rack::Request.new(e=TestRequest.env({}))
     req.env.should.be e
   end
+
+  specify "can restore the URL" do
+    Rack::Request.new(TestRequest.env({})).url.
+      should.equal "http://example.org:8080/"
+    Rack::Request.new(TestRequest.env({"SCRIPT_NAME" => "/foo"})).url.
+      should.equal "http://example.org:8080/foo/"
+    Rack::Request.new(TestRequest.env({"PATH_INFO" => "/foo"})).url.
+      should.equal "http://example.org:8080/foo"
+    Rack::Request.new(TestRequest.env({"QUERY_STRING" => "foo"})).url.
+      should.equal "http://example.org:8080/?foo"
+    Rack::Request.new(TestRequest.env({"SERVER_PORT" => "80"})).url.
+      should.equal "http://example.org/"
+    Rack::Request.new(TestRequest.env({"SERVER_PORT" => "443",
+                                        "rack.url_scheme" => "https"})).url.
+      should.equal "https://example.org/"
+  end
 end

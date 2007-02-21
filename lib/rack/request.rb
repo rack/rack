@@ -65,5 +65,24 @@ module Rack
     def xhr?
       @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     end
+
+    def url
+      url = scheme + "://"
+      url << host
+
+      if scheme == "https" && port != 443 ||
+          scheme == "http" && port != 80
+        url << ":#{port}"
+      end
+
+      url << script_name
+      url << path_info
+
+      if @env["QUERY_STRING"] && !@env["QUERY_STRING"].empty?
+        url << "?" <<  @env["QUERY_STRING"]
+      end
+
+      url
+    end
   end
 end
