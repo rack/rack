@@ -15,6 +15,7 @@ module Rack
     def host;            @env["HTTP_HOST"] || @env["SERVER_NAME"] end
     def port;            @env["SERVER_PORT"].to_i                 end
     def request_method;  @env["REQUEST_METHOD"]                   end
+    def query_string;    @env["QUERY_STRING"].to_s                end
 
     def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
     def path_info=(s);   @env["PATH_INFO"] = s.to_s               end
@@ -25,12 +26,12 @@ module Rack
     def delete?;         request_method == "DELETE"               end
 
     def GET
-      if @env["rack.request.query_string"] == @env["QUERY_STRING"]
+      if @env["rack.request.query_string"] == query_string
         @env["rack.request.query_hash"]
       else
-        @env["rack.request.query_string"] = @env["QUERY_STRING"]
-        @env["rack.request.query_hash"] =
-          Utils.parse_query(@env["QUERY_STRING"])
+        @env["rack.request.query_string"] = query_string
+        @env["rack.request.query_hash"]   =
+          Utils.parse_query(query_string)
       end
     end
 
@@ -78,8 +79,8 @@ module Rack
       url << script_name
       url << path_info
 
-      if @env["QUERY_STRING"] && !@env["QUERY_STRING"].empty?
-        url << "?" <<  @env["QUERY_STRING"]
+      unless query_string.empty?
+        url << "?" << query_string
       end
 
       url
