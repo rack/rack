@@ -169,13 +169,6 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Foo\000Bar" => "text/plain"}, ""]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/invalid header/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
                        [200, {"Foo" => Object.new}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
@@ -187,6 +180,14 @@ context "Rack::Lint" do
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/must consist of Strings/)
+
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, {"Foo-Bar" => "text\000plain"}, ""]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/invalid header/)
   end
 
   specify "notices content-type errors" do
