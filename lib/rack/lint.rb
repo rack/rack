@@ -340,7 +340,9 @@ module Rack
           return
         end
       }
-      assert("No Content-Type header found") { false }
+      assert("No Content-Type header found") {
+        [201, 204, 304].include? status.to_i
+      }
     end
 
     ## === The Body
