@@ -122,4 +122,28 @@ context "Rack::URLMap" do
     status.should.equal 200
     headers["X-Position"].should.equal "/foo/bar"
   end
+
+  specify "should route root apps correctly" do
+    map = Rack::URLMap.new("/" => lambda { |env|
+                             [200,
+                              { "Content-Type" => "text/plain",
+                                "X-Position" => "root",
+                              }, [""]]},
+                           "/foo" => lambda { |env|
+                             [200,
+                              { "Content-Type" => "text/plain",
+                                "X-Position" => "foo",
+                              }, [""]]}
+                           )
+
+    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
+                                                    "PATH_INFO" => "/foo/bar"}))
+    status.should.equal 200
+    headers["X-Position"].should.equal "foo"
+
+    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
+                                                    "PATH_INFO" => "/bar"}))
+    status.should.equal 200
+    headers["X-Position"].should.equal "root"
+  end
 end
