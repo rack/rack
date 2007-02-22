@@ -19,6 +19,8 @@ context "Rack::Request" do
 
     req.script_name.should.equal ""
     req.path_info.should.equal "/"
+    req.query_string.should.equal ""
+
     req.host.should.equal "example.org"
     req.port.should.equal 8080
   end
@@ -30,6 +32,7 @@ context "Rack::Request" do
 
   specify "can parse the query string" do
     req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=bar&quux=bla"))
+    req.query_string.should.equal "foo=bar&quux=bla"
     req.GET.should.equal "foo" => "bar", "quux" => "bla"
     req.POST.should.be.empty
     req.params.should.equal "foo" => "bar", "quux" => "bla"
@@ -38,6 +41,7 @@ context "Rack::Request" do
   specify "can parse POST data" do
     req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=quux",
                               "rack.input" => StringIO.new("foo=bar&quux=bla")))
+    req.query_string.should.equal "foo=quux"
     req.GET.should.equal "foo" => "quux"
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
     req.params.should.equal "foo" => "bar", "quux" => "bla"
