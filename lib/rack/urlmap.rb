@@ -7,14 +7,15 @@ module Rack
         else
           host = nil
         end
+
+        location = ""  if location == "/"
+
         [host, location, app]
-      }
-      @mapping.sort_by { |(h, l, a)| -l.size }    # Longest path first
+      }.sort_by { |(h, l, a)| -l.size } # Longest path first
     end
 
     def call(env)
       path = env["PATH_INFO"].to_s.squeeze("/")
-
       @mapping.each { |host, location, app|
         if (env["HTTP_HOST"] == host ||
             env["SERVER_NAME"] == host ||
