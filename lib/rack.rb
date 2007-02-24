@@ -12,6 +12,7 @@ module Rack
     VERSION.join(".")
   end
 
+  autoload :Builder, "rack/builder"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
   autoload :ForwardRequest, "rack/recursive"
