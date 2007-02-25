@@ -18,6 +18,7 @@ module Rack
   autoload :ForwardRequest, "rack/recursive"
   autoload :Lint, "rack/lint"
   autoload :Recursive, "rack/recursive"
+  autoload :Reloader, "rack/reloader"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"

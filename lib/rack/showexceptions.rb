@@ -13,7 +13,7 @@ module Rack
 
     def call(env)
       @app.call(env)
-    rescue => e
+    rescue StandardError, LoadError, SyntaxError => e
       [500, {"Content-Type" => "text/html"}, pretty(env, e)]
     end
 
