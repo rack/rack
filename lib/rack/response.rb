@@ -7,15 +7,20 @@ module Rack
       @status = status
       @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.
                                       merge(header))
+
+      @writer = lambda { |x| @body << x }
+
+      @body = []
+
       if body.kind_of?(String)
-        @body = [body]
+        write body
       elsif body.respond_to?(:each)
-        @body = body
+        body.each { |part|
+          write part.to_s
+        }
       else
         raise TypeError, "String or iterable required"
       end
-
-      @writer = lambda { |x| @body << x }
 
       yield self  if block_given?
     end
