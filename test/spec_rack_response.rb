@@ -62,4 +62,38 @@ context "Rack::Response" do
     response["Set-Cookie"].should.equal ["foo2=bar2",
                                   "foo=; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
   end
+
+  specify "has a useful constructor" do
+    r = Rack::Response.new("foo")
+    status, header, body = r.finish
+    str = ""; body.each { |part| str << part }
+    str.should.equal "foo"
+
+    r = Rack::Response.new(["foo", "bar"])
+    status, header, body = r.finish
+    str = ""; body.each { |part| str << part }
+    str.should.equal "foobar"
+
+    r = Rack::Response.new([], 500)
+    r.status.should.equal 500
+  end
+
+  specify "has a constructor that can take a block" do
+    r = Rack::Response.new { |res|
+      res.status = 404
+      res.write "foo"
+    }
+    status, header, body = r.finish
+    str = ""; body.each { |part| str << part }
+    str.should.equal "foo"
+    status.should.equal 404
+  end
+ 
+  specify "doesn't return invalid responses" do
+    r = Rack::Response.new(["foo", "bar"], 201)
+    status, header, body = r.finish
+    str = ""; body.each { |part| str << part }
+    str.should.be.empty
+    header["Content-Type"].should.equal nil
+  end
 end

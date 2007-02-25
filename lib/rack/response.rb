@@ -3,12 +3,21 @@ require 'rack/utils'
 
 module Rack
   class Response
-    def initialize
-      @status = 200
-      @header = Utils::HeaderHash.new({"Content-Type" => "text/html"})
-      @body = []
+    def initialize(body=[], status=200, header={}, &block)
+      @status = status
+      @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.
+                                      merge(header))
+      if body.kind_of?(String)
+        @body = [body]
+      elsif body.respond_to?(:each)
+        @body = body
+      else
+        raise TypeError, "String or iterable required"
+      end
 
       @writer = lambda { |x| @body << x }
+
+      yield self  if block_given?
     end
 
     attr_reader :header
@@ -63,7 +72,13 @@ module Rack
 
     def finish(&block)
       @block = block
-      [status.to_i, header.to_hash, self]
+
+      if [201, 204, 304].include?(status.to_i)
+        header.delete "Content-Type"
+        [status.to_i, header.to_hash, []]
+      else
+        [status.to_i, header.to_hash, self]
+      end
     end
     alias to_a finish           # For *response
 
