@@ -95,6 +95,7 @@ module Rack
 
     def write(str)
       @writer.call str
+      str
     end
   end
 end
