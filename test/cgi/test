@@ -6,4 +6,4 @@ $: << File.join(File.dirname(__FILE__), "..", "..", "lib")
 require 'rack'
 require 'rack/testrequest'
 
-Rack::Handler::CGI.serve(Rack::Lint.new(TestRequest.new))
+Rack::Handler::CGI.run(Rack::Lint.new(TestRequest.new))

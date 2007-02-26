@@ -1,6 +1,10 @@
 module Rack
   module Handler
     class CGI
+      def self.run(app)
+        serve app
+      end
+      
       def self.serve(app)
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
