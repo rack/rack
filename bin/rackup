@@ -77,37 +77,52 @@ if !File.exist? config
   abort "configuration #{config} not found"
 end
 
-require 'rack'
+if config =~ /\.ru$/
+  cfgfile = File.read(config)
+  if cfgfile[/^#\\(.*)/]
+    opts.parse! $1.split(/\s+/)
+  end
+  require 'rack'
+  inner_app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
+                   nil, config
+else
+  require 'rack'
+  require config
+  inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
+end
 
 case server
 when nil
-  begin
-    server = Rack::Handler::Mongrel
-  rescue LoadError => e
-    server = Rack::Handler::WEBrick
+  # Guess.
+  if ENV.include?("PHP_FCGI_CHILDREN")
+    server = Rack::Handler::FastCGI
+  elsif ENV.include?("REQUEST_METHOD")
+    server = Rack::Handler::CGI
+  else
+    begin
+      server = Rack::Handler::Mongrel
+    rescue LoadError => e
+      server = Rack::Handler::WEBrick
+    end
   end
 when "mongrel"
   server = Rack::Handler::Mongrel
 when "webrick"
   server = Rack::Handler::WEBrick
+when "cgi"
+  server = Rack::Handler::CGI
+when "fastcgi"
+  server = Rack::Handler::FastCGI
 else
   server = Rack::Handler.const_get(server.capitalize)
 end
 
 p server  if $DEBUG
 
-if config =~ /\.ru$/
-  inner_app = eval "Rack::Builder.new {( " + File.read(config) + "\n )}.to_app",
-                   nil, config
-else
-  require config
-  inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
-end
-
 case env
 when "development"
   app = Rack::Builder.new {
-    use Rack::CommonLogger, STDERR
+    use Rack::CommonLogger, STDERR  unless server.name =~ /CGI/
     use Rack::ShowExceptions
     use Rack::Reloader
     use Rack::Lint
@@ -116,7 +131,7 @@ when "development"
 
 when "deployment"
   app = Rack::Builder.new {
-    use Rack::CommonLogger, STDERR
+    use Rack::CommonLogger, STDERR  unless server.name =~ /CGI/
     run inner_app
   }.to_app
 
