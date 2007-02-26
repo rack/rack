@@ -33,6 +33,7 @@ module Rack
 
   module Handler
     autoload :CGI, "rack/handler/cgi"
+    autoload :FastCGI, "rack/handler/fastcgi"
     autoload :Mongrel, "rack/handler/mongrel"
     autoload :WEBrick, "rack/handler/webrick"
   end
