@@ -3,7 +3,7 @@ require 'fcgi'
 module Rack
   module Handler
     class FastCGI
-      def self.run(app)
+      def self.run(app, options=nil)
         FCGI.each { |request|
           serve request, app
         }

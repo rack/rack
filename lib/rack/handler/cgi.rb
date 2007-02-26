@@ -1,7 +1,7 @@
 module Rack
   module Handler
     class CGI
-      def self.run(app)
+      def self.run(app, options=nil)
         serve app
       end
       
