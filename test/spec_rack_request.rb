@@ -28,6 +28,9 @@ context "Rack::Request" do
   specify "can figure out the correct host" do
     req = Rack::Request.new(TestRequest.env({"HTTP_HOST" => "www2.example.org"}))
     req.host.should.equal "www2.example.org"
+
+    req = Rack::Request.new(TestRequest.env({"SERVER_NAME" => "example.org:9292"}))
+    req.host.should.equal "example.org"
   end
 
   specify "can parse the query string" do
