@@ -3,31 +3,30 @@ require 'test/spec'
 require 'rack/file'
 require 'rack/lint'
 
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::File" do
   DOCROOT = File.expand_path(File.dirname(__FILE__))
 
   specify "serves files" do
-    file = Rack::Lint.new(Rack::File.new(DOCROOT))
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/test")
 
-    status, headers, body = file.call(TestRequest.env("PATH_INFO" => "/cgi/test"))
-    status.to_i.should.equal 200
-    body.each { |part|
-      part.should.match(/ruby/)
-      break
-    }
+    res.should.be.ok
+    res.should.match /ruby/
   end
 
   specify "does not allow directory traversal" do
-    file = Rack::Lint.new(Rack::File.new(DOCROOT))
-    status, _, _ = file.call(TestRequest.env("PATH_INFO" => "/cgi/../test"))
-    status.to_i.should.equal 403
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/../test")
+
+    res.should.be.forbidden
   end
 
   specify "404s if it can't find the file" do
-    file = Rack::Lint.new(Rack::File.new(DOCROOT))
-    status, _, _ = file.call(TestRequest.env("PATH_INFO" => "/cgi/blubb"))
-    status.to_i.should.equal 404
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/blubb")
+
+    res.should.be.not_found
   end
 end
