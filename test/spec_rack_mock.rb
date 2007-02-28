@@ -24,7 +24,7 @@ context "Rack::MockRequest" do
   end
 
   specify "should provide sensible defaults" do
-    res = Rack::MockRequest.new(App).get("")
+    res = Rack::MockRequest.new(App).request
 
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "GET"
@@ -33,6 +33,25 @@ context "Rack::MockRequest" do
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/"
     env["rack.url_scheme"].should.equal "http"
+    env["mock.postdata"].should.be.empty
+  end
+
+  specify "should allow GET/POST/PUT/DELETE" do
+    res = Rack::MockRequest.new(App).get("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+
+    res = Rack::MockRequest.new(App).post("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "POST"
+
+    res = Rack::MockRequest.new(App).put("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "PUT"
+
+    res = Rack::MockRequest.new(App).delete("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "DELETE"
   end
 
   specify "should allow posting" do
@@ -40,7 +59,7 @@ context "Rack::MockRequest" do
     env = YAML.load(res.body)
     env["mock.postdata"].should.equal "foo"
 
-    res = Rack::MockRequest.new(App).get("", :input => StringIO.new("foo"))
+    res = Rack::MockRequest.new(App).post("", :input => StringIO.new("foo"))
     env = YAML.load(res.body)
     env["mock.postdata"].should.equal "foo"
   end

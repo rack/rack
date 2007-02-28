@@ -21,30 +21,29 @@ module Rack
       end
     end
 
-    def initialize(app)
-      @app = app
-    end
-
     DEFAULT_ENV = {
-      "REQUEST_METHOD" => "GET",
-      "SERVER_NAME" => "example.org",
-      "SERVER_PORT" => "80",
-      "QUERY_STRING" => "",
       "rack.version" => [0,1],
       "rack.input" => StringIO.new,
       "rack.errors" => StringIO.new,
       "rack.multithread" => true,
       "rack.multiprocess" => true,
       "rack.run_once" => false,
-      "rack.url_scheme" => "http",
-      "PATH_INFO" => "/",
     }
 
-    def get(uri, opts={})
+    def initialize(app)
+      @app = app
+    end
+
+    def get(uri, opts={})    request("GET", uri, opts)    end
+    def post(uri, opts={})   request("POST", uri, opts)   end
+    def put(uri, opts={})    request("PUT", uri, opts)    end
+    def delete(uri, opts={}) request("DELETE", uri, opts) end
+
+    def request(method="GET", uri="", opts={})
       uri = URI(uri)
       env = DEFAULT_ENV.dup
 
-      env["REQUEST_METHOD"] = "GET"
+      env["REQUEST_METHOD"] = method
       env["SERVER_NAME"] = uri.host || "example.org"
       env["SERVER_PORT"] = uri.port ? uri.port.to_s : "80"
       env["QUERY_STRING"] = uri.query.to_s
@@ -57,12 +56,11 @@ module Rack
         env["rack.errors"] = errors = StringIO.new
       end
 
-      if opts[:input]
-        if String === opts[:input]
-          env["rack.input"] = StringIO.new(opts[:input])
-        else
-          env["rack.input"] = opts[:input]
-        end
+      opts[:input] ||= ""
+      if String === opts[:input]
+        env["rack.input"] = StringIO.new(opts[:input])
+      else
+        env["rack.input"] = opts[:input]
       end
 
       if opts[:lint]
