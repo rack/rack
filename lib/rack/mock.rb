@@ -40,14 +40,27 @@ module Rack
     def delete(uri, opts={}) request("DELETE", uri, opts) end
 
     def request(method="GET", uri="", opts={})
+      env = self.class.env_for(uri, opts.merge(:method => method))
+
+      if opts[:lint]
+        app = Rack::Lint.new(@app)
+      else
+        app = @app
+      end
+
+      errors = env["rack.errors"]
+      MockResponse.new(*(app.call(env) + [errors]))
+    end
+
+    def self.env_for(uri="", opts={})
       uri = URI(uri)
       env = DEFAULT_ENV.dup
 
-      env["REQUEST_METHOD"] = method
+      env["REQUEST_METHOD"] = opts[:method] || "GET"
       env["SERVER_NAME"] = uri.host || "example.org"
       env["SERVER_PORT"] = uri.port ? uri.port.to_s : "80"
       env["QUERY_STRING"] = uri.query.to_s
-      env["PATH_INFO"] = uri.path.empty? ? "/" : uri.path
+      env["PATH_INFO"] = (!uri.path || uri.path.empty?) ? "/" : uri.path
       env["rack.url_scheme"] = uri.scheme || "http"
 
       env["SCRIPT_NAME"] = opts[:script_name] || ""
@@ -55,7 +68,7 @@ module Rack
       if opts[:fatal]
         env["rack.errors"] = FatalWarner.new
       else
-        env["rack.errors"] = errors = StringIO.new
+        env["rack.errors"] = StringIO.new
       end
 
       opts[:input] ||= ""
@@ -65,13 +78,11 @@ module Rack
         env["rack.input"] = opts[:input]
       end
 
-      if opts[:lint]
-        app = Rack::Lint.new(@app)
-      else
-        app = @app
-      end
+      opts.each { |field, value|
+        env[field] = value  if String === field
+      }
 
-      MockResponse.new(*(app.call(env) + [errors]))
+      env
     end
   end
 

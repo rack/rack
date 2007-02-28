@@ -23,6 +23,12 @@ context "Rack::MockRequest" do
     res.should.be.kind_of Rack::MockResponse
   end
 
+  specify "should be able to only return the environment" do
+    env = Rack::MockRequest.env_for("")
+    env.should.be.kind_of Hash
+    env.should.include "rack.version"
+  end
+
   specify "should provide sensible defaults" do
     res = Rack::MockRequest.new(App).request
 
@@ -53,6 +59,9 @@ context "Rack::MockRequest" do
     res = Rack::MockRequest.new(App).delete("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "DELETE"
+
+    Rack::MockRequest.env_for("/", :method => "OPTIONS")["REQUEST_METHOD"].
+      should.equal "OPTIONS"
   end
 
   specify "should allow posting" do
