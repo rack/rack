@@ -50,6 +50,8 @@ module Rack
       env["PATH_INFO"] = uri.path.empty? ? "/" : uri.path
       env["rack.url_scheme"] = uri.scheme || "http"
 
+      env["SCRIPT_NAME"] = opts[:script_name] || ""
+
       if opts[:fatal]
         env["rack.errors"] = FatalWarner.new
       else

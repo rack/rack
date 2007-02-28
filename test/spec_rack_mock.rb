@@ -32,6 +32,7 @@ context "Rack::MockRequest" do
     env["SERVER_PORT"].should.equal "80"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/"
+    env["SCRIPT_NAME"].should.equal ""
     env["rack.url_scheme"].should.equal "http"
     env["mock.postdata"].should.be.empty
   end
