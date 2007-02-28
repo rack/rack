@@ -7,21 +7,12 @@ require "dispatcher"
 module Rack
   module Adapter
     # TODO: Extract this
-    class Rails
+    class Rails < Cascade
       def initialize
-        @file = Rack::File.new(::File.join(RAILS_ROOT, "public"))
-        @dispatcher = RailsDispatcher.new
-      end
-      
-      def call(env)
-        file_response = @file.call(env)
-        status = file_response.first
+        file = Rack::File.new(::File.join(RAILS_ROOT, "public"))
+        dispatcher = RailsDispatcher.new
         
-        if status == 200
-          file_response
-        else
-          @dispatcher.call(env)
-        end
+        super([file, dispatcher])
       end
     end
     
