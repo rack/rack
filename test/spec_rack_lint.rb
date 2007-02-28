@@ -2,11 +2,11 @@ require 'test/spec'
 require 'stringio'
 
 require 'rack/lint'
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::Lint" do
   def env(*args)
-    TestRequest.env(*args)
+    Rack::MockRequest.env_for("/", *args)
   end
   
   specify "passes valid request" do
@@ -27,12 +27,16 @@ context "Rack::Lint" do
       message.should.match(/not a Hash/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => nil))
+      e = env
+      e.delete("REQUEST_METHOD")
+      Rack::Lint.new(nil).call(e)
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/missing required key REQUEST_METHOD/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("SERVER_NAME" => nil))
+      e = env
+      e.delete("SERVER_NAME")
+      Rack::Lint.new(nil).call(e)
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/missing required key SERVER_NAME/)
 
@@ -83,8 +87,10 @@ context "Rack::Lint" do
       message.should.match(/Invalid CONTENT_LENGTH/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("SCRIPT_NAME" => nil,
-                                   "PATH_INFO" => nil))
+      e = env
+      e.delete("PATH_INFO")
+      e.delete("SCRIPT_NAME")
+      Rack::Lint.new(nil).call(e)
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/One of .* must be set/)
 
