@@ -1,21 +1,21 @@
 require 'test/spec'
 
 require 'rack/showexceptions'
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::ShowExceptions" do
   specify "catches exceptions" do
-    status = headers = body = nil
+    res = nil
+    req = Rack::MockRequest.new(Rack::ShowExceptions.new(lambda { |env|
+                                                           raise RuntimeError
+                                                         }))
     lambda {
-      status, headers, body = Rack::ShowExceptions.new(lambda { |env|
-                                                         raise RuntimeError
-                                                       }).
-                                                       call(TestRequest.env({}))
+      res = req.get("/")
     }.should.not.raise
-    status.should.equal 500
+    res.should.be.a.server_error
+    res.status.should.equal 500
 
-    str = ""; body.each { |part| str << part }
-    str.should =~ /RuntimeError/
-    str.should =~ /ShowExceptions/
+    res.should =~ /RuntimeError/
+    res.should =~ /ShowExceptions/
   end
 end
