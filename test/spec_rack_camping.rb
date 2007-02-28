@@ -1,7 +1,7 @@
 require 'test/spec'
 require 'stringio'
 
-require 'rack/testrequest'
+require 'rack/mock'
 
 $-w, w = nil, $-w               # yuck
 require 'camping'
@@ -25,23 +25,20 @@ $-w = w
 
 context "Rack::Adapter::Camping" do
   specify "works with GET" do
-    status, headers, body = Rack::Adapter::Camping.new(CampApp).call(TestRequest.env({}))
+    res = Rack::MockRequest.new(Rack::Adapter::Camping.new(CampApp)).
+      get("/")
 
-    status.should.be 200
-    headers["Content-Type"].should.equal "text/html"
+    res.should.be.ok
+    res["Content-Type"].should.equal "text/html"
 
-    str = ""; body.each { |part| str << part }
-    str.should.equal "Camping works!"
+    res.body.should.equal "Camping works!"
   end
 
   specify "works with POST" do
-    status, headers, body = Rack::Adapter::Camping.new(CampApp).
-      call(TestRequest.env({"REQUEST_METHOD" => "POST",
-                             "rack.input" => StringIO.new("foo=bar")}))
+    res = Rack::MockRequest.new(Rack::Adapter::Camping.new(CampApp)).
+      post("/", :input => "foo=bar")
 
-    status.should.be 200
-
-    str = ""; body.each { |part| str << part }
-    str.should.equal "Data: bar"
+    res.should.be.ok
+    res.body.should.equal "Data: bar"
   end
 end
