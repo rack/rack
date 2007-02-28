@@ -2,6 +2,6 @@
 #\ -E deployment -I ~/projects/rack/lib
 # -*- ruby -*-
 
-require 'rack/testrequest'
+require '../testrequest'
 
 run TestRequest.new

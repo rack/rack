@@ -2,7 +2,7 @@ require 'test/spec'
 
 require 'rack/handler/mongrel'
 require 'rack/lint'
-require 'rack/testrequest'
+require 'testrequest'
 
 Thread.abort_on_exception = true
 $tcp_defer_accept_opts = nil

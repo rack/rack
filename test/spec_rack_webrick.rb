@@ -2,7 +2,7 @@ require 'test/spec'
 
 require 'rack/handler/webrick'
 require 'rack/lint'
-require 'rack/testrequest'
+require 'testrequest'
 
 Thread.abort_on_exception = true
 

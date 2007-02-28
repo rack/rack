@@ -1,5 +1,5 @@
 require 'test/spec'
-require 'rack/testrequest'
+require 'testrequest'
 
 pid = fork {
   exec "cd #{File.join(File.dirname(__FILE__), 'cgi')} && lighttpd -D -f lighttpd.conf"
