@@ -3,33 +3,27 @@ require 'stringio'
 
 require 'rack/commonlogger'
 require 'rack/lobster'
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::CommonLogger" do
+  App = lambda { |env|
+    [200,
+     {"Content-Type" => "text/html"},
+     ["foo"]]}
+
   specify "should log to rack.errors by default" do
     log = StringIO.new
-    _,_, b = Rack::CommonLogger.new(lambda { |env|
-                                      [200,
-                                       {"Content-Type" => "text/html"},
-                                       ["foo"]]
-                                    }).
-      call(TestRequest.env({'rack.errors' => log}))
-    b.each { }
+    res = Rack::MockRequest.new(Rack::CommonLogger.new(App)).get("/")
 
-    log.string.should =~ /GET /
-    log.string.should =~ / 200 / # status
-    log.string.should =~ / 3 / # length
+    res.errors.should.not.be.empty
+    res.errors.should =~ /GET /
+    res.errors.should =~ / 200 / # status
+    res.errors.should =~ / 3 /   # length
   end
 
   specify "should log to anything with <<" do
     log = ""
-    _,_, b = Rack::CommonLogger.new(lambda { |env|
-                                      [200,
-                                       {"Content-Type" => "text/html"},
-                                       ["foo"]]
-                                    },
-                                    log).call(TestRequest.env({}))
-    b.each { }
+    res = Rack::MockRequest.new(Rack::CommonLogger.new(App, log)).get("/")
 
     log.should =~ /GET /
     log.should =~ / 200 / # status
