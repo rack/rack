@@ -132,7 +132,7 @@ context "Rack::MockResponse" do
     res = Rack::MockRequest.new(app).get("")
     res.body.should =~ /rack/
     res.should =~ /rack/
-    res.should.match /rack/
+    res.should.match(/rack/)
   end
 
   specify "should provide access to the Rack errors" do

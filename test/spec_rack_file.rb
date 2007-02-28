@@ -13,7 +13,7 @@ context "Rack::File" do
       get("/cgi/test")
 
     res.should.be.ok
-    res.should.match /ruby/
+    res.should =~ /ruby/
   end
 
   specify "does not allow directory traversal" do
