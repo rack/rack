@@ -23,6 +23,9 @@ module Rack
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"
 
+  autoload :MockRequest, "rack/mock"
+  autoload :MockResponse, "rack/mock"
+
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"
 
