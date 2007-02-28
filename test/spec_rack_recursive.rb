@@ -3,7 +3,7 @@ require 'test/spec'
 require 'rack/recursive'
 require 'rack/urlmap'
 require 'rack/response'
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::Recursive" do
   setup do
@@ -38,15 +38,13 @@ context "Rack::Recursive" do
   end
 
   specify "should allow for subrequests" do
-    app = Rack::Recursive.new(Rack::URLMap.new("/app1" => @app1,
-                                               "/app2" => @app2))
+    res = Rack::MockRequest.new(Rack::Recursive.new(
+                                  Rack::URLMap.new("/app1" => @app1,
+                                                   "/app2" => @app2))).
+      get("/app2")
 
-    status, _, b = app.call(TestRequest.env("PATH_INFO" => "/app2",
-                                            "SCRIPT_NAME" => ""))
-    str = ""; b.each { |p| str << p }
-
-    status.should.equal 200
-    str.should.equal "App2App1"    
+    res.should.be.ok
+    res.body.should.equal "App2App1"    
   end
 
   specify "should raise error on requests not below the app" do
@@ -56,9 +54,7 @@ context "Rack::Recursive" do
                                                "/2" => @app2)))
 
     lambda {
-      status, _, b = app.call(TestRequest.env("PATH_INFO" => "/app/2",
-                                              "SCRIPT_NAME" => ""))
-      b.each { }
+      Rack::MockRequest.new(app).get("/app/2")
     }.should.raise(ArgumentError).
       message.should =~ /can only include below/
   end
@@ -68,21 +64,14 @@ context "Rack::Recursive" do
                                                "/app3" => @app3,
                                                "/app4" => @app4))
 
-    status, _, b = app.call(TestRequest.env("PATH_INFO" => "/app3",
-                                            "SCRIPT_NAME" => ""))
-    str = ""; b.each { |p| str << p }
+    res = Rack::MockRequest.new(app).get("/app3")
+    res.should.be.ok
+    res.body.should.equal "App1"
 
-    status.should.equal 200
-    str.should.equal "App1"
-
-
-    status, h, b = app.call(TestRequest.env("PATH_INFO" => "/app4",
-                                            "SCRIPT_NAME" => ""))
-    str = ""; b.each { |p| str << p }
-
-    status.should.equal 200
-    str.should.equal "App1"
-    h["X-Path-Info"].should.equal "/quux"
-    h["X-Query-String"].should.equal "meh"
+    res = Rack::MockRequest.new(app).get("/app4")
+    res.should.be.ok
+    res.body.should.equal "App1"
+    res["X-Path-Info"].should.equal "/quux"
+    res["X-Query-String"].should.equal "meh"
   end
 end
