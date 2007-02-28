@@ -1,7 +1,7 @@
 require 'test/spec'
 
 require 'rack/urlmap'
-require 'rack/testrequest'
+require 'rack/mock'
 
 context "Rack::URLMap" do
   specify "dispatches paths correctly" do
@@ -28,30 +28,28 @@ context "Rack::URLMap" do
                            )
 
     
-    status, headers, _ = map.call(TestRequest.env({}))
-    status.should.equal 404
+    Rack::MockRequest.new(map).get("/").should.be.not_found
 
-    status, headers, _ = map.call(TestRequest.env({"PATH_INFO" => "/foo"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo"
-    headers["X-PathInfo"].should.equal "/"
+    res = Rack::MockRequest.new(map).get("/foo")
+    res.should.be.ok
+    res["X-Position"].should.equal "/foo"
+    res["X-PathInfo"].should.equal "/"
 
-    status, headers, _ = map.call(TestRequest.env({"PATH_INFO" => "/bar"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/bar"
-    headers["X-PathInfo"].should.equal "/"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                  "PATH_INFO" => "/foo/quux"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo"
-    headers["X-PathInfo"].should.equal "/quux"
+    res = Rack::MockRequest.new(map).get("/bar")
+    res.should.be.ok
+    res["X-Position"].should.equal "/bar"
+    res["X-PathInfo"].should.equal "/"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/bleh",
-                                                  "PATH_INFO" => "/foo/quux"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo"
-    headers["X-PathInfo"].should.equal "/quux"
+    res = Rack::MockRequest.new(map).get("/foo/quux")
+    res.should.be.ok
+    res["X-Position"].should.equal "/foo"
+    res["X-PathInfo"].should.equal "/quux"
+
+    res = Rack::MockRequest.new(map).get("/foo/quux", "SCRIPT_NAME" => "/bleh")
+    res.should.be.ok
+    res["X-Position"].should.equal "/foo"
+    res["X-PathInfo"].should.equal "/quux"
   end
 
   specify "dispatches hosts correctly" do
@@ -75,35 +73,31 @@ context "Rack::URLMap" do
                               }, [""]]}
                            )
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "default.org"
+    res = Rack::MockRequest.new(map).get("/")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                  "HTTP_HOST" => "bar.org"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "bar.org"
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "bar.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "bar.org"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                  "HTTP_HOST" => "foo.org"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "foo.org"
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "foo.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "foo.org"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                  "SERVER_NAME" => "foo.org"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "default.org"
+    res = Rack::MockRequest.new(map).get("http://foo.org/")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                  "HTTP_HOST" => "example.org"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "default.org"
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "example.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                        "HTTP_HOST" => "example.org:9292",
-                                        "SERVER_PORT" => "9292"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "default.org"
+    res = Rack::MockRequest.new(map).get("/",
+                                         "HTTP_HOST" => "example.org:9292",
+                                         "SERVER_PORT" => "9292")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
   end
 
   specify "should be nestable" do
@@ -117,10 +111,9 @@ context "Rack::URLMap" do
                                             )
                            )
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                    "PATH_INFO" => "/foo/bar"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "/foo/bar"
+    res = Rack::MockRequest.new(map).get("/foo/bar")
+    res.should.be.ok
+    res["X-Position"].should.equal "/foo/bar"
   end
 
   specify "should route root apps correctly" do
@@ -136,14 +129,12 @@ context "Rack::URLMap" do
                               }, [""]]}
                            )
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                    "PATH_INFO" => "/foo/bar"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "foo"
+    res = Rack::MockRequest.new(map).get("/foo/bar")
+    res.should.be.ok
+    res["X-Position"].should.equal "foo"
 
-    status, headers, _ = map.call(TestRequest.env({"SCRIPT_NAME" => "/",
-                                                    "PATH_INFO" => "/bar"}))
-    status.should.equal 200
-    headers["X-Position"].should.equal "root"
+    res = Rack::MockRequest.new(map).get("/bar")
+    res.should.be.ok
+    res["X-Position"].should.equal "root"
   end
 end
