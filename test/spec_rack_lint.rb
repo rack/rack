@@ -234,11 +234,11 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       env["rack.input"].read(4096)
+                       env["rack.input"].read("foo")
                        [201, {"Content-type" => "text/plain"}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/read called with arguments/)
+      message.should.match(/read called with too many arguments/)
 
     weirdio = Object.new
     class << weirdio

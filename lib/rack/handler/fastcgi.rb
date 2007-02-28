@@ -16,8 +16,12 @@ module Rack
           end
         end
 
-        def read
-          super || ""           # Empty string on EOF.
+        def read(*args)
+          if args.empty?
+            super || ""           # Empty string on EOF.
+          else
+            super
+          end
         end
       end
 

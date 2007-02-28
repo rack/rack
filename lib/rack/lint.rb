@@ -217,11 +217,18 @@ module Rack
         v
       end
 
-      ## * +read+ must be called without arguments and return a string,
-      ##   or +nil+ on EOF.
+      ## * +read+ must be called without or with one integer argument
+      ##   and return a string, or +nil+ on EOF.
       def read(*args)
-        assert("rack.input#read called with arguments") { args.size == 0 }
-        v = @input.read
+        assert("rack.input#read called with too many arguments") {
+          args.size < 1
+        }
+        if args.size == 1
+          assert("rack.input#read called with non-integer argument") {
+            args.first.instance_of? Integer
+          }
+        end
+        v = @input.read(*args)
         assert("rack.input#read didn't return a String") {
           v.nil? or v.instance_of? String
         }
