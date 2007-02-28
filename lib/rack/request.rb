@@ -40,9 +40,12 @@ module Rack
         @env["rack.request.form_hash"]
       else
         @env["rack.request.form_input"] = @env["rack.input"]
-        @env["rack.request.form_vars"] = body.read
-        @env["rack.request.form_hash"] =
-          Utils.parse_query(@env["rack.request.form_vars"])
+        unless @env["rack.request.form_hash"] =
+            Utils::Multipart.parse_multipart(env) 
+          @env["rack.request.form_vars"] = @env["rack.input"].read
+          @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
+        end
+        @env["rack.request.form_hash"]
       end
     end
 

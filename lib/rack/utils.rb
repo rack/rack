@@ -1,3 +1,5 @@
+require 'tempfile'
+
 module Rack
   module Utils
     # Performs URI escaping so that you can construct proper
@@ -71,6 +73,92 @@ module Rack
 
       def capitalize(k)
         k.to_s.downcase.gsub(/^.|[-_\s]./) { |x| x.upcase }
+      end
+    end
+    
+    # Adapted from IOWA.
+    module Multipart
+      EOL = "\r\n"
+      
+      def self.parse_multipart(env)
+        unless env['CONTENT_TYPE'] =~ %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
+          nil
+        else
+          boundary = "--#{$1}"
+
+          params = {}
+          buf = ""
+          content_length = env['CONTENT_LENGTH'].to_i
+          input = env['rack.input']
+
+          boundary_size = boundary.size + EOL.size
+          bufsize = 16384
+
+          content_length -= boundary_size
+
+          status = input.read(boundary_size)
+          raise EOFError, "bad content body"  unless status == boundary + EOL
+
+          loop {
+            head = nil
+            body = ''
+            filename = content_type = name = nil
+
+            until head && buf =~ /#{boundary}(?:#{EOL}|--)/  # /
+              if !head && i = buf.index("\r\n\r\n")
+                head = buf.slice!(0, i+2) # First \r\n
+                buf.slice!(0, 2)          # Second \r\n
+                
+                filename = head[/Content-Disposition:.* filename="?([^\";]*)"?/ni, 1]
+                content_type = head[/Content-Type: (.*)\r\n/ni, 1]
+                name = head[/Content-Disposition:.* name="?([^\";]*)"?/ni, 1]
+                
+                body = Tempfile.new("RackMultipart")  if filename
+
+                next
+              end
+
+              # Save the read body part.
+              if head && (boundary.size+4 < buf.size)
+                body << buf.slice!(0, buf.size - (boundary.size+4))
+              end
+
+              c = input.read(bufsize < content_length ? bufsize : content_length)
+              raise EOFError, "bad content body"  if c.nil? || c.empty?
+              buf << c
+              content_length -= c.size
+            end
+
+            # Save the rest.
+            if i = buf.index(/(?:#{EOL})?#{boundary}(#{EOL}|--)/n)
+              body << buf.slice!(0, i)
+              buf.slice!(0, boundary_size+2)
+              
+              content_length = -1  if $1 == "--"
+            end
+
+            if filename
+              body.rewind
+              data = {:filename => filename, :type => content_type,
+                      :name => name, :tempfile => body, :head => head}
+            else
+              data = body
+            end
+
+            if name
+              if name =~ /\[\]\z/
+                params[name] ||= []
+                params[name] << data
+              else
+                params[name] = data
+              end
+            end
+
+            break  if buf.empty? || content_length == -1
+          }
+
+          params
+        end
       end
     end
   end

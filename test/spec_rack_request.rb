@@ -113,4 +113,103 @@ context "Rack::Request" do
                                         "rack.url_scheme" => "https"})).url.
       should.equal "https://example.org/"
   end
+
+  specify "can parse multipart form data" do
+    # Adapted from RFC 1867.
+    input = StringIO.new(<<EOF)
+--AaB03x\r
+content-disposition: form-data; name="reply"\r
+\r
+yes\r
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="dj.jpg"\r
+Content-Type: image/jpeg\r
+Content-Transfer-Encoding: base64\r
+\r
+/9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
+--AaB03x--\r
+EOF
+    input.rewind
+    req = Rack::Request.new \
+    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                    "CONTENT_LENGTH" => input.size,
+                      "rack.input" => input)
+
+    req.POST.should.include "fileupload"
+    req.POST.should.include "reply"
+
+    req.POST["reply"].should.equal "yes"
+
+    f = req.POST["fileupload"]
+    f.should.be.kind_of Hash
+    f[:type].should.equal "image/jpeg"
+    f[:filename].should.equal "dj.jpg"
+    f.should.include :tempfile
+    f[:tempfile].size.should.equal 76
+  end
+
+  specify "can parse big multipart form data" do
+    input = StringIO.new(<<EOF)
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+\r
+#{"x"*32768}\r
+--AaB03x\r
+content-disposition: form-data; name="mean"; filename="mean"\r
+\r
+--AaB03xha\r
+--AaB03x--\r
+EOF
+    input.rewind
+    req = Rack::Request.new \
+    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                    "CONTENT_LENGTH" => input.size,
+                      "rack.input" => input)
+    
+    req.POST["huge"][:tempfile].size.should.equal 32768
+    req.POST["mean"][:tempfile].size.should.equal 10
+    req.POST["mean"][:tempfile].read.should.equal "--AaB03xha"
+  end
+
+  specify "can detect invalid multipart form data" do
+    input = StringIO.new(<<EOF)
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+EOF
+    input.rewind
+    req = Rack::Request.new \
+    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                    "CONTENT_LENGTH" => input.size,
+                    "rack.input" => input)
+
+    lambda { req.POST }.should.raise(EOFError)
+
+    input = StringIO.new(<<EOF)
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+\r
+foo\r
+EOF
+    input.rewind
+    req = Rack::Request.new \
+    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                    "CONTENT_LENGTH" => input.size,
+                    "rack.input" => input)
+
+    lambda { req.POST }.should.raise(EOFError)
+
+    input = StringIO.new(<<EOF)
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+\r
+foo\r
+EOF
+    input.rewind
+    req = Rack::Request.new \
+    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                    "CONTENT_LENGTH" => input.size,
+                    "rack.input" => input)
+
+    lambda { req.POST }.should.raise(EOFError)
+  end
 end
