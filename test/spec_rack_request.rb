@@ -1,12 +1,12 @@
 require 'test/spec'
 require 'stringio'
 
-require 'rack/testrequest'
 require 'rack/request'
+require 'rack/mock'
 
 context "Rack::Request" do
   specify "wraps the rack variables" do
-    req = Rack::Request.new(TestRequest.env({}))
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
 
     req.body.should.respond_to? :gets
     req.scheme.should.equal "http"
@@ -21,20 +21,22 @@ context "Rack::Request" do
     req.path_info.should.equal "/"
     req.query_string.should.equal ""
 
-    req.host.should.equal "example.org"
+    req.host.should.equal "example.com"
     req.port.should.equal 8080
   end
 
   specify "can figure out the correct host" do
-    req = Rack::Request.new(TestRequest.env({"HTTP_HOST" => "www2.example.org"}))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org")
     req.host.should.equal "www2.example.org"
 
-    req = Rack::Request.new(TestRequest.env({"SERVER_NAME" => "example.org:9292"}))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org:9292")
     req.host.should.equal "example.org"
   end
 
   specify "can parse the query string" do
-    req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=bar&quux=bla"))
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
     req.query_string.should.equal "foo=bar&quux=bla"
     req.GET.should.equal "foo" => "bar", "quux" => "bla"
     req.POST.should.be.empty
@@ -42,8 +44,8 @@ context "Rack::Request" do
   end
 
   specify "can parse POST data" do
-    req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=quux",
-                              "rack.input" => StringIO.new("foo=bar&quux=bla")))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
     req.query_string.should.equal "foo=quux"
     req.GET.should.equal "foo" => "quux"
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
@@ -52,8 +54,8 @@ context "Rack::Request" do
 
 
   specify "can cache, but invalidates the cache" do
-    req = Rack::Request.new(TestRequest.env("QUERY_STRING"=>"foo=quux",
-                              "rack.input" => StringIO.new("foo=bar&quux=bla")))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
     req.GET.should.equal "foo" => "quux"
     req.GET.should.equal "foo" => "quux"
     req.env["QUERY_STRING"] = "bla=foo"
@@ -68,15 +70,17 @@ context "Rack::Request" do
   end
 
   specify "can figure out if called via XHR" do
-    req = Rack::Request.new(TestRequest.env({}))
+    req = Rack::Request.new(Rack::MockRequest.env_for(""))
     req.should.not.be.xhr
 
-    req = Rack::Request.new(TestRequest.env("HTTP_X_REQUESTED_WITH" => "XMLHttpRequest"))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest")
     req.should.be.xhr
   end
 
   specify "can parse cookies" do
-    req = Rack::Request.new(TestRequest.env({"HTTP_COOKIE" => "foo=bar;quux=h&m"}))
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
     req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
     req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
     req.env.delete("HTTP_COOKIE")
@@ -84,7 +88,7 @@ context "Rack::Request" do
   end
 
   specify "provides setters" do
-    req = Rack::Request.new(e=TestRequest.env({}))
+    req = Rack::Request.new(e=Rack::MockRequest.env_for(""))
     req.script_name.should.equal ""
     req.script_name = "/foo"
     req.script_name.should.equal "/foo"
@@ -97,29 +101,31 @@ context "Rack::Request" do
   end
 
   specify "provides the original env" do
-    req = Rack::Request.new(e=TestRequest.env({}))
+    req = Rack::Request.new(e=Rack::MockRequest.env_for(""))
     req.env.should.be e
   end
 
   specify "can restore the URL" do
-    Rack::Request.new(TestRequest.env({})).url.
-      should.equal "http://example.org:8080/"
-    Rack::Request.new(TestRequest.env({"SCRIPT_NAME" => "/foo"})).url.
-      should.equal "http://example.org:8080/foo/"
-    Rack::Request.new(TestRequest.env({"PATH_INFO" => "/foo"})).url.
-      should.equal "http://example.org:8080/foo"
-    Rack::Request.new(TestRequest.env({"QUERY_STRING" => "foo"})).url.
-      should.equal "http://example.org:8080/?foo"
-    Rack::Request.new(TestRequest.env({"SERVER_PORT" => "80"})).url.
+    Rack::Request.new(Rack::MockRequest.env_for("")).url.
       should.equal "http://example.org/"
-    Rack::Request.new(TestRequest.env({"SERVER_PORT" => "443",
-                                        "rack.url_scheme" => "https"})).url.
+    Rack::Request.new(Rack::MockRequest.env_for("", "SCRIPT_NAME" => "/foo")).url.
+      should.equal "http://example.org/foo/"
+    Rack::Request.new(Rack::MockRequest.env_for("/foo")).url.
+      should.equal "http://example.org/foo"
+    Rack::Request.new(Rack::MockRequest.env_for("?foo")).url.
+      should.equal "http://example.org/?foo"
+    Rack::Request.new(Rack::MockRequest.env_for("http://example.org:8080/")).url.
+      should.equal "http://example.org:8080/"
+    Rack::Request.new(Rack::MockRequest.env_for("https://example.org/")).url.
       should.equal "https://example.org/"
+
+    Rack::Request.new(Rack::MockRequest.env_for("https://example.com:8080/foo?foo")).url.
+      should.equal "https://example.com:8080/foo?foo"
   end
 
   specify "can parse multipart form data" do
     # Adapted from RFC 1867.
-    input = StringIO.new(<<EOF)
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="reply"\r
 \r
@@ -132,11 +138,10 @@ Content-Transfer-Encoding: base64\r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
 EOF
-    input.rewind
-    req = Rack::Request.new \
-    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                    "CONTENT_LENGTH" => input.size,
-                      "rack.input" => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
     req.POST.should.include "fileupload"
     req.POST.should.include "reply"
@@ -152,7 +157,7 @@ EOF
   end
 
   specify "can parse big multipart form data" do
-    input = StringIO.new(<<EOF)
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 \r
@@ -163,11 +168,10 @@ content-disposition: form-data; name="mean"; filename="mean"\r
 --AaB03xha\r
 --AaB03x--\r
 EOF
-    input.rewind
-    req = Rack::Request.new \
-    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                    "CONTENT_LENGTH" => input.size,
-                      "rack.input" => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
     
     req.POST["huge"][:tempfile].size.should.equal 32768
     req.POST["mean"][:tempfile].size.should.equal 10
@@ -175,43 +179,40 @@ EOF
   end
 
   specify "can detect invalid multipart form data" do
-    input = StringIO.new(<<EOF)
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 EOF
-    input.rewind
-    req = Rack::Request.new \
-    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                    "CONTENT_LENGTH" => input.size,
-                    "rack.input" => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
     lambda { req.POST }.should.raise(EOFError)
 
-    input = StringIO.new(<<EOF)
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 \r
 foo\r
 EOF
-    input.rewind
-    req = Rack::Request.new \
-    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                    "CONTENT_LENGTH" => input.size,
-                    "rack.input" => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
     lambda { req.POST }.should.raise(EOFError)
 
-    input = StringIO.new(<<EOF)
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 \r
 foo\r
 EOF
-    input.rewind
-    req = Rack::Request.new \
-    TestRequest.env("CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                    "CONTENT_LENGTH" => input.size,
-                    "rack.input" => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
     lambda { req.POST }.should.raise(EOFError)
   end
