@@ -1,6 +1,9 @@
 require 'tempfile'
 
 module Rack
+  # Rack::Utils contains a grab-bag of useful methods for writing web
+  # applications adopted from all kinds of Ruby libraries.
+  
   module Utils
     # Performs URI escaping so that you can construct proper
     # query strings faster.  Use this rather than the cgi.rb
@@ -45,6 +48,7 @@ module Rack
     end
     module_function :parse_query
 
+    # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
       string.to_s.gsub("&", "&amp;").
         gsub("<", "&lt;").
@@ -54,6 +58,7 @@ module Rack
     end
     module_function :escape_html
 
+    # A case-normalizing Hash, adjusting on [] and []=.
     class HeaderHash < Hash
       def initialize(hash={})
         hash.each { |k, v| self[k] = v }
@@ -76,7 +81,10 @@ module Rack
       end
     end
 
-    # Adapted from IOWA.
+    # A multipart form data parser, adapted from IOWA.
+    #
+    # Usually, Rack::Request#POST takes care of calling this.
+    
     module Multipart
       EOL = "\r\n"
 

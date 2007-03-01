@@ -1,4 +1,8 @@
 module Rack
+  # Rack::CommonLogger forwards every request to an +app+ given, and
+  # logs a line in the Apache common log format to the +logger+, or
+  # rack.errors by default.
+  
   class CommonLogger
     def initialize(app, logger=nil)
       @app = app
@@ -17,6 +21,7 @@ module Rack
       [@status, @header, self]
     end
 
+    # By default, log to rack.errors.
     def <<(str)
       @env["rack.errors"].write(str)
       @env["rack.errors"].flush

@@ -1,6 +1,12 @@
 require 'uri'
 
 module Rack
+  # Rack::ForwardRequest gets caught by Rack::Recursive and redirects
+  # the current request to the app at +url+.
+  #
+  #   raise ForwardRequest.new("/not-found")
+  #
+
   class ForwardRequest < Exception
     attr_reader :url, :env
 
@@ -18,6 +24,11 @@ module Rack
     end
   end
 
+  # Rack::Recursive allows applications called down the chain to
+  # include data from other applications (by using
+  # <tt>rack['rack.recursive.include'][...]</tt> or raise a
+  # ForwardRequest to redirect internally.
+  
   class Recursive
     def initialize(app)
       @app = app

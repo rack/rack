@@ -4,6 +4,19 @@ require 'rack/lint'
 require 'rack/utils'
 
 module Rack
+  # Rack::MockRequest helps testing your Rack application without
+  # actually using HTTP.
+  #
+  # After performing a request on a URL with get/post/put/delete, it
+  # returns a MockResponse with useful helper methods for effective
+  # testing.
+  #
+  # You can pass a hash with additional configuration to the
+  # get/post/put/delete.
+  # <tt>:input</tt>:: A String or IO-like to be used as rack.input.
+  # <tt>:fatal</tt>:: Raise a FatalWarning if the app writes to rack.errors.
+  # <tt>:lint</tt>:: If true, wrap the application in a Rack::Lint.
+  
   class MockRequest
     class FatalWarning < RuntimeError
     end
@@ -52,6 +65,7 @@ module Rack
       MockResponse.new(*(app.call(env) + [errors]))
     end
 
+    # Return the Rack environment used for a request to +uri+.
     def self.env_for(uri="", opts={})
       uri = URI(uri)
       env = DEFAULT_ENV.dup
@@ -85,6 +99,10 @@ module Rack
       env
     end
   end
+
+  # Rack::MockResponse provides useful helpers for testing your apps.
+  # Usually, you don't create the MockResponse on your own, but use
+  # MockRequest.
 
   class MockResponse
     def initialize(status, headers, body, errors=StringIO.new(""))

@@ -1,7 +1,16 @@
 require 'rack/utils'
 
 module Rack
+  # Rack::Request provides a convenient interface to a Rack
+  # environment.  It is stateless, the environment +env+ passed to the
+  # constructor will be directly modified.
+  #
+  #   req = Rack::Request.new(env)
+  #   req.post?
+  #   req.params["data"]
+  
   class Request
+    # The environment of the request.
     attr_reader :env
     
     def initialize(env)
@@ -29,6 +38,7 @@ module Rack
     def put?;            request_method == "PUT"                  end
     def delete?;         request_method == "DELETE"               end
 
+    # Returns the data recieved in the query string.
     def GET
       if @env["rack.request.query_string"] == query_string
         @env["rack.request.query_hash"]
@@ -39,6 +49,10 @@ module Rack
       end
     end
 
+    # Returns the data recieved in the request body.
+    #
+    # This method support both application/x-www-form-urlencoded and
+    # multipart/form-data.
     def POST
       if @env["rack.request.form_input"] == @env["rack.input"]
         @env["rack.request.form_hash"]
@@ -53,6 +67,7 @@ module Rack
       end
     end
 
+    # The union of GET and POST data.
     def params
       self.GET.update(self.POST)
     end
@@ -74,6 +89,7 @@ module Rack
       @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     end
 
+    # Tries to return a remake of the original request URL as a string.
     def url
       url = scheme + "://"
       url << host

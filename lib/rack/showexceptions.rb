@@ -3,6 +3,14 @@ require 'erb'
 require 'rack/request'
 
 module Rack
+  # Rack::ShowExceptions catches all exceptions raised from the app it
+  # wraps.  It shows a useful backtrace with the sourcefile and
+  # clickable context, the whole Rack environment and the request
+  # data.
+  #
+  # Be careful when you use this on public-facing sites as it could
+  # reveal information helpful to attackers.
+  
   class ShowExceptions
     CONTEXT = 7
 
@@ -60,6 +68,8 @@ module Rack
         Utils.escape_html(obj.inspect)
       end
     end
+
+    # :stopdoc:
 
 # adapted from Django <djangoproject.com>
 # Copyright (c) 2005, the Lawrence Journal-World
@@ -328,5 +338,7 @@ TEMPLATE = <<'HTML'
 </body>
 </html>
 HTML
+
+    # :startdoc:
   end
 end

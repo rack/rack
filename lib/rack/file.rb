@@ -1,4 +1,10 @@
 module Rack
+  # Rack::File serves files below the +root+ given, according to the
+  # path info of the Rack request.
+  #
+  # Handlers can detect if bodies are a Rack::File, and use mechanisms
+  # like sendfile on the +path+.
+  
   class File
     attr_accessor :root
     attr_accessor :path
@@ -40,7 +46,8 @@ module Rack
       }
     end
 
-    # From WEBrick
+    # :stopdoc:
+    # From WEBrick.
     MIME_TYPES = {
       "ai"    => "application/postscript",
       "asc"   => "text/plain",
@@ -96,5 +103,6 @@ module Rack
       "xwd"   => "image/x-xwindowdump",
       "zip"   => "application/zip",
     }
+    # :startdoc:
   end
 end

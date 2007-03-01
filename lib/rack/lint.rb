@@ -1,8 +1,13 @@
 module Rack
+  # Rack::Lint validates your application and the requests and
+  # responses according to the Rack spec.
+  
   class Lint
     def initialize(app)
       @app = app
     end
+
+    # :stopdoc:
 
     class LintError < RuntimeError; end
     module Assertion
@@ -376,6 +381,9 @@ module Rack
       @closed = true
       @body.close  if @body.respond_to?(:close)
     end
+
+    # :startdoc:
+
   end
 end
 

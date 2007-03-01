@@ -1,4 +1,21 @@
 module Rack
+  # Rack::Builder implements a small DSL to iteratively construct Rack
+  # applications.
+  #
+  # Example:
+  #
+  #  app = Rack::Builder.new {
+  #    use Rack::CommonLogger
+  #    use Rack::ShowExceptions
+  #    map "/lobster" do
+  #      use Rack::Lint
+  #      run Rack::Lobster.new
+  #    end
+  #  }
+  #
+  # +use+ adds a middleware to the stack, +run+ dispatches to an application.
+  # You can use +map+ to construct a Rack::URLMap in a convenient way.
+
   class Builder
     def initialize(&block)
       @ins = []
