@@ -31,6 +31,8 @@ module Rack
 
         request.in.extend ProperStream
 
+        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+
         env.update({"rack.version" => [0,1],
                      "rack.input" => request.in,
                      "rack.errors" => request.err,
