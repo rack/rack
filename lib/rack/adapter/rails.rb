@@ -42,11 +42,14 @@ module Rack
       end
       
       class RailsDispatcher::CGIStub
-        def initialize(env) @request = Request.new(env) end
-        def env_table() @request.env end
-        def params() @request.params end
-        def cookies() @request.cookies end
-        def query_string() @request.env["QUERY_STRING"] end
+        def initialize(env)
+          @request = Request.new(env)
+        end
+        
+        def env_table()    @request.env          end
+        def params()       @request.params       end
+        def cookies()      @request.cookies      end
+        def query_string() @request.query_string end
           
         def [](key)
           # FIXME: This is probably just wrong
@@ -54,7 +57,7 @@ module Rack
         end
 
         def key?(key)
-          (self[key]) ? true : false
+          self[key] ? true : false
         end
       end
     end
