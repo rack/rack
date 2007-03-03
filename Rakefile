@@ -103,16 +103,30 @@ else
     s.name            = "rack"
     s.version         = get_darcs_tree_version
     s.platform        = Gem::Platform::RUBY
-    s.summary         = ''
+    s.summary         = "a modular Ruby webserver interface"
+
+    s.description = <<-EOF
+Rack provides minimal, modular and adaptable interface for developing
+web applications in Ruby.  By wrapping HTTP requests and responses in
+the simplest way possible, it unifies and distills the API for web
+servers, web frameworks, and software in between (the so-called
+middleware) into a single method call.
+
+Also see http://rack.rubyforge.org.
+    EOF
 
     s.files           = manifest + %w(SPEC RDOX)
+    s.bindir          = 'bin'
+    s.executables     << 'rackup'
     s.require_path    = 'lib'
     s.has_rdoc        = true
+    s.extra_rdoc_files = ['README', 'SPEC', 'RDOX', 'KNOWN-ISSUES']
     s.test_files      = Dir['test/{test,spec}_*.rb']
 
     s.author          = 'Christian Neukirchen'
     s.email           = 'chneukirchen@gmail.com'
     s.homepage        = 'http://rack.rubyforge.org'
+    s.rubyforge_project = 'rack'
   end
 
   Rake::GemPackageTask.new(spec) do |p|
