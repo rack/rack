@@ -1,5 +1,8 @@
 require 'zlib'
 
+require 'rack/request'
+require 'rack/response'
+
 module Rack
   # Paste has a Pony, Rack has a Lobster!
   class Lobster

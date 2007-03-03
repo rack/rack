@@ -101,5 +101,10 @@ context "Rack::Response" do
     str = ""; body.each { |part| str << part }
     str.should.be.empty
     header["Content-Type"].should.equal nil
+
+    lambda {
+      Rack::Response.new(Object.new)
+    }.should.raise(TypeError).
+      message.should =~ /String or iterable required/
   end
 end
