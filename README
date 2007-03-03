@@ -1,6 +1,6 @@
 = Rack, a modular Ruby webserver interface
 
-Rack provides minimal, modular and adaptable interface for developing
+Rack provides a minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
 the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called

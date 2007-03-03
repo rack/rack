@@ -19,6 +19,7 @@ end
 # Helper to retrieve the "revision number" of the darcs tree.
 def get_darcs_tree_version
   unless File.directory? "_darcs"
+    $: << "lib"
     require 'rack'
     return Rack.version
   end
