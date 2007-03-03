@@ -7,11 +7,11 @@ desc "Run all the tests"
 task :default => [:test]
 
 desc "Do predistribution stuff"
-task :predist => [:chmod, :changelog, :rdoc, :distmanifest]
+task :predist => [:chmod, :changelog, :rdoc]
 
 
 desc "Make an archive as .tar.gz"
-task :dist => :test do
+task :dist => :fulltest do
   system "export DARCS_REPO=#{File.expand_path "."}; " +
          "darcs dist -d rack-#{get_darcs_tree_version}"
 end

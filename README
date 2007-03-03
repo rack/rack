@@ -37,10 +37,9 @@ These frameworks include Rack adapters in their distributions:
 Between the server and the framework, Rack can be customized to your
 applications needs using middleware, for example:
 * Rack::URLMap, to route to multiple applications inside the same process.
-* Rack::CommonLogger, for creating Apache-style logfiles
+* Rack::CommonLogger, for creating Apache-style logfiles.
 * Rack::ShowException, for catching unhandled exceptions and
-  presenting them in a nice and helpful way with clickable backtrace
-  etc.
+  presenting them in a nice and helpful way with clickable backtrace.
 * Rack::File, for serving static files.
 * ...
 
@@ -108,13 +107,14 @@ Please mail bugs, suggestions and patches to
 Darcs repository ("darcs send" is welcome for patches):
 http://chneukirchen.org/repos/rack
 
-You also are welcome to join the #rack channel on irc.freenode.net.
+You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Thanks to
 
-* Michael Fellinger, for helpful discussion.
+* Michael Fellinger, for the helpful discussion.
 * Christoffer Sawicki, for the Rails adapter.
 * Armin Ronacher, for the logo and racktools.
+* Alexander Kellett for testing the Gem and reviewing the announce.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
   Rack builds up on.
