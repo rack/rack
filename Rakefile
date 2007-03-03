@@ -53,6 +53,7 @@ end
 desc "Make binaries executable"
 task :chmod do
   Dir["bin/*"].each { |binary| File.chmod(0775, binary) }
+  Dir["test/cgi/test*"].each { |binary| File.chmod(0775, binary) }
 end
 
 desc "Generate a ChangeLog"
