@@ -124,10 +124,13 @@ end
 
 desc "Generate RDoc documentation"
 Rake::RDocTask.new(:rdoc) do |rdoc|
-  rdoc.options << '--line-numbers' << '--inline-source'
+  rdoc.options << '--line-numbers' << '--inline-source' <<
+    '--main' << 'README' <<
+    '--title' << 'Rack Documentation' <<
+    '--charset' << 'utf-8'
   rdoc.rdoc_dir = "doc"
   rdoc.rdoc_files.include 'README'
-#  rdoc.rdoc_files.include 'ROADMAP'
+  rdoc.rdoc_files.include 'KNOWN-ISSUES'
   rdoc.rdoc_files.include 'SPEC'
   rdoc.rdoc_files.include 'RDOX'
   rdoc.rdoc_files.include('lib/rack.rb')
