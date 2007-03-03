@@ -3,7 +3,7 @@
 Rack provides minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
 the simplest way possible, it unifies and distills the API for web
-servers, web frameworks, and software inbetween (the so-called
+servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
 The exact details of this are described in the Rack specification,
@@ -59,7 +59,7 @@ over:
 * Rack::Response, for convenient generation of HTTP replies and
   cookie handling.
 * Rack::MockRequest and Rack::MockResponse for efficient and quick
-  testing of Rack application without real HTTP roundtrips.
+  testing of Rack application without real HTTP round-trips.
 
 == rackup
 
@@ -143,6 +143,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 == Links
 
 Rack:: <http://rack.rubyforge.org/>
+Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 
 Camping:: <http://camping.rubyforge.org/>
 Ramaze:: <http://ramaze.rubyforge.org/>
