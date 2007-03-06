@@ -72,6 +72,8 @@ opts = OptionParser.new("", 24, '  ') { |opts|
   opts.parse! ARGV
 }
 
+require 'pp'  if $DEBUG
+
 config = ARGV[0] || "config.ru"
 if !File.exist? config
   abort "configuration #{config} not found"
