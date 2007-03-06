@@ -38,6 +38,11 @@ module Rack
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"
 
+  module Auth
+    autoload :Basic, "rack/auth/basic"
+    autoload :Request, "rack/auth/request"
+  end
+
   # *Adapters* connect Rack with third party web frameworks.
   #
   # Rack includes adapters for Camping and Rails.

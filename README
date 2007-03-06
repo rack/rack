@@ -99,6 +99,10 @@ at my site:
 
 * March 3rd, 2007: First public release 0.1.
 
+* XXX: Second public release 0.2.
+  * Bug fixes in the Camping handler.
+  * HTTP Basic authentication.
+
 == Contact
 
 Please mail bugs, suggestions and patches to
@@ -113,7 +117,9 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 * Michael Fellinger, for the helpful discussion.
 * Christoffer Sawicki, for the Rails adapter.
+* Tim Fletcher, for the HTTP authentication code.
 * Armin Ronacher, for the logo and racktools.
+* Aredridel, for bug fixing.
 * Alexander Kellett for testing the Gem and reviewing the announce.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
