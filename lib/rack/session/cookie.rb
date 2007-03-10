@@ -19,7 +19,7 @@ module Rack
 
     class Cookie
 
-      def initialize(app, options)
+      def initialize(app, options={})
         @app = app
         @key = options[:key] || "rack.session"
         @default_options = {:domain => nil, 
@@ -50,7 +50,7 @@ module Rack
         end
 
         def commit_session(env, status, headers, body)
-          session_data = Marshal.dump(env["rack.session_hash"])
+          session_data = Marshal.dump(env["rack.session"])
           session_data = Base64.encode64(session_data)
 
           if session_data.size > (4096 - @key.size)

@@ -102,6 +102,7 @@ at my site:
 * XXX: Second public release 0.2.
   * Bug fixes in the Camping handler.
   * HTTP Basic authentication.
+  * Cookie Sessions.
 
 == Contact
 

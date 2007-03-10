@@ -43,6 +43,10 @@ module Rack
     autoload :Request, "rack/auth/request"
   end
 
+  module Session
+    autoload :Cookie, "rack/session/cookie"
+  end
+
   # *Adapters* connect Rack with third party web frameworks.
   #
   # Rack includes adapters for Camping and Rails.
