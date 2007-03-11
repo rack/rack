@@ -2,7 +2,7 @@ module Rack
 
   # The Rack::Static middleware intercepts requests for static files
   # (javascript files, images, stylesheets, etc) based on the url prefixes
-  # passed in the options, and serve them using a Rack::File object. This
+  # passed in the options, and serves them using a Rack::File object. This
   # allows a Rack stack to serve both static and dynamic content.
   #
   # Examples:
@@ -16,10 +16,9 @@ module Rack
 
   class Static
 
-    def  initialize(app, options={})
+    def initialize(app, options={})
       @app = app
-      @urls = options[:urls] || Array.new
-      @urls << "/favicon.ico"
+      @urls = options[:urls] || ["/favicon.ico"]
       root = options[:root] || Dir.pwd
       @file_server = Rack::File.new(root)
     end
@@ -36,5 +35,4 @@ module Rack
     end
 
   end
-
 end

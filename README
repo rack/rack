@@ -101,8 +101,10 @@ at my site:
 
 * XXX: Second public release 0.2.
   * Bug fixes in the Camping handler.
+  * Improved Rack::Response.
   * HTTP Basic authentication.
   * Cookie Sessions.
+  * Static file handler.
 
 == Contact
 

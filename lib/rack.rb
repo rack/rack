@@ -29,6 +29,7 @@ module Rack
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :ShowExceptions, "rack/showexceptions"
+  autoload :Static, "rack/static"
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"
 
