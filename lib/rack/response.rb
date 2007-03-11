@@ -25,14 +25,14 @@ module Rack
 
       @body = []
 
-      if body.kind_of?(String)
-        write body
+      if body.respond_to? :to_str
+        write body.to_str
       elsif body.respond_to?(:each)
         body.each { |part|
           write part.to_s
         }
       else
-        raise TypeError, "String or iterable required"
+        raise TypeError, "stringable or iterable required"
       end
 
       yield self  if block_given?

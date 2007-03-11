@@ -105,6 +105,6 @@ context "Rack::Response" do
     lambda {
       Rack::Response.new(Object.new)
     }.should.raise(TypeError).
-      message.should =~ /String or iterable required/
+      message.should =~ /stringable or iterable required/
   end
 end
