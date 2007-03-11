@@ -107,7 +107,7 @@ module Rack
     end
 
     def write(str)
-      @writer.call str
+      @writer.call str.to_s
       str
     end
   end
