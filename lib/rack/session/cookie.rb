@@ -39,13 +39,14 @@ module Rack
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
 
-          if session_data.nil?
-            env["rack.session"] = Hash.new
-          else
+          begin
             session_data = Base64.decode64(session_data)
             session_data = Marshal.load(session_data)
             env["rack.session"] = session_data
+          rescue
+            env["rack.session"] = Hash.new
           end
+
           env["rack.session.options"] = @default_options.dup
         end
 
