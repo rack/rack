@@ -28,4 +28,10 @@ context "Rack::Session::Cookie" do
       get("/", "HTTP_COOKIE" => cookie)
     res.body.should.equal '{"counter"=>3}'
   end
+
+  specify "survives broken cookies" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
+      get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
+    res.body.should.equal '{"counter"=>1}'
+  end
 end
