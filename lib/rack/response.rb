@@ -2,18 +2,18 @@ require 'rack/request'
 require 'rack/utils'
 
 module Rack
-  # Rack::Request provides a convenient interface to create a Rack
+  # Rack::Response provides a convenient interface to create a Rack
   # response.
   #
   # It allows setting of headers and cookies, and provides useful
   # defaults (a OK response containing HTML).
   #
-  # You can use Request#write to iteratively generate your response,
-  # but note that this is buffered by Rack::Request until you call
+  # You can use Response#write to iteratively generate your response,
+  # but note that this is buffered by Rack::Response until you call
   # +finish+.  +finish+ however can take a block inside which calls to
   # +write+ are syncronous with the Rack response.
   #
-  # Your application's +call+ should end returning Request#finish.
+  # Your application's +call+ should end returning Response#finish.
 
   class Response
     def initialize(body=[], status=200, header={}, &block)
