@@ -1,0 +1,44 @@
+require 'base64'
+require 'digest/md5'
+
+module Rack
+  module Auth
+    module Digest
+      class Nonce
+
+        class << self
+          attr_accessor :private_key, :time_limit
+        end
+
+        def self.parse(string)
+          new *Base64.decode64(string).split(' ', 2)
+        end
+
+        def initialize(timestamp = Time.now, given_digest = nil)
+          @timestamp, @given_digest = timestamp.to_i, given_digest
+        end
+
+        def to_s
+          Base64.encode64([ @timestamp, digest ] * ' ').strip
+        end
+
+        def digest
+          ::Digest::MD5.hexdigest([ @timestamp, self.class.private_key ] * ':')
+        end
+
+        def valid?
+          digest == @given_digest
+        end
+
+        def stale?
+          !self.class.time_limit.nil? && (@timestamp - Time.now.to_i) < self.class.time_limit
+        end
+
+        def fresh?
+          !stale?
+        end
+
+      end
+    end
+  end
+end

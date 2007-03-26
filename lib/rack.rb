@@ -41,7 +41,14 @@ module Rack
 
   module Auth
     autoload :Basic, "rack/auth/basic"
-    autoload :Request, "rack/auth/request"
+    autoload :AbstractRequest, "rack/auth/abstract/request"
+    autoload :AbstractHandler, "rack/auth/abstract/handler"
+    module Digest
+      autoload :MD5, "rack/auth/digest/md5"
+      autoload :Nonce, "rack/auth/digest/nonce"
+      autoload :Params, "rack/auth/digest/params"
+      autoload :Request, "rack/auth/digest/request"
+    end
   end
 
   module Session

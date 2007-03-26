@@ -1,45 +1,51 @@
-require 'base64'
-require 'rack/auth/request'
+require 'rack/auth/abstract/handler'
+require 'rack/auth/abstract/request'
 
 module Rack
   module Auth
-    class Basic
-      
-      def initialize(app, options = {}, &authenticator)
-        unless options.has_key?(:realm)
-          raise ArgumentError, 'no realm specified'
-        end
-  
-        @app, @options, @authenticator = app, options, authenticator
-      end
+    class Basic < AbstractHandler
   
       def call(env)
-        auth = Auth::Request.new(env)
+        auth = Basic::Request.new(env)
         
-        if auth.provided? && auth.is?(:Basic) && valid?(auth.credentials)
+        return unauthorized unless auth.provided?
+        
+        return bad_request unless auth.basic?
+          
+        if valid?(auth)
           env['REMOTE_USER'] = auth.username
           
           return @app.call(env)
         end
   
-        return challenge_response
+        unauthorized
       end
-  
-  
+
+
       private
-  
-      def challenge_response
-        headers = {
-          'Content-Type' => 'text/html',
-          'WWW-Authenticate' => 'Basic realm="%s"' % @options[:realm]
-        }
-        return [ 401, headers, ['<h1>401 Unauthorized</h1>'] ]
+
+      def challenge
+        'Basic realm="%s"' % realm
       end
-  
-      def valid?(credentials)
-        @authenticator.call(*credentials)
+
+      def valid?(auth)
+        @authenticator.call *auth.credentials
       end
-  
+
+      class Request < Auth::AbstractRequest
+        def basic?
+          :basic == scheme
+        end
+        
+        def credentials
+          @credentials ||= Base64.decode64(params).split(/:/, 2)
+        end
+
+        def username
+          credentials.first
+        end
+      end
+
     end
   end
 end
