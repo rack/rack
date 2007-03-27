@@ -18,7 +18,7 @@ module Rack
         def correct_uri?
           @env['PATH_INFO'] == uri
         end
-                
+
         def nonce
           @nonce ||= Nonce.parse(params['nonce'])
         end

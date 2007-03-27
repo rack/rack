@@ -20,23 +20,23 @@ module Rack
         def self.split_header_value(str) # From WEBrick::HTTPUtils
           str.scan(/((?:"(?:\\.|[^"])+?"|[^",]+)+)(?:,\s*|\Z)/n).collect{ |v| v[0] }
         end
-        
+
         def initialize
           super
-          
+
           yield self if block_given?
         end
-        
+
         def [](k)
           super k.to_s
         end
-        
+
         def []=(k, v)
           super k.to_s, v.to_s
         end
 
         UNQUOTED = ['qop', 'nc', 'stale']
-        
+
         def to_s
           inject([]) do |parts, (k, v)|
             parts << "#{k}=" + (UNQUOTED.include?(k) ? v.to_s : quote(v))
@@ -48,7 +48,7 @@ module Rack
           '"' << str.gsub(/[\\\"]/o, "\\\1") << '"'
         end
 
-      end   
+      end
     end
   end
 end

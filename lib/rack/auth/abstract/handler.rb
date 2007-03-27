@@ -3,7 +3,7 @@ module Rack
     class AbstractHandler
 
       attr_accessor :realm
-      
+
       def initialize(app, &authenticator)
         @app, @authenticator = app, authenticator
       end
@@ -19,7 +19,7 @@ module Rack
       def bad_request
         [ 400, { 'Content-Type' => 'text/html' }, ['<h1>400 Bad Request</h1>'] ]
       end
-      
+
     end
   end
 end

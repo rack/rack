@@ -10,9 +10,14 @@ module Rack
       class MD5 < AbstractHandler
 
         attr_accessor :opaque
-        
+
         attr_writer :passwords_hashed
-        
+
+        def initialize(app)
+          super
+          @passwords_hashed = nil
+        end
+
         def passwords_hashed?
           !!@passwords_hashed
         end
@@ -52,11 +57,11 @@ module Rack
             params['nonce'] = Nonce.new.to_s
             params['opaque'] = H(opaque)
             params['qop'] = QOP
-            
+
             hash.each { |k, v| params[k] = v }
           end
         end
-        
+
         def challenge(hash = {})
           "Digest #{params(hash)}"
         end
@@ -72,19 +77,19 @@ module Rack
         def valid_opaque?(auth)
           H(opaque) == auth.opaque
         end
-    
+
         def valid_nonce?(auth)
           auth.nonce.valid?
         end
-    
+
         def valid_digest?(auth)
           digest(auth, @authenticator.call(auth.username)) == auth.response
-        end      
+        end
 
         def md5(data)
           ::Digest::MD5.hexdigest(data)
         end
-        
+
         alias :H :md5
 
         def KD(secret, data)

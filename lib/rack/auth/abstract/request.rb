@@ -15,7 +15,7 @@ module Rack
       def parts
         @parts ||= @env[authorization_key].split(' ', 2)
       end
-      
+
       def scheme
         @scheme ||= parts.first.downcase.to_sym
       end
@@ -34,6 +34,6 @@ module Rack
       end
 
     end
-    
+
   end
 end
