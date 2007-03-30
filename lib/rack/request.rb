@@ -99,14 +99,15 @@ module Rack
         url << ":#{port}"
       end
 
-      url << script_name
-      url << path_info
-
-      unless query_string.empty?
-        url << "?" << query_string
-      end
+      url << fullpath
 
       url
+    end
+
+    def fullpath
+      path = script_name + path_info
+      path << "?" << query_string  unless query_string.empty?
+      path
     end
   end
 end

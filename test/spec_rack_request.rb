@@ -123,6 +123,24 @@ context "Rack::Request" do
       should.equal "https://example.com:8080/foo?foo"
   end
 
+  specify "can restore the full path" do
+    Rack::Request.new(Rack::MockRequest.env_for("")).fullpath.
+      should.equal "/"
+    Rack::Request.new(Rack::MockRequest.env_for("", "SCRIPT_NAME" => "/foo")).fullpath.
+      should.equal "/foo/"
+    Rack::Request.new(Rack::MockRequest.env_for("/foo")).fullpath.
+      should.equal "/foo"
+    Rack::Request.new(Rack::MockRequest.env_for("?foo")).fullpath.
+      should.equal "/?foo"
+    Rack::Request.new(Rack::MockRequest.env_for("http://example.org:8080/")).fullpath.
+      should.equal "/"
+    Rack::Request.new(Rack::MockRequest.env_for("https://example.org/")).fullpath.
+      should.equal "/"
+
+    Rack::Request.new(Rack::MockRequest.env_for("https://example.com:8080/foo?foo")).fullpath.
+      should.equal "/foo?foo"
+  end
+
   specify "can parse multipart form data" do
     # Adapted from RFC 1867.
     input = <<EOF
