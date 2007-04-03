@@ -90,7 +90,7 @@ context 'Rack::Auth::Digest::MD5' do
     response.status.should.equal 401
     response.should.include 'WWW-Authenticate'
     response.headers['WWW-Authenticate'].should =~ /^Digest /
-    response.should =~ /401 Unauthorized/
+    response.body.should.be.empty
   end
   
   def assert_bad_request(response)

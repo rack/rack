@@ -9,15 +9,11 @@ module Rack
       end
 
       def unauthorized(www_authenticate = challenge)
-        headers = {
-          'Content-Type' => 'text/html',
-          'WWW-Authenticate' => www_authenticate.to_s
-        }
-        return [ 401, headers, ['<h1>401 Unauthorized</h1>'] ]
+        return [ 401, { 'WWW-Authenticate' => www_authenticate.to_s }, [] ]
       end
 
       def bad_request
-        [ 400, { 'Content-Type' => 'text/html' }, ['<h1>400 Bad Request</h1>'] ]
+        [ 400, {}, [] ]
       end
 
     end

@@ -1,5 +1,6 @@
 require 'test/spec'
 require 'base64'
+require 'rack'
 
 context 'Rack::Auth::Basic' do
 
@@ -34,7 +35,7 @@ context 'Rack::Auth::Basic' do
     response.status.should.equal 401
     response.should.include 'WWW-Authenticate'
     response.headers['WWW-Authenticate'].should =~ /Basic realm="/
-    response.should =~ /401 Unauthorized/
+    response.body.should.be.empty
   end
 
   specify 'should challenge correctly when no credentials are specified' do
