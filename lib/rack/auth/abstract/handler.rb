@@ -12,6 +12,9 @@ module Rack
         @app, @authenticator = app, authenticator
       end
 
+
+      private
+
       def unauthorized(www_authenticate = challenge)
         return [ 401, { 'WWW-Authenticate' => www_authenticate.to_s }, [] ]
       end
