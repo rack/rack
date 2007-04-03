@@ -7,6 +7,14 @@ require 'digest/md5'
 module Rack
   module Auth
     module Digest
+      # Rack::Auth::Digest::MD5 implements the MD5 algorithm version of
+      # HTTP Digest Authentication, as per RFC 2617.
+      #
+      # Initialize with the [Rack] application that you want protecting,
+      # and a block that looks up a plaintext password for a given username.
+      #
+      # +opaque+ needs to be set to a constant base64/hexadecimal string.
+      #
       class MD5 < AbstractHandler
 
         attr_accessor :opaque

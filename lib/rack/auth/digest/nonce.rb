@@ -4,6 +4,14 @@ require 'digest/md5'
 module Rack
   module Auth
     module Digest
+      # Rack::Auth::Digest::Nonce is the default nonce generator for the
+      # Rack::Auth::Digest::MD5 authentication handler.
+      #
+      # +private_key+ needs to set to a constant string.
+      #
+      # +time_limit+ can be optionally set to an integer (number of seconds),
+      # to limit the validity of the generated nonces.
+
       class Nonce
 
         class << self
