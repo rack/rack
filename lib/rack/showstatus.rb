@@ -20,17 +20,11 @@ module Rack
       status, headers, body = @app.call(env)
 
       # client or server error, or explicit message
-      if status.to_i >= 400 || env["rack.showstatus.detail"]
-        empty = true
-        body.each { empty = false; break }
-        if empty || env["rack.showstatus.detail"]
-          req = Rack::Request.new(env)
-          message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
-          detail = env["rack.showstatus.detail"] || message
-          [status, {"Content-Type" => "text/html"}, [@template.result(binding)]]
-        else
-          [status, headers, body]
-        end
+      if status.to_i >= 400 && body.empty? || env["rack.showstatus.detail"]
+        req = Rack::Request.new(env)
+        message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
+        detail = env["rack.showstatus.detail"] || message
+        [status, headers.merge("Content-Type" => "text/html"), [@template.result(binding)]]
       else
         [status, headers, body]
       end

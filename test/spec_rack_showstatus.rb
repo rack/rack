@@ -44,6 +44,15 @@ context "Rack::ShowStatus" do
     res.body.should == "foo!"
   end
 
+  specify "should pass on original headers" do
+    headers = {"WWW-Authenticate" => "Basic blah"}
+
+    req = Rack::MockRequest.new(Rack::ShowStatus.new(lambda { |env| [401, headers, []] }))
+    res = req.get("/", :lint => true)
+
+    res["WWW-Authenticate"].should.equal("Basic blah")
+  end
+
   specify "should replace existing messages if there is detail" do
     req = Rack::MockRequest.new(Rack::ShowStatus.new(lambda { |env|
                                                        env["rack.showstatus.detail"] = "gone too meta."
