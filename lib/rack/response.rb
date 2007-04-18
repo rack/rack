@@ -22,6 +22,7 @@ module Rack
                                       merge(header))
 
       @writer = lambda { |x| @body << x }
+      @block = nil
 
       @body = []
 
@@ -109,6 +110,10 @@ module Rack
     def write(str)
       @writer.call str.to_s
       str
+    end
+
+    def empty?
+      @block == nil && @body.empty?
     end
   end
 end

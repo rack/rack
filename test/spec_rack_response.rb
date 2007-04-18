@@ -107,4 +107,21 @@ context "Rack::Response" do
     }.should.raise(TypeError).
       message.should =~ /stringable or iterable required/
   end
+
+  specify "knows if it's empty" do
+    r = Rack::Response.new
+    r.should.be.empty
+    r.write "foo"
+    r.should.not.be.empty
+
+    r = Rack::Response.new
+    r.should.be.empty
+    r.finish
+    r.should.be.empty
+
+    r = Rack::Response.new
+    r.should.be.empty
+    r.finish { }
+    r.should.not.be.empty
+  end
 end
