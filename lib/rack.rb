@@ -22,6 +22,7 @@ module Rack
   end
 
   autoload :Builder, "rack/builder"
+  autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
   autoload :ForwardRequest, "rack/recursive"
