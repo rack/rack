@@ -34,4 +34,16 @@ context "Rack::Session::Cookie" do
       get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
     res.body.should.equal '{"counter"=>1}'
   end
+
+  bigcookie = lambda { |env|
+    env["rack.session"]["cookie"] = "big" * 3000
+    Rack::Response.new(env["rack.session"].inspect).to_a
+  }
+
+  specify "barks on too big cookies" do
+    lambda {
+      Rack::MockRequest.new(Rack::Session::Cookie.new(bigcookie)).
+        get("/", :fatal => true)
+    }.should.raise(Rack::MockRequest::FatalWarning)
+  end
 end

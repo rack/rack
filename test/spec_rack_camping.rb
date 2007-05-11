@@ -1,5 +1,6 @@
 require 'test/spec'
 require 'stringio'
+require 'uri'
 
 require 'rack/mock'
 
@@ -12,6 +13,7 @@ module CampApp
   module Controllers
     class HW < R('/')
       def get
+        @headers["X-Served-By"] = URI("http://rack.rubyforge.org")
         "Camping works!"
       end
 
@@ -30,6 +32,7 @@ context "Rack::Adapter::Camping" do
 
     res.should.be.ok
     res["Content-Type"].should.equal "text/html"
+    res["X-Served-By"].should.equal "http://rack.rubyforge.org"
 
     res.body.should.equal "Camping works!"
   end

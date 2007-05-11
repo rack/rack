@@ -17,14 +17,8 @@ context "Rack::URLMap" do
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "/bar",
                                 "X-PathInfo" => env["PATH_INFO"],
-                              }, [""]]},
-                           
-                           "/foo/bar" => lambda { |env|
-                             [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "/foo/bar", 
-                                "X-PathInfo" => env["PATH_INFO"],
                               }, [""]]}
+                           
                            )
 
     

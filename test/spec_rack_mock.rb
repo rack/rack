@@ -126,6 +126,7 @@ context "Rack::MockResponse" do
     res["Content-Type"].should.equal "text/yaml"
     res.content_type.should.equal "text/yaml"
     res.content_length.should.be.nil
+    res.location.should.be.nil
   end
 
   specify "should provide access to the HTTP body" do
@@ -133,6 +134,7 @@ context "Rack::MockResponse" do
     res.body.should =~ /rack/
     res.should =~ /rack/
     res.should.match(/rack/)
+    res.should.satisfy { |r| r.match(/rack/) }
   end
 
   specify "should provide access to the Rack errors" do

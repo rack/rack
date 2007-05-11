@@ -32,6 +32,10 @@ module Rack
 
       def flush
       end
+
+      def string
+        ""
+      end
     end
 
     DEFAULT_ENV = {
