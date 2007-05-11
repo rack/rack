@@ -124,4 +124,36 @@ context "Rack::Response" do
     r.finish { }
     r.should.not.be.empty
   end
+
+  specify "should provide access to the HTTP status" do
+    res = Rack::Response.new
+    res.status = 200
+    res.should.be.successful
+    res.should.be.ok
+
+    res.status = 404
+    res.should.not.be.successful
+    res.should.be.client_error
+    res.should.be.not_found
+
+    res.status = 501
+    res.should.not.be.successful
+    res.should.be.server_error
+
+    res.status = 307
+    res.should.be.redirect
+  end
+
+  specify "should provide access to the HTTP headers" do
+    res = Rack::Response.new
+    res["Content-Type"] = "text/yaml"
+
+    res.should.include "Content-Type"
+    res.headers["Content-Type"].should.equal "text/yaml"
+    res["Content-Type"].should.equal "text/yaml"
+    res.content_type.should.equal "text/yaml"
+    res.content_length.should.be.nil
+    res.location.should.be.nil
+  end
+
 end

@@ -115,5 +115,46 @@ module Rack
     def empty?
       @block == nil && @body.empty?
     end
+
+    alias headers header
+
+    module Helpers
+      def invalid?;       @status < 100 || @status >= 600;       end
+      
+      def informational?; @status >= 100 && @status < 200;       end
+      def successful?;    @status >= 200 && @status < 300;       end
+      def redirection?;   @status >= 300 && @status < 400;       end
+      def client_error?;  @status >= 400 && @status < 500;       end
+      def server_error?;  @status >= 500 && @status < 600;       end
+      
+      def ok?;            @status == 200;                        end
+      def forbidden?;     @status == 403;                        end
+      def not_found?;     @status == 404;                        end
+      
+      def redirect?;      [301, 302, 303, 307].include? @status; end
+      def empty?;         [201, 204, 304].include?      @status; end
+      
+      # Headers
+      attr_reader :headers, :original_headers
+      
+      def include?(header)
+        !!headers[header]
+      end
+      
+      def content_type
+        headers["Content-Type"]
+      end
+      
+      def content_length
+        cl = headers["Content-Length"]
+        cl ? cl.to_i : cl
+      end
+      
+      def location
+        headers["Location"]
+      end
+    end
+
+    include Helpers
   end
 end
