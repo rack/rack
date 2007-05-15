@@ -81,6 +81,18 @@ context "Rack::Handler::Mongrel" do
     response["rack.url_scheme"].should.equal "http"
   end
 
+  specify "should provide a .run" do
+    block_ran = false
+    catch(:done) {
+      Rack::Handler::Mongrel.run(lambda {}, {:Port => 9211}) { |server|
+        block_ran = true
+        server.should.be.kind_of Mongrel::HttpServer
+        throw :done
+      }
+    }
+    block_ran.should.be true
+  end
+
   teardown do
     @acc.raise Mongrel::StopServer
   end

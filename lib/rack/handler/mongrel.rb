@@ -4,10 +4,11 @@ require 'stringio'
 module Rack
   module Handler
     class Mongrel < ::Mongrel::HttpHandler
-      def self.run(app, options)
+      def self.run(app, options={})
         server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                            options[:Port] || 8080)
         server.register('/', Rack::Handler::Mongrel.new(app))
+        yield server
         server.run.join
       end
       

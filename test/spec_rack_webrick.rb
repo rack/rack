@@ -83,6 +83,23 @@ context "Rack::Handler::WEBrick" do
     response["rack.url_scheme"].should.equal "http"
   end
 
+  specify "should provide a .run" do
+    block_ran = false
+    catch(:done) {
+      Rack::Handler::WEBrick.run(lambda {},
+                                 {:Port => 9210,
+                                   :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+                                   :AccessLog => []}) { |server|
+        block_ran = true
+        server.should.be.kind_of WEBrick::HTTPServer
+        @s = server
+        throw :done
+      }
+    }
+    block_ran.should.be true
+    @s.shutdown
+  end
+
   teardown do
     @server.shutdown
   end
