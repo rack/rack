@@ -12,8 +12,8 @@ task :predist => [:chmod, :changelog, :rdoc]
 
 desc "Make an archive as .tar.gz"
 task :dist => :fulltest do
-  system "export DARCS_REPO=#{File.expand_path "."}; " +
-         "darcs dist -d rack-#{get_darcs_tree_version}"
+  sh "export DARCS_REPO=#{File.expand_path "."}; " +
+     "darcs dist -d rack-#{get_darcs_tree_version}"
 end
 
 # Helper to retrieve the "revision number" of the darcs tree.
@@ -59,13 +59,13 @@ end
 
 desc "Generate a ChangeLog"
 task :changelog do
-  system "darcs changes --repo=#{ENV["DARCS_REPO"] || "."} >ChangeLog"
+  sh "darcs changes --repo=#{ENV["DARCS_REPO"] || "."} >ChangeLog"
 end
 
 
 desc "Generate RDox"
 task "RDOX" do
-  system "specrb -Ilib:test -a --rdox >RDOX"
+  sh "specrb -Ilib:test -a --rdox >RDOX"
 end
 
 desc "Generate Rack Specification"
@@ -81,12 +81,12 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  system "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter)"'}"
+  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter)"'}"
 end
 
 desc "Run all the tests"
 task :fulltest do
-  system "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
+  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
 end
 
 begin
@@ -156,8 +156,8 @@ end
 task :rdoc => ["SPEC", "RDOX"]
 
 task :pushsite => [:rdoc] do
-  system "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
-  system "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"
+  sh "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
+  sh "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"
 end
 
 begin
