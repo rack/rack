@@ -72,6 +72,28 @@ module Rack
       self.GET.update(self.POST)
     end
 
+    # shortcut for request.params[key]
+    def [](key)
+      params[key.to_s]
+    end
+
+    # shortcut for request.params[key] = value
+    def []=(key, value)
+      params[key.to_s] = value
+    end
+
+    # like Hash#values_at
+    def values_at(*keys)
+      keys.map{|key| params[key] }
+    end
+
+    # the referer of the client or '/'
+    def referer
+      @env['HTTP_REFERER'] || '/'
+    end
+    alias referrer referer
+
+
     def cookies
       return {}  unless @env["HTTP_COOKIE"]
 

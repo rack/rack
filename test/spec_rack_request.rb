@@ -52,6 +52,48 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  specify "can get value by key from params with #[]" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("?foo=quux")
+    req['foo'].should.equal 'quux'
+    req[:foo].should.equal 'quux'
+  end
+
+  specify "can set value to key on params with #[]=" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("?foo=duh")
+    req['foo'].should.equal 'duh'
+    req[:foo].should.equal 'duh'
+    req.params.should.equal 'foo' => 'duh'
+
+    req['foo'] = 'bar'
+    req.params.should.equal 'foo' => 'bar'
+    req['foo'].should.equal 'bar'
+    req[:foo].should.equal 'bar'
+
+    req[:foo] = 'jaz'
+    req.params.should.equal 'foo' => 'jaz'
+    req['foo'].should.equal 'jaz'
+    req[:foo].should.equal 'jaz'
+  end
+
+  specify "values_at answers values by keys in order given" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("?foo=baz&wun=der&bar=ful")
+    req.values_at('foo').should.equal ['baz']
+    req.values_at('foo', 'wun').should.equal ['baz', 'der']
+    req.values_at('bar', 'foo', 'wun').should.equal ['ful', 'baz', 'der']
+  end
+
+  specify "referrer should be extracted correct" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_REFERER" => "/some/path")
+    req.referer.should.equal "/some/path"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/")
+    req.referer.should.equal "/"
+  end
 
   specify "can cache, but invalidates the cache" do
     req = Rack::Request.new \
