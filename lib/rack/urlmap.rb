@@ -10,7 +10,7 @@ module Rack
   #
   # URLMap dispatches in such a way that the longest paths are tried
   # first, since they are most specific.
-  
+
   class URLMap
     def initialize(map)
       @mapping = map.map { |location, app|

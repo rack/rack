@@ -9,7 +9,7 @@ module Rack
   # Additional details can be put into <tt>rack.showstatus.detail</tt>
   # and will be shown as HTML.  If such details exist, the error page
   # is always rendered, even if the reply was not empty.
-  
+
   class ShowStatus
     def initialize(app)
       @app = app

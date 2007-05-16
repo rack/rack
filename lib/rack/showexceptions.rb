@@ -10,7 +10,7 @@ module Rack
   #
   # Be careful when you use this on public-facing sites as it could
   # reveal information helpful to attackers.
-  
+
   class ShowExceptions
     CONTEXT = 7
 

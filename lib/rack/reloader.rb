@@ -6,7 +6,7 @@ module Rack
   # rack.errors.
   #
   # It is recommended you use ShowExceptions to catch SyntaxErrors etc.
-  
+
   class Reloader
     def initialize(app, secs=10)
       @app = app

@@ -28,7 +28,7 @@ module Rack
   # include data from other applications (by using
   # <tt>rack['rack.recursive.include'][...]</tt> or raise a
   # ForwardRequest to redirect internally.
-  
+
   class Recursive
     def initialize(app)
       @app = app

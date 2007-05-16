@@ -17,7 +17,7 @@ module Rack
   # <tt>:input</tt>:: A String or IO-like to be used as rack.input.
   # <tt>:fatal</tt>:: Raise a FatalWarning if the app writes to rack.errors.
   # <tt>:lint</tt>:: If true, wrap the application in a Rack::Lint.
-  
+
   class MockRequest
     class FatalWarning < RuntimeError
     end

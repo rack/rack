@@ -21,14 +21,14 @@ module Rack
         lobster = LobsterString
         href = "?flip"
       end
-      
+
       [200, {"Content-Type" => "text/html"},
        ["<title>Lobstericious!</title>",
         "<pre>", lobster, "</pre>",
         "<a href='#{href}'>flip!</a>"]
       ]
     }
-    
+
     def call(env)
       req = Request.new(env)
       if req.GET["flip"] == "left"
@@ -42,7 +42,7 @@ module Rack
         lobster = LobsterString
         href = "?flip=left"
       end
-      
+
       Response.new.finish do |res|
         res.write "<title>Lobstericious!</title>"
         res.write "<pre>"

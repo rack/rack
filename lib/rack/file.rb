@@ -4,7 +4,7 @@ module Rack
   #
   # Handlers can detect if bodies are a Rack::File, and use mechanisms
   # like sendfile on the +path+.
-  
+
   class File
     attr_accessor :root
     attr_accessor :path

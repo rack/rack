@@ -1,7 +1,7 @@
 module Rack
   # Rack::Lint validates your application and the requests and
   # responses according to the Rack spec.
-  
+
   class Lint
     def initialize(app)
       @app = app
@@ -47,7 +47,7 @@ module Rack
       check_content_type status, headers
       [status, headers, self]
     end
-    
+
     ## == The Environment
     def check_env(env)
       ## The environment must be an true instance of Hash (no
@@ -210,7 +210,7 @@ module Rack
       def initialize(input)
         @input = input
       end
-      
+
       ## * +gets+ must be called without arguments and return a string,
       ##   or +nil+ on EOF.
       def gets(*args)

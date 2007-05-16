@@ -8,11 +8,11 @@ module Rack
   #   req = Rack::Request.new(env)
   #   req.post?
   #   req.params["data"]
-  
+
   class Request
     # The environment of the request.
     attr_reader :env
-    
+
     def initialize(env)
       @env = env
     end
@@ -59,7 +59,7 @@ module Rack
       else
         @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] =
-            Utils::Multipart.parse_multipart(env) 
+            Utils::Multipart.parse_multipart(env)
           @env["rack.request.form_vars"] = @env["rack.input"].read
           @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
         end
