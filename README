@@ -13,6 +13,7 @@ which all Rack applications should conform to.
 
 The included *handlers* connect all kinds of web servers to Rack:
 * Mongrel
+* Mongrel/Swiftcore (require it before Rack.)
 * WEBrick
 * FCGI
 * CGI
@@ -76,11 +77,11 @@ Try the lobster!
 
 Either with the embedded WEBrick starter:
 
-  ruby -Ilib lib/rack/lobster.rb
+    ruby -Ilib lib/rack/lobster.rb
 
 Or with rackup:
 
-  bin/rackup -Ilib example/lobster.ru 
+    bin/rackup -Ilib example/lobster.ru 
 
 By default, the lobster is found at http://localhost:9292.
 
@@ -99,12 +100,15 @@ at my site:
 
 * March 3rd, 2007: First public release 0.1.
 
-* XXX: Second public release 0.2.
-  * Bug fixes in the Camping handler.
-  * Improved Rack::Response.
+* May 16th, 2007: Second public release 0.2.
   * HTTP Basic authentication.
   * Cookie Sessions.
   * Static file handler.
+  * Improved Rack::Request.
+  * Improved Rack::Response.
+  * Added Rack::ShowStatus, for better default error messages.
+  * Bug fixes in the Camping adapter.
+  * Removed Rails adapter, was too alpha.
 
 == Contact
 
@@ -118,11 +122,13 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Thanks to
 
-* Michael Fellinger, for the helpful discussion.
+* Michael Fellinger, for the helpful discussion, bugfixes and a better
+  Rack::Request interface.
 * Christoffer Sawicki, for the Rails adapter.
 * Tim Fletcher, for the HTTP authentication code.
 * Armin Ronacher, for the logo and racktools.
 * Aredridel, for bug fixing.
+* Gary Wright, for proposing a better Rack::Response interface.
 * Alexander Kellett for testing the Gem and reviewing the announce.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
