@@ -8,7 +8,7 @@ module Rack
         server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                            options[:Port] || 8080)
         server.register('/', Rack::Handler::Mongrel.new(app))
-        yield server
+        yield server  if block_given?
         server.run.join
       end
       

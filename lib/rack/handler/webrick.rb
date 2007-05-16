@@ -8,7 +8,7 @@ module Rack
         server = ::WEBrick::HTTPServer.new(options)
         server.mount "/", Rack::Handler::WEBrick, app
         trap(:INT) { server.shutdown }
-        yield server
+        yield server  if block_given?
         server.start
       end
       
