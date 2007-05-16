@@ -60,7 +60,7 @@ module Rack
       [@template.result(binding)]
     end
 
-    def h(obj)
+    def h(obj)                  # :nodoc:
       case obj
       when String
         Utils.escape_html(obj)

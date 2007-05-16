@@ -9,7 +9,7 @@ module Rack
         }
       end
 
-      module ProperStream
+      module ProperStream       # :nodoc:
         def each                # This is missing by default.
           while line = gets
             yield line

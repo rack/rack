@@ -27,7 +27,7 @@ module Rack
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
-    # parameter (which defaults to '&;'.
+    # parameter (which defaults to '&;').
 
     def parse_query(qs, d = '&;')
       params = {}

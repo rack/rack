@@ -5,10 +5,10 @@ module Rack
   module Auth
     # Rack::Auth::Basic implements HTTP Basic Authentication, as per RFC 2617.
     #
-    # Initialize with the [Rack] application that you want protecting,
+    # Initialize with the Rack application that you want protecting,
     # and a block that checks if a username and password pair are valid.
     #
-    # See also: example/protectedlobster.rb
+    # See also: <tt>example/protectedlobster.rb</tt>
 
     class Basic < AbstractHandler
 

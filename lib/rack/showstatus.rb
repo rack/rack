@@ -6,9 +6,9 @@ module Rack
   # Rack::ShowStatus catches all empty responses the app it wraps and
   # replaces them with a site explaining the error.
   #
-  # Additional details can be put into rack.showstatus.detail and will
-  # be shown as HTML.  If such details exist, the error page is always
-  # rendered, even if the reply was not empty.
+  # Additional details can be put into <tt>rack.showstatus.detail</tt>
+  # and will be shown as HTML.  If such details exist, the error page
+  # is always rendered, even if the reply was not empty.
   
   class ShowStatus
     def initialize(app)
@@ -31,7 +31,7 @@ module Rack
       end
     end
 
-    def h(obj)
+    def h(obj)                  # :nodoc:
       case obj
       when String
         Utils.escape_html(obj)
