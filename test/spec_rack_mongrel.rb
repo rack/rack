@@ -83,13 +83,13 @@ context "Rack::Handler::Mongrel" do
 
   specify "should provide a .run" do
     block_ran = false
-    catch(:done) {
+    Thread.new {
       Rack::Handler::Mongrel.run(lambda {}, {:Port => 9211}) { |server|
-        block_ran = true
         server.should.be.kind_of Mongrel::HttpServer
-        throw :done
+        block_ran = true
       }
     }
+    sleep 1
     block_ran.should.be true
   end
 
