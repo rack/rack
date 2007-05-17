@@ -1,20 +1,20 @@
 require 'test/spec'
 require 'testrequest'
 
-pid = fork {
-  exec "cd #{File.join(File.dirname(__FILE__), 'cgi')} && lighttpd -D -f lighttpd.conf"
-}
-
-at_exit {
-  Process.kill 15, pid
-}
-
 context "Rack::Handler::CGI" do
   include TestRequest::Helpers
   
   setup do
     @host = '0.0.0.0'
     @port = 9203
+  end
+
+  # Keep this first.
+  specify "startup" do
+    $pid = fork {
+      Dir.chdir File.join(File.dirname(__FILE__), 'cgi')
+      exec "lighttpd -D -f lighttpd.conf"
+    }
   end
 
   specify "should respond" do
@@ -78,5 +78,11 @@ context "Rack::Handler::CGI" do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
+  end
+
+  # Keep this last.
+  specify "shutdown" do
+    Process.kill 15, $pid
+    Process.wait($pid).should.equal $pid
   end
 end
