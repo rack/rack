@@ -130,6 +130,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 * Armin Ronacher, for the logo and racktools.
 * Aredridel, for bug fixing.
 * Gary Wright, for proposing a better Rack::Response interface.
+* Jonathan Buch, for improvements regarding Rack::Response.
 * Alexander Kellett for testing the Gem and reviewing the announce.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
