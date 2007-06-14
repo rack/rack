@@ -15,6 +15,14 @@ context "Rack::File" do
     res.should.be.ok
     res.should =~ /ruby/
   end
+  
+  specify "serves files with URL encoded filenames" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/%74%65%73%74") # "/cgi/test"
+
+    res.should.be.ok
+    res.should =~ /ruby/
+  end
 
   specify "does not allow directory traversal" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).

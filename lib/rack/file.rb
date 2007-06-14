@@ -24,7 +24,7 @@ module Rack
         return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]]
       end
 
-      @path = F.join(@root, env["PATH_INFO"])
+      @path = F.join(@root, Utils.unescape(env["PATH_INFO"]))
       ext = F.extname(@path)[1..-1]
 
       if F.file?(@path) && F.readable?(@path)
