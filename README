@@ -110,6 +110,9 @@ at my site:
   * Bug fixes in the Camping adapter.
   * Removed Rails adapter, was too alpha.
 
+* XXX, 2007: Third public release 0.3.
+  * LiteSpeed handler, by Adrian Madrid.
+
 == Contact
 
 Please mail bugs, suggestions and patches to
@@ -124,6 +127,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 * Michael Fellinger, for the helpful discussion, bugfixes and a better
   Rack::Request interface.
+* Adrian Madrid, for the LiteSpeed handler.
 * Christoffer Sawicki, for the Rails adapter.
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions and the static file handler.

@@ -81,6 +81,7 @@ module Rack
     autoload :FastCGI, "rack/handler/fastcgi"
     autoload :Mongrel, "rack/handler/mongrel"
     autoload :WEBrick, "rack/handler/webrick"
+    autoload :LSWS, "rack/handler/lsws"
   end
 end
 
