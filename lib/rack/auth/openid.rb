@@ -1,0 +1,91 @@
+# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+require 'rack/auth/abstract/handler'
+require 'rubygems'
+require 'openid'
+module Rack
+  module Auth
+    # Rack::Auth::OpenID provides a simple method for permitting openid
+    # based logins. It requires the ruby-openid lib from janrain to operate,
+    # as well as some method of session management of a Hash type.
+    #
+    # NOTE: Due to the amount of data that ruby-openid stores in the session,
+    # Rack::Session::Cookie may fault.
+    #
+    # A hash of data is stored in the session hash at the key of :openid.
+    # The fully canonicalized identity url is stored within at 'identity'.
+    # Extension data from 'openid.sreg.nickname' would be stored as
+    # { 'nickname' => value }.
+    #
+    # NOTE: To my knowledge there is no collision at this point from storage
+    # of this manner, if there is please let me know so I may adjust this app
+    # to cope.
+    class OpenID < AbstractHandler
+      # Required for ruby-openid
+      OIDStore = ::OpenID::MemoryStore.new
+      # Basic error response, no session
+      E_NoSession = [500, {'Content-Type'=>'text/plain'}, 'Authentication method failed. No session found.']
+      # Basic error response, openid error
+      E_FailAuth  = [401, {'Content-Type'=>'text/plain'}, 'Authentication failed.']
+
+      # A Hash of options is taken as it's single initializing argument. String
+      # keys are taken to be openid protocol extension namespaces. For example:
+      #   'sreg' => { 'required' => 'nickname' }
+      #
+      # Other keys are taken as options for Rack::Auth::OpenID, normally Symbols.
+      # Only :return is required. :trust is highly recommended to be set.
+      #
+      # * :return defines the url to return to after the client authenticates
+      #   with the openid service provider. Should point to where this app is
+      #   mounted. (ex: 'http://mysite.com/openid')
+      # * :trust defines the url identifying the site they are actually logging
+      #   into. (ex: 'http://mysite.com/')
+      # * :session_key defines the key to the session hash in the env.
+      #   (by default it uses 'rack.session')
+      def initialize opts={}
+        raise 'No return url provided.' unless opts[:return]
+        unless opts[:trust]
+          warn 'No trust url provided.'
+          opts[:trust] = opts[:return]
+        end
+        opts[:session_key] ||= 'rack.session'
+        @options = opts
+      end
+
+      def call env
+        request = Rack::Request.new env
+        session = request.env[@options[:session_key]]
+        if session.nil? then E_NoSession
+        elsif request.GET['openid.mode']
+          finish session, request.GET
+        elsif request.GET['openid_url']
+          check session, request.GET['openid_url']
+        else bad_request end
+      end
+
+      def check session, oid_url
+        consumer = ::OpenID::Consumer.new session, OIDStore
+        oid = consumer.begin oid_url
+        return E_FailAuth unless oid.status == ::OpenID::SUCCESS
+        @options.each do |ns,s|
+          next unless String === ns
+          s.each {|k,v| oid.add_extension_arg(ns, k, v) }
+        end
+        r_url = @options.fetch :return
+        t_url = @options.fetch :trust
+        return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, []]
+      end
+
+      def finish session, params
+        consumer = ::OpenID::Consumer.new session, OIDStore
+        oid = consumer.complete params
+        return E_FailAuth unless oid.status == ::OpenID::SUCCESS
+        session[:openid] = {'identity' => oid.identity_url}
+        @options.each do |ns,s|
+          next unless String === ns
+          oid.extension_response(ns).each{|k,v| session[k]=v }
+        end
+        return [303, {'Location'=>@options[:trust]}, []]
+      end
+    end
+  end
+end
