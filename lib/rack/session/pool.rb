@@ -1,3 +1,4 @@
+# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 module Rack
   module Session
     # Rack::Session::Pool provides simple cookie based session management.
@@ -16,7 +17,7 @@ module Rack
     #     All parameters are optional.
 
     class Pool
-      attr_reader :pool
+      attr_reader :pool, :key
 
       def initialize app, options={}
         @app = app
@@ -26,6 +27,8 @@ module Rack
           :expire_after => nil}.merge(options)
         @pool = Hash.new
       end
+
+      def for app; self.dup.instance_eval{@app=app;self}; end
 
       def call env
         load_session env
