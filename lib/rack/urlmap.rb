@@ -28,14 +28,12 @@ module Rack
 
     def call(env)
       path = env["PATH_INFO"].to_s.squeeze("/")
+      hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, app|
-        if (env["HTTP_HOST"] == host ||
-            env["SERVER_NAME"] == host ||
-            (host == nil && (env["HTTP_HOST"] == env["SERVER_NAME"] ||
-                             env["HTTP_HOST"] ==
-                             "#{env["SERVER_NAME"]}:#{env["SERVER_PORT"]}"))) &&
-           location == path[0, location.size] && (path[location.size] == nil ||
-                                                  path[location.size] == ?/)
+        if (hHost == host or sName == host \
+          or (host.nil? and (hHost == sName or hHost == sName+':'+sPort))) \
+          and location == path[0, location.size] \
+          and (path[location.size] == nil || path[location.size] == ?/)
           env["SCRIPT_NAME"] += location.dup
           env["PATH_INFO"] = path[location.size..-1]
           env["PATH_INFO"].gsub!(/\/\z/, '')
