@@ -29,6 +29,7 @@ module Rack
 
       if F.file?(@path) && F.readable?(@path)
         [200, {
+           "Last-Modified"  => F.mtime(@path).rfc822,
            "Content-Type"   => MIME_TYPES[ext] || "text/plain",
            "Content-Length" => F.size(@path).to_s
          }, self]
