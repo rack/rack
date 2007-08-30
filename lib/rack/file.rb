@@ -73,6 +73,7 @@ module Rack
       "jpe"   => "image/jpeg",
       "jpeg"  => "image/jpeg",
       "jpg"   => "image/jpeg",
+      "js"    => "text/javascript",
       "lha"   => "application/octet-stream",
       "lzh"   => "application/octet-stream",
       "mov"   => "video/quicktime",
