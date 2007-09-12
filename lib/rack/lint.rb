@@ -158,7 +158,7 @@ module Rack
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
       check_error env["rack.errors"]
 
-      ## * The <tt>REQUEST_METHOD</tt> must be one of +GET+, +POST+,
+      ## * The <tt>REQUEST_METHOD</tt> must be one of +GET+, +POST+, +PUT+,
       ##   +DELETE+, +HEAD+, +OPTIONS+, +TRACE+.
       assert("REQUEST_METHOD unknown: #{env["REQUEST_METHOD"]}") {
         %w[GET POST PUT DELETE
