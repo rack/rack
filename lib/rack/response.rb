@@ -55,8 +55,10 @@ module Rack
       when Hash
         domain  = "; domain="  + value[:domain]    if value[:domain]
         path    = "; path="    + value[:path]      if value[:path]
+        # According to RFC 2109, we need dashes here.
+        # N.B.: cgi.rb uses spaces...
         expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d %b %Y %H:%M:%S GMT")    if value[:expires]
+          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
         value = value[:value]
       end
       value = [value]  unless Array === value

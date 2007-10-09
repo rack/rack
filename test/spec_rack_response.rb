@@ -54,13 +54,21 @@ context "Rack::Response" do
     response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2", "foo3=bar3"]
   end
 
+  specify "formats the Cookie expiration date accordingly to RFC 2109" do
+    response = Rack::Response.new
+    
+    response.set_cookie "foo", {:value => "bar", :expires => Time.now+10}
+    response["Set-Cookie"].should.match \
+      /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../
+  end
+
   specify "can delete cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", "bar"
     response.set_cookie "foo2", "bar2"
     response.delete_cookie "foo"
     response["Set-Cookie"].should.equal ["foo2=bar2",
-                                  "foo=; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+                                  "foo=; expires=Thu, 01-Jan-1970 00:00:00 GMT"]
   end
 
   specify "has a useful constructor" do
