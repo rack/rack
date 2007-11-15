@@ -36,7 +36,7 @@ module Rack
                              "#{env["SERVER_NAME"]}:#{env["SERVER_PORT"]}"))) &&
            location == path[0, location.size] && (path[location.size] == nil ||
                                                   path[location.size] == ?/)
-          env["SCRIPT_NAME"] = location.dup
+          env["SCRIPT_NAME"] += location.dup
           env["PATH_INFO"] = path[location.size..-1]
           env["PATH_INFO"].gsub!(/\/\z/, '')
           env["PATH_INFO"] = "/"  if env["PATH_INFO"].empty?

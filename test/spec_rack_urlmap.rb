@@ -11,17 +11,17 @@ context "Rack::URLMap" do
                                 "X-Position" => "/foo",
                                 "X-PathInfo" => env["PATH_INFO"],
                               }, [""]]},
-                           
+
                            "/bar" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "/bar",
                                 "X-PathInfo" => env["PATH_INFO"],
                               }, [""]]}
-                           
+
                            )
 
-    
+
     Rack::MockRequest.new(map).get("/").should.be.not_found
 
     res = Rack::MockRequest.new(map).get("/foo")
@@ -96,18 +96,24 @@ context "Rack::URLMap" do
 
   specify "should be nestable" do
     map = Rack::URLMap.new("/foo" =>
-                           Rack::URLMap.new("/bar" =>  lambda { |env|
-                                              [200,
-                                               { "Content-Type" => "text/plain",
-                                                 "X-Position" => "/foo/bar",
-                                                 "X-PathInfo" => env["PATH_INFO"],
-                                               }, [""]]}
-                                            )
-                           )
+      Rack::URLMap.new("/bar" =>
+        Rack::URLMap.new("/quux" =>  lambda { |env|
+                           [200,
+                            { "Content-Type" => "text/plain",
+                              "X-Position" => "/foo/bar/quux",
+                              "X-PathInfo" => env["PATH_INFO"],
+                              "X-ScriptName" => env["SCRIPT_NAME"],
+                            }, [""]]}
+                         )))
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
+    res.should.be.not_found
+
+    res = Rack::MockRequest.new(map).get("/foo/bar/quux")
     res.should.be.ok
-    res["X-Position"].should.equal "/foo/bar"
+    res["X-Position"].should.equal "/foo/bar/quux"
+    res["X-PathInfo"].should.equal "/"
+    res["X-ScriptName"].should.equal "/foo/bar/quux"
   end
 
   specify "should route root apps correctly" do
