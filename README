@@ -112,6 +112,7 @@ at my site:
 
 * XXX, 2007: Third public release 0.3.
   * LiteSpeed handler, by Adrian Madrid.
+  * Pool sessions, by blink.
 
 == Contact
 
@@ -130,11 +131,13 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 * Adrian Madrid, for the LiteSpeed handler.
 * Christoffer Sawicki, for the Rails adapter.
 * Tim Fletcher, for the HTTP authentication code.
-* Luc Heinrich for the Cookie sessions and the static file handler.
+* Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
+* blink for the Pool sessions, and bugreports.
 * Armin Ronacher, for the logo and racktools.
 * Aredridel, for bug fixing.
 * Gary Wright, for proposing a better Rack::Response interface.
 * Jonathan Buch, for improvements regarding Rack::Response.
+* Armin Röhrl, for tracking down bugs in the Cookie generator.
 * Alexander Kellett for testing the Gem and reviewing the announce.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
