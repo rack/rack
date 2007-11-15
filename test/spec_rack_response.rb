@@ -58,8 +58,8 @@ context "Rack::Response" do
     response = Rack::Response.new
     
     response.set_cookie "foo", {:value => "bar", :expires => Time.now+10}
-    response["Set-Cookie"].should.match \
-      /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../
+    response["Set-Cookie"].should.match(
+      /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../)
   end
 
   specify "can delete cookies" do
