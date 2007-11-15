@@ -41,8 +41,8 @@ module Rack
 
     def to_app
       @ins[-1] = Rack::URLMap.new(@ins.last)  if Hash === @ins.last
-      inner_app = @ins.pop
-      @ins.reverse.inject(inner_app) { |a, e| e.call(a) }
+      inner_app = @ins.last
+      @ins[0...-1].reverse.inject(inner_app) { |a, e| e.call(a) }
     end
 
     def call(env)
