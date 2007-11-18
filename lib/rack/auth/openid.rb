@@ -37,25 +37,26 @@ module Rack
       #   into. (ex: 'http://mysite.com/')
       # * :session_key defines the key to the session hash in the env.
       #   (by default it uses 'rack.session')
-      def initialize opts={}
-        raise 'No return url provided.' unless opts[:return]
-        unless opts[:trust]
-          warn 'No trust url provided.'
-          opts[:trust] = opts[:return]
-        end
-        opts[:session_key] ||= 'rack.session'
-        @options = opts
+      def initialize options={}
+        raise 'No return url provided.' unless options[:return]
+        warn  'No trust url provided.'  unless options[:trust]
+        options[:trust] ||= options[:return]
+
+        @options  = {
+          :session_key => 'rack.session'
+        }.merge(options)
       end
 
       def call env
         request = Rack::Request.new env
-        session = request.env[@options[:session_key]]
-        if session.nil? then E_NoSession
-        elsif request.GET['openid.mode']
-          finish session, request.GET
-        elsif request.GET['openid_url']
-          check session, request.GET['openid_url']
-        else bad_request end
+        return no_session unless session = request.env[@options[:session_key]]
+        resp = if request.GET['openid.mode']
+                 finish session, request.GET
+               elsif request.GET['openid_url']
+                 check session, request.GET['openid_url'], request
+               else
+                 bad_request
+               end
       end
 
       def check session, oid_url
@@ -63,7 +64,7 @@ module Rack
         oid = consumer.begin oid_url
         return auth_fail unless oid.status == ::OpenID::SUCCESS
         @options.each do |ns,s|
-          next unless String === ns
+          next unless ns.is_a? String
           s.each {|k,v| oid.add_extension_arg(ns, k, v) }
         end
         r_url = @options.fetch :return
@@ -77,7 +78,7 @@ module Rack
         return bad_login unless oid.status == ::OpenID::SUCCESS
         session[:openid] = {'identity' => oid.identity_url}
         @options.each do |ns,s|
-          next unless String === ns
+          next unless ns.is_a? String
           oid.extension_response(ns).each{|k,v| session[k]=v }
         end
         return [303, {'Location'=>@options[:trust]}, []]
