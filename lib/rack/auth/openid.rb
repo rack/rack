@@ -26,6 +26,11 @@ module Rack
       # A Hash of options is taken as it's single initializing argument. String
       # keys are taken to be openid protocol extension namespaces. For example:
       #   'sreg' => { 'required' => 'nickname' }
+      # If you wish, you may pass a block to OpenID.new, which will be called just
+      # before a response is returned. The passed arguments are the OpenID app's
+      # normal status, header, and body, as well as the openid object generated
+      # during handling. The returned value should be normal Rack
+      # [status,header,body].
       #
       # Other keys are taken as options for Rack::Auth::OpenID, normally Symbols.
       # Only :return is required. :trust is highly recommended to be set.
@@ -37,10 +42,12 @@ module Rack
       #   into. (ex: 'http://mysite.com/')
       # * :session_key defines the key to the session hash in the env.
       #   (by default it uses 'rack.session')
-      def initialize options={}
+      def initialize options={}, &block
         raise 'No return url provided.' unless options[:return]
         warn  'No trust url provided.'  unless options[:trust]
         options[:trust] ||= options[:return]
+
+        @followup = block || proc{|r|r[0..2]}
 
         @options  = {
           :session_key => 'rack.session'
@@ -57,6 +64,7 @@ module Rack
                else
                  bad_request
                end
+        @followup.call(resp)
       end
 
       def check session, oid_url, request=nil
