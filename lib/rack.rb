@@ -45,6 +45,7 @@ module Rack
     autoload :Basic, "rack/auth/basic"
     autoload :AbstractRequest, "rack/auth/abstract/request"
     autoload :AbstractHandler, "rack/auth/abstract/handler"
+    autoload :OpenID, "rack/auth/openid"
     module Digest
       autoload :MD5, "rack/auth/digest/md5"
       autoload :Nonce, "rack/auth/digest/nonce"
