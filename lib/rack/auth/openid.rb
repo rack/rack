@@ -22,10 +22,6 @@ module Rack
     class OpenID < AbstractHandler
       # Required for ruby-openid
       OIDStore = ::OpenID::MemoryStore.new
-      # Basic error response, no session
-      E_NoSession = [500, {'Content-Type'=>'text/plain'}, 'Authentication method failed. No session found.']
-      # Basic error response, openid error
-      E_FailAuth  = [401, {'Content-Type'=>'text/plain'}, 'Authentication failed.']
 
       # A Hash of options is taken as it's single initializing argument. String
       # keys are taken to be openid protocol extension namespaces. For example:
@@ -65,7 +61,7 @@ module Rack
       def check session, oid_url
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.begin oid_url
-        return E_FailAuth unless oid.status == ::OpenID::SUCCESS
+        return auth_fail unless oid.status == ::OpenID::SUCCESS
         @options.each do |ns,s|
           next unless String === ns
           s.each {|k,v| oid.add_extension_arg(ns, k, v) }
@@ -78,13 +74,26 @@ module Rack
       def finish session, params
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.complete params
-        return E_FailAuth unless oid.status == ::OpenID::SUCCESS
+        return bad_login unless oid.status == ::OpenID::SUCCESS
         session[:openid] = {'identity' => oid.identity_url}
         @options.each do |ns,s|
           next unless String === ns
           oid.extension_response(ns).each{|k,v| session[k]=v }
         end
         return [303, {'Location'=>@options[:trust]}, []]
+      end
+
+      def no_session
+        @options.
+          fetch :no_session, [500,{'Content-Type'=>'text/plain'},'No session available.']
+      end
+      def auth_fail
+        @options.
+          fetch :auth_fail, [500, {'Content-Type'=>'text/plain'},'Foreign server failure.']
+      end
+      def bad_login
+        @options.
+          fetch :bad_login, [401, {'Content-Type'=>'text/plain'},'Identification has failed.']
       end
     end
   end
