@@ -1,4 +1,5 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+
 module Rack
   module Session
     # Rack::Session::Pool provides simple cookie based session management.
@@ -19,7 +20,7 @@ module Rack
     class Pool
       attr_reader :pool, :key
 
-      def initialize app, options={}
+      def initialize(app, options={})
         @app = app
         @key = options[:key] || "rack.session"
         @default_options = {:domain => nil,
@@ -30,11 +31,11 @@ module Rack
       end
 
 
-      def call env
+      def call(env)
         @default_context.call(env)
       end
 
-      def context app, &block
+      def context(app, &block)
         Rack::Utils::Context.new self, app do |env|
           load_session env
           block[env] if block
@@ -46,7 +47,7 @@ module Rack
 
       private
 
-      def load_session env
+      def load_session(env)
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
         begin
           sess_id = Array.new(8){rand(16).to_s(16)}*''
@@ -59,7 +60,7 @@ module Rack
         env["rack.session.options"] = @default_options.dup
       end
 
-      def commit_session env, response
+      def commit_session(env, response)
         session = env['rack.session']
         options = env['rack.session.options']
         sdat    = session.instance_variable_get '@dat'

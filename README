@@ -113,6 +113,9 @@ at my site:
 * XXX, 2007: Third public release 0.3.
   * LiteSpeed handler, by Adrian Madrid.
   * Pool sessions, by blink.
+  * OpenID authentication, by blink.
+  * :Port and :File options for opening FastCGI sockets, by blink.
+  * Last-Modified HTTP header for Rack::File, by blink.
 
 == Contact
 
@@ -132,7 +135,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 * Christoffer Sawicki, for the Rails adapter.
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
-* blink for the Pool sessions, and bugreports.
+* blink for the Pool sessions, OpenID support, various tweaks, and bugreports.
 * Armin Ronacher, for the logo and racktools.
 * Aredridel, for bug fixing.
 * Gary Wright, for proposing a better Rack::Response interface.

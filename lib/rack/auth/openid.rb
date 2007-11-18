@@ -1,6 +1,8 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+
 require 'rack/auth/abstract/handler'
 require 'openid'
+
 module Rack
   module Auth
     # Rack::Auth::OpenID provides a simple method for permitting openid
@@ -41,8 +43,8 @@ module Rack
       #   into. (ex: 'http://mysite.com/')
       # * :session_key defines the key to the session hash in the env.
       #   (by default it uses 'rack.session')
-      def initialize options={}, &block
-        raise 'No return url provided.' unless options[:return]
+      def initialize(options={}, &block)
+        raise ArgumentError, 'No return url provided.'  unless options[:return]
         warn  'No trust url provided.'  unless options[:trust]
         options[:trust] ||= options[:return]
 
@@ -53,7 +55,7 @@ module Rack
         }.merge(options)
       end
 
-      def call env
+      def call(env)
         request = Rack::Request.new env
         return no_session unless session = request.env[@options[:session_key]]
         resp = if request.GET['openid.mode']
@@ -66,7 +68,7 @@ module Rack
         @followup.call(resp)
       end
 
-      def check session, oid_url, request=nil
+      def check(session, oid_url, request=nil)
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.begin oid_url
         return auth_fail unless oid.status == ::OpenID::SUCCESS
@@ -79,7 +81,7 @@ module Rack
         return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, [], oid]
       end
 
-      def finish session, params
+      def finish(session, params)
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.complete params
         return bad_login unless oid.status == ::OpenID::SUCCESS
