@@ -45,8 +45,8 @@ module Rack
       #   into. (ex: 'http://mysite.com/')
       # * :session_key defines the key to the session hash in the env.
       #   (by default it uses 'rack.session')
-      def initialize options={}, &block
-        raise 'No return url provided.' unless options[:return]
+      def initialize(options={})
+        raise ArgumentError, 'No return url provided.'  unless options[:return]
         warn  'No trust url provided.'  unless options[:trust]
         options[:trust] ||= options[:return]
 
@@ -67,7 +67,7 @@ module Rack
                end
       end
 
-      def check session, oid_url, request=nil
+      def check(session, oid_url, env)
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.begin oid_url
         return auth_fail unless oid.status == ::OpenID::SUCCESS
@@ -81,7 +81,7 @@ module Rack
         return 303, {'Location'=>oid.redirect_url( t_url, r_url )}, []
       end
 
-      def finish session, params
+      def finis(session, params, env)
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.complete params
         return bad_login unless oid.status == ::OpenID::SUCCESS
