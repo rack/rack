@@ -30,8 +30,8 @@ module Rack
       path = env["PATH_INFO"].to_s.squeeze("/")
       hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, app|
-        if (hHost == host or sName == host \
-          or (host.nil? and (hHost == sName or hHost == sName+':'+sPort))) \
+        if (hHost == host || sName == host \
+          || (host.nil? && (hHost == sName || hHost == sName+':'+sPort))) \
           and location == path[0, location.size] \
           and (path[location.size] == nil || path[location.size] == ?/)
           env["SCRIPT_NAME"] += location.dup
