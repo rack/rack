@@ -59,7 +59,7 @@ module Rack
                end
       end
 
-      def check session, oid_url
+      def check session, oid_url, request=nil
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.begin oid_url
         return auth_fail unless oid.status == ::OpenID::SUCCESS
@@ -67,7 +67,7 @@ module Rack
           next unless ns.is_a? String
           s.each {|k,v| oid.add_extension_arg(ns, k, v) }
         end
-        r_url = @options.fetch :return
+        r_url = @options.fetch :return do |k| request.url end
         t_url = @options.fetch :trust
         return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, []]
       end
