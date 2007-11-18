@@ -1,6 +1,5 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 require 'rack/auth/abstract/handler'
-require 'rubygems'
 require 'openid'
 module Rack
   module Auth
