@@ -26,15 +26,22 @@ module Rack
           :path => "/",
           :expire_after => nil}.merge(options)
         @pool = Hash.new
+        @default_context = context app, &nil
       end
 
-      def for app; self.dup.instance_eval{@app=app;self}; end
 
       def call env
-        load_session env
-        response = @app.call env
-        commit_session env, response
-        response
+        @default_context.call(env)
+      end
+
+      def context app, &block
+        Rack::Utils::Context.new self, app do |env|
+          load_session env
+          block[env] if block
+          response = app.call(env)
+          commit_session env, response
+          response
+        end
       end
 
       private
