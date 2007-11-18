@@ -9,6 +9,11 @@ module Rack
     # based logins. It requires the ruby-openid lib from janrain to operate,
     # as well as some method of session management of a Hash type.
     #
+    # After a transaction, the response status object is stored in the
+    # environment at rack.auth.openid.status, which can be used in the
+    # followup block or in a wrapping application to accomplish
+    # additional data maniipulation.
+    #
     # NOTE: Due to the amount of data that ruby-openid stores in the session,
     # Rack::Session::Cookie may fault.
     #
@@ -24,14 +29,11 @@ module Rack
       # Required for ruby-openid
       OIDStore = ::OpenID::MemoryStore.new
 
-      # A Hash of options is taken as it's single initializing argument. String
-      # keys are taken to be openid protocol extension namespaces. For example:
-      #   'sreg' => { 'required' => 'nickname' }
-      # If you wish, you may pass a block to OpenID.new, which will be called just
-      # before a response is returned. The passed arguments are the OpenID app's
-      # normal status, header, and body, as well as the openid object generated
-      # during handling. The returned value should be normal Rack
-      # [status,header,body].
+      # A Hash of options is taken as it's single initializing
+      # argument. String keys are taken to be openid protocol
+      # extension namespaces.
+      #
+      #   For example: 'sreg' => { 'required' => # 'nickname' }
       #
       # Other keys are taken as options for Rack::Auth::OpenID, normally Symbols.
       # Only :return is required. :trust is highly recommended to be set.
@@ -43,12 +45,10 @@ module Rack
       #   into. (ex: 'http://mysite.com/')
       # * :session_key defines the key to the session hash in the env.
       #   (by default it uses 'rack.session')
-      def initialize(options={}, &block)
-        raise ArgumentError, 'No return url provided.'  unless options[:return]
+      def initialize options={}, &block
+        raise 'No return url provided.' unless options[:return]
         warn  'No trust url provided.'  unless options[:trust]
         options[:trust] ||= options[:return]
-
-        @followup = block || proc{|r|r[0..2]}
 
         @options  = {
           :session_key => 'rack.session'
@@ -59,16 +59,15 @@ module Rack
         request = Rack::Request.new env
         return no_session unless session = request.env[@options[:session_key]]
         resp = if request.GET['openid.mode']
-                 finish session, request.GET
+                 finish session, request.GET, env
                elsif request.GET['openid_url']
-                 check session, request.GET['openid_url'], request
+                 check session, request.GET['openid_url'], env
                else
                  bad_request
                end
-        @followup.call(resp)
       end
 
-      def check(session, oid_url, request=nil)
+      def check session, oid_url, request=nil
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.begin oid_url
         return auth_fail unless oid.status == ::OpenID::SUCCESS
@@ -78,10 +77,11 @@ module Rack
         end
         r_url = @options.fetch :return do |k| request.url end
         t_url = @options.fetch :trust
-        return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, [], oid]
+        env['rack.auth.openid.status'] = oid
+        return 303, {'Location'=>oid.redirect_url( t_url, r_url )}, []
       end
 
-      def finish(session, params)
+      def finish session, params
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.complete params
         return bad_login unless oid.status == ::OpenID::SUCCESS
@@ -90,7 +90,8 @@ module Rack
           next unless ns.is_a? String
           oid.extension_response(ns).each{|k,v| session[k]=v }
         end
-        return [303, {'Location'=>@options[:trust]}, [], oid]
+        env['rack.auth.openid.status'] = oid
+        return 303, {'Location'=>@options[:trust]}, []
       end
 
       def no_session
