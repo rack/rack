@@ -98,6 +98,10 @@ when nil
   # Guess.
   if ENV.include?("PHP_FCGI_CHILDREN")
     server = Rack::Handler::FastCGI
+
+    # We already speak FastCGI
+    options.delete :File
+    options.delete :Port
   elsif ENV.include?("REQUEST_METHOD")
     server = Rack::Handler::CGI
   else
