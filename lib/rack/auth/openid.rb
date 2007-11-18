@@ -81,7 +81,7 @@ module Rack
         return 303, {'Location'=>oid.redirect_url( t_url, r_url )}, []
       end
 
-      def finis(session, params, env)
+      def finish(session, params, env)
         consumer = ::OpenID::Consumer.new session, OIDStore
         oid = consumer.complete params
         return bad_login unless oid.status == ::OpenID::SUCCESS
