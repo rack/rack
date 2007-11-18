@@ -77,7 +77,7 @@ module Rack
         end
         r_url = @options.fetch :return do |k| request.url end
         t_url = @options.fetch :trust
-        return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, []]
+        return [303, {'Location'=>oid.redirect_url( t_url, r_url )}, [], oid]
       end
 
       def finish session, params
@@ -89,7 +89,7 @@ module Rack
           next unless ns.is_a? String
           oid.extension_response(ns).each{|k,v| session[k]=v }
         end
-        return [303, {'Location'=>@options[:trust]}, []]
+        return [303, {'Location'=>@options[:trust]}, [], oid]
       end
 
       def no_session
