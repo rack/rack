@@ -58,6 +58,27 @@ module Rack
     end
     module_function :escape_html
 
+    class Context < Proc
+      def initialize app_f=nil, app_r=nil
+        @for, @app = app_f, app_r
+      end
+      alias_method :old_inspect, :inspect
+      def inspect
+        "#{old_inspect} ==> #{@for.inspect} ==> #{@app.inspect}"
+      end
+      def pretty_print pp
+        pp.text old_inspect
+        pp.nest 1 do
+          pp.breakable
+          pp.text '=for> '
+          pp.pp @for
+          pp.breakable
+          pp.text '=app> '
+          pp.pp @app
+        end
+      end
+    end
+
     # A case-normalizing Hash, adjusting on [] and []=.
     class HeaderHash < Hash
       def initialize(hash={})
