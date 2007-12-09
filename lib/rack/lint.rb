@@ -226,11 +226,11 @@ module Rack
       ##   and return a string, or +nil+ on EOF.
       def read(*args)
         assert("rack.input#read called with too many arguments") {
-          args.size < 1
+          args.size <= 1
         }
         if args.size == 1
           assert("rack.input#read called with non-integer argument") {
-            args.first.instance_of? Integer
+            args.first.kind_of? Integer
           }
         end
         v = @input.read(*args)

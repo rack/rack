@@ -244,7 +244,7 @@ context "Rack::Lint" do
                        [201, {"Content-type" => "text/plain"}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/read called with too many arguments/)
+      message.should.match(/read called with non-integer argument/)
 
     weirdio = Object.new
     class << weirdio
