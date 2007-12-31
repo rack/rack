@@ -45,7 +45,7 @@ module Rack
         end
 
         def credentials
-          @credentials ||= Base64.decode64(params).split(/:/, 2)
+          @credentials ||= params.unpack("m*").first.split(/:/, 2)
         end
 
         def username

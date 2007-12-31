@@ -1,5 +1,3 @@
-require 'base64'
-
 module Rack
 
   module Session
@@ -40,7 +38,7 @@ module Rack
         session_data = request.cookies[@key]
 
         begin
-          session_data = Base64.decode64(session_data)
+          session_data = session_data.unpack("m*").first
           session_data = Marshal.load(session_data)
           env["rack.session"] = session_data
         rescue
@@ -52,7 +50,7 @@ module Rack
 
       def commit_session(env, status, headers, body)
         session_data = Marshal.dump(env["rack.session"])
-        session_data = Base64.encode64(session_data)
+        session_data = [session_data].pack("m*")
 
         if session_data.size > (4096 - @key.size)
           env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")

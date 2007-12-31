@@ -1,4 +1,3 @@
-require 'base64'
 require 'digest/md5'
 
 module Rack
@@ -19,7 +18,7 @@ module Rack
         end
 
         def self.parse(string)
-          new(*Base64.decode64(string).split(' ', 2))
+          new(*string.unpack("m*").first.split(' ', 2))
         end
 
         def initialize(timestamp = Time.now, given_digest = nil)
@@ -27,7 +26,7 @@ module Rack
         end
 
         def to_s
-          Base64.encode64([ @timestamp, digest ] * ' ').strip
+          [([ @timestamp, digest ] * ' ')].pack("m*").strip
         end
 
         def digest
