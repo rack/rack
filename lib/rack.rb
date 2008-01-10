@@ -68,7 +68,6 @@ module Rack
 
   module Adapter
     autoload :Camping, "rack/adapter/camping"
-    autoload :Rails, "rack/adapter/rails"
   end
 
   # *Handlers* connect web servers with Rack.
