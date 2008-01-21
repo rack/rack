@@ -101,9 +101,16 @@ module Rack
         @env["rack.request.cookie_hash"]
       else
         @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
-        # XXX sure?
+        # According to RFC 2109:
+        #   If multiple cookies satisfy the criteria above, they are ordered in
+        #   the Cookie header such that those with more specific Path attributes
+        #   precede those with less specific.  Ordering with respect to other
+        #   attributes (e.g., Domain) is unspecified.
         @env["rack.request.cookie_hash"] =
-          Utils.parse_query(@env["rack.request.cookie_string"], ';,')
+          Utils.parse_query(@env["rack.request.cookie_string"], ';,').inject({}) {|h,(k,v)|
+            h[k] = v.respond_to?(:first) ? v.first : v
+            h
+          }
       end
     end
 

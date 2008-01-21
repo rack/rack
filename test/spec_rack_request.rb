@@ -129,6 +129,12 @@ context "Rack::Request" do
     req.cookies.should.equal({})
   end
 
+  specify "parses cookies according to RFC 2109" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for('', 'HTTP_COOKIE' => 'foo=bar;foo=car')
+    req.cookies.should.equal 'foo' => 'bar'
+  end
+
   specify "provides setters" do
     req = Rack::Request.new(e=Rack::MockRequest.env_for(""))
     req.script_name.should.equal ""
