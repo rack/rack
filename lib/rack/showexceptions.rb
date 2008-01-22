@@ -217,7 +217,7 @@ TEMPLATE = <<'HTML'
               <% if frame.pre_context %>
               <ol start="<%=h frame.pre_context_lineno+1 %>" class="pre-context" id="pre<%=h frame.object_id %>">
                 <% frame.pre_context.each { |line| %>
-                <li onclick="toggle('pre<%=h frame.object_id %>', 'post<%=h frame.object_id %>"><%=h line %></li>
+                <li onclick="toggle('pre<%=h frame.object_id %>', 'post<%=h frame.object_id %>')"><%=h line %></li>
                 <% } %>
               </ol>
               <% end %>
