@@ -84,6 +84,7 @@ module Rack
     autoload :Mongrel, "rack/handler/mongrel"
     autoload :WEBrick, "rack/handler/webrick"
     autoload :LSWS, "rack/handler/lsws"
+    autoload :SCGI, "rack/handler/scgi"
   end
 end
 

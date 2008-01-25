@@ -112,6 +112,7 @@ at my site:
 
 * XXX, 2007: Third public release 0.3.
   * LiteSpeed handler, by Adrian Madrid.
+  * SCGI handler, by Jeremy Evans.
   * Pool sessions, by blink.
   * OpenID authentication, by blink.
   * :Port and :File options for opening FastCGI sockets, by blink.
