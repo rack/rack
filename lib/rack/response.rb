@@ -94,7 +94,7 @@ module Rack
     def finish(&block)
       @block = block
 
-      if [201, 204, 304].include?(status.to_i)
+      if [204, 304].include?(status.to_i)
         header.delete "Content-Type"
         [status.to_i, header.to_hash, []]
       else
