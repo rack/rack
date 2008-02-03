@@ -343,11 +343,11 @@ module Rack
     def check_content_type(status, headers)
       headers.each { |key, value|
         ## There must be a <tt>Content-Type</tt>, except when the
-        ## +Status+ is 201, 204, 304, in which case there must be none
+        ## +Status+ is 204 or 304, in which case there must be none
         ## given.
         if key.downcase == "content-type"
           assert("Content-Type header found in #{status} response, not allowed"){
-            not [201, 204, 304].include? status.to_i
+            not [204, 304].include? status.to_i
           }
           return
         end
