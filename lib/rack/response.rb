@@ -78,7 +78,7 @@ module Rack
 
     def delete_cookie(key, value={})
       unless Array === self["Set-Cookie"]
-        self["Set-Cookie"] = [self["Set-Cookie"]]
+        self["Set-Cookie"] = [self["Set-Cookie"]].compact
       end
 
       self["Set-Cookie"].reject! { |cookie|
