@@ -1,6 +1,6 @@
 require 'test/spec'
 
-require 'rack'
+require 'rack/builder'
 require 'rack/mock'
 
 context "Rack::Builder" do

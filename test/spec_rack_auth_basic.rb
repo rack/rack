@@ -1,5 +1,7 @@
 require 'test/spec'
-require 'rack'
+
+require 'rack/auth/basic'
+require 'rack/mock'
 
 context 'Rack::Auth::Basic' do
 

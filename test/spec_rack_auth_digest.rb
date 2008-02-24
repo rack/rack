@@ -1,5 +1,7 @@
 require 'test/spec'
-require 'rack'
+
+require 'rack/auth/digest/md5'
+require 'rack/mock'
 
 context 'Rack::Auth::Digest::MD5' do
 
