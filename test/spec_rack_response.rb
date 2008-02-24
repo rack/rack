@@ -104,7 +104,7 @@ context "Rack::Response" do
   end
  
   specify "doesn't return invalid responses" do
-    r = Rack::Response.new(["foo", "bar"], 201)
+    r = Rack::Response.new(["foo", "bar"], 204)
     status, header, body = r.finish
     str = ""; body.each { |part| str << part }
     str.should.be.empty

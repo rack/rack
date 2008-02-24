@@ -206,14 +206,14 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [201, {"Content-Type" => "text/plain"}, ""]
+                       [204, {"Content-Type" => "text/plain"}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/Content-Type header found/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [201, {"Content-type" => "text/plain"}, ""]
+                       [204, {"Content-type" => "text/plain"}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/Content-Type header found/)
