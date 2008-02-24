@@ -108,7 +108,7 @@ module Rack
         #   attributes (e.g., Domain) is unspecified.
         @env["rack.request.cookie_hash"] =
           Utils.parse_query(@env["rack.request.cookie_string"], ';,').inject({}) {|h,(k,v)|
-            h[k] = v.respond_to?(:first) ? v.first : v
+            h[k] = Array === v ? v.first : v
             h
           }
       end
