@@ -13,10 +13,17 @@ which all Rack applications should conform to.
 
 The included *handlers* connect all kinds of web servers to Rack:
 * Mongrel
-* Mongrel/Swiftcore (require it before Rack.)
+* Mongrel/Swiftcore (require it before requiring rack)
 * WEBrick
 * FCGI
 * CGI
+* SCGI
+* LiteSpeed
+
+These web servers include Rack handlers in their distributions:
+* Ebb
+* Fuzed
+* Thin
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
@@ -25,13 +32,22 @@ changing anything.
 
 The included *adapters* connect Rack with existing Ruby web frameworks:
 * Camping
-* Rails (alpha)
-* more to come soon, ...
 
 These frameworks include Rack adapters in their distributions:
-* Ramaze
+* Coset
+* Halcyon
 * Maveric
+* Merb
 * Racktools::SimpleApplication
+* Ramaze
+* Sinatra
+* Vintage
+
+Ruby on Rails can be run with the adapter included with Thin, which
+will be merged into a later Rack version.
+
+Current links to these projects can be found at
+http://ramaze.net/#other-frameworks
 
 == Available middleware
 
@@ -42,7 +58,7 @@ applications needs using middleware, for example:
 * Rack::ShowException, for catching unhandled exceptions and
   presenting them in a nice and helpful way with clickable backtrace.
 * Rack::File, for serving static files.
-* ...
+* ...many others!
 
 All these components use the same interface, which is described in
 detail in the Rack specification.  You can choose to use them exactly
@@ -110,13 +126,17 @@ at my site:
   * Bug fixes in the Camping adapter.
   * Removed Rails adapter, was too alpha.
 
-* XXX, 2007: Third public release 0.3.
+* February 26th, 2008: Third public release 0.3.
   * LiteSpeed handler, by Adrian Madrid.
   * SCGI handler, by Jeremy Evans.
   * Pool sessions, by blink.
   * OpenID authentication, by blink.
   * :Port and :File options for opening FastCGI sockets, by blink.
   * Last-Modified HTTP header for Rack::File, by blink.
+  * Rack::Builder#use now accepts blocks, by Corey Jewett.
+    (See example/protectedlobster.ru)
+  * HTTP status 201 can contain a Content-Type and a body now.
+  * Many bugfixes, especially related to Cookie handling.
 
 == Contact
 
@@ -149,7 +169,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Copyright
 
-Copyright (C) 2007  Christian Neukirchen <http://purl.org/net/chneukirchen>
+Copyright (C) 2007, 2008 Christian Neukirchen <http://purl.org/net/chneukirchen>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to

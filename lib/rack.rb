@@ -1,4 +1,4 @@
-# Copyright (C) 2007 Christian Neukirchen <purl.org/net/chneukirchen>
+# Copyright (C) 2007, 2008 Christian Neukirchen <purl.org/net/chneukirchen>
 #
 # Rack is freely distributable under the terms of an MIT-style license.
 # See COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -13,10 +13,10 @@ $: << File.expand_path(File.dirname(__FILE__))
 # so it should be enough just to <tt>require rack.rb</tt> in your code.
 
 module Rack
-  # The Rack version number.
+  # The Rack protocol version number implemented.
   VERSION = [0,1]
 
-  # Return the Rack version as a dotted string.
+  # Return the Rack protocol version as a dotted string.
   def self.version
     VERSION.join(".")
   end
@@ -62,7 +62,8 @@ module Rack
 
   # *Adapters* connect Rack with third party web frameworks.
   #
-  # Rack includes adapters for Camping and Rails.
+  # Rack includes an adapter for Camping, see README for other
+  # frameworks supporting Rack in their code bases.
   #
   # Refer to the submodules for framework-specific calling details.
 
@@ -72,7 +73,8 @@ module Rack
 
   # *Handlers* connect web servers with Rack.
   #
-  # Rack includes Handlers for Mongrel, WEBrick, FastCGI and CGI.
+  # Rack includes Handlers for Mongrel, WEBrick, FastCGI, CGI, SCGI
+  # and LiteSpeed.
   #
   # Handlers usually are activated by calling <tt>MyHandler.run(myapp)</tt>.
   # A second optional hash can be passed to include server-specific
