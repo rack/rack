@@ -30,16 +30,15 @@ module Rack
       path = env["PATH_INFO"].to_s.squeeze("/")
       hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, app|
-        if (hHost == host || sName == host \
-          || (host.nil? && (hHost == sName || hHost == sName+':'+sPort))) \
-          and location == path[0, location.size] \
-          and (path[location.size] == nil || path[location.size] == ?/)
-          env["SCRIPT_NAME"] += location.dup
-          env["PATH_INFO"] = path[location.size..-1]
-          env["PATH_INFO"].gsub!(/\/\z/, '')
-          env["PATH_INFO"] = "/"  if env["PATH_INFO"].empty?
-          return app.call(env)
-        end
+        next unless (hHost == host || sName == host \
+          || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
+        next unless location == path[0, location.size]
+        next unless path[location.size] == nil || path[location.size] == ?/
+        env["SCRIPT_NAME"] += location.dup
+        env["PATH_INFO"] = path[location.size..-1]
+        env["PATH_INFO"].gsub!(/\/\z/, '')
+        env["PATH_INFO"] = "/" if env["PATH_INFO"].empty?
+        return app.call(env)
       }
       [404, {"Content-Type" => "text/plain"}, ["Not Found: #{path}"]]
     end
