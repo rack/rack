@@ -19,17 +19,20 @@ module Rack
 
     class Pool
       attr_reader :pool, :key
+      DEFAULT_OPTIONS = {
+          :key =>           'rack.session',
+          :path =>          '/',
+          :domain =>        nil,
+          :expire_after =>  nil
+      }
 
       def initialize(app, options={})
         @app = app
-        @key = options[:key] || "rack.session"
-        @default_options = {:domain => nil,
-          :path => "/",
-          :expire_after => nil}.merge(options)
+        @default_options = DEFAULT_OPTIONS.merge(options)
+        @key = @default_options[:key]
         @pool = Hash.new
         @default_context = context app
       end
-
 
       def call(env)
         @default_context.call(env)
