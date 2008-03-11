@@ -7,7 +7,27 @@ module Rack
       def self.run(app, options={})
         server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
                                            options[:Port] || 8080)
-        server.register('/', Rack::Handler::Mongrel.new(app))
+        # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
+        # Use is similar to #run, replacing the app argument with a hash of 
+        # { path=>app, ... } or an instance of Rack::URLMap.
+        if options[:map]
+          if app.is_a? Hash
+            app.each do |path, appl|
+              path = '/'+path unless path[0] == ?/
+              server.register(path, Rack::Handler::Mongrel.new(appl))
+            end
+          elsif app.is_a? URLMap
+            app.instance_variable_get(:@mapping).each do |(host, path, appl)|
+             next if !host.nil? && !options[:Host].nil? && options[:Host] != host
+             path = '/'+path unless path[0] == ?/
+             server.register(path, Rack::Handler::Mongrel.new(appl))
+            end
+          else
+            raise ArgumentError, "first argument should be a Hash or URLMap"
+          end
+        else
+          server.register('/', Rack::Handler::Mongrel.new(app))
+        end
         yield server  if block_given?
         server.run.join
       end

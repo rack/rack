@@ -1,6 +1,7 @@
 require 'test/spec'
 
 require 'rack/handler/mongrel'
+require 'rack/urlmap'
 require 'rack/lint'
 require 'testrequest'
 
@@ -86,6 +87,71 @@ context "Rack::Handler::Mongrel" do
     Thread.new {
       Rack::Handler::Mongrel.run(lambda {}, {:Port => 9211}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
+        block_ran = true
+      }
+    }
+    sleep 1
+    block_ran.should.be true
+  end
+
+  specify "should provide a .run that maps a hash" do
+    block_ran = false
+    Thread.new {
+      map = {'/'=>lambda{},'/foo'=>lambda{}}
+      Rack::Handler::Mongrel.run(map, :map => true, :Port => 9221) { |server|
+        server.should.be.kind_of Mongrel::HttpServer
+        server.classifier.uris.size.should.be 2
+        server.classifier.uris.should.not.include '/arf'
+        server.classifier.uris.should.include '/'
+        server.classifier.uris.should.include '/foo'
+        block_ran = true
+      }
+    }
+    sleep 1
+    block_ran.should.be true
+  end
+
+  specify "should provide a .run that maps a urlmap" do
+    block_ran = false
+    Thread.new {
+      map = Rack::URLMap.new({'/'=>lambda{},'/bar'=>lambda{}})
+      Rack::Handler::Mongrel.run(map, {:map => true, :Port => 9231}) { |server|
+        server.should.be.kind_of Mongrel::HttpServer
+        server.classifier.uris.size.should.be 2
+        server.classifier.uris.should.not.include '/arf'
+        server.classifier.uris.should.include '/'
+        server.classifier.uris.should.include '/bar'
+        block_ran = true
+      }
+    }
+    sleep 1
+    block_ran.should.be true
+  end
+
+  specify "should provide a .run that maps a urlmap restricting by host" do
+    block_ran = false
+    Thread.new {
+      map = Rack::URLMap.new({
+        '/' => lambda{},
+        '/foo' => lambda{},
+        '/bar' => lambda{},
+        'http://localhost/' => lambda{},
+        'http://localhost/bar' => lambda{},
+        'http://falsehost/arf' => lambda{},
+        'http://falsehost/qux' => lambda{}
+      })
+      opt = {:map => true, :Port => 9241, :Host => 'localhost'}
+      Rack::Handler::Mongrel.run(map, opt) { |server|
+        server.should.be.kind_of Mongrel::HttpServer
+        server.classifier.uris.should.include '/'
+        server.classifier.handler_map['/'].size.should.be 2
+        server.classifier.uris.should.include '/foo'
+        server.classifier.handler_map['/foo'].size.should.be 1
+        server.classifier.uris.should.include '/bar'
+        server.classifier.handler_map['/bar'].size.should.be 2
+        server.classifier.uris.should.not.include '/qux'
+        server.classifier.uris.should.not.include '/arf'
+        server.classifier.uris.size.should.be 3
         block_ran = true
       }
     }
