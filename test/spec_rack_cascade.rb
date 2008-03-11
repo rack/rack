@@ -32,4 +32,19 @@ context "Rack::Cascade" do
     lambda { Rack::MockRequest.new(Rack::Cascade.new([])).get("/") }.
       should.raise(ArgumentError)
   end
+
+  specify "should append new app" do
+    cascade = Rack::Cascade.new([], [404, 403])
+    lambda { Rack::MockRequest.new(cascade).get('/cgi/test') }.
+      should.raise(ArgumentError)
+    cascade << app2
+    Rack::MockRequest.new(cascade).get('/cgi/test').should.be.not_found
+    Rack::MockRequest.new(cascade).get('/cgi/../bla').should.be.not_found
+    cascade << app1
+    Rack::MockRequest.new(cascade).get('/cgi/test').should.be.ok
+    Rack::MockRequest.new(cascade).get('/cgi/../bla').should.be.forbidden
+    Rack::MockRequest.new(cascade).get('/foo').should.be.not_found
+    cascade << app3
+    Rack::MockRequest.new(cascade).get('/foo').should.be.ok
+  end
 end

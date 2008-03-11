@@ -22,5 +22,15 @@ module Rack
       }
       [status, headers, body]
     end
+
+    def add app
+      @apps << app
+    end
+
+    def include? app
+      @apps.include? app
+    end
+
+    alias_method :<<, :add
   end
 end
