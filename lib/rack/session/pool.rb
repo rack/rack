@@ -65,7 +65,7 @@ module Rack
       end
 
       def commit_session(env, response)
-        session = env['rack.session']
+        save_session env, response
         options = env['rack.session.options']
         sess_id, time, z = options[nil]
         raise "Metadata not available." unless self == z
@@ -81,10 +81,13 @@ module Rack
         when String then h['Set-Cookie'] = [a, cookie]
         when nil then    h['Set-Cookie'] = cookie
         end
-
-        @pool[sess_id] = session
       end
 
+      def save_session(env, response)
+        sess_id, time, z = env['rack.session.options'][nil]
+        raise "Metadata not available." unless self == z
+        @pool[sess_id] = env['rack.session']
+      end
     end
   end
 end
