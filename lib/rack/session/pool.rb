@@ -28,7 +28,7 @@ module Rack
 
       def initialize(app, options={})
         @app = app
-        @default_options = DEFAULT_OPTIONS.merge(options)
+        @default_options = self.class::DEFAULT_OPTIONS.merge(options)
         @key = @default_options[:key]
         @pool = Hash.new
         @default_context = context app
@@ -59,8 +59,8 @@ module Rack
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
         sess_id = new_session_id if sess_id.nil?
 
-        env['rack.session'] = @pool.fetch sess_id, {}
-        env["rack.session.options"] = @default_options.dup
+        env['rack.session'] = @pool[sess_id] || {}
+        env['rack.session.options'] = @default_options.dup
         env['rack.session.options'][nil] = [sess_id, Time.now, self]
       end
 
