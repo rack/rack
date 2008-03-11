@@ -49,11 +49,15 @@ module Rack
 
       private
 
+      def new_session_id
+        while sess_id = Array.new(8){rand(16).to_s(16)}*''
+          return sess_id unless @pool[sess_id]
+        end
+      end
+
       def load_session(env)
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
-        begin
-          sess_id = Array.new(8){rand(16).to_s(16)}*''
-        end while @pool.key? sess_id if sess_id.nil? or !@pool.key? sess_id
+        sess_id = new_session_id if sess_id.nil?
 
         session = @pool.fetch sess_id, {}
         session.instance_variable_set '@dat', [sess_id, Time.now]
