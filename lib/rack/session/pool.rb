@@ -27,7 +27,7 @@ module Rack
           :path => "/",
           :expire_after => nil}.merge(options)
         @pool = Hash.new
-        @default_context = context app, &nil
+        @default_context = context app
       end
 
 
@@ -35,10 +35,9 @@ module Rack
         @default_context.call(env)
       end
 
-      def context(app, &block)
+      def context(app)
         Rack::Utils::Context.new self, app do |env|
           load_session env
-          block[env] if block
           response = app.call(env)
           commit_session env, response
           response
