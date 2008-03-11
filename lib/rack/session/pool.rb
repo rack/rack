@@ -59,28 +59,30 @@ module Rack
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
         sess_id = new_session_id if sess_id.nil?
 
-        session = @pool.fetch sess_id, {}
-        session.instance_variable_set '@dat', [sess_id, Time.now]
-
-        @pool.store sess_id, env['rack.session'] = session
+        env['rack.session'] = @pool.fetch sess_id, {}
         env["rack.session.options"] = @default_options.dup
+        env['rack.session.options'][nil] = [sess_id, Time.now, self]
       end
 
       def commit_session(env, response)
         session = env['rack.session']
         options = env['rack.session.options']
-        sdat    = session.instance_variable_get '@dat'
+        sess_id, time, z = options[nil]
+        raise "Metadata not available." unless self == z
 
-        cookie = Utils.escape(@key)+'='+Utils.escape(sdat[0])
+        expiry = time+options[:expire_after] if options[:expire_after]
+        cookie = Utils.escape(@key)+'='+Utils.escape(sess_id)
         cookie<< "; domain=#{options[:domain]}" if options[:domain]
         cookie<< "; path=#{options[:path]}" if options[:path]
-        cookie<< "; expires=#{sdat[1]+options[:expires_after]}" if options[:expires_after]
+        cookie<< "; expires=#{expiry}" if defined? expiry
 
         case a = (h = response[1])['Set-Cookie']
         when Array then  a << cookie
         when String then h['Set-Cookie'] = [a, cookie]
         when nil then    h['Set-Cookie'] = cookie
         end
+
+        @pool[sess_id] = session
       end
 
     end
