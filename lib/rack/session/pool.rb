@@ -50,7 +50,7 @@ module Rack
       private
 
       def new_session_id
-        while sess_id = Array.new(8){rand(16).to_s(16)}*''
+        while sess_id = "%08x" % rand(0xffffffff)
           return sess_id unless @pool[sess_id]
         end
       end
