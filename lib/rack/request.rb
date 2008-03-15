@@ -24,6 +24,38 @@ module Rack
     def port;            @env["SERVER_PORT"].to_i                 end
     def request_method;  @env["REQUEST_METHOD"]                   end
     def query_string;    @env["QUERY_STRING"].to_s                end
+    def content_length;  @env['CONTENT_LENGTH']                   end
+    def content_type;    @env['CONTENT_TYPE']                     end
+
+    # The media type (type/subtype) portion of the CONTENT_TYPE header
+    # without any media type parameters. e.g., when CONTENT_TYPE is
+    # "text/plain;charset=utf-8", the media-type is "text/plain".
+    #
+    # For more information on the use of media types in HTTP, see:
+    # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
+    def media_type
+      content_type && content_type.split(/\s*[;,]\s*/, 2)[0].downcase
+    end
+
+    # The media type parameters provided in CONTENT_TYPE as a Hash, or
+    # an empty Hash if no CONTENT_TYPE or media-type parameters were
+    # provided.  e.g., when the CONTENT_TYPE is "text/plain;charset=utf-8",
+    # this method responds with the following Hash:
+    #   { 'charset' => 'utf-8' }
+    def media_type_params
+      return {} if content_type.nil?
+      content_type.split(/\s*[;,]\s*/)[1..-1].
+        collect { |s| s.split('=', 2) }.
+        inject({}) { |hash,(k,v)| hash[k.downcase] = v ; hash }
+    end
+
+    # The character set of the request body if a "charset" media type
+    # parameter was given, or nil if no "charset" was specified. Note
+    # that, per RFC2616, text/* media types that specify no explicit
+    # charset are to be considered ISO-8859-1.
+    def content_charset
+      media_type_params['charset']
+    end
 
     def host
       # Remove port number.
@@ -37,6 +69,25 @@ module Rack
     def post?;           request_method == "POST"                 end
     def put?;            request_method == "PUT"                  end
     def delete?;         request_method == "DELETE"               end
+    def head?;           request_method == "HEAD"                 end
+
+    # The set of form-data media-types. Requests that do not indicate
+    # one of the media types presents in this list will not be eligible
+    # for form-data / param parsing.
+    FORM_DATA_MEDIA_TYPES = [
+      nil,
+      'application/x-www-form-urlencoded',
+      'multipart/form-data'
+    ]
+
+    # Determine whether the request body contains form-data by checking
+    # the request media_type against registered form-data media-types:
+    # "application/x-www-form-urlencoded" and "multipart/form-data". The
+    # list of form-data media types can be modified through the
+    # +FORM_DATA_MEDIA_TYPES+ array.
+    def form_data?
+      FORM_DATA_MEDIA_TYPES.include?(media_type)
+    end
 
     # Returns the data recieved in the query string.
     def GET
@@ -56,7 +107,7 @@ module Rack
     def POST
       if @env["rack.request.form_input"] == @env["rack.input"]
         @env["rack.request.form_hash"]
-      else
+      elsif form_data?
         @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] =
             Utils::Multipart.parse_multipart(env)
@@ -64,6 +115,8 @@ module Rack
           @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
         end
         @env["rack.request.form_hash"]
+      else
+        {}
       end
     end
 

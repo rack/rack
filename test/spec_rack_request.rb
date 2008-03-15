@@ -16,6 +16,7 @@ context "Rack::Request" do
     req.should.not.be.post
     req.should.not.be.put
     req.should.not.be.delete
+    req.should.not.be.head
 
     req.script_name.should.equal ""
     req.path_info.should.equal "/"
@@ -23,6 +24,9 @@ context "Rack::Request" do
 
     req.host.should.equal "example.com"
     req.port.should.equal 8080
+
+    req.content_length.should.be.nil
+    req.content_type.should.be.nil
   end
 
   specify "can figure out the correct host" do
@@ -46,10 +50,37 @@ context "Rack::Request" do
   specify "can parse POST data" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
+    req.content_type.should.be.nil
+    req.media_type.should.be.nil
     req.query_string.should.equal "foo=quux"
     req.GET.should.equal "foo" => "quux"
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
     req.params.should.equal "foo" => "bar", "quux" => "bla"
+  end
+
+  specify "can parse POST data with explicit content type" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
+        :input => "foo=bar&quux=bla")
+    req.content_type.should.equal 'application/x-www-form-urlencoded;foo=bar'
+    req.media_type.should.equal 'application/x-www-form-urlencoded'
+    req.media_type_params['foo'].should.equal 'bar'
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
+    req.params.should.equal "foo" => "bar", "quux" => "bla"
+  end
+
+  specify "does not parse POST data when media type is not form-data" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/?foo=quux",
+        "CONTENT_TYPE" => 'text/plain;charset=utf-8',
+        :input => "foo=bar&quux=bla")
+    req.content_type.should.equal 'text/plain;charset=utf-8'
+    req.media_type.should.equal 'text/plain'
+    req.media_type_params['charset'].should.equal 'utf-8'
+    req.POST.should.be.empty
+    req.params.should.equal "foo" => "quux"
+    req.body.read.should.equal "foo=bar&quux=bla"
   end
 
   specify "can get value by key from params with #[]" do
@@ -189,6 +220,20 @@ context "Rack::Request" do
       should.equal "/foo?foo"
   end
 
+  specify "can handle multiple media type parameters" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => 'text/plain; foo=BAR,baz=bizzle dizzle;BLING=bam')
+      req.should.not.be.form_data
+      req.media_type_params.should.include 'foo'
+      req.media_type_params['foo'].should.equal 'BAR'
+      req.media_type_params.should.include 'baz'
+      req.media_type_params['baz'].should.equal 'bizzle dizzle'
+      req.media_type_params.should.not.include 'BLING'
+      req.media_type_params.should.include 'bling'
+      req.media_type_params['bling'].should.equal 'bam'
+  end
+
   specify "can parse multipart form data" do
     # Adapted from RFC 1867.
     input = <<EOF
@@ -211,6 +256,12 @@ EOF
 
     req.POST.should.include "fileupload"
     req.POST.should.include "reply"
+
+    req.should.be.form_data
+    req.content_length.should.equal input.size
+    req.media_type.should.equal 'multipart/form-data'
+    req.media_type_params.should.include 'boundary'
+    req.media_type_params['boundary'].should.equal 'AaB03x'
 
     req.POST["reply"].should.equal "yes"
 
