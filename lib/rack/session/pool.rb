@@ -31,6 +31,7 @@ module Rack
         @default_options = self.class::DEFAULT_OPTIONS.merge(options)
         @key = @default_options[:key]
         @pool = Hash.new
+        @mutex = Mutex.new
         @default_context = context app
       end
 
@@ -49,6 +50,24 @@ module Rack
 
       private
 
+      def get_session(env, sid)
+        session = @mutex.synchronize do
+          unless @pool.has_key?(sid)
+            begin
+              sid = "%08x" % rand(0xffffffff)
+            end while @pool.has_key?(sid)
+          end
+          @pool[sid] ||= {}
+        end
+        [sid, session]
+      end
+
+      def set_session(env, sid)
+        @mutex.synchronize do
+          @pool[sid] = @pool[sid].merge(env['rack.session'])
+        end
+      end
+
       def new_session_id
         while sess_id = "%08x" % rand(0xffffffff)
           return sess_id unless @pool[sess_id]
@@ -57,18 +76,16 @@ module Rack
 
       def load_session(env)
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
-        sess_id = new_session_id if sess_id.nil?
-
-        env['rack.session'] = @pool[sess_id] || {}
+        sess_id, env['rack.session'] = get_session(env, sess_id)
         env['rack.session.options'] = @default_options.dup
         env['rack.session.options'][nil] = [sess_id, Time.now, self]
       end
 
       def commit_session(env, response)
-        save_session env, response
         options = env['rack.session.options']
         sess_id, time, z = options[nil]
         raise "Metadata not available." unless self == z
+        set_session(env, sess_id)
 
         expiry = time+options[:expire_after] if options[:expire_after]
         cookie = Utils.escape(@key)+'='+Utils.escape(sess_id)
