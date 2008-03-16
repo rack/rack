@@ -73,13 +73,16 @@ module Rack
       def load_session(env)
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
         sess_id, env['rack.session'] = get_session(env, sess_id)
-        env['rack.session.options'] = @default_options.dup
-        env['rack.session.options'][nil] = [sess_id, Time.now, self]
+        env['rack.session.options'] = {
+          :id => sess_id,
+          :at => Time.now,
+          :by => self
+        }.merge(@default_options)
       end
 
       def commit_session(env, response)
         options = env['rack.session.options']
-        sess_id, time, z = options[nil]
+        sess_id, time, z = options.values_at(:id, :at, :by)
         raise "Metadata not available." unless self == z
         set_session(env, sess_id)
 
