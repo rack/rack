@@ -12,16 +12,26 @@ module Rack
     # prolonged use the session pool will be very large.
     #
     # Example:
+    #   myapp = MyRackApp.new
+    #   sessioned = Rack::Session::Pool.new(myapp,
+    #     :key => 'rack.session',
+    #     :domain => 'foo.com',
+    #     :path => '/',
+    #     :expire_after => 2592000
+    #   )
+    #   Rack::Handler::WEBrick.run sessioned
     #
-    #     use Rack::Session::Pool, :key => 'rack.session',
-    #                              :domain => 'foo.com',
-    #                              :path => '/',
-    #                              :expire_after => 2592000
-    #
-    #     All parameters are optional.
+    # All parameters are optional.
+    # * :key determines the name of the cookie, by default it is
+    #   'rack.session'
+    # * :domain and :path set the related cookie values, by default
+    #   domain is nil, and the path is '/'.
+    # * :expire_after is the number of seconds in which the session
+    #   cookie will expire. By default it is set not to provide any
+    #   expiry time.
 
     class Pool
-      attr_reader :pool, :key
+      attr_reader :mutex, :pool, :key
       DEFAULT_OPTIONS = {
           :key =>           'rack.session',
           :path =>          '/',
