@@ -64,7 +64,8 @@ module Rack
 
       def get_session(env, sid)
         session = @mutex.synchronize do
-          unless @pool.has_key?(sid)
+          unless sess = @pool[sid] and ((expires = sess[:expire_at]).nil? or expires > Time.now)
+            @pool.delete_if{|k,v| expiry = v[:expire_at] and expiry < Time.now }
             begin
               sid = "%08x" % rand(0xffffffff)
             end while @pool.has_key?(sid)
@@ -75,11 +76,15 @@ module Rack
       end
 
       def set_session(env, sid)
+        options = env['rack.session.options']
+        expiry = options[:expire_after] && options[:at]+options[:expire_after]
         @mutex.synchronize do
           old_session = @pool[sid]
-          session = @pool[sid] = old_session.merge(env['rack.session'])
-          session.each{|k,v|
-            warn "session collision at #{k}: #{old_session[k]} <- #{v}" if v != old_session[k]
+          old_session[:expire_at] = expiry if expiry
+          (@pool[sid] = old_session.merge(env['rack.session'])).each{|k,v|
+            if old_session.has_key?(k) and v != old_session[k]
+              warn "session collision at #{k}: #{old_session[k]} <- #{v}"
+            end
           }
         end
       end
