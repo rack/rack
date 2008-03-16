@@ -59,6 +59,7 @@ module Rack
     module_function :escape_html
 
     class Context < Proc
+      attr_reader :for, :app
       def initialize app_f=nil, app_r=nil
         @for, @app = app_f, app_r
       end
