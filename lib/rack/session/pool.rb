@@ -66,10 +66,6 @@ module Rack
 
       def commit_session(env, response)
         save_session env, response
-        set_cookie env, response
-      end
-
-      def set_cookie(env, response)
         options = env['rack.session.options']
         sess_id, time, z = options[nil]
         raise "Metadata not available." unless self == z
