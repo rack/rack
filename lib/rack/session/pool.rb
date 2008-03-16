@@ -1,4 +1,7 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+# THANKS:
+#   apeiros, for session id generation and threadiness
+#   sergio, threadiness and bugreps
 
 module Rack
   module Session
@@ -27,7 +30,6 @@ module Rack
       }
 
       def initialize(app, options={})
-        @app = app
         @default_options = self.class::DEFAULT_OPTIONS.merge(options)
         @key = @default_options[:key]
         @pool = Hash.new
@@ -68,12 +70,6 @@ module Rack
         end
       end
 
-      def new_session_id
-        while sess_id = "%08x" % rand(0xffffffff)
-          return sess_id unless @pool[sess_id]
-        end
-      end
-
       def load_session(env)
         sess_id = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
         sess_id, env['rack.session'] = get_session(env, sess_id)
@@ -98,12 +94,6 @@ module Rack
         when String then h['Set-Cookie'] = [a, cookie]
         when nil then    h['Set-Cookie'] = cookie
         end
-      end
-
-      def save_session(env, response)
-        sess_id, time, z = env['rack.session.options'][nil]
-        raise "Metadata not available." unless self == z
-        @pool[sess_id] = env['rack.session']
       end
     end
   end
