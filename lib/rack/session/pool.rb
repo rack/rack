@@ -8,8 +8,8 @@ module Rack
     # Rack::Session::Pool provides simple cookie based session management.
     # Session data is stored in a hash held by @pool. The corresponding
     # session key sent to the client.
-    # The pool is unmonitored and unregulated, which means that over
-    # prolonged use the session pool will be very large.
+    # In the context of a multithreaded environment, sessions being
+    # committed to the pool is done in a merging manner.
     #
     # Example:
     #   myapp = MyRackApp.new
@@ -76,7 +76,11 @@ module Rack
 
       def set_session(env, sid)
         @mutex.synchronize do
-          @pool[sid] = @pool[sid].merge(env['rack.session'])
+          old_session = @pool[sid]
+          session = @pool[sid] = old_session.merge(env['rack.session'])
+          session.each{|k,v|
+            warn "session collision at #{k}: #{old_session[k]} <- #{v}" if v != old_session[k]
+          }
         end
       end
 
