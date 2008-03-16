@@ -1,6 +1,6 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # THANKS:
-#   apeiros, for session id generation and threadiness
+#   apeiros, for session id generation, expiry setup, and threadiness
 #   sergio, threadiness and bugreps
 
 module Rack
@@ -86,11 +86,11 @@ module Rack
         raise "Metadata not available." unless self == z
         set_session(env, sess_id)
 
-        expiry = time+options[:expire_after] if options[:expire_after]
+        expiry = options[:expire_after] && time+options[:expire_after]
         cookie = Utils.escape(@key)+'='+Utils.escape(sess_id)
         cookie<< "; domain=#{options[:domain]}" if options[:domain]
         cookie<< "; path=#{options[:path]}" if options[:path]
-        cookie<< "; expires=#{expiry}" if defined? expiry
+        cookie<< "; expires=#{expiry}" if expiry
 
         case a = (h = response[1])['Set-Cookie']
         when Array then  a << cookie
