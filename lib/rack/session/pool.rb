@@ -4,6 +4,7 @@
 #   sergio, threadiness and bugreps
 
 require 'rack/session/abstract/id'
+require 'thread'
 
 module Rack
   module Session
