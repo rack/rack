@@ -54,11 +54,12 @@ module Rack
         @mutex.synchronize do
           old_session = @pool[sid]
           old_session[:expire_at] = expiry if expiry
-          (@pool[sid] = old_session.merge(env['rack.session'])).each{|k,v|
-            if old_session.has_key?(k) and v != old_session[k]
-              warn "session collision at #{k}: #{old_session[k]} <- #{v}"
-            end
-          }
+          session = old_session.merge(env['rack.session'])
+          @pool[sid] = session
+          session.each do |k,v|
+            next unless old_session.has_key?(k) and v != old_session[k]
+            warn "session value assignment collision at #{k}: #{old_session[k]} <- #{v}"
+          end if $DEBUG and env['rack.multithread']
         end
       end
     end
