@@ -1,3 +1,5 @@
+require 'time'
+
 module Rack
   # Rack::File serves files below the +root+ given, according to the
   # path info of the Rack request.
