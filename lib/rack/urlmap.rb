@@ -20,11 +20,13 @@ module Rack
           host = nil
         end
 
+        unless location[0] == ?/
+          raise ArgumentError, "paths need to start with /"
+        end
         location = location.chomp('/')
-        raise ArgumentError unless location[0] == ?/ or location.empty?
 
         [host, location, app]
-      }.sort_by { |(h, l, a)| -l.size } # Longest path first
+      }.sort_by { |(h, l, a)| -l.size }  # Longest path first
     end
 
     def call(env)
@@ -35,7 +37,7 @@ module Rack
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
         next unless location == path[0, location.size]
         next unless path[location.size] == nil || path[location.size] == ?/
-        env["SCRIPT_NAME"] += location if location.size > 1
+        env["SCRIPT_NAME"] += location
         env["PATH_INFO"]    = path[location.size..-1]
         return app.call(env)
       }
