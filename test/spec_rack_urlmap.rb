@@ -27,22 +27,22 @@ context "Rack::URLMap" do
     res = Rack::MockRequest.new(map).get("/foo")
     res.should.be.ok
     res["X-ScriptName"].should.equal "/foo"
-    res.original_headers["X-PathInfo"].should.equal ""
+    res["X-PathInfo"].should.equal ""
 
     res = Rack::MockRequest.new(map).get("/foo/")
     res.should.be.ok
     res["X-ScriptName"].should.equal "/foo"
-    res.original_headers["X-PathInfo"].should.equal "/"
+    res["X-PathInfo"].should.equal "/"
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.ok
     res["X-ScriptName"].should.equal "/foo/bar"
-    res.original_headers["X-PathInfo"].should.equal ""
+    res["X-PathInfo"].should.equal ""
 
     res = Rack::MockRequest.new(map).get("/foo/bar/")
     res.should.be.ok
     res["X-ScriptName"].should.equal "/foo/bar"
-    res.original_headers["X-PathInfo"].should.equal "/"
+    res["X-PathInfo"].should.equal "/"
 
     res = Rack::MockRequest.new(map).get("/foo/quux", "SCRIPT_NAME" => "/bleh")
     res.should.be.ok
@@ -52,7 +52,7 @@ context "Rack::URLMap" do
     res = Rack::MockRequest.new(map).get("/bar", 'HTTP_HOST' => 'foo.org')
     res.should.be.ok
     res["X-ScriptName"].should.equal "/bar"
-    res.original_headers["X-PathInfo"].should.be.empty
+    res["X-PathInfo"].should.be.empty
 
     res = Rack::MockRequest.new(map).get("/bar/", 'HTTP_HOST' => 'foo.org')
     res.should.be.ok
@@ -127,7 +127,7 @@ context "Rack::URLMap" do
     res = Rack::MockRequest.new(map).get("/foo/bar/quux")
     res.should.be.ok
     res["X-Position"].should.equal "/foo/bar/quux"
-    res.original_headers["X-PathInfo"].should.equal ""
+    res["X-PathInfo"].should.equal ""
     res["X-ScriptName"].should.equal "/foo/bar/quux"
   end
 
