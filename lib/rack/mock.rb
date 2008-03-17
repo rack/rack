@@ -119,6 +119,7 @@ module Rack
         values.each { |value|
           @headers[field] = value
         }
+        @headers[field] = ""  if values.empty?
       }
 
       @body = ""
