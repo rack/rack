@@ -5,46 +5,62 @@ require 'rack/mock'
 
 context "Rack::URLMap" do
   specify "dispatches paths correctly" do
-    map = Rack::URLMap.new("/foo" => lambda { |env|
-                             [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "/foo",
-                                "X-PathInfo" => env["PATH_INFO"],
-                              }, [""]]},
+    app = proc do |env|
+      sn, pi = env.values_at('SCRIPT_NAME','PATH_INFO')
+      [200, {
+        'X-ScriptName' => sn,
+        'X-PathInfo' => pi,
+        'Content-Type' => 'text/plain'
+      }, [""]]
+    end
+    map = Rack::URLMap.new({
+      'http://foo.org/bar' => app,
+      '/foo' => app,
+      '/foo/bar' => app
+    })
 
-                           "/bar" => lambda { |env|
-                             [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "/bar",
-                                "X-PathInfo" => env["PATH_INFO"],
-                              }, [""]]}
+    res = Rack::MockRequest.new(map).get("/")
+    res.should.be.not_found
 
-                           )
-
-
-    Rack::MockRequest.new(map).get("/").should.be.not_found
+    res = Rack::MockRequest.new(map).get("/qux")
+    res.should.be.not_found
 
     res = Rack::MockRequest.new(map).get("/foo")
     res.should.be.ok
-    res["X-Position"].should.equal "/foo"
-    res["X-PathInfo"].should.equal "/"
+    res["X-ScriptName"].should.equal "/foo"
+    res.original_headers["X-PathInfo"].should.equal ""
 
-
-    res = Rack::MockRequest.new(map).get("/bar")
+    res = Rack::MockRequest.new(map).get("/foo/")
     res.should.be.ok
-    res["X-Position"].should.equal "/bar"
-    res["X-PathInfo"].should.equal "/"
+    res["X-ScriptName"].should.equal "/foo"
+    res.original_headers["X-PathInfo"].should.equal "/"
 
-    res = Rack::MockRequest.new(map).get("/foo/quux")
+    res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.ok
-    res["X-Position"].should.equal "/foo"
-    res["X-PathInfo"].should.equal "/quux"
+    res["X-ScriptName"].should.equal "/foo/bar"
+    res.original_headers["X-PathInfo"].should.equal ""
+
+    res = Rack::MockRequest.new(map).get("/foo/bar/")
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/foo/bar"
+    res.original_headers["X-PathInfo"].should.equal "/"
 
     res = Rack::MockRequest.new(map).get("/foo/quux", "SCRIPT_NAME" => "/bleh")
     res.should.be.ok
-    res["X-Position"].should.equal "/foo"
+    res["X-ScriptName"].should.equal "/bleh/foo"
     res["X-PathInfo"].should.equal "/quux"
+
+    res = Rack::MockRequest.new(map).get("/bar", 'HTTP_HOST' => 'foo.org')
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/bar"
+    res.original_headers["X-PathInfo"].should.be.empty
+
+    res = Rack::MockRequest.new(map).get("/bar/", 'HTTP_HOST' => 'foo.org')
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/bar"
+    res["X-PathInfo"].should.equal '/'
   end
+
 
   specify "dispatches hosts correctly" do
     map = Rack::URLMap.new("http://foo.org/" => lambda { |env|
@@ -112,7 +128,7 @@ context "Rack::URLMap" do
     res = Rack::MockRequest.new(map).get("/foo/bar/quux")
     res.should.be.ok
     res["X-Position"].should.equal "/foo/bar/quux"
-    res["X-PathInfo"].should.equal "/"
+    res.original_headers["X-PathInfo"].should.equal ""
     res["X-ScriptName"].should.equal "/foo/bar/quux"
   end
 
@@ -121,20 +137,24 @@ context "Rack::URLMap" do
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "root",
+                                "X-PathInfo" => env["PATH_INFO"]
                               }, [""]]},
                            "/foo" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "foo",
+                                "X-PathInfo" => env["PATH_INFO"]
                               }, [""]]}
                            )
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.ok
     res["X-Position"].should.equal "foo"
+    res["X-PathInfo"].should.equal "/bar"
 
     res = Rack::MockRequest.new(map).get("/bar")
     res.should.be.ok
     res["X-Position"].should.equal "root"
+    res["X-PathInfo"].should.equal "/bar"
   end
 end

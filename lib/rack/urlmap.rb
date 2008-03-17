@@ -20,7 +20,8 @@ module Rack
           host = nil
         end
 
-        location = ""  if location == "/"
+        location = location.chomp('/')
+        raise ArgumentError unless location[0] == ?/ or location.empty?
 
         [host, location, app]
       }.sort_by { |(h, l, a)| -l.size } # Longest path first
@@ -34,10 +35,8 @@ module Rack
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
         next unless location == path[0, location.size]
         next unless path[location.size] == nil || path[location.size] == ?/
-        env["SCRIPT_NAME"] += location.dup
-        env["PATH_INFO"] = path[location.size..-1]
-        env["PATH_INFO"].gsub!(/\/\z/, '')
-        env["PATH_INFO"] = "/" if env["PATH_INFO"].empty?
+        env["SCRIPT_NAME"] += location if location.size > 1
+        env["PATH_INFO"]    = path[location.size..-1]
         return app.call(env)
       }
       [404, {"Content-Type" => "text/plain"}, ["Not Found: #{path}"]]
