@@ -1,8 +1,6 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
-$: << File.join(File.dirname(__FILE__), "..", "..", "lib")
-
 require 'rack'
 require '../testrequest'
 

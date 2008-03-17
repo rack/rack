@@ -12,12 +12,15 @@ context "Rack::Handler::FastCGI" do
   # Keep this first.
   specify "startup" do
     $pid = fork {
-      Dir.chdir File.join(File.dirname(__FILE__), 'cgi')
+      rack_home = File.expand_path(File.join(File.dirname(__FILE__), ".."))
+      ENV['RUBYLIB'] = File.join(rack_home, "lib")
+      Dir.chdir(File.join(rack_home, "test", "cgi"))
       exec "lighttpd -D -f lighttpd.conf"
     }
   end
 
   specify "should respond" do
+    sleep 1
     lambda {
       GET("/test.fcgi")
     }.should.not.raise
@@ -29,8 +32,8 @@ context "Rack::Handler::FastCGI" do
     response["SERVER_SOFTWARE"].should =~ /lighttpd/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
-    response["SERVER_PORT"].should.equal "9203"
-    response["SERVER_NAME"].should =~ "0.0.0.0"
+    response["SERVER_PORT"].should.equal @port.to_s
+    response["SERVER_NAME"].should =~ @host
   end
 
   specify "should have rack headers" do
