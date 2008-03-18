@@ -119,7 +119,8 @@ Testing Rack requires the test/spec testing framework:
     gem install test-spec
 
 The full set of tests also test FCGI access with lighttpd so you will
-need lighttpd installed as well as the FCGI libraries and the fcgi gem installed:
+need lighttpd installed as well as the FCGI libraries and the fcgi gem
+installed:
 
 Download and install lighttpd:
 
@@ -145,15 +146,10 @@ On Unix-type operating systems make the following files executable:
     chmod +x test/cgi/test.ru
     chmod +x test/cgi/test.fcgi
     
-There are two rake-base test tasks:
+There are two rake-based test tasks:
 
-  rake test
-
-Tests all the fast tests.
-
-  rake fulltest
-
-Runs all the tests.
+    rake test       tests all the fast tests (no Handlers or Adapters)
+    rake fulltest   runs all the tests
 
 == History
 
