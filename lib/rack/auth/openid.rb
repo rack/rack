@@ -1,5 +1,6 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 
+gem_require 'ruby-openid', '~> 1.0.0' if defined? Gem
 require 'rack/auth/abstract/handler'
 require 'openid'
 
@@ -25,6 +26,10 @@ module Rack
     # NOTE: To my knowledge there is no collision at this point from storage
     # of this manner, if there is please let me know so I may adjust this app
     # to cope.
+    # NOTE: This rack application is only compatible with the 1.x.x versions
+    # of the ruby-openid library. If rubygems is loaded at require time of
+    # this app, the specification will be made. If it is not then the 'openid'
+    # library will be required, and will fail if it is not compatible.
     class OpenID < AbstractHandler
       # Required for ruby-openid
       OIDStore = ::OpenID::MemoryStore.new
