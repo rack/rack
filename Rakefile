@@ -85,7 +85,7 @@ task :test do
 end
 
 desc "Run all the tests"
-task :fulltest do
+task :fulltest => [:chmod] do
   sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
 end
 

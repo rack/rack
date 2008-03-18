@@ -140,12 +140,6 @@ Installing the Ruby fcgi gem:
 
     gem install fcgi
 
-On Unix-type operating systems make the following files executable:
-
-    chmod +x test/cgi/test
-    chmod +x test/cgi/test.ru
-    chmod +x test/cgi/test.fcgi
-    
 There are two rake-based test tasks:
 
     rake test       tests all the fast tests (no Handlers or Adapters)
