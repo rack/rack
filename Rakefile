@@ -28,7 +28,7 @@ def get_darcs_tree_version
   count = 0
   tag = "0.0"
 
-  changes.each("\n\n") { |change|
+  changes.split("\n\n").each { |change|
     head, title, desc = change.split("\n", 3)
 
     if title =~ /^  \*/
@@ -90,7 +90,6 @@ task :fulltest => [:chmod] do
 end
 
 begin
-  $" << "sources"  if defined? FromSrc
   require 'rubygems'
 
   require 'rake'
