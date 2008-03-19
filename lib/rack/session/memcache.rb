@@ -1,0 +1,73 @@
+# AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+
+require 'rack/session/abstract/id'
+require 'memcache'
+
+module Rack
+  module Session
+    # Rack::Session::Memcache provides simple cookie based session management.
+    # Session data is stored in memcached. The corresponding session key is
+    # maintained in the cookie.
+    # You may treat Session::Memcache as you would Session::Pool with the
+    # following differences.
+    #
+    # * Setting :expire_after to 0 would note to the Memcache server to hang
+    #   onto the session data until it would drop it according to it's own
+    #   specifications.
+    #
+    # Note that memcache does drop data before it may be listed to expire. For
+    # a full description of behaviour, please see memcache's documentation.
+
+    class Memcache < Abstract::ID
+      attr_reader :mutex, :pool
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge({
+        :namespace => 'rack:session',
+        :memcache_server => 'localhost:11211'
+      })
+
+      def initialize(app, options={})
+        super
+        @pool = MemCache.new @default_options[:memcache_server], @default_options
+        @mutex = Mutex.new
+      end
+
+      private
+
+      def get_session(env, sid)
+        session = sid && @pool.get(sid)
+        unless session and session.is_a?(Hash)
+          session = {}
+          lc = 0
+          @mutex.synchronize do
+            begin
+              raise RuntimeError, 'Unique id finding looping excessively' if (lc+=1) > 1000
+              sid = "%08x" % rand(0xffffffff)
+              ret = @pool.add(sid, session)
+            end until /^STORED/ =~ ret
+          end
+        end
+        [sid, session]
+      end
+
+      def set_session(env, sid)
+        options = env['rack.session.options']
+        expiry = options[:expire_after] || 0
+        o, s = @mutex.synchronize do
+          old_session = @pool.get(sid)
+          unless old_session.is_a?(Hash)
+            warn 'Session not properly initialized.'
+            old_session = {}
+            @pool.add sid, old_session, expiry
+          end
+          session = old_session.merge(env['rack.session'])
+          @pool.set sid, session, expiry
+          [old_session, session]
+        end
+        s.each do |k,v|
+          next unless o.has_key?(k) and v != o[k]
+          warn "session value assignment collision at #{k}: #{o[k]} <- #{v}"
+        end if $DEBUG and env['rack.multithread']
+      end
+    end
+  end
+end
