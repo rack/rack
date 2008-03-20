@@ -81,7 +81,7 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter)"'}"
+  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache)"'}"
 end
 
 desc "Run all the tests"
