@@ -172,6 +172,7 @@ There are two rake-based test tasks:
   * Many bugfixes, especially related to Cookie handling.
 
 * XXX, 2008: Fourth public release 0.4.
+  * Rack::Reloader is not loaded in rackup development mode.
   * Many bugfixes, especially for pool sessions and URLMap.
 
 == Contact

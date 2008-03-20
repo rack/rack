@@ -130,7 +130,6 @@ when "development"
   app = Rack::Builder.new {
     use Rack::CommonLogger, STDERR  unless server.name =~ /CGI/
     use Rack::ShowExceptions
-    use Rack::Reloader
     use Rack::Lint
     run inner_app
   }.to_app
