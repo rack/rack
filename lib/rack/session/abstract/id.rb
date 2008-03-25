@@ -70,6 +70,11 @@ module Rack
         # the session options and passes them to #set_session. It then
         # proceeds to set a cookie up in the response with the session's id.
         def commit_session(env, response)
+          unless response.is_a?(Array)
+            puts 'Response: '+response.inspect if $DEBUG
+            raise ArgumentError, 'Response is not an array.'
+          end
+
           options = env['rack.session.options']
           unless options.is_a?(Hash)
             puts 'Options: '+options.inspect if $DEBUG
