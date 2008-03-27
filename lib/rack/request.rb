@@ -105,7 +105,7 @@ module Rack
     # This method support both application/x-www-form-urlencoded and
     # multipart/form-data.
     def POST
-      if @env["rack.request.form_input"] == @env["rack.input"]
+      if @env["rack.request.form_input"].eql? @env["rack.input"]
         @env["rack.request.form_hash"]
       elsif form_data?
         @env["rack.request.form_input"] = @env["rack.input"]

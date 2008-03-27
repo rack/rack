@@ -334,6 +334,28 @@ EOF
     lambda { req.POST }.should.raise(EOFError)
   end
 
+  specify "should work around buggy 1.8.* Tempfile equality" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+\r
+foo\r
+--AaB03x--
+EOF
+
+    rack_input = Tempfile.new("rackspec")
+    rack_input.write(input)
+    rack_input.rewind
+
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => rack_input)
+
+    lambda {req.POST}.should.not.raise
+    lambda {req.POST}.should.blaming("input re-processed!").not.raise
+  end
+
   specify "does conform to the Rack spec" do
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
