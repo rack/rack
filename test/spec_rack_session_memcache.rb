@@ -50,34 +50,51 @@ context "Rack::Session::Memcache" do
     res.body.should.include '"counter"=>1'
   end
 
-  specify "multithread: should merge sessions" do
-    delta_incrementor = lambda do |env|
-      env['rack.session'] = env['rack.session'].dup
-      sleep 1
-      env['rack.session'][(Time.now.usec*rand).to_i] = true
-      incrementor.call(env)
-    end
+  specify "multithread: should cleanly merge sessions" do
     cache = Rack::Session::Memcache.new(incrementor)
+    drop_counter = Rack::Session::Memcache.new(proc do |env|
+      env['rack.session'].delete 'counter'
+      env['rack.session']['foo'] = 'bar'
+      [200, {'Content-Type'=>'text/plain'}, env['rack.session'].inspect]
+    end)
+
     res = Rack::MockRequest.new(cache).get('/')
     res.body.should.equal '{"counter"=>1}'
     cookie = res["Set-Cookie"]
-    sess_id = cookie[/#{cache.key}=([^,;]+)/,1]
+    sess_id = cookie[/#{cache.key}=([^,;]+)/, 1]
 
-    cache = cache.context(delta_incrementor)
-    r = Array.new(rand(7).to_i+2).
-      map! do
-        Thread.new do
-          Rack::MockRequest.new(cache).get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
-        end
-      end.
-      reverse!.
-      map!{|t| t.join.value }
-    session = cache.for.pool[sess_id] # for is needed by Utils::Context
-    session.size.should.be r.size+1 # counter
-    session['counter'].should.be 2 # meeeh
+    res = Rack::MockRequest.new(cache).get('/', "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>2}'
+
+    r = Array.new(rand(7).to_i+2) do |i|
+      app = proc do |env|
+        env['rack.session'][i]  = Time.now
+        sleep 2
+        env['rack.session']     = env['rack.session'].dup
+        env['rack.session'][i] -= Time.now
+        incrementor.call(env)
+      end
+      Thread.new(cache.context(app)) do |run|
+        Rack::MockRequest.new(run).
+          get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
+      end
+    end.reverse.map{|t| t.join.value }
+
     r.each do |res|
       res['Set-Cookie'].should.equal cookie
-      res.body.should.include '"counter"=>2'
+      res.body.should.include '"counter"=>3'
     end
+
+    session = cache.pool[sess_id]
+    session.size.should.be r.size+1
+    session['counter'].should.be 3
+
+    res = Rack::MockRequest.new(drop_counter).get('/', "HTTP_COOKIE" => cookie)
+    res.body.should.include '"foo"=>"bar"'
+
+    session = cache.pool[sess_id]
+    session.size.should.be r.size+1
+    session['counter'].should.be.nil?
+    session['foo'].should.equal 'bar'
   end
 end

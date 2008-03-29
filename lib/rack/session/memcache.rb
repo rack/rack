@@ -46,21 +46,31 @@ module Rack
             end until /^STORED/ =~ ret
           end
         end
+        class << session
+          @deleted = []
+          def delete key
+            (@deleted||=[]) << key
+            super
+          end
+        end
         [sid, session]
       end
 
       def set_session(env, sid)
+        session = env['rack.session']
         options = env['rack.session.options']
-        expiry = options[:expire_after] || 0
+        expiry  = options[:expire_after] || 0
         o, s = @mutex.synchronize do
           old_session = @pool.get(sid)
           unless old_session.is_a?(Hash)
-            warn 'Session not properly initialized.'
+            warn 'Session not properly initialized.' if $DEBUG
             old_session = {}
             @pool.add sid, old_session, expiry
           end
-          session = old_session.merge(env['rack.session'])
-          @pool.set sid, session, expiry
+          session.instance_eval do
+            @deleted.each{|k| old_session.delete(k) } if defined? @deleted
+          end
+          @pool.set sid, old_session.merge(session), expiry
           [old_session, session]
         end
         s.each do |k,v|
