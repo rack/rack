@@ -80,6 +80,9 @@ module Rack
       def inspect
         "#{old_inspect} ==> #{@for.inspect} ==> #{@app.inspect}"
       end
+      def context app
+        self.dup.instance_eval{@app=app; self}
+      end
       def pretty_print pp
         pp.text old_inspect
         pp.nest 1 do
