@@ -123,6 +123,8 @@ module Rack
     # The union of GET and POST data.
     def params
       self.GET.update(self.POST)
+    rescue EOFError => e
+      self.GET
     end
 
     # shortcut for request.params[key]
