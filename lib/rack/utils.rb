@@ -188,7 +188,10 @@ module Rack
                 content_type = head[/Content-Type: (.*)\r\n/ni, 1]
                 name = head[/Content-Disposition:.* name="?([^\";]*)"?/ni, 1]
 
-                body = Tempfile.new("RackMultipart")  if filename
+                if filename
+                  body = Tempfile.new("RackMultipart")
+                  body.binmode
+                end
 
                 next
               end
