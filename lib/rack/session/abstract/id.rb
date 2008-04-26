@@ -99,8 +99,6 @@ module Rack
           cookie<< "; path=#{options[:path]}" if options[:path]
           cookie<< "; expires=#{expiry}" if expiry
 
-          puts "Cookie: "+cookie.inspect if $DEBUG
-
           case a = (h = response[1])['Set-Cookie']
           when Array then  a << cookie
           when String then h['Set-Cookie'] = [a, cookie]
