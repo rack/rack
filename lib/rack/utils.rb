@@ -23,7 +23,7 @@ module Rack
     end
     module_function :unescape
 
-    # Stolen from Mongrel:
+    # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
@@ -31,8 +31,10 @@ module Rack
 
     def parse_query(qs, d = '&;')
       params = {}
-      (qs||'').split(/[#{d}] */n).inject(params) { |h,p|
-        k, v=unescape(p).split('=',2)
+      
+      (qs || '').split(/[#{d}] */n).each do |p|
+        k, v = unescape(p).split('=', 2)
+        
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -42,8 +44,8 @@ module Rack
         else
           params[k] = v
         end
-      }
-
+      end
+      
       return params
     end
     module_function :parse_query
