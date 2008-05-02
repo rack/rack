@@ -49,6 +49,17 @@ module Rack
       return params
     end
     module_function :parse_query
+    
+    def build_query(params)
+      params.map { |k, v|
+        if v.class == Array
+          build_query(v.map { |x| [k, x] })
+        else
+          escape(k) + "=" + escape(v)
+        end
+      }.join("&")
+    end
+    module_function :build_query
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
