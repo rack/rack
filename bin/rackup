@@ -6,6 +6,8 @@ require 'optparse'
 automatic = false
 server = nil
 env = "development"
+daemonize = false
+pid = Dir.pwd + '/rack.pid'
 options = {:Port => 9292, :Host => "0.0.0.0", :AccessLog => []}
 
 opts = OptionParser.new("", 24, '  ') { |opts|
@@ -53,6 +55,14 @@ opts = OptionParser.new("", 24, '  ') { |opts|
 
   opts.on("-E", "--env ENVIRONMENT", "use ENVIRONMENT for defaults (default: development)") { |e|
     env = e
+  }
+
+  opts.on("-D", "--daemonize", "run daemonized in the background") { |d|
+    daemonize = d ? true : false
+  }
+
+  opts.on("-P", "--pid FILE", "file to store PID (default: rack.pid)") { |f|
+    pid = File.expand_path(f)
   }
 
   opts.separator ""
@@ -148,6 +158,24 @@ end
 if $DEBUG
   pp app
   pp inner_app
+end
+
+if daemonize
+  if RUBY_VERSION < "1.9"
+    exit if fork
+    Process.setsid
+    exit if fork
+    Dir.chdir "/"
+    File.umask 0000
+    STDIN.reopen "/dev/null"
+    STDOUT.reopen "/dev/null", "a"
+    STDERR.reopen "/dev/null", "a"
+  else
+    Process.daemon
+  end
+
+  File.open(pid, 'w'){ |f| f.write("#{Process.pid}") }
+  at_exit { File.delete(pid) if File.exist?(pid) }
 end
 
 server.run app, options
