@@ -7,7 +7,7 @@ automatic = false
 server = nil
 env = "development"
 daemonize = false
-pid = Dir.pwd + '/rack.pid'
+pid = nil
 options = {:Port => 9292, :Host => "0.0.0.0", :AccessLog => []}
 
 opts = OptionParser.new("", 24, '  ') { |opts|
@@ -174,8 +174,10 @@ if daemonize
     Process.daemon
   end
 
-  File.open(pid, 'w'){ |f| f.write("#{Process.pid}") }
-  at_exit { File.delete(pid) if File.exist?(pid) }
+  if pid
+    File.open(pid, 'w'){ |f| f.write("#{Process.pid}") }
+    at_exit { File.delete(pid) if File.exist?(pid) }
+  end
 end
 
 server.run app, options
