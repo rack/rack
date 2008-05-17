@@ -123,6 +123,8 @@ when nil
   end
 when "mongrel"
   server = Rack::Handler::Mongrel
+when "evented_mongrel"
+  server = Rack::Handler::EventedMongrel
 when "webrick"
   server = Rack::Handler::WEBrick
 when "cgi"
