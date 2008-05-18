@@ -13,7 +13,7 @@ which all Rack applications should conform to.
 
 The included *handlers* connect all kinds of web servers to Rack:
 * Mongrel
-* Mongrel/Swiftcore (require it before requiring rack)
+* EventedMongrel
 * WEBrick
 * FCGI
 * CGI
