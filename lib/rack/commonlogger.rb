@@ -40,7 +40,8 @@ module Rack
       # lilith.local - - [07/Aug/2006 23:58:02] "GET / HTTP/1.1" 500 -
       #             %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
       @logger << %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n} %
-        [@env["REMOTE_ADDR"] || "-",
+        [
+         @env['HTTP_X_FORWARDED_FOR'] || @env["REMOTE_ADDR"] || "-",
          @env["REMOTE_USER"] || "-",
          @now.strftime("%d/%b/%Y %H:%M:%S"),
          @env["REQUEST_METHOD"],
