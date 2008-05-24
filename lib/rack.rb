@@ -26,6 +26,7 @@ module Rack
   autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
   autoload :ForwardRequest, "rack/recursive"
+  autoload :Handler, "rack/handler"
   autoload :Lint, "rack/lint"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
@@ -69,24 +70,5 @@ module Rack
 
   module Adapter
     autoload :Camping, "rack/adapter/camping"
-  end
-
-  # *Handlers* connect web servers with Rack.
-  #
-  # Rack includes Handlers for Mongrel, WEBrick, FastCGI, CGI, SCGI
-  # and LiteSpeed.
-  #
-  # Handlers usually are activated by calling <tt>MyHandler.run(myapp)</tt>.
-  # A second optional hash can be passed to include server-specific
-  # configuration.
-
-  module Handler
-    autoload :CGI, "rack/handler/cgi"
-    autoload :FastCGI, "rack/handler/fastcgi"
-    autoload :Mongrel, "rack/handler/mongrel"
-    autoload :EventedMongrel, "rack/handler/evented_mongrel"
-    autoload :WEBrick, "rack/handler/webrick"
-    autoload :LSWS, "rack/handler/lsws"
-    autoload :SCGI, "rack/handler/scgi"
   end
 end

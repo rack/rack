@@ -103,8 +103,7 @@ else
   inner_app = Object.const_get(File.basename(config, '.rb').capitalize)
 end
 
-case server
-when nil
+unless server = Rack::Handler.get(server)
   # Guess.
   if ENV.include?("PHP_FCGI_CHILDREN")
     server = Rack::Handler::FastCGI
@@ -121,18 +120,6 @@ when nil
       server = Rack::Handler::WEBrick
     end
   end
-when "mongrel"
-  server = Rack::Handler::Mongrel
-when "evented_mongrel"
-  server = Rack::Handler::EventedMongrel
-when "webrick"
-  server = Rack::Handler::WEBrick
-when "cgi"
-  server = Rack::Handler::CGI
-when "fastcgi"
-  server = Rack::Handler::FastCGI
-else
-  server = Rack::Handler.const_get(server.capitalize)
 end
 
 p server  if $DEBUG
