@@ -11,43 +11,33 @@ task :predist => [:chmod, :changelog, :rdoc]
 
 
 desc "Make an archive as .tar.gz"
-task :dist => :fulltest do
-  sh "export DARCS_REPO=#{File.expand_path "."}; " +
-     "darcs dist -d rack-#{get_darcs_tree_version}"
+task :dist => [:fulltest, :predist] do
+  sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
+  sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc"
+  sh "gzip -f -9 #{release}.tar"
 end
 
-# Helper to retrieve the "revision number" of the darcs tree.
-def get_darcs_tree_version
-  unless File.directory? "_darcs"
+# Helper to retrieve the "revision number" of the git tree.
+def git_tree_version
+  if File.directory?(".git")
+    @tree_version ||= `git describe`.strip.sub('-', '.')
+  else
     $: << "lib"
     require 'rack'
-    return Rack.version
+    @tree_version = Rack.release
   end
+end
 
-  changes = `darcs changes`
-  count = 0
-  tag = "0.0"
+def gem_version
+  git_tree_version.gsub(/-.*/, '')
+end
 
-  changes.split("\n\n").each { |change|
-    head, title, desc = change.split("\n", 3)
-
-    if title =~ /^  \*/
-      # Normal change.
-      count += 1
-    elsif title =~ /tagged (.*)/
-      # Tag.  We look for these.
-      tag = $1
-      break
-    else
-      warn "Unparsable change: #{change}"
-    end
-  }
-
-  tag + "." + count.to_s
+def release
+  "rack-#{git_tree_version}"
 end
 
 def manifest
-  `darcs query manifest`.split("\n").map { |f| f.gsub(/\A\.\//, '') }
+  `git ls-files`.split("\n")
 end
 
 
@@ -59,7 +49,20 @@ end
 
 desc "Generate a ChangeLog"
 task :changelog do
-  sh "darcs changes --repo=#{ENV["DARCS_REPO"] || "."} >ChangeLog"
+  File.open("ChangeLog", "w") { |out|
+    `git log -z`.split("\0").map { |chunk|
+      author = chunk[/Author: (.*)/, 1].strip
+      date = chunk[/Date: (.*)/, 1].strip
+      desc, detail = $'.strip.split("\n", 2)
+      detail ||= ""
+      detail = detail.gsub(/.*darcs-hash:.*/, '')
+      detail.rstrip!
+      out.puts "#{date}  #{author}"
+      out.puts "  * #{desc.strip}"
+      out.puts detail  unless detail.empty?
+      out.puts
+    }
+  }
 end
 
 
@@ -102,7 +105,7 @@ rescue LoadError
 else
   spec = Gem::Specification.new do |s|
     s.name            = "rack"
-    s.version         = get_darcs_tree_version
+    s.version         = gem_version
     s.platform        = Gem::Platform::RUBY
     s.summary         = "a modular Ruby webserver interface"
 

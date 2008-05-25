@@ -21,6 +21,11 @@ module Rack
     VERSION.join(".")
   end
 
+  # Return the Rack release as a dotted string.
+  def self.release
+    "0.3"
+  end
+
   autoload :Builder, "rack/builder"
   autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
