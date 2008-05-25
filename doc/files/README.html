@@ -1,0 +1,561 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: README</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>README</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>README
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Sun May 18 17:05:54 +0200 2008</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h1><a href="../classes/Rack.html">Rack</a>, a modular Ruby webserver interface</h1>
+<p>
+<a href="../classes/Rack.html">Rack</a> provides a minimal, modular and
+adaptable interface for developing web applications in Ruby. By wrapping
+HTTP requests and responses in the simplest way possible, it unifies and
+distills the API for web servers, web frameworks, and software in between
+(the so-called middleware) into a single method call.
+</p>
+<p>
+The exact details of this are described in the <a
+href="../classes/Rack.html">Rack</a> specification, which all <a
+href="../classes/Rack.html">Rack</a> applications should conform to.
+</p>
+<h2>Supported web servers</h2>
+<p>
+The included <b>handlers</b> connect all kinds of web servers to <a
+href="../classes/Rack.html">Rack</a>:
+</p>
+<ul>
+<li>Mongrel
+
+</li>
+<li>EventedMongrel
+
+</li>
+<li>WEBrick
+
+</li>
+<li>FCGI
+
+</li>
+<li>CGI
+
+</li>
+<li>SCGI
+
+</li>
+<li>LiteSpeed
+
+</li>
+</ul>
+<p>
+These web servers include <a href="../classes/Rack.html">Rack</a> handlers
+in their distributions:
+</p>
+<ul>
+<li>Ebb
+
+</li>
+<li>Fuzed
+
+</li>
+<li>Thin
+
+</li>
+</ul>
+<p>
+Any valid <a href="../classes/Rack.html">Rack</a> app will run the same on
+all these handlers, without changing anything.
+</p>
+<h2>Supported web frameworks</h2>
+<p>
+The included <b>adapters</b> connect <a
+href="../classes/Rack.html">Rack</a> with existing Ruby web frameworks:
+</p>
+<ul>
+<li>Camping
+
+</li>
+</ul>
+<p>
+These frameworks include <a href="../classes/Rack.html">Rack</a> adapters
+in their distributions:
+</p>
+<ul>
+<li>Coset
+
+</li>
+<li>Halcyon
+
+</li>
+<li>Maveric
+
+</li>
+<li>Merb
+
+</li>
+<li>Racktools::SimpleApplication
+
+</li>
+<li>Ramaze
+
+</li>
+<li>Sinatra
+
+</li>
+<li>Vintage
+
+</li>
+</ul>
+<p>
+Ruby on Rails can be run with the adapter included with Thin, which will be
+merged into a later <a href="../classes/Rack.html">Rack</a> version.
+</p>
+<p>
+Current links to these projects can be found at <a
+href="http://ramaze.net/#other-frameworks">ramaze.net/#other-frameworks</a>
+</p>
+<h2>Available middleware</h2>
+<p>
+Between the server and the framework, <a
+href="../classes/Rack.html">Rack</a> can be customized to your applications
+needs using middleware, for example:
+</p>
+<ul>
+<li><a href="../classes/Rack/URLMap.html">Rack::URLMap</a>, to route to
+multiple applications inside the same process.
+
+</li>
+<li><a href="../classes/Rack/CommonLogger.html">Rack::CommonLogger</a>, for
+creating Apache-style logfiles.
+
+</li>
+<li>Rack::ShowException, for catching unhandled exceptions and presenting them
+in a nice and helpful way with clickable backtrace.
+
+</li>
+<li><a href="../classes/Rack/File.html">Rack::File</a>, for serving static
+files.
+
+</li>
+<li>&#8230;many others!
+
+</li>
+</ul>
+<p>
+All these components use the same interface, which is described in detail
+in the <a href="../classes/Rack.html">Rack</a> specification. You can
+choose to use them exactly in the way you want.
+</p>
+<h2>Convenience</h2>
+<p>
+If you want to develop outside of existing frameworks, implement your own
+ones, or develop middleware, <a href="../classes/Rack.html">Rack</a>
+provides many helpers to create <a href="../classes/Rack.html">Rack</a>
+applications quickly and without doing the same web stuff all over:
+</p>
+<ul>
+<li><a href="../classes/Rack/Request.html">Rack::Request</a>, which also
+provides query string parsing and multipart handling.
+
+</li>
+<li><a href="../classes/Rack/Response.html">Rack::Response</a>, for convenient
+generation of HTTP replies and cookie handling.
+
+</li>
+<li><a href="../classes/Rack/MockRequest.html">Rack::MockRequest</a> and <a
+href="../classes/Rack/MockResponse.html">Rack::MockResponse</a> for
+efficient and quick testing of <a href="../classes/Rack.html">Rack</a>
+application without real HTTP round-trips.
+
+</li>
+</ul>
+<h2>rackup</h2>
+<p>
+rackup is a useful tool for running <a href="../classes/Rack.html">Rack</a>
+applications, which uses the <a
+href="../classes/Rack/Builder.html">Rack::Builder</a> DSL to configure
+middleware and build up applications easily.
+</p>
+<p>
+rackup automatically figures out the environment it is run in, and runs
+your application as FastCGI, CGI, or standalone with Mongrel or
+WEBrick&#8212;all from the same configuration.
+</p>
+<h2>Quick start</h2>
+<p>
+Try the lobster!
+</p>
+<p>
+Either with the embedded WEBrick starter:
+</p>
+<pre>
+    ruby -Ilib lib/rack/lobster.rb
+</pre>
+<p>
+Or with rackup:
+</p>
+<pre>
+    bin/rackup -Ilib example/lobster.ru
+</pre>
+<p>
+By default, the lobster is found at <a
+href="http://localhost:9292">localhost:9292</a>.
+</p>
+<h2>Installing with RubyGems</h2>
+<p>
+A Gem of <a href="../classes/Rack.html">Rack</a> is available. You can
+install it with:
+</p>
+<pre>
+    gem install rack
+</pre>
+<p>
+I also provide a local mirror of the gems (and development snapshots) at my
+site:
+</p>
+<pre>
+    gem install rack --source http://chneukirchen.org/releases/gems
+</pre>
+<h2>Running the tests</h2>
+<p>
+Testing <a href="../classes/Rack.html">Rack</a> requires the test/spec
+testing framework:
+</p>
+<pre>
+    gem install test-spec
+</pre>
+<p>
+The full set of tests also test FCGI access with lighttpd so you will need
+lighttpd installed as well as the FCGI libraries and the fcgi gem
+installed:
+</p>
+<p>
+Download and install lighttpd:
+</p>
+<pre>
+    http://www.lighttpd.net/download
+</pre>
+<p>
+Installing the FCGI libraries:
+</p>
+<pre>
+    curl -O http://www.fastcgi.com/dist/fcgi-2.4.0.tar.gz
+    tar xzvf fcgi-2.4.0.tar.gz
+    cd fcgi-2.4.0
+    ./configure --prefix=/usr/local
+    make
+    sudo make install
+    cd ..
+</pre>
+<p>
+Installing the Ruby fcgi gem:
+</p>
+<pre>
+    gem install fcgi
+</pre>
+<p>
+There are two rake-based test tasks:
+</p>
+<pre>
+    rake test       tests all the fast tests (no Handlers or Adapters)
+    rake fulltest   runs all the tests
+</pre>
+<h2>History</h2>
+<ul>
+<li>March 3rd, 2007: First public release 0.1.
+
+</li>
+<li>May 16th, 2007: Second public release 0.2.
+
+<ul>
+<li>HTTP Basic authentication.
+
+</li>
+<li>Cookie Sessions.
+
+</li>
+<li>Static file handler.
+
+</li>
+<li>Improved <a href="../classes/Rack/Request.html">Rack::Request</a>.
+
+</li>
+<li>Improved <a href="../classes/Rack/Response.html">Rack::Response</a>.
+
+</li>
+<li>Added <a href="../classes/Rack/ShowStatus.html">Rack::ShowStatus</a>, for
+better default error messages.
+
+</li>
+<li>Bug fixes in the Camping adapter.
+
+</li>
+<li>Removed Rails adapter, was too alpha.
+
+</li>
+</ul>
+</li>
+<li>February 26th, 2008: Third public release 0.3.
+
+<ul>
+<li>LiteSpeed handler, by Adrian Madrid.
+
+</li>
+<li>SCGI handler, by Jeremy Evans.
+
+</li>
+<li>Pool sessions, by blink.
+
+</li>
+<li>OpenID authentication, by blink.
+
+</li>
+<li>:Port and :File options for opening FastCGI sockets, by blink.
+
+</li>
+<li>Last-Modified HTTP header for <a
+href="../classes/Rack/File.html">Rack::File</a>, by blink.
+
+</li>
+<li>Rack::Builder#use now accepts blocks, by Corey Jewett. (See
+example/protectedlobster.ru)
+
+</li>
+<li>HTTP status 201 can contain a Content-Type and a body now.
+
+</li>
+<li>Many bugfixes, especially related to Cookie handling.
+
+</li>
+</ul>
+</li>
+<li>XXX, 2008: Fourth public release 0.4.
+
+<ul>
+<li>New Memcache sessions, by blink.
+
+</li>
+<li><a href="../classes/Rack/Reloader.html">Rack::Reloader</a> is not loaded in
+rackup development mode.
+
+</li>
+<li>Many bugfixes, especially for pool sessions and URLMap.
+
+</li>
+</ul>
+</li>
+</ul>
+<h2>Contact</h2>
+<p>
+Please mail bugs, suggestions and patches to &lt;<a
+href="mailto:chneukirchen@gmail.com">chneukirchen@gmail.com</a>&gt;.
+</p>
+<p>
+Darcs repository (&quot;darcs send&quot; is welcome for patches): <a
+href="http://chneukirchen.org/repos/rack">chneukirchen.org/repos/rack</a>
+</p>
+<p>
+You are also welcome to join the rack channel on irc.freenode.net.
+</p>
+<h2>Thanks to</h2>
+<ul>
+<li>blink for the Pool sessions, OpenID support, many tweaks, patches and
+bugreports.
+
+</li>
+<li>Michael Fellinger, for the helpful discussion, bugfixes and a better <a
+href="../classes/Rack/Request.html">Rack::Request</a> interface.
+
+</li>
+<li>Adrian Madrid, for the LiteSpeed handler.
+
+</li>
+<li>Christoffer Sawicki, for the Rails adapter.
+
+</li>
+<li>Tim Fletcher, for the HTTP authentication code.
+
+</li>
+<li>Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
+
+</li>
+<li>Armin Ronacher, for the logo and racktools.
+
+</li>
+<li>Aredridel, for bug fixing.
+
+</li>
+<li>Stephen Bannasch, for bug reports and documentation.
+
+</li>
+<li>Gary Wright, for proposing a better <a
+href="../classes/Rack/Response.html">Rack::Response</a> interface.
+
+</li>
+<li>Jonathan Buch, for improvements regarding <a
+href="../classes/Rack/Response.html">Rack::Response</a>.
+
+</li>
+<li>Armin Röhrl, for tracking down bugs in the Cookie generator.
+
+</li>
+<li>Alexander Kellett for testing the Gem and reviewing the announce.
+
+</li>
+<li>Marcus Rückert, for help with configuring and debugging lighttpd.
+
+</li>
+<li>The WSGI team for the well-done and documented work they&#8216;ve done and
+<a href="../classes/Rack.html">Rack</a> builds up on.
+
+</li>
+</ul>
+<h2>Copyright</h2>
+<p>
+Copyright (C) 2007, 2008 Christian Neukirchen &lt;<a
+href="http://purl.org/net/chneukirchen">purl.org/net/chneukirchen</a>&gt;
+</p>
+<p>
+Permission is hereby granted, free of charge, to any person obtaining a
+copy of this software and associated documentation files (the
+&quot;Software&quot;), to deal in the Software without restriction,
+including without limitation the rights to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software, and to
+permit persons to whom the Software is furnished to do so, subject to the
+following conditions:
+</p>
+<p>
+The above copyright notice and this permission notice shall be included in
+all copies or substantial portions of the Software.
+</p>
+<p>
+THE SOFTWARE IS PROVIDED &quot;AS IS&quot;, WITHOUT WARRANTY OF ANY KIND,
+EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN
+NO EVENT SHALL THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
+FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+DEALINGS IN THE SOFTWARE.
+</p>
+<h2>Links</h2>
+<table>
+<tr><td valign="top"><a href="../classes/Rack.html">Rack</a>:</td><td>&lt;<a href="http://rack.rubyforge.org">rack.rubyforge.org</a>/&gt;
+
+</td></tr>
+<tr><td valign="top"><a href="../classes/Rack.html">Rack</a>&#8216;s Rubyforge project:</td><td>&lt;<a
+href="http://rubyforge.org/projects/rack">rubyforge.org/projects/rack</a>&gt;
+
+</td></tr>
+<tr><td valign="top">Camping:</td><td>&lt;<a href="http://camping.rubyforge.org">camping.rubyforge.org</a>/&gt;
+
+</td></tr>
+<tr><td valign="top">Ramaze:</td><td>&lt;<a href="http://ramaze.rubyforge.org">ramaze.rubyforge.org</a>/&gt;
+
+</td></tr>
+<tr><td valign="top">Maveric:</td><td>&lt;<a href="http://maveric.rubyforge.org">maveric.rubyforge.org</a>/&gt;
+
+</td></tr>
+<tr><td valign="top">racktools:</td><td>&lt;<a
+href="http://lucumr.pocoo.org/trac/repos/racktools">lucumr.pocoo.org/trac/repos/racktools</a>/&gt;
+
+</td></tr>
+<tr><td valign="top">Christian Neukirchen:</td><td>&lt;<a href="http://chneukirchen.org">chneukirchen.org</a>/&gt;
+
+</td></tr>
+</table>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

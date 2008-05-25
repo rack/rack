@@ -1,0 +1,409 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>Class: Rack::Auth::OpenID</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href="../../.././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+    <div id="classHeader">
+        <table class="header-table">
+        <tr class="top-aligned-row">
+          <td><strong>Class</strong></td>
+          <td class="class-name-in-header">Rack::Auth::OpenID</td>
+        </tr>
+        <tr class="top-aligned-row">
+            <td><strong>In:</strong></td>
+            <td>
+                <a href="../../../files/lib/rack/auth/openid_rb.html">
+                lib/rack/auth/openid.rb
+                </a>
+        <br />
+            </td>
+        </tr>
+
+        <tr class="top-aligned-row">
+            <td><strong>Parent:</strong></td>
+            <td>
+                AbstractHandler
+            </td>
+        </tr>
+        </table>
+    </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <p>
+<a href="OpenID.html">Rack::Auth::OpenID</a> provides a simple method for
+permitting openid based logins. It requires the ruby-openid lib from
+janrain to operate, as well as some method of session management of a Hash
+type.
+</p>
+<p>
+After a transaction, the response status object is stored in the
+environment at rack.auth.openid.status, which can be used in the followup
+block or in a wrapping application to accomplish additional data
+maniipulation.
+</p>
+<p>
+NOTE: Due to the amount of data that ruby-openid stores in the session, <a
+href="../Session/Cookie.html">Rack::Session::Cookie</a> may fault.
+</p>
+<p>
+A hash of data is stored in the session hash at the key of :openid. The
+fully canonicalized identity url is stored within at
+&#8216;identity&#8217;. Extension data from
+&#8216;openid.sreg.nickname&#8217; would be stored as {
+&#8216;nickname&#8217; =&gt; value }.
+</p>
+<p>
+NOTE: To my knowledge there is no collision at this point from storage of
+this manner, if there is please let me know so I may adjust this app to
+cope. NOTE: This rack application is only compatible with the 1.x.x
+versions of the ruby-openid library. If rubygems is loaded at require time
+of this app, the specification will be made. If it is not then the
+&#8216;openid&#8217; library will be required, and will fail if it is not
+compatible.
+</p>
+
+    </div>
+
+
+   </div>
+
+    <div id="method-list">
+      <h3 class="section-bar">Methods</h3>
+
+      <div class="name-list">
+      <a href="#M000019">auth_fail</a>&nbsp;&nbsp;
+      <a href="#M000020">bad_login</a>&nbsp;&nbsp;
+      <a href="#M000015">call</a>&nbsp;&nbsp;
+      <a href="#M000016">check</a>&nbsp;&nbsp;
+      <a href="#M000017">finish</a>&nbsp;&nbsp;
+      <a href="#M000014">new</a>&nbsp;&nbsp;
+      <a href="#M000018">no_session</a>&nbsp;&nbsp;
+      </div>
+    </div>
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+    <div id="constants-list">
+      <h3 class="section-bar">Constants</h3>
+
+      <div class="name-list">
+        <table summary="Constants">
+        <tr class="top-aligned-row context-row">
+          <td class="context-item-name">OIDStore</td>
+          <td>=</td>
+          <td class="context-item-value">::OpenID::MemoryStore.new</td>
+          <td width="3em">&nbsp;</td>
+          <td class="context-item-desc">
+Required for ruby-openid
+
+</td>
+        </tr>
+        </table>
+      </div>
+    </div>
+
+
+
+      
+
+
+    <!-- if method_list -->
+    <div id="methods">
+      <h3 class="section-bar">Public Class methods</h3>
+
+      <div id="method-M000014" class="method-detail">
+        <a name="M000014"></a>
+
+        <div class="method-heading">
+          <a href="#M000014" class="method-signature">
+          <span class="method-name">new</span><span class="method-args">(options={})</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p>
+A Hash of options is taken as it&#8216;s single initializing argument.
+String keys are taken to be openid protocol extension namespaces.
+</p>
+<pre>
+  For example: 'sreg' =&gt; { 'required' =&gt; # 'nickname' }
+</pre>
+<p>
+Other keys are taken as options for <a
+href="OpenID.html">Rack::Auth::OpenID</a>, normally Symbols. Only :return
+is required. :trust is highly recommended to be set.
+</p>
+<ul>
+<li>:return defines the url to return to after the client authenticates with
+the openid service provider. Should point to where this app is mounted.
+(ex: &#8216;<a
+href="http://mysite.com/openid">mysite.com/openid</a>&#8217;)
+
+</li>
+<li>:trust defines the url identifying the site they are actually logging into.
+(ex: &#8216;<a href="http://mysite.com">mysite.com</a>/&#8217;)
+
+</li>
+<li>:session_key defines the key to the session hash in the env. (by default it
+uses &#8216;rack.session&#8217;)
+
+</li>
+</ul>
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000014-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000014-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 53</span>
+53:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">initialize</span>(<span class="ruby-identifier">options</span>={})
+54:         <span class="ruby-identifier">raise</span> <span class="ruby-constant">ArgumentError</span>, <span class="ruby-value str">'No return url provided.'</span>  <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:return</span>]
+55:         <span class="ruby-identifier">warn</span>  <span class="ruby-value str">'No trust url provided.'</span>  <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:trust</span>]
+56:         <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:trust</span>] <span class="ruby-operator">||=</span> <span class="ruby-identifier">options</span>[<span class="ruby-identifier">:return</span>]
+57: 
+58:         <span class="ruby-ivar">@options</span>  = {
+59:           <span class="ruby-identifier">:session_key</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-value str">'rack.session'</span>
+60:         }.<span class="ruby-identifier">merge</span>(<span class="ruby-identifier">options</span>)
+61:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <h3 class="section-bar">Public Instance methods</h3>
+
+      <div id="method-M000019" class="method-detail">
+        <a name="M000019"></a>
+
+        <div class="method-heading">
+          <a href="#M000019" class="method-signature">
+          <span class="method-name">auth_fail</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000019-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000019-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 106</span>
+106:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">auth_fail</span>
+107:         <span class="ruby-ivar">@options</span>.
+108:           <span class="ruby-identifier">fetch</span> <span class="ruby-identifier">:auth_fail</span>, [<span class="ruby-value">500</span>, {<span class="ruby-value str">'Content-Type'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'text/plain'</span>},<span class="ruby-value str">'Foreign server failure.'</span>]
+109:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000020" class="method-detail">
+        <a name="M000020"></a>
+
+        <div class="method-heading">
+          <a href="#M000020" class="method-signature">
+          <span class="method-name">bad_login</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000020-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000020-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 110</span>
+110:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">bad_login</span>
+111:         <span class="ruby-ivar">@options</span>.
+112:           <span class="ruby-identifier">fetch</span> <span class="ruby-identifier">:bad_login</span>, [<span class="ruby-value">401</span>, {<span class="ruby-value str">'Content-Type'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'text/plain'</span>},<span class="ruby-value str">'Identification has failed.'</span>]
+113:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000015" class="method-detail">
+        <a name="M000015"></a>
+
+        <div class="method-heading">
+          <a href="#M000015" class="method-signature">
+          <span class="method-name">call</span><span class="method-args">(env)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000015-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000015-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 63</span>
+63:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">call</span>(<span class="ruby-identifier">env</span>)
+64:         <span class="ruby-identifier">request</span> = <span class="ruby-constant">Rack</span><span class="ruby-operator">::</span><span class="ruby-constant">Request</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">env</span>
+65:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">no_session</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">session</span> = <span class="ruby-identifier">request</span>.<span class="ruby-identifier">env</span>[<span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:session_key</span>]]
+66:         <span class="ruby-identifier">resp</span> = <span class="ruby-keyword kw">if</span> <span class="ruby-identifier">request</span>.<span class="ruby-constant">GET</span>[<span class="ruby-value str">'openid.mode'</span>]
+67:                  <span class="ruby-identifier">finish</span> <span class="ruby-identifier">session</span>, <span class="ruby-identifier">request</span>.<span class="ruby-constant">GET</span>, <span class="ruby-identifier">env</span>
+68:                <span class="ruby-keyword kw">elsif</span> <span class="ruby-identifier">request</span>.<span class="ruby-constant">GET</span>[<span class="ruby-value str">'openid_url'</span>]
+69:                  <span class="ruby-identifier">check</span> <span class="ruby-identifier">session</span>, <span class="ruby-identifier">request</span>.<span class="ruby-constant">GET</span>[<span class="ruby-value str">'openid_url'</span>], <span class="ruby-identifier">env</span>
+70:                <span class="ruby-keyword kw">else</span>
+71:                  <span class="ruby-identifier">bad_request</span>
+72:                <span class="ruby-keyword kw">end</span>
+73:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000016" class="method-detail">
+        <a name="M000016"></a>
+
+        <div class="method-heading">
+          <a href="#M000016" class="method-signature">
+          <span class="method-name">check</span><span class="method-args">(session, oid_url, env)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000016-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000016-source">
+<pre>
+    <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 75</span>
+75:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">check</span>(<span class="ruby-identifier">session</span>, <span class="ruby-identifier">oid_url</span>, <span class="ruby-identifier">env</span>)
+76:         <span class="ruby-identifier">consumer</span> = <span class="ruby-operator">::</span><span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">Consumer</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">session</span>, <span class="ruby-constant">OIDStore</span>
+77:         <span class="ruby-identifier">oid</span> = <span class="ruby-identifier">consumer</span>.<span class="ruby-identifier">begin</span> <span class="ruby-identifier">oid_url</span>
+78:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">auth_fail</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">oid</span>.<span class="ruby-identifier">status</span> <span class="ruby-operator">==</span> <span class="ruby-operator">::</span><span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">SUCCESS</span>
+79:         <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ns</span>,<span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+80:           <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">ns</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">String</span>
+81:           <span class="ruby-identifier">s</span>.<span class="ruby-identifier">each</span> {<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">oid</span>.<span class="ruby-identifier">add_extension_arg</span>(<span class="ruby-identifier">ns</span>, <span class="ruby-identifier">k</span>, <span class="ruby-identifier">v</span>) }
+82:         <span class="ruby-keyword kw">end</span>
+83:         <span class="ruby-identifier">r_url</span> = <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">fetch</span> <span class="ruby-identifier">:return</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">k</span><span class="ruby-operator">|</span> <span class="ruby-identifier">request</span>.<span class="ruby-identifier">url</span> <span class="ruby-keyword kw">end</span>
+84:         <span class="ruby-identifier">t_url</span> = <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">fetch</span> <span class="ruby-identifier">:trust</span>
+85:         <span class="ruby-identifier">env</span>[<span class="ruby-value str">'rack.auth.openid.status'</span>] = <span class="ruby-identifier">oid</span>
+86:         <span class="ruby-keyword kw">return</span> <span class="ruby-value">303</span>, {<span class="ruby-value str">'Location'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-identifier">oid</span>.<span class="ruby-identifier">redirect_url</span>( <span class="ruby-identifier">t_url</span>, <span class="ruby-identifier">r_url</span> )}, []
+87:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000017" class="method-detail">
+        <a name="M000017"></a>
+
+        <div class="method-heading">
+          <a href="#M000017" class="method-signature">
+          <span class="method-name">finish</span><span class="method-args">(session, params, env)</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000017-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000017-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 89</span>
+ 89:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">finish</span>(<span class="ruby-identifier">session</span>, <span class="ruby-identifier">params</span>, <span class="ruby-identifier">env</span>)
+ 90:         <span class="ruby-identifier">consumer</span> = <span class="ruby-operator">::</span><span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">Consumer</span>.<span class="ruby-identifier">new</span> <span class="ruby-identifier">session</span>, <span class="ruby-constant">OIDStore</span>
+ 91:         <span class="ruby-identifier">oid</span> = <span class="ruby-identifier">consumer</span>.<span class="ruby-identifier">complete</span> <span class="ruby-identifier">params</span>
+ 92:         <span class="ruby-keyword kw">return</span> <span class="ruby-identifier">bad_login</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">oid</span>.<span class="ruby-identifier">status</span> <span class="ruby-operator">==</span> <span class="ruby-operator">::</span><span class="ruby-constant">OpenID</span><span class="ruby-operator">::</span><span class="ruby-constant">SUCCESS</span>
+ 93:         <span class="ruby-identifier">session</span>[<span class="ruby-identifier">:openid</span>] = {<span class="ruby-value str">'identity'</span> =<span class="ruby-operator">&gt;</span> <span class="ruby-identifier">oid</span>.<span class="ruby-identifier">identity_url</span>}
+ 94:         <span class="ruby-ivar">@options</span>.<span class="ruby-identifier">each</span> <span class="ruby-keyword kw">do</span> <span class="ruby-operator">|</span><span class="ruby-identifier">ns</span>,<span class="ruby-identifier">s</span><span class="ruby-operator">|</span>
+ 95:           <span class="ruby-keyword kw">next</span> <span class="ruby-keyword kw">unless</span> <span class="ruby-identifier">ns</span>.<span class="ruby-identifier">is_a?</span> <span class="ruby-constant">String</span>
+ 96:           <span class="ruby-identifier">oid</span>.<span class="ruby-identifier">extension_response</span>(<span class="ruby-identifier">ns</span>).<span class="ruby-identifier">each</span>{<span class="ruby-operator">|</span><span class="ruby-identifier">k</span>,<span class="ruby-identifier">v</span><span class="ruby-operator">|</span> <span class="ruby-identifier">session</span>[<span class="ruby-identifier">k</span>]=<span class="ruby-identifier">v</span> }
+ 97:         <span class="ruby-keyword kw">end</span>
+ 98:         <span class="ruby-identifier">env</span>[<span class="ruby-value str">'rack.auth.openid.status'</span>] = <span class="ruby-identifier">oid</span>
+ 99:         <span class="ruby-keyword kw">return</span> <span class="ruby-value">303</span>, {<span class="ruby-value str">'Location'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-ivar">@options</span>[<span class="ruby-identifier">:trust</span>]}, []
+100:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+      <div id="method-M000018" class="method-detail">
+        <a name="M000018"></a>
+
+        <div class="method-heading">
+          <a href="#M000018" class="method-signature">
+          <span class="method-name">no_session</span><span class="method-args">()</span>
+          </a>
+        </div>
+      
+        <div class="method-description">
+          <p><a class="source-toggle" href="#"
+            onclick="toggleCode('M000018-source');return false;">[Source]</a></p>
+          <div class="method-source-code" id="M000018-source">
+<pre>
+     <span class="ruby-comment cmt"># File lib/rack/auth/openid.rb, line 102</span>
+102:       <span class="ruby-keyword kw">def</span> <span class="ruby-identifier">no_session</span>
+103:         <span class="ruby-ivar">@options</span>.
+104:           <span class="ruby-identifier">fetch</span> <span class="ruby-identifier">:no_session</span>, [<span class="ruby-value">500</span>,{<span class="ruby-value str">'Content-Type'</span>=<span class="ruby-operator">&gt;</span><span class="ruby-value str">'text/plain'</span>},<span class="ruby-value str">'No session available.'</span>]
+105:       <span class="ruby-keyword kw">end</span>
+</pre>
+          </div>
+        </div>
+      </div>
+
+
+    </div>
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>

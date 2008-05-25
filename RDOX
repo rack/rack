@@ -1,0 +1,230 @@
+
+== Rack::Auth::Basic
+* should challenge correctly when no credentials are specified
+* should rechallenge if incorrect credentials are specified
+* should return application output if correct credentials are specified
+* should return 400 Bad Request if different auth scheme used
+
+== Rack::Auth::Digest::MD5
+* should challenge when no credentials are specified
+* should return application output if correct credentials given
+* should return application output if correct credentials given (hashed passwords)
+* should rechallenge if incorrect username given
+* should rechallenge if incorrect password given
+* should rechallenge with stale parameter if nonce is stale
+* should return 400 Bad Request if incorrect qop given
+* should return 400 Bad Request if incorrect uri given
+* should return 400 Bad Request if different auth scheme used
+
+== Rack::Builder
+* chains apps by default
+* has implicit #to_app
+* supports blocks on use
+
+== Rack::Adapter::Camping
+* works with GET
+* works with POST
+
+== Rack::Cascade
+* should dispatch onward on 404 by default
+* should dispatch onward on whatever is passed
+* should fail if empty
+* should append new app
+
+== Rack::Handler::CGI
+* startup (empty)
+* should respond
+* should be a lighttpd
+* should have rack headers
+* should have CGI headers on GET
+* should have CGI headers on POST
+* should support HTTP auth
+* should set status
+* shutdown
+
+== Rack::CommonLogger
+* should log to rack.errors by default
+* should log to anything with <<
+
+== Rack::Handler::FastCGI
+* startup (empty)
+* should respond
+* should be a lighttpd
+* should have rack headers
+* should have CGI headers on GET
+* should have CGI headers on POST
+* should support HTTP auth
+* should set status
+* shutdown
+
+== Rack::File
+* serves files
+* serves files with URL encoded filenames
+* does not allow directory traversal
+* 404s if it can't find the file
+
+== Rack::Handler
+* has registered default handlers
+* should get unregisted hanlder by name
+* should register custom handler
+
+== Rack::Lint
+* passes valid request
+* notices fatal errors
+* notices environment errors
+* notices input errors
+* notices error errors
+* notices status errors
+* notices header errors
+* notices content-type errors
+* notices body errors
+* notices input handling errors
+* notices error handling errors
+
+== Rack::Lobster::LambdaLobster
+* should be a single lambda
+* should look like a lobster
+* should be flippable
+
+== Rack::Lobster
+* should look like a lobster
+* should be flippable
+* should provide crashing for testing purposes
+
+== Rack::MockRequest
+* should return a MockResponse
+* should be able to only return the environment
+* should provide sensible defaults
+* should allow GET/POST/PUT/DELETE
+* should allow posting
+* should use all parts of an URL
+* should behave valid according to the Rack spec
+
+== Rack::MockResponse
+* should provide access to the HTTP status
+* should provide access to the HTTP headers
+* should provide access to the HTTP body
+* should provide access to the Rack errors
+* should optionally make Rack errors fatal
+
+== Rack::Handler::Mongrel
+* should respond
+* should be a Mongrel
+* should have rack headers
+* should have CGI headers on GET
+* should have CGI headers on POST
+* should support HTTP auth
+* should set status
+* should provide a .run
+* should provide a .run that maps a hash
+* should provide a .run that maps a urlmap
+* should provide a .run that maps a urlmap restricting by host
+
+== Rack::Recursive
+* should allow for subrequests
+* should raise error on requests not below the app
+* should support forwarding
+
+== Rack::Request
+* wraps the rack variables
+* can figure out the correct host
+* can parse the query string
+* can parse POST data
+* can parse POST data with explicit content type
+* does not parse POST data when media type is not form-data
+* can get value by key from params with #[]
+* can set value to key on params with #[]=
+* values_at answers values by keys in order given
+* referrer should be extracted correct
+* can cache, but invalidates the cache
+* can figure out if called via XHR
+* can parse cookies
+* parses cookies according to RFC 2109
+* provides setters
+* provides the original env
+* can restore the URL
+* can restore the full path
+* can handle multiple media type parameters
+* can parse multipart form data
+* can parse big multipart form data
+* can detect invalid multipart form data
+* should work around buggy 1.8.* Tempfile equality
+* does conform to the Rack spec
+
+== Rack::Response
+* has sensible default values
+* can be written to
+* can set and read headers
+* can set cookies
+* formats the Cookie expiration date accordingly to RFC 2109
+* can delete cookies
+* has a useful constructor
+* has a constructor that can take a block
+* doesn't return invalid responses
+* knows if it's empty
+* should provide access to the HTTP status
+* should provide access to the HTTP headers
+
+== Rack::Session::Cookie
+* creates a new cookie
+* loads from a cookie
+* survives broken cookies
+* barks on too big cookies
+
+== Rack::Session::Memcache
+* creates a new cookie
+* determines session from a cookie
+* survives broken cookies
+* maintains freshness
+* multithread: should cleanly merge sessions
+
+== Rack::Session::Pool
+* creates a new cookie
+* determines session from a cookie
+* survives broken cookies
+* maintains freshness
+* multithread: should merge sessions
+
+== Rack::ShowExceptions
+* catches exceptions
+
+== Rack::ShowStatus
+* should provide a default status message
+* should let the app provide additional information
+* should not replace existing messages
+* should pass on original headers
+* should replace existing messages if there is detail
+
+== Rack::Static
+* serves files
+* 404s if url root is known but it can't find the file
+* calls down the chain if url root is not known
+
+== Rack::URLMap
+* dispatches paths correctly
+* dispatches hosts correctly
+* should be nestable
+* should route root apps correctly
+
+== Rack::Utils
+* should escape correctly
+* should unescape correctly
+* should parse queries correctly
+* should create queries correctly
+
+== Rack::Utils::HeaderHash
+* should capitalize on all accesses
+* should capitalize correctly
+* should be converted to real Hash
+
+== Rack::Handler::WEBrick
+* should respond
+* should be a WEBrick
+* should have rack headers
+* should have CGI headers on GET
+* should have CGI headers on POST
+* should support HTTP auth
+* should set status
+* should provide a .run
+
+170 specifications, 2 empty (737 requirements), 0 failures

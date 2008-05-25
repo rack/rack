@@ -1,0 +1,706 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html 
+     PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+     "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+<html xmlns="http://www.w3.org/1999/xhtml" xml:lang="en" lang="en">
+<head>
+  <title>File: RDOX</title>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Script-Type" content="text/javascript" />
+  <link rel="stylesheet" href=".././rdoc-style.css" type="text/css" media="screen" />
+  <script type="text/javascript">
+  // <![CDATA[
+
+  function popupCode( url ) {
+    window.open(url, "Code", "resizable=yes,scrollbars=yes,toolbar=no,status=no,height=150,width=400")
+  }
+
+  function toggleCode( id ) {
+    if ( document.getElementById )
+      elem = document.getElementById( id );
+    else if ( document.all )
+      elem = eval( "document.all." + id );
+    else
+      return false;
+
+    elemStyle = elem.style;
+    
+    if ( elemStyle.display != "block" ) {
+      elemStyle.display = "block"
+    } else {
+      elemStyle.display = "none"
+    }
+
+    return true;
+  }
+  
+  // Make codeblocks hidden by default
+  document.writeln( "<style type=\"text/css\">div.method-source-code { display: none }</style>" )
+  
+  // ]]>
+  </script>
+
+</head>
+<body>
+
+
+
+  <div id="fileHeader">
+    <h1>RDOX</h1>
+    <table class="header-table">
+    <tr class="top-aligned-row">
+      <td><strong>Path:</strong></td>
+      <td>RDOX
+      </td>
+    </tr>
+    <tr class="top-aligned-row">
+      <td><strong>Last Update:</strong></td>
+      <td>Sun May 25 16:36:04 +0200 2008</td>
+    </tr>
+    </table>
+  </div>
+  <!-- banner header -->
+
+  <div id="bodyContent">
+
+
+
+  <div id="contextContent">
+
+    <div id="description">
+      <h2><a href="../classes/Rack/Auth/Basic.html">Rack::Auth::Basic</a></h2>
+<ul>
+<li>should challenge correctly when no credentials are specified
+
+</li>
+<li>should rechallenge if incorrect credentials are specified
+
+</li>
+<li>should return application output if correct credentials are specified
+
+</li>
+<li>should return 400 Bad Request if different auth scheme used
+
+</li>
+</ul>
+<h2>Rack::Auth::Digest::MD5</h2>
+<ul>
+<li>should challenge when no credentials are specified
+
+</li>
+<li>should return application output if correct credentials given
+
+</li>
+<li>should return application output if correct credentials given (hashed
+passwords)
+
+</li>
+<li>should rechallenge if incorrect username given
+
+</li>
+<li>should rechallenge if incorrect password given
+
+</li>
+<li>should rechallenge with stale parameter if nonce is stale
+
+</li>
+<li>should return 400 Bad Request if incorrect qop given
+
+</li>
+<li>should return 400 Bad Request if incorrect uri given
+
+</li>
+<li>should return 400 Bad Request if different auth scheme used
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Builder.html">Rack::Builder</a></h2>
+<ul>
+<li>chains apps by default
+
+</li>
+<li>has implicit to_app
+
+</li>
+<li>supports blocks on use
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Adapter/Camping.html">Rack::Adapter::Camping</a></h2>
+<ul>
+<li>works with GET
+
+</li>
+<li>works with POST
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Cascade.html">Rack::Cascade</a></h2>
+<ul>
+<li>should dispatch onward on 404 by default
+
+</li>
+<li>should dispatch onward on whatever is passed
+
+</li>
+<li>should fail if empty
+
+</li>
+<li>should append new app
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Handler/CGI.html">Rack::Handler::CGI</a></h2>
+<ul>
+<li>startup (empty)
+
+</li>
+<li>should respond
+
+</li>
+<li>should be a lighttpd
+
+</li>
+<li>should have rack headers
+
+</li>
+<li>should have CGI headers on GET
+
+</li>
+<li>should have CGI headers on POST
+
+</li>
+<li>should support HTTP auth
+
+</li>
+<li>should set status
+
+</li>
+<li>shutdown
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/CommonLogger.html">Rack::CommonLogger</a></h2>
+<ul>
+<li>should log to rack.errors by default
+
+</li>
+<li>should log to anything with &lt;&lt;
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Handler/FastCGI.html">Rack::Handler::FastCGI</a></h2>
+<ul>
+<li>startup (empty)
+
+</li>
+<li>should respond
+
+</li>
+<li>should be a lighttpd
+
+</li>
+<li>should have rack headers
+
+</li>
+<li>should have CGI headers on GET
+
+</li>
+<li>should have CGI headers on POST
+
+</li>
+<li>should support HTTP auth
+
+</li>
+<li>should set status
+
+</li>
+<li>shutdown
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/File.html">Rack::File</a></h2>
+<ul>
+<li>serves files
+
+</li>
+<li>serves files with URL encoded filenames
+
+</li>
+<li>does not allow directory traversal
+
+</li>
+<li>404s if it can&#8216;t find the file
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Handler.html">Rack::Handler</a></h2>
+<ul>
+<li>has registered default handlers
+
+</li>
+<li>should get unregisted hanlder by name
+
+</li>
+<li>should register custom handler
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Lint.html">Rack::Lint</a></h2>
+<ul>
+<li>passes valid request
+
+</li>
+<li>notices fatal errors
+
+</li>
+<li>notices environment errors
+
+</li>
+<li>notices input errors
+
+</li>
+<li>notices error errors
+
+</li>
+<li>notices status errors
+
+</li>
+<li>notices header errors
+
+</li>
+<li>notices content-type errors
+
+</li>
+<li>notices body errors
+
+</li>
+<li>notices input handling errors
+
+</li>
+<li>notices error handling errors
+
+</li>
+</ul>
+<h2>Rack::Lobster::LambdaLobster</h2>
+<ul>
+<li>should be a single lambda
+
+</li>
+<li>should look like a lobster
+
+</li>
+<li>should be flippable
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Lobster.html">Rack::Lobster</a></h2>
+<ul>
+<li>should look like a lobster
+
+</li>
+<li>should be flippable
+
+</li>
+<li>should provide crashing for testing purposes
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/MockRequest.html">Rack::MockRequest</a></h2>
+<ul>
+<li>should return a MockResponse
+
+</li>
+<li>should be able to only return the environment
+
+</li>
+<li>should provide sensible defaults
+
+</li>
+<li>should allow GET/POST/PUT/DELETE
+
+</li>
+<li>should allow posting
+
+</li>
+<li>should use all parts of an URL
+
+</li>
+<li>should behave valid according to the <a
+href="../classes/Rack.html">Rack</a> spec
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/MockResponse.html">Rack::MockResponse</a></h2>
+<ul>
+<li>should provide access to the HTTP status
+
+</li>
+<li>should provide access to the HTTP headers
+
+</li>
+<li>should provide access to the HTTP body
+
+</li>
+<li>should provide access to the <a href="../classes/Rack.html">Rack</a> errors
+
+</li>
+<li>should optionally make <a href="../classes/Rack.html">Rack</a> errors fatal
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Handler/Mongrel.html">Rack::Handler::Mongrel</a></h2>
+<ul>
+<li>should respond
+
+</li>
+<li>should be a Mongrel
+
+</li>
+<li>should have rack headers
+
+</li>
+<li>should have CGI headers on GET
+
+</li>
+<li>should have CGI headers on POST
+
+</li>
+<li>should support HTTP auth
+
+</li>
+<li>should set status
+
+</li>
+<li>should provide a .run
+
+</li>
+<li>should provide a .run that maps a hash
+
+</li>
+<li>should provide a .run that maps a urlmap
+
+</li>
+<li>should provide a .run that maps a urlmap restricting by host
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Recursive.html">Rack::Recursive</a></h2>
+<ul>
+<li>should allow for subrequests
+
+</li>
+<li>should raise error on requests not below the app
+
+</li>
+<li>should support forwarding
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Request.html">Rack::Request</a></h2>
+<ul>
+<li>wraps the rack variables
+
+</li>
+<li>can figure out the correct host
+
+</li>
+<li>can parse the query string
+
+</li>
+<li>can parse POST data
+
+</li>
+<li>can parse POST data with explicit content type
+
+</li>
+<li>does not parse POST data when media type is not form-data
+
+</li>
+<li>can get value by key from params with #[]
+
+</li>
+<li>can set value to key on params with #[]=
+
+</li>
+<li>values_at answers values by keys in order given
+
+</li>
+<li>referrer should be extracted correct
+
+</li>
+<li>can cache, but invalidates the cache
+
+</li>
+<li>can figure out if called via XHR
+
+</li>
+<li>can parse cookies
+
+</li>
+<li>parses cookies according to RFC 2109
+
+</li>
+<li>provides setters
+
+</li>
+<li>provides the original env
+
+</li>
+<li>can restore the URL
+
+</li>
+<li>can restore the full path
+
+</li>
+<li>can handle multiple media type parameters
+
+</li>
+<li>can parse multipart form data
+
+</li>
+<li>can parse big multipart form data
+
+</li>
+<li>can detect invalid multipart form data
+
+</li>
+<li>should work around buggy 1.8.* Tempfile equality
+
+</li>
+<li>does conform to the <a href="../classes/Rack.html">Rack</a> spec
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Response.html">Rack::Response</a></h2>
+<ul>
+<li>has sensible default values
+
+</li>
+<li>can be written to
+
+</li>
+<li>can set and read headers
+
+</li>
+<li>can set cookies
+
+</li>
+<li>formats the Cookie expiration date accordingly to RFC 2109
+
+</li>
+<li>can delete cookies
+
+</li>
+<li>has a useful constructor
+
+</li>
+<li>has a constructor that can take a block
+
+</li>
+<li>doesn&#8216;t return invalid responses
+
+</li>
+<li>knows if it&#8216;s empty
+
+</li>
+<li>should provide access to the HTTP status
+
+</li>
+<li>should provide access to the HTTP headers
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Session/Cookie.html">Rack::Session::Cookie</a></h2>
+<ul>
+<li>creates a new cookie
+
+</li>
+<li>loads from a cookie
+
+</li>
+<li>survives broken cookies
+
+</li>
+<li>barks on too big cookies
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Session/Memcache.html">Rack::Session::Memcache</a></h2>
+<ul>
+<li>creates a new cookie
+
+</li>
+<li>determines session from a cookie
+
+</li>
+<li>survives broken cookies
+
+</li>
+<li>maintains freshness
+
+</li>
+<li>multithread: should cleanly merge sessions
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Session/Pool.html">Rack::Session::Pool</a></h2>
+<ul>
+<li>creates a new cookie
+
+</li>
+<li>determines session from a cookie
+
+</li>
+<li>survives broken cookies
+
+</li>
+<li>maintains freshness
+
+</li>
+<li>multithread: should merge sessions
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/ShowExceptions.html">Rack::ShowExceptions</a></h2>
+<ul>
+<li>catches exceptions
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/ShowStatus.html">Rack::ShowStatus</a></h2>
+<ul>
+<li>should provide a default status message
+
+</li>
+<li>should let the app provide additional information
+
+</li>
+<li>should not replace existing messages
+
+</li>
+<li>should pass on original headers
+
+</li>
+<li>should replace existing messages if there is detail
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Static.html">Rack::Static</a></h2>
+<ul>
+<li>serves files
+
+</li>
+<li>404s if url root is known but it can&#8216;t find the file
+
+</li>
+<li>calls down the chain if url root is not known
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/URLMap.html">Rack::URLMap</a></h2>
+<ul>
+<li>dispatches paths correctly
+
+</li>
+<li>dispatches hosts correctly
+
+</li>
+<li>should be nestable
+
+</li>
+<li>should route root apps correctly
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Utils.html">Rack::Utils</a></h2>
+<ul>
+<li>should escape correctly
+
+</li>
+<li>should unescape correctly
+
+</li>
+<li>should parse queries correctly
+
+</li>
+<li>should create queries correctly
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Utils/HeaderHash.html">Rack::Utils::HeaderHash</a></h2>
+<ul>
+<li>should capitalize on all accesses
+
+</li>
+<li>should capitalize correctly
+
+</li>
+<li>should be converted to real Hash
+
+</li>
+</ul>
+<h2><a href="../classes/Rack/Handler/WEBrick.html">Rack::Handler::WEBrick</a></h2>
+<ul>
+<li>should respond
+
+</li>
+<li>should be a WEBrick
+
+</li>
+<li>should have rack headers
+
+</li>
+<li>should have CGI headers on GET
+
+</li>
+<li>should have CGI headers on POST
+
+</li>
+<li>should support HTTP auth
+
+</li>
+<li>should set status
+
+</li>
+<li>should provide a .run
+
+</li>
+</ul>
+<p>
+170 specifications, 2 empty (737 requirements), 0 failures
+</p>
+
+    </div>
+
+
+   </div>
+
+
+  </div>
+
+
+    <!-- if includes -->
+
+    <div id="section">
+
+
+
+
+
+      
+
+
+    <!-- if method_list -->
+
+
+  </div>
+
+
+<div id="validator-badges">
+  <p><small><a href="http://validator.w3.org/check/referer">[Validate]</a></small></p>
+</div>
+
+</body>
+</html>
