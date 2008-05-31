@@ -181,8 +181,9 @@ There are two rake-based test tasks:
 Please mail bugs, suggestions and patches to
 <mailto:chneukirchen@gmail.com>.
 
-Darcs repository ("darcs send" is welcome for patches):
-http://chneukirchen.org/repos/rack
+Git repository (branches rebased on master are most welcome):
+http://github.com/chneukirchen/rack
+http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
