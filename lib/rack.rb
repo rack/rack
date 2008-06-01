@@ -30,6 +30,7 @@ module Rack
   autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :File, "rack/file"
+  autoload :Directory, "rack/directory"
   autoload :ForwardRequest, "rack/recursive"
   autoload :Handler, "rack/handler"
   autoload :Lint, "rack/lint"
