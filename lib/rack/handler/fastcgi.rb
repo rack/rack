@@ -1,4 +1,5 @@
 require 'fcgi'
+require 'socket'
 
 module Rack
   module Handler
