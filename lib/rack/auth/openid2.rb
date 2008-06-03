@@ -141,7 +141,7 @@ module Rack
         session[:site_return]   = @options[:post_login]
         session[:site_return] ||= req.env['HTTP_REFERER']
 
-        pp oid
+        pp oid if $DEBUG
         if oid.send_redirect?(*query_args)
           [ 303, {'Location'=>oid.redirect_url(*query_args)}, [] ]
         else
@@ -157,7 +157,7 @@ module Rack
       def finish(consumer, session, req)
         oid = consumer.complete(req.params, req.url)
         req.env['rack.auth.openid.response'] = oid
-        pp oid
+        pp oid if $DEBUG
 
         case oid.status
         when :success
@@ -180,9 +180,11 @@ module Rack
               session.merge! r.get_extension_args
             when String
               raise 'No longer supporting old interface due to fail'
-              pp [opt, arg]
-              pp oid.extension_response(opt,false)
-              pp oid.message.get_args(opt)
+              if $DEBUG
+                pp [opt, arg]
+                pp oid.extension_response(opt,false)
+                pp oid.message.get_args(opt)
+              end
             end
           end
 
