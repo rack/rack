@@ -15,7 +15,7 @@ module Rack
     #
     # It is recommended to read through the OpenID spec, as well as
     # ruby-openid's documentation, to understand what exactly goes on. However
-    # a setup as simple as that in the example is enough to provide 
+    # a setup as simple as that in the example is enough to provide
     # functionality.
     #
     # This library strongly orients itself to utilize the openid 2.0 features
@@ -56,7 +56,7 @@ module Rack
       # NOTE: In OpenID 1.x, the realm or trust_root is optional and the
       # return_to url is required. As this library strives tward ruby-openid
       # compatibiliy the realm is required and return_to is optional.
-      # 
+      #
       # :post_login is the url to go to after the authentication process
       # has completed. If unset the HTTP_REFERER to the initial logon request
       # is used, if there is no referer then the :realm url is used.
@@ -87,7 +87,7 @@ module Rack
           :openid_param => 'openid_identifier',
           :bare_login => HTML % ['OpenID Login',<<-LOG]
   <form>
-    OpenID: 
+    OpenID:
     <input type='text' name='openid_identifier' />
     <input type='submit' value='Login' />
   </form>
