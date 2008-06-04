@@ -28,6 +28,9 @@ module Rack
       def initialize(app, options={})
         super
         @pool = MemCache.new @default_options[:memcache_server], @default_options
+        unless @pool.servers.any?{|s|s.alive?}
+          raise "#{self} unable to find server during initialization."
+        end
         @mutex = Mutex.new
       end
 
@@ -54,6 +57,10 @@ module Rack
           end
         end
         [sid, session]
+      rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
+        warn "#{self} is unable to find server."
+        warn $!.inspect
+        return [ nil, {} ]
       end
 
       def set_session(env, sid)
@@ -77,6 +84,11 @@ module Rack
           next unless o.has_key?(k) and v != o[k]
           warn "session value assignment collision at #{k}: #{o[k]} <- #{v}"
         end if $DEBUG and env['rack.multithread']
+        return true
+      rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
+        warn "#{self} is unable to find server."
+        warn $!.inspect
+        return false
       end
     end
   end

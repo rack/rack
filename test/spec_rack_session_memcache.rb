@@ -13,6 +13,12 @@ begin
       Rack::Response.new(env["rack.session"].inspect).to_a
     }
 
+    specify "faults on no connection" do
+      lambda do
+        Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+      end.should.raise
+    end
+
     specify "creates a new cookie" do
       cache = Rack::Session::Memcache.new(incrementor)
       res = Rack::MockRequest.new(cache).get("/")
@@ -45,6 +51,7 @@ begin
       res = Rack::MockRequest.new(cache).get('/', "HTTP_COOKIE" => cookie)
       res["Set-Cookie"].should.equal cookie
       res.body.should.include '"counter"=>2'
+      puts 'Sleeping to expire session' if $DEBUG
       sleep 4
       res = Rack::MockRequest.new(cache).get('/', "HTTP_COOKIE" => cookie)
       res["Set-Cookie"].should.not.equal cookie
@@ -79,7 +86,14 @@ begin
           Rack::MockRequest.new(run).
             get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
-      end.reverse.map{|t| t.join.value }
+      end
+
+      r.reverse!
+
+      r.map! do |t|
+        p t if $DEBUG
+        t.join.value
+      end
 
       r.each do |res|
         res['Set-Cookie'].should.equal cookie

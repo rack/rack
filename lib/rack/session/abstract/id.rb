@@ -53,17 +53,20 @@ module Rack
         # 'rack.session', and places options and session metadata into
         # 'rack.session.options'.
         def load_session(env)
-          sid           = env.fetch('HTTP_COOKIE','')[/#{@key}=([^,;]+)/,1]
+          sid           = (env['HTTP_COOKIE']||'')[/#{@key}=([^,;]+)/,1]
           sid, session  = get_session(env, sid)
           unless session.is_a?(Hash)
             puts 'Session: '+sid.inspect+"\n"+session.inspect if $DEBUG
             raise TypeError, 'Session not a Hash'
           end
+
           options = @default_options.
             merge({ :id => sid, :by => self, :at => Time.now })
 
           env['rack.session'] = session
           env['rack.session.options'] = options
+
+          return true
         end
 
         # Acquires the session from the environment and the session id from
@@ -88,10 +91,15 @@ module Rack
           end
 
           unless env['rack.session'].is_a?(Hash)
-            puts 'Session: '+sid.inspect+"\n"+session.inspect if $DEBUG
+            warn 'Session: '+sid.inspect+"\n"+session.inspect if $DEBUG
             raise TypeError, 'Session not a Hash'
           end
-          set_session(env, sid)
+
+          unless set_session(env, sid)
+            warn "Session not saved." if $DEBUG
+            warn "#{env['rack.session'].inspect} has been lost."if $DEBUG
+            return false
+          end
 
           expiry = options[:expire_after] && time+options[:expire_after]
           cookie = Utils.escape(@key)+'='+Utils.escape(sid)
@@ -104,6 +112,8 @@ module Rack
           when String then h['Set-Cookie'] = [a, cookie]
           when nil then    h['Set-Cookie'] = cookie
           end
+
+          return true
         end
 
         # Should return [session_id, session]. All thread safety and session
@@ -115,6 +125,8 @@ module Rack
         end
 
         # All thread safety and session storage proceedures should occur here.
+        # Should return true or false dependant on whether or not the session
+        # was saved or not.
         def set_session(env, sid)
           raise '#set_session needs to be implemented.'
         end

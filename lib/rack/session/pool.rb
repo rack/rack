@@ -61,6 +61,12 @@ module Rack
             warn "session value assignment collision at #{k}: #{old_session[k]} <- #{v}"
           end if $DEBUG and env['rack.multithread']
         end
+        return true
+      rescue
+        warn "#{self} is unable to find server."
+        warn "#{env['rack.session'].inspect} has been lost."
+        warn $!.inspect
+        return false
       end
     end
   end
