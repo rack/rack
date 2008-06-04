@@ -83,7 +83,7 @@ table { width:100%%; }
 
     def each
       show_path = @path.sub(/^#{@root}/,'')
-      files = @files.map{|f| p f; DIR_FILE % f }*"\n"
+      files = @files.map{|f| DIR_FILE % f }*"\n"
       page  = DIR_PAGE % [ show_path, show_path , files ]
       page.each_line{|l| yield l }
     end
