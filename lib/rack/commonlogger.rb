@@ -21,6 +21,10 @@ module Rack
       [@status, @header, self]
     end
 
+    def close
+      @body.close if @body.respond_to? :close
+    end
+
     # By default, log to rack.errors.
     def <<(str)
       @env["rack.errors"].write(str)
