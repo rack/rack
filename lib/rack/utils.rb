@@ -71,17 +71,46 @@ module Rack
     end
     module_function :escape_html
 
+    # The recommended manner in which to implement a contexting application
+    # is to define a method #context in which a new Context is instantiated.
+    #
+    # As a Context is a glorified block, it is highly recommended that you
+    # define the contextual block within the application's operational scope.
+    # This would typically the application as you're place into Rack's stack.
+    #
+    #   class MyObject
+    #     ...
+    #     def context app
+    #       Rack::Utils::Context.new app do |env|
+    #         do_stuff
+    #         response = app.call(env)
+    #         do_more_stuff
+    #       end
+    #     end
+    #     ...
+    #   end
+    #
+    # mobj = MyObject.new
+    # app = mobj.context other_app
+    # Rack::Handler::Mongrel.new app
     class Context < Proc
-      attr_reader :for, :app
-      def initialize app_f=nil, app_r=nil
-        @for, @app = app_f, app_r
-      end
       alias_method :old_inspect, :inspect
+      attr_reader :for, :app
+      def initialize app_f, app_r
+        raise 'running context not provided' unless app_f
+        raise 'running context does not respond to #context' unless app_f.respond_to? :context
+        raise 'application context not provided' unless app_r
+        raise 'application context does not respond to #call' unless app_r.respond_to? :call
+        @for = app_f
+        @app = app_r
+      end
       def inspect
         "#{old_inspect} ==> #{@for.inspect} ==> #{@app.inspect}"
       end
-      def context app
-        self.dup.instance_eval{@app=app; self}
+      def context app_r
+        raise 'new application context not provided' unless app_r
+        raise 'new application context does not respond to #call' unless app_r.respond_to? :call
+        @for.context app_r
       end
       def pretty_print pp
         pp.text old_inspect
