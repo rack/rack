@@ -85,13 +85,7 @@ module Rack
         @options = {
           :session_key => 'rack.session',
           :openid_param => 'openid_identifier',
-          :bare_login => HTML % ['OpenID Login',<<-LOG]
-  <form>
-    OpenID:
-    <input type='text' name='openid_identifier' />
-    <input type='submit' value='Login' />
-  </form>
-          LOG
+          :catch_errors => false
         }.merge(options)
       end
 
@@ -108,15 +102,14 @@ module Rack
           check consumer, session, request
         elsif request.params['openid.mode']
           finish consumer, session, request
-        elsif !request.params.empty?
+        else
           env['rack.errors'].puts "No valid params provided."
           bad_request
-        else
-          [200, {'Content-Type'=>'text/html'}, @options[:bare_login]]
         end
       rescue
-        env['rack.errors'].puts $!.message
-        bad_request
+        env['rack.errors'].puts($!.message, *$@)
+        raise $! unless @options[:catch_errors]
+        [500, {'Content-Type'=>'text/plain'}, ['OpenID has encountered an error.']]
       end
 
       def check(consumer, session, req)
