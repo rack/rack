@@ -19,7 +19,7 @@ module Rack
   class Builder
     def initialize(&block)
       @ins = []
-      instance_eval(&block)
+      instance_eval(&block) if block_given?
     end
 
     def use(middleware, *args, &block)
