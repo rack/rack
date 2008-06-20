@@ -50,7 +50,7 @@ module Rack
     end
 
     # :stopdoc:
-    # From WEBrick.
+    # From WEBrick with some additions.
     MIME_TYPES = {
       "ai"    => "application/postscript",
       "asc"   => "text/plain",
@@ -79,6 +79,7 @@ module Rack
       "lha"   => "application/octet-stream",
       "lzh"   => "application/octet-stream",
       "mov"   => "video/quicktime",
+      "mp3"   => "audio/mpeg",
       "mpe"   => "video/mpeg",
       "mpeg"  => "video/mpeg",
       "mpg"   => "video/mpeg",
