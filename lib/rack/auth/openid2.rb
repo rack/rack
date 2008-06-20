@@ -21,6 +21,10 @@ module Rack
     # This library strongly orients itself to utilize the openid 2.0 features
     # of the ruby-openid library, while maintaining openid 1.0 compatiblity.
     #
+    # All responses from this rack application will be 303 redirects unless an
+    # error occurs, or if the authentication request requires an HTML form
+    # submission.
+    #
     # NOTE: Due to the amount of data that this library stores in the
     # session, Rack::Session::Cookie may fault.
     class OpenID2 < AbstractHandler
@@ -47,15 +51,19 @@ module Rack
       # The first argument is the realm, identifying the site they are trusting
       # with their identity. This is required.
       #
+      # The second and optional argument is a hash of options.
+      #
+      # -- Options
+      #
       # :return_to defines the url to return to after the client authenticates
       # with the openid service provider. This url should point to where
       # Rack::Auth::OpenID is mounted. If :return_to is not provided, the url
       # will be derived within the ruby-openid implementation.
       #
       # NOTE: In OpenID 1.x, the realm or trust_root is optional and the
-      # return_to url is required. As this library strives tward ruby-openid,
-      # and OpenID 2.0 compatibiliy, the realm is required and return_to is
-      # optional. However, this implementation is still backwards compatible
+      # return_to url is required. As this library strives tward ruby-openid
+      # 2.0, and OpenID 2.0 compatibiliy, the realm is required and return_to
+      # is optional. However, this implementation is still backwards compatible
       # with OpenID 1.0 servers.
       #
       # :session_key defines the key to the session hash in the env. It
@@ -64,6 +72,9 @@ module Rack
       # :openid_param defines at what key in the request parameters to find
       # the identifier to resolve. As per the 2.0 spec, the default is
       # 'openid_identifier'.
+      #
+      # :extensions will specify what extensions are to used with OpenID,
+      # of which the format and support of which is yet to be completed.
       #
       # -- URL options
       #
@@ -78,9 +89,15 @@ module Rack
       #
       # -- Response options
       #
-      # :no_session
-      # :auth_fail
-      # :error
+      # :no_session should be a rack response to be returned if no or an
+      # incompatible session is found.
+      #
+      # :auth_fail should be a rack response to be returned if an
+      # OpenID::DiscoveryFailure occurs. This is typically due to being
+      # unable to access the identity url or identity server.
+      #
+      # :error should be a rack response to return if any other generic error
+      # would occur AND options[:catch_errors] is true.
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
@@ -176,11 +193,6 @@ module Rack
       # * session[:site_return] is set as the request's HTTP_REFERER if
       #   previously unset.
       # * env['rack.auth.openid.request'] is the openid checkidrequest.
-      #
-      # The response returned is determined by the parameters of the
-      # authentication initialization. If the GET url would exceed a decent
-      # length, a POST form will be returned, otherwise a 303 redirect is
-      # returned.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
         oid = consumer.begin(session[:openid_param], @options[:anonymous])
@@ -221,20 +233,22 @@ module Rack
       # session[:site_return]. If session[:site_return] is unset, the realm
       # will be used.
       #
+      # Any messages from OpenID's response are appended to the response body.
+      #
       # * env['rack.auth.openid.response'] is the openid response.
       #
       # The four valid possible outcomes are:
       #   * failure: options[:login_fail] or session[:site_return]
       #     * session[:openid] is cleared and any messages are send to rack.errors
-      #     * session[:openid]['authentication'] is false
+      #     * session[:openid]['authenticated'] is false
       #   * success: options[:login_good] or session[:site_return]
-      #     * session[:openid] is cleared and any messages are send to rack.errors
+      #     * session[:openid] is cleared
       #     * session[:openid]['authenticated'] is true
       #     * session[:openid]['identity'] is the actual identifier
       #     * session[:openid]['identifier'] is the pretty identifier
       #   * cancel: options[:login_quit] or session[:site_return]
-      #     * session[:openid] is cleared and any messages are send to rack.errors
-      #     * session[:openid]['authentication'] is false
+      #     * session[:openid] is cleared
+      #     * session[:openid]['authenticated'] is false
       #   * setup_needed: resubmits the authentication request. A flag is set
       #     for non-immediate handling.
       #     * session[:openid][:setup_needed] is set to true, which will
@@ -268,7 +282,6 @@ module Rack
         when ::OpenID::Consumer::CANCEL
           session.clear
           session['authenticated'] = false
-          req.env['rack.errors'].puts oid.message
 
           goto = @options[:login_fail] if @option.key? :login_fail
           body << "Authentication cancelled.\n"
