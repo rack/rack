@@ -38,6 +38,10 @@ module Rack
       #     :return_to => 'http://mysite.com/openid'
       #   )
       #
+      #   page_oid = OpenID2.new('http://mysite.com/',
+      #     :login_good => 'http://mysite.com/auth_good'
+      #   )
+      #
       # -- Arguments
       #
       # The first argument is the realm, identifying the site they are trusting
@@ -45,9 +49,8 @@ module Rack
       #
       # :return_to defines the url to return to after the client authenticates
       # with the openid service provider. This url should point to where
-      # Rack::Auth::OpenID is mounted. If :return_to is not provided, the
-      # return url for the openid request will be the url at which the request
-      # takes place.
+      # Rack::Auth::OpenID is mounted. If :return_to is not provided, the url
+      # will be derived within the ruby-openid implementation.
       #
       # NOTE: In OpenID 1.x, the realm or trust_root is optional and the
       # return_to url is required. As this library strives tward ruby-openid,
@@ -55,15 +58,29 @@ module Rack
       # optional. However, this implementation is still backwards compatible
       # with OpenID 1.0 servers.
       #
-      # :post_login is the url to go to after the authentication process
-      # has completed. If unset the HTTP_REFERER to the initial logon request
-      # is used, if there is no referer then the realm url is used. See #check.
+      # :session_key defines the key to the session hash in the env. It
+      # defaults to 'rack.session'.
       #
-      # :session_key defines the key to the session hash in the
-      # env. It defaults to 'rack.session'.
+      # :openid_param defines at what key in the request parameters to find
+      # the identifier to resolve. As per the 2.0 spec, the default is
+      # 'openid_identifier'.
       #
-      # :openid_param Defines at what key in the params to find the identifier
-      # to resolve. As per the 2.0 spec, the default is 'openid_identifier'.
+      # -- URL options
+      #
+      # :login_good is the url to go to after the authentication process
+      # has completed.
+      #
+      # :login_fail is the url to go to after the authentication process
+      # has failed.
+      #
+      # :login_fail is the url to go to after the authentication process
+      # has been cancelled.
+      #
+      # -- Response options
+      #
+      # :no_session
+      # :auth_fail
+      # :error
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
@@ -80,16 +97,16 @@ module Rack
           warn "Extensions are not currently supported by Rack::Auth::OpenID2"
         end
 
-        if options.has_key? :post_login
-          post = URI(options[:post_login])
-          raise ArgumentError, 'Invalid post_login uri.' unless post
+        [:login_good, :login_fail, :login_quit].each do |key|
+          next unless options.key? key
+          raise ArgumentError, "Invalid #{key} uri." unless URI(options[key])
         end
 
         @options = {
           :session_key => 'rack.session',
           :openid_param => 'openid_identifier',
-          #:post_login,
-          #:no_session, :bad_login, :auth_fail, :error
+          #:login_good, :login_fail, :login_quit
+          #:no_session, :auth_fail, :error
           :store => OIDStore,
           :immediate => false,
           :anonymous => false,
@@ -112,7 +129,8 @@ module Rack
       #
       # If neither of these conditions are met, a 400 error is returned.
       #
-      # If an error is thrown and options[:pass_errors] is false, 
+      # If an error is thrown and options[:catch_errors] is false, the
+      # exception will be reraised. Otherwise a 500 error is returned.
       def call(env)
         env['rack.auth.openid'] = self
         session = env[@options[:session_key]]
@@ -150,14 +168,26 @@ module Rack
             'OpenID has encountered an error.' ]
       end
 
+      # As the first part of OpenID consumer action, #check retrieves the
+      # data required for completion.
+      #
+      # * session[:openid_param] is the request parameter requested to be
+      #   authenticated.
+      # * session[:site_return] is set as the request's HTTP_REFERER if
+      #   previously unset.
+      # * env['rack.auth.openid.request'] is the openid checkidrequest.
+      #
+      # The response returned is determined by the parameters of the
+      # authentication initialization. If the GET url would exceed a decent
+      # length, a POST form will be returned, otherwise a 303 redirect is
+      # returned.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
         oid = consumer.begin(session[:openid_param], @options[:anonymous])
         pp oid if $DEBUG
         req.env['rack.auth.openid.request'] = oid
 
-        session[:site_return] ||= @options.
-          fetch(:post_login, req.env['HTTP_REFERER'])
+        session[:site_return] ||= req.env['HTTP_REFERER']
 
         # SETUP_NEEDED check!
         # see OpenID::Consumer::CheckIDRequest docs
@@ -176,7 +206,7 @@ module Rack
         end
       rescue ::OpenID::DiscoveryFailure => e
         # thrown from inside OpenID::Consumer#begin by yadis stuff
-        env['rack.errors'].puts($!.message, *$@)
+        req.env['rack.errors'].puts($!.message, *$@)
 
         @options. ### Foreign server failed
           fetch :auth_fail, [ 503,
@@ -184,23 +214,47 @@ module Rack
             'Foreign server failure.' ]
       end
 
+      # This is the final part of authentication. Unless any errors outside of
+      # specification occur, a 303 redirect will be returned with the location
+      # determined by the OpenID response type. If none of the response type
+      # :login_* urls are set, the redirect will be set to
+      # session[:site_return]. If session[:site_return] is unset, the realm
+      # will be used.
+      #
+      # * env['rack.auth.openid.response'] is the openid response.
+      #
+      # The four valid possible outcomes are:
+      #   * failure: options[:login_fail] or session[:site_return]
+      #     * session[:openid] is cleared and any messages are send to rack.errors
+      #     * session[:openid]['authentication'] is false
+      #   * success: options[:login_good] or session[:site_return]
+      #     * session[:openid] is cleared and any messages are send to rack.errors
+      #     * session[:openid]['authenticated'] is true
+      #     * session[:openid]['identity'] is the actual identifier
+      #     * session[:openid]['identifier'] is the pretty identifier
+      #   * cancel: options[:login_quit] or session[:site_return]
+      #     * session[:openid] is cleared and any messages are send to rack.errors
+      #     * session[:openid]['authentication'] is false
+      #   * setup_needed: resubmits the authentication request. A flag is set
+      #     for non-immediate handling.
+      #     * session[:openid][:setup_needed] is set to true, which will
+      #       prevent immediate style openid authentication.
       def finish(consumer, session, req)
         oid = consumer.complete(req.params, req.url)
         pp oid if $DEBUG
         req.env['rack.auth.openid.response'] = oid
 
-        site_return   = session.delete(:site_return)
-        site_return ||= @realm
+        body = []
+        goto = session.fetch :site_return, @realm
 
         case oid.status
         when ::OpenID::Consumer::FAILURE
           session.clear
+          session['authenticated'] = false
           req.env['rack.errors'].puts oid.message
 
-          @options. ### Bad Login
-            fetch :bad_login, [ 401,
-              {'Content-Type'=>'text/plain'},
-              'Identification has failed.' ]
+          goto = @options[:login_fail] if @option.key? :login_fail
+          body << "Authentication unsuccessful.\n"
         when ::OpenID::Consumer::SUCCESS
           session.clear
           session['authenticated'] = true
@@ -209,24 +263,27 @@ module Rack
           # Value for display and UI labels
           session['identifier'] = oid.display_identifier
 
-          [ 303, {'Location'=>site_return}, ['Authentication successful.'] ]
+          goto = @options[:login_good] if @option.key? :login_good
+          body << "Authentication successful.\n"
         when ::OpenID::Consumer::CANCEL
           session.clear
           session['authenticated'] = false
+          req.env['rack.errors'].puts oid.message
 
-          [ 303, {'Location'=>site_return}, ['Authentication cancelled.'] ]
+          goto = @options[:login_fail] if @option.key? :login_fail
+          body << "Authentication cancelled.\n"
         when ::OpenID::Consumer::SETUP_NEEDED
-          session[:site_return] = site_return
           session[:setup_needed] = true
           raise('Required values missing.') \
             unless o_id = session[:openid_param]
-          # repeat request to us, only not immediate
-          repeat = req.script_name+
+
+          goto = req.script_name+
             '?'+@options[:openid_param]+
             '='+o_id
-
-          [303, {'Location'=>repeat}, ['Reauthentication required.']]
+          body << "Reauthentication required.\n"
         end
+        body << oid.message if oid.message
+        [ 303, {'Location'=>goto}, body]
       end
     end
   end
