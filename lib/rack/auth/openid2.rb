@@ -306,7 +306,7 @@ module Rack
           # Value for display and UI labels
           session['identifier'] = oid.display_identifier
 
-          goto = @options[:login_good] if @option.key? :login_good
+          goto = @options[:login_good] if @options.key? :login_good
           body << "Authentication successful.\n"
         when ::OpenID::Consumer::CANCEL
           session.clear
