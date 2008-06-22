@@ -174,12 +174,14 @@ module Rack
       def call(env)
         env['rack.auth.openid'] = self
         session = env[@options[:session_key]]
-        raise(NoSession, 'No compatible session') \
-          unless session and session.is_a? Hash
+        unless session and session.is_a? Hash
+          raise(NoSession, 'No compatible session')
+        end
         # let us work in our own namespace...
         session = (session[:openid] ||= {})
-        raise(NoSession, 'Incompatible session') \
-          unless session and session.is_a? Hash
+        unless session and session.is_a? Hash
+          raise(NoSession, 'Incompatible session')
+        end
 
         request = Rack::Request.new env
         consumer = ::OpenID::Consumer.new session, @options[:store]
