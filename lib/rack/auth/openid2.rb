@@ -13,17 +13,30 @@ module Rack
     # openid based logins. It requires the ruby-openid library from
     # janrain to operate, as well as a rack method of session management.
     #
+    # The ruby-openid home page is at <http://openidenabled.com/ruby-openid/>.
+    #
+    # The OpenID specifications can be found at
+    # Mhttp://openid.net/specs/openid-authentication-1_1.html>
+    # and
+    # <http://openid.net/specs/openid-authentication-2_0.html>. Documentation
+    # for published OpenID extensions and related topics can be found at
+    # <http://openid.net/developers/specs/>.
+    #
     # It is recommended to read through the OpenID spec, as well as
     # ruby-openid's documentation, to understand what exactly goes on. However
-    # a setup as simple as that in the example is enough to provide
+    # a setup as simple as the presented examples is enough to provide
     # functionality.
     #
-    # This library strongly orients itself to utilize the openid 2.0 features
-    # of the ruby-openid library, while maintaining openid 1.0 compatiblity.
+    # This library strongly intends to utilize the openid 2.0 features of the
+    # ruby-openid library, while maintaining openid 1.0 compatiblity.
     #
     # All responses from this rack application will be 303 redirects unless an
-    # error occurs, or if the authentication request requires an HTML form
-    # submission.
+    # error occurs, with the exception of and authentication request requiring
+    # an HTML form submission.
+    #
+    # NOTE: Extensions are not currently supported by this implimentation of
+    # the OpenID rack application due to the complexity of the current
+    # ruby-openid extension handling.
     #
     # NOTE: Due to the amount of data that this library stores in the
     # session, Rack::Session::Cookie may fault.
@@ -38,9 +51,9 @@ module Rack
       #
       #   simple_oid = OpenID2.new('http://mysite.com/')
       #
-      #   return_oid = OpenID2.new('http://mysite.com/',
+      #   return_oid = OpenID2.new('http://mysite.com/', {
       #     :return_to => 'http://mysite.com/openid'
-      #   )
+      #   })
       #
       #   page_oid = OpenID2.new('http://mysite.com/',
       #     :login_good => 'http://mysite.com/auth_good'
@@ -51,7 +64,13 @@ module Rack
       # The first argument is the realm, identifying the site they are trusting
       # with their identity. This is required.
       #
-      # The second and optional argument is a hash of options.
+      # NOTE: In OpenID 1.x, the realm or trust_root is optional and the
+      # return_to url is required. As this library strives tward ruby-openid
+      # 2.0, and OpenID 2.0 compatibiliy, the realm is required and return_to
+      # is optional. However, this implimentation is still backwards compatible
+      # with OpenID 1.0 servers.
+      #
+      # The optional second argument is a hash of options.
       #
       # -- Options
       #
@@ -59,12 +78,6 @@ module Rack
       # with the openid service provider. This url should point to where
       # Rack::Auth::OpenID is mounted. If :return_to is not provided, the url
       # will be derived within the ruby-openid implementation.
-      #
-      # NOTE: In OpenID 1.x, the realm or trust_root is optional and the
-      # return_to url is required. As this library strives tward ruby-openid
-      # 2.0, and OpenID 2.0 compatibiliy, the realm is required and return_to
-      # is optional. However, this implementation is still backwards compatible
-      # with OpenID 1.0 servers.
       #
       # :session_key defines the key to the session hash in the env. It
       # defaults to 'rack.session'.
@@ -75,6 +88,9 @@ module Rack
       #
       # :extensions will specify what extensions are to used with OpenID,
       # of which the format and support of which is yet to be completed.
+      #
+      # :immediate as true will make immediate type of requests the default.
+      # See the specification documentation.
       #
       # -- URL options
       #
@@ -155,6 +171,8 @@ module Rack
           unless session and session.is_a? Hash
         # let us work in our own namespace...
         session = (session[:openid] ||= {})
+        raise(NoSession, 'Incompatible session') \
+          unless session and session.is_a? Hash
 
         request = Rack::Request.new env
         consumer = ::OpenID::Consumer.new session, @options[:store]
@@ -178,7 +196,7 @@ module Rack
         env['rack.errors'].puts($!.message, *$@)
 
         raise($!) \
-          unless @options[:catch_errors]
+          if @options or not @options[:catch_errors]
         @options.
           fetch :error, [ 500,
             {'Content-Type'=>'text/plain'},
@@ -188,10 +206,10 @@ module Rack
       # As the first part of OpenID consumer action, #check retrieves the
       # data required for completion.
       #
-      # * session[:openid_param] is the request parameter requested to be
-      #   authenticated.
-      # * session[:site_return] is set as the request's HTTP_REFERER if
-      #   previously unset.
+      # * session[:openid][:openid_param] is the request parameter requested to
+      #   be authenticated.
+      # * session[:openid][:site_return] is set as the request's HTTP_REFERER
+      #   if previously unset.
       # * env['rack.auth.openid.request'] is the openid checkidrequest.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
@@ -226,33 +244,34 @@ module Rack
             'Foreign server failure.' ]
       end
 
-      # This is the final part of authentication. Unless any errors outside of
-      # specification occur, a 303 redirect will be returned with the location
+      # This is the final portion of authentication. Unless any errors outside
+      # of specification occur, a 303 redirect will be returned with Location
       # determined by the OpenID response type. If none of the response type
       # :login_* urls are set, the redirect will be set to
-      # session[:site_return]. If session[:site_return] is unset, the realm
-      # will be used.
+      # session[:openid][:site_return]. If session[:openid][:site_return] is
+      # unset, the realm will be used.
       #
-      # Any messages from OpenID's response are appended to the response body.
+      # Any messages from OpenID's response are appended to the 303 response
+      # body.
       #
       # * env['rack.auth.openid.response'] is the openid response.
       #
       # The four valid possible outcomes are:
-      #   * failure: options[:login_fail] or session[:site_return]
-      #     * session[:openid] is cleared and any messages are send to rack.errors
-      #     * session[:openid]['authenticated'] is false
-      #   * success: options[:login_good] or session[:site_return]
-      #     * session[:openid] is cleared
-      #     * session[:openid]['authenticated'] is true
-      #     * session[:openid]['identity'] is the actual identifier
-      #     * session[:openid]['identifier'] is the pretty identifier
-      #   * cancel: options[:login_quit] or session[:site_return]
-      #     * session[:openid] is cleared
-      #     * session[:openid]['authenticated'] is false
-      #   * setup_needed: resubmits the authentication request. A flag is set
-      #     for non-immediate handling.
-      #     * session[:openid][:setup_needed] is set to true, which will
-      #       prevent immediate style openid authentication.
+      # * failure: options[:login_fail] or session[:site_return] or the realm
+      #   * session[:openid] is cleared and any messages are send to rack.errors
+      #   * session[:openid]['authenticated'] is false
+      # * success: options[:login_good] or session[:site_return] or the relam
+      #   * session[:openid] is cleared
+      #   * session[:openid]['authenticated'] is true
+      #   * session[:openid]['identity'] is the actual identifier
+      #   * session[:openid]['identifier'] is the pretty identifier
+      # * cancel: options[:login_quit] or session[:site_return] or the realm
+      #   * session[:openid] is cleared
+      #   * session[:openid]['authenticated'] is false
+      # * setup_needed: resubmits the authentication request. A flag is set
+      #   for non-immediate handling.
+      #   * session[:openid][:setup_needed] is set to true, which will
+      #     prevent immediate style openid authentication.
       def finish(consumer, session, req)
         oid = consumer.complete(req.params, req.url)
         pp oid if $DEBUG
