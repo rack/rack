@@ -117,12 +117,16 @@ module Rack
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
-        raise ArgumentError, 'Invalid realm path.' if realm.path.empty?
+        if realm.path.empty?
+          raise ArgumentError, "Invalid realm path: '#{realm.path}'"
+        end
 
         if options[:return_to] and ruri = URI(options[:return_to])
-          raise ArgumentError, 'Invalid return_to path.' if ruri.path.empty?
-          good = realm.path == ruri.path[0,realm.path.size]
-          raise ArgumentError, 'return_to not within realm.' unless good
+          if ruri.path.empty?
+            raise ArgumentError, "Invalid return_to path: '#{ruri.path}'"
+          elsif realm.path != ruri.path[0, realm.path.size]
+            raise ArgumentError, 'return_to not within realm.' \
+          end
         end
 
         # TODO: extension support
@@ -130,15 +134,18 @@ module Rack
           warn "Extensions are not currently supported by Rack::Auth::OpenID2"
         end
 
-        [:login_good, :login_fail, :login_quit].each do |key|
-          next unless options.key? key
-          raise ArgumentError, "Invalid #{key} uri." unless URI(options[key])
+        [:return_to, :login_good, :login_fail, :login_quit].each do |key|
+          if options.key? key and luri = URI(options[key])
+            if !luri.absolute?
+              raise ArgumentError, ":#{key} is not an absolute uri."
+            end
+          end
         end
 
         @options = {
           :session_key => 'rack.session',
           :openid_param => 'openid_identifier',
-          #:login_good, :login_fail, :login_quit
+          #:return_to, :login_good, :login_fail, :login_quit
           #:no_session, :auth_fail, :error
           :store => OIDStore,
           :immediate => false,
@@ -195,8 +202,9 @@ module Rack
       rescue
         env['rack.errors'].puts($!.message, *$@)
 
-        raise($!) \
-          if @options or not @options[:catch_errors]
+        if not @options[:catch_error]
+          raise($!)
+        end
         @options.
           fetch :error, [ 500,
             {'Content-Type'=>'text/plain'},
@@ -277,8 +285,8 @@ module Rack
         pp oid if $DEBUG
         req.env['rack.auth.openid.response'] = oid
 
-        body = []
         goto = session.fetch :site_return, @realm
+        body = []
 
         case oid.status
         when ::OpenID::Consumer::FAILURE
@@ -306,8 +314,9 @@ module Rack
           body << "Authentication cancelled.\n"
         when ::OpenID::Consumer::SETUP_NEEDED
           session[:setup_needed] = true
-          raise('Required values missing.') \
-            unless o_id = session[:openid_param]
+          unless o_id = session[:openid_param]
+            raise('Required values missing.')
+          end
 
           goto = req.script_name+
             '?'+@options[:openid_param]+
