@@ -76,7 +76,6 @@ context "Rack::Utils::Context" do
   test_app1 = Object.new
   def test_app1.context app
     Rack::Utils::Context.new self, app do |env|
-      p app
       app.call env
     end
   end
