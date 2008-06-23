@@ -1,6 +1,6 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 
-gem 'ruby-openid', '>= 2.0.0' if defined? Gem
+gem 'ruby-openid', '~> 2' if defined? Gem
 require 'rack/auth/abstract/handler' #rack
 require 'uri' #std
 require 'pp' #std
