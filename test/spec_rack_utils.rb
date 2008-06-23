@@ -20,7 +20,7 @@ context "Rack::Utils" do
       should.equal "q1!2\"'w$5&7/z8)?\\"
   end
 
-  specify "should parse queries correctly" do
+  specify "should parse query strings correctly" do
     Rack::Utils.parse_query("foo=bar").should.equal "foo" => "bar"
     Rack::Utils.parse_query("foo=bar&foo=quux").
       should.equal "foo" => ["bar", "quux"]
@@ -30,7 +30,7 @@ context "Rack::Utils" do
       should.equal "my weird field" => "q1!2\"'w$5&7/z8)?"
   end
   
-  specify "should create queries correctly" do
+  specify "should build query strings correctly" do
     Rack::Utils.build_query("foo" => "bar").should.equal "foo=bar"
     Rack::Utils.build_query("foo" => ["bar", "quux"]).
       should.equal "foo=bar&foo=quux"
