@@ -119,6 +119,16 @@ module Rack
         realm = URI(realm)
         if realm.path.empty?
           raise ArgumentError, "Invalid realm path: '#{realm.path}'"
+        elsif not realm.absolute?
+          raise ArgumentError, "Realm '#{@realm}' not absolute"
+        end
+
+        [:return_to, :login_good, :login_fail, :login_quit].each do |key|
+          if options.key? key and luri = URI(options[key])
+            if !luri.absolute?
+              raise ArgumentError, ":#{key} is not an absolute uri: '#{luri}'"
+            end
+          end
         end
 
         if options[:return_to] and ruri = URI(options[:return_to])
@@ -132,14 +142,6 @@ module Rack
         # TODO: extension support
         if options.has_key? :extensions
           warn "Extensions are not currently supported by Rack::Auth::OpenID2"
-        end
-
-        [:return_to, :login_good, :login_fail, :login_quit].each do |key|
-          if options.key? key and luri = URI(options[key])
-            if !luri.absolute?
-              raise ArgumentError, ":#{key} is not an absolute uri."
-            end
-          end
         end
 
         @options = {
