@@ -235,7 +235,7 @@ module Rack
 
                 if filename
                   body = Tempfile.new("RackMultipart")
-                  body.binmode
+                  body.binmode  if body.respond_to?(:binmode)
                 end
 
                 next
