@@ -15,7 +15,17 @@ context "Rack::File" do
     res.should.be.ok
     res.should =~ /ruby/
   end
-  
+
+  specify "sets Last-Modified header" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/test")
+
+    path = File.join(DOCROOT, "/cgi/test")
+
+    res.should.be.ok
+    res["Last-Modified"].should.equal File.mtime(path).httpdate
+  end
+
   specify "serves files with URL encoded filenames" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/cgi/%74%65%73%74") # "/cgi/test"
