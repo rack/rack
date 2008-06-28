@@ -126,9 +126,7 @@ module Rack
         end
 
         # TODO: extension support
-        if options.has_key? :extensions
-          warn "Extensions are not currently supported by Rack::Auth::OpenID"
-        end
+        ext = extensions(options).map{|ext,val| ext.to_s[/[^:]+$/].downcase }
 
         @options = {
           :session_key => 'rack.session',
@@ -136,6 +134,7 @@ module Rack
           #:return_to, :login_good, :login_fail, :login_quit
           #:no_session, :auth_fail, :error
           :store => OIDStore,
+          :extensions => ext,
           :immediate => false,
           :anonymous => false,
           :catch_errors => false
@@ -214,6 +213,11 @@ module Rack
         query_args[2] = false if session.key? :setup_needed
         pp query_args if $DEBUG
 
+        ## Extension support
+        extensions.each do |ext,args|
+          oid.add_extension ext::Request.new(*args)
+        end
+
         if oid.send_redirect?(*query_args)
           redirect = oid.redirect_url(*query_args)
           [ 303, {'Location'=>redirect}, [] ]
@@ -277,6 +281,13 @@ module Rack
           body << "Authentication unsuccessful.\n"
         when ::OpenID::Consumer::SUCCESS
           session.clear
+
+          ## Extension support
+          extensions.each do |ext,args|
+            label = ext.to_s[/[^:]+$/].downcase
+            session[label] = ext::Response.from_success_response(oid)
+          end
+
           session['authenticated'] = true
           # Value for unique identification and such
           session['identity'] = oid.identity_url
@@ -304,6 +315,16 @@ module Rack
         end
         body << oid.message if oid.message
         [ 303, {'Location'=>goto}, body]
+      end
+
+      private
+
+      def extensions from=@options
+        from.select do |e,v|
+          e.is_a? Module \
+            and ::OpenID::Extension > e::Request \
+            and ::OpenID::Extension > e::Response
+        end
       end
     end
   end
