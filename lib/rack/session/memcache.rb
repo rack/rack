@@ -82,7 +82,8 @@ module Rack
         end
         s.each do |k,v|
           next unless o.has_key?(k) and v != o[k]
-          warn "session value assignment collision at #{k}: #{o[k]} <- #{v}"
+          warn "session value assignment collision at #{k.inspect}:"+
+            "\n\t#{o[k].inspect}\n\t#{v.inspect}"
         end if $DEBUG and env['rack.multithread']
         return true
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
