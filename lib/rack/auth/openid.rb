@@ -5,6 +5,7 @@ require 'rack/auth/abstract/handler' #rack
 require 'uri' #std
 require 'pp' #std
 require 'openid' #gem
+require 'openid/extension' #gem
 require 'openid/store/memory' #gem
 
 module Rack
@@ -340,12 +341,16 @@ module Rack
       #
       # This method will return false if the extension will not be included. Otherwise it will return the key at which the Response will be found in the final session data, which is the namespace uri by default.
       def add_extension ext, *args
-        unless ext.is_a? Module \
-            and ::OpenID::Extension > ext::Request \
-            and ::OpenID::Extension > ext::Response \
-            and ext.constants.include? 'NS_URI'
-          warn 'Incompatible extension provided.'
-          return false
+        if not ext.is_a? Module
+          raise TypeError, "Extension #{ext.inspect} is not a module"
+        elsif not %w'Request Response NS_URI'.all?{|c| ext.constants.include?(c) }
+          raise ArgumentError, "Extension #{ext.inspect} does not containt required constants"
+        elsif not %w'Request Response'.all?{|c| (r=ext.const_get(c)).is_a? Class and ::OpenID::Extension > r }
+          raise TypeError, "Extension #{ext.inspect}'s Request or Response not a decendant of OpenID::Extension"
+        elsif not ext::NS_URI.is_a? String
+          raise TypeError, "Extension #{ext.inspect}'s NS_URI is not a string"
+        elsif not URI(ext::NS_URI).absolute?
+          raise ArgumentError, "Extension #{ext.inspect}'s NS_URI is not a string of an absolute uri"
         end
         @extensions[ext] = args
         return ext::NS_URI
