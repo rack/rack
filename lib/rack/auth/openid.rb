@@ -60,6 +60,17 @@ module Rack
       #     :login_good => 'http://mysite.com/auth_good'
       #   )
       #
+      #   complex_oid = OpenID.new('http://mysite.com/',
+      #     :return_to => 'http://mysite.com/openid',
+      #     :login_good => 'http://mysite.com/user/preferences',
+      #     :auth_fail => [500, {'Content-Type'=>'text/plain'},
+      #       'Unable to negotiate with foreign server.'],
+      #     :immediate => true,
+      #     :extensions => {
+      #       ::OpenID::SReg => [['email'],['nickname']]
+      #     }
+      #   )
+      #
       # = Arguments
       #
       # The first argument is the realm, identifying the site they are trusting
