@@ -80,8 +80,6 @@ module Rack
       #
       # <tt>:openid_param</tt> defines at what key in the request parameters to find the identifier to resolve. As per the 2.0 spec, the default is 'openid_identifier'.
       #
-      # <tt>:extensions</tt> will specify what extensions are to used with OpenID, of which the format and support of which is yet to be completed.
-      #
       # <tt>:immediate</tt> as true will make immediate type of requests the default. See the specification documentation.
       #
       # === URL options
@@ -100,6 +98,12 @@ module Rack
       # <tt>:auth_fail</tt> should be a rack response to be returned if an OpenID::DiscoveryFailure occurs. This is typically due to being unable to access the identity url or identity server.
       #
       # <tt>:error</tt> should be a rack response to return if any other generic error would occur and <tt>options[:catch_errors]</tt> is true.
+      #
+      # === Extensions
+      #
+      # <tt>:extensions</tt> should be a hash of openid extension implementations. The key should be the extension main module, the value should be an array of arguments for extension::Request.new
+      #
+      # The hash is iterated over and passed to #add_extension for processing. Please see #add_extension for further documentation.
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
@@ -126,7 +130,11 @@ module Rack
         end
 
         # TODO: extension support
-        ext = extensions(options).map{|ext,val| ext.to_s[/[^:]+$/].downcase }
+        if extensions = options.delete(:extensions)
+          extensions.each do |ext, args|
+            add_extension ext, *args
+          end
+        end
 
         @options = {
           :session_key => 'rack.session',
@@ -134,14 +142,14 @@ module Rack
           #:return_to, :login_good, :login_fail, :login_quit
           #:no_session, :auth_fail, :error
           :store => OIDStore,
-          :extensions => ext,
           :immediate => false,
           :anonymous => false,
           :catch_errors => false
         }.merge(options)
+        @extensions = {}
       end
 
-      attr_reader :options
+      attr_reader :options, :extensions
 
       # It sets up and uses session data at <tt>:openid</tt> within the session. It sets up the ::OpenID::Consumer using the store specified by <tt>options[:store]</tt>.
       #
@@ -196,9 +204,9 @@ module Rack
 
       # As the first part of OpenID consumer action, #check retrieves the data required for completion.
       #
-      # * <tt>session[:openid][:openid_param]</tt> is the request parameter requested to be authenticated.
-      # * <tt>session[:openid][:site_return]</tt> is set as the request's HTTP_REFERER if previously unset.
-      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid request.
+      # * <tt>session[:openid][:openid_param]</tt> is set to the submitted identifier to be authenticated.
+      # * <tt>session[:openid][:site_return]</tt> is set as the request's HTTP_REFERER, unless already set.
+      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid request instance.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
         oid = consumer.begin(session[:openid_param], @options[:anonymous])
@@ -247,6 +255,9 @@ module Rack
       # Any messages from OpenID's response are appended to the 303 response
       # body.
       #
+      # Data gathered from extensions are stored in session[:openid] with the
+      # extension's namespace uri as the key.
+      #
       # * <tt>env['rack.auth.openid.response']</tt> is the openid response.
       #
       # The four valid possible outcomes are:
@@ -283,9 +294,10 @@ module Rack
           session.clear
 
           ## Extension support
-          extensions.each do |ext,args|
-            label = ext.to_s[/[^:]+$/].downcase
-            session[label] = ext::Response.from_success_response(oid)
+          extensions.each do |ext, args|
+            session[ext::NS_URI] = ext::Response.
+              from_success_response(oid).
+              get_extension_args
           end
 
           session['authenticated'] = true
@@ -317,14 +329,26 @@ module Rack
         [ 303, {'Location'=>goto}, body]
       end
 
-      private
-
-      def extensions from=@options
-        from.select do |e,v|
-          e.is_a? Module \
-            and ::OpenID::Extension > e::Request \
-            and ::OpenID::Extension > e::Response
+      # The first argument should be the main extension module.
+      # The extension module should contain the constants:
+      #   * class Request, with OpenID::Extension as an ancestor
+      #   * class Response, with OpenID::Extension as an ancestor
+      #   * string NS_URI, which defines the namespace of the extension
+      #
+      # All trailing arguments will be passed to extension::Request.new in #check.
+      # The openid response will be passed to extension::Response#from_success_response, #get_extension_args will be called on the result to attain the gathered data.
+      #
+      # This method will return false if the extension will not be included. Otherwise it will return the key at which the Response will be found in the final session data, which is the namespace uri by default.
+      def add_extension ext, *args
+        unless ext.is_a? Module \
+            and ::OpenID::Extension > ext::Request \
+            and ::OpenID::Extension > ext::Response \
+            and ext.constants.include? 'NS_URI'
+          warn 'Incompatible extension provided.'
+          return false
         end
+        @extensions[ext] = args
+        return ext::NS_URI
       end
     end
   end
