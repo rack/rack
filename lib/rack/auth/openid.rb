@@ -5,6 +5,7 @@ require 'rack/auth/abstract/handler' #rack
 require 'uri' #std
 require 'pp' #std
 require 'openid' #gem
+require 'openid/extension' #gem
 require 'openid/store/memory' #gem
 
 module Rack
@@ -80,8 +81,6 @@ module Rack
       #
       # <tt>:openid_param</tt> defines at what key in the request parameters to find the identifier to resolve. As per the 2.0 spec, the default is 'openid_identifier'.
       #
-      # <tt>:extensions</tt> will specify what extensions are to used with OpenID, of which the format and support of which is yet to be completed.
-      #
       # <tt>:immediate</tt> as true will make immediate type of requests the default. See the specification documentation.
       #
       # === URL options
@@ -100,6 +99,12 @@ module Rack
       # <tt>:auth_fail</tt> should be a rack response to be returned if an OpenID::DiscoveryFailure occurs. This is typically due to being unable to access the identity url or identity server.
       #
       # <tt>:error</tt> should be a rack response to return if any other generic error would occur and <tt>options[:catch_errors]</tt> is true.
+      #
+      # === Extensions
+      #
+      # <tt>:extensions</tt> should be a hash of openid extension implementations. The key should be the extension main module, the value should be an array of arguments for extension::Request.new
+      #
+      # The hash is iterated over and passed to #add_extension for processing. Please see #add_extension for further documentation.
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
@@ -126,8 +131,10 @@ module Rack
         end
 
         # TODO: extension support
-        if options.has_key? :extensions
-          warn "Extensions are not currently supported by Rack::Auth::OpenID"
+        if extensions = options.delete(:extensions)
+          extensions.each do |ext, args|
+            add_extension ext, *args
+          end
         end
 
         @options = {
@@ -140,9 +147,10 @@ module Rack
           :anonymous => false,
           :catch_errors => false
         }.merge(options)
+        @extensions = {}
       end
 
-      attr_reader :options
+      attr_reader :options, :extensions
 
       # It sets up and uses session data at <tt>:openid</tt> within the session. It sets up the ::OpenID::Consumer using the store specified by <tt>options[:store]</tt>.
       #
@@ -197,9 +205,9 @@ module Rack
 
       # As the first part of OpenID consumer action, #check retrieves the data required for completion.
       #
-      # * <tt>session[:openid][:openid_param]</tt> is the request parameter requested to be authenticated.
-      # * <tt>session[:openid][:site_return]</tt> is set as the request's HTTP_REFERER if previously unset.
-      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid request.
+      # * <tt>session[:openid][:openid_param]</tt> is set to the submitted identifier to be authenticated.
+      # * <tt>session[:openid][:site_return]</tt> is set as the request's HTTP_REFERER, unless already set.
+      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid request instance.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
         oid = consumer.begin(session[:openid_param], @options[:anonymous])
@@ -213,6 +221,11 @@ module Rack
         query_args = [@realm, *@options.values_at(:return_to, :immediate)]
         query_args[2] = false if session.key? :setup_needed
         pp query_args if $DEBUG
+
+        ## Extension support
+        extensions.each do |ext,args|
+          oid.add_extension ext::Request.new(*args)
+        end
 
         if oid.send_redirect?(*query_args)
           redirect = oid.redirect_url(*query_args)
@@ -242,6 +255,9 @@ module Rack
       #
       # Any messages from OpenID's response are appended to the 303 response
       # body.
+      #
+      # Data gathered from extensions are stored in session[:openid] with the
+      # extension's namespace uri as the key.
       #
       # * <tt>env['rack.auth.openid.response']</tt> is the openid response.
       #
@@ -277,6 +293,14 @@ module Rack
           body << "Authentication unsuccessful.\n"
         when ::OpenID::Consumer::SUCCESS
           session.clear
+
+          ## Extension support
+          extensions.each do |ext, args|
+            session[ext::NS_URI] = ext::Response.
+              from_success_response(oid).
+              get_extension_args
+          end
+
           session['authenticated'] = true
           # Value for unique identification and such
           session['identity'] = oid.identity_url
@@ -304,6 +328,37 @@ module Rack
         end
         body << oid.message if oid.message
         [ 303, {'Location'=>goto}, body]
+      end
+
+      # The first argument should be the main extension module.
+      # The extension module should contain the constants:
+      #   * class Request, with OpenID::Extension as an ancestor
+      #   * class Response, with OpenID::Extension as an ancestor
+      #   * string NS_URI, which defines the namespace of the extension, should be an absolute http uri
+      #
+      # All trailing arguments will be passed to extension::Request.new in #check.
+      # The openid response will be passed to extension::Response#from_success_response, #get_extension_args will be called on the result to attain the gathered data.
+      #
+      # This method returns the key at which the response data will be found in the session, which is the namespace uri by default.
+      def add_extension ext, *args
+        if not ext.is_a? Module
+          raise TypeError, "Extension #{ext.inspect} is not a module"
+        elsif not %w'Request Response NS_URI'.all?{|c| ext.constants.include?(c) }
+          raise ArgumentError, "Extension #{ext.inspect} does not contain required constants"
+        elsif not %w'Request Response'.all?{|c| (r=ext.const_get(c)).is_a? Class and ::OpenID::Extension > r }
+          raise TypeError, "Extension #{ext.inspect}'s Request or Response not a decendant of OpenID::Extension"
+        elsif not ext::NS_URI.is_a? String
+          raise TypeError, "Extension #{ext.inspect}'s NS_URI is not a string"
+        elsif not (uri = URI(ext::NS_URI) and uri.absolute? and uri.scheme =~ /^https?$/)
+          raise ArgumentError, "Extension #{ext.inspect}'s NS_URI is not an absolute http uri"
+        end
+        @extensions[ext] = args
+        return ext::NS_URI
+      end
+
+      # A conveniance method that returns the namespace of all current extensions used by this instance.
+      def extension_namespaces
+        @extensions.keys.map{|e|e::NS_URI}
       end
     end
   end

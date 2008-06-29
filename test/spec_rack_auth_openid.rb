@@ -50,4 +50,46 @@ context "Rack::Auth::OpenID" do
     lambda{OID.new(realm, {:return_to => 'http://path/arf/blargh'})}.
       should.not.raise
   end
+
+  specify 'extensions should be a module' do
+    ext = Object.new
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+    ext2 = Module.new
+    lambda{OID.new(realm).add_extension(ext2)}.should.raise ArgumentError
+  end
+
+  specify 'extensions should have required constants defined' do
+    ext = Module.new
+    lambda{OID.new(realm).add_extension(ext)}.should.raise ArgumentError
+    ext::Request = nil
+    lambda{OID.new(realm).add_extension(ext)}.should.raise ArgumentError
+    ext::Response = nil
+    lambda{OID.new(realm).add_extension(ext)}.should.raise ArgumentError
+    ext::NS_URI = nil
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+  end
+
+  specify 'extensions should have Request and Response defined and inherit from OpenID::Extension' do
+    ext = Module.new
+    ext::Request = nil
+    ext::Response = nil
+    ext::NS_URI = nil
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+    ext::Request = Class.new(::OpenID::Extension)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+    ext::Response = Class.new(::OpenID::Extension)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+  end
+
+  specify 'extensions should have NS_URI defined and be a string of an absolute http uri' do
+    ext = Module.new
+    ext::Request = Class.new(::OpenID::Extension)
+    ext::Response = Class.new(::OpenID::Extension)
+    ext::NS_URI = nil
+    lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
+    ext::NS_URI = 'openid.net'
+    lambda{OID.new(realm).add_extension(ext)}.should.raise ArgumentError
+    ext::NS_URI = 'http://openid.net'
+    lambda{OID.new(realm).add_extension(ext)}.should.not.raise
+  end
 end
