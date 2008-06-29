@@ -81,7 +81,7 @@ context "Rack::Auth::OpenID" do
     lambda{OID.new(realm).add_extension(ext)}.should.raise TypeError
   end
 
-  specify 'extensions should have NS_URI defined and be a string' do
+  specify 'extensions should have NS_URI defined and be a string of an absolute http uri' do
     ext = Module.new
     ext::Request = Class.new(::OpenID::Extension)
     ext::Response = Class.new(::OpenID::Extension)

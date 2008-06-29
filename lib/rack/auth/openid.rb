@@ -334,26 +334,31 @@ module Rack
       # The extension module should contain the constants:
       #   * class Request, with OpenID::Extension as an ancestor
       #   * class Response, with OpenID::Extension as an ancestor
-      #   * string NS_URI, which defines the namespace of the extension
+      #   * string NS_URI, which defines the namespace of the extension, should be an absolute http uri
       #
       # All trailing arguments will be passed to extension::Request.new in #check.
       # The openid response will be passed to extension::Response#from_success_response, #get_extension_args will be called on the result to attain the gathered data.
       #
-      # This method will return false if the extension will not be included. Otherwise it will return the key at which the Response will be found in the final session data, which is the namespace uri by default.
+      # This method returns the key at which the response data will be found in the session, which is the namespace uri by default.
       def add_extension ext, *args
         if not ext.is_a? Module
           raise TypeError, "Extension #{ext.inspect} is not a module"
         elsif not %w'Request Response NS_URI'.all?{|c| ext.constants.include?(c) }
-          raise ArgumentError, "Extension #{ext.inspect} does not containt required constants"
+          raise ArgumentError, "Extension #{ext.inspect} does not contain required constants"
         elsif not %w'Request Response'.all?{|c| (r=ext.const_get(c)).is_a? Class and ::OpenID::Extension > r }
           raise TypeError, "Extension #{ext.inspect}'s Request or Response not a decendant of OpenID::Extension"
         elsif not ext::NS_URI.is_a? String
           raise TypeError, "Extension #{ext.inspect}'s NS_URI is not a string"
-        elsif not URI(ext::NS_URI).absolute?
-          raise ArgumentError, "Extension #{ext.inspect}'s NS_URI is not a string of an absolute uri"
+        elsif not (uri = URI(ext::NS_URI) and uri.absolute? and uri.scheme =~ /^https?$/)
+          raise ArgumentError, "Extension #{ext.inspect}'s NS_URI is not an absolute http uri"
         end
         @extensions[ext] = args
         return ext::NS_URI
+      end
+
+      # A conveniance method that returns the namespace of all current extensions used by this instance.
+      def extension_namespaces
+        @extensions.keys.map{|e|e::NS_URI}
       end
     end
   end
