@@ -401,15 +401,27 @@ module Rack
       # the session, which is the namespace uri by default.
       def add_extension ext, *args
         if not ext.is_a? Module
-          raise TypeError, "Extension #{ext.inspect} is not a module"
-        elsif not %w'Request Response NS_URI'.all?{|c| ext.constants.include?(c) }
-          raise ArgumentError, "Extension #{ext.inspect} does not contain required constants"
-        elsif not %w'Request Response'.all?{|c| (r=ext.const_get(c)).is_a? Class and ::OpenID::Extension > r }
-          raise TypeError, "Extension #{ext.inspect}'s Request or Response not a decendant of OpenID::Extension"
-        elsif not ext::NS_URI.is_a? String
-          raise TypeError, "Extension #{ext.inspect}'s NS_URI is not a string"
-        elsif not (uri = URI(ext::NS_URI) and uri.absolute? and uri.scheme =~ /^https?$/)
-          raise ArgumentError, "Extension #{ext.inspect}'s NS_URI is not an absolute http uri"
+          raise TypeError, "#{ext.inspect} is not a module"
+        elsif not (m = %w'Request Response NS_URI' - ext.constants).empty?
+          raise ArgumentError, "#{ext.inspect} missing #{m*', '}"
+        end
+
+        consts = [ext::Request, ext::Response]
+
+        if not consts.all?{|c| c.is_a? Class }
+          raise TypeError, "#{ext.inspect}'s Request or Response is not a class"
+        elsif not consts.all?{|c| ::OpenID::Extension > c }
+          raise ArgumentError, "#{ext.inspect}'s Request or Response not a decendant of OpenID::Extension"
+        end
+
+        if not ext::NS_URI.is_a? String
+          raise TypeError, "#{ext.inspect}'s NS_URI is not a string"
+        elsif not uri = URI(ext::NS_URI)
+          raise ArgumentError, "#{ext.inspect}'s NS_URI is not a valid uri"
+        elsif not uri.scheme =~ /^https?$/
+          raise ArgumentError, "#{ext.inspect}'s NS_URI is not an http uri"
+        elsif not uri.absolute?
+          raise ArgumentError, "#{ext.inspect}'s NS_URI is not and absolute uri"
         end
         @extensions[ext] = args
         return ext::NS_URI
