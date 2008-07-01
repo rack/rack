@@ -86,36 +86,54 @@ module Rack
       #
       # == Options
       #
-      # <tt>:return_to</tt> defines the url to return to after the client authenticates with the openid service provider. This url should point to where Rack::Auth::OpenID is mounted. If <tt>:return_to</tt> is not provided, the url will be derived within the ruby-openid implementation.
+      # <tt>:return_to</tt> defines the url to return to after the client
+      # authenticates with the openid service provider. This url should point
+      # to where Rack::Auth::OpenID is mounted. If <tt>:return_to</tt> is not
+      # provided, :return_to will be the current url including all query
+      # parameters.
       #
-      # <tt>:session_key</tt> defines the key to the session hash in the env. It defaults to 'rack.session'.
+      # <tt>:session_key</tt> defines the key to the session hash in the env.
+      # It defaults to 'rack.session'.
       #
-      # <tt>:openid_param</tt> defines at what key in the request parameters to find the identifier to resolve. As per the 2.0 spec, the default is 'openid_identifier'.
+      # <tt>:openid_param</tt> defines at what key in the request parameters to
+      # find the identifier to resolve. As per the 2.0 spec, the default is
+      # 'openid_identifier'.
       #
-      # <tt>:immediate</tt> as true will make immediate type of requests the default. See the specification documentation.
+      # <tt>:immediate</tt> as true will make immediate type of requests the
+      # default. See OpenID specification documentation.
       #
       # === URL options
       #
-      # <tt>:login_good</tt> is the url to go to after the authentication process has completed.
+      # <tt>:login_good</tt> is the url to go to after the authentication
+      # process has completed.
       #
-      # <tt>:login_fail</tt> is the url to go to after the authentication process has failed.
+      # <tt>:login_fail</tt> is the url to go to after the authentication
+      # process has failed.
       #
-      # <tt>:login_quit</tt> is the url to go to after the authentication process
+      # <tt>:login_quit</tt> is the url to go to after the authentication
+      # process
       # has been cancelled.
       #
       # === Response options
       #
-      # <tt>:no_session</tt> should be a rack response to be returned if no or an incompatible session is found.
+      # <tt>:no_session</tt> should be a rack response to be returned if no or
+      # an incompatible session is found.
       #
-      # <tt>:auth_fail</tt> should be a rack response to be returned if an OpenID::DiscoveryFailure occurs. This is typically due to being unable to access the identity url or identity server.
+      # <tt>:auth_fail</tt> should be a rack response to be returned if an
+      # OpenID::DiscoveryFailure occurs. This is typically due to being unable
+      # to access the identity url or identity server.
       #
-      # <tt>:error</tt> should be a rack response to return if any other generic error would occur and <tt>options[:catch_errors]</tt> is true.
+      # <tt>:error</tt> should be a rack response to return if any other
+      # generic error would occur and <tt>options[:catch_errors]</tt> is true.
       #
       # === Extensions
       #
-      # <tt>:extensions</tt> should be a hash of openid extension implementations. The key should be the extension main module, the value should be an array of arguments for extension::Request.new
+      # <tt>:extensions</tt> should be a hash of openid extension
+      # implementations. The key should be the extension main module, the value
+      # should be an array of arguments for extension::Request.new
       #
-      # The hash is iterated over and passed to #add_extension for processing. Please see #add_extension for further documentation.
+      # The hash is iterated over and passed to #add_extension for processing.
+      # Please see #add_extension for further documentation.
       def initialize(realm, options={})
         @realm = realm
         realm = URI(realm)
@@ -163,15 +181,21 @@ module Rack
 
       attr_reader :options, :extensions
 
-      # It sets up and uses session data at <tt>:openid</tt> within the session. It sets up the ::OpenID::Consumer using the store specified by <tt>options[:store]</tt>.
+      # It sets up and uses session data at <tt>:openid</tt> within the
+      # session. It sets up the ::OpenID::Consumer using the store specified by
+      # <tt>options[:store]</tt>.
       #
-      # If the parameter specified by <tt>options[:openid_param]</tt> is present, processing is passed to #check and the result is returned.
+      # If the parameter specified by <tt>options[:openid_param]</tt> is
+      # present, processing is passed to #check and the result is returned.
       #
-      # If the parameter 'openid.mode' is set, implying a followup from the openid server, processing is passed to #finish and the result is returned.
+      # If the parameter 'openid.mode' is set, implying a followup from the
+      # openid server, processing is passed to #finish and the result is
+      # returned.
       #
       # If neither of these conditions are met, a 400 error is returned.
       #
-      # If an error is thrown and <tt>options[:catch_errors]</tt> is false, the exception will be reraised. Otherwise a 500 error is returned.
+      # If an error is thrown and <tt>options[:catch_errors]</tt> is false, the
+      # exception will be reraised. Otherwise a 500 error is returned.
       def call(env)
         env['rack.auth.openid'] = self
         session = env[@options[:session_key]]
@@ -214,11 +238,15 @@ module Rack
             'OpenID has encountered an error.' ]
       end
 
-      # As the first part of OpenID consumer action, #check retrieves the data required for completion.
+      # As the first part of OpenID consumer action, #check retrieves the data
+      # required for completion.
       #
-      # * <tt>session[:openid][:openid_param]</tt> is set to the submitted identifier to be authenticated.
-      # * <tt>session[:openid][:site_return]</tt> is set as the request's HTTP_REFERER, unless already set.
-      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid request instance.
+      # * <tt>session[:openid][:openid_param]</tt> is set to the submitted
+      #   identifier to be authenticated.
+      # * <tt>session[:openid][:site_return]</tt> is set as the request's
+      #   HTTP_REFERER, unless already set.
+      # * <tt>env['rack.auth.openid.request']</tt> is the openid checkid
+      #   request instance.
       def check(consumer, session, req)
         session[:openid_param]  = req.params[@options[:openid_param]]
         oid = consumer.begin(session[:openid_param], @options[:anonymous])
@@ -261,8 +289,9 @@ module Rack
       # of specification occur, a 303 redirect will be returned with Location
       # determined by the OpenID response type. If none of the response type
       # :login_* urls are set, the redirect will be set to
-      # <tt>session[:openid][:site_return]</tt>. If <tt>session[:openid][:site_return]</tt> is
-      # unset, the realm will be used.
+      # <tt>session[:openid][:site_return]</tt>. If
+      # <tt>session[:openid][:site_return]</tt> is unset, the realm will be
+      # used.
       #
       # Any messages from OpenID's response are appended to the 303 response
       # body.
@@ -273,19 +302,25 @@ module Rack
       # * <tt>env['rack.auth.openid.response']</tt> is the openid response.
       #
       # The four valid possible outcomes are:
-      # * failure: <tt>options[:login_fail]</tt> or <tt>session[:site_return]</tt> or the realm
-      #   * <tt>session[:openid]</tt> is cleared and any messages are send to rack.errors
+      # * failure: <tt>options[:login_fail]</tt> or
+      #   <tt>session[:site_return]</tt> or the realm
+      #   * <tt>session[:openid]</tt> is cleared and any messages are send to
+      #     rack.errors
       #   * <tt>session[:openid]['authenticated']</tt> is <tt>false</tt>
-      # * success: <tt>options[:login_good]</tt> or <tt>session[:site_return]</tt> or the realm
+      # * success: <tt>options[:login_good]</tt> or
+      #   <tt>session[:site_return]</tt> or the realm
       #   * <tt>session[:openid]</tt> is cleared
       #   * <tt>session[:openid]['authenticated']</tt> is <tt>true</tt>
       #   * <tt>session[:openid]['identity']</tt> is the actual identifier
       #   * <tt>session[:openid]['identifier']</tt> is the pretty identifier
-      # * cancel: <tt>options[:login_good]</tt> or <tt>session[:site_return]</tt> or the realm
+      # * cancel: <tt>options[:login_good]</tt> or
+      #   <tt>session[:site_return]</tt> or the realm
       #   * <tt>session[:openid]</tt> is cleared
       #   * <tt>session[:openid]['authenticated']</tt> is <tt>false</tt>
-      # * setup_needed: resubmits the authentication request. A flag is set for non-immediate handling.
-      #   * <tt>session[:openid][:setup_needed]</tt> is set to <tt>true</tt>, which will prevent immediate style openid authentication.
+      # * setup_needed: resubmits the authentication request. A flag is set for
+      #   non-immediate handling.
+      #   * <tt>session[:openid][:setup_needed]</tt> is set to <tt>true</tt>,
+      #     which will prevent immediate style openid authentication.
       def finish(consumer, session, req)
         oid = consumer.complete(req.params, req.url)
         pp oid if $DEBUG
@@ -345,12 +380,17 @@ module Rack
       # The extension module should contain the constants:
       #   * class Request, with OpenID::Extension as an ancestor
       #   * class Response, with OpenID::Extension as an ancestor
-      #   * string NS_URI, which defines the namespace of the extension, should be an absolute http uri
+      #   * string NS_URI, which defines the namespace of the extension, should
+      #     be an absolute http uri
       #
-      # All trailing arguments will be passed to extension::Request.new in #check.
-      # The openid response will be passed to extension::Response#from_success_response, #get_extension_args will be called on the result to attain the gathered data.
+      # All trailing arguments will be passed to extension::Request.new in
+      # #check.
+      # The openid response will be passed to
+      # extension::Response#from_success_response, #get_extension_args will be
+      # called on the result to attain the gathered data.
       #
-      # This method returns the key at which the response data will be found in the session, which is the namespace uri by default.
+      # This method returns the key at which the response data will be found in
+      # the session, which is the namespace uri by default.
       def add_extension ext, *args
         if not ext.is_a? Module
           raise TypeError, "Extension #{ext.inspect} is not a module"
@@ -367,7 +407,8 @@ module Rack
         return ext::NS_URI
       end
 
-      # A conveniance method that returns the namespace of all current extensions used by this instance.
+      # A conveniance method that returns the namespace of all current
+      # extensions used by this instance.
       def extension_namespaces
         @extensions.keys.map{|e|e::NS_URI}
       end
