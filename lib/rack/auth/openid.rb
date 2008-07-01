@@ -211,10 +211,10 @@ module Rack
         request = Rack::Request.new env
         consumer = ::OpenID::Consumer.new session, @options[:store]
 
-        if request.params[@options[:openid_param]]
-          check consumer, session, request
-        elsif request.params['openid.mode']
+        if request.params['openid.mode']
           finish consumer, session, request
+        elsif request.params[@options[:openid_param]]
+          check consumer, session, request
         else
           env['rack.errors'].puts "No valid params provided."
           bad_request
@@ -258,6 +258,7 @@ module Rack
         # SETUP_NEEDED check!
         # see OpenID::Consumer::CheckIDRequest docs
         query_args = [@realm, *@options.values_at(:return_to, :immediate)]
+        query_args[1] ||= req.url
         query_args[2] = false if session.key? :setup_needed
         pp query_args if $DEBUG
 
@@ -268,10 +269,17 @@ module Rack
 
         if oid.send_redirect?(*query_args)
           redirect = oid.redirect_url(*query_args)
+          if $DEBUG
+            pp redirect
+            pp Rack::Utils.parse_query(URI(redirect).query)
+          end
           [ 303, {'Location'=>redirect}, [] ]
         else
           # check on 'action' option.
           formbody = oid.form_markup(*query_args)
+          if $DEBUG
+            pp formbody
+          end
           body = HTML % ['Confirm...', formbody]
           [ 200, {'Content-Type'=>'text/html'}, body.to_a ]
         end
