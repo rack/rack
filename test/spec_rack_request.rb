@@ -381,4 +381,20 @@ EOF
 
     res.should.be.ok
   end
+
+  specify "should parse Accept-Encoding correctly" do
+    parser = lambda do |x|
+      Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => x)).accept_encoding
+    end
+
+    parser.call(nil).should.equal([])
+
+    parser.call("compress, gzip").should.equal([["compress", 1.0], ["gzip", 1.0]])
+    parser.call("").should.equal([])
+    parser.call("*").should.equal([["*", 1.0]])
+    parser.call("compress;q=0.5, gzip;q=1.0").should.equal([["compress", 0.5], ["gzip", 1.0]])
+    parser.call("gzip;q=1.0, identity; q=0.5, *;q=0").should.equal([["gzip", 1.0], ["identity", 0.5], ["*", 0] ])
+
+    lambda { parser.call("gzip ; q=1.0") }.should.raise(RuntimeError)
+  end
 end

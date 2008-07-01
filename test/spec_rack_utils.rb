@@ -39,6 +39,29 @@ context "Rack::Utils" do
     Rack::Utils.build_query("my weird field" => "q1!2\"'w$5&7/z8)?").
       should.equal "my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F"
   end
+
+  specify "should figure out which encodings are acceptable" do
+    helper = lambda do |a, b|
+      request = Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
+      Rack::Utils.select_best_encoding(a, b)
+    end
+
+    helper.call(%w(), [["x", 1]]).should.equal(nil)
+    helper.call(%w(identity), [["identity", 0.0]]).should.equal(nil)
+    helper.call(%w(identity), [["*", 0.0]]).should.equal(nil)
+
+    helper.call(%w(identity), [["compress", 1.0], ["gzip", 1.0]]).should.equal("identity")
+
+    helper.call(%w(compress gzip identity), [["compress", 1.0], ["gzip", 1.0]]).should.equal("compress")
+    helper.call(%w(compress gzip identity), [["compress", 0.5], ["gzip", 1.0]]).should.equal("gzip")
+
+    helper.call(%w(foo bar identity), []).should.equal("identity")
+    helper.call(%w(foo bar identity), [["*", 1.0]]).should.equal("foo")
+    helper.call(%w(foo bar identity), [["*", 1.0], ["foo", 0.9]]).should.equal("bar")
+
+    helper.call(%w(foo bar identity), [["foo", 0], ["bar", 0]]).should.equal("identity")
+    helper.call(%w(foo bar baz identity), [["*", 0], ["identity", 0.1]]).should.equal("identity")
+  end
 end
 
 context "Rack::Utils::HeaderHash" do
