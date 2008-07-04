@@ -12,6 +12,7 @@ class Deflater
     status, headers, body = @app.call(env)
 
     request  = Request.new(env)
+
     encoding = Utils.select_best_encoding(%w(gzip deflate identity), request.accept_encoding)
 
     case encoding
@@ -22,8 +23,8 @@ class Deflater
     when "identity"
       [status, headers, body]
     when nil
-      # TODO: Add Content-Type
-      [406, {}, "..."]
+      message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
+      [406, {"Content-Type" => "text/plain"}, message]
     end
   end
 

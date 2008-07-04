@@ -5,9 +5,9 @@ require 'rack/deflater'
 require 'stringio'
 
 context "Rack::Deflater" do
-  def build_response(body, accept_encoding)
+  def build_response(body, accept_encoding, headers = {})
     app = lambda { |env| [200, {}, body] }
-    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => accept_encoding)
+    request = Rack::MockRequest.env_for("", headers.merge("HTTP_ACCEPT_ENCODING" => accept_encoding))
     response = Rack::Deflater.new(app).call(request)
 
     return response
@@ -53,10 +53,14 @@ context "Rack::Deflater" do
   end
 
   specify "should handle the lack of an acceptable encoding" do
-    response = build_response("Hello world!", "identity;q=0")
+    response1 = build_response("Hello world!", "identity;q=0", "PATH_INFO" => "/")
+    response1[0].should.equal(406)
+    response1[1].should.equal({"Content-Type" => "text/plain"})
+    response1[2].should.equal("An acceptable encoding for the requested resource / could not be found.")
 
-    response[0].should.equal(406)
-    response[1].should.equal({})
-    # response[2].should.equal("...")
+    response2 = build_response("Hello world!", "identity;q=0", "SCRIPT_NAME" => "/foo", "PATH_INFO" => "/bar")
+    response2[0].should.equal(406)
+    response2[1].should.equal({"Content-Type" => "text/plain"})
+    response2[2].should.equal("An acceptable encoding for the requested resource /foo/bar could not be found.")
   end
 end
