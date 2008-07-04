@@ -32,6 +32,17 @@ context "Rack::Deflater" do
     response[1].should.equal({ "Content-Encoding" => "deflate" })
     response[2].to_s.should.equal("\363H\315\311\311W(\317/\312IQ\004\000")
   end
+  
+  specify "should be able to gzip bodies that respond to each" do
+    body = Object.new
+    class << body; def each; yield("foo"); yield("bar"); end; end
+
+    response = build_response(body, "gzip")
+
+    response[0].should.equal(200)
+    response[1].should.equal({ "Content-Encoding" => "gzip" })
+    # response[2].to_s.should.equal("\037\213\b\000J\340mH\000\003K\313\317OJ,\002\000\225\037\366\236\006\000\000\000")
+  end
 
   specify "should be able to fallback to no deflation" do
     response = build_response("Hello world!", "superzip")

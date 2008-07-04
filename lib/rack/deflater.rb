@@ -1,4 +1,5 @@
 require "zlib"
+require "stringio"
 
 module Rack
 
@@ -11,9 +12,11 @@ class Deflater
     status, headers, body = @app.call(env)
 
     request  = Request.new(env)
-    encoding = Utils.select_best_encoding(%w(deflate identity), request.accept_encoding)
+    encoding = Utils.select_best_encoding(%w(gzip deflate identity), request.accept_encoding)
 
     case encoding
+    when "gzip"
+      [status, headers.merge("Content-Encoding" => "gzip"), self.class.gzip(body)]
     when "deflate"
       [status, headers.merge("Content-Encoding" => "deflate"), self.class.deflate(body)]
     when "identity"
@@ -22,6 +25,18 @@ class Deflater
       # TODO: Add Content-Type
       [406, {}, "..."]
     end
+  end
+
+  def self.gzip(body)
+    io = StringIO.new
+    gzip = Zlib::GzipWriter.new(io)
+
+    # TODO: Add streaming
+    # TODO: Consider all part types
+    body.each { |part| gzip << part }
+
+    gzip.close
+    return io.string
   end
 
   # Loosely based on Mongrel's Deflate handler
