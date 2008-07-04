@@ -1,6 +1,5 @@
 require "zlib"
 require "stringio"
-require "time"
 
 module Rack
 
@@ -12,7 +11,7 @@ class Deflater
   def call(env)
     status, headers, body = @app.call(env)
 
-    request  = Request.new(env)
+    request = Request.new(env)
 
     encoding = Utils.select_best_encoding(%w(gzip deflate identity), request.accept_encoding)
 
@@ -30,7 +29,7 @@ class Deflater
     end
   end
 
-  def self.gzip(body, mtime=Time.now)
+  def self.gzip(body, mtime = Time.now)
     io = StringIO.new
     gzip = Zlib::GzipWriter.new(io)
     gzip.mtime = mtime
