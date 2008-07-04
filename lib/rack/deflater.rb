@@ -1,5 +1,6 @@
 require "zlib"
 require "stringio"
+require "time"
 
 module Rack
 
@@ -17,7 +18,8 @@ class Deflater
 
     case encoding
     when "gzip"
-      [status, headers.merge("Content-Encoding" => "gzip"), self.class.gzip(body)]
+      mtime = headers["Last-Modified"] || Time.now
+      [status, headers.merge("Content-Encoding" => "gzip"), self.class.gzip(body, mtime)]
     when "deflate"
       [status, headers.merge("Content-Encoding" => "deflate"), self.class.deflate(body)]
     when "identity"
@@ -28,9 +30,10 @@ class Deflater
     end
   end
 
-  def self.gzip(body)
+  def self.gzip(body, mtime=Time.now)
     io = StringIO.new
     gzip = Zlib::GzipWriter.new(io)
+    gzip.mtime = mtime
 
     # TODO: Add streaming
     # TODO: Consider all part types

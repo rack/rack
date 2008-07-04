@@ -41,7 +41,11 @@ context "Rack::Deflater" do
 
     response[0].should.equal(200)
     response[1].should.equal({ "Content-Encoding" => "gzip" })
-    # response[2].to_s.should.equal("\037\213\b\000J\340mH\000\003K\313\317OJ,\002\000\225\037\366\236\006\000\000\000")
+
+    io = StringIO.new(response[2].to_s)
+    gz = Zlib::GzipReader.new(io)
+    gz.read.should.equal("foobar")
+    gz.close
   end
 
   specify "should be able to fallback to no deflation" do
