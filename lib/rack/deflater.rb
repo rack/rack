@@ -29,7 +29,7 @@ class Deflater
     end
   end
 
-  def self.gzip(body, mtime = Time.now)
+  def self.gzip(body, mtime)
     io = StringIO.new
     gzip = Zlib::GzipWriter.new(io)
     gzip.mtime = mtime
