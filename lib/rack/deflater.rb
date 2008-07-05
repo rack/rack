@@ -42,14 +42,17 @@ class Deflater
     return io.string
   end
 
+  DEFLATE_ARGS = [
+    Zlib::DEFAULT_COMPRESSION,
+    # drop the zlib header which causes both Safari and IE to choke
+   -Zlib::MAX_WBITS,
+    Zlib::DEF_MEM_LEVEL,
+    Zlib::DEFAULT_STRATEGY
+  ]
+
   # Loosely based on Mongrel's Deflate handler
   def self.deflate(body)
-    deflater = Zlib::Deflate.new(
-      Zlib::DEFAULT_COMPRESSION,
-      # drop the zlib header which causes both Safari and IE to choke
-      -Zlib::MAX_WBITS,
-      Zlib::DEF_MEM_LEVEL,
-      Zlib::DEFAULT_STRATEGY)
+    deflater = Zlib::Deflate.new(*DEFLATE_ARGS)
 
     # TODO: Add streaming
     # TODO: Consider all part types
