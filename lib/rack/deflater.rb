@@ -35,7 +35,6 @@ class Deflater
     gzip.mtime = mtime
 
     # TODO: Add streaming
-    # TODO: Consider all part types
     body.each { |part| gzip << part }
 
     gzip.close
@@ -55,7 +54,6 @@ class Deflater
     deflater = Zlib::Deflate.new(*DEFLATE_ARGS)
 
     # TODO: Add streaming
-    # TODO: Consider all part types
     body.each { |part| deflater << part }
 
     return deflater.finish
