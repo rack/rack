@@ -308,7 +308,9 @@ module Rack
     ## === The Headers
     def check_headers(header)
       ## The header must respond to each, and yield values of key and value.
-      assert("header should respond to #each") { header.respond_to? :each }
+      assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
+         header.respond_to? :each
+      }
       header.each { |key, value|
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
@@ -325,10 +327,11 @@ module Rack
         assert("invalid header name: #{key}") { key =~ /\A[a-zA-Z][a-zA-Z0-9_-]*\z/ }
         ## 
         ## The values of the header must respond to #each.
-        assert("header values must respond to #each") { value.respond_to? :each }
+        assert("header values must respond to #each, but the value of " +
+          "'#{key}' doesn't (is #{value.class})") { value.respond_to? :each }
         value.each { |item|
           ## The values passed on #each must be Strings
-          assert("header values must consist of Strings") {
+          assert("header values must consist of Strings, but '#{key}' also contains a #{item.class}") {
             item.instance_of?(String)
           }
           ## and not contain characters below 037.

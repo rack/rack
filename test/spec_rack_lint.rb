@@ -136,14 +136,14 @@ context "Rack::Lint" do
                        [200, Object.new, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/should respond to #each/)
+      message.should.equal("headers object should respond to #each, but doesn't (got Object as headers)")
 
     lambda {
       Rack::Lint.new(lambda { |env|
                        [200, {true=>false}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/header key must be a string/)
+      message.should.equal("header key must be a string, was TrueClass")
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -171,21 +171,21 @@ context "Rack::Lint" do
                        [200, {"..%%quark%%.." => "text/plain"}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/invalid header/)
+      message.should.equal("invalid header name: ..%%quark%%..")
 
     lambda {
       Rack::Lint.new(lambda { |env|
                        [200, {"Foo" => Object.new}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/must respond to #each/)
+      message.should.equal("header values must respond to #each, but the value of 'Foo' doesn't (is Object)")
 
     lambda {
       Rack::Lint.new(lambda { |env|
                        [200, {"Foo" => [1,2,3]}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/must consist of Strings/)
+      message.should.equal("header values must consist of Strings, but 'Foo' also contains a Fixnum")
 
 
     lambda {
