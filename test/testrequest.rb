@@ -5,7 +5,9 @@ class TestRequest
   def call(env)
     status = env["QUERY_STRING"] =~ /secret/ ? 403 : 200
     env["test.postdata"] = env["rack.input"].read
-    [status, {"Content-Type" => "text/yaml"}, [env.to_yaml]]
+    body = env.to_yaml
+    size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+    [status, {"Content-Type" => "text/yaml", "Content-Length" => size.to_s}, [body]]
   end
 
   module Helpers

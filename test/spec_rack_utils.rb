@@ -108,7 +108,7 @@ context "Rack::Utils::Context" do
   test_target1 = proc{|e| e.to_s+' world' }
   test_target2 = proc{|e| e.to_i+2 }
   test_target3 = proc{|e| nil }
-  test_target4 = proc{|e| [200,{'Content-Type'=>'text/plain'},['']] }
+  test_target4 = proc{|e| [200,{'Content-Type'=>'text/plain', 'Content-Length'=>'0'},['']] }
   test_target5 = Object.new
 
   specify "should perform checks on both arguments" do

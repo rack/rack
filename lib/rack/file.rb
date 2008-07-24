@@ -23,7 +23,9 @@ module Rack
 
     def _call(env)
       if env["PATH_INFO"].include? ".."
-        return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]]
+        body = "Forbidden\n"
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
       end
 
       @path = F.join(@root, Utils.unescape(env["PATH_INFO"]))
@@ -36,8 +38,9 @@ module Rack
            "Content-Length" => F.size(@path).to_s
          }, self]
       else
-        return [404, {"Content-Type" => "text/plain"},
-                ["File not found: #{env["PATH_INFO"]}\n"]]
+        body = "File not found: #{env["PATH_INFO"]}\n"
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        [404, {"Content-Type" => "text/plain", "Content-Length" => size.to_s}, [body]]
       end
     end
 
