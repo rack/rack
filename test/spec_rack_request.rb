@@ -359,7 +359,8 @@ EOF
   specify "does conform to the Rack spec" do
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
-      [200, {"Content-Type" => "text/html"}, content]
+      size = content.respond_to?(:bytesize) ? content.bytesize : content.size
+      [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, content]
     }
 
     input = <<EOF

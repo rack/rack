@@ -1,3 +1,5 @@
+require 'time'
+
 module Rack
   # Rack::Directory serves entries below the +root+ given, according to the
   # path info of the Rack request. If a directory is found, the file's contents
@@ -51,7 +53,9 @@ table { width:100%%; }
 
     def _call(env)
       if env["PATH_INFO"].include? ".."
-        return [403, {"Content-Type" => "text/plain"}, ["Forbidden\n"]]
+        body = "Forbidden\n"
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
       end
 
       @path = F.join(@root, Utils.unescape(env['PATH_INFO']))
@@ -77,8 +81,9 @@ table { width:100%%; }
         end
       end
 
-      return [404, {"Content-Type" => "text/plain"},
-              ["Entity not found: #{env["PATH_INFO"]}\n"]]
+      body = "Entity not found: #{env["PATH_INFO"]}\n"
+      size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+      return [404, {"Content-Type" => "text/plain", "Content-Length" => size.to_s}, [body]]
     end
 
     def each
