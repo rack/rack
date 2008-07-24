@@ -365,7 +365,7 @@ module Rack
       chunked_response = false
       headers.each { |key, value|
         if key.downcase == 'transfer-encoding'
-          chunked_response = value != 'identity'
+          chunked_response = value.downcase != 'identity'
         end
       }
 
