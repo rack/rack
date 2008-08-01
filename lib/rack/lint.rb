@@ -31,7 +31,11 @@ module Rack
 
     ## A Rack application is an Ruby object (not a class) that
     ## responds to +call+.
-    def call(env=nil)
+    def call(env=nil) 
+      dup._call(env) 
+    end
+
+    def _call(env)
       ## It takes exactly one argument, the *environment*
       assert("No env given") { env }
       check_env env
