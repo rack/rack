@@ -114,5 +114,5 @@ begin
     end
   end
 rescue LoadError
-  $stderr.puts "Skipping Rack::Session::Memcache tests (Memcache is required). `gem install memcache` and try again."
+  $stderr.puts "Skipping Rack::Session::Memcache tests (Memcache is required). `gem install memcache-client` and try again."
 end

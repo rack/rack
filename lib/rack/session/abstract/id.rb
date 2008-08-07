@@ -1,6 +1,8 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
+# bugrep: Andreas Zehnder
 
 require 'rack/utils'
+require 'time'
 
 module Rack
   module Session
@@ -101,11 +103,13 @@ module Rack
             return false
           end
 
-          expiry = options[:expire_after] && time+options[:expire_after]
           cookie = Utils.escape(@key)+'='+Utils.escape(sid)
           cookie<< "; domain=#{options[:domain]}" if options[:domain]
           cookie<< "; path=#{options[:path]}" if options[:path]
-          cookie<< "; expires=#{expiry}" if expiry
+          if options[:expire_after]
+            expiry = time + options[:expire_after]
+            cookie<< "; expires=#{expiry.httpdate}"
+          end
 
           case a = (h = response[1])['Set-Cookie']
           when Array then  a << cookie

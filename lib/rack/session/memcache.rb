@@ -9,11 +9,12 @@ module Rack
     # Session data is stored in memcached. The corresponding session key is
     # maintained in the cookie.
     # You may treat Session::Memcache as you would Session::Pool with the
-    # following differences.
+    # following caveats.
     #
     # * Setting :expire_after to 0 would note to the Memcache server to hang
     #   onto the session data until it would drop it according to it's own
-    #   specifications.
+    #   specifications. However, the cookie sent to the client would expire
+    #   immediately.
     #
     # Note that memcache does drop data before it may be listed to expire. For
     # a full description of behaviour, please see memcache's documentation.
