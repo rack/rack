@@ -25,7 +25,9 @@ module Rack
         req = Rack::Request.new(env)
         message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
         detail = env["rack.showstatus.detail"] || message
-        [status, headers.merge("Content-Type" => "text/html"), [@template.result(binding)]]
+        body = @template.result(binding)
+        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+        [status, headers.merge("Content-Type" => "text/html", "Content-Length" => size.to_s), [body]]
       else
         [status, headers, body]
       end

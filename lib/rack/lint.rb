@@ -3,6 +3,8 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
+    STATUS_WITH_NO_ENTITY_BODY = (100..199).to_a << 204 << 304
+
     def initialize(app)
       @app = app
     end
@@ -29,7 +31,11 @@ module Rack
 
     ## A Rack application is an Ruby object (not a class) that
     ## responds to +call+.
-    def call(env=nil)
+    def call(env=nil) 
+      dup._call(env) 
+    end
+
+    def _call(env)
       ## It takes exactly one argument, the *environment*
       assert("No env given") { env }
       check_env env
@@ -45,6 +51,7 @@ module Rack
       check_headers headers
       ## and the *body*.
       check_content_type status, headers
+      check_content_length status, headers
       [status, headers, self]
     end
 
@@ -57,7 +64,7 @@ module Rack
         env.instance_of? Hash
       }
 
-      ## 
+      ##
       ## The environment is required to include these variables
       ## (adopted from PEP333), except when they'd be empty, but see
       ## below.
@@ -115,7 +122,7 @@ module Rack
       ## and should be prefixed uniquely.  The prefix <tt>rack.</tt>
       ## is reserved for use with the Rack core distribution and must
       ## not be used otherwise.
-      ## 
+      ##
 
       %w[REQUEST_METHOD SERVER_NAME SERVER_PORT
          QUERY_STRING
@@ -141,7 +148,7 @@ module Rack
         }
       }
 
-      ## 
+      ##
       ## There are the following restrictions:
 
       ## * <tt>rack.version</tt> must be an array of Integers.
@@ -301,14 +308,16 @@ module Rack
 
     ## === The Status
     def check_status(status)
-      ## The status, if parsed as integer (+to_i+), must be bigger than 100.
-      assert("Status must be >100 seen as integer") { status.to_i > 100 }
+      ## The status, if parsed as integer (+to_i+), must be greater than or equal to 100.
+      assert("Status must be >=100 seen as integer") { status.to_i >= 100 }
     end
 
     ## === The Headers
     def check_headers(header)
       ## The header must respond to each, and yield values of key and value.
-      assert("header should respond to #each") { header.respond_to? :each }
+      assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
+         header.respond_to? :each
+      }
       header.each { |key, value|
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
@@ -323,12 +332,13 @@ module Rack
         ## but only contain keys that consist of
         ## letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
         assert("invalid header name: #{key}") { key =~ /\A[a-zA-Z][a-zA-Z0-9_-]*\z/ }
-        ## 
+        ##
         ## The values of the header must respond to #each.
-        assert("header values must respond to #each") { value.respond_to? :each }
+        assert("header values must respond to #each, but the value of " +
+          "'#{key}' doesn't (is #{value.class})") { value.respond_to? :each }
         value.each { |item|
           ## The values passed on #each must be Strings
-          assert("header values must consist of Strings") {
+          assert("header values must consist of Strings, but '#{key}' also contains a #{item.class}") {
             item.instance_of?(String)
           }
           ## and not contain characters below 037.
@@ -343,18 +353,69 @@ module Rack
     def check_content_type(status, headers)
       headers.each { |key, value|
         ## There must be a <tt>Content-Type</tt>, except when the
-        ## +Status+ is 204 or 304, in which case there must be none
+        ## +Status+ is 1xx, 204 or 304, in which case there must be none
         ## given.
         if key.downcase == "content-type"
-          assert("Content-Type header found in #{status} response, not allowed"){
-            not [204, 304].include? status.to_i
+          assert("Content-Type header found in #{status} response, not allowed") {
+            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
           }
           return
         end
       }
       assert("No Content-Type header found") {
-        [201, 204, 304].include? status.to_i
+        STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
       }
+    end
+
+    ## === The Content-Length
+    def check_content_length(status, headers)
+      chunked_response = false
+      headers.each { |key, value|
+        if key.downcase == 'transfer-encoding'
+          chunked_response = value.downcase != 'identity'
+        end
+      }
+
+      headers.each { |key, value|
+        if key.downcase == 'content-length'
+          ## There must be a <tt>Content-Length</tt>, except when the
+          ## +Status+ is 1xx, 204 or 304, in which case there must be none
+          ## given.
+          assert("Content-Length header found in #{status} response, not allowed") {
+            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+          }
+
+          assert('Content-Length header should not be used if body is chunked') {
+            not chunked_response
+          }
+
+          bytes = 0
+          string_body = true
+
+          @body.each { |part|
+            unless part.kind_of?(String)
+              string_body = false
+              break
+            end
+
+            bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
+          }
+
+          if string_body
+            assert("Content-Length header was #{value}, but should be #{bytes}") {
+              value == bytes.to_s
+            }
+          end
+
+          return
+        end
+      }
+
+      if [ String, Array ].include?(@body.class) && !chunked_response
+        assert('No Content-Length header found') {
+          STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+        }
+      end
     end
 
     ## === The Body
@@ -368,11 +429,11 @@ module Rack
         }
         yield part
       }
-      ## 
+      ##
       ## If the Body responds to #close, it will be called after iteration.
       # XXX howto: assert("Body has not been closed") { @closed }
 
-      ## 
+      ##
       ## The Body commonly is an Array of Strings, the application
       ## instance itself, or a File-like object.
     end

@@ -71,6 +71,36 @@ module Rack
     end
     module_function :escape_html
 
+    def select_best_encoding(available_encodings, accept_encoding)
+      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
+
+      expanded_accept_encoding =
+        accept_encoding.map { |m, q|
+          if m == "*"
+            (available_encodings - accept_encoding.map { |m2, _| m2 }).map { |m2| [m2, q] }
+          else
+            [[m, q]]
+          end
+        }.inject([]) { |mem, list|
+          mem + list
+        }
+
+      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
+
+      unless encoding_candidates.include?("identity")
+        encoding_candidates.push("identity")
+      end
+
+      expanded_accept_encoding.find_all { |m, q|
+        q == 0.0
+      }.each { |m, _|
+        encoding_candidates.delete(m)
+      }
+
+      return (encoding_candidates & available_encodings)[0]
+    end
+    module_function :select_best_encoding
+
     # The recommended manner in which to implement a contexting application
     # is to define a method #context in which a new Context is instantiated.
     #

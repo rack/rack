@@ -17,8 +17,8 @@ module Rack
           ret
         end
 
-        def self.split_header_value(str) # From WEBrick::HTTPUtils
-          str.scan(/((?:"(?:\\.|[^"])+?"|[^",]+)+)(?:,\s*|\Z)/n).collect{ |v| v[0] }
+        def self.split_header_value(str)
+          str.scan( /(\w+\=(?:"[^\"]+"|[^,]+))/n ).collect{ |v| v[0] }
         end
 
         def initialize

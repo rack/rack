@@ -13,7 +13,7 @@ context "Rack::Handler" do
     Rack::Handler.get('webrick').should.equal Rack::Handler::WEBrick
   end
 
-  specify "should get unregisted hanlder by name" do
+  specify "should get unregistered handler by name" do
     Rack::Handler.get('lobster').should.equal Rack::Handler::Lobster
   end
 
