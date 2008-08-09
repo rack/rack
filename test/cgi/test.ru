@@ -1,5 +1,5 @@
-#!/usr/local/bin/ruby ../../bin/rackup
-#\ -E deployment -I ~/projects/rack/lib
+#!/usr/bin/env ../../bin/rackup
+#\ -E deployment -I ../../lib
 # -*- ruby -*-
 
 require '../testrequest'
