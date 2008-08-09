@@ -1,5 +1,6 @@
 require 'test/spec'
 
+begin
 # requires the ruby-openid gem
 require 'rack/auth/openid'
 
@@ -129,4 +130,8 @@ $-w, w = nil, $-w               # yuck
       should.not.raise
 $-w = w
   end
+end
+
+rescue LoadError
+  $stderr.puts "Skipping Rack::Auth::OpenID tests (ruby-openid 2 is required). `gem install ruby-openid` and try again."
 end
