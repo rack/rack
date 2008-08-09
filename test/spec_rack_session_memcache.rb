@@ -13,6 +13,14 @@ begin
       Rack::Response.new(env["rack.session"].inspect).to_a
     }
 
+    # Keep this first.
+    specify "startup" do
+      $pid = fork {
+        exec "memcached"
+      }
+      sleep 1
+    end
+
     specify "faults on no connection" do
       lambda do
         Rack::Session::Memcache.new(incrementor, :memcache_server => '')
@@ -111,6 +119,12 @@ begin
       session.size.should.be r.size+1
       session['counter'].should.be.nil?
       session['foo'].should.equal 'bar'
+    end
+
+    # Keep this last.
+    specify "shutdown" do
+      Process.kill 15, $pid
+      Process.wait($pid).should.equal $pid
     end
   end
 rescue LoadError
