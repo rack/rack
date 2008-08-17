@@ -9,6 +9,21 @@ middleware) into a single method call.
 The exact details of this are described in the Rack specification,
 which all Rack applications should conform to.
 
+== Future specification changes
+
+PLEASE NOTE: In versions of Rack LATER than 0.4, the following
+changes will be commited to the specification:
+
+* 1xx, 204 and 304 status codes MUST not contain a Content-Type.
+* A valid Content-Length header MUST be provided for non 1xx, 204 and 304
+  responses with an Transfer-Encoding of "identity" (default).
+  The Content-Length MUST be the same as the sum of the byte-sizes of
+  the chunks.
+
+Internal Rack modules have been updated to follow this behavior, but
+the Rack 0.4 Lint does NOT check it yet for compatibility reasons.
+Please update your libraries accordingly.
+
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
@@ -159,7 +174,6 @@ Installing the Ruby fcgi gem:
 
 Furthermore, to test Memcache sessions, you need memcached (will be
 run on port 11211) and memcache-client installed.
-
 
 == History
 

@@ -3,8 +3,6 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
-    STATUS_WITH_NO_ENTITY_BODY = (100..199).to_a << 204 << 304
-
     def initialize(app)
       @app = app
     end
@@ -51,7 +49,6 @@ module Rack
       check_headers headers
       ## and the *body*.
       check_content_type status, headers
-      check_content_length status, headers
       [status, headers, self]
     end
 
@@ -353,69 +350,18 @@ module Rack
     def check_content_type(status, headers)
       headers.each { |key, value|
         ## There must be a <tt>Content-Type</tt>, except when the
-        ## +Status+ is 1xx, 204 or 304, in which case there must be none
+        ## +Status+ is 204 or 304, in which case there must be none
         ## given.
         if key.downcase == "content-type"
-          assert("Content-Type header found in #{status} response, not allowed") {
-            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+          assert("Content-Type header found in #{status} response, not allowed"){
+            not [204, 304].include? status.to_i
           }
           return
         end
       }
       assert("No Content-Type header found") {
-        STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+        [204, 304].include? status.to_i
       }
-    end
-
-    ## === The Content-Length
-    def check_content_length(status, headers)
-      chunked_response = false
-      headers.each { |key, value|
-        if key.downcase == 'transfer-encoding'
-          chunked_response = value.downcase != 'identity'
-        end
-      }
-
-      headers.each { |key, value|
-        if key.downcase == 'content-length'
-          ## There must be a <tt>Content-Length</tt>, except when the
-          ## +Status+ is 1xx, 204 or 304, in which case there must be none
-          ## given.
-          assert("Content-Length header found in #{status} response, not allowed") {
-            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-          }
-
-          assert('Content-Length header should not be used if body is chunked') {
-            not chunked_response
-          }
-
-          bytes = 0
-          string_body = true
-
-          @body.each { |part|
-            unless part.kind_of?(String)
-              string_body = false
-              break
-            end
-
-            bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
-          }
-
-          if string_body
-            assert("Content-Length header was #{value}, but should be #{bytes}") {
-              value == bytes.to_s
-            }
-          end
-
-          return
-        end
-      }
-
-      if [ String, Array ].include?(@body.class) && !chunked_response
-        assert('No Content-Length header found') {
-          STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-        }
-      end
     end
 
     ## === The Body

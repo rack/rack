@@ -203,47 +203,6 @@ context "Rack::Lint" do
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/No Content-Type/)
-
-    [100, 101, 204, 304].each do |status|
-      lambda {
-        Rack::Lint.new(lambda { |env|
-                         [status, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
-                       }).call(env({}))
-      }.should.raise(Rack::Lint::LintError).
-        message.should.match(/Content-Type header found/)
-    end
-  end
-
-  specify "notices content-length errors" do
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain"}, ""]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/No Content-Length/)
-
-    [100, 101, 204, 304].each do |status|
-      lambda {
-        Rack::Lint.new(lambda { |env|
-                         [status, {"Content-length" => "0"}, ""]
-                       }).call(env({}))
-      }.should.raise(Rack::Lint::LintError).
-        message.should.match(/Content-Length header found/)
-    end
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain", "Content-Length" => "0", "Transfer-Encoding" => "chunked"}, ""]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/Content-Length header should not be used/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain", "Content-Length" => "1"}, ""]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/Content-Length header was 1, but should be 0/)
   end
 
   specify "notices body errors" do
