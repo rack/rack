@@ -165,11 +165,9 @@ module Rack
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
       check_error env["rack.errors"]
 
-      ## * The <tt>REQUEST_METHOD</tt> must be one of +GET+, +POST+, +PUT+,
-      ##   +DELETE+, +HEAD+, +OPTIONS+, +TRACE+.
+      ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
       assert("REQUEST_METHOD unknown: #{env["REQUEST_METHOD"]}") {
-        %w[GET POST PUT DELETE
-           HEAD OPTIONS TRACE].include?(env["REQUEST_METHOD"])
+        env["REQUEST_METHOD"] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
       }
 
       ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
