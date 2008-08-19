@@ -19,6 +19,7 @@ changes will be commited to the specification:
   responses with an Transfer-Encoding of "identity" (default).
   The Content-Length MUST be the same as the sum of the byte-sizes of
   the chunks.
+* The REQUEST_METHOD may be any HTTP token.
 
 Internal Rack modules have been updated to follow this behavior, but
 the Rack 0.4 Lint does NOT check it yet for compatibility reasons.
