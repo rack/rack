@@ -189,7 +189,7 @@ run on port 11211) and memcache-client installed.
   * HTTP status 201 can contain a Content-Type and a body now.
   * Many bugfixes, especially related to Cookie handling.
 
-* August 21th, 2008: Fourth public release 0.4.
+* August 21st, 2008: Fourth public release 0.4.
   * New middleware, Rack::Deflater, by Christoffer Sawicki.
   * OpenID authentication now needs ruby-openid 2.
   * New Memcache sessions, by blink.
@@ -207,7 +207,7 @@ Please mail bugs, suggestions and patches to
 <mailto:rack-devel@googlegroups.com>.
 
 Mailing list archives are available at
-<http://groups.google.com/group/rack-devel>
+<http://groups.google.com/group/rack-devel>.
 
 Git repository (branches rebased on master are most welcome):
 * http://github.com/chneukirchen/rack
