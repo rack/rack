@@ -21,11 +21,13 @@ end
 def git_tree_version
   if File.directory?(".git")
     @tree_version ||= `git describe`.strip.sub('-', '.')
+    @tree_version << ".0"  unless @tree_version.count('.') == 2
   else
     $: << "lib"
     require 'rack'
     @tree_version = Rack.release
   end
+  @tree_version
 end
 
 def gem_version
