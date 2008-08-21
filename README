@@ -12,11 +12,11 @@ which all Rack applications should conform to.
 == Future specification changes
 
 PLEASE NOTE: In versions of Rack LATER than 0.4, the following
-changes will be commited to the specification:
+changes will be commited to the Rack specification:
 
 * 1xx, 204 and 304 status codes MUST not contain a Content-Type.
 * A valid Content-Length header MUST be provided for non 1xx, 204 and 304
-  responses with an Transfer-Encoding of "identity" (default).
+  responses with a Transfer-Encoding of "identity" (default).
   The Content-Length MUST be the same as the sum of the byte-sizes of
   the chunks.
 * The REQUEST_METHOD may be any HTTP token.
@@ -39,6 +39,7 @@ The included *handlers* connect all kinds of web servers to Rack:
 These web servers include Rack handlers in their distributions:
 * Ebb
 * Fuzed
+* Phusion Passenger (which is mod_rack for Apache)
 * Thin
 
 Any valid Rack app will run the same on all these handlers, without
@@ -52,6 +53,7 @@ The included *adapters* connect Rack with existing Ruby web frameworks:
 These frameworks include Rack adapters in their distributions:
 * Coset
 * Halcyon
+* Mack
 * Maveric
 * Merb
 * Racktools::SimpleApplication
@@ -78,8 +80,8 @@ applications needs using middleware, for example:
 * ...many others!
 
 All these components use the same interface, which is described in
-detail in the Rack specification.  You can choose to use them exactly
-in the way you want.
+detail in the Rack specification.  These optional components can be
+used in any way you wish.
 
 == Convenience
 
@@ -143,7 +145,7 @@ There are two rake-based test tasks:
 The fast testsuite has no dependencies outside of the core Ruby
 installation and test-spec.
 
-To run the fast test suite completely, you need:
+To run the test suite completely, you need:
 
   * camping
   * mongrel
@@ -202,30 +204,40 @@ run on port 11211) and memcache-client installed.
   * HTTP status 201 can contain a Content-Type and a body now.
   * Many bugfixes, especially related to Cookie handling.
 
-* XXX, 2008: Fourth public release 0.4.
+* August 21th, 2008: Fourth public release 0.4.
+  * New middleware, Rack::Deflater, by Christoffer Sawicki.
+  * OpenID authentication now needs ruby-openid 2.
   * New Memcache sessions, by blink.
+  * Explicit EventedMongrel handler, by Joshua Peek <josh@joshpeek.com>
   * Rack::Reloader is not loaded in rackup development mode.
-  * Many bugfixes, especially for pool sessions and URLMap.
+  * rackup can daemonize with -D.
+  * Many bugfixes, especially for pool sessions, URLMap, thread safety
+    and tempfile handling.
+  * Improved tests.
+  * Rack moved to Git.
 
 == Contact
 
 Please mail bugs, suggestions and patches to
-<mailto:chneukirchen@gmail.com>.
+<mailto:rack-devel@googlegroups.com>.
+
+Mailing list archives are available at
+<http://groups.google.com/group/rack-devel>
 
 Git repository (branches rebased on master are most welcome):
-http://github.com/chneukirchen/rack
-http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
+* http://github.com/chneukirchen/rack
+* http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Thanks to
 
-* blink for the Pool sessions, OpenID support, many tweaks, patches
-  and bugreports.
+* blink for the Pool sessions, Memcache sessions, OpenID support, many
+  tweaks, patches and bugreports.
 * Michael Fellinger, for the helpful discussion, bugfixes and a better
   Rack::Request interface.
 * Adrian Madrid, for the LiteSpeed handler.
-* Christoffer Sawicki, for the Rails adapter.
+* Christoffer Sawicki, for the first Rails adapter and Rack::Deflater.
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
@@ -238,6 +250,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
   Rack builds up on.
+* All bug reporters and patch contributers not mentioned above.
 
 == Copyright
 
@@ -264,11 +277,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Rack:: <http://rack.rubyforge.org/>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
+rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
 
 Camping:: <http://camping.rubyforge.org/>
 Ramaze:: <http://ramaze.rubyforge.org/>
 Maveric:: <http://maveric.rubyforge.org/>
-racktools:: <http://lucumr.pocoo.org/trac/repos/racktools/>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
 
