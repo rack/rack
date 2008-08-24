@@ -1,5 +1,6 @@
 require 'test/spec'
 
+begin
 # requires the ruby-openid gem
 require 'rack/auth/openid'
 
@@ -84,6 +85,7 @@ context "Rack::Auth::OpenID" do
   end
 
   specify 'extensions should have Request and Response defined and inherit from OpenID::Extension' do
+$-w, w = nil, $-w               # yuck
     ext = Module.new
     ext::Request = nil
     ext::Response = nil
@@ -107,9 +109,11 @@ context "Rack::Auth::OpenID" do
     lambda{OID.new(realm).add_extension(ext)}.
       should.raise(TypeError).
       message.should.match(/NS_URI/)
+$-w = w
   end
 
   specify 'extensions should have NS_URI defined and be a string of an absolute http uri' do
+$-w, w = nil, $-w               # yuck
     ext = Module.new
     ext::Request = Class.new(::OpenID::Extension)
     ext::Response = Class.new(::OpenID::Extension)
@@ -124,5 +128,10 @@ context "Rack::Auth::OpenID" do
     ext::NS_URI = 'http://openid.net'
     lambda{OID.new(realm).add_extension(ext)}.
       should.not.raise
+$-w = w
   end
+end
+
+rescue LoadError
+  $stderr.puts "Skipping Rack::Auth::OpenID tests (ruby-openid 2 is required). `gem install ruby-openid` and try again."
 end

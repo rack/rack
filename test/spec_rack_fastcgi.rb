@@ -12,9 +12,7 @@ context "Rack::Handler::FastCGI" do
   # Keep this first.
   specify "startup" do
     $pid = fork {
-      rack_home = File.expand_path(File.join(File.dirname(__FILE__), ".."))
-      ENV['RUBYLIB'] = File.join(rack_home, "lib")
-      Dir.chdir(File.join(rack_home, "test", "cgi"))
+      Dir.chdir(File.join(File.dirname(__FILE__), "..", "test", "cgi"))
       exec "lighttpd -D -f lighttpd.conf"
     }
   end

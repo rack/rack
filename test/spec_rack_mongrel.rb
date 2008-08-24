@@ -1,5 +1,6 @@
 require 'test/spec'
 
+begin
 require 'rack/handler/mongrel'
 require 'rack/urlmap'
 require 'rack/lint'
@@ -162,4 +163,8 @@ context "Rack::Handler::Mongrel" do
   teardown do
     @acc.raise Mongrel::StopServer
   end
+end
+
+rescue LoadError
+  $stderr.puts "Skipping Rack::Handler::Mongrel tests (Mongrel is required). `gem install mongrel` and try again."
 end
