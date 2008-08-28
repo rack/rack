@@ -22,11 +22,11 @@ module Rack
         href = "?flip"
       end
 
-      [200, {"Content-Type" => "text/html"},
-       ["<title>Lobstericious!</title>",
-        "<pre>", lobster, "</pre>",
-        "<a href='#{href}'>flip!</a>"]
-      ]
+      content = ["<title>Lobstericious!</title>",
+                 "<pre>", lobster, "</pre>",
+                 "<a href='#{href}'>flip!</a>"]
+      length = content.inject(0) { |a,e| a+e.size }.to_s
+      [200, {"Content-Type" => "text/html", "Content-Length" => length}, content]
     }
 
     def call(env)
@@ -43,14 +43,14 @@ module Rack
         href = "?flip=left"
       end
 
-      Response.new.finish do |res|
-        res.write "<title>Lobstericious!</title>"
-        res.write "<pre>"
-        res.write lobster
-        res.write "</pre>"
-        res.write "<p><a href='#{href}'>flip!</a></p>"
-        res.write "<p><a href='?flip=crash'>crash!</a></p>"
-      end
+      res = Response.new
+      res.write "<title>Lobstericious!</title>"
+      res.write "<pre>"
+      res.write lobster
+      res.write "</pre>"
+      res.write "<p><a href='#{href}'>flip!</a></p>"
+      res.write "<p><a href='?flip=crash'>crash!</a></p>"
+      res.finish
     end
 
   end
