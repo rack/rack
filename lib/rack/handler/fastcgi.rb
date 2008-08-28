@@ -51,6 +51,8 @@ module Rack
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
         env["REQUEST_PATH"] ||= "/"
         env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
+        env.delete "CONTENT_TYPE"  if env["CONTENT_TYPE"] == ""
+        env.delete "CONTENT_LENGTH"  if env["CONTENT_LENGTH"] == ""
 
         status, headers, body = app.call(env)
         begin
