@@ -22,7 +22,11 @@ module Rack
     def call(env)
       @app.call(env)
     rescue StandardError, LoadError, SyntaxError => e
-      [500, {"Content-Type" => "text/html"}, pretty(env, e)]
+      backtrace = pretty(env, e)
+      [500,
+       {"Content-Type" => "text/html",
+        "Content-Length" => backtrace.join.size.to_s},
+       backtrace]
     end
 
     def pretty(env, exception)
