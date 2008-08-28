@@ -125,7 +125,7 @@ context "Rack::MockResponse" do
     res.original_headers["Content-Type"].should.equal "text/yaml"
     res["Content-Type"].should.equal "text/yaml"
     res.content_type.should.equal "text/yaml"
-    res.content_length.should.be.nil
+    res.content_length.should.be 381
     res.location.should.be.nil
   end
 

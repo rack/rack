@@ -23,6 +23,7 @@ module Rack
 
       @writer = lambda { |x| @body << x }
       @block = nil
+      @length = 0
 
       @body = []
 
@@ -98,6 +99,7 @@ module Rack
         header.delete "Content-Type"
         [status.to_i, header.to_hash, []]
       else
+        header["Content-Length"] ||= @length.to_s
         [status.to_i, header.to_hash, self]
       end
     end
@@ -110,7 +112,9 @@ module Rack
     end
 
     def write(str)
-      @writer.call str.to_s
+      s = str.to_s
+      @length += s.size
+      @writer.call s
       str
     end
 

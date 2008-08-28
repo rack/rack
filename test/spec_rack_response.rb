@@ -7,7 +7,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = response.finish
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
     body.each { |part|
       part.should.equal ""
     }
@@ -15,7 +15,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = *response
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
     body.each { |part|
       part.should.equal ""
     }
