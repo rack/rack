@@ -205,5 +205,13 @@ module Rack
         end
       end
     end
+
+    def ip
+      if addr = @env['HTTP_X_FORWARDED_FOR']
+        addr.split(',').last.strip
+      else
+        @env['REMOTE_ADDR']
+      end
+    end
   end
 end
