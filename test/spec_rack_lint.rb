@@ -340,5 +340,17 @@ context "Rack::Lint" do
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/close must not be called/)
   end
+end
 
+context "Rack::Lint::InputWrapper" do
+  specify "delegates :size to underlying IO object" do
+    class IOMock
+      def size
+        101
+      end
+    end
+
+    wrapper = Rack::Lint::InputWrapper.new(IOMock.new)
+    wrapper.size.should == 101
+  end
 end
