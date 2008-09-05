@@ -215,6 +215,10 @@ module Rack
         @input = input
       end
 
+      def size
+        @input.size
+      end
+
       ## * +gets+ must be called without arguments and return a string,
       ##   or +nil+ on EOF.
       def gets(*args)
