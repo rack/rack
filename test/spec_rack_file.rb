@@ -47,4 +47,11 @@ context "Rack::File" do
 
     res.should.be.not_found
   end
+
+  specify "detects SystemCallErrors" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi")
+
+    res.should.be.not_found
+  end
 end
