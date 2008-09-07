@@ -35,6 +35,7 @@ module Rack
   autoload :ForwardRequest, "rack/recursive"
   autoload :Handler, "rack/handler"
   autoload :Lint, "rack/lint"
+  autoload :Mime, "rack/mime"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :ShowExceptions, "rack/showexceptions"
