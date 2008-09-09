@@ -29,6 +29,7 @@ module Rack
   autoload :Builder, "rack/builder"
   autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
+  autoload :ConditionalGet, "rack/conditionalget"
   autoload :File, "rack/file"
   autoload :Deflater, "rack/deflater"
   autoload :Directory, "rack/directory"
