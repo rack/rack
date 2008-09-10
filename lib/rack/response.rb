@@ -60,12 +60,13 @@ module Rack
         # N.B.: cgi.rb uses spaces...
         expires = "; expires=" + value[:expires].clone.gmtime.
           strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
+        secure = "; secure"  if value[:secure]
         value = value[:value]
       end
       value = [value]  unless Array === value
       cookie = Utils.escape(key) + "=" +
         value.map { |v| Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}"
+        "#{domain}#{path}#{expires}#{secure}"
 
       case self["Set-Cookie"]
       when Array

@@ -62,6 +62,12 @@ context "Rack::Response" do
       /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../)
   end
 
+  specify "can set secure cookies" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :secure => true}
+    response["Set-Cookie"].should.equal "foo=bar; secure"
+  end
+
   specify "can delete cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", "bar"
