@@ -22,6 +22,10 @@ module Rack
       instance_eval(&block) if block_given?
     end
 
+    def self.app(&block)
+      self.new(&block).to_app
+    end
+
     def use(middleware, *args, &block)
       @ins << if block_given?
         lambda { |app| middleware.new(app, *args, &block) }

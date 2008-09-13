@@ -47,4 +47,15 @@ context "Rack::Builder" do
     response.body.to_s.should.equal 'Hi Boss'
   end
 
+  specify "has explicit #to_app" do
+    app = Rack::Builder.app do
+      use Rack::ShowExceptions
+      run lambda { |env| raise "bzzzt" }
+    end
+
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+  end
+
 end
