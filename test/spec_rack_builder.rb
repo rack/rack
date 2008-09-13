@@ -58,4 +58,25 @@ context "Rack::Builder" do
     Rack::MockRequest.new(app).get("/").should.be.server_error
   end
 
+  specify "apps are initialized once" do
+    class AppClass
+      def initialize
+        @first = Time.now
+      end
+      def call(env)
+        raise "bzzzt" if Time.now > @first + 0.2
+        [200, {'Content-Type' => 'text/plain'}, 'OK']
+      end
+    end
+
+    app = Rack::Builder.new do
+      use Rack::ShowExceptions
+      run AppClass.new
+    end
+
+    Rack::MockRequest.new(app).get("/").status.should.equal 200
+    sleep 0.5
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+  end
+
 end
