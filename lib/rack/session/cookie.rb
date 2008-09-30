@@ -1,3 +1,5 @@
+require 'openssl'
+
 module Rack
 
   module Session
@@ -5,13 +7,15 @@ module Rack
     # Rack::Session::Cookie provides simple cookie based session management.
     # The session is a Ruby Hash stored as base64 encoded marshalled data
     # set to :key (default: rack.session).
+    # When the secret key is set, cookie data is checked for data integrity.
     #
     # Example:
     #
     #     use Rack::Session::Cookie, :key => 'rack.session',
     #                                :domain => 'foo.com',
     #                                :path => '/',
-    #                                :expire_after => 2592000
+    #                                :expire_after => 2592000,
+    #                                :secret => 'change_me'
     #
     #     All parameters are optional.
 
@@ -20,6 +24,7 @@ module Rack
       def initialize(app, options={})
         @app = app
         @key = options[:key] || "rack.session"
+        @secret = options[:secret]
         @default_options = {:domain => nil,
           :path => "/",
           :expire_after => nil}.merge(options)
@@ -37,6 +42,11 @@ module Rack
         request = Rack::Request.new(env)
         session_data = request.cookies[@key]
 
+        if @secret && session_data
+          session_data, digest = session_data.split("--")
+          session_data = nil  unless digest == generate_hmac(session_data)
+        end
+
         begin
           session_data = session_data.unpack("m*").first
           session_data = Marshal.load(session_data)
@@ -52,6 +62,10 @@ module Rack
         session_data = Marshal.dump(env["rack.session"])
         session_data = [session_data].pack("m*")
 
+        if @secret
+          session_data = "#{session_data}--#{generate_hmac(session_data)}"
+        end
+
         if session_data.size > (4096 - @key.size)
           env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")
           [status, headers, body]
@@ -64,6 +78,10 @@ module Rack
           response.set_cookie(@key, cookie.merge(options))
           response.to_a
         end
+      end
+
+      def generate_hmac(data)
+        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, @secret, data)
       end
 
     end
