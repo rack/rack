@@ -64,6 +64,15 @@ context "Rack::Session::Cookie" do
     res.body.should.equal '{"counter"=>3}'
   end
   
-  
-
+  specify "ignores tampered with session cookies" do
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    response1 = Rack::MockRequest.new(app).get("/")
+    _, digest = response1["Set-Cookie"].split("--")
+    tampered_with_cookie = "hackerman-was-here" + "--" + digest
+    response2 = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" =>
+                                               tampered_with_cookie)
+    
+    # The tampered-with cookie is ignored, so we get back an identical Set-Cookie
+    response2["Set-Cookie"].should.equal(response1["Set-Cookie"])
+  end
 end
