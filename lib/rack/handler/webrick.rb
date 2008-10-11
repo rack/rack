@@ -41,9 +41,13 @@ module Rack
         begin
           res.status = status.to_i
           headers.each { |k, vs|
-            vs.each { |v|
-              res[k] = v
-            }
+            if k.downcase == "set-cookie"
+              res.cookies.concat vs.to_a
+            else
+              vs.each { |v|
+                res[k] = v
+              }
+            end
           }
           body.each { |part|
             res.body << part
