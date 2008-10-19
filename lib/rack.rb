@@ -35,6 +35,7 @@ module Rack
   autoload :Directory, "rack/directory"
   autoload :ForwardRequest, "rack/recursive"
   autoload :Handler, "rack/handler"
+  autoload :Head, "rack/head"
   autoload :Lint, "rack/lint"
   autoload :MethodOverride, "rack/methodoverride"
   autoload :Mime, "rack/mime"

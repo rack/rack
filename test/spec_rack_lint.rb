@@ -340,6 +340,21 @@ context "Rack::Lint" do
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/close must not be called/)
   end
+
+  specify "notices HEAD errors" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, []]
+                     }).call(env({"REQUEST_METHOD" => "HEAD"}))
+    }.should.not.raise
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, "foo"]
+                     }).call(env({"REQUEST_METHOD" => "HEAD"}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/body was given for HEAD/)
+  end
 end
 
 context "Rack::Lint::InputWrapper" do
