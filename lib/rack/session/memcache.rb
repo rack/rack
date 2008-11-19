@@ -45,7 +45,7 @@ module Rack
           @mutex.synchronize do
             begin
               raise RuntimeError, 'Unique id finding looping excessively' if (lc+=1) > 1000
-              sid = "%08x" % rand(0xffffffff)
+              sid = generate_sid
               ret = @pool.add(sid, session)
             end until /^STORED/ =~ ret
           end

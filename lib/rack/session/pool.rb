@@ -40,7 +40,7 @@ module Rack
           unless sess = @pool[sid] and ((expires = sess[:expire_at]).nil? or expires > Time.now)
             @pool.delete_if{|k,v| expiry = v[:expire_at] and expiry < Time.now }
             begin
-              sid = "%08x" % rand(0xffffffff)
+              sid = generate_sid
             end while @pool.has_key?(sid)
           end
           @pool[sid] ||= {}

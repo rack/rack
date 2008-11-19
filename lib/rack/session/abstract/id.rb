@@ -28,7 +28,8 @@ module Rack
           :domain =>        nil,
           :expire_after =>  nil,
           :secure =>        false,
-          :httponly =>      true
+          :httponly =>      true,
+          :sidbits =>       128
         }
 
         def initialize(app, options={})
@@ -51,6 +52,14 @@ module Rack
         end
 
         private
+
+        # Generate a new session id using Ruby #rand.  The size of the
+        # session id is controlled by the :sidbits option.
+        # Monkey patch this to use custom methods for session id generation.
+        def generate_sid
+          "%0#{@default_options[:sidbits] / 4}x" %
+            rand(2**@default_options[:sidbits] - 1)
+        end
 
         # Extracts the session id from provided cookies and passes it and the
         # environment to #get_session. It then sets the resulting session into
