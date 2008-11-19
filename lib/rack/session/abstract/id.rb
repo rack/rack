@@ -26,7 +26,9 @@ module Rack
           :key =>           'rack.session',
           :path =>          '/',
           :domain =>        nil,
-          :expire_after =>  nil
+          :expire_after =>  nil,
+          :secure =>        false,
+          :httponly =>      true
         }
 
         def initialize(app, options={})
@@ -110,6 +112,8 @@ module Rack
             expiry = time + options[:expire_after]
             cookie<< "; expires=#{expiry.httpdate}"
           end
+          cookie<< "; Secure" if options[:secure]
+          cookie<< "; HttpOnly" if options[:httponly]
 
           case a = (h = response[1])['Set-Cookie']
           when Array then  a << cookie
