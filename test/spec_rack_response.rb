@@ -7,7 +7,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = response.finish
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
     body.each { |part|
       part.should.equal ""
     }
@@ -15,7 +15,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = *response
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
     body.each { |part|
       part.should.equal ""
     }
@@ -60,6 +60,12 @@ context "Rack::Response" do
     response.set_cookie "foo", {:value => "bar", :expires => Time.now+10}
     response["Set-Cookie"].should.match(
       /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../)
+  end
+
+  specify "can set secure cookies" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :secure => true}
+    response["Set-Cookie"].should.equal "foo=bar; secure"
   end
 
   specify "can delete cookies" do

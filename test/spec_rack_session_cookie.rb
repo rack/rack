@@ -46,4 +46,33 @@ context "Rack::Session::Cookie" do
         get("/", :fatal => true)
     }.should.raise(Rack::MockRequest::FatalWarning)
   end
+  
+  specify "creates a new cookie with integrity hash" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
+    res["Set-Cookie"].should.match("rack.session=BAh7BiIMY291bnRlcmkG%0A--1439b4d37b9d4b04c603848382f712d6fcd31088")
+  end
+  
+  specify "loads from a cookie wih integrity hash" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>2}'
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>3}'
+  end
+  
+  specify "ignores tampered with session cookies" do
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    response1 = Rack::MockRequest.new(app).get("/")
+    _, digest = response1["Set-Cookie"].split("--")
+    tampered_with_cookie = "hackerman-was-here" + "--" + digest
+    response2 = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" =>
+                                               tampered_with_cookie)
+    
+    # The tampered-with cookie is ignored, so we get back an identical Set-Cookie
+    response2["Set-Cookie"].should.equal(response1["Set-Cookie"])
+  end
 end

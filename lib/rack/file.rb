@@ -1,4 +1,5 @@
 require 'time'
+require 'rack/mime'
 
 module Rack
   # Rack::File serves files below the +root+ given, according to the
@@ -22,26 +23,54 @@ module Rack
     F = ::File
 
     def _call(env)
-      if env["PATH_INFO"].include? ".."
-        body = "Forbidden\n"
-        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
-        return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
-      end
+      return forbidden  if env["PATH_INFO"].include? ".."
 
       @path = F.join(@root, Utils.unescape(env["PATH_INFO"]))
-      ext = F.extname(@path)[1..-1]
 
-      if F.file?(@path) && F.readable?(@path)
-        [200, {
-           "Last-Modified"  => F.mtime(@path).httpdate,
-           "Content-Type"   => MIME_TYPES[ext] || "text/plain",
-           "Content-Length" => F.size(@path).to_s
-         }, self]
-      else
-        body = "File not found: #{env["PATH_INFO"]}\n"
-        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
-        [404, {"Content-Type" => "text/plain", "Content-Length" => size.to_s}, [body]]
+      begin
+        if F.file?(@path) && F.readable?(@path)
+          serving
+        else
+          raise Errno::EPERM
+        end
+      rescue SystemCallError
+        not_found
       end
+    end
+
+    def forbidden
+      body = "Forbidden\n"
+      [403, {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s},
+       [body]]
+    end
+
+    # NOTE:
+    #   We check via File::size? whether this file provides size info
+    #   via stat (e.g. /proc files often don't), otherwise we have to
+    #   figure it out by reading the whole file into memory. And while
+    #   we're at it we also use this as body then.
+
+    def serving
+      if size = F.size?(@path)
+        body = self
+      else
+        body = [F.read(@path)]
+        size = body.first.size
+      end
+
+      [200, {
+        "Last-Modified"  => F.mtime(@path).httpdate,
+        "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain'),
+        "Content-Length" => size.to_s
+      }, body]
+    end
+
+    def not_found
+      body = "File not found: #{@path}\n"
+      [404, {"Content-Type" => "text/plain",
+         "Content-Length" => body.size.to_s},
+       [body]]
     end
 
     def each
@@ -51,66 +80,5 @@ module Rack
         end
       }
     end
-
-    # :stopdoc:
-    # From WEBrick with some additions.
-    MIME_TYPES = {
-      "ai"    => "application/postscript",
-      "asc"   => "text/plain",
-      "avi"   => "video/x-msvideo",
-      "bin"   => "application/octet-stream",
-      "bmp"   => "image/bmp",
-      "class" => "application/octet-stream",
-      "cer"   => "application/pkix-cert",
-      "crl"   => "application/pkix-crl",
-      "crt"   => "application/x-x509-ca-cert",
-     #"crl"   => "application/x-pkcs7-crl",
-      "css"   => "text/css",
-      "dms"   => "application/octet-stream",
-      "doc"   => "application/msword",
-      "dvi"   => "application/x-dvi",
-      "eps"   => "application/postscript",
-      "etx"   => "text/x-setext",
-      "exe"   => "application/octet-stream",
-      "gif"   => "image/gif",
-      "htm"   => "text/html",
-      "html"  => "text/html",
-      "jpe"   => "image/jpeg",
-      "jpeg"  => "image/jpeg",
-      "jpg"   => "image/jpeg",
-      "js"    => "text/javascript",
-      "lha"   => "application/octet-stream",
-      "lzh"   => "application/octet-stream",
-      "mov"   => "video/quicktime",
-      "mp3"   => "audio/mpeg",
-      "mpe"   => "video/mpeg",
-      "mpeg"  => "video/mpeg",
-      "mpg"   => "video/mpeg",
-      "pbm"   => "image/x-portable-bitmap",
-      "pdf"   => "application/pdf",
-      "pgm"   => "image/x-portable-graymap",
-      "png"   => "image/png",
-      "pnm"   => "image/x-portable-anymap",
-      "ppm"   => "image/x-portable-pixmap",
-      "ppt"   => "application/vnd.ms-powerpoint",
-      "ps"    => "application/postscript",
-      "qt"    => "video/quicktime",
-      "ras"   => "image/x-cmu-raster",
-      "rb"    => "text/plain",
-      "rd"    => "text/plain",
-      "rtf"   => "application/rtf",
-      "sgm"   => "text/sgml",
-      "sgml"  => "text/sgml",
-      "tif"   => "image/tiff",
-      "tiff"  => "image/tiff",
-      "txt"   => "text/plain",
-      "xbm"   => "image/x-xbitmap",
-      "xls"   => "application/vnd.ms-excel",
-      "xml"   => "text/xml",
-      "xpm"   => "image/x-xpixmap",
-      "xwd"   => "image/x-xwindowdump",
-      "zip"   => "application/zip",
-    }
-    # :startdoc:
   end
 end

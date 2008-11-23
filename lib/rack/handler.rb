@@ -29,6 +29,7 @@ module Rack
     autoload :FastCGI, "rack/handler/fastcgi"
     autoload :Mongrel, "rack/handler/mongrel"
     autoload :EventedMongrel, "rack/handler/evented_mongrel"
+    autoload :SwiftipliedMongrel, "rack/handler/swiftiplied_mongrel"
     autoload :WEBrick, "rack/handler/webrick"
     autoload :LSWS, "rack/handler/lsws"
     autoload :SCGI, "rack/handler/scgi"
@@ -37,6 +38,7 @@ module Rack
     register 'fastcgi', 'Rack::Handler::FastCGI'
     register 'mongrel', 'Rack::Handler::Mongrel'
     register 'emongrel', 'Rack::Handler::EventedMongrel'
+    register 'smongrel', 'Rack::Handler::SwiftipliedMongrel'
     register 'webrick', 'Rack::Handler::WEBrick'
     register 'lsws', 'Rack::Handler::LSWS'
     register 'scgi', 'Rack::Handler::SCGI'

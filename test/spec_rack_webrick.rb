@@ -2,6 +2,7 @@ require 'test/spec'
 
 require 'rack/handler/webrick'
 require 'rack/lint'
+require 'rack/response'
 require 'testrequest'
 
 Thread.abort_on_exception = true
@@ -81,6 +82,22 @@ context "Rack::Handler::WEBrick" do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
+  end
+
+  specify "should correctly set cookies" do
+    @server.mount "/cookie-test", Rack::Handler::WEBrick,
+    Rack::Lint.new(lambda { |req|
+                     res = Rack::Response.new
+                     res.set_cookie "one", "1"
+                     res.set_cookie "two", "2"
+                     res.finish
+                   })
+
+    Net::HTTP.start(@host, @port) { |http|
+      res, body = http.get("/cookie-test")
+      res.code.to_i.should.equal 200
+      res.get_fields("set-cookie").should.equal ["one=1", "two=2"]
+    }
   end
 
   specify "should provide a .run" do

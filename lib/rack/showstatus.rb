@@ -18,10 +18,10 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      empty = headers['Content-Length'].to_i <= 0
 
       # client or server error, or explicit message
-      if status.to_i >= 400 &&
-          (body.empty? rescue false) || env["rack.showstatus.detail"]
+      if (status.to_i >= 400 && empty) || env["rack.showstatus.detail"]
         req = Rack::Request.new(env)
         message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
         detail = env["rack.showstatus.detail"] || message

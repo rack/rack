@@ -51,7 +51,7 @@ module Rack
       check_headers headers
       ## and the *body*.
       check_content_type status, headers
-      check_content_length status, headers
+      check_content_length status, headers, env
       [status, headers, self]
     end
 
@@ -216,6 +216,10 @@ module Rack
         @input = input
       end
 
+      def size
+        @input.size
+      end
+
       ## * +gets+ must be called without arguments and return a string,
       ##   or +nil+ on EOF.
       def gets(*args)
@@ -366,7 +370,7 @@ module Rack
     end
 
     ## === The Content-Length
-    def check_content_length(status, headers)
+    def check_content_length(status, headers, env)
       chunked_response = false
       headers.each { |key, value|
         if key.downcase == 'transfer-encoding'
@@ -399,10 +403,16 @@ module Rack
             bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
           }
 
-          if string_body
-            assert("Content-Length header was #{value}, but should be #{bytes}") {
-              value == bytes.to_s
+          if env["REQUEST_METHOD"] == "HEAD"
+            assert("Response body was given for HEAD request, but should be empty") {
+              bytes == 0
             }
+          else
+            if string_body
+              assert("Content-Length header was #{value}, but should be #{bytes}") {
+                value == bytes.to_s
+              }
+            end
           end
 
           return

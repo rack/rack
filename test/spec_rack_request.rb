@@ -398,4 +398,29 @@ EOF
 
     lambda { parser.call("gzip ; q=1.0") }.should.raise(RuntimeError)
   end
+
+  specify 'should provide ip information' do
+    app = lambda { |env|
+      request = Rack::Request.new(env)
+      response = Rack::Response.new
+      response.write request.ip
+      response.finish
+    }
+
+    mock = Rack::MockRequest.new(Rack::Lint.new(app))
+    res = mock.get '/', 'REMOTE_ADDR' => '123.123.123.123'
+    res.body.should == '123.123.123.123'
+
+    res = mock.get '/',
+      'REMOTE_ADDR' => '123.123.123.123',
+      'HTTP_X_FORWARDED_FOR' => '234.234.234.234'
+
+    res.body.should == '234.234.234.234'
+
+    res = mock.get '/',
+      'REMOTE_ADDR' => '123.123.123.123',
+      'HTTP_X_FORWARDED_FOR' => '234.234.234.234,212.212.212.212'
+
+    res.body.should == '212.212.212.212'
+  end
 end

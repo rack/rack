@@ -23,6 +23,7 @@ module Rack
 
       @writer = lambda { |x| @body << x }
       @block = nil
+      @length = 0
 
       @body = []
 
@@ -59,12 +60,13 @@ module Rack
         # N.B.: cgi.rb uses spaces...
         expires = "; expires=" + value[:expires].clone.gmtime.
           strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
+        secure = "; secure"  if value[:secure]
         value = value[:value]
       end
       value = [value]  unless Array === value
       cookie = Utils.escape(key) + "=" +
         value.map { |v| Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}"
+        "#{domain}#{path}#{expires}#{secure}"
 
       case self["Set-Cookie"]
       when Array
@@ -98,6 +100,7 @@ module Rack
         header.delete "Content-Type"
         [status.to_i, header.to_hash, []]
       else
+        header["Content-Length"] ||= @length.to_s
         [status.to_i, header.to_hash, self]
       end
     end
@@ -110,7 +113,9 @@ module Rack
     end
 
     def write(str)
-      @writer.call str.to_s
+      s = str.to_s
+      @length += s.size
+      @writer.call s
       str
     end
 

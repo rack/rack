@@ -1,4 +1,5 @@
 require 'time'
+require 'rack/mime'
 
 module Rack
   # Rack::Directory serves entries below the +root+ given, according to the
@@ -13,10 +14,13 @@ module Rack
     DIR_PAGE = <<-PAGE
 <html><head>
   <title>%s</title>
+  <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <style type='text/css'>
 table { width:100%%; }
 .name { text-align:left; }
 .size, .mtime { text-align:right; }
+.type { width:11em; }
+.mtime { width:15em; }
   </style>
 </head><body>
 <h1>%s</h1>
@@ -38,11 +42,8 @@ table { width:100%%; }
     attr_accessor :root, :path
 
     def initialize(root, app=nil)
-      @root = root
-      @app = app
-      unless defined? @app
-        @app = Rack::File.new(@root)
-      end
+      @root = F.expand_path(root)
+      @app = app || Rack::File.new(@root)
     end
 
     def call(env)
@@ -52,36 +53,71 @@ table { width:100%%; }
     F = ::File
 
     def _call(env)
-      if env["PATH_INFO"].include? ".."
-        body = "Forbidden\n"
-        size = body.respond_to?(:bytesize) ? body.bytesize : body.size
-        return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
+      @env = env
+      @path_info, @script_name = env.values_at('PATH_INFO', 'SCRIPT_NAME')
+
+      if forbidden = check_forbidden
+        forbidden
+      else
+        @path = F.join(@root, Utils.unescape(@path_info))
+        list_path
+      end
+    end
+
+    def check_forbidden
+      return unless @path_info.include? ".."
+
+      body = "Forbidden\n"
+      size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+      return [403, {"Content-Type" => "text/plain","Content-Length" => size.to_s}, [body]]
+    end
+
+    def list_directory
+      @files = [['../','Parent Directory','','','']]
+      glob = F.join(@path, '*')
+
+      Dir[glob].sort.each do |node|
+        stat = stat(node)
+        next  unless stat
+        basename = F.basename(node)
+        ext = F.extname(node)
+
+        url = F.join(@script_name, @path_info, basename)
+        size = stat.size
+        type = stat.directory? ? 'directory' : Mime.mime_type(ext)
+        size = stat.directory? ? '-' : filesize_format(size)
+        mtime = stat.mtime.httpdate
+
+        @files << [ url, basename, size, type, mtime ]
       end
 
-      @path = F.join(@root, Utils.unescape(env['PATH_INFO']))
+      return [ 200, {'Content-Type'=>'text/html; charset=utf-8'}, self ]
+    end
 
-      if F.exist?(@path) and F.readable?(@path)
-        if F.file?(@path)
-          return @app.call(env)
-        elsif F.directory?(@path)
-          @files = [['../','Parent Directory','','','']]
-          sName, pInfo = env.values_at('SCRIPT_NAME', 'PATH_INFO')
-          Dir.entries(@path).sort.each do |file|
-            next if file[0] == ?.
-            fl    = F.join(@path, file)
-            sz    = F.size(fl)
-            url   = F.join(sName, pInfo, file)
-            type  = F.directory?(fl) ? 'directory' :
-              MIME_TYPES.fetch(F.extname(file)[1..-1],'unknown')
-            size  = (type!='directory' ? (sz<10240 ? "#{sz}B" : "#{sz/1024}KB") : '-')
-            mtime = F.mtime(fl).httpdate
-            @files << [ url, file, size, type, mtime ]
-          end
-          return [ 200, {'Content-Type'=>'text/html'}, self ]
-        end
+    def stat(node, max = 10)
+      F.stat(node)
+    rescue Errno::ENOENT, Errno::ELOOP
+      return nil
+    end
+
+    # TODO: add correct response if not readable, not sure if 404 is the best
+    #       option
+    def list_path
+      @stat = F.stat(@path)
+
+      if @stat.readable?
+        return @app.call(@env) if @stat.file?
+        return list_directory if @stat.directory?
+      else
+        raise Errno::ENOENT, 'No such file or directory'
       end
 
-      body = "Entity not found: #{env["PATH_INFO"]}\n"
+    rescue Errno::ENOENT, Errno::ELOOP
+      return entity_not_found
+    end
+
+    def entity_not_found
+      body = "Entity not found: #{@path_info}\n"
       size = body.respond_to?(:bytesize) ? body.bytesize : body.size
       return [404, {"Content-Type" => "text/plain", "Content-Length" => size.to_s}, [body]]
     end
@@ -93,66 +129,21 @@ table { width:100%%; }
       page.each_line{|l| yield l }
     end
 
-    def each_entry
-      @files.each{|e| yield e }
-    end
+    # Stolen from Ramaze
 
-    # From WEBrick.
-    MIME_TYPES = {
-      "ai"    => "application/postscript",
-      "asc"   => "text/plain",
-      "avi"   => "video/x-msvideo",
-      "bin"   => "application/octet-stream",
-      "bmp"   => "image/bmp",
-      "class" => "application/octet-stream",
-      "cer"   => "application/pkix-cert",
-      "crl"   => "application/pkix-crl",
-      "crt"   => "application/x-x509-ca-cert",
-     #"crl"   => "application/x-pkcs7-crl",
-      "css"   => "text/css",
-      "dms"   => "application/octet-stream",
-      "doc"   => "application/msword",
-      "dvi"   => "application/x-dvi",
-      "eps"   => "application/postscript",
-      "etx"   => "text/x-setext",
-      "exe"   => "application/octet-stream",
-      "gif"   => "image/gif",
-      "htm"   => "text/html",
-      "html"  => "text/html",
-      "jpe"   => "image/jpeg",
-      "jpeg"  => "image/jpeg",
-      "jpg"   => "image/jpeg",
-      "js"    => "text/javascript",
-      "lha"   => "application/octet-stream",
-      "lzh"   => "application/octet-stream",
-      "mov"   => "video/quicktime",
-      "mpe"   => "video/mpeg",
-      "mpeg"  => "video/mpeg",
-      "mpg"   => "video/mpeg",
-      "pbm"   => "image/x-portable-bitmap",
-      "pdf"   => "application/pdf",
-      "pgm"   => "image/x-portable-graymap",
-      "png"   => "image/png",
-      "pnm"   => "image/x-portable-anymap",
-      "ppm"   => "image/x-portable-pixmap",
-      "ppt"   => "application/vnd.ms-powerpoint",
-      "ps"    => "application/postscript",
-      "qt"    => "video/quicktime",
-      "ras"   => "image/x-cmu-raster",
-      "rb"    => "text/plain",
-      "rd"    => "text/plain",
-      "rtf"   => "application/rtf",
-      "sgm"   => "text/sgml",
-      "sgml"  => "text/sgml",
-      "tif"   => "image/tiff",
-      "tiff"  => "image/tiff",
-      "txt"   => "text/plain",
-      "xbm"   => "image/x-xbitmap",
-      "xls"   => "application/vnd.ms-excel",
-      "xml"   => "text/xml",
-      "xpm"   => "image/x-xpixmap",
-      "xwd"   => "image/x-xwindowdump",
-      "zip"   => "application/zip",
-    }
+    FILESIZE_FORMAT = [
+      ['%.1fT', 1 << 40],
+      ['%.1fG', 1 << 30],
+      ['%.1fM', 1 << 20],
+      ['%.1fK', 1 << 10],
+    ]
+
+    def filesize_format(int)
+      FILESIZE_FORMAT.each do |format, size|
+        return format % (int.to_f / size) if int >= size
+      end
+
+      int.to_s + 'B'
+    end
   end
 end
