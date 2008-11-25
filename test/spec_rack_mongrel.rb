@@ -5,7 +5,9 @@ require 'rack/handler/mongrel'
 require 'rack/urlmap'
 require 'rack/lint'
 require 'testrequest'
-
+require 'timeout'
+require 'open-uri'
+  
 Thread.abort_on_exception = true
 $tcp_defer_accept_opts = nil
 $tcp_cork_opts = nil
@@ -17,6 +19,8 @@ context "Rack::Handler::Mongrel" do
     server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
     server.register('/test',
                     Rack::Handler::Mongrel.new(Rack::Lint.new(TestRequest.new)))
+    server.register('/stream',
+                    Rack::Handler::Mongrel.new(Rack::Lint.new(StreamingRequest)))
     @acc = server.run
   end
 
@@ -127,6 +131,12 @@ context "Rack::Handler::Mongrel" do
     }
     sleep 1
     block_ran.should.be true
+  end
+
+  specify "should stream #each part of the response" do
+    Timeout.timeout(1) do
+      open("http://#{@host}:#{@port}/stream").gets
+    end
   end
 
   specify "should provide a .run that maps a urlmap restricting by host" do
