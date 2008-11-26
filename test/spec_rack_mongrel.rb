@@ -6,7 +6,6 @@ require 'rack/urlmap'
 require 'rack/lint'
 require 'testrequest'
 require 'timeout'
-require 'open-uri'
   
 Thread.abort_on_exception = true
 $tcp_defer_accept_opts = nil
@@ -165,9 +164,19 @@ context "Rack::Handler::Mongrel" do
   end
 
   specify "should stream #each part of the response" do
-    Timeout.timeout(1) do
-      open("http://#{@host}:#{@port}/stream").gets
+    body = ''
+    begin
+      Timeout.timeout(1) do
+        Net::HTTP.start(@host, @port) do |http|
+          get = Net::HTTP::Get.new('/stream')
+          http.request(get) do |response|
+            response.read_body { |part| body << part }
+          end
+        end
+      end
+    rescue Timeout::Error
     end
+    body.should.not.be.empty
   end
 
   teardown do

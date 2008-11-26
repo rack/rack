@@ -51,7 +51,7 @@ class StreamingRequest
 
   def each
     yield "hello there!\n"
-    sleep 2
+    sleep 5
     yield "that is all.\n"
   end
 end
