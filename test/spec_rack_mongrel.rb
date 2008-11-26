@@ -133,12 +133,6 @@ context "Rack::Handler::Mongrel" do
     block_ran.should.be true
   end
 
-  specify "should stream #each part of the response" do
-    Timeout.timeout(1) do
-      open("http://#{@host}:#{@port}/stream").gets
-    end
-  end
-
   specify "should provide a .run that maps a urlmap restricting by host" do
     block_ran = false
     Thread.new {
@@ -168,6 +162,12 @@ context "Rack::Handler::Mongrel" do
     }
     sleep 1
     block_ran.should.be true
+  end
+
+  specify "should stream #each part of the response" do
+    Timeout.timeout(1) do
+      open("http://#{@host}:#{@port}/stream").gets
+    end
   end
 
   teardown do
