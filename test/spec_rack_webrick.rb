@@ -94,7 +94,7 @@ context "Rack::Handler::WEBrick" do
                    })
 
     Net::HTTP.start(@host, @port) { |http|
-      res, body = http.get("/cookie-test")
+      res = http.get("/cookie-test")
       res.code.to_i.should.equal 200
       res.get_fields("set-cookie").should.equal ["one=1", "two=2"]
     }
