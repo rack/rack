@@ -31,10 +31,10 @@ module Rack
 
     def parse_query(qs, d = '&;')
       params = {}
-      
+
       (qs || '').split(/[#{d}] */n).each do |p|
         k, v = unescape(p).split('=', 2)
-        
+
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -45,11 +45,11 @@ module Rack
           params[k] = v
         end
       end
-      
+
       return params
     end
     module_function :parse_query
-    
+
     def build_query(params)
       params.map { |k, v|
         if v.class == Array
@@ -192,10 +192,11 @@ module Rack
       206  => 'Partial Content',
       300  => 'Multiple Choices',
       301  => 'Moved Permanently',
-      302  => 'Moved Temporarily',
+      302  => 'Found',
       303  => 'See Other',
       304  => 'Not Modified',
       305  => 'Use Proxy',
+      307  => 'Temporary Redirect',
       400  => 'Bad Request',
       401  => 'Unauthorized',
       402  => 'Payment Required',
@@ -204,7 +205,7 @@ module Rack
       405  => 'Method Not Allowed',
       406  => 'Not Acceptable',
       407  => 'Proxy Authentication Required',
-      408  => 'Request Time-out',
+      408  => 'Request Timeout',
       409  => 'Conflict',
       410  => 'Gone',
       411  => 'Length Required',
@@ -212,12 +213,14 @@ module Rack
       413  => 'Request Entity Too Large',
       414  => 'Request-URI Too Large',
       415  => 'Unsupported Media Type',
+      416  => 'Requested Range Not Satisfiable',
+      417  => 'Expectation Failed',
       500  => 'Internal Server Error',
       501  => 'Not Implemented',
       502  => 'Bad Gateway',
       503  => 'Service Unavailable',
-      504  => 'Gateway Time-out',
-      505  => 'HTTP Version not supported'
+      504  => 'Gateway Timeout',
+      505  => 'HTTP Version Not Supported'
     }
 
     # A multipart form data parser, adapted from IOWA.
