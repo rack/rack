@@ -30,6 +30,7 @@ module Rack
   autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
+  autoload :ContentLength, "rack/content_length"
   autoload :File, "rack/file"
   autoload :Deflater, "rack/deflater"
   autoload :Directory, "rack/directory"
