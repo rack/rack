@@ -61,4 +61,15 @@ context "Rack::File" do
 
     res.should.be.not_found
   end
+
+  specify "returns bodies that respond to #to_path" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, headers, body = Rack::File.new(DOCROOT).call(env)
+
+    path = File.join(DOCROOT, "/cgi/test")
+
+    status.should.equal 200
+    body.should.respond_to :to_path
+    body.to_path.should.equal path
+  end
 end
