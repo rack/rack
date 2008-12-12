@@ -159,6 +159,7 @@ module Rack
     # A case-normalizing Hash, adjusting on [] and []=.
     class HeaderHash < Hash
       def initialize(hash={})
+        @names = {}
         hash.each { |k, v| self[k] = v }
       end
 
@@ -167,16 +168,26 @@ module Rack
       end
 
       def [](k)
-        super capitalize(k)
+        super @names[k.downcase]
       end
 
       def []=(k, v)
-        super capitalize(k), v
+        delete k
+        @names[k.downcase] = k
+        super k, v
       end
 
-      def capitalize(k)
-        k.to_s.downcase.gsub(/^.|[-_\s]./) { |x| x.upcase }
+      def delete(k)
+        super @names.delete(k.downcase)
       end
+
+      def include?(k)
+        @names.has_key? k.downcase
+      end
+
+      alias_method :has_key?, :include?
+      alias_method :member?, :include?
+      alias_method :key?, :include?
     end
 
     # Every standard HTTP code mapped to the appropriate message.

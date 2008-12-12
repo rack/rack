@@ -65,28 +65,24 @@ context "Rack::Utils" do
 end
 
 context "Rack::Utils::HeaderHash" do
-  specify "should capitalize on all accesses" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h["foo"].should.equal "bar"
-    h["Foo"].should.equal "bar"
-    h["FOO"].should.equal "bar"
-
-    h.to_hash.should.equal "Foo" => "bar"
-
-    h["bar-zzle"] = "quux"
-
-    h.to_hash.should.equal "Foo" => "bar", "Bar-Zzle" => "quux"
+  specify "should retain header case" do
+    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+    h['ETag'] = 'Boo!'
+    h.to_hash.should.equal "Content-MD5" => "d5ff4e2a0 ...", "ETag" => 'Boo!'
   end
 
-  specify "should capitalize correctly" do
-    h = Rack::Utils::HeaderHash.new
+  specify "should check existence of keys case insensitively" do
+    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+    h.should.include 'content-md5'
+    h.should.not.include 'ETag'
+  end
 
-    h.capitalize("foo").should.equal "Foo"
-    h.capitalize("foo-bar").should.equal "Foo-Bar"
-    h.capitalize("foo_bar").should.equal "Foo_Bar"
-    h.capitalize("foo bar").should.equal "Foo Bar"
-    h.capitalize("foo-bar-quux").should.equal "Foo-Bar-Quux"
-    h.capitalize("foo-bar-2quux").should.equal "Foo-Bar-2quux"
+  specify "should overwrite case insensitively and assume the new key's case" do
+    h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
+    h["foo-bar"] = "bizzle"
+    h["FOO-BAR"].should.equal "bizzle"
+    h.length.should.equal 1
+    h.to_hash.should.equal "foo-bar" => "bizzle"
   end
 
   specify "should be converted to real Hash" do
