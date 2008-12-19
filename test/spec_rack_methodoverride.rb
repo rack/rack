@@ -28,4 +28,12 @@ context "Rack::MethodOverride" do
 
     req.env["REQUEST_METHOD"].should.equal "POST"
   end
+
+  specify "should not modify REQUEST_METHOD when _method is nil" do
+    env = Rack::MockRequest.env_for("/", :method => "POST", :input => "foo=bar")
+    app = Rack::MethodOverride.new(lambda { |env| Rack::Request.new(env) })
+    req = app.call(env)
+
+    req.env["REQUEST_METHOD"].should.equal "POST"
+  end
 end
