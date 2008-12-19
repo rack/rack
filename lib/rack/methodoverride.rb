@@ -9,7 +9,7 @@ module Rack
     def call(env)
       if env["REQUEST_METHOD"] == "POST"
         req = Request.new(env)
-        method = req.POST["_method"].upcase
+        method = req.POST["_method"].to_s.upcase
         if HTTP_METHODS.include?(method)
           env["REQUEST_METHOD"] = method
         end
