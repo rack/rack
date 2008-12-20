@@ -5,8 +5,8 @@ require 'rack/deflater'
 require 'stringio'
 
 context "Rack::Deflater" do
-  def build_response(body, accept_encoding, headers = {})
-    app = lambda { |env| [200, {}, body] }
+  def build_response(status, body, accept_encoding, headers = {})
+    app = lambda { |env| [status, {}, body] }
     request = Rack::MockRequest.env_for("", headers.merge("HTTP_ACCEPT_ENCODING" => accept_encoding))
     response = Rack::Deflater.new(app).call(request)
 
@@ -17,7 +17,7 @@ context "Rack::Deflater" do
     body = Object.new
     class << body; def each; yield("foo"); yield("bar"); end; end
 
-    response = build_response(body, "deflate")
+    response = build_response(200, body, "deflate")
 
     response[0].should.equal(200)
     response[1].should.equal({ "Content-Encoding" => "deflate", "Vary" => "Accept-Encoding" })
@@ -26,7 +26,7 @@ context "Rack::Deflater" do
 
   # TODO: This is really just a special case of the above...
   specify "should be able to deflate String bodies" do
-    response = build_response("Hello world!", "deflate")
+    response = build_response(200, "Hello world!", "deflate")
 
     response[0].should.equal(200)
     response[1].should.equal({ "Content-Encoding" => "deflate", "Vary" => "Accept-Encoding" })
@@ -37,7 +37,7 @@ context "Rack::Deflater" do
     body = Object.new
     class << body; def each; yield("foo"); yield("bar"); end; end
 
-    response = build_response(body, "gzip")
+    response = build_response(200, body, "gzip")
 
     response[0].should.equal(200)
     response[1].should.equal({ "Content-Encoding" => "gzip", "Vary" => "Accept-Encoding" })
@@ -49,7 +49,7 @@ context "Rack::Deflater" do
   end
 
   specify "should be able to fallback to no deflation" do
-    response = build_response("Hello world!", "superzip")
+    response = build_response(200, "Hello world!", "superzip")
 
     response[0].should.equal(200)
     response[1].should.equal({ "Vary" => "Accept-Encoding" })
@@ -57,12 +57,12 @@ context "Rack::Deflater" do
   end
 
   specify "should handle the lack of an acceptable encoding" do
-    response1 = build_response("Hello world!", "identity;q=0", "PATH_INFO" => "/")
+    response1 = build_response(200, "Hello world!", "identity;q=0", "PATH_INFO" => "/")
     response1[0].should.equal(406)
     response1[1].should.equal({"Content-Type" => "text/plain"})
     response1[2].should.equal("An acceptable encoding for the requested resource / could not be found.")
 
-    response2 = build_response("Hello world!", "identity;q=0", "SCRIPT_NAME" => "/foo", "PATH_INFO" => "/bar")
+    response2 = build_response(200, "Hello world!", "identity;q=0", "SCRIPT_NAME" => "/foo", "PATH_INFO" => "/bar")
     response2[0].should.equal(406)
     response2[1].should.equal({"Content-Type" => "text/plain"})
     response2[2].should.equal("An acceptable encoding for the requested resource /foo/bar could not be found.")
