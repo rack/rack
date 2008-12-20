@@ -1,5 +1,6 @@
 require "zlib"
 require "stringio"
+require "time"  # for Time.httpdate
 
 module Rack
 
@@ -28,7 +29,7 @@ class Deflater
 
     case encoding
     when "gzip"
-      mtime = headers["Last-Modified"] || Time.now
+      mtime = headers.key?("Last-Modified") ? Time.httpdate(headers["Last-Modified"]) : Time.now
       [status, headers.merge("Content-Encoding" => "gzip"), self.class.gzip(body, mtime)]
     when "deflate"
       [status, headers.merge("Content-Encoding" => "deflate"), self.class.deflate(body)]

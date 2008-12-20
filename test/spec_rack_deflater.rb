@@ -3,6 +3,7 @@ require 'test/spec'
 require 'rack/mock'
 require 'rack/deflater'
 require 'stringio'
+require 'time'  # for Time#httpdate
 
 context "Rack::Deflater" do
   def build_response(status, body, accept_encoding, headers = {})
@@ -74,5 +75,21 @@ context "Rack::Deflater" do
     response2[0].should.equal(406)
     response2[1].should.equal({"Content-Type" => "text/plain"})
     response2[2].should.equal("An acceptable encoding for the requested resource /foo/bar could not be found.")
+  end
+
+  specify "should handle gzip response with Last-Modified header" do
+    last_modified = Time.now.httpdate
+
+    app = lambda { |env| [200, { "Last-Modified" => last_modified }, "Hello World!"] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
+    response = Rack::Deflater.new(app).call(request)
+
+    response[0].should.equal(200)
+    response[1].should.equal({ "Content-Encoding" => "gzip", "Vary" => "Accept-Encoding", "Last-Modified" => last_modified })
+
+    io = StringIO.new(response[2].to_s)
+    gz = Zlib::GzipReader.new(io)
+    gz.read.should.equal("Hello World!")
+    gz.close
   end
 end
