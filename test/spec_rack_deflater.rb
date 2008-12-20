@@ -56,6 +56,14 @@ context "Rack::Deflater" do
     response[2].should.equal("Hello world!")
   end
 
+  specify "should be able to skip when there is no response entity body" do
+    response = build_response(304, [], "gzip")
+
+    response[0].should.equal(304)
+    response[1].should.equal({})
+    response[2].should.equal([])
+  end
+
   specify "should handle the lack of an acceptable encoding" do
     response1 = build_response(200, "Hello world!", "identity;q=0", "PATH_INFO" => "/")
     response1[0].should.equal(406)

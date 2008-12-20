@@ -11,6 +11,11 @@ class Deflater
   def call(env)
     status, headers, body = @app.call(env)
 
+    # skip compressing empty entity body responses
+    if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
+      return [status, headers, body]
+    end
+
     request = Request.new(env)
 
     encoding = Utils.select_best_encoding(%w(gzip deflate identity), request.accept_encoding)
