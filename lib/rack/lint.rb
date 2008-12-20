@@ -3,8 +3,6 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
-    STATUS_WITH_NO_ENTITY_BODY = (100..199).to_a << 204 << 304
-
     def initialize(app)
       @app = app
     end
@@ -359,13 +357,13 @@ module Rack
         ## given.
         if key.downcase == "content-type"
           assert("Content-Type header found in #{status} response, not allowed") {
-            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
           }
           return
         end
       }
       assert("No Content-Type header found") {
-        STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+        Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
       }
     end
 
@@ -384,7 +382,7 @@ module Rack
           ## +Status+ is 1xx, 204 or 304, in which case there must be none
           ## given.
           assert("Content-Length header found in #{status} response, not allowed") {
-            not STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
           }
 
           assert('Content-Length header should not be used if body is chunked') {
@@ -421,7 +419,7 @@ module Rack
 
       if [ String, Array ].include?(@body.class) && !chunked_response
         assert('No Content-Length header found') {
-          STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+          Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
         }
       end
     end
