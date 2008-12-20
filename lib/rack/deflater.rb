@@ -15,6 +15,12 @@ class Deflater
 
     encoding = Utils.select_best_encoding(%w(gzip deflate identity), request.accept_encoding)
 
+    # set the Vary HTTP header
+    vary = headers["Vary"].to_s.split(",").map { |v| v.strip }
+    unless vary.include?("*") || vary.include?("Accept-Encoding")
+      headers["Vary"] = vary.push("Accept-Encoding").join(",")
+    end
+
     case encoding
     when "gzip"
       mtime = headers["Last-Modified"] || Time.now

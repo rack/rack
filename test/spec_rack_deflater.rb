@@ -20,7 +20,7 @@ context "Rack::Deflater" do
     response = build_response(body, "deflate")
 
     response[0].should.equal(200)
-    response[1].should.equal({ "Content-Encoding" => "deflate" })
+    response[1].should.equal({ "Content-Encoding" => "deflate", "Vary" => "Accept-Encoding" })
     response[2].to_s.should.equal("K\313\317OJ,\002\000")
   end
 
@@ -29,7 +29,7 @@ context "Rack::Deflater" do
     response = build_response("Hello world!", "deflate")
 
     response[0].should.equal(200)
-    response[1].should.equal({ "Content-Encoding" => "deflate" })
+    response[1].should.equal({ "Content-Encoding" => "deflate", "Vary" => "Accept-Encoding" })
     response[2].to_s.should.equal("\363H\315\311\311W(\317/\312IQ\004\000")
   end
 
@@ -40,7 +40,7 @@ context "Rack::Deflater" do
     response = build_response(body, "gzip")
 
     response[0].should.equal(200)
-    response[1].should.equal({ "Content-Encoding" => "gzip" })
+    response[1].should.equal({ "Content-Encoding" => "gzip", "Vary" => "Accept-Encoding" })
 
     io = StringIO.new(response[2].to_s)
     gz = Zlib::GzipReader.new(io)
@@ -52,7 +52,7 @@ context "Rack::Deflater" do
     response = build_response("Hello world!", "superzip")
 
     response[0].should.equal(200)
-    response[1].should.equal({})
+    response[1].should.equal({ "Vary" => "Accept-Encoding" })
     response[2].should.equal("Hello world!")
   end
 
