@@ -1,5 +1,5 @@
 module Rack
-  # Automatically sets the Content-Length header on all String bodies
+  # Sets the Content-Length header on responses with fixed-length bodies.
   class ContentLength
     def initialize(app)
       @app = app
@@ -9,21 +9,13 @@ module Rack
       status, headers, body = @app.call(env)
 
       if !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) &&
-          !headers['Content-Length']
+         !headers['Content-Length'] &&
+         !headers['Transfer-Encoding'] &&
+         (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
 
-        bytes = 0
-        string_body = true
-
-        body.each { |part|
-          unless part.kind_of?(String)
-            string_body = false
-            break
-          end
-
-          bytes += (part.respond_to?(:bytesize) ? part.bytesize : part.size)
-        }
-
-        headers['Content-Length'] = bytes.to_s if string_body
+        body = [body] if body.respond_to?(:to_str) # rack 0.4 compat
+        length = body.to_ary.inject(0) { |len, part| len + part.length }
+        headers['Content-Length'] = length.to_s
       end
 
       [status, headers, body]
