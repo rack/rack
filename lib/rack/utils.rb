@@ -1,3 +1,4 @@
+require 'set'
 require 'tempfile'
 
 module Rack
@@ -224,7 +225,7 @@ module Rack
     }
 
     # Responses with HTTP status codes that should not have an entity body
-    STATUS_WITH_NO_ENTITY_BODY = (100..199).to_a << 204 << 304
+    STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 304)
 
     # A multipart form data parser, adapted from IOWA.
     #
