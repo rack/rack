@@ -13,7 +13,8 @@ class Deflater
     status, headers, body = @app.call(env)
 
     # skip compressing empty entity body responses
-    if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status)
+    if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
+       (headers['Cache-Control'].to_s =~ /\bno-transform\b/)
       return [status, headers, body]
     end
 

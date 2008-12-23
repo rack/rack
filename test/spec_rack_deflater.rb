@@ -92,4 +92,14 @@ context "Rack::Deflater" do
     gz.read.should.equal("Hello World!")
     gz.close
   end
+
+  specify "should do nothing when no-transform Cache-Control directive present" do
+    app = lambda { |env| [200, {'Cache-Control' => 'no-transform'}, ['Hello World!']] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
+    response = Rack::Deflater.new(app).call(request)
+
+    response[0].should.equal(200)
+    response[1].should.not.include "Content-Encoding"
+    response[2].to_s.should.equal("Hello World!")
+  end
 end
