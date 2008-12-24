@@ -83,6 +83,16 @@ context "Rack::Request" do
     req.body.read.should.equal "foo=bar&quux=bla"
   end
 
+  specify "rewinds input after parsing POST data" do
+    input = StringIO.new("foo=bar&quux=bla")
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
+        :input => input)
+    req.params.should.equal "foo" => "bar", "quux" => "bla"
+    input.read.should.equal "foo=bar&quux=bla"
+  end
+
   specify "can get value by key from params with #[]" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("?foo=quux")
@@ -289,7 +299,7 @@ EOF
                       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
-    
+
     req.POST["huge"][:tempfile].size.should.equal 32768
     req.POST["mean"][:tempfile].size.should.equal 10
     req.POST["mean"][:tempfile].read.should.equal "--AaB03xha"
