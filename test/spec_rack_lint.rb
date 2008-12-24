@@ -368,4 +368,13 @@ context "Rack::Lint::InputWrapper" do
     wrapper = Rack::Lint::InputWrapper.new(IOMock.new)
     wrapper.size.should == 101
   end
+
+  specify "delegates :rewind to underlying IO object" do
+    io = StringIO.new("123")
+    wrapper = Rack::Lint::InputWrapper.new(io)
+    wrapper.read.should == "123"
+    wrapper.read.should == ""
+    wrapper.rewind
+    wrapper.read.should == "123"
+  end
 end

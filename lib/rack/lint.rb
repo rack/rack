@@ -29,8 +29,8 @@ module Rack
 
     ## A Rack application is an Ruby object (not a class) that
     ## responds to +call+.
-    def call(env=nil) 
-      dup._call(env) 
+    def call(env=nil)
+      dup._call(env)
     end
 
     def _call(env)
@@ -216,6 +216,10 @@ module Rack
 
       def size
         @input.size
+      end
+
+      def rewind
+        @input.rewind
       end
 
       ## * +gets+ must be called without arguments and return a string,
