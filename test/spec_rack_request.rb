@@ -433,4 +433,20 @@ EOF
 
     res.body.should == '212.212.212.212'
   end
+
+  specify "memoizes itself to reduce the cost of repetitive initialization" do
+    env = Rack::MockRequest.env_for("http://example.com:8080/")
+    env['rack.request'].should.be.nil
+    
+    req1 = Rack::Request.new(env)
+    env['rack.request'].should.not.be.nil
+    req1.should.equal env['rack.request']
+    
+    rack_request_object_id = env['rack.request'].object_id
+    
+    req2 = Rack::Request.new(env)
+    env['rack.request'].should.not.be.nil
+    rack_request_object_id.should.be.equal env['rack.request'].object_id
+    req2.should.equal env['rack.request']
+  end
 end
