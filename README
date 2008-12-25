@@ -20,12 +20,12 @@ The included *handlers* connect all kinds of web servers to Rack:
 * CGI
 * SCGI
 * LiteSpeed
+* Thin
 
 These web servers include Rack handlers in their distributions:
 * Ebb
 * Fuzed
 * Phusion Passenger (which is mod_rack for Apache)
-* Thin
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
@@ -43,12 +43,11 @@ These frameworks include Rack adapters in their distributions:
 * Merb
 * Racktools::SimpleApplication
 * Ramaze
+* Ruby on Rails
 * Sinatra
+* Sin
 * Vintage
 * Waves
-
-Ruby on Rails can be run with the adapter included with Thin, which
-will be merged into a later Rack version.
 
 Current links to these projects can be found at
 http://ramaze.net/#other-frameworks
@@ -211,7 +210,7 @@ Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
 
 Git repository (branches rebased on master are most welcome):
-* http://github.com/chneukirchen/rack
+* http://github.com/rack/rack
 * http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
