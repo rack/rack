@@ -69,12 +69,12 @@ context "Rack::Deflater" do
     response1 = build_response(200, "Hello world!", "identity;q=0", "PATH_INFO" => "/")
     response1[0].should.equal(406)
     response1[1].should.equal({"Content-Type" => "text/plain"})
-    response1[2].should.equal("An acceptable encoding for the requested resource / could not be found.")
+    response1[2].should.equal(["An acceptable encoding for the requested resource / could not be found."])
 
     response2 = build_response(200, "Hello world!", "identity;q=0", "SCRIPT_NAME" => "/foo", "PATH_INFO" => "/bar")
     response2[0].should.equal(406)
     response2[1].should.equal({"Content-Type" => "text/plain"})
-    response2[2].should.equal("An acceptable encoding for the requested resource /foo/bar could not be found.")
+    response2[2].should.equal(["An acceptable encoding for the requested resource /foo/bar could not be found."])
   end
 
   specify "should handle gzip response with Last-Modified header" do
