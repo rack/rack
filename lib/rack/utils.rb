@@ -189,6 +189,16 @@ module Rack
       alias_method :has_key?, :include?
       alias_method :member?, :include?
       alias_method :key?, :include?
+
+      def merge!(other)
+        other.each { |k, v| self[k] = v }
+        self
+      end
+
+      def merge(other)
+        hash = dup
+        hash.merge! other
+      end
     end
 
     # Every standard HTTP code mapped to the appropriate message.

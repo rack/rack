@@ -77,6 +77,12 @@ context "Rack::Utils::HeaderHash" do
     h.should.not.include 'ETag'
   end
 
+  specify "should merge case-insensitively" do
+    h = Rack::Utils::HeaderHash.new("ETag" => 'HELLO', "content-length" => '123')
+    merged = h.merge("Etag" => 'WORLD', 'Content-Length' => '321', "Foo" => 'BAR')
+    merged.should.equal "Etag"=>'WORLD', "Content-Length"=>'321', "Foo"=>'BAR'
+  end
+
   specify "should overwrite case insensitively and assume the new key's case" do
     h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
     h["foo-bar"] = "bizzle"
