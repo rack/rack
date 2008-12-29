@@ -93,6 +93,16 @@ context "Rack::Request" do
     input.read.should.equal "foo=bar&quux=bla"
   end
 
+  specify "does not rewind unwindable CGI input" do
+    input = StringIO.new("foo=bar&quux=bla")
+    input.instance_eval "undef :rewind"
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
+        :input => input)
+    req.params.should.equal "foo" => "bar", "quux" => "bla"
+  end
+
   specify "can get value by key from params with #[]" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("?foo=quux")
@@ -437,13 +447,13 @@ EOF
   specify "memoizes itself to reduce the cost of repetitive initialization" do
     env = Rack::MockRequest.env_for("http://example.com:8080/")
     env['rack.request'].should.be.nil
-    
+
     req1 = Rack::Request.new(env)
     env['rack.request'].should.not.be.nil
     req1.should.equal env['rack.request']
-    
+
     rack_request_object_id = env['rack.request'].object_id
-    
+
     req2 = Rack::Request.new(env)
     env['rack.request'].should.not.be.nil
     rack_request_object_id.should.be.equal env['rack.request'].object_id

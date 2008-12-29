@@ -121,7 +121,7 @@ module Rack
             Utils::Multipart.parse_multipart(env)
           @env["rack.request.form_vars"] = @env["rack.input"].read
           @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
-          @env["rack.input"].rewind
+          @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
         end
         @env["rack.request.form_hash"]
       else
