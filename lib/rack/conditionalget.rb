@@ -21,6 +21,7 @@ module Rack
       return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
 
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash.new(headers)
       if etag_matches?(env, headers) || modified_since?(env, headers)
         status = 304
         body = []

@@ -18,6 +18,7 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash.new(headers)
       empty = headers['Content-Length'].to_i <= 0
 
       # client or server error, or explicit message

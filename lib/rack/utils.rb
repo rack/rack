@@ -156,7 +156,8 @@ module Rack
       end
     end
 
-    # A case-normalizing Hash, adjusting on [] and []=.
+    # A case-insensitive Hash that preserves the original case of a
+    # header when set.
     class HeaderHash < Hash
       def initialize(hash={})
         @names = {}

@@ -7,8 +7,9 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash.new(headers)
 
-      if !Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) &&
+      if !Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
          (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
