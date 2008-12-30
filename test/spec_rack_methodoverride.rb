@@ -13,8 +13,19 @@ context "Rack::MethodOverride" do
     req.env["REQUEST_METHOD"].should.equal "GET"
   end
 
-  specify "should modify REQUEST_METHOD for POST requests" do
+  specify "_method parameter should modify REQUEST_METHOD for POST requests" do
     env = Rack::MockRequest.env_for("/", :method => "POST", :input => "_method=put")
+    app = Rack::MethodOverride.new(lambda { |env| Rack::Request.new(env) })
+    req = app.call(env)
+
+    req.env["REQUEST_METHOD"].should.equal "PUT"
+  end
+
+  specify "X-HTTP-Method-Override header should modify REQUEST_METHOD for POST requests" do
+    env = Rack::MockRequest.env_for("/",
+            :method => "POST",
+            "HTTP_X_HTTP_METHOD_OVERRIDE" => "PUT"
+          )
     app = Rack::MethodOverride.new(lambda { |env| Rack::Request.new(env) })
     req = app.call(env)
 
