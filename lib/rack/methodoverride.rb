@@ -2,6 +2,9 @@ module Rack
   class MethodOverride
     HTTP_METHODS = %w(GET HEAD PUT POST DELETE OPTIONS)
 
+    METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
+    HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+
     def initialize(app)
       @app = app
     end
@@ -9,7 +12,9 @@ module Rack
     def call(env)
       if env["REQUEST_METHOD"] == "POST"
         req = Request.new(env)
-        method = req.POST["_method"].to_s.upcase
+        method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
+          env[HTTP_METHOD_OVERRIDE_HEADER]
+        method = method.to_s.upcase
         if HTTP_METHODS.include?(method)
           env["REQUEST_METHOD"] = method
         end
