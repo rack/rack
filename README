@@ -113,7 +113,7 @@ A Gem of Rack is available.  You can install it with:
 I also provide a local mirror of the gems (and development snapshots)
 at my site:
 
-    gem install rack --source http://chneukirchen.org/releases/gems
+    gem install rack --source http://chneukirchen.org/releases/gems/
 
 == Running the tests
 
