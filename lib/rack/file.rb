@@ -25,7 +25,8 @@ module Rack
     def _call(env)
       return forbidden  if env["PATH_INFO"].include? ".."
 
-      @path = F.join(@root, Utils.unescape(env["PATH_INFO"]))
+      @path_info = Utils.unescape(env["PATH_INFO"])
+      @path = F.join(@root, @path_info)
 
       begin
         if F.file?(@path) && F.readable?(@path)
@@ -67,7 +68,7 @@ module Rack
     end
 
     def not_found
-      body = "File not found: #{@path}\n"
+      body = "File not found: #{@path_info}\n"
       [404, {"Content-Type" => "text/plain",
          "Content-Length" => body.size.to_s},
        [body]]
