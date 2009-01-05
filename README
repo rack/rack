@@ -217,6 +217,7 @@ run on port 11211) and memcache-client installed.
   * Added Head middleware.
   * Added MethodOverride middleware.
   * Rack::Mime now provides popular MIME-types and their extension.
+    Rack::File::MIME_TYPES is now Rack::Mime::MIME_TYPES.
   * Mongrel Header now streams.
   * Added Thin handler.
   * Official support for swiftiplied Mongrel.
