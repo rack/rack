@@ -100,6 +100,6 @@ context "Rack::Deflater" do
 
     response[0].should.equal(200)
     response[1].should.not.include "Content-Encoding"
-    response[2].to_s.should.equal("Hello World!")
+    response[2].join.should.equal("Hello World!")
   end
 end
