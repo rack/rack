@@ -61,18 +61,18 @@ context "Rack::Builder" do
   end
 
   specify "apps are initialized once" do
-    class AppClass
-      def initialize
-        @called = 0
-      end
-      def call(env)
-        raise "bzzzt"  if @called > 0
-        @called += 1
-        [200, {'Content-Type' => 'text/plain'}, 'OK']
-      end
-    end
-
     app = Rack::Builder.new do
+      class AppClass
+        def initialize
+          @called = 0
+        end
+        def call(env)
+          raise "bzzzt"  if @called > 0
+        @called += 1
+          [200, {'Content-Type' => 'text/plain'}, 'OK']
+        end
+      end
+
       use Rack::ShowExceptions
       run AppClass.new
     end

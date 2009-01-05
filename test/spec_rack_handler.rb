@@ -2,10 +2,10 @@ require 'test/spec'
 
 require 'rack/handler'
 
-context "Rack::Handler" do
-  class Rack::Handler::Lobster; end
-  class RockLobster; end
+class Rack::Handler::Lobster; end
+class RockLobster; end
 
+context "Rack::Handler" do
   specify "has registered default handlers" do
     Rack::Handler.get('cgi').should.equal Rack::Handler::CGI
     Rack::Handler.get('fastcgi').should.equal Rack::Handler::FastCGI
