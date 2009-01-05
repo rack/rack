@@ -210,6 +210,7 @@ run on port 11211) and memcache-client installed.
 
 * XXX, 2009: Fifth public release 0.9.
   * Rack is now managed by the Rack Core Team.
+  * Rack::Lint is stricter and closer to the HTTP RFCs.
   * Added ConditionalGet middleware.
   * Added ContentLength middleware.
   * Added Deflater middleware.
