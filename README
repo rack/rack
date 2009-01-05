@@ -239,7 +239,7 @@ Git repository (patches rebased on master are most welcome):
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
-== Thanks to
+== Thanks
 
 The Rack Core Team, consisting of
 
@@ -257,7 +257,8 @@ would like to thank:
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
-* Aredridel, for bug fixing.
+* Aredridel, Ben Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd, and
+  Phil Hagelberg for bug fixing and other improvements.
 * Stephen Bannasch, for bug reports and documentation.
 * Gary Wright, for proposing a better Rack::Response interface.
 * Jonathan Buch, for improvements regarding Rack::Response.
