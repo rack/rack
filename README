@@ -80,6 +80,14 @@ over:
 * Rack::MockRequest and Rack::MockResponse for efficient and quick
   testing of Rack application without real HTTP round-trips.
 
+== rack-contrib
+
+The plethora of useful middleware created the need for a project that
+collects fresh Rack middleware.  rack-contrib includes a variety of
+add-on components for Rack and it is easy to get new modules in there:
+
+* http://github.com/rack/rack-contrib
+
 == rackup
 
 rackup is a useful tool for running Rack applications, which uses the
@@ -162,7 +170,6 @@ Installing the Ruby fcgi gem:
 Furthermore, to test Memcache sessions, you need memcached (will be
 run on port 11211) and memcache-client installed.
 
-
 == History
 
 * March 3rd, 2007: First public release 0.1.
@@ -201,6 +208,21 @@ run on port 11211) and memcache-client installed.
   * Improved tests.
   * Rack moved to Git.
 
+* XXX, 2009: Fifth public release 0.9.
+  * Rack is now managed by the Rack Core Team.
+  * Added ConditionalGet middleware.
+  * Added ContentLength middleware.
+  * Added Deflater middleware.
+  * Added Head middleware.
+  * Added MethodOverride middleware.
+  * Rack::Mime now provides popular MIME-types and their extension.
+  * Mongrel Header now streams.
+  * Added Thin handler.
+  * Official support for swiftiplied Mongrel.
+  * Secure cookies.
+  * Made HeaderHash case-preserving.
+  * Many bugfixes and small improvements.
+
 == Contact
 
 Please mail bugs, suggestions and patches to
@@ -209,7 +231,9 @@ Please mail bugs, suggestions and patches to
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
 
-Git repository (branches rebased on master are most welcome):
+There is a bug tracker at <http://rack.lighthouseapp.com/>.
+
+Git repository (patches rebased on master are most welcome):
 * http://github.com/rack/rack
 * http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
 
@@ -217,10 +241,17 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Thanks to
 
-* blink for the Pool sessions, Memcache sessions, OpenID support, many
-  tweaks, patches and bugreports.
-* Michael Fellinger, for the helpful discussion, bugfixes and a better
-  Rack::Request interface.
+The Rack Core Team, consisting of
+
+* Christian Neukirchen (chneukirchen)
+* James Tucker (raggi)
+* Josh Peek (josh)
+* Michael Fellinger (manveru)
+* Ryan Tomayko (rtomayko)
+* Scytrin dai Kinthra (scytrin)
+
+would like to thank:
+
 * Adrian Madrid, for the LiteSpeed handler.
 * Christoffer Sawicki, for the first Rails adapter and Rack::Deflater.
 * Tim Fletcher, for the HTTP authentication code.
@@ -262,11 +293,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Rack:: <http://rack.rubyforge.org/>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
+Official Rack repositories:: <http://github.com/rack>
 rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
-
-Camping:: <http://camping.rubyforge.org/>
-Ramaze:: <http://ramaze.rubyforge.org/>
-Maveric:: <http://maveric.rubyforge.org/>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
 
