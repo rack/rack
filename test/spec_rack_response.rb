@@ -88,7 +88,7 @@ context "Rack::Response" do
     str = ""; body.each { |part| str << part }
     str.should.equal "foobar"
 
-    r = Rack::Response.new({"foo", "bar"})
+    r = Rack::Response.new({"foo" => "bar"})
     r.write "foo"
     status, header, body = r.finish
     str = ""; body.each { |part| str << part }
