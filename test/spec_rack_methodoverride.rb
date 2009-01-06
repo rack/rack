@@ -47,4 +47,14 @@ context "Rack::MethodOverride" do
 
     req.env["REQUEST_METHOD"].should.equal "POST"
   end
+
+  specify "should store the original REQUEST_METHOD prior to overriding" do
+    env = Rack::MockRequest.env_for("/",
+            :method => "POST",
+            :input  => "_method=options")
+    app = Rack::MethodOverride.new(lambda { |env| Rack::Request.new(env) })
+    req = app.call(env)
+
+    req.env["rack.methodoverride.original_method"].should.equal "POST"
+  end
 end

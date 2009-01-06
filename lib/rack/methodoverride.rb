@@ -16,6 +16,7 @@ module Rack
           env[HTTP_METHOD_OVERRIDE_HEADER]
         method = method.to_s.upcase
         if HTTP_METHODS.include?(method)
+          env["rack.methodoverride.original_method"] = env["REQUEST_METHOD"]
           env["REQUEST_METHOD"] = method
         end
       end
