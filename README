@@ -84,7 +84,7 @@ over:
 
 The plethora of useful middleware created the need for a project that
 collects fresh Rack middleware.  rack-contrib includes a variety of
-add-on components for Rack and it is easy to get new modules in there:
+add-on components for Rack and it is easy to contribute new modules.
 
 * http://github.com/rack/rack-contrib
 
@@ -210,14 +210,13 @@ run on port 11211) and memcache-client installed.
 
 * January 6th, 2009: Fifth public release 0.9.
   * Rack is now managed by the Rack Core Team.
-  * Rack::Lint is stricter and closer to the HTTP RFCs.
+  * Rack::Lint is stricter and follows the HTTP RFCs more closely.
   * Added ConditionalGet middleware.
   * Added ContentLength middleware.
   * Added Deflater middleware.
   * Added Head middleware.
   * Added MethodOverride middleware.
   * Rack::Mime now provides popular MIME-types and their extension.
-    Rack::File::MIME_TYPES is now Rack::Mime::MIME_TYPES.
   * Mongrel Header now streams.
   * Added Thin handler.
   * Official support for swiftiplied Mongrel.
@@ -265,7 +264,7 @@ would like to thank:
 * Gary Wright, for proposing a better Rack::Response interface.
 * Jonathan Buch, for improvements regarding Rack::Response.
 * Armin Röhrl, for tracking down bugs in the Cookie generator.
-* Alexander Kellett for testing the Gem and reviewing the announce.
+* Alexander Kellett for testing the Gem and reviewing the announcement.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
   Rack builds up on.
