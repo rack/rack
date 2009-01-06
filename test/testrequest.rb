@@ -43,3 +43,15 @@ class TestRequest
     end
   end
 end
+
+class StreamingRequest
+  def self.call(env)
+    [200, {"Content-Type" => "text/plain"}, new]
+  end
+
+  def each
+    yield "hello there!\n"
+    sleep 5
+    yield "that is all.\n"
+  end
+end

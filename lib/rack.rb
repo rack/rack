@@ -1,4 +1,4 @@
-# Copyright (C) 2007, 2008 Christian Neukirchen <purl.org/net/chneukirchen>
+# Copyright (C) 2007, 2008, 2009 Christian Neukirchen <purl.org/net/chneukirchen>
 #
 # Rack is freely distributable under the terms of an MIT-style license.
 # See COPYING or http://www.opensource.org/licenses/mit-license.php.
@@ -30,6 +30,7 @@ module Rack
   autoload :Cascade, "rack/cascade"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
+  autoload :ContentLength, "rack/content_length"
   autoload :File, "rack/file"
   autoload :Deflater, "rack/deflater"
   autoload :Directory, "rack/directory"

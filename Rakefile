@@ -133,6 +133,15 @@ Also see http://rack.rubyforge.org.
     s.email           = 'chneukirchen@gmail.com'
     s.homepage        = 'http://rack.rubyforge.org'
     s.rubyforge_project = 'rack'
+
+    s.add_development_dependency 'test-spec'
+
+    s.add_development_dependency 'camping'
+    s.add_development_dependency 'fcgi'
+    s.add_development_dependency 'memcache-client'
+    s.add_development_dependency 'mongrel'
+    s.add_development_dependency 'ruby-openid', '~> 2.0.0'
+    s.add_development_dependency 'thin'
   end
 
   Rake::GemPackageTask.new(spec) do |p|

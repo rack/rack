@@ -5,7 +5,8 @@ require 'rack/handler/mongrel'
 require 'rack/urlmap'
 require 'rack/lint'
 require 'testrequest'
-
+require 'timeout'
+  
 Thread.abort_on_exception = true
 $tcp_defer_accept_opts = nil
 $tcp_cork_opts = nil
@@ -17,6 +18,8 @@ context "Rack::Handler::Mongrel" do
     server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
     server.register('/test',
                     Rack::Handler::Mongrel.new(Rack::Lint.new(TestRequest.new)))
+    server.register('/stream',
+                    Rack::Handler::Mongrel.new(Rack::Lint.new(StreamingRequest)))
     @acc = server.run
   end
 
@@ -158,6 +161,22 @@ context "Rack::Handler::Mongrel" do
     }
     sleep 1
     block_ran.should.be true
+  end
+
+  specify "should stream #each part of the response" do
+    body = ''
+    begin
+      Timeout.timeout(1) do
+        Net::HTTP.start(@host, @port) do |http|
+          get = Net::HTTP::Get.new('/stream')
+          http.request(get) do |response|
+            response.read_body { |part| body << part }
+          end
+        end
+      end
+    rescue Timeout::Error
+    end
+    body.should.not.be.empty
   end
 
   teardown do

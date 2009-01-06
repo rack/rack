@@ -343,7 +343,7 @@ module Rack
           session['authenticated'] = false
           req.env['rack.errors'].puts oid.message
 
-          goto = @options[:login_fail] if @option.key? :login_fail
+          goto = @options[:login_fail] if @options.key? :login_fail
           body << "Authentication unsuccessful.\n"
         when ::OpenID::Consumer::SUCCESS
           session.clear
@@ -367,7 +367,7 @@ module Rack
           session.clear
           session['authenticated'] = false
 
-          goto = @options[:login_fail] if @option.key? :login_fail
+          goto = @options[:login_fail] if @options.key? :login_fail
           body << "Authentication cancelled.\n"
         when ::OpenID::Consumer::SETUP_NEEDED
           session[:setup_needed] = true
@@ -402,7 +402,8 @@ module Rack
       def add_extension ext, *args
         if not ext.is_a? Module
           raise TypeError, "#{ext.inspect} is not a module"
-        elsif not (m = %w'Request Response NS_URI' - ext.constants).empty?
+        elsif !(m = %w'Request Response NS_URI' -
+                ext.constants.map{ |c| c.to_s }).empty?
           raise ArgumentError, "#{ext.inspect} missing #{m*', '}"
         end
 

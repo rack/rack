@@ -15,7 +15,7 @@ module Rack
             h[k] = v.to_s
           end
         end
-        [controller.status, controller.headers, controller.body]
+        [controller.status, controller.headers, [controller.body.to_s]]
       end
     end
   end

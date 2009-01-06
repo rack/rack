@@ -47,7 +47,7 @@ module Rack
 
     def map(path, &block)
       if @ins.last.kind_of? Hash
-        @ins.last[path] = Rack::Builder.new(&block).to_app
+        @ins.last[path] = self.class.new(&block).to_app
       else
         @ins << {}
         map(path, &block)

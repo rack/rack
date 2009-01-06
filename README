@@ -20,12 +20,12 @@ The included *handlers* connect all kinds of web servers to Rack:
 * CGI
 * SCGI
 * LiteSpeed
+* Thin
 
 These web servers include Rack handlers in their distributions:
 * Ebb
 * Fuzed
 * Phusion Passenger (which is mod_rack for Apache)
-* Thin
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
@@ -43,12 +43,11 @@ These frameworks include Rack adapters in their distributions:
 * Merb
 * Racktools::SimpleApplication
 * Ramaze
+* Ruby on Rails
 * Sinatra
+* Sin
 * Vintage
 * Waves
-
-Ruby on Rails can be run with the adapter included with Thin, which
-will be merged into a later Rack version.
 
 Current links to these projects can be found at
 http://ramaze.net/#other-frameworks
@@ -80,6 +79,14 @@ over:
   cookie handling.
 * Rack::MockRequest and Rack::MockResponse for efficient and quick
   testing of Rack application without real HTTP round-trips.
+
+== rack-contrib
+
+The plethora of useful middleware created the need for a project that
+collects fresh Rack middleware.  rack-contrib includes a variety of
+add-on components for Rack and it is easy to contribute new modules.
+
+* http://github.com/rack/rack-contrib
 
 == rackup
 
@@ -114,7 +121,7 @@ A Gem of Rack is available.  You can install it with:
 I also provide a local mirror of the gems (and development snapshots)
 at my site:
 
-    gem install rack --source http://chneukirchen.org/releases/gems
+    gem install rack --source http://chneukirchen.org/releases/gems/
 
 == Running the tests
 
@@ -163,7 +170,6 @@ Installing the Ruby fcgi gem:
 Furthermore, to test Memcache sessions, you need memcached (will be
 run on port 11211) and memcache-client installed.
 
-
 == History
 
 * March 3rd, 2007: First public release 0.1.
@@ -202,6 +208,22 @@ run on port 11211) and memcache-client installed.
   * Improved tests.
   * Rack moved to Git.
 
+* January 6th, 2009: Fifth public release 0.9.
+  * Rack is now managed by the Rack Core Team.
+  * Rack::Lint is stricter and follows the HTTP RFCs more closely.
+  * Added ConditionalGet middleware.
+  * Added ContentLength middleware.
+  * Added Deflater middleware.
+  * Added Head middleware.
+  * Added MethodOverride middleware.
+  * Rack::Mime now provides popular MIME-types and their extension.
+  * Mongrel Header now streams.
+  * Added Thin handler.
+  * Official support for swiftiplied Mongrel.
+  * Secure cookies.
+  * Made HeaderHash case-preserving.
+  * Many bugfixes and small improvements.
+
 == Contact
 
 Please mail bugs, suggestions and patches to
@@ -210,29 +232,39 @@ Please mail bugs, suggestions and patches to
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
 
-Git repository (branches rebased on master are most welcome):
-* http://github.com/chneukirchen/rack
+There is a bug tracker at <http://rack.lighthouseapp.com/>.
+
+Git repository (patches rebased on master are most welcome):
+* http://github.com/rack/rack
 * http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
-== Thanks to
+== Thanks
 
-* blink for the Pool sessions, Memcache sessions, OpenID support, many
-  tweaks, patches and bugreports.
-* Michael Fellinger, for the helpful discussion, bugfixes and a better
-  Rack::Request interface.
+The Rack Core Team, consisting of
+
+* Christian Neukirchen (chneukirchen)
+* James Tucker (raggi)
+* Josh Peek (josh)
+* Michael Fellinger (manveru)
+* Ryan Tomayko (rtomayko)
+* Scytrin dai Kinthra (scytrin)
+
+would like to thank:
+
 * Adrian Madrid, for the LiteSpeed handler.
 * Christoffer Sawicki, for the first Rails adapter and Rack::Deflater.
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
-* Aredridel, for bug fixing.
+* Aredridel, Ben Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd, and
+  Phil Hagelberg for bug fixing and other improvements.
 * Stephen Bannasch, for bug reports and documentation.
 * Gary Wright, for proposing a better Rack::Response interface.
 * Jonathan Buch, for improvements regarding Rack::Response.
 * Armin Röhrl, for tracking down bugs in the Cookie generator.
-* Alexander Kellett for testing the Gem and reviewing the announce.
+* Alexander Kellett for testing the Gem and reviewing the announcement.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
 * The WSGI team for the well-done and documented work they've done and
   Rack builds up on.
@@ -240,7 +272,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Copyright
 
-Copyright (C) 2007, 2008 Christian Neukirchen <http://purl.org/net/chneukirchen>
+Copyright (C) 2007, 2008, 2009 Christian Neukirchen <http://purl.org/net/chneukirchen>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -263,11 +295,8 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 Rack:: <http://rack.rubyforge.org/>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
+Official Rack repositories:: <http://github.com/rack>
 rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
-
-Camping:: <http://camping.rubyforge.org/>
-Ramaze:: <http://ramaze.rubyforge.org/>
-Maveric:: <http://maveric.rubyforge.org/>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
 

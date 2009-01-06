@@ -8,10 +8,18 @@ module Rack
   #   req = Rack::Request.new(env)
   #   req.post?
   #   req.params["data"]
+  #
+  # The environment hash passed will store a reference to the Request object
+  # instantiated so that it will only instantiate if an instance of the Request
+  # object doesn't already exist.
 
   class Request
     # The environment of the request.
     attr_reader :env
+
+    def self.new(env)
+      env["rack.request"] ||= super
+    end
 
     def initialize(env)
       @env = env
@@ -113,6 +121,7 @@ module Rack
             Utils::Multipart.parse_multipart(env)
           @env["rack.request.form_vars"] = @env["rack.input"].read
           @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
+          @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
         end
         @env["rack.request.form_hash"]
       else
@@ -122,7 +131,7 @@ module Rack
 
     # The union of GET and POST data.
     def params
-      self.GET.update(self.POST)
+      self.put? ? self.GET : self.GET.update(self.POST)
     rescue EOFError => e
       self.GET
     end

@@ -1,4 +1,5 @@
 require 'test/spec'
+require 'set'
 
 require 'rack/response'
 
@@ -88,7 +89,7 @@ context "Rack::Response" do
     str = ""; body.each { |part| str << part }
     str.should.equal "foobar"
 
-    r = Rack::Response.new({"foo", "bar"})
+    r = Rack::Response.new(["foo", "bar"].to_set)
     r.write "foo"
     status, header, body = r.finish
     str = ""; body.each { |part| str << part }
