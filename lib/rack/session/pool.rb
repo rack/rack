@@ -29,42 +29,33 @@ module Rack
 
       def initialize(app, options={})
         super
-        @pool = Hash.new
+        @pool = Hash.new{|h,k| h[k]={} }
         @mutex = Mutex.new
       end
 
       private
 
-      def get_session(env, sid)
+      def get_session(sid)
         session = @mutex.synchronize do
-          unless sess = @pool[sid] and ((expires = sess[:expire_at]).nil? or expires > Time.now)
-            @pool.delete_if{|k,v| expiry = v[:expire_at] and expiry < Time.now }
-            begin
-              sid = generate_sid
-            end while @pool.has_key?(sid)
-          end
-          @pool[sid] ||= {}
+          sid = generate_sid if sid.nil? or not @pool.key? sid
+          @pool[sid]
         end
         [sid, session]
       end
 
-      def set_session(env, sid)
-        options = env['rack.session.options']
-        expiry = options[:expire_after] && options[:at]+options[:expire_after]
+      def set_session(sid, session, options)
         @mutex.synchronize do
           old_session = @pool[sid]
-          old_session[:expire_at] = expiry if expiry
-          session = old_session.merge(env['rack.session'])
+          session = old_session.merge(session)
           @pool[sid] = session
           session.each do |k,v|
             next unless old_session.has_key?(k) and v != old_session[k]
             warn "session value assignment collision at #{k}: #{old_session[k]} <- #{v}"
-          end if $DEBUG and env['rack.multithread']
+          end if $DEBUG
         end
         return true
       rescue
-        warn "#{self} is unable to find server."
-        warn "#{env['rack.session'].inspect} has been lost."
+        warn "#{session.inspect} has been lost."
         warn $!.inspect
         return false
       end

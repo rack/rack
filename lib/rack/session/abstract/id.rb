@@ -1,12 +1,14 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # bugrep: Andreas Zehnder
 
-require 'rack/utils'
 require 'time'
 
 module Rack
+
   module Session
+
     module Abstract
+
       # ID sets up a basic framework for implementing an id based sessioning
       # service. Cookies sent to the client for maintaining sessions will only
       # contain an id reference. Only #get_session and #set_session should
@@ -20,8 +22,10 @@ module Rack
       # * :expire_after is the number of seconds in which the session
       #   cookie will expire. By default it is set not to provide any
       #   expiry time.
+      #
+      # Is Rack::Utils::Context compatible.
+
       class ID
-        attr_reader :key
         DEFAULT_OPTIONS = {
           :key =>           'rack.session',
           :path =>          '/',
@@ -32,23 +36,21 @@ module Rack
           :sidbits =>       128
         }
 
+        attr_reader :key, :default_options
         def initialize(app, options={})
+          @app = app
+          @key = options[:key] || "rack.session"
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
-          @key = @default_options[:key]
-          @default_context = context app
         end
 
         def call(env)
-          @default_context.call(env)
+          context(env)
         end
 
-        def context(app)
-          Rack::Utils::Context.new self, app do |env|
-            load_session env
-            response = app.call(env)
-            commit_session env, response
-            response
-          end
+        def context(env, app=@app)
+          load_session(env)
+          status, headers, body = app.call(env)
+          commit_session(env, status, headers, body)
         end
 
         private
@@ -56,6 +58,7 @@ module Rack
         # Generate a new session id using Ruby #rand.  The size of the
         # session id is controlled by the :sidbits option.
         # Monkey patch this to use custom methods for session id generation.
+
         def generate_sid
           "%0#{@default_options[:sidbits] / 4}x" %
             rand(2**@default_options[:sidbits] - 1)
@@ -65,87 +68,58 @@ module Rack
         # environment to #get_session. It then sets the resulting session into
         # 'rack.session', and places options and session metadata into
         # 'rack.session.options'.
+
         def load_session(env)
-          sid           = (env['HTTP_COOKIE']||'')[/#{@key}=([^,;]+)/,1]
-          sid, session  = get_session(env, sid)
-          unless session.is_a?(Hash)
-            puts 'Session: '+sid.inspect+"\n"+session.inspect if $DEBUG
-            raise TypeError, 'Session not a Hash'
+          request = Rack::Request.new(env)
+          session_id = request.cookies[@key]
+
+          begin
+            session_id, session = get_session(session_id)
+            env['rack.session'] = session
+          rescue
+            env['rack.session'] = Hash.new
           end
 
-          options = @default_options.
-            merge({ :id => sid, :by => self, :at => Time.now })
-
-          env['rack.session'] = session
-          env['rack.session.options'] = options
-
-          return true
+          env['rack.session.options'] = @default_options.
+            merge(:id => session_id)
         end
 
         # Acquires the session from the environment and the session id from
         # the session options and passes them to #set_session. It then
         # proceeds to set a cookie up in the response with the session's id.
-        def commit_session(env, response)
-          unless response.is_a?(Array)
-            puts 'Response: '+response.inspect if $DEBUG
-            raise ArgumentError, 'Response is not an array.'
-          end
 
+        def commit_session(env, status, headers, body)
+          session = env['rack.session']
           options = env['rack.session.options']
-          unless options.is_a?(Hash)
-            puts 'Options: '+options.inspect if $DEBUG
-            raise TypeError, 'Options not a Hash'
-          end
+          session_id = options.delete :id
 
-          sid, time, z = options.values_at(:id, :at, :by)
-          unless self == z
-            warn "#{self} not managing this session."
-            return
+          unless set_session(session_id, session, options)
+            env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            [status, headers, body]
+          else
+            cookie = Hash.new
+            cookie[:value] = session_id
+            cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?
+            response = Rack::Response.new(body, status, headers)
+            response.set_cookie(@key, cookie.merge(options))
+            response.to_a
           end
-
-          unless env['rack.session'].is_a?(Hash)
-            warn 'Session: '+sid.inspect+"\n"+session.inspect if $DEBUG
-            raise TypeError, 'Session not a Hash'
-          end
-
-          unless set_session(env, sid)
-            warn "Session not saved." if $DEBUG
-            warn "#{env['rack.session'].inspect} has been lost."if $DEBUG
-            return false
-          end
-
-          cookie = Utils.escape(@key)+'='+Utils.escape(sid)
-          cookie<< "; domain=#{options[:domain]}" if options[:domain]
-          cookie<< "; path=#{options[:path]}" if options[:path]
-          if options[:expire_after]
-            expiry = time + options[:expire_after]
-            cookie<< "; expires=#{expiry.httpdate}"
-          end
-          cookie<< "; Secure" if options[:secure]
-          cookie<< "; HttpOnly" if options[:httponly]
-
-          case a = (h = response[1])['Set-Cookie']
-          when Array then  a << cookie
-          when String then h['Set-Cookie'] = [a, cookie]
-          when nil then    h['Set-Cookie'] = cookie
-          end
-
-          return true
         end
 
-        # Should return [session_id, session]. All thread safety and session
-        # retrival proceedures should occur here.
+        # All thread safety and session retrival proceedures should occur here.
+        # Should return [session_id, session].
         # If nil is provided as the session id, generation of a new valid id
         # should occur within.
-        def get_session(env, sid)
-          raise '#get_session needs to be implemented.'
+
+        def get_session(sid)
+          raise '#get_session not implemented.'
         end
 
         # All thread safety and session storage proceedures should occur here.
         # Should return true or false dependant on whether or not the session
         # was saved or not.
-        def set_session(env, sid)
-          raise '#set_session needs to be implemented.'
+        def set_session(sid, session, options)
+          raise '#set_session not implemented.'
         end
       end
     end
