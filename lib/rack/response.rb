@@ -100,7 +100,6 @@ module Rack
         header.delete "Content-Type"
         [status.to_i, header.to_hash, []]
       else
-        header["Content-Length"] ||= @length.to_s
         [status.to_i, header.to_hash, self]
       end
     end
@@ -112,10 +111,16 @@ module Rack
       @block.call(self)  if @block
     end
 
+    # Append to body and update Content-Length.
+    #
+    # NOTE: Do not mix #write and direct #body access!
+    #
     def write(str)
       s = str.to_s
       @length += s.size
       @writer.call s
+
+      header["Content-Length"] = @length.to_s
       str
     end
 

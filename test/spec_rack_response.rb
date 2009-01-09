@@ -8,7 +8,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = response.finish
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
+    header.should.equal "Content-Type" => "text/html"
     body.each { |part|
       part.should.equal ""
     }
@@ -16,7 +16,7 @@ context "Rack::Response" do
     response = Rack::Response.new
     status, header, body = *response
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html", "Content-Length" => "0"
+    header.should.equal "Content-Type" => "text/html"
     body.each { |part|
       part.should.equal ""
     }
@@ -169,6 +169,29 @@ context "Rack::Response" do
     res.content_type.should.equal "text/yaml"
     res.content_length.should.be.nil
     res.location.should.be.nil
+  end
+
+  specify "does not add or change Content-Length when #finish()ing" do
+    res = Rack::Response.new
+    res.status = 200
+    res.finish
+    res.headers["Content-Length"].should.be.nil
+
+    res = Rack::Response.new
+    res.status = 200
+    res.headers["Content-Length"] = "10"
+    res.finish
+    res.headers["Content-Length"].should.equal "10"
+  end
+
+  specify "updates Content-Length when body appended to using #write" do
+    res = Rack::Response.new
+    res.status = 200
+    res.headers["Content-Length"].should.be.nil
+    res.write "Hi"
+    res.headers["Content-Length"].should.equal "2"
+    res.write " there"
+    res.headers["Content-Length"].should.equal "8"
   end
 
 end
