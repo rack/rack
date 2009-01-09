@@ -45,6 +45,11 @@ context "Rack::Directory" do
       get("/cgi/../test")
 
     res.should.be.forbidden
+
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/cgi/%2E%2E/test")
+
+    res.should.be.forbidden
   end
 
   specify "404s if it can't find the file" do

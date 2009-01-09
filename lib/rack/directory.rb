@@ -54,12 +54,13 @@ table { width:100%%; }
 
     def _call(env)
       @env = env
-      @path_info, @script_name = env.values_at('PATH_INFO', 'SCRIPT_NAME')
+      @script_name = env['SCRIPT_NAME']
+      @path_info = Utils.unescape(env['PATH_INFO'])
 
       if forbidden = check_forbidden
         forbidden
       else
-        @path = F.join(@root, Utils.unescape(@path_info))
+        @path = F.join(@root, @path_info)
         list_path
       end
     end

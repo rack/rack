@@ -23,9 +23,9 @@ module Rack
     F = ::File
 
     def _call(env)
-      return forbidden  if env["PATH_INFO"].include? ".."
-
       @path_info = Utils.unescape(env["PATH_INFO"])
+      return forbidden  if @path_info.include? ".."
+
       @path = F.join(@root, @path_info)
 
       begin
