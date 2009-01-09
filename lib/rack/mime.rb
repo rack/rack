@@ -8,10 +8,10 @@ module Rack
     # Also see the documentation for MIME_TYPES
     #
     # Usage:
-    #     Rack::Utils.mime_type('.foo')
+    #     Rack::Mime.mime_type('.foo')
     #
     # This is a shortcut for:
-    #     Rack::Utils::MIME_TYPES.fetch('.foo', 'application/octet-stream')
+    #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
     def mime_type(ext, fallback='application/octet-stream')
       MIME_TYPES.fetch(ext, fallback)
@@ -26,12 +26,12 @@ module Rack
     #
     #     require 'webrick/httputils'
     #     list = WEBrick::HTTPUtils.load_mime_types('/etc/mime.types')
-    #     Rack::Utils::MIME_TYPES.merge!(list)
+    #     Rack::Mime::MIME_TYPES.merge!(list)
     #
     # To add the list mongrel provides, use:
     #
     #     require 'mongrel/handlers'
-    #     Rack::Utils::MIME_TYPES.merge!(Mongrel::DirHandler::MIME_TYPES)
+    #     Rack::Mime::MIME_TYPES.merge!(Mongrel::DirHandler::MIME_TYPES)
 
     MIME_TYPES = {
       ".3gp"     => "video/3gpp",
