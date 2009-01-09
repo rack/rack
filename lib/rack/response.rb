@@ -61,12 +61,13 @@ module Rack
         expires = "; expires=" + value[:expires].clone.gmtime.
           strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
         secure = "; secure"  if value[:secure]
+        httponly = "; HttpOnly" if value[:httponly]
         value = value[:value]
       end
       value = [value]  unless Array === value
       cookie = Utils.escape(key) + "=" +
         value.map { |v| Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}"
+        "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
       case self["Set-Cookie"]
       when Array

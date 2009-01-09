@@ -69,6 +69,12 @@ context "Rack::Response" do
     response["Set-Cookie"].should.equal "foo=bar; secure"
   end
 
+  specify "can set http only cookies" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :httponly => true}
+    response["Set-Cookie"].should.equal "foo=bar; HttpOnly"
+  end
+
   specify "can delete cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", "bar"
