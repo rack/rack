@@ -41,6 +41,13 @@ context "Rack::File" do
     res.should.be.forbidden
   end
 
+  specify "does not allow directory traversal with encoded periods" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/%2E%2E/README")
+
+    res.should.be.forbidden
+  end
+
   specify "404s if it can't find the file" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/cgi/blubb")
