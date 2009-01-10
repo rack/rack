@@ -13,28 +13,37 @@ module Rack
 
       # ID sets up a basic framework for implementing an id based sessioning
       # service. Cookies sent to the client for maintaining sessions will only
-      # contain an id reference. Only #get_session and #set_session should
-      # need to be overwritten.
+      # contain an id reference. Only #get_session and #set_session are
+      # required to be overwritten.
       #
       # All parameters are optional.
       # * :key determines the name of the cookie, by default it is
       #   'rack.session'
-      # * :domain and :path set the related cookie values, by default
-      #   domain is nil, and the path is '/'.
-      # * :expire_after is the number of seconds in which the session
-      #   cookie will expire. By default it is set not to provide any
-      #   expiry time.
+      # * :path, :domain, :expire_after, :secure, and :httponly set the related
+      #   cookie options as by Rack::Response#add_cookie
+      # * :defer will not set a cookie in the response.
+      # * :renew (implementation dependent) will prompt the generation of a new
+      #   session id, and migration of data to be referenced at the new id. If
+      #   :defer is set, it will be overridden and the cookie will be set.
+      # * :sidbits sets the number of bits in length that a generated session
+      #   id will be.
+      #
+      # These options can be set on a per request basis, at the location of
+      # env['rack.session.options']. Additionally the id of the session can be
+      # found within the options hash at the key :id. It is highly not
+      # recommended to change its value.
       #
       # Is Rack::Utils::Context compatible.
 
       class ID
         DEFAULT_OPTIONS = {
-          :key =>           'rack.session',
           :path =>          '/',
           :domain =>        nil,
           :expire_after =>  nil,
           :secure =>        false,
           :httponly =>      true,
+          :defer =>         false,
+          :renew =>         false,
           :sidbits =>       128
         }
 
@@ -87,16 +96,19 @@ module Rack
         end
 
         # Acquires the session from the environment and the session id from
-        # the session options and passes them to #set_session. It then
-        # proceeds to set a cookie up in the response with the session's id.
+        # the session options and passes them to #set_session. If successful
+        # and the :defer option is not true, a cookie will be added to the
+        # response with the session's id.
 
         def commit_session(env, status, headers, body)
           session = env['rack.session']
           options = env['rack.session.options']
-          session_id = options.delete :id
+          session_id = options[:id]
 
-          unless set_session(session_id, session, options)
+          if not session_id = set_session(session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            [status, headers, body]
+          elsif options[:defer] and not options[:renew]
             [status, headers, body]
           else
             cookie = Hash.new

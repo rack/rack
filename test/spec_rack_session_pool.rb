@@ -6,10 +6,23 @@ require 'rack/response'
 require 'thread'
 
 context "Rack::Session::Pool" do
+  session_match = /rack\.session=[0-9a-fA-F]+;/
   incrementor = lambda do |env|
     env["rack.session"]["counter"] ||= 0
     env["rack.session"]["counter"] += 1
     Rack::Response.new(env["rack.session"].inspect).to_a
+  end
+  drop_session = proc do |env|
+    env['rack.session.options'][:drop] = true
+    incrementor.call(env)
+  end
+  renew_session = proc do |env|
+    env['rack.session.options'][:renew] = true
+    incrementor.call(env)
+  end
+  defer_session = proc do |env|
+    env['rack.session.options'][:defer] = true
+    incrementor.call(env)
   end
 
   specify "creates a new cookie" do
@@ -22,27 +35,101 @@ context "Rack::Session::Pool" do
   specify "determines session from a cookie" do
     pool = Rack::Session::Pool.new(incrementor)
     req = Rack::MockRequest.new(pool)
-    res = req.get("/")
-    cookie = res["Set-Cookie"]
+    cookie = req.get("/")["Set-Cookie"]
     req.get("/", "HTTP_COOKIE" => cookie).
       body.should.equal '{"counter"=>2}'
     req.get("/", "HTTP_COOKIE" => cookie).
       body.should.equal '{"counter"=>3}'
   end
 
-  specify "survives broken cookies" do
+  specify "survives nonexistant cookies" do
     pool = Rack::Session::Pool.new(incrementor)
     res = Rack::MockRequest.new(pool).
       get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
     res.body.should.equal '{"counter"=>1}'
   end
 
-  specify "survives unfound cookies" do
+  specify "deletes cookies with :drop option" do
     pool = Rack::Session::Pool.new(incrementor)
     req = Rack::MockRequest.new(pool)
-    sid = Array.new(5){rand(16).to_s(16)}*''
-    req.get("/", "HTTP_COOKIE" => "rack.session="+sid).
-      body.should.equal '{"counter"=>1}'
+    drop = Rack::Utils::Context.new(pool, drop_session)
+    dreq = Rack::MockRequest.new(drop)
+
+    res0 = req.get("/")
+    session = (cookie = res0["Set-Cookie"])[session_match]
+    res0.body.should.equal '{"counter"=>1}'
+    pool.pool.size.should.be 1
+
+    res1 = req.get("/", "HTTP_COOKIE" => cookie)
+    res1["Set-Cookie"][session_match].should.equal session
+    res1.body.should.equal '{"counter"=>2}'
+    pool.pool.size.should.be 1
+
+    res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
+    res2["Set-Cookie"][session_match].should.equal session
+    res2.body.should.equal '{"counter"=>3}'
+    pool.pool.size.should.be 0
+
+    res3 = req.get("/", "HTTP_COOKIE" => cookie)
+    res3["Set-Cookie"][session_match].should.not.equal session
+    res3.body.should.equal '{"counter"=>1}'
+    pool.pool.size.should.be 1
+  end
+
+  specify "provides new session id with :renew option" do
+    pool = Rack::Session::Pool.new(incrementor)
+    req = Rack::MockRequest.new(pool)
+    renew = Rack::Utils::Context.new(pool, renew_session)
+    rreq = Rack::MockRequest.new(renew)
+
+    res0 = req.get("/")
+    session = (cookie = res0["Set-Cookie"])[session_match]
+    res0.body.should.equal '{"counter"=>1}'
+    pool.pool.size.should.be 1
+
+    res1 = req.get("/", "HTTP_COOKIE" => cookie)
+    res1["Set-Cookie"][session_match].should.equal session
+    res1.body.should.equal '{"counter"=>2}'
+    pool.pool.size.should.be 1
+
+    res2 = rreq.get("/", "HTTP_COOKIE" => cookie)
+    new_cookie = res2["Set-Cookie"]
+    new_session = new_cookie[session_match]
+    new_session.should.not.equal session
+    res2.body.should.equal '{"counter"=>3}'
+    pool.pool.size.should.be 1
+
+    res3 = req.get("/", "HTTP_COOKIE" => new_cookie)
+    res3["Set-Cookie"][session_match].should.equal new_session
+    res3.body.should.equal '{"counter"=>4}'
+    pool.pool.size.should.be 1
+  end
+
+  specify "omits cookie with :defer option" do
+    pool = Rack::Session::Pool.new(incrementor)
+    req = Rack::MockRequest.new(pool)
+    defer = Rack::Utils::Context.new(pool, defer_session)
+    dreq = Rack::MockRequest.new(defer)
+
+    res0 = req.get("/")
+    session = (cookie = res0["Set-Cookie"])[session_match]
+    res0.body.should.equal '{"counter"=>1}'
+    pool.pool.size.should.be 1
+
+    res1 = req.get("/", "HTTP_COOKIE" => cookie)
+    res1["Set-Cookie"][session_match].should.equal session
+    res1.body.should.equal '{"counter"=>2}'
+    pool.pool.size.should.be 1
+
+    res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
+    res2["Set-Cookie"].should.equal nil
+    res2.body.should.equal '{"counter"=>3}'
+    pool.pool.size.should.be 1
+
+    res3 = req.get("/", "HTTP_COOKIE" => cookie)
+    res3["Set-Cookie"][session_match].should.equal session
+    res3.body.should.equal '{"counter"=>4}'
+    pool.pool.size.should.be 1
   end
 
   # anyone know how to do this better?

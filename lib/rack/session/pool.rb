@@ -13,51 +13,55 @@ module Rack
     # In the context of a multithreaded environment, sessions being
     # committed to the pool is done in a merging manner.
     #
+    # The :drop option is available in rack.session.options if you with to
+    # explicitly remove the session from the session cache.
+    #
     # Example:
     #   myapp = MyRackApp.new
     #   sessioned = Rack::Session::Pool.new(myapp,
-    #     :key => 'rack.session',
     #     :domain => 'foo.com',
-    #     :path => '/',
     #     :expire_after => 2592000
     #   )
     #   Rack::Handler::WEBrick.run sessioned
 
     class Pool < Abstract::ID
       attr_reader :mutex, :pool
-      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.dup
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge :drop => false
 
       def initialize(app, options={})
         super
-        @pool = Hash.new{|h,k| h[k]={} }
+        @pool = Hash.new
         @mutex = Mutex.new
       end
 
-      private
-
-      def get_session(sid)
-        session = @mutex.synchronize do
-          sid = generate_sid if sid.nil? or not @pool.key? sid
-          @pool[sid]
+      def generate_sid
+        loop do
+          sid = super
+          break sid unless @pool.key? sid
         end
-        [sid, session]
       end
 
-      def set_session(sid, session, options)
+      def get_session(sid)
+        session = @pool[sid] and return [sid, session]
         @mutex.synchronize do
-          old_session = @pool[sid]
-          session = old_session.merge(session)
-          @pool[sid] = session
-          session.each do |k,v|
-            next unless old_session.has_key?(k) and v != old_session[k]
-            warn "session value assignment collision at #{k}: #{old_session[k]} <- #{v}"
-          end if $DEBUG
+          session = @pool[sid = generate_sid] = {}
+          [sid, session]
         end
-        return true
+      end
+
+      def set_session(session_id, new_session, options)
+        @mutex.synchronize do
+          session = @pool.delete(session_id) || {}
+          break if options[:drop]
+          session_id = generate_sid if options[:renew]
+          warn "//@#{session_id}: #{(session.keys&new_session.keys)*' '}" if $DEBUG
+          session = session.merge(new_session)
+          @pool.store(session_id, session)
+        end
+        return session_id
       rescue
-        warn "#{session.inspect} has been lost."
+        warn "#{new_session.inspect} has been lost."
         warn $!.inspect
-        return false
       end
     end
   end
