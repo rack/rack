@@ -6,129 +6,76 @@ require 'rack/auth/openid'
 
 context "Rack::Auth::OpenID" do
   OID = Rack::Auth::OpenID
-  realm = 'http://path/arf'
-  ruri = %w{arf arf/blargh}
-  auri = ruri.map{|u|'/'+u}
-  furi = auri.map{|u|'http://path'+u}
+  host = 'host'
+  subd = 'sub.host'
+  wild = '*.host'
+  path = 'path'
+  long = 'path/long'
+  scheme = 'http://'
+  realm = scheme+host+'/'+path
 
-  specify 'realm uri should be absolute and have a path' do
-    lambda{OID.new('/path')}.
-      should.raise ArgumentError
-    lambda{OID.new('http://path')}.
-      should.raise ArgumentError
-    lambda{OID.new('http://path/')}.
-      should.not.raise
-    lambda{OID.new('http://path/arf')}.
-      should.not.raise
+  specify 'realm uri should be valid' do
+    lambda{OID.new('/'+path)}.should.raise ArgumentError
+    lambda{OID.new('/'+long)}.should.raise ArgumentError
+    lambda{OID.new(scheme+host)}.should.not.raise
+    lambda{OID.new(scheme+host+'/')}.should.not.raise
+    lambda{OID.new(scheme+host+'/'+path)}.should.not.raise
+    lambda{OID.new(scheme+subd)}.should.not.raise
+    lambda{OID.new(scheme+subd+'/')}.should.not.raise
+    lambda{OID.new(scheme+subd+'/'+path)}.should.not.raise
   end
 
-  specify 'uri options should be absolute' do
-    [:login_good, :login_fail, :login_quit, :return_to].each do |param|
-      ruri.each do |uri|
-        lambda{OID.new(realm, {param=>uri})}.
-          should.raise ArgumentError
-      end
-      auri.each do |uri|
-        lambda{OID.new(realm, {param=>uri})}.
-          should.raise ArgumentError
-      end
-      furi.each do |uri|
-        lambda{OID.new(realm, {param=>uri})}.
-          should.not.raise
-      end
-    end
+  specify 'should be able to check if a uri is within the realm' do
   end
 
-  specify 'return_to should be absolute and be under the realm' do
-    lambda{OID.new(realm, {:return_to => 'http://path'})}.
-      should.raise ArgumentError
-    lambda{OID.new(realm, {:return_to => 'http://path/'})}.
-      should.raise ArgumentError
-    lambda{OID.new(realm, {:return_to => 'http://path/arf'})}.
-      should.not.raise
-    lambda{OID.new(realm, {:return_to => 'http://path/arf/'})}.
-      should.not.raise
-    lambda{OID.new(realm, {:return_to => 'http://path/arf/blargh'})}.
-      should.not.raise
-  end
-
-  specify 'extensions should be a module' do
-    ext = Object.new
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.match(/not a module/)
-    ext2 = Module.new
-    lambda{OID.new(realm).add_extension(ext2)}.
-      should.raise(ArgumentError).
-      message.should.not.match(/not a module/)
+  specify 'return_to should be valid' do
+    uri = '/'+path
+    lambda{OID.new(realm, :return_to=>uri)}.should.raise ArgumentError
+    uri = '/'+long
+    lambda{OID.new(realm, :return_to=>uri)}.should.raise ArgumentError
+    uri = scheme+host
+    lambda{OID.new(realm, :return_to=>uri)}.should.raise ArgumentError
+    uri = scheme+host+'/'+path
+    lambda{OID.new(realm, :return_to=>uri)}.should.not.raise
+    uri = scheme+subd+'/'+path
+    lambda{OID.new(realm, :return_to=>uri)}.should.raise ArgumentError
+    uri = scheme+host+'/'+long
+    lambda{OID.new(realm, :return_to=>uri)}.should.not.raise
+    uri = scheme+subd+'/'+long
+    lambda{OID.new(realm, :return_to=>uri)}.should.raise ArgumentError
   end
 
   specify 'extensions should have required constants defined' do
+    badext = Rack::Auth::OpenID::BadExtension
+    ext = Object.new
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext = Module.new
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/missing/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Request = nil
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/missing/).
-        should.not.match(/Request/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Response = nil
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/missing/).
-        should.not.match(/Response/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::NS_URI = nil
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.not.match(/missing/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
   end
 
   specify 'extensions should have Request and Response defined and inherit from OpenID::Extension' do
-$-w, w = nil, $-w               # yuck
+    $-w, w = nil, $-w               # yuck
+    badext = Rack::Auth::OpenID::BadExtension
     ext = Module.new
     ext::Request = nil
     ext::Response = nil
     ext::NS_URI = nil
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.match(/not a class/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Request = Class.new()
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.match(/not a class/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Response = Class.new()
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/not a decendant/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Request = Class.new(::OpenID::Extension)
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/not a decendant/)
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
     ext::Response = Class.new(::OpenID::Extension)
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.match(/NS_URI/)
-$-w = w
-  end
-
-  specify 'extensions should have NS_URI defined and be a string of an absolute http uri' do
-$-w, w = nil, $-w               # yuck
-    ext = Module.new
-    ext::Request = Class.new(::OpenID::Extension)
-    ext::Response = Class.new(::OpenID::Extension)
-    ext::NS_URI = nil
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(TypeError).
-      message.should.match(/not a string/)
-    ext::NS_URI = 'openid.net'
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.raise(ArgumentError).
-      message.should.match(/not an http uri/)
-    ext::NS_URI = 'http://openid.net'
-    lambda{OID.new(realm).add_extension(ext)}.
-      should.not.raise
-$-w = w
+    lambda{OID.new(realm).add_extension(ext)}.should.raise(badext)
+    $-w = w
   end
 end
 
