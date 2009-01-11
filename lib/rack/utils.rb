@@ -102,57 +102,29 @@ module Rack
     end
     module_function :select_best_encoding
 
-    # The recommended manner in which to implement a contexting application
-    # is to define a method #context in which a new Context is instantiated.
-    #
-    # As a Context is a glorified block, it is highly recommended that you
-    # define the contextual block within the application's operational scope.
-    # This would typically the application as you're place into Rack's stack.
-    #
-    #   class MyObject
-    #     ...
-    #     def context app
-    #       Rack::Utils::Context.new app do |env|
-    #         do_stuff
-    #         response = app.call(env)
-    #         do_more_stuff
-    #       end
-    #     end
-    #     ...
-    #   end
-    #
-    # mobj = MyObject.new
-    # app = mobj.context other_app
-    # Rack::Handler::Mongrel.new app
-    class Context < Proc
-      alias_method :old_inspect, :inspect
+    # Context allows the use of a compatible middleware at different points
+    # in a request handling stack. A compatible middleware must define
+    # #context which should take the arguments env and app. The first of which
+    # would be the request environment. The second of which would be the rack
+    # application that the request would be forwarded to.
+    class Context
       attr_reader :for, :app
-      def initialize app_f, app_r
-        raise 'running context not provided' unless app_f
+
+      def initialize(app_f, app_r)
         raise 'running context does not respond to #context' unless app_f.respond_to? :context
-        raise 'application context not provided' unless app_r
-        raise 'application context does not respond to #call' unless app_r.respond_to? :call
-        @for = app_f
-        @app = app_r
+        @for, @app = app_f, app_r
       end
-      def inspect
-        "#{old_inspect} ==> #{@for.inspect} ==> #{@app.inspect}"
+
+      def call(env)
+        @for.context(env, @app)
       end
-      def context app_r
-        raise 'new application context not provided' unless app_r
-        raise 'new application context does not respond to #call' unless app_r.respond_to? :call
-        @for.context app_r
+
+      def recontext(app)
+        self.class.new(@for, app)
       end
-      def pretty_print pp
-        pp.text old_inspect
-        pp.nest 1 do
-          pp.breakable
-          pp.text '=for> '
-          pp.pp @for
-          pp.breakable
-          pp.text '=app> '
-          pp.pp @app
-        end
+
+      def context(env, app=@app)
+        recontext(app).call(env)
       end
     end
 

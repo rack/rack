@@ -20,24 +20,20 @@ module Rack
     # a full description of behaviour, please see memcache's documentation.
 
     class Memcache < Abstract::ID
-      attr_reader :mutex, :pool
-      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge({
-        :namespace => 'rack:session',
-        :memcache_server => 'localhost:11211'
-      })
 
       def initialize(app, options={})
-        super
-        @pool = MemCache.new @default_options[:memcache_server], @default_options
-        unless @pool.servers.any?{|s|s.alive?}
-          raise "#{self} unable to find server during initialization."
-        end
+        super app, {
+          :namespace => 'rack:session',
+          :memcache_server => 'localhost:11211'
+        }.merge(options)
+
         @mutex = Mutex.new
+        @pool = MemCache.
+          new @default_options[:memcache_server], @default_options
+        raise 'No memcache servers' unless @pool.servers.any?{|s|s.alive?}
       end
 
-      private
-
-      def get_session(env, sid)
+      def get_session(sid)
         session = sid && @pool.get(sid)
         unless session and session.is_a?(Hash)
           session = {}
@@ -51,11 +47,9 @@ module Rack
           end
         end
         class << session
-          @deleted = []
-          def delete key
-            (@deleted||=[]) << key
-            super
-          end
+          def __del_key key; (@deleted||={})[key] = self[key]; end
+          def delete k; __del_key k; super; end
+          def clear; keys.each{|k| __del_key k }; super; end
         end
         [sid, session]
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
@@ -64,28 +58,20 @@ module Rack
         return [ nil, {} ]
       end
 
-      def set_session(env, sid)
-        session = env['rack.session']
-        options = env['rack.session.options']
-        expiry  = options[:expire_after] || 0
-        o, s = @mutex.synchronize do
+      def set_session(sid, session, options)
+        expiry = options[:expire_after] || 0
+        @mutex.synchronize do
           old_session = @pool.get(sid)
           unless old_session.is_a?(Hash)
-            warn 'Session not properly initialized.' if $DEBUG
+            warn 'Session not properly initialized.'
             old_session = {}
-            @pool.add sid, old_session, expiry
           end
-          session.instance_eval do
-            @deleted.each{|k| old_session.delete(k) } if defined? @deleted
+          del = session.instance_variable_get '@deleted'
+          if del and not del.empty?
+            del.each{|k| old_session.delete(k) }
           end
           @pool.set sid, old_session.merge(session), expiry
-          [old_session, session]
         end
-        s.each do |k,v|
-          next unless o.has_key?(k) and v != o[k]
-          warn "session value assignment collision at #{k.inspect}:"+
-            "\n\t#{o[k].inspect}\n\t#{v.inspect}"
-        end if $DEBUG and env['rack.multithread']
         return true
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
         warn "#{self} is unable to find server."

@@ -98,72 +98,45 @@ context "Rack::Utils::HeaderHash" do
 end
 
 context "Rack::Utils::Context" do
-  test_app1 = Object.new
-  def test_app1.context app
-    Rack::Utils::Context.new self, app do |env|
-      app.call env
-    end
+  class ContextTest
+    attr_reader :app
+    def initialize app; @app=app; end
+    def call env; context env; end
+    def context env, app=@app; app.call(env); end
   end
-  test_app2 = Object.new
-  def test_app2.context env; end
-  test_app3 = Object.new
   test_target1 = proc{|e| e.to_s+' world' }
   test_target2 = proc{|e| e.to_i+2 }
   test_target3 = proc{|e| nil }
   test_target4 = proc{|e| [200,{'Content-Type'=>'text/plain', 'Content-Length'=>'0'},['']] }
-  test_target5 = Object.new
-
-  specify "should perform checks on both arguments" do
-    lambda { Rack::Utils::Context.new(nil, nil){} }.should.raise
-    lambda { Rack::Utils::Context.new(test_app1, nil){} }.should.raise
-    lambda { Rack::Utils::Context.new(nil, test_target1){} }.should.raise
-    lambda { Rack::Utils::Context.new(test_app1, test_target1){} }.should.not.raise
-    lambda { Rack::Utils::Context.new(test_app3, test_target1){} }.should.raise
-    lambda { Rack::Utils::Context.new(test_app1, test_target5){} }.should.raise
-    lambda { test_app1.context(nil){} }.should.raise
-    lambda { test_app1.context(test_target1){} }.should.not.raise
-    lambda { test_app1.context(test_target5){} }.should.raise
-  end
+  test_app = ContextTest.new test_target4
 
   specify "should set context correctly" do
-    c1 = Rack::Utils::Context.new(test_app1, test_target1){}
-    c1.for.should.equal test_app1
+    test_app.app.should.equal test_target4
+    c1 = Rack::Utils::Context.new(test_app, test_target1)
+    c1.for.should.equal test_app
     c1.app.should.equal test_target1
-    c2 = Rack::Utils::Context.new(test_app1, test_target2){}
-    c2.for.should.equal test_app1
+    c2 = Rack::Utils::Context.new(test_app, test_target2)
+    c2.for.should.equal test_app
     c2.app.should.equal test_target2
-    c3 = Rack::Utils::Context.new(test_app2, test_target3){}
-    c3.for.should.equal test_app2
-    c3.app.should.equal test_target3
-    c4 = Rack::Utils::Context.new(test_app2, test_target4){}
-    c4.for.should.equal test_app2
-    c4.app.should.equal test_target4
   end
 
   specify "should alter app on recontexting" do
-    c1 = Rack::Utils::Context.new(test_app1, test_target1){}
-    c1.for.should.equal test_app1
-    c1.app.should.equal test_target1
-    c2 = c1.context(test_target2)
-    c2.for.should.equal test_app1
-    c2.app.should.not.equal test_target1
+    c1 = Rack::Utils::Context.new(test_app, test_target1)
+    c2 = c1.recontext(test_target2)
+    c2.for.should.equal test_app
     c2.app.should.equal test_target2
-    c3 = c2.context(test_target3)
-    c3.for.should.equal test_app1
-    c3.app.should.not.equal test_target2
+    c3 = c2.recontext(test_target3)
+    c3.for.should.equal test_app
     c3.app.should.equal test_target3
-    c4 = c3.context(test_target4)
-    c4.for.should.equal test_app1
-    c4.app.should.not.equal test_target3
-    c4.app.should.equal test_target4
   end
 
   specify "should run different apps" do
-    c1 = test_app1.context(test_target1)
-    c2 = c1.context test_target2
-    c3 = c2.context test_target3
-    c4 = c3.context test_target4
+    c1 = Rack::Utils::Context.new test_app, test_target1
+    c2 = c1.recontext test_target2
+    c3 = c2.recontext test_target3
+    c4 = c3.recontext test_target4
     a4 = Rack::Lint.new c4
+    a5 = Rack::Lint.new test_app
     r1 = c1.call('hello')
     r1.should.equal 'hello world'
     r2 = c2.call(2)
@@ -172,5 +145,8 @@ context "Rack::Utils::Context" do
     r3.should.be.nil
     r4 = Rack::MockRequest.new(a4).get('/')
     r4.status.should.be 200
+    r5 = Rack::MockRequest.new(a5).get('/')
+    r5.status.should.be 200
+    r4.body.should.equal r5.body
   end
 end

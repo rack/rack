@@ -6,11 +6,11 @@ require 'rack/response'
 require 'thread'
 
 context "Rack::Session::Pool" do
-  incrementor = lambda { |env|
+  incrementor = lambda do |env|
     env["rack.session"]["counter"] ||= 0
     env["rack.session"]["counter"] += 1
     Rack::Response.new(env["rack.session"].inspect).to_a
-  }
+  end
 
   specify "creates a new cookie" do
     pool = Rack::Session::Pool.new(incrementor)
@@ -21,12 +21,13 @@ context "Rack::Session::Pool" do
 
   specify "determines session from a cookie" do
     pool = Rack::Session::Pool.new(incrementor)
-    res = Rack::MockRequest.new(pool).get("/")
+    req = Rack::MockRequest.new(pool)
+    res = req.get("/")
     cookie = res["Set-Cookie"]
-    res = Rack::MockRequest.new(pool).get("/", "HTTP_COOKIE" => cookie)
-    res.body.should.equal '{"counter"=>2}'
-    res = Rack::MockRequest.new(pool).get("/", "HTTP_COOKIE" => cookie)
-    res.body.should.equal '{"counter"=>3}'
+    req.get("/", "HTTP_COOKIE" => cookie).
+      body.should.equal '{"counter"=>2}'
+    req.get("/", "HTTP_COOKIE" => cookie).
+      body.should.equal '{"counter"=>3}'
   end
 
   specify "survives broken cookies" do
@@ -36,21 +37,24 @@ context "Rack::Session::Pool" do
     res.body.should.equal '{"counter"=>1}'
   end
 
-  specify "maintains freshness" do
-    pool = Rack::Session::Pool.new(incrementor, :expire_after => 3)
-    res = Rack::MockRequest.new(pool).get('/')
-    res.body.should.include '"counter"=>1'
-    cookie = res["Set-Cookie"]
-    res = Rack::MockRequest.new(pool).get('/', "HTTP_COOKIE" => cookie)
-    res["Set-Cookie"].should.equal cookie
-    res.body.should.include '"counter"=>2'
-    sleep 4
-    res = Rack::MockRequest.new(pool).get('/', "HTTP_COOKIE" => cookie)
-    res["Set-Cookie"].should.not.equal cookie
-    res.body.should.include '"counter"=>1'
+  specify "survives unfound cookies" do
+    pool = Rack::Session::Pool.new(incrementor)
+    req = Rack::MockRequest.new(pool)
+    sid = Array.new(5){rand(16).to_s(16)}*''
+    req.get("/", "HTTP_COOKIE" => "rack.session="+sid).
+      body.should.equal '{"counter"=>1}'
   end
 
+  # anyone know how to do this better?
   specify "multithread: should merge sessions" do
+    pool = Rack::Session::Pool.new(incrementor)
+    req = Rack::MockRequest.new(pool)
+
+    res = req.get('/')
+    res.body.should.equal '{"counter"=>1}'
+    cookie = res["Set-Cookie"]
+    sess_id = cookie[/#{pool.key}=([^,;]+)/,1]
+
     delta_incrementor = lambda do |env|
       # emulate disconjoinment of threading
       env['rack.session'] = env['rack.session'].dup
@@ -58,27 +62,21 @@ context "Rack::Session::Pool" do
       env['rack.session'][(Time.now.usec*rand).to_i] = true
       incrementor.call(env)
     end
-    pool = Rack::Session::Pool.new(incrementor)
-    res = Rack::MockRequest.new(pool).get('/')
-    res.body.should.equal '{"counter"=>1}'
-    cookie = res["Set-Cookie"]
-    sess_id = cookie[/#{pool.key}=([^,;]+)/,1]
-
-    pool = pool.context(delta_incrementor)
-    r = Array.new(rand(7).to_i+3).
-      map! do
-        Thread.new do
-          Rack::MockRequest.new(pool).get('/', "HTTP_COOKIE" => cookie)
-        end
-      end.
-      reverse!.
-      map!{|t| t.run.join.value }
-    session = pool.for.pool[sess_id] # for is needed by Utils::Context
-    session.size.should.be r.size+1 # counter
-    session['counter'].should.be 2 # meeeh
+    tses = Rack::Utils::Context.new pool, delta_incrementor
+    treq = Rack::MockRequest.new(tses)
+    tnum = rand(7).to_i+5
+    r = Array.new(tnum) do
+      Thread.new(treq) do |run|
+        run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
+      end
+    end.reverse.map{|t| t.run.join.value }
     r.each do |res|
       res['Set-Cookie'].should.equal cookie
       res.body.should.include '"counter"=>2'
     end
+
+    session = pool.pool[sess_id]
+    session.size.should.be tnum+1 # counter
+    session['counter'].should.be 2 # meeeh
   end
 end
