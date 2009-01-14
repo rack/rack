@@ -1,4 +1,6 @@
 require 'openssl'
+require 'rack/request'
+require 'rack/response'
 
 module Rack
 

@@ -1,3 +1,5 @@
+require 'rack/utils'
+
 module Rack
   # Sets the Content-Length header on responses with fixed-length bodies.
   class ContentLength

@@ -1,3 +1,5 @@
+require 'rack/utils'
+
 module Rack
 
   # Middleware that enables conditional GET using If-None-Match and

@@ -1,6 +1,7 @@
 require "zlib"
 require "stringio"
 require "time"  # for Time.httpdate
+require 'rack/utils'
 
 module Rack
 

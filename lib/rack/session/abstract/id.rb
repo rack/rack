@@ -2,6 +2,8 @@
 # bugrep: Andreas Zehnder
 
 require 'time'
+require 'rack/request'
+require 'rack/response'
 
 module Rack
 

@@ -1,4 +1,5 @@
 require 'time'
+require 'rack/utils'
 require 'rack/mime'
 
 module Rack
