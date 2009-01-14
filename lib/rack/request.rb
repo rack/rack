@@ -121,7 +121,13 @@ module Rack
             Utils::Multipart.parse_multipart(env)
           @env["rack.request.form_vars"] = @env["rack.input"].read
           @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
-          @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
+
+          begin
+            @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
+          rescue Errno::ESPIPE
+            # Handles exceptions raised by input streams that cannot be rewound
+            # such as when using plain CGI under Apache
+          end
         end
         @env["rack.request.form_hash"]
       else

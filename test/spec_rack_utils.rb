@@ -150,3 +150,44 @@ context "Rack::Utils::Context" do
     r4.body.should.equal r5.body
   end
 end
+
+context "Rack::Utils::Multipart" do
+  specify "should return nil if content type is not multipart" do
+    env = Rack::MockRequest.env_for("/",
+            "CONTENT_TYPE" => 'application/x-www-form-urlencoded')
+    Rack::Utils::Multipart.parse_multipart(env).should.equal nil
+  end
+
+  specify "should parse multipart upload with text file" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text_file))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; name=\"files\"; filename=\"file1.txt\"\r\nContent-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  specify "rewinds input after parsing upload" do
+    options = multipart_fixture(:text_file)
+    input = options[:input]
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    input.read.length.should.equal 197
+  end
+
+  private
+    def multipart_fixture(name)
+      file = File.join(File.dirname(__FILE__), "multipart", name.to_s)
+      data = File.read(file)
+
+      type = "multipart/form-data; boundary=AaB03x"
+      length = data.length.to_s
+
+      { "CONTENT_TYPE" => type,
+        "CONTENT_LENGTH" => length,
+        :input => StringIO.new(data) }
+    end
+end

@@ -311,6 +311,13 @@ module Rack
             break  if buf.empty? || content_length == -1
           }
 
+          begin
+            input.rewind if input.respond_to?(:rewind)
+          rescue Errno::ESPIPE
+            # Handles exceptions raised by input streams that cannot be rewound
+            # such as when using plain CGI under Apache
+          end
+
           params
         end
       end
