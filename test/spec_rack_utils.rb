@@ -29,7 +29,7 @@ context "Rack::Utils" do
     Rack::Utils.parse_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F").
       should.equal "my weird field" => "q1!2\"'w$5&7/z8)?"
   end
-  
+
   specify "should build query strings correctly" do
     Rack::Utils.build_query("foo" => "bar").should.equal "foo=bar"
     Rack::Utils.build_query("foo" => ["bar", "quux"]).
@@ -182,6 +182,19 @@ context "Rack::Utils::Multipart" do
       "Content-Type: image/png\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.length.should.equal 26473
+  end
+
+  specify "should parse IE multipart upload and clean up filename" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:ie))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      'filename="C:\Documents and Settings\Administrator\Desktop\file1.txt"' +
+      "\r\nContent-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
   end
 
   specify "rewinds input after parsing upload" do

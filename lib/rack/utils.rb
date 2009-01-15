@@ -293,6 +293,14 @@ module Rack
 
             if filename
               body.rewind
+
+              # Take the basename of the upload's original filename.
+              # This handles the full Windows paths given by Internet Explorer
+              # (and perhaps other broken user agents) without affecting
+              # those which give the lone filename.
+              filename =~ /^(?:.*[:\\\/])?(.*)/m
+              filename = $1
+
               data = {:filename => filename, :type => content_type,
                       :name => name, :tempfile => body, :head => head}
             else
