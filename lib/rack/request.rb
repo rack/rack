@@ -90,7 +90,6 @@ module Rack
     # one of the media types presents in this list will not be eligible
     # for form-data / param parsing.
     FORM_DATA_MEDIA_TYPES = [
-      nil,
       'application/x-www-form-urlencoded',
       'multipart/form-data'
     ]
@@ -104,12 +103,17 @@ module Rack
     ]
 
     # Determine whether the request body contains form-data by checking
-    # the request media_type against registered form-data media-types:
-    # "application/x-www-form-urlencoded" and "multipart/form-data". The
+    # the request Content-Type for one of the media-types:
+    # "application/x-www-form-urlencoded" or "multipart/form-data". The
     # list of form-data media types can be modified through the
     # +FORM_DATA_MEDIA_TYPES+ array.
+    #
+    # A request body is also assumed to contain form-data when no
+    # Content-Type header is provided and the request_method is POST.
     def form_data?
-      FORM_DATA_MEDIA_TYPES.include?(media_type)
+      type = media_type
+      meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
+      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking
@@ -158,7 +162,7 @@ module Rack
 
     # The union of GET and POST data.
     def params
-      self.put? ? self.GET : self.GET.update(self.POST)
+      self.GET.update(self.POST)
     rescue EOFError => e
       self.GET
     end

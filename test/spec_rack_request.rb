@@ -66,9 +66,11 @@ context "Rack::Request" do
     lambda { req.POST }.should.raise(RuntimeError)
   end
 
-  specify "can parse POST data" do
+  specify "can parse POST data when method is POST and no Content-Type given" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
+      Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'POST',
+        :input => "foo=bar&quux=bla")
     req.content_type.should.be.nil
     req.media_type.should.be.nil
     req.query_string.should.equal "foo=quux"
@@ -77,7 +79,7 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
-  specify "can parse POST data with explicit content type" do
+  specify "can parse POST data with explicit content type regardless of method" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
         "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
@@ -92,6 +94,7 @@ context "Rack::Request" do
   specify "does not parse POST data when media type is not form-data" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'POST',
         "CONTENT_TYPE" => 'text/plain;charset=utf-8',
         :input => "foo=bar&quux=bla")
     req.content_type.should.equal 'text/plain;charset=utf-8'
@@ -99,6 +102,16 @@ context "Rack::Request" do
     req.media_type_params['charset'].should.equal 'utf-8'
     req.POST.should.be.empty
     req.params.should.equal "foo" => "quux"
+    req.body.read.should.equal "foo=bar&quux=bla"
+  end
+
+  specify "can parse POST data on PUT when media type is form-data" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'PUT',
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
+        :input => "foo=bar&quux=bla")
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
     req.body.read.should.equal "foo=bar&quux=bla"
   end
 
@@ -114,7 +127,8 @@ context "Rack::Request" do
 
   specify "cleans up Safari's ajax POST body" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/", :input => "foo=bar&quux=bla\0")
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "foo=bar&quux=bla\0")
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
   end
 
@@ -173,7 +187,9 @@ context "Rack::Request" do
 
   specify "can cache, but invalidates the cache" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
+      Rack::MockRequest.env_for("/?foo=quux",
+        "CONTENT_TYPE" => "application/x-www-form-urlencoded",
+        :input => "foo=bar&quux=bla")
     req.GET.should.equal "foo" => "quux"
     req.GET.should.equal "foo" => "quux"
     req.env["QUERY_STRING"] = "bla=foo"
