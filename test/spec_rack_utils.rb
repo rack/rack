@@ -190,7 +190,30 @@ context "Rack::Utils::Multipart" do
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
+    params["files"][:filename].should.equal "file1.txt"
     input.read.length.should.equal 197
+  end
+
+  specify "does not try to rewind input if it is not supported" do
+    options = multipart_fixture(:text)
+    input = options[:input]
+    input.instance_eval "undef :rewind"
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:filename].should.equal "file1.txt"
+  end
+
+  specify "does not try to rewind input Apache/CGI input" do
+    options = multipart_fixture(:text)
+    input = options[:input]
+    input.instance_eval do
+      def rewind; raise Errno::ESPIPE; end
+    end
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:filename].should.equal "file1.txt"
   end
 
   private
