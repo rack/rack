@@ -159,18 +159,33 @@ context "Rack::Utils::Multipart" do
   end
 
   specify "should parse multipart upload with text file" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:text_file))
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
     params["files"][:type].should.equal "text/plain"
     params["files"][:filename].should.equal "file1.txt"
-    params["files"][:head].should.equal "Content-Disposition: form-data; name=\"files\"; filename=\"file1.txt\"\r\nContent-Type: text/plain\r\n"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  specify "should parse multipart upload with binary file" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:binary))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:type].should.equal "image/png"
+    params["files"][:filename].should.equal "rack-logo.png"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"rack-logo.png\"\r\n" +
+      "Content-Type: image/png\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.length.should.equal 26473
+  end
+
   specify "rewinds input after parsing upload" do
-    options = multipart_fixture(:text_file)
+    options = multipart_fixture(:text)
     input = options[:input]
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Utils::Multipart.parse_multipart(env)
