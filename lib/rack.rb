@@ -38,6 +38,7 @@ module Rack
   autoload :Handler, "rack/handler"
   autoload :Head, "rack/head"
   autoload :Lint, "rack/lint"
+  autoload :Lock, "rack/lock"
   autoload :MethodOverride, "rack/methodoverride"
   autoload :Mime, "rack/mime"
   autoload :Recursive, "rack/recursive"
