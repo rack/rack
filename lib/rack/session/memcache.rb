@@ -20,12 +20,13 @@ module Rack
     # a full description of behaviour, please see memcache's documentation.
 
     class Memcache < Abstract::ID
+      attr_reader :mutex, :pool
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
+        :namespace => 'rack:session',
+        :memcache_server => 'localhost:11211'
 
       def initialize(app, options={})
-        super app, {
-          :namespace => 'rack:session',
-          :memcache_server => 'localhost:11211'
-        }.merge(options)
+        super
 
         @mutex = Mutex.new
         @pool = MemCache.
@@ -33,50 +34,75 @@ module Rack
         raise 'No memcache servers' unless @pool.servers.any?{|s|s.alive?}
       end
 
-      def get_session(sid)
-        session = sid && @pool.get(sid)
-        unless session and session.is_a?(Hash)
+      def generate_sid
+        loop do
+          sid = super
+          break sid unless @pool.get(sid, true)
+        end
+      end
+
+      def get_session(env, sid)
+        session = @pool.get(sid) if sid
+        @mutex.lock if env['rack.multithread']
+        unless sid and session
+          env['rack.errors'].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
           session = {}
-          lc = 0
-          @mutex.synchronize do
-            begin
-              raise RuntimeError, 'Unique id finding looping excessively' if (lc+=1) > 1000
-              sid = generate_sid
-              ret = @pool.add(sid, session)
-            end until /^STORED/ =~ ret
-          end
+          sid = generate_sid
+          ret = @pool.add sid, session
+          raise "Session collision on '#{sid.inspect}'" unless /^STORED/ =~ ret
         end
-        class << session
-          def __del_key key; (@deleted||={})[key] = self[key]; end
-          def delete k; __del_key k; super; end
-          def clear; keys.each{|k| __del_key k }; super; end
-        end
-        [sid, session]
+        session.instance_variable_set('@old', {}.merge(session))
+        return [sid, session]
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
         warn "#{self} is unable to find server."
         warn $!.inspect
         return [ nil, {} ]
+      ensure
+        @mutex.unlock if env['rack.multithread']
       end
 
-      def set_session(sid, session, options)
-        expiry = options[:expire_after] || 0
-        @mutex.synchronize do
-          old_session = @pool.get(sid)
-          unless old_session.is_a?(Hash)
-            warn 'Session not properly initialized.'
-            old_session = {}
-          end
-          del = session.instance_variable_get '@deleted'
-          if del and not del.empty?
-            del.each{|k| old_session.delete(k) }
-          end
-          @pool.set sid, old_session.merge(session), expiry
+      def set_session(env, session_id, new_session, options)
+        expiry = options[:expire_after]
+        expiry = expiry.nil? ? 0 : expiry + 1
+
+        @mutex.lock if env['rack.multithread']
+        session = @pool.get(session_id) || {}
+        if options[:renew] or options[:drop]
+          @pool.delete session_id
+          return false if options[:drop]
+          session_id = generate_sid
+          @pool.add session_id, 0 # so we don't worry about cache miss on #set
         end
-        return true
+        old_session = new_session.instance_variable_get('@old') || {}
+        session = merge_sessions session_id, old_session, new_session, session
+        @pool.set session_id, session, expiry
+        return session_id
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
         warn "#{self} is unable to find server."
         warn $!.inspect
         return false
+      ensure
+        @mutex.unlock if env['rack.multithread']
+      end
+
+      private
+
+      def merge_sessions sid, old, new, cur=nil
+        cur ||= {}
+        unless Hash === old and Hash === new
+          warn 'Bad old or new sessions provided.'
+          return cur
+        end
+
+        delete = old.keys - new.keys
+        warn "//@#{sid}: delete #{delete*','}" if $VERBOSE and not delete.empty?
+        delete.each{|k| cur.delete k }
+
+        update = new.keys.select{|k| new[k] != old[k] }
+        warn "//@#{sid}: update #{update*','}" if $VERBOSE and not update.empty?
+        update.each{|k| cur[k] = new[k] }
+
+        cur
       end
     end
   end

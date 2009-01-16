@@ -85,7 +85,7 @@ module Rack
           session_id = request.cookies[@key]
 
           begin
-            session_id, session = get_session(session_id)
+            session_id, session = get_session(env, session_id)
             env['rack.session'] = session
           rescue
             env['rack.session'] = Hash.new
@@ -105,10 +105,11 @@ module Rack
           options = env['rack.session.options']
           session_id = options[:id]
 
-          if not session_id = set_session(session_id, session, options)
+          if not session_id = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
             [status, headers, body]
           elsif options[:defer] and not options[:renew]
+            env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
             [status, headers, body]
           else
             cookie = Hash.new
@@ -125,14 +126,14 @@ module Rack
         # If nil is provided as the session id, generation of a new valid id
         # should occur within.
 
-        def get_session(sid)
+        def get_session(env, sid)
           raise '#get_session not implemented.'
         end
 
         # All thread safety and session storage proceedures should occur here.
         # Should return true or false dependant on whether or not the session
         # was saved or not.
-        def set_session(sid, session, options)
+        def set_session(env, sid, session, options)
           raise '#set_session not implemented.'
         end
       end
