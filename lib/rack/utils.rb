@@ -248,7 +248,7 @@ module Rack
           status = input.read(boundary_size)
           raise EOFError, "bad content body"  unless status == boundary + EOL
 
-          rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/
+          rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/n
 
           loop {
             head = nil

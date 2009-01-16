@@ -354,6 +354,33 @@ EOF
     lambda { req.POST }.should.raise(EOFError)
   end
 
+  specify "shouldn't try to interpret binary as utf8" do
+    begin
+      original_kcode = $KCODE
+      $KCODE='UTF8'
+
+      input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="junk.a"\r
+content-type: application/octet-stream\r
+\r
+#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
+--AaB03x--\r
+EOF
+
+      req = Rack::Request.new Rack::MockRequest.env_for("/",
+                        "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                        "CONTENT_LENGTH" => input.size,
+                        :input => input)
+
+      lambda{req.POST}.should.not.raise(EOFError)
+      req.POST["fileupload"][:tempfile].size.should.equal 4
+    ensure
+      $KCODE = original_kcode
+    end
+  end
+
+
   specify "should work around buggy 1.8.* Tempfile equality" do
     input = <<EOF
 --AaB03x\r
