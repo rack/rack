@@ -208,7 +208,7 @@ module Rack
           raise NoSession, 'No compatible session'
         end
         # let us work in our own namespace...
-        session = (session[:openid] ||= {})
+        session = (env_session[:openid] ||= {})
         unless session and session.is_a?(Hash)
           raise NoSession, 'Incompatible openid session'
         end
@@ -271,7 +271,7 @@ module Rack
       rescue ::OpenID::DiscoveryFailure => e
         # thrown from inside OpenID::Consumer#begin by yadis stuff
         req.env['rack.errors'].puts([e.message, *e.backtrace]*"\n")
-        return server_failure
+        return foreign_server_failure
       end
 
       # This is the final portion of authentication.
@@ -412,8 +412,8 @@ module Rack
 
       def success(oid, request, session)
         session.clear
-        session[:openid_identity]   = resp.display_identifier
-        session[:openid_identifier] = resp.identity_url
+        session[:openid_identity]   = oid.display_identifier
+        session[:openid_identifier] = oid.identity_url
         extensions.keys.each do |ext|
           label     = ext.name[/[^:]+$/].downcase
           response  = ext::Response.from_success_response(oid)

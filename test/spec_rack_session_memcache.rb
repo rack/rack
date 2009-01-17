@@ -153,7 +153,8 @@ begin
 
     # anyone know how to do this better?
     specify "multithread: should cleanly merge sessions" do
-      next
+      next unless $DEBUG
+      warn 'Running multithread test for Session::Memcache'
       pool = Rack::Session::Memcache.new(incrementor)
       req = Rack::MockRequest.new(pool)
 

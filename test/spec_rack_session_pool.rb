@@ -135,7 +135,8 @@ context "Rack::Session::Pool" do
 
   # anyone know how to do this better?
   specify "multithread: should merge sessions" do
-    next
+    next unless $DEBUG
+    warn 'Running multithread tests for Session::Pool'
     pool = Rack::Session::Pool.new(incrementor)
     req = Rack::MockRequest.new(pool)
 
