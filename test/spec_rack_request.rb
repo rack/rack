@@ -103,6 +103,12 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  specify "cleans up Safari's ajax POST body" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", :input => "foo=bar&quux=bla\0")
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
+  end
+
   specify "can get value by key from params with #[]" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("?foo=quux")

@@ -119,8 +119,13 @@ module Rack
         @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] =
             Utils::Multipart.parse_multipart(env)
-          @env["rack.request.form_vars"] = @env["rack.input"].read
-          @env["rack.request.form_hash"] = Utils.parse_query(@env["rack.request.form_vars"])
+          form_vars = @env["rack.input"].read
+
+          # Fix for Safari Ajax postings that always append \0
+          form_vars.sub!(/\0\z/, '')
+
+          @env["rack.request.form_vars"] = form_vars
+          @env["rack.request.form_hash"] = Utils.parse_query(form_vars)
 
           begin
             @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
