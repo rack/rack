@@ -42,7 +42,7 @@ module Rack
           res.status = status.to_i
           headers.each { |k, vs|
             if k.downcase == "set-cookie"
-              res.cookies.concat vs.to_a
+              res.cookies.concat Array(vs)
             else
               vs.each { |v|
                 res[k] = v
