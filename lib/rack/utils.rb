@@ -291,7 +291,10 @@ module Rack
               content_length = -1  if $1 == "--"
             end
 
-            if filename
+            if filename == ""
+              # filename is blank which means no file has been selected
+              data = nil
+            elsif filename
               body.rewind
 
               # Take the basename of the upload's original filename.

@@ -184,6 +184,26 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.length.should.equal 26473
   end
 
+  specify "should parse multipart upload with empty file" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal ""
+  end
+
+  specify "should not create empty an tempfile if no file was selected" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"].should.equal nil
+  end
+
   specify "should parse IE multipart upload and clean up filename" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:ie))
     params = Rack::Utils::Multipart.parse_multipart(env)
