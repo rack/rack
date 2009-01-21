@@ -97,6 +97,8 @@ module Rack
         env["rack.input"] = opts[:input]
       end
 
+      env["CONTENT_LENGTH"] = env["rack.input"].length
+
       opts.each { |field, value|
         env[field] = value  if String === field
       }
