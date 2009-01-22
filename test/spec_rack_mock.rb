@@ -64,6 +64,11 @@ context "Rack::MockRequest" do
       should.equal "OPTIONS"
   end
 
+  specify "should set content length" do
+    env = Rack::MockRequest.env_for("/", :input => "foo")
+    env["CONTENT_LENGTH"].should.equal "3"
+  end
+
   specify "should allow posting" do
     res = Rack::MockRequest.new(app).get("", :input => "foo")
     env = YAML.load(res.body)
@@ -125,7 +130,7 @@ context "Rack::MockResponse" do
     res.original_headers["Content-Type"].should.equal "text/yaml"
     res["Content-Type"].should.equal "text/yaml"
     res.content_type.should.equal "text/yaml"
-    res.content_length.should.be 444  # needs change often.
+    res.content_length.should.be 464  # needs change often.
     res.location.should.be.nil
   end
 

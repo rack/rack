@@ -25,7 +25,7 @@ context "Rack::Request" do
     req.host.should.equal "example.com"
     req.port.should.equal 8080
 
-    req.content_length.should.be.nil
+    req.content_length.should.equal "0"
     req.content_type.should.be.nil
   end
 
