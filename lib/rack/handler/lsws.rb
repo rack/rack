@@ -13,8 +13,8 @@ module Rack
         env.delete "HTTP_CONTENT_LENGTH"
         env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
         env.update({"rack.version" => [0,1],
-                     "rack.input" => STDIN,
-                     "rack.errors" => STDERR,
+                     "rack.input" => $stdin,
+                     "rack.errors" => $stderr,
                      "rack.multithread" => false,
                      "rack.multiprocess" => true,
                      "rack.run_once" => false,

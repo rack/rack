@@ -25,7 +25,7 @@ module Rack
       @app.call(env)
     end
 
-    def reload!(stderr=STDERR)
+    def reload!(stderr=$stderr)
       need_reload = $LOADED_FEATURES.find_all { |loaded|
         begin
           if loaded =~ /\A[.\/]/  # absolute filename or 1.9

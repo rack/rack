@@ -127,7 +127,7 @@ p server  if $DEBUG
 case env
 when "development"
   app = Rack::Builder.new {
-    use Rack::CommonLogger, STDERR  unless server.name =~ /CGI/
+    use Rack::CommonLogger, $stderr  unless server.name =~ /CGI/
     use Rack::ShowExceptions
     use Rack::Lint
     run inner_app
@@ -135,7 +135,7 @@ when "development"
 
 when "deployment"
   app = Rack::Builder.new {
-    use Rack::CommonLogger, STDERR  unless server.name =~ /CGI/
+    use Rack::CommonLogger, $stderr  unless server.name =~ /CGI/
     run inner_app
   }.to_app
 

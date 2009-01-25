@@ -23,7 +23,7 @@ module Rack
 
         env.update({"rack.version" => [0,1],
                      "rack.input" => StringIO.new(req.body.to_s),
-                     "rack.errors" => STDERR,
+                     "rack.errors" => $stderr,
 
                      "rack.multithread" => true,
                      "rack.multiprocess" => false,

@@ -45,7 +45,7 @@ module Rack
 
         env.update({"rack.version" => [0,1],
                      "rack.input" => request.body || StringIO.new(""),
-                     "rack.errors" => STDERR,
+                     "rack.errors" => $stderr,
 
                      "rack.multithread" => true,
                      "rack.multiprocess" => false, # ???

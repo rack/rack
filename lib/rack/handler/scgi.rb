@@ -32,7 +32,7 @@ module Rack
         env["SCRIPT_NAME"] = ""
         env.update({"rack.version" => [0,1],
                      "rack.input" => StringIO.new(input_body),
-                     "rack.errors" => STDERR,
+                     "rack.errors" => $stderr,
 
                      "rack.multithread" => true,
                      "rack.multiprocess" => true,
