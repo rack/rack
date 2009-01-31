@@ -16,7 +16,7 @@ module Rack
         end
 
         def correct_uri?
-          @env['PATH_INFO'] == uri
+          (@env['SCRIPT_NAME'].to_s + @env['PATH_INFO'].to_s) == uri
         end
 
         def nonce

@@ -33,6 +33,13 @@ context 'Rack::Auth::Digest::MD5' do
     app.passwords_hashed = true
     app
   end
+
+  def partially_protected_app
+    Rack::URLMap.new({
+      '/' => unprotected_app,
+      '/protected' => protected_app
+    })
+  end
   
   setup do
     @request = Rack::MockRequest.new(protected_app)
@@ -165,5 +172,26 @@ context 'Rack::Auth::Digest::MD5' do
       assert_bad_request response
     end
   end
-  
+
+  specify 'should not require credentials for unprotected path' do
+    @request = Rack::MockRequest.new(partially_protected_app)
+    request '/' do |response|
+      response.should.be.ok
+    end
+  end
+
+  specify 'should challenge when no credentials are specified for protected path' do
+    @request = Rack::MockRequest.new(partially_protected_app)
+    request '/protected' do |response|
+      assert_digest_auth_challenge response
+    end
+  end
+
+  specify 'should return application output if correct credentials given for protected path' do
+    @request = Rack::MockRequest.new(partially_protected_app)
+    request_with_digest_auth '/protected', 'Alice', 'correct-password' do |response|
+      response.status.should.equal 200
+      response.body.to_s.should.equal 'Hi Alice'
+    end
+  end
 end
