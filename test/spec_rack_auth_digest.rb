@@ -63,7 +63,7 @@ context 'Rack::Auth::Digest::MD5' do
   end
   
   def request_with_digest_auth(path, username, password, options = {}, &block)
-    response = request('/')
+    response = request(path)
     
     return response unless response.status == 401
     
