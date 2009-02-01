@@ -35,9 +35,23 @@ module Rack
 
       (qs || '').split(/[#{d}] */n).each do |p|
         k, v = unescape(p).split('=', 2)
+        normalize_params(params, k, v)
+      end
 
+      return params
+    end
+    module_function :parse_query
+
+    def normalize_params(params, name, v = nil)
+      name =~ %r([\[\]]*([^\[\]]+)\]*)
+      k = $1 || ''
+      after = $' || ''
+
+      return if k.empty?
+
+      if after == ""
         if cur = params[k]
-          if cur.class == Array
+          if cur.is_a?(Array)
             params[k] << v
           else
             params[k] = [cur, v]
@@ -45,11 +59,27 @@ module Rack
         else
           params[k] = v
         end
+      elsif after == "[]"
+        params[k] ||= []
+        raise TypeError unless params[k].is_a?(Array)
+        params[k] << v
+      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
+        child_key = $1
+        params[k] ||= []
+        raise TypeError unless params[k].is_a?(Array)
+        if params[k].last.is_a?(Hash) && !params[k].last.key?(child_key)
+          normalize_params(params[k].last, child_key, v)
+        else
+          params[k] << normalize_params({}, child_key, v)
+        end
+      else
+        params[k] ||= {}
+        params[k] = normalize_params(params[k], after, v)
       end
 
       return params
     end
-    module_function :parse_query
+    module_function :normalize_params
 
     def build_query(params)
       params.map { |k, v|
@@ -310,14 +340,7 @@ module Rack
               data = body
             end
 
-            if name
-              if name =~ /\[\]\z/
-                params[name] ||= []
-                params[name] << data
-              else
-                params[name] = data
-              end
-            end
+            Utils.normalize_params(params, name, data)
 
             break  if buf.empty? || content_length == -1
           }
