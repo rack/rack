@@ -492,4 +492,34 @@ EOF
     rack_request_object_id.should.be.equal env['rack.request'].object_id
     req2.should.equal env['rack.request']
   end
+
+  class MyRequest < Rack::Request
+    def params
+      {:foo => "bar"}
+    end
+  end
+
+  specify "should allow subclass request to be instantiated after parent request" do
+    env = Rack::MockRequest.env_for("/?foo=bar")
+
+    req1 = Rack::Request.new(env)
+    req1.GET.should.equal "foo" => "bar"
+    req1.params.should.equal "foo" => "bar"
+
+    req2 = MyRequest.new(env)
+    req2.GET.should.equal "foo" => "bar"
+    req2.params.should.equal :foo => "bar"
+  end
+
+  specify "should allow parent request to be instantiated after subclass request" do
+    env = Rack::MockRequest.env_for("/?foo=bar")
+
+    req1 = MyRequest.new(env)
+    req1.GET.should.equal "foo" => "bar"
+    req1.params.should.equal :foo => "bar"
+
+    req2 = Rack::Request.new(env)
+    req2.GET.should.equal "foo" => "bar"
+    req2.params.should.equal "foo" => "bar"
+  end
 end
