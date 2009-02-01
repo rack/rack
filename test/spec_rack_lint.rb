@@ -178,14 +178,14 @@ context "Rack::Lint" do
                        [200, {"Foo" => Object.new}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.equal("header values must respond to #each, but the value of 'Foo' doesn't (is Object)")
+      message.should.equal("a header value must be a String, but the value of 'Foo' is a Object")
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Foo" => [1,2,3]}, ""]
+                       [200, {"Foo" => [1, 2, 3]}, ""]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.equal("header values must consist of Strings, but 'Foo' also contains a Fixnum")
+      message.should.equal("a header value must be a String, but the value of 'Foo' is a Array")
 
 
     lambda {
@@ -194,6 +194,13 @@ context "Rack::Lint" do
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/invalid header/)
+
+    # line ends (010) should be allowed in header values.
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, {"Foo-Bar" => "one\ntwo\nthree", "Content-Length" => "0", "Content-Type" => "text/plain" }, []]
+                     }).call(env({}))
+    }.should.not.raise(Rack::Lint::LintError)
   end
 
   specify "notices content-type errors" do
