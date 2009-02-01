@@ -13,7 +13,7 @@ context "Rack::ConditionalGet" do
     response = Rack::MockRequest.new(app).
       get("/", 'HTTP_IF_MODIFIED_SINCE' => timestamp)
 
-    response.status.should.be == 304
+    response.status.should.equal 304
     response.body.should.be.empty
   end
 
@@ -24,7 +24,7 @@ context "Rack::ConditionalGet" do
     response = Rack::MockRequest.new(app).
       get("/", 'HTTP_IF_NONE_MATCH' => '1234')
 
-    response.status.should.be == 304
+    response.status.should.equal 304
     response.body.should.be.empty
   end
 
@@ -35,7 +35,7 @@ context "Rack::ConditionalGet" do
     response = Rack::MockRequest.new(app).
       post("/", 'HTTP_IF_NONE_MATCH' => '1234')
 
-    response.status.should.be == 200
+    response.status.should.equal 200
     response.body.should.be == 'TEST'
   end
 end

@@ -62,7 +62,7 @@ begin
         get("/", "HTTP_COOKIE" => bad_cookie)
       res.body.should.equal '{"counter"=>1}'
       cookie = res["Set-Cookie"][session_match]
-      cookie.should.not.match /#{bad_cookie}/
+      cookie.should.not.match(/#{bad_cookie}/)
     end
 
     specify "maintains freshness" do

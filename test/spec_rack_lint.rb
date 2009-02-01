@@ -372,9 +372,9 @@ context "Rack::Lint::InputWrapper" do
   specify "delegates :rewind to underlying IO object" do
     io = StringIO.new("123")
     wrapper = Rack::Lint::InputWrapper.new(io)
-    wrapper.read.should == "123"
-    wrapper.read.should == ""
+    wrapper.read.should.equal "123"
+    wrapper.read.should.equal ""
     wrapper.rewind
-    wrapper.read.should == "123"
+    wrapper.read.should.equal "123"
   end
 end
