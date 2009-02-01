@@ -152,6 +152,11 @@ context "Rack::Utils::HeaderHash" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.to_hash.should.be.instance_of Hash
   end
+
+  specify "should convert Array values to Strings when converting to Hash" do
+    h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
+    h.to_hash.should.equal({ "foo" => "bar\nbaz" })
+  end
 end
 
 context "Rack::Utils::Context" do
