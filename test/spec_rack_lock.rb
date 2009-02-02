@@ -20,21 +20,19 @@ context "Rack::Lock" do
   specify "should call synchronize on lock" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
-    app = Rack::Lock.new(lambda { }, lock)
+    app = Rack::Lock.new(lambda { |env| }, lock)
     lock.synchronized.should.equal false
     app.call(env)
     lock.synchronized.should.equal true
   end
 
   specify "should set multithread flag to false" do
-    env = Rack::MockRequest.env_for("/")
     app = Rack::Lock.new(lambda { |env| env['rack.multithread'] })
-    app.call(env).should.equal false
+    app.call(Rack::MockRequest.env_for("/")).should.equal false
   end
 
   specify "should reset original multithread flag when exiting lock" do
-    env = Rack::MockRequest.env_for("/")
     app = Rack::Lock.new(lambda { |env| env })
-    app.call(env)['rack.multithread'].should.equal true
+    app.call(Rack::MockRequest.env_for("/"))['rack.multithread'].should.equal true
   end
 end
