@@ -413,7 +413,7 @@ EOF
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
       size = content.respond_to?(:bytesize) ? content.bytesize : content.size
-      [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, content]
+      [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
     }
 
     input = <<EOF

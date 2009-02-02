@@ -7,6 +7,7 @@ require 'time'  # for Time#httpdate
 
 context "Rack::Deflater" do
   def build_response(status, body, accept_encoding, headers = {})
+    body = [body]  if body.respond_to? :to_str
     app = lambda { |env| [status, {}, body] }
     request = Rack::MockRequest.env_for("", headers.merge("HTTP_ACCEPT_ENCODING" => accept_encoding))
     response = Rack::Deflater.new(app).call(request)
@@ -26,7 +27,7 @@ context "Rack::Deflater" do
       "Content-Length" => "8",
       "Vary" => "Accept-Encoding"
     })
-    response[2].to_s.should.equal("K\313\317OJ,\002\000")
+    response[2].should.equal(["K\313\317OJ,\002\000"])
   end
 
   # TODO: This is really just a special case of the above...
@@ -39,7 +40,7 @@ context "Rack::Deflater" do
       "Content-Length" => "14",
       "Vary" => "Accept-Encoding"
     })
-    response[2].to_s.should.equal("\363H\315\311\311W(\317/\312IQ\004\000")
+    response[2].should.equal(["\363H\315\311\311W(\317/\312IQ\004\000"])
   end
 
   specify "should be able to gzip bodies that respond to each" do
@@ -66,7 +67,7 @@ context "Rack::Deflater" do
 
     response[0].should.equal(200)
     response[1].should.equal({ "Vary" => "Accept-Encoding" })
-    response[2].should.equal("Hello world!")
+    response[2].should.equal(["Hello world!"])
   end
 
   specify "should be able to skip when there is no response entity body" do
@@ -92,7 +93,7 @@ context "Rack::Deflater" do
   specify "should handle gzip response with Last-Modified header" do
     last_modified = Time.now.httpdate
 
-    app = lambda { |env| [200, { "Last-Modified" => last_modified }, "Hello World!"] }
+    app = lambda { |env| [200, { "Last-Modified" => last_modified }, ["Hello World!"]] }
     request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
     response = Rack::Deflater.new(app).call(request)
 

@@ -12,7 +12,7 @@ context "Rack::Lint" do
   specify "passes valid request" do
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, "foo"]
+                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, ["foo"]]
                      }).call(env({}))
     }.should.not.raise
   end
@@ -133,56 +133,56 @@ context "Rack::Lint" do
   specify "notices header errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, Object.new, ""]
+                       [200, Object.new, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("headers object should respond to #each, but doesn't (got Object as headers)")
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {true=>false}, ""]
+                       [200, {true=>false}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("header key must be a string, was TrueClass")
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Status" => "404"}, ""]
+                       [200, {"Status" => "404"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/must not contain Status/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-Type:" => "text/plain"}, ""]
+                       [200, {"Content-Type:" => "text/plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/must not contain :/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-" => "text/plain"}, ""]
+                       [200, {"Content-" => "text/plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/must not end/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"..%%quark%%.." => "text/plain"}, ""]
+                       [200, {"..%%quark%%.." => "text/plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("invalid header name: ..%%quark%%..")
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Foo" => Object.new}, ""]
+                       [200, {"Foo" => Object.new}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("a header value must be a String, but the value of 'Foo' is a Object")
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Foo" => [1, 2, 3]}, ""]
+                       [200, {"Foo" => [1, 2, 3]}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("a header value must be a String, but the value of 'Foo' is a Array")
@@ -190,7 +190,7 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Foo-Bar" => "text\000plain"}, ""]
+                       [200, {"Foo-Bar" => "text\000plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/invalid header/)
@@ -206,7 +206,7 @@ context "Rack::Lint" do
   specify "notices content-type errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-length" => "0"}, ""]
+                       [200, {"Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/No Content-Type/)
@@ -214,7 +214,7 @@ context "Rack::Lint" do
     [100, 101, 204, 304].each do |status|
       lambda {
         Rack::Lint.new(lambda { |env|
-                         [status, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                         [status, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                        }).call(env({}))
       }.should.raise(Rack::Lint::LintError).
         message.should.match(/Content-Type header found/)
@@ -224,7 +224,7 @@ context "Rack::Lint" do
   specify "notices content-length errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain"}, ""]
+                       [200, {"Content-type" => "text/plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/No Content-Length/)
@@ -232,7 +232,7 @@ context "Rack::Lint" do
     [100, 101, 204, 304].each do |status|
       lambda {
         Rack::Lint.new(lambda { |env|
-                         [status, {"Content-length" => "0"}, ""]
+                         [status, {"Content-length" => "0"}, []]
                        }).call(env({}))
       }.should.raise(Rack::Lint::LintError).
         message.should.match(/Content-Length header found/)
@@ -240,14 +240,14 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain", "Content-Length" => "0", "Transfer-Encoding" => "chunked"}, ""]
+                       [200, {"Content-type" => "text/plain", "Content-Length" => "0", "Transfer-Encoding" => "chunked"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/Content-Length header should not be used/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain", "Content-Length" => "1"}, ""]
+                       [200, {"Content-type" => "text/plain", "Content-Length" => "1"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/Content-Length header was 1, but should be 0/)
@@ -267,7 +267,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].gets("\r\n")
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/gets called with arguments/)
@@ -275,7 +275,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read("foo")
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/read called with non-integer argument/)
@@ -299,7 +299,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].gets
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env("rack.input" => weirdio))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/gets didn't return a String/)
@@ -307,7 +307,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].each { |x| }
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env("rack.input" => weirdio))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/each didn't yield a String/)
@@ -315,7 +315,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env("rack.input" => weirdio))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/read didn't return a String/)
@@ -324,7 +324,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].close
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/close must not be called/)
@@ -334,7 +334,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.errors"].write(42)
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/write not called with a String/)
@@ -342,7 +342,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.errors"].close
-                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, ""]
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/close must not be called/)
@@ -357,7 +357,7 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, "foo"]
+                       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, ["foo"]]
                      }).call(env({"REQUEST_METHOD" => "HEAD"}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/body was given for HEAD/)

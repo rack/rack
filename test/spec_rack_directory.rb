@@ -7,7 +7,7 @@ require 'rack/mock'
 
 context "Rack::Directory" do
   DOCROOT = File.expand_path(File.dirname(__FILE__))
-  FILE_CATCH = proc{|env| [200, {'Content-Type'=>'text/plain', "Content-Length" => "7"}, 'passed!'] }
+  FILE_CATCH = proc{|env| [200, {'Content-Type'=>'text/plain', "Content-Length" => "7"}, ['passed!']] }
   app = Rack::Directory.new DOCROOT, FILE_CATCH
 
   specify "serves directory indices" do

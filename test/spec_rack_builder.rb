@@ -35,7 +35,7 @@ context "Rack::Builder" do
         'secret' == password
       end
 
-      run lambda { |env| [200, {}, 'Hi Boss'] }
+      run lambda { |env| [200, {}, ['Hi Boss']] }
     end
 
     response = Rack::MockRequest.new(app).get("/")
@@ -69,7 +69,7 @@ context "Rack::Builder" do
         def call(env)
           raise "bzzzt"  if @called > 0
         @called += 1
-          [200, {'Content-Type' => 'text/plain'}, 'OK']
+          [200, {'Content-Type' => 'text/plain'}, ['OK']]
         end
       end
 

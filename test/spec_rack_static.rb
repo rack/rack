@@ -5,7 +5,7 @@ require 'rack/mock'
 
 class DummyApp
   def call(env)
-    [200, {}, "Hello World"]
+    [200, {}, ["Hello World"]]
   end
 end
 
