@@ -327,13 +327,13 @@ context "Rack::Utils::Multipart" do
   private
     def multipart_fixture(name)
       file = File.join(File.dirname(__FILE__), "multipart", name.to_s)
-      data = File.read(file)
+      data = File.open(file, 'rb') { |io| io.read }
 
       type = "multipart/form-data; boundary=AaB03x"
-      length = data.length.to_s
+      length = data.respond_to?(:bytesize) ? data.bytesize : data.size
 
       { "CONTENT_TYPE" => type,
-        "CONTENT_LENGTH" => length,
+        "CONTENT_LENGTH" => length.to_s,
         :input => StringIO.new(data) }
     end
 end
