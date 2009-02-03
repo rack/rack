@@ -56,7 +56,7 @@ context "Rack::Deflater" do
       "Vary" => "Accept-Encoding",
     })
 
-    io = StringIO.new(response[2].to_s)
+    io = StringIO.new(response[2].join)
     gz = Zlib::GzipReader.new(io)
     gz.read.should.equal("foobar")
     gz.close
@@ -105,7 +105,7 @@ context "Rack::Deflater" do
       "Last-Modified" => last_modified
     })
 
-    io = StringIO.new(response[2].to_s)
+    io = StringIO.new(response[2].join)
     gz = Zlib::GzipReader.new(io)
     gz.read.should.equal("Hello World!")
     gz.close
