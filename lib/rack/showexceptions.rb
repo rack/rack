@@ -336,7 +336,7 @@ TEMPLATE = <<'HTML'
 
 <div id="explanation">
   <p>
-    You're seeing this error because you use <code>Rack::ShowException</code>.
+    You're seeing this error because you use <code>Rack::ShowExceptions</code>.
   </p>
 </div>
 
