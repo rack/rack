@@ -62,7 +62,7 @@ context "Rack::Utils" do
     Rack::Utils.parse_query("x[y][z][]=1").
       should.equal "x" => {"y" => {"z" => ["1"]}}
     Rack::Utils.parse_query("x[y][z]=1&x[y][z]=2").
-      should.equal "x" => {"y" => {"z" => ["1", "2"]}}
+      should.equal "x" => {"y" => {"z" => "2"}}
     Rack::Utils.parse_query("x[y][z][]=1&x[y][z][]=2").
       should.equal "x" => {"y" => {"z" => ["1", "2"]}}
 
