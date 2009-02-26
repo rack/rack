@@ -36,11 +36,7 @@ module Rack
         end
         # Now try to const_get the handler in question after properly capitalizing it.
         # blah_blah_blorp -> BlahBlahBlorp
-        begin
-          return Rack::Handler.const_get(server.gsub(/(^|_)([a-z])/) {|a| $2.upcase })
-        rescue NameError
-          return nil
-        end
+        return Rack::Handler.const_get(server.gsub(/(^|_)([a-z])/) {|a| $2.upcase })
       end
     end
 

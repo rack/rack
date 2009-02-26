@@ -13,8 +13,10 @@ context "Rack::Handler" do
     Rack::Handler.get('webrick').should.equal Rack::Handler::WEBrick
   end
   
-  specify "handler that doesn't exist should return nil" do
-    Rack::Handler.get('boom').should.equal nil
+  specify "handler that doesn't exist should raise a NameError" do
+    lambda {
+      Rack::Handler.get('boom')
+    }.should.raise(NameError)
   end
 
   specify "should get unregistered, but already required, handler by name" do
@@ -31,7 +33,9 @@ context "Rack::Handler" do
       $:.push "test/unregistered_handler"
       Rack::Handler.get('unregistered').should.equal Rack::Handler::Unregistered
       Rack::Handler.get('Unregistered').should.equal Rack::Handler::Unregistered
-      Rack::Handler.get('UnRegistered').should.equal nil
+      lambda {
+        Rack::Handler.get('UnRegistered')
+      }.should.raise(NameError)
       Rack::Handler.get('unregistered_long_one').should.equal Rack::Handler::UnregisteredLongOne
       Rack::Handler.get('UnregisteredLongOne').should.equal Rack::Handler::UnregisteredLongOne
       Rack::Handler.get('unregistered_long_two').should.equal Rack::Handler::UnregisteredLongTwo
