@@ -218,4 +218,9 @@ context 'Rack::Auth::Digest::MD5' do
       response.body.to_s.should.equal 'Hi Alice'
     end
   end
+
+  specify 'realm as optional constructor arg' do
+    app = Rack::Auth::Digest::MD5.new(unprotected_app, realm) { true }
+    assert_equal realm, app.realm
+  end
 end

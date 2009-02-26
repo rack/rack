@@ -35,7 +35,7 @@ context 'Rack::Auth::Basic' do
     response.should.be.a.client_error
     response.status.should.equal 401
     response.should.include 'WWW-Authenticate'
-    response.headers['WWW-Authenticate'].should =~ /Basic realm="/
+    response.headers['WWW-Authenticate'].should =~ /Basic realm="#{Regexp.escape(realm)}"/
     response.body.should.be.empty
   end
 
@@ -66,4 +66,8 @@ context 'Rack::Auth::Basic' do
     end
   end
 
+  specify 'realm as optional constructor arg' do
+    app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
+    assert_equal realm, app.realm
+  end
 end
