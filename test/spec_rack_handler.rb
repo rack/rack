@@ -20,7 +20,7 @@ context "Rack::Handler" do
   end
 
   specify "should get unregistered, but already required, handler by name" do
-    Rack::Handler.get('lobster').should.equal Rack::Handler::Lobster
+    Rack::Handler.get('Lobster').should.equal Rack::Handler::Lobster
   end
 
   specify "should register custom handler" do
@@ -31,15 +31,11 @@ context "Rack::Handler" do
   specify "should not need registration for properly coded handlers even if not already required" do
     begin
       $:.push "test/unregistered_handler"
-      Rack::Handler.get('unregistered').should.equal Rack::Handler::Unregistered
       Rack::Handler.get('Unregistered').should.equal Rack::Handler::Unregistered
       lambda {
         Rack::Handler.get('UnRegistered')
       }.should.raise(NameError)
-      Rack::Handler.get('unregistered_long_one').should.equal Rack::Handler::UnregisteredLongOne
       Rack::Handler.get('UnregisteredLongOne').should.equal Rack::Handler::UnregisteredLongOne
-      Rack::Handler.get('unregistered_long_two').should.equal Rack::Handler::UnregisteredLongTwo
-      Rack::Handler.get('UnregisteredLongTwo').should.equal Rack::Handler::UnregisteredLongTwo
     ensure
       $:.delete "test/unregistered_handler"
     end
