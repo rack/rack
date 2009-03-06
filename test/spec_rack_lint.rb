@@ -222,13 +222,6 @@ context "Rack::Lint" do
   end
 
   specify "notices content-length errors" do
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/No Content-Length/)
-
     [100, 101, 204, 304].each do |status|
       lambda {
         Rack::Lint.new(lambda { |env|
@@ -237,13 +230,6 @@ context "Rack::Lint" do
       }.should.raise(Rack::Lint::LintError).
         message.should.match(/Content-Length header found/)
     end
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-type" => "text/plain", "Content-Length" => "0", "Transfer-Encoding" => "chunked"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/Content-Length header should not be used/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
