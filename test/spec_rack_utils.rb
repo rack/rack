@@ -129,6 +129,10 @@ context "Rack::Utils" do
     helper.call(%w(foo bar identity), [["foo", 0], ["bar", 0]]).should.equal("identity")
     helper.call(%w(foo bar baz identity), [["*", 0], ["identity", 0.1]]).should.equal("identity")
   end
+
+  specify "should return the bytesize of String" do
+    Rack::Utils.bytesize("FOO\xE2\x82\xAC").should.equal 6
+  end
 end
 
 context "Rack::Utils::HeaderHash" do
