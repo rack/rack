@@ -10,6 +10,10 @@ daemonize = false
 pid = nil
 options = {:Port => 9292, :Host => "0.0.0.0", :AccessLog => []}
 
+# Don't evaluate CGI ISINDEX parameters.
+# http://hoohoo.ncsa.uiuc.edu/cgi/cl.html
+ARGV.clear  if ENV.include?("REQUEST_METHOD")
+
 opts = OptionParser.new("", 24, '  ') { |opts|
   opts.banner = "Usage: rackup [ruby options] [rack options] [rackup config]"
 
