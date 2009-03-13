@@ -24,10 +24,11 @@ context "Rack::Deflater" do
     response[0].should.equal(200)
     response[1].should.equal({
       "Content-Encoding" => "deflate",
-      "Content-Length" => "8",
       "Vary" => "Accept-Encoding"
     })
-    response[2].should.equal(["K\313\317OJ,\002\000"])
+    buf = ''
+    response[2].each { |part| buf << part }
+    buf.should.equal("K\313\317OJ,\002\000")
   end
 
   # TODO: This is really just a special case of the above...
@@ -37,10 +38,11 @@ context "Rack::Deflater" do
     response[0].should.equal(200)
     response[1].should.equal({
       "Content-Encoding" => "deflate",
-      "Content-Length" => "14",
       "Vary" => "Accept-Encoding"
     })
-    response[2].should.equal(["\363H\315\311\311W(\317/\312IQ\004\000"])
+    buf = ''
+    response[2].each { |part| buf << part }
+    buf.should.equal("\363H\315\311\311W(\317/\312IQ\004\000")
   end
 
   specify "should be able to gzip bodies that respond to each" do
@@ -52,11 +54,12 @@ context "Rack::Deflater" do
     response[0].should.equal(200)
     response[1].should.equal({
       "Content-Encoding" => "gzip",
-      "Content-Length" => "26",
       "Vary" => "Accept-Encoding",
     })
 
-    io = StringIO.new(response[2].join)
+    buf = ''
+    response[2].each { |part| buf << part }
+    io = StringIO.new(buf)
     gz = Zlib::GzipReader.new(io)
     gz.read.should.equal("foobar")
     gz.close
@@ -100,12 +103,13 @@ context "Rack::Deflater" do
     response[0].should.equal(200)
     response[1].should.equal({
       "Content-Encoding" => "gzip",
-      "Content-Length" => "32",
       "Vary" => "Accept-Encoding",
       "Last-Modified" => last_modified
     })
 
-    io = StringIO.new(response[2].join)
+    buf = ''
+    response[2].each { |part| buf << part }
+    io = StringIO.new(buf)
     gz = Zlib::GzipReader.new(io)
     gz.read.should.equal("Hello World!")
     gz.close

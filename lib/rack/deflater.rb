@@ -33,17 +33,15 @@ module Rack
 
       case encoding
       when "gzip"
+        headers['Content-Encoding'] = "gzip"
+        headers.delete('Content-Length')
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
-        body = self.class.gzip(body, mtime)
-        size = Rack::Utils.bytesize(body)
-        headers = headers.merge("Content-Encoding" => "gzip", "Content-Length" => size.to_s)
-        [status, headers, [body]]
+        [status, headers, GzipStream.new(body, mtime)]
       when "deflate"
-        body = self.class.deflate(body)
-        size = Rack::Utils.bytesize(body)
-        headers = headers.merge("Content-Encoding" => "deflate", "Content-Length" => size.to_s)
-        [status, headers, [body]]
+        headers['Content-Encoding'] = "deflate"
+        headers.delete('Content-Length')
+        [status, headers, DeflateStream.new(body)]
       when "identity"
         [status, headers, body]
       when nil
@@ -52,34 +50,47 @@ module Rack
       end
     end
 
-    def self.gzip(body, mtime)
-      io = StringIO.new
-      gzip = Zlib::GzipWriter.new(io)
-      gzip.mtime = mtime
+    class GzipStream
+      def initialize(body, mtime)
+        @body = body
+        @mtime = mtime
+      end
 
-      # TODO: Add streaming
-      body.each { |part| gzip << part }
+      def each(&block)
+        @writer = block
+        gzip  =::Zlib::GzipWriter.new(self)
+        gzip.mtime = @mtime
+        @body.each { |part| gzip << part }
+        @body.close if @body.respond_to?(:close)
+        gzip.close
+        @writer = nil
+      end
 
-      gzip.close
-      return io.string
+      def write(data)
+        @writer.call(data)
+      end
     end
 
-    DEFLATE_ARGS = [
-      Zlib::DEFAULT_COMPRESSION,
-      # drop the zlib header which causes both Safari and IE to choke
-     -Zlib::MAX_WBITS,
-      Zlib::DEF_MEM_LEVEL,
-      Zlib::DEFAULT_STRATEGY
-    ]
+    class DeflateStream
+      DEFLATE_ARGS = [
+        Zlib::DEFAULT_COMPRESSION,
+        # drop the zlib header which causes both Safari and IE to choke
+        -Zlib::MAX_WBITS,
+        Zlib::DEF_MEM_LEVEL,
+        Zlib::DEFAULT_STRATEGY
+      ]
 
-    # Loosely based on Mongrel's Deflate handler
-    def self.deflate(body)
-      deflater = Zlib::Deflate.new(*DEFLATE_ARGS)
+      def initialize(body)
+        @body = body
+      end
 
-      # TODO: Add streaming
-      body.each { |part| deflater << part }
-
-      return deflater.finish
+      def each
+        deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
+        @body.each { |part| yield deflater.deflate(part) }
+        @body.close if @body.respond_to?(:close)
+        yield deflater.finish
+        nil
+      end
     end
   end
 end
