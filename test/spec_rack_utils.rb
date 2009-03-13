@@ -286,11 +286,12 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal ""
   end
 
-  specify "should not create empty an tempfile if no file was selected" do
+  specify "should not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
     params["files"].should.equal nil
+    params.keys.should.not.include "files"
   end
 
   specify "should parse IE multipart upload and clean up filename" do
