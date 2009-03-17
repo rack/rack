@@ -10,23 +10,35 @@ module Rack
   module Handler
     def self.get(server)
       return unless server
+      server = server.to_s
 
       if klass = @handlers[server]
         obj = Object
         klass.split("::").each { |x| obj = obj.const_get(x) }
         obj
       else
-        # try to require the matching rack handler file (presumably from another gem)
-        # the next couple of parts attempt to manipulate a proper constant name into
-        # a proper filename. BlahBlahBlorp -> blah_blah_blorp
-        begin
-          # next try and find blah_blorp_bloop from BlahBlorpBloop
-          require 'rack/handler/' + server.gsub(/^[A-Z]/) {|a| a.downcase }.gsub(/[A-Z]/) {|a| "_#{a.downcase}" }
-        rescue LoadError
-          # ignore it, move on and fail later.
-        end
-        return Rack::Handler.const_get(server)
+        try_require('rack/handler', server)
+        const_get(server)
       end
+    end
+
+    # Transforms server-name constants to their canonical form as filenames,
+    # then tries to require them but silences the LoadError if not found
+    #
+    # Naming convention:
+    #
+    #   Foo # => 'foo'
+    #   FooBar # => 'foo_bar.rb'
+    #   FooBAR # => 'foobar.rb'
+    #   FOObar # => 'foobar.rb'
+    #   FOOBAR # => 'foobar.rb'
+    #   FooBarBaz # => 'foo_bar_baz.rb'
+    def self.try_require(prefix, const_name)
+      file = const_name.gsub(/^[A-Z]+/) { |pre| pre.downcase }.
+        gsub(/[A-Z]+[^A-Z]/, '_\&').downcase
+
+      require(::File.join(prefix, file))
+    rescue LoadError
     end
 
     def self.register(server, klass)
