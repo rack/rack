@@ -211,11 +211,13 @@ module Rack
 
       url
     end
-
+    
+    def path
+      script_name + path_info
+    end
+    
     def fullpath
-      path = script_name + path_info
-      path << "?" << query_string  unless query_string.empty?
-      path
+      query_string.empty? ? path : "#{path}?#{query_string}"
     end
 
     def accept_encoding
