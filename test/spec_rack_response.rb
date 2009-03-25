@@ -84,6 +84,21 @@ context "Rack::Response" do
                                   "foo=; expires=Thu, 01-Jan-1970 00:00:00 GMT"]
   end
 
+  specify "can do redirects" do
+    response = Rack::Response.new
+    response.redirect "/foo"
+    status, header, body = response.finish
+
+    status.should.equal 302
+    header["Location"].should.equal "/foo"
+
+    response = Rack::Response.new
+    response.redirect "/foo", 307
+    status, header, body = response.finish
+
+    status.should.equal 307
+  end
+
   specify "has a useful constructor" do
     r = Rack::Response.new("foo")
     status, header, body = r.finish

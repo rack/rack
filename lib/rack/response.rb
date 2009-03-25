@@ -95,6 +95,10 @@ module Rack
                    :expires => Time.at(0) }.merge(value))
     end
 
+    def redirect(target, status=302)
+      self.status = status
+      self["Location"] = target
+    end
 
     def finish(&block)
       @block = block
