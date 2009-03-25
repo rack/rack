@@ -26,7 +26,7 @@ task :officialrelease do
   sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
 end
 
-task :officialrelease_really => [:fulltest, :dist, :gem] do
+task :officialrelease_really => [:fulltest, "RDOX", "SPEC", :dist, :gem] do
   sh "sha1sum #{release}.tar.gz #{release}.gem"
 end
 
