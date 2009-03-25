@@ -111,7 +111,7 @@ module Rack
       ## In addition to this, the Rack environment must include these
       ## Rack-specific variables:
 
-      ## <tt>rack.version</tt>:: The Array [0,1], representing this version of Rack.
+      ## <tt>rack.version</tt>:: The Array [1,0], representing this version of Rack.
       ## <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the request URL.
       ## <tt>rack.input</tt>:: See below, the input stream.
       ## <tt>rack.errors</tt>:: See below, the error stream.

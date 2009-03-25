@@ -20,6 +20,7 @@ support Ruby 1.9 and to deprecate some problematic techniques:
 * Bodies can now respond to #to_path with a filename to be served.
 * String bodies are deprecated and will not work with Ruby 1.9, use an
   Array with a single String instead.
+* Rack::VERSION has been pushed to [1,0].
 
 == Supported web servers
 
