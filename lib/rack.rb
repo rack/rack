@@ -14,7 +14,7 @@ $: << File.expand_path(File.dirname(__FILE__))
 
 module Rack
   # The Rack protocol version number implemented.
-  VERSION = [0,1]
+  VERSION = [1,0]
 
   # Return the Rack protocol version as a dotted string.
   def self.version
@@ -23,7 +23,7 @@ module Rack
 
   # Return the Rack release as a dotted string.
   def self.release
-    "0.4"
+    "1.0"
   end
 
   autoload :Builder, "rack/builder"
