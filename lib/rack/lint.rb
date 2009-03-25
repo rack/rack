@@ -425,6 +425,9 @@ module Rack
         yield part
       }
       ##
+      ## The Body should not be an instance of String, as this will
+      ## break in Ruby 1.9.
+      ##
       ## If the Body responds to #close, it will be called after iteration.
       # XXX howto: assert("Body has not been closed") { @closed }
 

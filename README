@@ -9,6 +9,18 @@ middleware) into a single method call.
 The exact details of this are described in the Rack specification,
 which all Rack applications should conform to.
 
+== Specification changes in this release
+
+With Rack 1.0, the Rack specification (found in SPEC) changed in the
+following backward-incompatible ways.  This was done to properly
+support Ruby 1.9 and to deprecate some problematic techniques:
+
+* Header values must be Strings now, split on "\n".
+* Content-Length can be missing, in this case chunked transfer encoding is used.
+* Bodies can now respond to #to_path with a filename to be served.
+* String bodies are deprecated and will not work with Ruby 1.9, use an
+  Array with a single String instead.
+
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
