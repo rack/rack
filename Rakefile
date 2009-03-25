@@ -11,31 +11,33 @@ task :predist => [:chmod, :changelog, :rdoc]
 
 
 desc "Make an archive as .tar.gz"
-task :dist => [:fulltest, :predist] do
+task :dist => [:predist] do
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
   sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc"
   sh "gzip -f -9 #{release}.tar"
 end
 
-# Helper to retrieve the "revision number" of the git tree.
-def git_tree_version
-  if File.directory?(".git")
-    @tree_version ||= `git describe`.strip.sub('-', '.')
-    @tree_version << ".0"  unless @tree_version.count('.') == 2
-  else
-    $: << "lib"
-    require 'rack'
-    @tree_version = Rack.release
-  end
-  @tree_version
+desc "Make an official release"
+task :officialrelease do
+  puts "Official build for #{release}..."
+  sh "rm -rf stage"
+  sh "git clone --shared . stage"
+  sh "cd stage && rake officialrelease_really"
+  sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
 end
 
-def gem_version
-  git_tree_version.gsub(/-.*/, '')
+task :officialrelease_really => [:fulltest, :dist, :gem] do
+  sh "sha1sum #{release}.tar.gz #{release}.gem"
+end
+
+
+def version
+  abort "You need to pass VERSION=... to build packages."  unless ENV["VERSION"]
+  ENV["VERSION"]
 end
 
 def release
-  "rack-#{git_tree_version}"
+  "rack-#{version}"
 end
 
 def manifest
@@ -96,22 +98,17 @@ end
 
 begin
   require 'rubygems'
-
-  require 'rake'
-  require 'rake/clean'
-  require 'rake/packagetask'
-  require 'rake/gempackagetask'
-  require 'fileutils'
 rescue LoadError
   # Too bad.
 else
-  spec = Gem::Specification.new do |s|
-    s.name            = "rack"
-    s.version         = gem_version
-    s.platform        = Gem::Platform::RUBY
-    s.summary         = "a modular Ruby webserver interface"
-
-    s.description = <<-EOF
+  task "rack.gemspec" do
+    spec = Gem::Specification.new do |s|
+      s.name            = "rack"
+      s.version         = version
+      s.platform        = Gem::Platform::RUBY
+      s.summary         = "a modular Ruby webserver interface"
+      
+      s.description = <<-EOF
 Rack provides minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
 the simplest way possible, it unifies and distills the API for web
@@ -121,68 +118,48 @@ middleware) into a single method call.
 Also see http://rack.rubyforge.org.
     EOF
 
-    s.files           = manifest + %w(SPEC RDOX)
-    s.bindir          = 'bin'
-    s.executables     << 'rackup'
-    s.require_path    = 'lib'
-    s.has_rdoc        = true
-    s.extra_rdoc_files = ['README', 'SPEC', 'RDOX', 'KNOWN-ISSUES']
-    s.test_files      = Dir['test/{test,spec}_*.rb']
+      s.files           = manifest + %w(SPEC RDOX rack.gemspec)
+      s.bindir          = 'bin'
+      s.executables     << 'rackup'
+      s.require_path    = 'lib'
+      s.has_rdoc        = true
+      s.extra_rdoc_files = ['README', 'SPEC', 'RDOX', 'KNOWN-ISSUES']
+      s.test_files      = Dir['test/{test,spec}_*.rb']
+      
+      s.author          = 'Christian Neukirchen'
+      s.email           = 'chneukirchen@gmail.com'
+      s.homepage        = 'http://rack.rubyforge.org'
+      s.rubyforge_project = 'rack'
+      
+      s.add_development_dependency 'test-spec'
+      
+      s.add_development_dependency 'camping'
+      s.add_development_dependency 'fcgi'
+      s.add_development_dependency 'memcache-client'
+      s.add_development_dependency 'mongrel'
+      s.add_development_dependency 'ruby-openid', '~> 2.0.0'
+      s.add_development_dependency 'thin'
+    end
 
-    s.author          = 'Christian Neukirchen'
-    s.email           = 'chneukirchen@gmail.com'
-    s.homepage        = 'http://rack.rubyforge.org'
-    s.rubyforge_project = 'rack'
-
-    s.add_development_dependency 'test-spec'
-
-    s.add_development_dependency 'camping'
-    s.add_development_dependency 'fcgi'
-    s.add_development_dependency 'memcache-client'
-    s.add_development_dependency 'mongrel'
-    s.add_development_dependency 'ruby-openid', '~> 2.0.0'
-    s.add_development_dependency 'thin'
+    File.open("rack.gemspec", "w") { |f| f << spec.to_ruby }
   end
 
-  Rake::GemPackageTask.new(spec) do |p|
-    p.gem_spec = spec
-    p.need_tar = false
-    p.need_zip = false
+  task :gem => "rack.gemspec" do
+    sh "gem build rack.gemspec"
   end
 end
 
 desc "Generate RDoc documentation"
-Rake::RDocTask.new(:rdoc) do |rdoc|
-  rdoc.options << '--line-numbers' << '--inline-source' <<
-    '--main' << 'README' <<
-    '--title' << 'Rack Documentation' <<
-    '--charset' << 'utf-8'
-  rdoc.rdoc_dir = "doc"
-  rdoc.rdoc_files.include 'README'
-  rdoc.rdoc_files.include 'KNOWN-ISSUES'
-  rdoc.rdoc_files.include 'SPEC'
-  rdoc.rdoc_files.include 'RDOX'
-  rdoc.rdoc_files.include('lib/rack.rb')
-  rdoc.rdoc_files.include('lib/rack/*.rb')
-  rdoc.rdoc_files.include('lib/rack/*/*.rb')
+task :rdoc do
+  sh(*%w{rdoc --line-numbers --inline-source --main README 
+              --title 'Rack\ Documentation' --charset utf-8 -o doc} +
+              %w{README KNOWN-ISSUES SPEC RDOX} +
+              Dir["lib/**/*.rb"])
 end
-task :rdoc => ["SPEC", "RDOX"]
 
 task :pushsite => [:rdoc] do
+  sh "cd site && git gc"
   sh "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
   sh "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"
-end
-
-begin
-  require 'rcov/rcovtask'
-
-  Rcov::RcovTask.new do |t|
-    t.test_files = FileList['test/{spec,test}_*.rb']
-    t.verbose = true     # uncomment to see the executed command
-    t.rcov_opts = ["--text-report",
-                   "-Ilib:test",
-                   "--include-file", "^lib,^test",
-                   "--exclude-only", "^/usr,^/home/.*/src,active_"]
-  end
-rescue LoadError
+  sh "cd site && git push"
 end
