@@ -17,7 +17,7 @@ module Rack
     # The environment of the request.
     attr_reader :env
 
-    def self.new(env)
+    def self.new(env, *args)
       if self == Rack::Request
         env["rack.request"] ||= super
       else
