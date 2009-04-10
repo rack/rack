@@ -144,7 +144,8 @@ Also see http://rack.rubyforge.org.
     File.open("rack.gemspec", "w") { |f| f << spec.to_ruby }
   end
 
-  task :gem => "rack.gemspec" do
+  task :gem => ["rack.gemspec", "SPEC"] do
+    FileUtils.touch("RDOX")
     sh "gem build rack.gemspec"
   end
 end
