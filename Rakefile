@@ -6,12 +6,9 @@ require 'rake/testtask'
 desc "Run all the tests"
 task :default => [:test]
 
-desc "Do predistribution stuff"
-task :predist => [:chmod, :changelog, :rdoc, "SPEC"]
-
 
 desc "Make an archive as .tar.gz"
-task :dist => [:predist] do
+task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
   FileUtils.touch("RDOX")
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
   sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc"
