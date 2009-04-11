@@ -293,7 +293,7 @@ module Rack
 
       def self.parse_multipart(env)
         unless env['CONTENT_TYPE'] =~
-            %r|\Amultipart/form-data.*boundary=\"?([^\";,]+)\"?|n
+            %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
           nil
         else
           boundary = "--#{$1}"
@@ -319,15 +319,15 @@ module Rack
             filename = content_type = name = nil
 
             until head && buf =~ rx
-              if !head && i = buf.index("\r\n\r\n")
+              if !head && i = buf.index(EOL+EOL)
                 head = buf.slice!(0, i+2) # First \r\n
                 buf.slice!(0, 2)          # Second \r\n
 
                 filename = head[/Content-Disposition:.* filename="?([^\";]*)"?/ni, 1]
-                content_type = head[/Content-Type: (.*)\r\n/ni, 1]
-                name = head[/Content-Disposition:.* name="?([^\";]*)"?/ni, 1]
+                content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
+                name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
 
-                if filename
+                if content_type || filename
                   body = Tempfile.new("RackMultipart")
                   body.binmode  if body.respond_to?(:binmode)
                 end
@@ -368,6 +368,12 @@ module Rack
               filename = $1
 
               data = {:filename => filename, :type => content_type,
+                      :name => name, :tempfile => body, :head => head}
+            elsif !filename && content_type
+              body.rewind
+              
+              # Generic multipart cases, not coming from a form
+              data = {:type => content_type,
                       :name => name, :tempfile => body, :head => head}
             else
               data = body

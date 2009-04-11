@@ -92,6 +92,14 @@ module Rack
       'multipart/form-data'
     ]
 
+    # The set of media-types. Requests that do not indicate
+    # one of the media types presents in this list will not be eligible
+    # for param parsing like soap attachments or generic multiparts
+    PARSEABLE_DATA_MEDIA_TYPES = [
+      'multipart/related',
+      'multipart/mixed'
+    ]  
+
     # Determine whether the request body contains form-data by checking
     # the request media_type against registered form-data media-types:
     # "application/x-www-form-urlencoded" and "multipart/form-data". The
@@ -99,6 +107,12 @@ module Rack
     # +FORM_DATA_MEDIA_TYPES+ array.
     def form_data?
       FORM_DATA_MEDIA_TYPES.include?(media_type)
+    end
+
+    # Determine whether the request body contains data by checking
+    # the request media_type against registered parse-data media-types
+    def parseable_data?
+      PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
     end
 
     # Returns the data recieved in the query string.
@@ -119,7 +133,7 @@ module Rack
     def POST
       if @env["rack.request.form_input"].eql? @env["rack.input"]
         @env["rack.request.form_hash"]
-      elsif form_data?
+      elsif form_data? || parseable_data?
         @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] =
             Utils::Multipart.parse_multipart(env)
