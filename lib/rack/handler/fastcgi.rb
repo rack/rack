@@ -27,6 +27,10 @@ module Rack
             super
           end
         end
+
+        def rewind
+          0                     # Ignore
+        end
       end
 
       def self.serve(request, app)
