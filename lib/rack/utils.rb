@@ -309,7 +309,9 @@ module Rack
 
           content_length -= boundary_size
 
-          status = input.read(boundary_size)
+          read_buffer = ''
+
+          status = input.read(boundary_size, read_buffer)
           raise EOFError, "bad content body"  unless status == boundary + EOL
 
           rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/n
@@ -341,7 +343,7 @@ module Rack
                 body << buf.slice!(0, buf.size - (boundary_size+4))
               end
 
-              c = input.read(bufsize < content_length ? bufsize : content_length)
+              c = input.read(bufsize < content_length ? bufsize : content_length, read_buffer)
               raise EOFError, "bad content body"  if c.nil? || c.empty?
               buf << c
               content_length -= c.size
