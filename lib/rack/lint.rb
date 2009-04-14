@@ -202,6 +202,9 @@ module Rack
     end
 
     ## === The Input Stream
+    ##
+    ## The input stream is an IO-like object which contains the raw HTTP
+    ## POST data. If it is a file then it must be opened in binary mode.
     def check_input(input)
       ## The input stream must respond to +gets+, +each+ and +read+.
       [:gets, :each, :read].each { |method|
@@ -316,13 +319,14 @@ module Rack
 
     ## === The Status
     def check_status(status)
-      ## The status, if parsed as integer (+to_i+), must be greater than or equal to 100.
+      ## This is an HTTP status. When parsed as integer (+to_i+), it must be
+      ## greater than or equal to 100.
       assert("Status must be >=100 seen as integer") { status.to_i >= 100 }
     end
 
     ## === The Headers
     def check_headers(header)
-      ## The header must respond to each, and yield values of key and value.
+      ## The header must respond to +each+, and yield values of key and value.
       assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
          header.respond_to? :each
       }
@@ -344,7 +348,8 @@ module Rack
         ## The values of the header must be Strings,
         assert("a header value must be a String, but the value of " +
           "'#{key}' is a #{value.class}") { value.kind_of? String }
-        ## consisting of lines (for multiple header values) seperated by "\n".
+        ## consisting of lines (for multiple header values, e.g. multiple
+        ## <tt>Set-Cookie</tt> values) seperated by "\n".
         value.split("\n").each { |item|
           ## The lines must not contain characters below 037.
           assert("invalid header value #{key}: #{item.inspect}") {
@@ -416,7 +421,7 @@ module Rack
     ## === The Body
     def each
       @closed = false
-      ## The Body must respond to #each
+      ## The Body must respond to +each+
       @body.each { |part|
         ## and must only yield String values.
         assert("Body yielded non-string value #{part.inspect}") {
@@ -425,17 +430,17 @@ module Rack
         yield part
       }
       ##
-      ## The Body should not be an instance of String, as this will
+      ## The Body itself should not be an instance of String, as this will
       ## break in Ruby 1.9.
       ##
-      ## If the Body responds to #close, it will be called after iteration.
+      ## If the Body responds to +close+, it will be called after iteration.
       # XXX howto: assert("Body has not been closed") { @closed }
 
 
       ##
-      ## If the Body responds to #to_path, it must return a String
+      ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
-      ## to that produced by calling #each.
+      ## to that produced by calling +each+.
 
       if @body.respond_to?(:to_path)
         assert("The file identified by body.to_path does not exist") {
