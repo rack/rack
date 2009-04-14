@@ -124,7 +124,7 @@ module Rack
     #
     def write(str)
       s = str.to_s
-      @length += s.size
+      @length += Rack::Utils.bytesize(s)
       @writer.call s
 
       header["Content-Length"] = @length.to_s
