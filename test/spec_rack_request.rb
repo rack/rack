@@ -93,16 +93,6 @@ context "Rack::Request" do
     input.read.should.equal "foo=bar&quux=bla"
   end
 
-  specify "does not rewind unwindable CGI input" do
-    input = StringIO.new("foo=bar&quux=bla")
-    input.instance_eval "undef :rewind"
-    req = Rack::Request.new \
-      Rack::MockRequest.env_for("/",
-        "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
-        :input => input)
-    req.params.should.equal "foo" => "bar", "quux" => "bla"
-  end
-
   specify "cleans up Safari's ajax POST body" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", :input => "foo=bar&quux=bla\0")

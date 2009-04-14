@@ -302,6 +302,7 @@ module Rack
           buf = ""
           content_length = env['CONTENT_LENGTH'].to_i
           input = env['rack.input']
+          input.rewind
 
           boundary_size = boundary.size + EOL.size
           bufsize = 16384
@@ -384,12 +385,7 @@ module Rack
             break  if buf.empty? || content_length == -1
           }
 
-          begin
-            input.rewind if input.respond_to?(:rewind)
-          rescue Errno::ESPIPE
-            # Handles exceptions raised by input streams that cannot be rewound
-            # such as when using plain CGI under Apache
-          end
+          input.rewind
 
           params
         end
