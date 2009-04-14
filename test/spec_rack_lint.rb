@@ -260,11 +260,43 @@ context "Rack::Lint" do
 
     lambda {
       Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(1, 2, 3)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/read called with too many arguments/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
                        env["rack.input"].read("foo")
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/read called with non-integer argument/)
+      message.should.match(/read called with non-integer and non-nil length/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(-1)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/read called with a negative length/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(nil, nil)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/read called with non-String buffer/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(nil, 1)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/read called with non-String buffer/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -293,6 +325,23 @@ context "Rack::Lint" do
         raise Errno::ESPIPE, "Errno::ESPIPE"
       end
     end
+    
+    eof_weirdio = Object.new
+    class << eof_weirdio
+      def gets
+        nil
+      end
+      
+      def read(*args)
+        nil
+      end
+      
+      def each
+      end
+      
+      def rewind
+      end
+    end
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -316,7 +365,15 @@ context "Rack::Lint" do
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
                      }).call(env("rack.input" => weirdio))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/read didn't return a String/)
+      message.should.match(/read didn't return nil or a String/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env("rack.input" => eof_weirdio))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/read\(nil\) returned nil on EOF/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -367,6 +424,50 @@ context "Rack::Lint" do
                      }).call(env({"REQUEST_METHOD" => "HEAD"}))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/body was given for HEAD/)
+  end
+  
+  specify "passes valid read calls" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
+    
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(0)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
+    
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(1)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
+    
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(nil)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
+    
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(nil, '')
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
+    
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].read(1, '')
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+    }.should.not.raise(Rack::Lint::LintError)
   end
 end
 

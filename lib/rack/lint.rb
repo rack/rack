@@ -236,21 +236,44 @@ module Rack
         v
       end
 
-      ## * +read+ must be called without or with one integer argument
-      ##   and return a string, or +nil+ on EOF.
+      ## * +read+ behaves like IO#read. Its signature is <tt>read([length, [buffer]])</tt>.
+      ##   If given, +length+ must be an non-negative Integer (>= 0) or +nil+, and +buffer+ must
+      ##   be a String and may not be nil. If +length+ is given and not nil, then this method
+      ##   reads at most +length+ bytes from the input stream. If +length+ is not given or nil,
+      ##   then this method reads all data until EOF.
+      ##   When EOF is reached, this method returns nil if +length+ is given and not nil, or ""
+      ##   if +length+ is not given or is nil.
+      ##   If +buffer+ is given, then the read data will be placed into +buffer+ instead of a
+      ##   newly created String object.
       def read(*args)
         assert("rack.input#read called with too many arguments") {
-          args.size <= 1
+          args.size <= 2
         }
-        if args.size == 1
-          assert("rack.input#read called with non-integer argument") {
-            args.first.kind_of? Integer
+        if args.size >= 1
+          assert("rack.input#read called with non-integer and non-nil length") {
+            args.first.kind_of?(Integer) || args.first.nil?
+          }
+          assert("rack.input#read called with a negative length") {
+            args.first.nil? || args.first >= 0
           }
         end
+        if args.size >= 2
+          assert("rack.input#read called with non-String buffer") {
+            args[1].kind_of?(String)
+          }
+        end
+        
         v = @input.read(*args)
-        assert("rack.input#read didn't return a String") {
+        
+        assert("rack.input#read didn't return nil or a String") {
           v.nil? or v.instance_of? String
         }
+        if args[0].nil?
+          assert("rack.input#read(nil) returned nil on EOF") {
+            !v.nil?
+          }
+        end
+        
         v
       end
 
