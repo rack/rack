@@ -206,8 +206,8 @@ module Rack
     ## The input stream is an IO-like object which contains the raw HTTP
     ## POST data. If it is a file then it must be opened in binary mode.
     def check_input(input)
-      ## The input stream must respond to +gets+, +each+ and +read+.
-      [:gets, :each, :read].each { |method|
+      ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
+      [:gets, :each, :read, :rewind].each { |method|
         assert("rack.input #{input} does not respond to ##{method}") {
           input.respond_to? method
         }
@@ -223,10 +223,6 @@ module Rack
 
       def size
         @input.size
-      end
-
-      def rewind
-        @input.rewind
       end
 
       ## * +gets+ must be called without arguments and return a string,
@@ -266,6 +262,23 @@ module Rack
             line.instance_of? String
           }
           yield line
+        }
+      end
+      
+      ## * +rewind+ must be called without arguments. It rewinds the input
+      ##   stream back to the beginning. It must not raise Errno::ESPIPE:
+      ##   that is, it may not be a pipe or a socket. Therefore, handler
+      ##   developers must buffer the input data into some rewindable object
+      ##   if the underlying input stream is not rewindable.
+      def rewind(*args)
+        assert("rack.input#rewind called with arguments") { args.size == 0 }
+        assert("rack.input#rewind raised Errno::ESPIPE") {
+          begin
+            @input.rewind
+            true
+          rescue Errno::ESPIPE
+            false
+          end
         }
       end
 

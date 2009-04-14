@@ -266,6 +266,14 @@ context "Rack::Lint" do
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/read called with non-integer argument/)
 
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].rewind(0)
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env({}))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/rewind called with arguments/)
+
     weirdio = Object.new
     class << weirdio
       def gets
@@ -279,6 +287,10 @@ context "Rack::Lint" do
       def each
         yield 23
         yield 42
+      end
+      
+      def rewind
+        raise Errno::ESPIPE, "Errno::ESPIPE"
       end
     end
 
@@ -305,6 +317,14 @@ context "Rack::Lint" do
                      }).call(env("rack.input" => weirdio))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/read didn't return a String/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env["rack.input"].rewind
+                       [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
+                     }).call(env("rack.input" => weirdio))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/rewind raised Errno::ESPIPE/)
 
 
     lambda {
