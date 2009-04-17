@@ -26,6 +26,8 @@ module Rack
       headers = Utils::HeaderHash.new(headers)
       if etag_matches?(env, headers) || modified_since?(env, headers)
         status = 304
+        headers.delete('Content-Type')
+        headers.delete('Content-Length')
         body = []
       end
       [status, headers, body]
