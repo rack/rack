@@ -38,6 +38,8 @@ module Rack
     def query_string;    @env["QUERY_STRING"].to_s                end
     def content_length;  @env['CONTENT_LENGTH']                   end
     def content_type;    @env['CONTENT_TYPE']                     end
+    def session;         @env['rack.session'] ||= {}              end
+    def session_options; @env['rack.session.options'] ||= {}      end
 
     # The media type (type/subtype) portion of the CONTENT_TYPE header
     # without any media type parameters. e.g., when CONTENT_TYPE is

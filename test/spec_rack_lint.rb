@@ -67,6 +67,11 @@ context "Rack::Lint" do
       message.should.match(/url_scheme unknown/)
 
     lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => []))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.equal("session [] must respond to store and []=")
+
+    lambda {
       Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/REQUEST_METHOD/)

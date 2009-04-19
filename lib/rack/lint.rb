@@ -118,12 +118,41 @@ module Rack
       ## <tt>rack.multithread</tt>:: true if the application object may be simultaneously invoked by another thread in the same process, false otherwise.
       ## <tt>rack.multiprocess</tt>:: true if an equivalent application object may be simultaneously invoked by another process, false otherwise.
       ## <tt>rack.run_once</tt>:: true if the server expects (but does not guarantee!) that the application will only be invoked this one time during the life of its containing process. Normally, this will only be true for a server based on CGI (or something similar).
+      ##
+
+      ## Additional environment specifications have approved to
+      ## standardized middleware APIs.  None of these are required to
+      ## be implemented by the server.
+
+      ## <tt>rack.session</tt>:: A hash like interface for storing request session data
+      ##                         The store must implement:
+      if session = env['rack.session']
+        ##                         store(key, value)         (aliased as []=)
+        assert("session #{session.inspect} must respond to store and []=") {
+          session.respond_to?(:store) && session.respond_to?(:[]=)
+        }
+
+        ##                         fetch(key, default = nil) (aliased as [])
+        assert("session #{session.inspect} must respond to fetch and []") {
+          session.respond_to?(:fetch) && session.respond_to?(:[])
+        }
+
+        ##                         delete(key)
+        assert("session #{session.inspect} must respond to delete") {
+          session.respond_to?(:delete)
+        }
+
+        ##                         clear
+        assert("session #{session.inspect} must respond to clear") {
+          session.respond_to?(:clear)
+        }
+      end
 
       ## The server or the application can store their own data in the
       ## environment, too.  The keys must contain at least one dot,
       ## and should be prefixed uniquely.  The prefix <tt>rack.</tt>
-      ## is reserved for use with the Rack core distribution and must
-      ## not be used otherwise.
+      ## is reserved for use with the Rack core distribution and other
+      ## accepted specifications and must not be used otherwise.
       ##
 
       %w[REQUEST_METHOD SERVER_NAME SERVER_PORT
