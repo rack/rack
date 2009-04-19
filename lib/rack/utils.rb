@@ -302,13 +302,16 @@ module Rack
           buf = ""
           content_length = env['CONTENT_LENGTH'].to_i
           input = env['rack.input']
+          input.rewind
 
           boundary_size = boundary.size + EOL.size
           bufsize = 16384
 
           content_length -= boundary_size
 
-          status = input.read(boundary_size)
+          read_buffer = ''
+
+          status = input.read(boundary_size, read_buffer)
           raise EOFError, "bad content body"  unless status == boundary + EOL
 
           rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/n
@@ -340,7 +343,7 @@ module Rack
                 body << buf.slice!(0, buf.size - (boundary_size+4))
               end
 
-              c = input.read(bufsize < content_length ? bufsize : content_length)
+              c = input.read(bufsize < content_length ? bufsize : content_length, read_buffer)
               raise EOFError, "bad content body"  if c.nil? || c.empty?
               buf << c
               content_length -= c.size
@@ -384,12 +387,7 @@ module Rack
             break  if buf.empty? || content_length == -1
           }
 
-          begin
-            input.rewind if input.respond_to?(:rewind)
-          rescue Errno::ESPIPE
-            # Handles exceptions raised by input streams that cannot be rewound
-            # such as when using plain CGI under Apache
-          end
+          input.rewind
 
           params
         end

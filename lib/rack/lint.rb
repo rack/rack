@@ -231,9 +231,12 @@ module Rack
     end
 
     ## === The Input Stream
+    ##
+    ## The input stream is an IO-like object which contains the raw HTTP
+    ## POST data. If it is a file then it must be opened in binary mode.
     def check_input(input)
-      ## The input stream must respond to +gets+, +each+ and +read+.
-      [:gets, :each, :read].each { |method|
+      ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
+      [:gets, :each, :read, :rewind].each { |method|
         assert("rack.input #{input} does not respond to ##{method}") {
           input.respond_to? method
         }
@@ -251,10 +254,6 @@ module Rack
         @input.size
       end
 
-      def rewind
-        @input.rewind
-      end
-
       ## * +gets+ must be called without arguments and return a string,
       ##   or +nil+ on EOF.
       def gets(*args)
@@ -266,21 +265,44 @@ module Rack
         v
       end
 
-      ## * +read+ must be called without or with one integer argument
-      ##   and return a string, or +nil+ on EOF.
+      ## * +read+ behaves like IO#read. Its signature is <tt>read([length, [buffer]])</tt>.
+      ##   If given, +length+ must be an non-negative Integer (>= 0) or +nil+, and +buffer+ must
+      ##   be a String and may not be nil. If +length+ is given and not nil, then this method
+      ##   reads at most +length+ bytes from the input stream. If +length+ is not given or nil,
+      ##   then this method reads all data until EOF.
+      ##   When EOF is reached, this method returns nil if +length+ is given and not nil, or ""
+      ##   if +length+ is not given or is nil.
+      ##   If +buffer+ is given, then the read data will be placed into +buffer+ instead of a
+      ##   newly created String object.
       def read(*args)
         assert("rack.input#read called with too many arguments") {
-          args.size <= 1
+          args.size <= 2
         }
-        if args.size == 1
-          assert("rack.input#read called with non-integer argument") {
-            args.first.kind_of? Integer
+        if args.size >= 1
+          assert("rack.input#read called with non-integer and non-nil length") {
+            args.first.kind_of?(Integer) || args.first.nil?
+          }
+          assert("rack.input#read called with a negative length") {
+            args.first.nil? || args.first >= 0
           }
         end
+        if args.size >= 2
+          assert("rack.input#read called with non-String buffer") {
+            args[1].kind_of?(String)
+          }
+        end
+        
         v = @input.read(*args)
-        assert("rack.input#read didn't return a String") {
+        
+        assert("rack.input#read didn't return nil or a String") {
           v.nil? or v.instance_of? String
         }
+        if args[0].nil?
+          assert("rack.input#read(nil) returned nil on EOF") {
+            !v.nil?
+          }
+        end
+        
         v
       end
 
@@ -292,6 +314,23 @@ module Rack
             line.instance_of? String
           }
           yield line
+        }
+      end
+      
+      ## * +rewind+ must be called without arguments. It rewinds the input
+      ##   stream back to the beginning. It must not raise Errno::ESPIPE:
+      ##   that is, it may not be a pipe or a socket. Therefore, handler
+      ##   developers must buffer the input data into some rewindable object
+      ##   if the underlying input stream is not rewindable.
+      def rewind(*args)
+        assert("rack.input#rewind called with arguments") { args.size == 0 }
+        assert("rack.input#rewind raised Errno::ESPIPE") {
+          begin
+            @input.rewind
+            true
+          rescue Errno::ESPIPE
+            false
+          end
         }
       end
 
@@ -345,13 +384,14 @@ module Rack
 
     ## === The Status
     def check_status(status)
-      ## The status, if parsed as integer (+to_i+), must be greater than or equal to 100.
+      ## This is an HTTP status. When parsed as integer (+to_i+), it must be
+      ## greater than or equal to 100.
       assert("Status must be >=100 seen as integer") { status.to_i >= 100 }
     end
 
     ## === The Headers
     def check_headers(header)
-      ## The header must respond to each, and yield values of key and value.
+      ## The header must respond to +each+, and yield values of key and value.
       assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
          header.respond_to? :each
       }
@@ -373,7 +413,8 @@ module Rack
         ## The values of the header must be Strings,
         assert("a header value must be a String, but the value of " +
           "'#{key}' is a #{value.class}") { value.kind_of? String }
-        ## consisting of lines (for multiple header values) seperated by "\n".
+        ## consisting of lines (for multiple header values, e.g. multiple
+        ## <tt>Set-Cookie</tt> values) seperated by "\n".
         value.split("\n").each { |item|
           ## The lines must not contain characters below 037.
           assert("invalid header value #{key}: #{item.inspect}") {
@@ -445,7 +486,7 @@ module Rack
     ## === The Body
     def each
       @closed = false
-      ## The Body must respond to #each
+      ## The Body must respond to +each+
       @body.each { |part|
         ## and must only yield String values.
         assert("Body yielded non-string value #{part.inspect}") {
@@ -454,17 +495,17 @@ module Rack
         yield part
       }
       ##
-      ## The Body should not be an instance of String, as this will
+      ## The Body itself should not be an instance of String, as this will
       ## break in Ruby 1.9.
       ##
-      ## If the Body responds to #close, it will be called after iteration.
+      ## If the Body responds to +close+, it will be called after iteration.
       # XXX howto: assert("Body has not been closed") { @closed }
 
 
       ##
-      ## If the Body responds to #to_path, it must return a String
+      ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
-      ## to that produced by calling #each.
+      ## to that produced by calling +each+.
 
       if @body.respond_to?(:to_path)
         assert("The file identified by body.to_path does not exist") {

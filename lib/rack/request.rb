@@ -147,12 +147,7 @@ module Rack
           @env["rack.request.form_vars"] = form_vars
           @env["rack.request.form_hash"] = Utils.parse_nested_query(form_vars)
 
-          begin
-            @env["rack.input"].rewind if @env["rack.input"].respond_to?(:rewind)
-          rescue Errno::ESPIPE
-            # Handles exceptions raised by input streams that cannot be rewound
-            # such as when using plain CGI under Apache
-          end
+          @env["rack.input"].rewind
         end
         @env["rack.request.form_hash"]
       else
