@@ -30,7 +30,7 @@ module Rack
         location = location.chomp('/')
 
         [host, location, app]
-      }.sort_by { |(h, l, a)| [-l.size, h.to_s.size] }  # Longest path first
+      }.sort_by { |(h, l, a)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
     end
 
     def call(env)

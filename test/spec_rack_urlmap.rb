@@ -68,6 +68,12 @@ context "Rack::URLMap" do
                                 "X-Position" => "foo.org",
                                 "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]},
+                           "http://subdomain.foo.org/" => lambda { |env|
+                             [200,
+                              { "Content-Type" => "text/plain",
+                                "X-Position" => "subdomain.foo.org",
+                                "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
+                              }, [""]]},
                            "http://bar.org/" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
@@ -93,6 +99,10 @@ context "Rack::URLMap" do
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "foo.org")
     res.should.be.ok
     res["X-Position"].should.equal "foo.org"
+
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "subdomain.foo.org", "SERVER_NAME" => "foo.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "subdomain.foo.org"
 
     res = Rack::MockRequest.new(map).get("http://foo.org/")
     res.should.be.ok
