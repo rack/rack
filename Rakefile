@@ -8,10 +8,10 @@ task :default => [:test]
 
 
 desc "Make an archive as .tar.gz"
-task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
+task :dist => [:chmod, :changelog, :rdoc, "SPEC", "rack.gemspec"] do
   FileUtils.touch("RDOX")
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
-  sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc"
+  sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc rack.gemspec"
   sh "gzip -f -9 #{release}.tar"
 end
 
