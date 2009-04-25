@@ -124,25 +124,25 @@ module Rack
       ## standardized middleware APIs.  None of these are required to
       ## be implemented by the server.
 
-      ## <tt>rack.session</tt>:: A hash like interface for storing request session data
+      ## <tt>rack.session</tt>:: A hash like interface for storing request session data.
       ##                         The store must implement:
       if session = env['rack.session']
-        ##                         store(key, value)         (aliased as []=)
+        ##                         store(key, value)         (aliased as []=);
         assert("session #{session.inspect} must respond to store and []=") {
           session.respond_to?(:store) && session.respond_to?(:[]=)
         }
 
-        ##                         fetch(key, default = nil) (aliased as [])
+        ##                         fetch(key, default = nil) (aliased as []);
         assert("session #{session.inspect} must respond to fetch and []") {
           session.respond_to?(:fetch) && session.respond_to?(:[])
         }
 
-        ##                         delete(key)
+        ##                         delete(key);
         assert("session #{session.inspect} must respond to delete") {
           session.respond_to?(:delete)
         }
 
-        ##                         clear
+        ##                         clear;
         assert("session #{session.inspect} must respond to clear") {
           session.respond_to?(:clear)
         }
@@ -505,7 +505,9 @@ module Rack
       ##
       ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
-      ## to that produced by calling +each+.
+      ## to that produced by calling +each+; this may be used by the
+      ## server as an alternative, possibly more efficient way to
+      ## transport the response.
 
       if @body.respond_to?(:to_path)
         assert("The file identified by body.to_path does not exist") {
