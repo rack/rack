@@ -93,6 +93,40 @@ module Rack
         env["rack.errors"] = StringIO.new
       end
 
+      if params = opts[:params]
+        if env["REQUEST_METHOD"] == "GET"
+          params = Utils.parse_nested_query(params) if params.is_a?(String)
+          params.update(Utils.parse_nested_query(env["QUERY_STRING"]))
+          env["QUERY_STRING"] = Utils.build_nested_query(params)
+        elsif !opts.has_key?(:input)
+          opts["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
+          if params.is_a?(Hash)
+            multipart = false
+            query = lambda { |value|
+              case value
+              when Array
+                value.each(&query)
+              when Hash
+                value.values.each(&query)
+              when Utils::Multipart::UploadedFile
+                multipart = true
+              end
+            }
+            opts[:params].values.each(&query)
+
+            if multipart
+              opts[:input] = Utils::Multipart.build_multipart(params)
+              opts["CONTENT_LENGTH"] ||= opts[:input].length.to_s
+              opts["CONTENT_TYPE"] = "multipart/form-data; boundary=#{Utils::Multipart::MULTIPART_BOUNDARY}"
+            else
+              opts[:input] = Utils.build_nested_query(params)
+            end
+          else
+            opts[:input] = params
+          end
+        end
+      end
+
       opts[:input] ||= ""
       if String === opts[:input]
         env["rack.input"] = StringIO.new(opts[:input])

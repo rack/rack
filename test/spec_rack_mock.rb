@@ -128,6 +128,55 @@ context "Rack::MockRequest" do
     env["REQUEST_METHOD"].should.equal "GET"
   end
 
+  specify "should accept params and build query string for GET requests" do
+    res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => {:foo => {:bar => "1"}})
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+    env["QUERY_STRING"].should.equal "foo[bar]=1&baz=2"
+    env["PATH_INFO"].should.equal "/foo"
+    env["mock.postdata"].should.equal ""
+  end
+
+  specify "should accept raw input in params for GET requests" do
+    res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => "foo[bar]=1")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+    env["QUERY_STRING"].should.equal "foo[bar]=1&baz=2"
+    env["PATH_INFO"].should.equal "/foo"
+    env["mock.postdata"].should.equal ""
+  end
+
+  specify "should accept params and build url encoded params for POST requests" do
+    res = Rack::MockRequest.new(app).post("/foo", :params => {:foo => {:bar => "1"}})
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "POST"
+    env["QUERY_STRING"].should.equal ""
+    env["PATH_INFO"].should.equal "/foo"
+    env["CONTENT_TYPE"].should.equal "application/x-www-form-urlencoded"
+    env["mock.postdata"].should.equal "foo[bar]=1"
+  end
+
+  specify "should accept raw input in params for POST requests" do
+    res = Rack::MockRequest.new(app).post("/foo", :params => "foo[bar]=1")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "POST"
+    env["QUERY_STRING"].should.equal ""
+    env["PATH_INFO"].should.equal "/foo"
+    env["CONTENT_TYPE"].should.equal "application/x-www-form-urlencoded"
+    env["mock.postdata"].should.equal "foo[bar]=1"
+  end
+
+  specify "should accept params and build multipart encoded params for POST requests" do
+    files = Rack::Utils::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
+    res = Rack::MockRequest.new(app).post("/foo", :params => { "submit-name" => "Larry", "files" => files })
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "POST"
+    env["QUERY_STRING"].should.equal ""
+    env["PATH_INFO"].should.equal "/foo"
+    env["CONTENT_TYPE"].should.equal "multipart/form-data; boundary=AaB03x"
+    env["mock.postdata"].length.should.equal 206
+  end
+
   specify "should behave valid according to the Rack spec" do
     lambda {
       res = Rack::MockRequest.new(app).
