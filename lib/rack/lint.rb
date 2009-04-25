@@ -505,7 +505,9 @@ module Rack
       ##
       ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
-      ## to that produced by calling +each+.
+      ## to that produced by calling +each+; this may be used by the
+      ## server as an alternative, possibly more efficient way to
+      ## transport the response.
 
       if @body.respond_to?(:to_path)
         assert("The file identified by body.to_path does not exist") {
