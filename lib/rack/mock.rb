@@ -73,6 +73,8 @@ module Rack
     # Return the Rack environment used for a request to +uri+.
     def self.env_for(uri="", opts={})
       uri = URI(uri)
+      uri.path = "/#{uri.path}" unless uri.path[0] == ?/
+
       env = DEFAULT_ENV.dup
 
       env["REQUEST_METHOD"] = opts[:method] || "GET"

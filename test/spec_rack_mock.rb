@@ -108,6 +108,20 @@ context "Rack::MockRequest" do
     env["HTTPS"].should.equal "on"
   end
 
+  specify "should prepend slash to uri path" do
+    res = Rack::MockRequest.new(app).
+      get("foo")
+    res.should.be.kind_of Rack::MockResponse
+
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+    env["SERVER_NAME"].should.equal "example.org"
+    env["SERVER_PORT"].should.equal "80"
+    env["QUERY_STRING"].should.equal ""
+    env["PATH_INFO"].should.equal "/foo"
+    env["rack.url_scheme"].should.equal "http"
+  end
+
   specify "should behave valid according to the Rack spec" do
     lambda {
       res = Rack::MockRequest.new(app).
