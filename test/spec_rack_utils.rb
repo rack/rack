@@ -116,6 +116,67 @@ context "Rack::Utils" do
       should.equal "my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F"
   end
 
+  specify "should build nested query strings correctly" do
+    Rack::Utils.build_nested_query("foo" => nil).should.equal "foo"
+    Rack::Utils.build_nested_query("foo" => "").should.equal "foo="
+    Rack::Utils.build_nested_query("foo" => "bar").should.equal "foo=bar"
+
+    Rack::Utils.build_nested_query("foo" => "1", "bar" => "2").
+      should.equal "foo=1&bar=2"
+    Rack::Utils.build_nested_query("foo" => nil, "bar" => "").
+      should.equal "foo&bar="
+    Rack::Utils.build_nested_query("foo" => "bar", "baz" => "").
+      should.equal "foo=bar&baz="
+    Rack::Utils.build_nested_query("my weird field" => "q1!2\"'w$5&7/z8)?").
+      should.equal "my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F"
+
+    Rack::Utils.build_nested_query("foo" => [nil]).
+      should.equal "foo[]"
+    Rack::Utils.build_nested_query("foo" => [""]).
+      should.equal "foo[]="
+    Rack::Utils.build_nested_query("foo" => ["bar"]).
+      should.equal "foo[]=bar"
+
+    Rack::Utils.build_nested_query("foo" => ["1", "2"]).
+      should.equal "foo[]=1&foo[]=2"
+    Rack::Utils.build_nested_query("foo" => "bar", "baz" => ["1", "2", "3"]).
+      should.equal "foo=bar&baz[]=1&baz[]=2&baz[]=3"
+    Rack::Utils.build_nested_query("foo" => ["bar"], "baz" => ["1", "2", "3"]).
+      should.equal "foo[]=bar&baz[]=1&baz[]=2&baz[]=3"
+
+    Rack::Utils.build_nested_query("foo" => ["1", "2"]).
+      should.equal "foo[]=1&foo[]=2"
+    Rack::Utils.build_nested_query("foo" => "bar", "baz" => ["1", "2", "3"]).
+      should.equal "foo=bar&baz[]=1&baz[]=2&baz[]=3"
+    Rack::Utils.build_nested_query("x" => {"y" => {"z" => "1"}}).
+      should.equal "x[y][z]=1"
+    Rack::Utils.build_nested_query("x" => {"y" => {"z" => ["1"]}}).
+      should.equal "x[y][z][]=1"
+    Rack::Utils.build_nested_query("x" => {"y" => {"z" => ["1", "2"]}}).
+      should.equal "x[y][z][]=1&x[y][z][]=2"
+
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => "1"}]}).
+      should.equal "x[y][][z]=1"
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => ["1"]}]}).
+      should.equal "x[y][][z][]=1"
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => "1", "w" => "2"}]}).
+      should.equal "x[y][][z]=1&x[y][][w]=2"
+
+    Rack::Utils.build_nested_query("x" => {"y" => [{"v" => {"w" => "1"}}]}).
+      should.equal "x[y][][v][w]=1"
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => "1", "v" => {"w" => "2"}}]}).
+      should.equal "x[y][][z]=1&x[y][][v][w]=2"
+
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => "1"}, {"z" => "2"}]}).
+      should.equal "x[y][][z]=1&x[y][][z]=2"
+    Rack::Utils.build_nested_query("x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}).
+      should.equal "x[y][][z]=1&x[y][][w]=a&x[y][][z]=2&x[y][][w]=3"
+
+    lambda { Rack::Utils.build_nested_query("foo=bar") }.
+      should.raise(ArgumentError).
+      message.should.equal "value must be a Hash"
+  end
+
   specify "should figure out which encodings are acceptable" do
     helper = lambda do |a, b|
       request = Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))

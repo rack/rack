@@ -105,6 +105,25 @@ module Rack
     end
     module_function :build_query
 
+    def build_nested_query(value, prefix = nil)
+      case value
+      when Array
+        value.map { |v|
+          build_nested_query(v, "#{prefix}[]")
+        }.join("&")
+      when Hash
+        value.map { |k, v|
+          build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
+        }.join("&")
+      when String
+        raise ArgumentError, "value must be a Hash" if prefix.nil?
+        "#{prefix}=#{escape(value)}"
+      else
+        prefix
+      end
+    end
+    module_function :build_nested_query
+
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
       string.to_s.gsub("&", "&amp;").
