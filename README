@@ -21,7 +21,8 @@ support Ruby 1.9 and to deprecate some problematic techniques:
   wrap with Rack::RewindableInput if it isn't.
 * Content-Length can be missing, in this case chunked transfer
   encoding is used.
-* Bodies can now respond to #to_path with a filename to be served.
+* Bodies can now additionally respond to #to_path with a filename to
+  be served.
 * String bodies are deprecated and will not work with Ruby 1.9, use an
   Array with a single String instead.
 * rack.session is now specified.
@@ -144,10 +145,6 @@ at my site:
 
     gem install rack --source http://chneukirchen.org/releases/gems/
 
-Or you can install directly from GitHub:
-
-    gem install rack-rack --source=http://gems.github.com
-
 == Running the tests
 
 Testing Rack requires the test/spec testing framework:
@@ -253,11 +250,16 @@ run on port 11211) and memcache-client installed.
 * January 9th, 2009: Sixth public release 0.9.1.
   * Fix directory traversal exploits in Rack::File and Rack::Directory.
 
-* April 25th, 2009: Seventh public release 1.0.
+* April 25th, 2009: Seventh public release 1.0.0.
+  * SPEC change: Rack::VERSION has been pushed to [1,0].
   * SPEC change: header values must be Strings now, split on "\n".
-  * SPEC change: Content-Length not enforced anymore, chunking is used
-    when missing.
-  * SPEC change: bodies can respond #to_path with a filename to be served.
+  * SPEC change: Content-Length can be missing, in this case chunked transfer
+    encoding is used.
+  * SPEC change: rack.input must be rewindable and support reading into
+    a buffer, wrap with Rack::RewindableInput if it isn't.
+  * SPEC change: rack.session is now specified.
+  * SPEC change: Bodies can now additionally respond to #to_path with
+    a filename to be served.
   * NOTE: String bodies break in 1.9, use an Array consisting of a
     single String instead.
   * New middleware Rack::Lock.
