@@ -122,6 +122,12 @@ context "Rack::MockRequest" do
     env["rack.url_scheme"].should.equal "http"
   end
 
+  specify "should properly convert method name to an uppercase string" do
+    res = Rack::MockRequest.new(app).request(:get)
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+  end
+
   specify "should behave valid according to the Rack spec" do
     lambda {
       res = Rack::MockRequest.new(app).
