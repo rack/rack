@@ -93,6 +93,21 @@ context "Rack::MockRequest" do
     env["rack.url_scheme"].should.equal "https"
   end
 
+  specify "should set SSL port and HTTP flag on when using https" do
+    res = Rack::MockRequest.new(app).
+      get("https://example.org/foo")
+    res.should.be.kind_of Rack::MockResponse
+
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "GET"
+    env["SERVER_NAME"].should.equal "example.org"
+    env["SERVER_PORT"].should.equal "443"
+    env["QUERY_STRING"].should.equal ""
+    env["PATH_INFO"].should.equal "/foo"
+    env["rack.url_scheme"].should.equal "https"
+    env["HTTPS"].should.equal "on"
+  end
+
   specify "should behave valid according to the Rack spec" do
     lambda {
       res = Rack::MockRequest.new(app).
@@ -130,7 +145,7 @@ context "Rack::MockResponse" do
     res.original_headers["Content-Type"].should.equal "text/yaml"
     res["Content-Type"].should.equal "text/yaml"
     res.content_type.should.equal "text/yaml"
-    res.content_length.should.be 464  # needs change often.
+    res.content_length.should.be 477  # needs change often.
     res.location.should.be.nil
   end
 
