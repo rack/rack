@@ -387,9 +387,41 @@ context "Rack::Utils::Multipart" do
     input.read.length.should.equal 197
   end
 
+  specify "builds multipart body" do
+    files = Rack::Utils::Multipart::UploadedFile.new(multipart_file("file1.txt"))
+    data  = Rack::Utils::Multipart.build_multipart("submit-name" => "Larry", "files" => files)
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  specify "builds nested multipart body" do
+    files = Rack::Utils::Multipart::UploadedFile.new(multipart_file("file1.txt"))
+    data  = Rack::Utils::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => files}])
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["people"][0]["submit-name"].should.equal "Larry"
+    params["people"][0]["files"][:filename].should.equal "file1.txt"
+    params["people"][0]["files"][:tempfile].read.should.equal "contents"
+  end
+
   private
     def multipart_fixture(name)
-      file = File.join(File.dirname(__FILE__), "multipart", name.to_s)
+      file = multipart_file(name)
       data = File.open(file, 'rb') { |io| io.read }
 
       type = "multipart/form-data; boundary=AaB03x"
@@ -398,5 +430,9 @@ context "Rack::Utils::Multipart" do
       { "CONTENT_TYPE" => type,
         "CONTENT_LENGTH" => length.to_s,
         :input => StringIO.new(data) }
+    end
+
+    def multipart_file(name)
+      File.join(File.dirname(__FILE__), "multipart", name.to_s)
     end
 end

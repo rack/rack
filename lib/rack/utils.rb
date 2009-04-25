@@ -308,7 +308,35 @@ module Rack
     # Usually, Rack::Request#POST takes care of calling this.
 
     module Multipart
+      class UploadedFile
+        # The filename, *not* including the path, of the "uploaded" file
+        attr_reader :original_filename
+
+        # The content type of the "uploaded" file
+        attr_accessor :content_type
+
+        def initialize(path, content_type = "text/plain", binary = false)
+          raise "#{path} file does not exist" unless ::File.exist?(path)
+          @content_type = content_type
+          @original_filename = ::File.basename(path)
+          @tempfile = Tempfile.new(@original_filename)
+          @tempfile.set_encoding(Encoding::BINARY) if @tempfile.respond_to?(:set_encoding)
+          @tempfile.binmode if binary
+          FileUtils.copy_file(path, @tempfile.path)
+        end
+
+        def path
+          @tempfile.path
+        end
+        alias_method :local_path, :path
+
+        def method_missing(method_name, *args, &block) #:nodoc:
+          @tempfile.__send__(method_name, *args, &block)
+        end
+      end
+
       EOL = "\r\n"
+      MULTIPART_BOUNDARY = "AaB03x"
 
       def self.parse_multipart(env)
         unless env['CONTENT_TYPE'] =~
@@ -393,7 +421,7 @@ module Rack
                       :name => name, :tempfile => body, :head => head}
             elsif !filename && content_type
               body.rewind
-              
+
               # Generic multipart cases, not coming from a form
               data = {:type => content_type,
                       :name => name, :tempfile => body, :head => head}
@@ -409,6 +437,56 @@ module Rack
           input.rewind
 
           params
+        end
+      end
+
+      def self.build_multipart(params, first = true)
+        flattened_params = Hash.new
+
+        params.each do |key, value|
+          k = first ? key.to_s : "[#{key}]"
+
+          case value
+          when Array
+            value.map { |v|
+              build_multipart(v, false).each { |subkey, subvalue|
+                flattened_params["#{k}[]#{subkey}"] = subvalue
+              }
+            }
+          when Hash
+            build_multipart(value, false).each { |subkey, subvalue|
+              flattened_params[k + subkey] = subvalue
+            }
+          else
+            flattened_params[k] = value
+          end
+        end
+
+        if first
+          flattened_params.map { |name, file|
+            if file.respond_to?(:original_filename)
+              ::File.open(file.path, "rb") do |f|
+                f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
+<<-EOF
+--#{MULTIPART_BOUNDARY}\r
+Content-Disposition: form-data; name="#{name}"; filename="#{Utils.escape(file.original_filename)}"\r
+Content-Type: #{file.content_type}\r
+Content-Length: #{::File.stat(file.path).size}\r
+\r
+#{f.read}\r
+EOF
+              end
+            else
+<<-EOF
+--#{MULTIPART_BOUNDARY}\r
+Content-Disposition: form-data; name="#{name}"\r
+\r
+#{file}\r
+EOF
+            end
+          }.join + "--#{MULTIPART_BOUNDARY}--\r"
+        else
+          flattened_params
         end
       end
     end
