@@ -186,9 +186,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"counter"=>2'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"counter"=>2'
       end
 
       session = pool.pool.get(sess_id)
@@ -210,9 +210,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"counter"=>3'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"counter"=>3'
       end
 
       session = pool.pool.get(sess_id)
@@ -232,9 +232,9 @@ begin
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
         end
       end.reverse.map{|t| t.run.join.value }
-      r.each do |res|
-        res['Set-Cookie'].should.equal cookie
-        res.body.should.include '"foo"=>"bar"'
+      r.each do |request|
+        request['Set-Cookie'].should.equal cookie
+        request.body.should.include '"foo"=>"bar"'
       end
 
       session = pool.pool.get(sess_id)
