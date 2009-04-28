@@ -1,3 +1,5 @@
+# coding=binary
+
 require 'set'
 require 'tempfile'
 
@@ -351,7 +353,7 @@ module Rack
           input = env['rack.input']
           input.rewind
 
-          boundary_size = boundary.size + EOL.size
+          boundary_size = Utils.bytesize(boundary) + EOL.size
           bufsize = 16384
 
           content_length -= boundary_size
