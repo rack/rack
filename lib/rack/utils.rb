@@ -1,4 +1,4 @@
-# coding=binary
+# -*- encoding: binary -*-
 
 require 'set'
 require 'tempfile'
