@@ -6,6 +6,8 @@ begin
   require 'rack/response'
   require 'thread'
 
+  pool = Rack::Session::Memcache.new(lambda {})
+
   context "Rack::Session::Memcache" do
     session_key = Rack::Session::Memcache::DEFAULT_OPTIONS[:key]
     session_match = /#{session_key}=[0-9a-fA-F]+;/
@@ -235,6 +237,8 @@ begin
       session['foo'].should.equal 'bar'
     end
   end
+rescue RuntimeError
+  $stderr.puts "Skipping Rack::Session::Memcache tests. Start memcached and try again."
 rescue LoadError
   $stderr.puts "Skipping Rack::Session::Memcache tests (Memcache is required). `gem install memcache-client` and try again."
 end
