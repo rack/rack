@@ -63,7 +63,7 @@ module Rack
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
-      name =~ %r([\[\]]*([^\[\]]+)\]*)
+      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
 
