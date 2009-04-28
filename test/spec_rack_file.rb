@@ -6,7 +6,7 @@ require 'rack/lint'
 require 'rack/mock'
 
 context "Rack::File" do
-  DOCROOT = File.expand_path(File.dirname(__FILE__))
+  DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
 
   specify "serves files" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
