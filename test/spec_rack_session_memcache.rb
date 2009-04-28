@@ -34,9 +34,15 @@ begin
     end
 
     specify "faults on no connection" do
-      lambda do
-        Rack::Session::Memcache.new(incrementor, :memcache_server => '')
-      end.should.raise
+      if RUBY_VERSION < "1.9"
+        lambda do
+          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+        end.should.raise
+      else
+        lambda do
+          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+        end.should.raise ArgumentError
+      end
     end
 
     specify "creates a new cookie" do
