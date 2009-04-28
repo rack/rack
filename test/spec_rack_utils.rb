@@ -405,6 +405,17 @@ context "Rack::Utils::Multipart" do
     params["people"][0]["files"][:tempfile].read.should.equal "contents"
   end
 
+  specify "should return nil if no UploadedFiles were used" do
+    data = Rack::Utils::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => "contents"}])
+    data.should.equal nil
+  end
+
+  specify "should raise ArgumentError if params is not a Hash" do
+    lambda { Rack::Utils::Multipart.build_multipart("foo=bar") }.
+      should.raise(ArgumentError).
+      message.should.equal "value must be a Hash"
+  end
+
   private
     def multipart_fixture(name)
       file = multipart_file(name)

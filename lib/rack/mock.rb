@@ -101,22 +101,9 @@ module Rack
         elsif !opts.has_key?(:input)
           opts["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
           if params.is_a?(Hash)
-            multipart = false
-            query = lambda { |value|
-              case value
-              when Array
-                value.each(&query)
-              when Hash
-                value.values.each(&query)
-              when Utils::Multipart::UploadedFile
-                multipart = true
-              end
-            }
-            opts[:params].values.each(&query)
-
-            if multipart
-              opts[:input] = Utils::Multipart.build_multipart(params)
-              opts["CONTENT_LENGTH"] ||= opts[:input].length.to_s
+            if data = Utils::Multipart.build_multipart(params)
+              opts[:input] = data
+              opts["CONTENT_LENGTH"] ||= data.length.to_s
               opts["CONTENT_TYPE"] = "multipart/form-data; boundary=#{Utils::Multipart::MULTIPART_BOUNDARY}"
             else
               opts[:input] = Utils.build_nested_query(params)
