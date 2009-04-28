@@ -132,7 +132,8 @@ context "Rack::MockRequest" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => {:foo => {:bar => "1"}})
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "GET"
-    env["QUERY_STRING"].should.equal "foo[bar]=1&baz=2"
+    env["QUERY_STRING"].should.match "baz=2"
+    env["QUERY_STRING"].should.match "foo[bar]=1"
     env["PATH_INFO"].should.equal "/foo"
     env["mock.postdata"].should.equal ""
   end
@@ -141,7 +142,8 @@ context "Rack::MockRequest" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => "foo[bar]=1")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "GET"
-    env["QUERY_STRING"].should.equal "foo[bar]=1&baz=2"
+    env["QUERY_STRING"].should.match "baz=2"
+    env["QUERY_STRING"].should.match "foo[bar]=1"
     env["PATH_INFO"].should.equal "/foo"
     env["mock.postdata"].should.equal ""
   end
