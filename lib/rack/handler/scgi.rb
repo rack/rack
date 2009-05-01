@@ -32,7 +32,7 @@ module Rack
         env["PATH_INFO"] = env["REQUEST_PATH"]
         env["QUERY_STRING"] ||= ""
         env["SCRIPT_NAME"] = ""
-        env.update({"rack.version" => [0,1],
+        env.update({"rack.version" => [1,0],
                      "rack.input" => StringIO.new(input_body),
                      "rack.errors" => $stderr,
 
