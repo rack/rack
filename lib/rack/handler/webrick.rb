@@ -22,7 +22,7 @@ module Rack
         env = req.meta_vars
         env.delete_if { |k, v| v.nil? }
 
-        env.update({"rack.version" => [0,1],
+        env.update({"rack.version" => [1,0],
                      "rack.input" => StringIO.new(req.body.to_s),
                      "rack.errors" => $stderr,
 
