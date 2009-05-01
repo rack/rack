@@ -149,7 +149,7 @@ module Rack
       @body = ""
       body.each { |part| @body << part }
 
-      @errors = errors.string
+      @errors = errors.string if errors.respond_to?(:string)
     end
 
     # Status
