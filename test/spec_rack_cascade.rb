@@ -28,15 +28,13 @@ context "Rack::Cascade" do
     Rack::MockRequest.new(cascade).get("/cgi/../bla").should.be.not_found
   end
 
-  specify "should fail if empty" do
-    lambda { Rack::MockRequest.new(Rack::Cascade.new([])).get("/") }.
-      should.raise(ArgumentError)
+  specify "should return 404 if empty" do
+    Rack::MockRequest.new(Rack::Cascade.new([])).get('/').should.be.not_found
   end
 
   specify "should append new app" do
     cascade = Rack::Cascade.new([], [404, 403])
-    lambda { Rack::MockRequest.new(cascade).get('/cgi/test') }.
-      should.raise(ArgumentError)
+    Rack::MockRequest.new(cascade).get('/').should.be.not_found
     cascade << app2
     Rack::MockRequest.new(cascade).get('/cgi/test').should.be.not_found
     Rack::MockRequest.new(cascade).get('/cgi/../bla').should.be.not_found
