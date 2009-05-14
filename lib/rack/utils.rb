@@ -227,21 +227,23 @@ module Rack
       end
 
       def [](k)
-        super @names[k.downcase]
+        super(@names[k] ||= @names[k.downcase])
       end
 
       def []=(k, v)
         delete k
-        @names[k.downcase] = k
+        @names[k] = @names[k.downcase] = k
         super k, v
       end
 
       def delete(k)
-        super @names.delete(k.downcase)
+        canonical = k.downcase
+        super @names.delete(canonical)
+        @names.delete_if { |name,| name.downcase == canonical }
       end
 
       def include?(k)
-        @names.has_key? k.downcase
+        @names.include?(k) || @names.include?(k.downcase)
       end
 
       alias_method :has_key?, :include?
