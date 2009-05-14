@@ -6,6 +6,9 @@ require 'rack/lobster'
 require 'rack/mock'
 
 context "Rack::CommonLogger" do
+  obj = 'foobar'
+  length = obj.size
+
   app = lambda { |env|
     [200,
      {"Content-Type" => "text/html", "Content-Length" => length.to_s},
