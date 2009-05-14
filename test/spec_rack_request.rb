@@ -47,6 +47,11 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  specify "raises if rack.input is missing" do
+    req = Rack::Request.new({})
+    lambda { req.POST }.should.raise(RuntimeError)
+  end
+
   specify "can parse POST data" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
