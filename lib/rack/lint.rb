@@ -51,7 +51,8 @@ module Rack
       check_headers headers
       ## and the *body*.
       check_content_type status, headers
-      check_content_length status, headers, env
+      check_content_length status, headers
+      @head_request = env["REQUEST_METHOD"] == "HEAD"
       [status, headers, self]
     end
 
@@ -443,7 +444,7 @@ module Rack
     end
 
     ## === The Content-Length
-    def check_content_length(status, headers, env)
+    def check_content_length(status, headers)
       headers.each { |key, value|
         if key.downcase == 'content-length'
           ## There must not be a <tt>Content-Length</tt> header when the
@@ -451,49 +452,43 @@ module Rack
           assert("Content-Length header found in #{status} response, not allowed") {
             not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
           }
-
-          bytes = 0
-          string_body = true
-
-          if @body.respond_to?(:to_ary)
-            @body.each { |part|
-              unless part.kind_of?(String)
-                string_body = false
-                break
-              end
-
-              bytes += Rack::Utils.bytesize(part)
-            }
-
-            if env["REQUEST_METHOD"] == "HEAD"
-              assert("Response body was given for HEAD request, but should be empty") {
-                bytes == 0
-              }
-            else
-              if string_body
-                assert("Content-Length header was #{value}, but should be #{bytes}") {
-                  value == bytes.to_s
-                }
-              end
-            end
-          end
-
-          return
+          @content_length = value
         end
       }
+    end
+
+    def verify_content_length(bytes)
+      if @head_request
+        assert("Response body was given for HEAD request, but should be empty") {
+          bytes == 0
+        }
+      elsif @content_length
+        assert("Content-Length header was #{@content_length}, but should be #{bytes}") {
+          @content_length == bytes.to_s
+        }
+      end
     end
 
     ## === The Body
     def each
       @closed = false
+      bytes = 0
+
       ## The Body must respond to +each+
+      assert("Response body must respond to each") do
+        @body.respond_to?(:each)
+      end
+
       @body.each { |part|
         ## and must only yield String values.
         assert("Body yielded non-string value #{part.inspect}") {
           part.instance_of? String
         }
+        bytes += Rack::Utils.bytesize(part)
         yield part
       }
+      verify_content_length(bytes)
+
       ##
       ## The Body itself should not be an instance of String, as this will
       ## break in Ruby 1.9.

@@ -239,7 +239,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        [200, {"Content-type" => "text/plain", "Content-Length" => "1"}, []]
-                     }).call(env({}))
+                     }).call(env({}))[2].each { }
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/Content-Length header was 1, but should be 0/)
   end
@@ -426,7 +426,7 @@ context "Rack::Lint" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        [200, {"Content-type" => "test/plain", "Content-length" => "3"}, ["foo"]]
-                     }).call(env({"REQUEST_METHOD" => "HEAD"}))
+                     }).call(env({"REQUEST_METHOD" => "HEAD"}))[2].each { }
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/body was given for HEAD/)
   end
