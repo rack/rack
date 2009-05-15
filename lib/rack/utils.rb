@@ -26,15 +26,17 @@ module Rack
     end
     module_function :unescape
 
+    DEFAULT_SEP = /[&;] */n
+    
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
-    def parse_query(qs, d = '&;')
+    def parse_query(qs, d = nil)
       params = {}
 
-      (qs || '').split(/[#{d}] */n).each do |p|
+      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = unescape(p).split('=', 2)
 
         if cur = params[k]
@@ -52,10 +54,10 @@ module Rack
     end
     module_function :parse_query
 
-    def parse_nested_query(qs, d = '&;')
+    def parse_nested_query(qs, d = nil)
       params = {}
 
-      (qs || '').split(/[#{d}] */n).each do |p|
+      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = unescape(p).split('=', 2)
         normalize_params(params, k, v)
       end
@@ -101,7 +103,7 @@ module Rack
         if v.class == Array
           build_query(v.map { |x| [k, x] })
         else
-          escape(k) + "=" + escape(v)
+          "#{escape(k)}=#{escape(v)}"
         end
       }.join("&")
     end
