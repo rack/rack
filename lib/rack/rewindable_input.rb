@@ -1,4 +1,6 @@
+# -*- encoding: binary -*-
 require 'tempfile'
+require 'rack/utils'
 
 module Rack
   # Class which can make any IO object rewindable, including non-rewindable ones. It does
@@ -72,27 +74,23 @@ module Rack
       # access it because we have the file handle open.
       @rewindable_io = Tempfile.new('RackRewindableInput')
       @rewindable_io.chmod(0000)
-      if filesystem_has_posix_semantics?
+      if tempfile_unlinkable?
         @rewindable_io.unlink
+        raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
-      
-      buffer = ""
-      while @io.read(1024 * 4, buffer)
-        entire_buffer_written_out = false
-        while !entire_buffer_written_out
-          written = @rewindable_io.write(buffer)
-          entire_buffer_written_out = written == buffer.size
-          if !entire_buffer_written_out
-            buffer.slice!(0 .. written - 1)
-          end
+
+      buf = ""
+      while @io.read(1024 * 4, buf)
+        while (n = @rewindable_io.write(buf)) != Rack::Utils.bytesize(buf)
+          buf.slice!(0...n)
         end
       end
       @rewindable_io.rewind
     end
     
-    def filesystem_has_posix_semantics?
-      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/
+    def tempfile_unlinkable?
+      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/ && RUBY_VERSION < '1.9'
     end
   end
 end
