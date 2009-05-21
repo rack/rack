@@ -478,7 +478,7 @@ module Rack
       end
 
       def call(env)
-        to = auth.call(env) ? @app : @oid
+        to = @authenticator.call(env) ? @app : @oid
         to.call(env)
       end
     end
