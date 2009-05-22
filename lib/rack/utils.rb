@@ -37,7 +37,7 @@ module Rack
       params = {}
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
-        k, v = unescape(p).split('=', 2)
+        k, v = p.split('=', 2).map { |x| unescape(x) }
 
         if cur = params[k]
           if cur.class == Array
