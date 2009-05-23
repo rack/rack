@@ -3,6 +3,7 @@
 gem 'ruby-openid', '~> 2' if defined? Gem
 require 'rack/request'
 require 'rack/utils'
+require 'rack/auth/abstract/handler'
 
 require 'uri'
 require 'openid'
