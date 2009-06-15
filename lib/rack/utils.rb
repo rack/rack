@@ -259,6 +259,12 @@ module Rack
         hash = dup
         hash.merge! other
       end
+
+      def replace(other)
+        clear
+        other.each { |k, v| self[k] = v }
+        self
+      end
     end
 
     # Every standard HTTP code mapped to the appropriate message.

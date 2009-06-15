@@ -228,6 +228,13 @@ context "Rack::Utils::HeaderHash" do
     h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
     h.to_hash.should.equal({ "foo" => "bar\nbaz" })
   end
+
+  specify "should replace hashes correctly" do
+    h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
+    j = {"foo" => "bar"}
+    h.replace(j)
+    h["foo"].should.equal "bar"
+  end
 end
 
 context "Rack::Utils::Context" do
