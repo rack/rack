@@ -181,6 +181,30 @@ context "Rack::Utils::HeaderHash" do
     h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
     h.to_hash.should.equal({ "foo" => "bar\nbaz" })
   end
+  
+  specify "should be able to delete the given key case-sensitively" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("foo")
+    h["foo"].should.be.nil
+    h["FOO"].should.be.nil
+  end
+  
+  specify "should be able to delete the given key case-insensitively" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("FOO")
+    h["foo"].should.be.nil
+    h["FOO"].should.be.nil
+  end
+  
+  specify "should return the deleted value when #delete is called on an existing key" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("Foo").should.equal("bar")
+  end
+  
+  specify "should return nil when #delete is called on a non-existant key" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("Hello").should.be.nil
+  end
 end
 
 context "Rack::Utils::Context" do
