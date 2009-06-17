@@ -46,4 +46,16 @@ context "Rack::CommonLogger" do
     res.errors.should.not.be.empty
     res.errors.should =~ /"GET \/ " 200 - /
   end
+  
+  def length
+    self.class.length
+  end
+  
+  def self.length
+    123
+  end
+  
+  def self.obj
+    "hello world"
+  end
 end
