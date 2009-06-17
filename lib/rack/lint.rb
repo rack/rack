@@ -233,8 +233,17 @@ module Rack
     ## === The Input Stream
     ##
     ## The input stream is an IO-like object which contains the raw HTTP
-    ## POST data. If it is a file then it must be opened in binary mode.
+    ## POST data.
     def check_input(input)
+      ## When applicable, its external encoding must be "ASCII-8BIT" and it
+      ## must be opened in binary mode, for Ruby 1.9 compatibility.
+      assert("rack.input #{input} does not have ASCII-8BIT as its external encoding") {
+        input.external_encoding.name == "ASCII-8BIT"
+      } if input.respond_to?(:external_encoding)
+      assert("rack.input #{input} is not opened in binary mode") {
+        input.binmode?
+      } if input.respond_to?(:binmode?)
+      
       ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
       [:gets, :each, :read, :rewind].each { |method|
         assert("rack.input #{input} does not respond to ##{method}") {

@@ -110,6 +110,28 @@ context "Rack::Lint" do
       Rack::Lint.new(nil).call(env("rack.input" => ""))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/does not respond to #gets/)
+    
+    lambda {
+      input = Object.new
+      def input.binmode?
+        false
+      end
+      Rack::Lint.new(nil).call(env("rack.input" => input))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/is not opened in binary mode/)
+    
+    lambda {
+      input = Object.new
+      def input.external_encoding
+        result = Object.new
+        def result.name
+          "US-ASCII"
+        end
+        result
+      end
+      Rack::Lint.new(nil).call(env("rack.input" => input))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/does not have ASCII-8BIT as its external encoding/);puts RUBY_VERSION
   end
 
   specify "notices error errors" do
