@@ -211,6 +211,7 @@ module Rack
     # header when set.
     class HeaderHash < Hash
       def initialize(hash={})
+        super()
         @names = {}
         hash.each { |k, v| self[k] = v }
       end
@@ -238,8 +239,9 @@ module Rack
 
       def delete(k)
         canonical = k.downcase
-        super @names.delete(canonical)
+        result = super @names.delete(canonical)
         @names.delete_if { |name,| name.downcase == canonical }
+        result
       end
 
       def include?(k)
