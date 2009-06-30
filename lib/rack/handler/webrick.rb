@@ -23,8 +23,11 @@ module Rack
         env = req.meta_vars
         env.delete_if { |k, v| v.nil? }
 
+        rack_input = StringIO.new(req.body.to_s)
+        rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+
         env.update({"rack.version" => [1,0],
-                     "rack.input" => StringIO.new(req.body.to_s),
+                     "rack.input" => rack_input,
                      "rack.errors" => $stderr,
 
                      "rack.multithread" => true,
