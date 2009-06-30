@@ -92,10 +92,13 @@ module Rack
 
       opts[:input] ||= ""
       if String === opts[:input]
-        env["rack.input"] = StringIO.new(opts[:input])
+        rack_input = StringIO.new(opts[:input])
       else
-        env["rack.input"] = opts[:input]
+        rack_input = opts[:input]
       end
+
+      rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+      env['rack.input'] = rack_input
 
       env["CONTENT_LENGTH"] ||= env["rack.input"].length.to_s
 
