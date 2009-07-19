@@ -100,6 +100,7 @@ if config =~ /\.ru$/
   if cfgfile[/^#\\(.*)/]
     opts.parse! $1.split(/\s+/)
   end
+  cfgfile.sub!(/^__END__\n.*/, '')
   inner_app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
                    nil, config
 else
