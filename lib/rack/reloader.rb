@@ -93,6 +93,8 @@ module Rack
           found, stat = safe_stat(path)
           return ::File.expand_path(found), stat if found
         end
+
+        return false, false
       end
 
       def safe_stat(file)
