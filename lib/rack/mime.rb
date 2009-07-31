@@ -126,6 +126,7 @@ module Rack
       ".ods"     => "application/vnd.oasis.opendocument.spreadsheet",
       ".odt"     => "application/vnd.oasis.opendocument.text",
       ".ogg"     => "application/ogg",
+      ".ogv"     => "video/ogg",
       ".p"       => "text/x-pascal",
       ".pas"     => "text/x-pascal",
       ".pbm"     => "image/x-portable-bitmap",
