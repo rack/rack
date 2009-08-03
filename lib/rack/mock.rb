@@ -114,7 +114,9 @@ module Rack
         end
       end
 
-      opts[:input] ||= ""
+      empty_str = ""
+      empty_str.force_encoding("ASCII-8BIT") if empty_str.respond_to? :force_encoding
+      opts[:input] ||= empty_str
       if String === opts[:input]
         rack_input = StringIO.new(opts[:input])
       else

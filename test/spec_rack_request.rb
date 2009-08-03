@@ -429,6 +429,7 @@ Content-Transfer-Encoding: base64\r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
 EOF
+    input.force_encoding("ASCII-8BIT") if input.respond_to? :force_encoding
     res = Rack::MockRequest.new(Rack::Lint.new(app)).get "/",
       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
       "CONTENT_LENGTH" => input.size.to_s, "rack.input" => StringIO.new(input)
