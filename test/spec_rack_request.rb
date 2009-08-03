@@ -37,6 +37,11 @@ context "Rack::Request" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org:9292")
     req.host.should.equal "example.org"
+
+    env = Rack::MockRequest.env_for("/")
+    env.delete("SERVER_NAME")
+    req = Rack::Request.new(env)
+    req.host.should.equal ""
   end
 
   specify "can parse the query string" do
