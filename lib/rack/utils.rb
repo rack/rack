@@ -168,6 +168,54 @@ module Rack
     end
     module_function :select_best_encoding
 
+    def set_cookie_header!(header, key, value)
+      case value
+      when Hash
+        domain  = "; domain="  + value[:domain] if value[:domain]
+        path    = "; path="    + value[:path]   if value[:path]
+        # According to RFC 2109, we need dashes here.
+        # N.B.: cgi.rb uses spaces...
+        expires = "; expires=" + value[:expires].clone.gmtime.
+          strftime("%a, %d-%b-%Y %H:%M:%S GMT") if value[:expires]
+        secure = "; secure"  if value[:secure]
+        httponly = "; HttpOnly" if value[:httponly]
+        value = value[:value]
+      end
+      value = [value] unless Array === value
+      cookie = escape(key) + "=" +
+        value.map { |v| escape v }.join("&") +
+        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+
+      case header["Set-Cookie"]
+      when Array
+        header["Set-Cookie"] << cookie
+      when String
+        header["Set-Cookie"] = [header["Set-Cookie"], cookie]
+      when nil
+        header["Set-Cookie"] = cookie
+      end
+
+      nil
+    end
+    module_function :set_cookie_header!
+
+    def delete_cookie_header!(header, key, value = {})
+      unless Array === header["Set-Cookie"]
+        header["Set-Cookie"] = [header["Set-Cookie"]].compact
+      end
+
+      header["Set-Cookie"].reject! { |cookie|
+        cookie =~ /\A#{escape(key)}=/
+      }
+
+      set_cookie_header!(header, key,
+                 {:value => '', :path => nil, :domain => nil,
+                   :expires => Time.at(0) }.merge(value))
+
+      nil
+    end
+    module_function :delete_cookie_header!
+
     # Return the bytesize of String; uses String#length under Ruby 1.8 and
     # String#bytesize under 1.9.
     if ''.respond_to?(:bytesize)

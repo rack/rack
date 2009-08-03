@@ -54,45 +54,11 @@ module Rack
     end
 
     def set_cookie(key, value)
-      case value
-      when Hash
-        domain  = "; domain="  + value[:domain]    if value[:domain]
-        path    = "; path="    + value[:path]      if value[:path]
-        # According to RFC 2109, we need dashes here.
-        # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT")    if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:httponly]
-        value = value[:value]
-      end
-      value = [value]  unless Array === value
-      cookie = Utils.escape(key) + "=" +
-        value.map { |v| Utils.escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
-
-      case self["Set-Cookie"]
-      when Array
-        self["Set-Cookie"] << cookie
-      when String
-        self["Set-Cookie"] = [self["Set-Cookie"], cookie]
-      when nil
-        self["Set-Cookie"] = cookie
-      end
+      Utils.set_cookie_header!(header, key, value)
     end
 
     def delete_cookie(key, value={})
-      unless Array === self["Set-Cookie"]
-        self["Set-Cookie"] = [self["Set-Cookie"]].compact
-      end
-
-      self["Set-Cookie"].reject! { |cookie|
-        cookie =~ /\A#{Utils.escape(key)}=/
-      }
-
-      set_cookie(key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :expires => Time.at(0) }.merge(value))
+      Utils.delete_cookie_header!(header, key, value)
     end
 
     def redirect(target, status=302)
