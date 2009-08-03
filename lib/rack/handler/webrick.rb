@@ -26,25 +26,25 @@ module Rack
         rack_input = StringIO.new(req.body.to_s)
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => [1,0],
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
+        env.update({Const::RACK_VERSION => [1,0],
+                     Const::RACK_INPUT => rack_input,
+                     Const::RACK_ERRORS => $stderr,
 
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => false,
-                     "rack.run_once" => false,
+                     Const::RACK_MULTITHREAD => true,
+                     Const::RACK_MULTIPROCESS => false,
+                     Const::RACK_RUN_ONCE => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+                     Const::RACK_URL_SCHEME => ["yes", "on", "1"].include?(ENV[Const::ENV_HTTPS]) ? "https" : "http"
                    })
 
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["QUERY_STRING"] ||= ""
-        env["REQUEST_PATH"] ||= "/"
-        if env["PATH_INFO"] == ""
-          env.delete "PATH_INFO"
+        env[Const::ENV_HTTP_VERSION] ||= env[Const::ENV_SERVER_PROTOCOL]
+        env[Const::ENV_QUERY_STRING] ||= ""
+        env[Const::ENV_REQUEST_PATH] ||= "/"
+        if env[Const::ENV_PATH_INFO] == ""
+          env.delete Const::ENV_PATH_INFO
         else
-          path, n = req.request_uri.path, env["SCRIPT_NAME"].length
-          env["PATH_INFO"] = path[n, path.length-n]
+          path, n = req.request_uri.path, env[Const::ENV_SCRIPT_NAME].length
+          env[Const::ENV_PATH_INFO] = path[n, path.length-n]
         end
 
         status, headers, body = @app.call(env)

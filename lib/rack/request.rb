@@ -21,17 +21,17 @@ module Rack
       @env = env
     end
 
-    def body;            @env["rack.input"]                       end
-    def scheme;          @env["rack.url_scheme"]                  end
-    def script_name;     @env["SCRIPT_NAME"].to_s                 end
-    def path_info;       @env["PATH_INFO"].to_s                   end
-    def port;            @env["SERVER_PORT"].to_i                 end
-    def request_method;  @env["REQUEST_METHOD"]                   end
-    def query_string;    @env["QUERY_STRING"].to_s                end
-    def content_length;  @env['CONTENT_LENGTH']                   end
-    def content_type;    @env['CONTENT_TYPE']                     end
-    def session;         @env['rack.session'] ||= {}              end
-    def session_options; @env['rack.session.options'] ||= {}      end
+    def body;            @env[Const::RACK_INPUT]                  end
+    def scheme;          @env[Const::RACK_URL_SCHEME]             end
+    def script_name;     @env[Const::ENV_SCRIPT_NAME].to_s            end
+    def path_info;       @env[Const::ENV_PATH_INFO].to_s              end
+    def port;            @env[Const::ENV_SERVER_PORT].to_i            end
+    def request_method;  @env[Const::ENV_REQUEST_METHOD]              end
+    def query_string;    @env[Const::ENV_QUERY_STRING].to_s           end
+    def content_length;  @env[Const::ENV_CONTENT_LENGTH]              end
+    def content_type;    @env[Const::ENV_CONTENT_TYPE]                end
+    def session;         @env[Const::RACK_SESSION] ||= {}         end
+    def session_options; @env[Const::RACK_SESSION_OPTIONS] ||= {} end
 
     # The media type (type/subtype) portion of the CONTENT_TYPE header
     # without any media type parameters. e.g., when CONTENT_TYPE is
@@ -65,17 +65,17 @@ module Rack
 
     def host
       # Remove port number.
-      (@env["HTTP_HOST"] || @env["SERVER_NAME"]).to_s.gsub(/:\d+\z/, '')
+      (@env[Const::ENV_HTTP_HOST] || @env[Const::ENV_SERVER_NAME]).to_s.gsub(/:\d+\z/, '')
     end
 
-    def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
-    def path_info=(s);   @env["PATH_INFO"] = s.to_s               end
+    def script_name=(s); @env[Const::ENV_SCRIPT_NAME] = s.to_s  end
+    def path_info=(s);   @env[Const::ENV_PATH_INFO] = s.to_s    end
 
-    def get?;            request_method == "GET"                  end
-    def post?;           request_method == "POST"                 end
-    def put?;            request_method == "PUT"                  end
-    def delete?;         request_method == "DELETE"               end
-    def head?;           request_method == "HEAD"                 end
+    def get?;            request_method == Const::GET           end
+    def post?;           request_method == Const::POST          end
+    def put?;            request_method == Const::PUT           end
+    def delete?;         request_method == Const::DELETE        end
+    def head?;           request_method == Const::HEAD          end
 
     # The set of form-data media-types. Requests that do not indicate
     # one of the media types presents in this list will not be eligible
@@ -109,41 +109,46 @@ module Rack
       PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
     end
 
+    QUERY_STRING = 'rack.request.query_string'.freeze
+    QUERY_HASH   = 'rack.request.query_hash'.freeze
+
     # Returns the data recieved in the query string.
     def GET
-      if @env["rack.request.query_string"] == query_string
-        @env["rack.request.query_hash"]
+      if @env[QUERY_STRING] == query_string
+        @env[QUERY_HASH]
       else
-        @env["rack.request.query_string"] = query_string
-        @env["rack.request.query_hash"]   =
-          Utils.parse_nested_query(query_string)
+        @env[QUERY_STRING] = query_string
+        @env[QUERY_HASH]   = Utils.parse_nested_query(query_string)
       end
     end
+
+    FORM_INPUT = 'rack.request.form_input'.freeze
+    FORM_HASH  = 'rack.request.form_hash'.freeze
+    FORM_VARS  = 'rack.request.form_vars'.freeze
 
     # Returns the data recieved in the request body.
     #
     # This method support both application/x-www-form-urlencoded and
     # multipart/form-data.
     def POST
-      if @env["rack.input"].nil?
+      if @env[Const::RACK_INPUT].nil?
         raise "Missing rack.input"
-      elsif @env["rack.request.form_input"].eql? @env["rack.input"]
-        @env["rack.request.form_hash"]
+      elsif @env[FORM_INPUT].eql? @env[Const::RACK_INPUT]
+        @env[FORM_HASH]
       elsif form_data? || parseable_data?
-        @env["rack.request.form_input"] = @env["rack.input"]
-        unless @env["rack.request.form_hash"] =
-            Utils::Multipart.parse_multipart(env)
-          form_vars = @env["rack.input"].read
+        @env[FORM_INPUT] = @env[Const::RACK_INPUT]
+        unless @env[FORM_HASH] = Utils::Multipart.parse_multipart(env)
+          form_vars = @env[Const::RACK_INPUT].read
 
           # Fix for Safari Ajax postings that always append \0
           form_vars.sub!(/\0\z/, '')
 
-          @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = Utils.parse_nested_query(form_vars)
+          @env[FORM_VARS] = form_vars
+          @env[FORM_HASH] = Utils.parse_nested_query(form_vars)
 
-          @env["rack.input"].rewind
+          @env[Const::RACK_INPUT].rewind
         end
-        @env["rack.request.form_hash"]
+        @env[FORM_HASH]
       else
         {}
       end
@@ -173,25 +178,28 @@ module Rack
 
     # the referer of the client or '/'
     def referer
-      @env['HTTP_REFERER'] || '/'
+      @env[Const::ENV_HTTP_REFERER] || '/'
     end
     alias referrer referer
 
 
-    def cookies
-      return {}  unless @env["HTTP_COOKIE"]
+    COOKIE_STRING = 'rack.request.cookie_string'.freeze
+    COOKIE_HASH   = 'rack.request.cookie_hash'.freeze
 
-      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"]
+    def cookies
+      return {}  unless @env[Const::ENV_HTTP_COOKIE]
+
+      if @env[COOKIE_STRING] == @env[Const::ENV_HTTP_COOKIE]
+        @env[COOKIE_HASH]
       else
-        @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
+        @env[COOKIE_STRING] = @env[Const::ENV_HTTP_COOKIE]
         # According to RFC 2109:
         #   If multiple cookies satisfy the criteria above, they are ordered in
         #   the Cookie header such that those with more specific Path attributes
         #   precede those with less specific.  Ordering with respect to other
         #   attributes (e.g., Domain) is unspecified.
-        @env["rack.request.cookie_hash"] =
-          Utils.parse_query(@env["rack.request.cookie_string"], ';,').inject({}) {|h,(k,v)|
+        @env[COOKIE_HASH] =
+          Utils.parse_query(@env[COOKIE_STRING], ';,').inject({}) {|h,(k,v)|
             h[k] = Array === v ? v.first : v
             h
           }
@@ -199,7 +207,7 @@ module Rack
     end
 
     def xhr?
-      @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+      @env[Const::ENV_HTTP_X_REQUESTED_WITH] == "XMLHttpRequest"
     end
 
     # Tries to return a remake of the original request URL as a string.
@@ -226,7 +234,7 @@ module Rack
     end
 
     def accept_encoding
-      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/,\s*/).map do |part|
+      @env[Const::ENV_HTTP_ACCEPT_ENCODING].to_s.split(/,\s*/).map do |part|
         m = /^([^\s,]+?)(?:;\s*q=(\d+(?:\.\d+)?))?$/.match(part) # From WEBrick
 
         if m
@@ -238,10 +246,10 @@ module Rack
     end
 
     def ip
-      if addr = @env['HTTP_X_FORWARDED_FOR']
+      if addr = @env[Const::ENV_HTTP_X_FORWARDED_FOR]
         addr.split(',').last.strip
       else
-        @env['REMOTE_ADDR']
+        @env[Const::ENV_REMOTE_ADDR]
       end
     end
   end

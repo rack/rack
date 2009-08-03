@@ -20,14 +20,14 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
+      return @app.call(env) unless %w[GET HEAD].include?(env[Const::ENV_REQUEST_METHOD])
 
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
       if etag_matches?(env, headers) || modified_since?(env, headers)
         status = 304
-        headers.delete('Content-Type')
-        headers.delete('Content-Length')
+        headers.delete(Const::CONTENT_TYPE)
+        headers.delete(Const::CONTENT_LENGTH)
         body = []
       end
       [status, headers, body]
@@ -35,12 +35,12 @@ module Rack
 
   private
     def etag_matches?(env, headers)
-      etag = headers['Etag'] and etag == env['HTTP_IF_NONE_MATCH']
+      etag = headers[Const::ETAG] and etag == env[Const::ENV_HTTP_IF_NONE_MATCH]
     end
 
     def modified_since?(env, headers)
-      last_modified = headers['Last-Modified'] and
-        last_modified == env['HTTP_IF_MODIFIED_SINCE']
+      last_modified = headers[Const::LAST_MODIFIED] and
+        last_modified == env[Const::ENV_HTTP_IF_MODIFIED_SINCE]
     end
   end
 

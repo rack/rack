@@ -1,6 +1,6 @@
 module Rack
   class Lock
-    FLAG = 'rack.multithread'.freeze
+    FLAG = Const::RACK_MULTITHREAD.freeze
 
     def initialize(app, lock = Mutex.new)
       @app, @lock = app, lock

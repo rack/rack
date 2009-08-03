@@ -26,15 +26,15 @@ module Rack
       now = Time.now
       length = extract_content_length(header)
 
-      logger = @logger || env['rack.errors']
+      logger = @logger || env[Const::RACK_ERRORS]
       logger.write FORMAT % [
-        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
-        env["REMOTE_USER"] || "-",
+        env[Const::ENV_HTTP_X_FORWARDED_FOR] || env[Const::ENV_REMOTE_ADDR] || "-",
+        env[Const::ENV_REMOTE_USER] || "-",
         now.strftime("%d/%b/%Y %H:%M:%S"),
-        env["REQUEST_METHOD"],
-        env["PATH_INFO"],
-        env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
-        env["HTTP_VERSION"],
+        env[Const::ENV_REQUEST_METHOD],
+        env[Const::ENV_PATH_INFO],
+        env[Const::ENV_QUERY_STRING].empty? ? Const::EMPTY_STRING : "?"+env[Const::ENV_QUERY_STRING],
+        env[Const::ENV_HTTP_VERSION],
         status.to_s[0..3],
         length,
         now - began_at ]

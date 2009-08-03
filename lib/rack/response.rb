@@ -20,7 +20,7 @@ module Rack
 
     def initialize(body=[], status=200, header={}, &block)
       @status = status
-      @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.
+      @header = Utils::HeaderHash.new({Const::CONTENT_TYPE => "text/html"}.
                                       merge(header))
 
       @writer = lambda { |x| @body << x }
@@ -70,7 +70,7 @@ module Rack
       @block = block
 
       if [204, 304].include?(status.to_i)
-        header.delete "Content-Type"
+        header.delete Const::CONTENT_TYPE
         [status.to_i, header.to_hash, []]
       else
         [status.to_i, header.to_hash, self]
@@ -93,7 +93,7 @@ module Rack
       @length += Rack::Utils.bytesize(s)
       @writer.call s
 
-      header["Content-Length"] = @length.to_s
+      header[Const::CONTENT_LENGTH] = @length.to_s
       str
     end
 
@@ -131,11 +131,11 @@ module Rack
       end
 
       def content_type
-        headers["Content-Type"]
+        headers[Const::CONTENT_TYPE]
       end
 
       def content_length
-        cl = headers["Content-Length"]
+        cl = headers[Const::CONTENT_LENGTH]
         cl ? cl.to_i : cl
       end
 

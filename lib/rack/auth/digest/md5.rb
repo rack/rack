@@ -45,7 +45,7 @@ module Rack
             if auth.nonce.stale?
               return unauthorized(challenge(:stale => true))
             else
-              env['REMOTE_USER'] = auth.username
+              env[Const::ENV_REMOTE_USER] = auth.username
 
               return @app.call(env)
             end

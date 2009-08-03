@@ -16,7 +16,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      headers['Content-Type'] ||= @content_type
+      headers[Const::CONTENT_TYPE] ||= @content_type
       [status, headers.to_hash, body]
     end
   end

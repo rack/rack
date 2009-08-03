@@ -40,8 +40,8 @@ module Rack
       assert("No env given") { env }
       check_env env
 
-      env['rack.input'] = InputWrapper.new(env['rack.input'])
-      env['rack.errors'] = ErrorWrapper.new(env['rack.errors'])
+      env[Const::RACK_INPUT] = InputWrapper.new(env[Const::RACK_INPUT])
+      env[Const::RACK_ERRORS] = ErrorWrapper.new(env[Const::RACK_ERRORS])
 
       ## and returns an Array of exactly three values:
       status, headers, @body = @app.call(env)
@@ -126,7 +126,7 @@ module Rack
 
       ## <tt>rack.session</tt>:: A hash like interface for storing request session data.
       ##                         The store must implement:
-      if session = env['rack.session']
+      if session = env[Const::RACK_SESSION]
         ##                         store(key, value)         (aliased as []=);
         assert("session #{session.inspect} must respond to store and []=") {
           session.respond_to?(:store) && session.respond_to?(:[]=)
@@ -183,50 +183,50 @@ module Rack
       ## There are the following restrictions:
 
       ## * <tt>rack.version</tt> must be an array of Integers.
-      assert("rack.version must be an Array, was #{env["rack.version"].class}") {
-        env["rack.version"].instance_of? Array
+      assert("rack.version must be an Array, was #{env[Const::RACK_VERSION].class}") {
+        env[Const::RACK_VERSION].instance_of? Array
       }
       ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-      assert("rack.url_scheme unknown: #{env["rack.url_scheme"].inspect}") {
-        %w[http https].include? env["rack.url_scheme"]
+      assert("rack.url_scheme unknown: #{env[Const::RACK_URL_SCHEME].inspect}") {
+        %w[http https].include? env[Const::RACK_URL_SCHEME]
       }
 
       ## * There must be a valid input stream in <tt>rack.input</tt>.
-      check_input env["rack.input"]
+      check_input env[Const::RACK_INPUT]
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
-      check_error env["rack.errors"]
+      check_error env[Const::RACK_ERRORS]
 
       ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-      assert("REQUEST_METHOD unknown: #{env["REQUEST_METHOD"]}") {
-        env["REQUEST_METHOD"] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
+      assert("REQUEST_METHOD unknown: #{env[Const::ENV_REQUEST_METHOD]}") {
+        env[Const::ENV_REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
       }
 
       ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
       assert("SCRIPT_NAME must start with /") {
-        !env.include?("SCRIPT_NAME") ||
-        env["SCRIPT_NAME"] == "" ||
-        env["SCRIPT_NAME"] =~ /\A\//
+        !env.include?(Const::ENV_SCRIPT_NAME) ||
+        env[Const::ENV_SCRIPT_NAME] == "" ||
+        env[Const::ENV_SCRIPT_NAME] =~ /\A\//
       }
       ## * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
       assert("PATH_INFO must start with /") {
-        !env.include?("PATH_INFO") ||
-        env["PATH_INFO"] == "" ||
-        env["PATH_INFO"] =~ /\A\//
+        !env.include?(Const::ENV_PATH_INFO) ||
+        env[Const::ENV_PATH_INFO] == "" ||
+        env[Const::ENV_PATH_INFO] =~ /\A\//
       }
       ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
-      assert("Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}") {
-        !env.include?("CONTENT_LENGTH") || env["CONTENT_LENGTH"] =~ /\A\d+\z/
+      assert("Invalid CONTENT_LENGTH: #{env[Const::ENV_CONTENT_LENGTH]}") {
+        !env.include?(Const::ENV_CONTENT_LENGTH) || env[Const::ENV_CONTENT_LENGTH] =~ /\A\d+\z/
       }
 
       ## * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
       ##   set.  <tt>PATH_INFO</tt> should be <tt>/</tt> if
       ##   <tt>SCRIPT_NAME</tt> is empty.
       assert("One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)") {
-        env["SCRIPT_NAME"] || env["PATH_INFO"]
+        env[Const::ENV_SCRIPT_NAME] || env[Const::ENV_PATH_INFO]
       }
       ##   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
       assert("SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'") {
-        env["SCRIPT_NAME"] != "/"
+        env[Const::ENV_SCRIPT_NAME] != "/"
       }
     end
 
@@ -474,7 +474,7 @@ module Rack
               bytes += Rack::Utils.bytesize(part)
             }
 
-            if env["REQUEST_METHOD"] == "HEAD"
+            if env[Const::ENV_REQUEST_METHOD] == Const::HEAD
               assert("Response body was given for HEAD request, but should be empty") {
                 bytes == 0
               }

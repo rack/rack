@@ -28,29 +28,29 @@ module Rack
         app = Rack::ContentLength.new(app)
 
         env = request.env
-        env.delete "HTTP_CONTENT_LENGTH"
+        env.delete Const::ENV_HTTP_CONTENT_LENGTH
 
-        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+        env[Const::ENV_SCRIPT_NAME] = ""  if env[Const::ENV_SCRIPT_NAME] == "/"
         
         rack_input = RewindableInput.new(request.in)
 
-        env.update({"rack.version" => [1,0],
-                     "rack.input" => rack_input,
-                     "rack.errors" => request.err,
+        env.update({Const::RACK_VERSION => [1,0],
+                     Const::RACK_INPUT => rack_input,
+                     Const::RACK_ERRORS => request.err,
 
-                     "rack.multithread" => false,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => false,
+                     Const::RACK_MULTITHREAD => false,
+                     Const::RACK_MULTIPROCESS => true,
+                     Const::RACK_RUN_ONCE => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http"
+                     Const::RACK_URL_SCHEME => ["yes", "on", "1"].include?(env[Const::ENV_HTTPS]) ? "https" : "http"
                    })
 
-        env["QUERY_STRING"] ||= ""
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["REQUEST_PATH"] ||= "/"
-        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
-        env.delete "CONTENT_TYPE"  if env["CONTENT_TYPE"] == ""
-        env.delete "CONTENT_LENGTH"  if env["CONTENT_LENGTH"] == ""
+        env[Const::ENV_QUERY_STRING] ||= ""
+        env[Const::ENV_HTTP_VERSION] ||= env[Const::ENV_SERVER_PROTOCOL]
+        env[Const::ENV_REQUEST_PATH] ||= "/"
+        env.delete Const::ENV_PATH_INFO  if env[Const::ENV_PATH_INFO] == ""
+        env.delete Const::ENV_CONTENT_TYPE  if env[Const::ENV_CONTENT_TYPE] == ""
+        env.delete Const::ENV_CONTENT_LENGTH  if env[Const::ENV_CONTENT_LENGTH] == ""
 
         begin
           status, headers, body = app.call(env)

@@ -89,7 +89,7 @@ module Rack
     # The first argument is an OpenID::Response, the second is a
     # Rack::Request of the current request, the last is the hash used in
     # ruby-openid handling, which can be found manually at
-    # env['rack.session'][:openid].
+    # env[Const::RACK_SESSION][:openid].
     #
     # This is useful if you wanted to expand the processing done, such as
     # setting up user accounts.
@@ -98,7 +98,7 @@ module Rack
     #   def oid_app.success oid, request, session
     #     user = Models::User[oid.identity_url]
     #     user ||= Models::User.create_from_openid oid
-    #     request['rack.session'][:user] = user.id
+    #     request[Const::RACK_SESSION][:user] = user.id
     #     redirect MyApp.site_home
     #   end
     #
@@ -133,7 +133,7 @@ module Rack
       # the current request is used.
       #
       # <tt>:session_key</tt> defines the key to the session hash in the env.
-      # The default is 'rack.session'.
+      # The default is Const::RACK_SESSION.
       #
       # <tt>:openid_param</tt> defines at what key in the request parameters to
       # find the identifier to resolve. As per the 2.0 spec, the default is
@@ -159,7 +159,7 @@ module Rack
           and realm.fragment.nil? \
           and realm.scheme =~ /^https?$/ \
           and realm.host =~ /^(\*\.)?#{URI::REGEXP::PATTERN::URIC_NO_SLASH}+/
-        realm.path = '/' if realm.path.empty?
+        realm.path = Const::SLASH if realm.path.empty?
         @realm = realm.to_s
 
         if ruri = options[:return_to]
@@ -173,7 +173,7 @@ module Rack
           @return_to = ruri.to_s
         end
 
-        @session_key  = options[:session_key]   || 'rack.session'
+        @session_key  = options[:session_key]   || Const::RACK_SESSION
         @openid_param = options[:openid_param]  || 'openid_identifier'
         @store        = options[:store]         || ::OpenID::Store::Memory.new
         @immediate    = !!options[:immediate]
@@ -235,7 +235,7 @@ module Rack
       # If all parameters fit within the max length of a URI, a 303 redirect
       # will be returned. Otherwise #confirm_post_params will be called.
       #
-      # Any messages from OpenID's request are logged to env['rack.errors']
+      # Any messages from OpenID's request are logged to env[Const::RACK_ERRORS]
       #
       # <tt>env['rack.auth.openid.request']</tt> is the openid checkid request
       # instance.
@@ -249,7 +249,7 @@ module Rack
       def check(consumer, session, req)
         oid = consumer.begin(req.GET[@openid_param], @anonymous)
         req.env['rack.auth.openid.request'] = oid
-        req.env['rack.errors'].puts(oid.message)
+        req.env[Const::RACK_ERRORS].puts(oid.message)
         p oid if $DEBUG
 
         ## Extension support
@@ -269,7 +269,7 @@ module Rack
         end
       rescue ::OpenID::DiscoveryFailure => e
         # thrown from inside OpenID::Consumer#begin by yadis stuff
-        req.env['rack.errors'].puts( [e.message, *e.backtrace]*"\n" )
+        req.env[Const::RACK_ERRORS].puts( [e.message, *e.backtrace]*"\n" )
         return foreign_server_failure
       end
 
@@ -278,7 +278,7 @@ module Rack
       # Data gathered from extensions are stored in session[:openid] with the
       # extension's namespace uri as the key.
       #
-      # Any messages from OpenID's response are logged to env['rack.errors']
+      # Any messages from OpenID's response are logged to env[Const::RACK_ERRORS]
       #
       # <tt>env['rack.auth.openid.response']</tt> will contain the openid
       # response.
@@ -286,7 +286,7 @@ module Rack
       def finish(consumer, session, req)
         oid = consumer.complete(req.GET, req.url)
         req.env['rack.auth.openid.response'] = oid
-        req.env['rack.errors'].puts(oid.message)
+        req.env[Const::RACK_ERRORS].puts(oid.message)
         p oid if $DEBUG
 
         if ValidStatus.include?(oid.status)
@@ -366,7 +366,7 @@ module Rack
       # argument.
 
       def redirect(uri)
-        [ 303, {'Content-Type'=>'text/plain', 'Content-Length'=>'0',
+        [ 303, {Const::CONTENT_TYPE=>'text/plain', Const::CONTENT_LENGTH=>'0',
           'Location' => uri},
           [] ]
       end
@@ -374,21 +374,21 @@ module Rack
       # Returns an empty 400 response.
 
       def bad_request
-        [ 400, {'Content-Type'=>'text/plain', 'Content-Length'=>'0'},
+        [ 400, {Const::CONTENT_TYPE=>'text/plain', Const::CONTENT_LENGTH=>'0'},
           [''] ]
       end
 
       # Returns a basic unauthorized 401 response.
 
       def unauthorized
-        [ 401, {'Content-Type' => 'text/plain', 'Content-Length' => '13'},
+        [ 401, {Const::CONTENT_TYPE => 'text/plain', Const::CONTENT_LENGTH => '13'},
           ['Unauthorized.'] ]
       end
 
       # Returns a basic access denied 403 response.
 
       def access_denied
-        [ 403, {'Content-Type' => 'text/plain', 'Content-Length' => '14'},
+        [ 403, {Const::CONTENT_TYPE => 'text/plain', Const::CONTENT_LENGTH => '14'},
           ['Access denied.'] ]
       end
 
@@ -396,7 +396,7 @@ module Rack
       # OpenID server fails.
 
       def foreign_server_failure
-        [ 503, {'Content-Type'=>'text/plain', 'Content-Length' => '23'},
+        [ 503, {Const::CONTENT_TYPE=>'text/plain', Const::CONTENT_LENGTH => '23'},
           ['Foreign server failure.'] ]
       end
 
@@ -452,7 +452,7 @@ module Rack
       def invalid_status(oid, request, session)
         msg = 'Invalid status returned by the OpenID authorization reponse.'
         [ 500,
-          {'Content-Type'=>'text/plain','Content-Length'=>msg.length.to_s},
+          {Const::CONTENT_TYPE=>'text/plain',Const::CONTENT_LENGTH=>msg.length.to_s},
           [msg] ]
       end
     end
@@ -463,7 +463,7 @@ module Rack
     #
     #   use Rack::Session::Pool
     #   use Rack::Auth::OpenIDAuth, realm, openid_options do |env|
-    #     env['rack.session'][:authkey] == a_string
+    #     env[Const::RACK_SESSION][:authkey] == a_string
     #   end
     #   run RackApp
     #

@@ -17,7 +17,7 @@ module Rack
   #
   #  app = Rack::Builder.app do
   #    use Rack::CommonLogger
-  #    lambda { |env| [200, {'Content-Type' => 'text/plain'}, 'OK'] }
+  #    lambda { |env| [200, {Const::CONTENT_TYPE => 'text/plain'}, 'OK'] }
   #  end
   #
   # +use+ adds a middleware to the stack, +run+ dispatches to an application.

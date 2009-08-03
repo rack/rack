@@ -13,7 +13,7 @@ module Rack
     #
     # Example:
     #
-    #     use Rack::Session::Cookie, :key => 'rack.session',
+    #     use Rack::Session::Cookie, :key => Const::RACK_SESSION,
     #                                :domain => 'foo.com',
     #                                :path => '/',
     #                                :expire_after => 2592000,
@@ -25,7 +25,7 @@ module Rack
 
       def initialize(app, options={})
         @app = app
-        @key = options[:key] || "rack.session"
+        @key = options[:key] || Const::RACK_SESSION
         @secret = options[:secret]
         @default_options = {:domain => nil,
           :path => "/",
@@ -52,16 +52,16 @@ module Rack
         begin
           session_data = session_data.unpack("m*").first
           session_data = Marshal.load(session_data)
-          env["rack.session"] = session_data
+          env[Const::RACK_SESSION] = session_data
         rescue
-          env["rack.session"] = Hash.new
+          env[Const::RACK_SESSION] = Hash.new
         end
 
-        env["rack.session.options"] = @default_options.dup
+        env[Const::RACK_SESSION_OPTIONS] = @default_options.dup
       end
 
       def commit_session(env, status, headers, body)
-        session_data = Marshal.dump(env["rack.session"])
+        session_data = Marshal.dump(env[Const::RACK_SESSION])
         session_data = [session_data].pack("m*")
 
         if @secret
@@ -69,9 +69,9 @@ module Rack
         end
 
         if session_data.size > (4096 - @key.size)
-          env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")
+          env[Const::RACK_ERRORS].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")
         else
-          options = env["rack.session.options"]
+          options = env[Const::RACK_SESSION_OPTIONS]
           cookie = Hash.new
           cookie[:value] = session_data
           cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?

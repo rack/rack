@@ -40,26 +40,26 @@ module Rack
 
       def process(request, response)
         env = {}.replace(request.params)
-        env.delete "HTTP_CONTENT_TYPE"
-        env.delete "HTTP_CONTENT_LENGTH"
+        env.delete Const::ENV_HTTP_CONTENT_TYPE
+        env.delete Const::ENV_HTTP_CONTENT_LENGTH
 
-        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+        env[Const::ENV_SCRIPT_NAME] = ""  if env[Const::ENV_SCRIPT_NAME] == "/"
 
         rack_input = request.body || StringIO.new('')
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => [1,0],
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
+        env.update({Const::RACK_VERSION => [1,0],
+                     Const::RACK_INPUT => rack_input,
+                     Const::RACK_ERRORS => $stderr,
 
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => false, # ???
-                     "rack.run_once" => false,
+                     Const::RACK_MULTITHREAD => true,
+                     Const::RACK_MULTIPROCESS => false, # ???
+                     Const::RACK_RUN_ONCE => false,
 
-                     "rack.url_scheme" => "http",
+                     Const::RACK_URL_SCHEME => "http",
                    })
-        env["QUERY_STRING"] ||= ""
-        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
+        env[Const::ENV_QUERY_STRING] ||= ""
+        env.delete Const::ENV_PATH_INFO  if env[Const::ENV_PATH_INFO] == ""
 
         status, headers, body = @app.call(env)
 

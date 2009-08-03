@@ -8,7 +8,7 @@ class Head
   def call(env)
     status, headers, body = @app.call(env)
 
-    if env["REQUEST_METHOD"] == "HEAD"
+    if env[Const::ENV_REQUEST_METHOD] == Const::HEAD
       [status, headers, []]
     else
       [status, headers, body]
