@@ -65,7 +65,7 @@ module Rack
 
     def host
       # Remove port number.
-      (@env["HTTP_HOST"] || @env["SERVER_NAME"]).gsub(/:\d+\z/, '')
+      (@env["HTTP_HOST"] || @env["SERVER_NAME"]).to_s.gsub(/:\d+\z/, '')
     end
 
     def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
