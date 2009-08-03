@@ -46,7 +46,7 @@ module Rack
         env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
 
         env.update({"rack.version" => [1,0],
-                     "rack.input" => request.body || StringIO.new(""),
+                     "rack.input" => rack_input,
                      "rack.errors" => $stderr,
 
                      "rack.multithread" => true,
