@@ -131,7 +131,7 @@ context "Rack::Lint" do
       end
       Rack::Lint.new(nil).call(env("rack.input" => input))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/does not have ASCII-8BIT as its external encoding/);puts RUBY_VERSION
+      message.should.match(/does not have ASCII-8BIT as its external encoding/)
   end
 
   specify "notices error errors" do
