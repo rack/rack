@@ -14,11 +14,11 @@ module Rack
       @url = URI(url)
       @env = env
 
-      @env[Const::ENV_PATH_INFO] =       @url.path
-      @env[Const::ENV_QUERY_STRING] =    @url.query  if @url.query
-      @env[Const::ENV_HTTP_HOST] =       @url.host   if @url.host
-      @env[Const::ENV_HTTP_PORT] =       @url.port   if @url.port
-      @env[Const::RACK_URL_SCHEME] = @url.scheme if @url.scheme
+      @env["PATH_INFO"] =       @url.path
+      @env["QUERY_STRING"] =    @url.query  if @url.query
+      @env["HTTP_HOST"] =       @url.host   if @url.host
+      @env["HTTP_PORT"] =       @url.port   if @url.port
+      @env["rack.url_scheme"] = @url.scheme if @url.scheme
 
       super "forwarding to #{url}"
     end
@@ -35,7 +35,7 @@ module Rack
     end
 
     def call(env)
-      @script_name = env[Const::ENV_SCRIPT_NAME]
+      @script_name = env["SCRIPT_NAME"]
       @app.call(env.merge('rack.recursive.include' => method(:include)))
     rescue ForwardRequest => req
       call(env.merge(req.env))
@@ -47,10 +47,10 @@ module Rack
         raise ArgumentError, "can only include below #{@script_name}, not #{path}"
       end
 
-      env = env.merge(Const::ENV_PATH_INFO => path, Const::ENV_SCRIPT_NAME => @script_name,
-                      Const::ENV_REQUEST_METHOD => Const::GET,
-                      Const::ENV_CONTENT_LENGTH => "0", Const::ENV_CONTENT_TYPE => "",
-                      Const::RACK_INPUT => StringIO.new(""))
+      env = env.merge("PATH_INFO" => path, "SCRIPT_NAME" => @script_name,
+                      "REQUEST_METHOD" => "GET",
+                      "CONTENT_LENGTH" => "0", "CONTENT_TYPE" => "",
+                      "rack.input" => StringIO.new(""))
       @app.call(env)
     end
   end

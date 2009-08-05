@@ -6,9 +6,9 @@ module Rack
       end
 
       def call(env)
-        env[Const::ENV_PATH_INFO] ||= ""
-        env[Const::ENV_SCRIPT_NAME] ||= ""
-        controller = @app.run(env[Const::RACK_INPUT], env)
+        env["PATH_INFO"] ||= ""
+        env["SCRIPT_NAME"] ||= ""
+        controller = @app.run(env['rack.input'], env)
         h = controller.headers
         h.each_pair do |k,v|
           if v.kind_of? URI

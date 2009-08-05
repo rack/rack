@@ -34,9 +34,9 @@ module Rack
     end
 
     def call(env)
-      path = env[Const::ENV_PATH_INFO].to_s.squeeze("/")
-      script_name = env[Const::ENV_SCRIPT_NAME]
-      hHost, sName, sPort = env.values_at(Const::ENV_HTTP_HOST, Const::ENV_SERVER_NAME, Const::ENV_SERVER_PORT)
+      path = env["PATH_INFO"].to_s.squeeze("/")
+      script_name = env['SCRIPT_NAME']
+      hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, app|
         next unless (hHost == host || sName == host \
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
@@ -45,10 +45,11 @@ module Rack
 
         return app.call(
           env.merge(
-            Const::ENV_SCRIPT_NAME => (script_name + location),
-            Const::ENV_PATH_INFO   => path[location.size..-1]))
+            'SCRIPT_NAME' => (script_name + location),
+            'PATH_INFO'   => path[location.size..-1]))
       }
-      [404, {Const::CONTENT_TYPE => "text/plain"}, ["Not Found: #{path}"]]
+      [404, {"Content-Type" => "text/plain"}, ["Not Found: #{path}"]]
     end
   end
 end
+

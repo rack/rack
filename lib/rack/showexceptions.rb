@@ -25,8 +25,8 @@ module Rack
     rescue StandardError, LoadError, SyntaxError => e
       backtrace = pretty(env, e)
       [500,
-       {Const::CONTENT_TYPE => "text/html",
-        Const::CONTENT_LENGTH => backtrace.join.size.to_s},
+       {"Content-Type" => "text/html",
+        "Content-Length" => backtrace.join.size.to_s},
        backtrace]
     end
 
@@ -58,9 +58,9 @@ module Rack
         end
       }.compact
 
-      env[Const::RACK_ERRORS].puts "#{exception.class}: #{exception.message}"
-      env[Const::RACK_ERRORS].puts exception.backtrace.map { |l| "\t" + l }
-      env[Const::RACK_ERRORS].flush
+      env["rack.errors"].puts "#{exception.class}: #{exception.message}"
+      env["rack.errors"].puts exception.backtrace.map { |l| "\t" + l }
+      env["rack.errors"].flush
 
       [@template.result(binding)]
     end

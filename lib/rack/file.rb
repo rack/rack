@@ -26,7 +26,7 @@ module Rack
     F = ::File
 
     def _call(env)
-      @path_info = Utils.unescape(env[Const::ENV_PATH_INFO])
+      @path_info = Utils.unescape(env["PATH_INFO"])
       return forbidden  if @path_info.include? ".."
 
       @path = F.join(@root, @path_info)
@@ -44,8 +44,8 @@ module Rack
 
     def forbidden
       body = "Forbidden\n"
-      [403, {Const::CONTENT_TYPE => "text/plain",
-             Const::CONTENT_LENGTH => body.size.to_s},
+      [403, {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s},
        [body]]
     end
 
@@ -64,16 +64,16 @@ module Rack
       end
 
       [200, {
-        Const::LAST_MODIFIED  => F.mtime(@path).httpdate,
-        Const::CONTENT_TYPE   => Mime.mime_type(F.extname(@path), 'text/plain'),
-        Const::CONTENT_LENGTH => size.to_s
+        "Last-Modified"  => F.mtime(@path).httpdate,
+        "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain'),
+        "Content-Length" => size.to_s
       }, body]
     end
 
     def not_found
       body = "File not found: #{@path_info}\n"
-      [404, {Const::CONTENT_TYPE => "text/plain",
-         Const::CONTENT_LENGTH => body.size.to_s},
+      [404, {"Content-Type" => "text/plain",
+         "Content-Length" => body.size.to_s},
        [body]]
     end
 

@@ -24,7 +24,7 @@ module Rack
     end
 
     def call(env)
-      path = env[Const::ENV_PATH_INFO]
+      path = env["PATH_INFO"]
       can_serve = @urls.any? { |url| path.index(url) == 0 }
 
       if can_serve

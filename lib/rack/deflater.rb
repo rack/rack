@@ -16,7 +16,7 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers[Const::CACHE_CONTROL].to_s =~ /\bno-transform\b/
+          headers['Cache-Control'].to_s =~ /\bno-transform\b/
         return [status, headers, body]
       end
 
@@ -33,20 +33,20 @@ module Rack
 
       case encoding
       when "gzip"
-        headers[Const::CONTENT_ENCODING] = "gzip"
-        headers.delete(Const::CONTENT_LENGTH)
-        mtime = headers.key?(Const::LAST_MODIFIED) ?
-          Time.httpdate(headers[Const::LAST_MODIFIED]) : Time.now
+        headers['Content-Encoding'] = "gzip"
+        headers.delete('Content-Length')
+        mtime = headers.key?("Last-Modified") ?
+          Time.httpdate(headers["Last-Modified"]) : Time.now
         [status, headers, GzipStream.new(body, mtime)]
       when "deflate"
-        headers[Const::CONTENT_ENCODING] = "deflate"
-        headers.delete(Const::CONTENT_LENGTH)
+        headers['Content-Encoding'] = "deflate"
+        headers.delete('Content-Length')
         [status, headers, DeflateStream.new(body)]
       when "identity"
         [status, headers, body]
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
-        [406, {Const::CONTENT_TYPE => "text/plain", Const::CONTENT_LENGTH => message.length.to_s}, [message]]
+        [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, [message]]
       end
     end
 

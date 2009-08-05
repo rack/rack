@@ -401,7 +401,7 @@ module Rack
       MULTIPART_BOUNDARY = "AaB03x"
 
       def self.parse_multipart(env)
-        unless env[Const::ENV_CONTENT_TYPE] =~
+        unless env['CONTENT_TYPE'] =~
             %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
           nil
         else
@@ -409,8 +409,8 @@ module Rack
 
           params = {}
           buf = ""
-          content_length = env[Const::ENV_CONTENT_LENGTH].to_i
-          input = env[Const::RACK_INPUT]
+          content_length = env['CONTENT_LENGTH'].to_i
+          input = env['rack.input']
           input.rewind
 
           boundary_size = Utils.bytesize(boundary) + EOL.size

@@ -15,10 +15,10 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if env[Const::ENV_HTTP_VERSION] == 'HTTP/1.0' ||
+      if env['HTTP_VERSION'] == 'HTTP/1.0' ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-         headers[Const::CONTENT_LENGTH] ||
-         headers[Const::TRANSFER_ENCODING]
+         headers['Content-Length'] ||
+         headers['Transfer-Encoding']
         [status, headers.to_hash, body]
       else
         dup.chunk(status, headers, body)
@@ -27,8 +27,8 @@ module Rack
 
     def chunk(status, headers, body)
       @body = body
-      headers.delete(Const::CONTENT_LENGTH)
-      headers[Const::TRANSFER_ENCODING] = 'chunked'
+      headers.delete('Content-Length')
+      headers['Transfer-Encoding'] = 'chunked'
       [status, headers.to_hash, self]
     end
 

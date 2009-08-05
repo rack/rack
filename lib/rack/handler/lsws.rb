@@ -13,24 +13,24 @@ module Rack
         app = Rack::ContentLength.new(app)
 
         env = ENV.to_hash
-        env.delete Const::ENV_HTTP_CONTENT_LENGTH
-        env[Const::ENV_SCRIPT_NAME] = "" if env[Const::ENV_SCRIPT_NAME] == "/"
+        env.delete "HTTP_CONTENT_LENGTH"
+        env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
 
         rack_input = RewindableInput.new($stdin.read.to_s)
 
         env.update(
-          Const::RACK_VERSION => [1,0],
-          Const::RACK_INPUT => rack_input,
-          Const::RACK_ERRORS => $stderr,
-          Const::RACK_MULTITHREAD => false,
-          Const::RACK_MULTIPROCESS => true,
-          Const::RACK_RUN_ONCE => false,
-          Const::RACK_URL_SCHEME => ["yes", "on", "1"].include?(ENV[Const::ENV_HTTPS]) ? "https" : "http"
+          "rack.version" => [1,0],
+          "rack.input" => rack_input,
+          "rack.errors" => $stderr,
+          "rack.multithread" => false,
+          "rack.multiprocess" => true,
+          "rack.run_once" => false,
+          "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
         )
 
-        env[Const::ENV_QUERY_STRING] ||= ""
-        env[Const::ENV_HTTP_VERSION] ||= env[Const::ENV_SERVER_PROTOCOL]
-        env[Const::ENV_REQUEST_PATH] ||= "/"
+        env["QUERY_STRING"] ||= ""
+        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
+        env["REQUEST_PATH"] ||= "/"
         status, headers, body = app.call(env)
         begin
           send_headers status, headers

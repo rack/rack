@@ -18,7 +18,7 @@ module Rack
       #
       # All parameters are optional.
       # * :key determines the name of the cookie, by default it is
-      #   Const::RACK_SESSION
+      #   'rack.session'
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
       #   cookie options as by Rack::Response#add_cookie
       # * :defer will not set a cookie in the response.
@@ -29,7 +29,7 @@ module Rack
       #   id will be.
       #
       # These options can be set on a per request basis, at the location of
-      # env[Const::RACK_SESSION_OPTIONS]. Additionally the id of the session can be
+      # env['rack.session.options']. Additionally the id of the session can be
       # found within the options hash at the key :id. It is highly not
       # recommended to change its value.
       #
@@ -50,7 +50,7 @@ module Rack
         attr_reader :key, :default_options
         def initialize(app, options={})
           @app = app
-          @key = options[:key] || Const::RACK_SESSION
+          @key = options[:key] || "rack.session"
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
         end
 
@@ -77,8 +77,8 @@ module Rack
 
         # Extracts the session id from provided cookies and passes it and the
         # environment to #get_session. It then sets the resulting session into
-        # Const::RACK_SESSION, and places options and session metadata into
-        # Const::RACK_SESSION_OPTIONS.
+        # 'rack.session', and places options and session metadata into
+        # 'rack.session.options'.
 
         def load_session(env)
           request = Rack::Request.new(env)
@@ -86,12 +86,12 @@ module Rack
 
           begin
             session_id, session = get_session(env, session_id)
-            env[Const::RACK_SESSION] = session
+            env['rack.session'] = session
           rescue
-            env[Const::RACK_SESSION] = Hash.new
+            env['rack.session'] = Hash.new
           end
 
-          env[Const::RACK_SESSION_OPTIONS] = @default_options.
+          env['rack.session.options'] = @default_options.
             merge(:id => session_id)
         end
 
@@ -101,14 +101,14 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env[Const::RACK_SESSION]
-          options = env[Const::RACK_SESSION_OPTIONS]
+          session = env['rack.session']
+          options = env['rack.session.options']
           session_id = options[:id]
 
           if not session_id = set_session(env, session_id, session, options)
-            env[Const::RACK_ERRORS].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            env[Const::RACK_ERRORS].puts("Defering cookie for #{session_id}") if $VERBOSE
+            env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = session_id

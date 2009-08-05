@@ -43,9 +43,9 @@ module Rack
 
       def get_session(env, sid)
         session = @pool.get(sid) if sid
-        @mutex.lock if env[Const::RACK_MULTITHREAD]
+        @mutex.lock if env['rack.multithread']
         unless sid and session
-          env[Const::RACK_ERRORS].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
+          env['rack.errors'].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
           session = {}
           sid = generate_sid
           ret = @pool.add sid, session
@@ -58,14 +58,14 @@ module Rack
         warn $!.inspect
         return [ nil, {} ]
       ensure
-        @mutex.unlock if env[Const::RACK_MULTITHREAD]
+        @mutex.unlock if env['rack.multithread']
       end
 
       def set_session(env, session_id, new_session, options)
         expiry = options[:expire_after]
         expiry = expiry.nil? ? 0 : expiry + 1
 
-        @mutex.lock if env[Const::RACK_MULTITHREAD]
+        @mutex.lock if env['rack.multithread']
         session = @pool.get(session_id) || {}
         if options[:renew] or options[:drop]
           @pool.delete session_id
@@ -82,7 +82,7 @@ module Rack
         warn $!.inspect
         return false
       ensure
-        @mutex.unlock if env[Const::RACK_MULTITHREAD]
+        @mutex.unlock if env['rack.multithread']
       end
 
       private
