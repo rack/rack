@@ -3,13 +3,15 @@ require 'socket'
 require 'rack/content_length'
 require 'rack/rewindable_input'
 
-class FCGI::Stream
-  alias _rack_read_without_buffer read
+if defined? FCGI::Stream
+  class FCGI::Stream
+    alias _rack_read_without_buffer read
 
-  def read(n, buffer=nil)
-    buf = _rack_read_without_buffer n
-    buffer.replace(buf.to_s)  if buffer
-    buf
+    def read(n, buffer=nil)
+      buf = _rack_read_without_buffer n
+      buffer.replace(buf.to_s)  if buffer
+      buf
+    end
   end
 end
 
