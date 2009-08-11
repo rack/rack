@@ -110,6 +110,28 @@ context "Rack::Lint" do
       Rack::Lint.new(nil).call(env("rack.input" => ""))
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/does not respond to #gets/)
+    
+    lambda {
+      input = Object.new
+      def input.binmode?
+        false
+      end
+      Rack::Lint.new(nil).call(env("rack.input" => input))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/is not opened in binary mode/)
+    
+    lambda {
+      input = Object.new
+      def input.external_encoding
+        result = Object.new
+        def result.name
+          "US-ASCII"
+        end
+        result
+      end
+      Rack::Lint.new(nil).call(env("rack.input" => input))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/does not have ASCII-8BIT as its external encoding/)
   end
 
   specify "notices error errors" do
@@ -432,46 +454,48 @@ context "Rack::Lint" do
   end
   
   specify "passes valid read calls" do
+    hello_str = "hello world"
+    hello_str.force_encoding("ASCII-8BIT") if hello_str.respond_to? :force_encoding
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
     
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(0)
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
     
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(1)
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
     
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(nil)
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
     
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(nil, '')
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
     
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(1, '')
                        [201, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
-                     }).call(env({"rack.input" => StringIO.new("hello world")}))
+                     }).call(env({"rack.input" => StringIO.new(hello_str)}))
     }.should.not.raise(Rack::Lint::LintError)
   end
 end

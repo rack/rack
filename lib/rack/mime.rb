@@ -14,7 +14,7 @@ module Rack
     #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
     def mime_type(ext, fallback='application/octet-stream')
-      MIME_TYPES.fetch(ext, fallback)
+      MIME_TYPES.fetch(ext.to_s.downcase, fallback)
     end
     module_function :mime_type
 
@@ -126,6 +126,7 @@ module Rack
       ".ods"     => "application/vnd.oasis.opendocument.spreadsheet",
       ".odt"     => "application/vnd.oasis.opendocument.text",
       ".ogg"     => "application/ogg",
+      ".ogv"     => "video/ogg",
       ".p"       => "text/x-pascal",
       ".pas"     => "text/x-pascal",
       ".pbm"     => "image/x-portable-bitmap",

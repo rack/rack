@@ -12,6 +12,15 @@ context "Rack::Utils" do
       should.equal "q1%212%22%27w%245%267%2Fz8%29%3F%5C"
   end
 
+  specify "should escape correctly for multibyte characters" do
+    matz_name = "\xE3\x81\xBE\xE3\x81\xA4\xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsumoto
+    matz_name.force_encoding("UTF-8") if matz_name.respond_to? :force_encoding
+    Rack::Utils.escape(matz_name).should.equal '%E3%81%BE%E3%81%A4%E3%82%82%E3%81%A8'
+    matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
+    matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
+    Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
+  end
+
   specify "should unescape correctly" do
     Rack::Utils.unescape("fo%3Co%3Ebar").should.equal "fo<o>bar"
     Rack::Utils.unescape("a+space").should.equal "a space"
@@ -227,6 +236,37 @@ context "Rack::Utils::HeaderHash" do
   specify "should convert Array values to Strings when converting to Hash" do
     h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
     h.to_hash.should.equal({ "foo" => "bar\nbaz" })
+  end
+
+  specify "should replace hashes correctly" do
+    h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
+    j = {"foo" => "bar"}
+    h.replace(j)
+    h["foo"].should.equal "bar"
+  end
+  
+  specify "should be able to delete the given key case-sensitively" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("foo")
+    h["foo"].should.be.nil
+    h["FOO"].should.be.nil
+  end
+  
+  specify "should be able to delete the given key case-insensitively" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("FOO")
+    h["foo"].should.be.nil
+    h["FOO"].should.be.nil
+  end
+  
+  specify "should return the deleted value when #delete is called on an existing key" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("Foo").should.equal("bar")
+  end
+  
+  specify "should return nil when #delete is called on a non-existant key" do
+    h = Rack::Utils::HeaderHash.new("foo" => "bar")
+    h.delete("Hello").should.be.nil
   end
 end
 

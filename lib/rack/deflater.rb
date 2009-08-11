@@ -60,7 +60,7 @@ module Rack
         @writer = block
         gzip  =::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime
-        @body.each { |part| gzip << part }
+        @body.each { |part| gzip.write(part) }
         @body.close if @body.respond_to?(:close)
         gzip.close
         @writer = nil

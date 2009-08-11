@@ -107,18 +107,16 @@ module Rack
 
           if not session_id = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
-            [status, headers, body]
           elsif options[:defer] and not options[:renew]
             env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
-            [status, headers, body]
           else
             cookie = Hash.new
             cookie[:value] = session_id
             cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?
-            response = Rack::Response.new(body, status, headers)
-            response.set_cookie(@key, cookie.merge(options))
-            response.to_a
+            Utils.set_cookie_header!(headers, @key, cookie.merge(options))
           end
+
+          [status, headers, body]
         end
 
         # All thread safety and session retrival proceedures should occur here.

@@ -1,5 +1,6 @@
 #          Copyright (c) 2009 Michael Fellinger m.fellinger@gmail.com
-# All files in this distribution are subject to the terms of the Ruby license.
+#       Rack::Reloader is subject to the terms of an MIT-style license.
+#      See COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 require 'pathname'
 
@@ -70,7 +71,7 @@ module Rack
           next if file =~ /\.(so|bundle)$/ # cannot reload compiled files
 
           found, stat = figure_path(file, paths)
-          next unless found and stat and mtime = stat.mtime
+          next unless found && stat && mtime = stat.mtime
 
           @cache[file] = found
 
@@ -87,11 +88,13 @@ module Rack
         found, stat = safe_stat(found)
         return found, stat if found
 
-        paths.each do |possible_path|
+        paths.find do |possible_path|
           path = ::File.join(possible_path, file)
           found, stat = safe_stat(path)
           return ::File.expand_path(found), stat if found
         end
+
+        return false, false
       end
 
       def safe_stat(file)
