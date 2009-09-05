@@ -3,10 +3,6 @@
 # Rack is freely distributable under the terms of an MIT-style license.
 # See COPYING or http://www.opensource.org/licenses/mit-license.php.
 
-path = File.expand_path(File.dirname(__FILE__))
-$:.unshift(path) unless $:.include?(path)
-
-
 # The Rack main module, serving as a namespace for all core Rack
 # modules and classes.
 #
