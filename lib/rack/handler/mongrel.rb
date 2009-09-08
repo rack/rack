@@ -7,8 +7,12 @@ module Rack
   module Handler
     class Mongrel < ::Mongrel::HttpHandler
       def self.run(app, options={})
-        server = ::Mongrel::HttpServer.new(options[:Host] || '0.0.0.0',
-                                           options[:Port] || 8080)
+        server = ::Mongrel::HttpServer.new(
+          options[:Host]           || '0.0.0.0',
+          options[:Port]           || 8080,
+          options[:num_processors] || 950,
+          options[:throttle]       || 0,
+          options[:timeout]        || 60)
         # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
         # Use is similar to #run, replacing the app argument with a hash of 
         # { path=>app, ... } or an instance of Rack::URLMap.
