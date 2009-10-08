@@ -383,6 +383,18 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal ""
   end
 
+  specify "should parse multipart upload with filename with semicolons" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:semicolon))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "fi;le1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"fi;le1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
   specify "should not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Utils::Multipart.parse_multipart(env)
