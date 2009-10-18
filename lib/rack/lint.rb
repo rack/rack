@@ -61,7 +61,7 @@ module Rack
       ## subclassing allowed) that includes CGI-like headers.
       ## The application is free to modify the environment.
       assert("env #{env.inspect} is not a Hash, but #{env.class}") {
-        env.instance_of? Hash
+        env.kind_of? Hash
       }
 
       ##
@@ -175,7 +175,7 @@ module Rack
       env.each { |key, value|
         next  if key.include? "."   # Skip extensions
         assert("env variable #{key} has non-string value #{value.inspect}") {
-          value.instance_of? String
+          value.kind_of? String
         }
       }
 
@@ -184,7 +184,7 @@ module Rack
 
       ## * <tt>rack.version</tt> must be an array of Integers.
       assert("rack.version must be an Array, was #{env["rack.version"].class}") {
-        env["rack.version"].instance_of? Array
+        env["rack.version"].kind_of? Array
       }
       ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
       assert("rack.url_scheme unknown: #{env["rack.url_scheme"].inspect}") {
@@ -269,7 +269,7 @@ module Rack
         assert("rack.input#gets called with arguments") { args.size == 0 }
         v = @input.gets
         assert("rack.input#gets didn't return a String") {
-          v.nil? or v.instance_of? String
+          v.nil? or v.kind_of? String
         }
         v
       end
@@ -304,7 +304,7 @@ module Rack
         v = @input.read(*args)
         
         assert("rack.input#read didn't return nil or a String") {
-          v.nil? or v.instance_of? String
+          v.nil? or v.kind_of? String
         }
         if args[0].nil?
           assert("rack.input#read(nil) returned nil on EOF") {
@@ -320,7 +320,7 @@ module Rack
         assert("rack.input#each called with arguments") { args.size == 0 }
         @input.each { |line|
           assert("rack.input#each didn't yield a String") {
-            line.instance_of? String
+            line.kind_of? String
           }
           yield line
         }
@@ -373,7 +373,7 @@ module Rack
 
       ## * +write+ must be called with a single argument that is a String.
       def write(str)
-        assert("rack.errors#write not called with a String") { str.instance_of? String }
+        assert("rack.errors#write not called with a String") { str.kind_of? String }
         @error.write str
       end
 
@@ -407,7 +407,7 @@ module Rack
       header.each { |key, value|
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
-          key.instance_of? String
+          key.kind_of? String
         }
         ## The header must not contain a +Status+ key,
         assert("header must not contain Status") { key.downcase != "status" }
@@ -499,7 +499,7 @@ module Rack
       @body.each { |part|
         ## and must only yield String values.
         assert("Body yielded non-string value #{part.inspect}") {
-          part.instance_of? String
+          part.kind_of? String
         }
         yield part
       }

@@ -1,8 +1,7 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
-$LOAD_PATH.unshift File.expand_path("#{__FILE__}/../../lib")
-autoload :Rack, 'rack'
+require 'rack'
 
 require 'optparse'
 
