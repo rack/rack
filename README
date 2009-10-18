@@ -272,6 +272,17 @@ run on port 11211) and memcache-client installed.
   * The Rakefile has been rewritten.
   * Many bugfixes and small improvements.
 
+* October 18th, 2009: Eighth public release 1.0.1.
+  * Bump remainder of rack.versions.
+  * Support the pure Ruby FCGI implementation.
+  * Fix for form names containing "=": split first then unescape components
+  * Fixes the handling of the filename parameter with semicolons in names.
+  * Add anchor to nested params parsing regexp to prevent stack overflows
+  * Use more compatible gzip write api instead of "<<".
+  * Make sure that Reloader doesn't break when executed via ruby -e
+  * Make sure WEBrick respects the :Host option
+  * Many Ruby 1.9 fixes.
+
 == Contact
 
 Please mail bugs, suggestions and patches to
