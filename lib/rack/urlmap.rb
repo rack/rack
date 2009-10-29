@@ -34,7 +34,7 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"].to_s.squeeze("/")
+      path = env["PATH_INFO"].to_s
       script_name = env['SCRIPT_NAME']
       hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, app|
