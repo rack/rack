@@ -482,6 +482,9 @@ module Rack
               body << buf.slice!(0, i)
               buf.slice!(0, boundary_size+2)
 
+              # If sliced exactly at boundary, let's move:
+              next if buf.empty? && ($1 == EOL)
+
               content_length = -1  if $1 == "--"
             end
 
