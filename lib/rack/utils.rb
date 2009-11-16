@@ -482,9 +482,6 @@ module Rack
               body << buf.slice!(0, i)
               buf.slice!(0, boundary_size+2)
 
-              # If sliced exactly at boundary, let's move:
-              next if buf.empty? && ($1 == EOL)
-
               content_length = -1  if $1 == "--"
             end
 
@@ -515,7 +512,8 @@ module Rack
 
             Utils.normalize_params(params, name, data) unless data.nil?
 
-            break  if buf.empty? || content_length == -1
+            # break if we're at the end of a buffer, but not if it is the end of a field
+            break if (buf.empty? && $1 != EOL) || content_length == -1
           }
 
           input.rewind
