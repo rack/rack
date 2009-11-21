@@ -42,6 +42,7 @@ module Rack
   autoload :Mime, "rack/mime"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
+  autoload :Server, "rack/server"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :ShowStatus, "rack/showstatus"
   autoload :Static, "rack/static"

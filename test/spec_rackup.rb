@@ -1,5 +1,6 @@
 require 'test/spec'
 require 'testrequest'
+require 'rack/server'
 require 'open3'
 
 begin
@@ -15,7 +16,7 @@ context "rackup" do
     @port = options[:port] || 9292
 
     Dir.chdir("#{root}/test/rackup") do
-      @rackup = IO.popen("#{Gem.ruby} -S #{rackup} #{flags}")
+      @in, @rackup, @err = Open3.popen3("#{Gem.ruby} -S #{rackup} #{flags}")
     end
 
     return if options[:port] == false
@@ -34,12 +35,14 @@ context "rackup" do
   end
 
   after do
-    Process.kill(9, @rackup.pid) if @rackup
+    # This doesn't actually return a response, so we rescue
+    GET "/die" rescue nil
 
     Dir["#{root}/**/*.pid"].each do |file|
-      Process.kill(9, File.read(file).to_i)
       File.delete(file)
     end
+
+    File.delete("#{root}/log_output") if File.exist?("#{root}/log_output")
   end
 
   specify "rackup" do
@@ -97,10 +100,16 @@ context "rackup" do
     response["REMOTE_ADDR"].should.equal "127.0.0.1"
   end
 
-  specify "rackup --pid" do
+  specify "rackup --daemonize --pid" do
     run_rackup %{--daemonize --pid testing.pid}
     status.should.be 200
     @rackup.should.be.eof?
+    Dir["#{root}/**/testing.pid"].should.not.be.empty?
+  end
+
+  specify "rackup --pid" do
+    run_rackup %{--pid testing.pid}
+    status.should.be 200
     Dir["#{root}/**/testing.pid"].should.not.be.empty?
   end
 
@@ -115,10 +124,29 @@ context "rackup" do
     status.should.be 500
   end
 
-  specify "rackup --env" do
+  specify "rackup --env deployment does not include lint" do
     run_rackup %{--env deployment}
     GET("/broken_lint")
     status.should.be 200
+  end
+
+  specify "rackup --env none does not include lint" do
+    run_rackup %{--env none}
+    GET("/broken_lint")
+    status.should.be 200
+  end
+
+  specify "rackup --env deployment does log" do
+    run_rackup %{--env deployment}
+    log = File.read(response["test.stderr"])
+    log.should.be.empty?
+  end
+
+  specify "rackup --env none does not log" do
+    run_rackup %{--env none}
+    GET("/")
+    log = File.read(response["test.stderr"])
+    log.should.be.empty?
   end
 end
 rescue LoadError
