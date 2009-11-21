@@ -1,5 +1,6 @@
 require 'lsapi'
 require 'rack/content_length'
+require 'rack/rewindable_input'
 
 module Rack
   module Handler
@@ -38,6 +39,8 @@ module Rack
         ensure
           body.close if body.respond_to? :close
         end
+      ensure
+        rack_input.close
       end
       def self.send_headers(status, headers)
         print "Status: #{status}\r\n"
