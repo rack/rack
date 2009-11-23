@@ -6,8 +6,6 @@ begin
   require 'rack/response'
   require 'thread'
 
-  pool = Rack::Session::Memcache.new(lambda {})
-
   context "Rack::Session::Memcache" do
     session_key = Rack::Session::Memcache::DEFAULT_OPTIONS[:key]
     session_match = /#{session_key}=[0-9a-fA-F]+;/
@@ -29,20 +27,20 @@ begin
       incrementor.call(env)
     end
 
-    specify "MemCache can connect to existing server" do
-      test_pool = MemCache.new :namespace => 'test:rack:session'
-    end
-
     specify "faults on no connection" do
       if RUBY_VERSION < "1.9"
         lambda do
-          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+          Rack::Session::Memcache.new incrementor, :memcache_server => 'nosuchserver'
         end.should.raise
       else
         lambda do
-          Rack::Session::Memcache.new(incrementor, :memcache_server => '')
+          Rack::Session::Memcache.new incrementor, :memcache_server => 'nosuchserver'
         end.should.raise ArgumentError
       end
+    end
+
+    specify "connect to existing server" do
+      test_pool = MemCache.new incrementor, :namespace => 'test:rack:session'
     end
 
     specify "creates a new cookie" do
