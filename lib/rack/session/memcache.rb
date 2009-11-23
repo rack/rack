@@ -74,7 +74,22 @@ module Rack
           @pool.add session_id, 0 # so we don't worry about cache miss on #set
         end
         old_session = new_session.instance_variable_get('@old') || {}
-        session = merge_sessions session_id, old_session, new_session, session
+
+        begin # merge sessions
+          unless Hash === old_session and Hash === new_session
+            warn 'Bad old_session or new_session sessions provided.'
+            return session
+          end
+
+          delete = old_session.keys - new_session.keys
+          env['rack.errors'].puts("//@#{session_id}: delete #{delete*','}") if $VERBOSE and not delete.empty?
+          delete.each{|k| session.delete k }
+
+          update = new_session.keys.select{|k| new_session[k] != old_session[k] }
+          env['rack.errors'].puts("//@#{session_id}: update #{update*','}") if $VERBOSE and not update.empty?
+          update.each{|k| session[k] = new_session[k] }
+        end
+
         @pool.set session_id, session, expiry
         return session_id
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
@@ -83,26 +98,6 @@ module Rack
         return false
       ensure
         @mutex.unlock if env['rack.multithread']
-      end
-
-      private
-
-      def merge_sessions sid, old, new, cur=nil
-        cur ||= {}
-        unless Hash === old and Hash === new
-          warn 'Bad old or new sessions provided.'
-          return cur
-        end
-
-        delete = old.keys - new.keys
-        warn "//@#{sid}: delete #{delete*','}" if $VERBOSE and not delete.empty?
-        delete.each{|k| cur.delete k }
-
-        update = new.keys.select{|k| new[k] != old[k] }
-        warn "//@#{sid}: update #{update*','}" if $VERBOSE and not update.empty?
-        update.each{|k| cur[k] = new[k] }
-
-        cur
       end
     end
   end
