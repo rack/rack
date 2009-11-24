@@ -13,7 +13,7 @@ module Rack
     # In the context of a multithreaded environment, sessions being
     # committed to the pool is done in a merging manner.
     #
-    # The :drop option is available in rack.session.options if you with to
+    # The :drop option is available in rack.session.options if you wish to
     # explicitly remove the session from the session cache.
     #
     # Example:
