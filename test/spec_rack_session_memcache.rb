@@ -8,7 +8,7 @@ begin
 
   context "Rack::Session::Memcache" do
     session_key = Rack::Session::Memcache::DEFAULT_OPTIONS[:key]
-    session_match = /#{session_key}=[0-9a-fA-F]+;/
+    session_match = /#{session_key}=([0-9a-fA-F]+);/
     incrementor = lambda do |env|
       env["rack.session"]["counter"] ||= 0
       env["rack.session"]["counter"] += 1
@@ -157,6 +157,31 @@ begin
       res3.body.should.equal '{"counter"=>4}'
     end
 
+    specify "deep hashes are correctly updated" do
+      store = nil
+      hash_check = proc do |env|
+        session = env['rack.session']
+        unless session.include? 'test'
+          session.update :a => :b, :c => { :d => :e },
+            :f => { :g => { :h => :i} }, 'test' => true
+        else
+          session[:f][:g][:h] = :j
+        end
+        [200, {}, session.inspect]
+      end
+      pool = Rack::Session::Memcache.new(hash_check)
+      req = Rack::MockRequest.new(pool)
+
+      res0 = req.get("/")
+      session_id = (cookie = res0["Set-Cookie"])[session_match, 1]
+      ses0 = pool.pool.get(session_id, true)
+
+      res1 = req.get("/", "HTTP_COOKIE" => cookie)
+      ses1 = pool.pool.get(session_id, true)
+
+      ses1.should.not.equal ses0
+    end
+
     # anyone know how to do this better?
     specify "multithread: should cleanly merge sessions" do
       next unless $DEBUG
@@ -167,7 +192,7 @@ begin
       res = req.get('/')
       res.body.should.equal '{"counter"=>1}'
       cookie = res["Set-Cookie"]
-      sess_id = cookie[/#{pool.key}=([^,;]+)/,1]
+      session_id = cookie[session_match, 1]
 
       delta_incrementor = lambda do |env|
         # emulate disconjoinment of threading
@@ -189,7 +214,7 @@ begin
         request.body.should.include '"counter"=>2'
       end
 
-      session = pool.pool.get(sess_id)
+      session = pool.pool.get(session_id)
       session.size.should.be tnum+1 # counter
       session['counter'].should.be 2 # meeeh
 
@@ -213,7 +238,7 @@ begin
         request.body.should.include '"counter"=>3'
       end
 
-      session = pool.pool.get(sess_id)
+      session = pool.pool.get(session_id)
       session.size.should.be tnum+1
       session['counter'].should.be 3
 
@@ -235,7 +260,7 @@ begin
         request.body.should.include '"foo"=>"bar"'
       end
 
-      session = pool.pool.get(sess_id)
+      session = pool.pool.get(session_id)
       session.size.should.be r.size+1
       session['counter'].should.be.nil?
       session['foo'].should.equal 'bar'
