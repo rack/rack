@@ -46,21 +46,14 @@ module Rack
       end
 
       def get_session(env, session_id)
-        session = @pool.get(session_id) if session_id
         @mutex.lock if env['rack.multithread']
-        unless session_id and session
-          if $VERBOSE and not session_id.nil?
-            env['rack.errors'].
-              puts "Session '#{session_id.inspect}' not found, initializing..."
-          end
-          session = {}
-          session_id = generate_sid
-          ret = @pool.add session_id, session
-          unless /^STORED/ =~ ret
+        unless session_id and session = @pool.get(session_id)
+          session_id, session = generate_sid, {}
+          unless /^STORED/ =~ @pool.add(session_id, session)
             raise "Session collision on '#{session_id.inspect}'"
           end
         end
-        session.instance_variable_set('@old', {}.merge(session))
+        session.instance_variable_set '@old', @pool.get(session_id, true)
         return [session_id, session]
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
         # MemCache server cannot be contacted
@@ -76,14 +69,16 @@ module Rack
         expiry = expiry.nil? ? 0 : expiry + 1
 
         @mutex.lock if env['rack.multithread']
-        session = @pool.get(session_id) || {}
         if options[:renew] or options[:drop]
           @pool.delete session_id
           return false if options[:drop]
           session_id = generate_sid
-          @pool.add session_id, 0 # so we don't worry about cache miss on #set
+          @pool.add session_id, {} # so we don't worry about cache miss on #set
         end
-        old_session = new_session.instance_variable_get('@old') || {}
+
+        session = @pool.get(session_id) || {}
+        old_session = new_session.instance_variable_get '@old'
+        old_session = old_session ? Marshal.load(old_session) : {}
 
         unless Hash === old_session and Hash === new_session
           env['rack.errors'].
