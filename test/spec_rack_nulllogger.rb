@@ -8,6 +8,6 @@ context "Rack::NullLogger" do
       env['rack.logger'].warn "b00m"
       [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]]
     }
-    app.call({'rack.logger' => Rack::NullLogger.new})
+    Rack::NullLogger.new(app).call({})
   end
 end
