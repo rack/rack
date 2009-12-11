@@ -45,6 +45,7 @@ module Rack
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :Runtime, "rack/runtime"
+  autoload :Sendfile, "rack/sendfile"
   autoload :Server, "rack/server"
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :ShowStatus, "rack/showstatus"
