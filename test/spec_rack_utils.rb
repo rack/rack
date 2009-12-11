@@ -273,6 +273,14 @@ context "Rack::Utils::HeaderHash" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("Hello").should.be.nil
   end
+
+  specify "should avoid unnecessary object creation if possible" do
+    a = Rack::Utils::HeaderHash.new("foo" => "bar")
+    b = Rack::Utils::HeaderHash.new(a)
+    b.object_id.should.equal(a.object_id)
+    b.should.equal(a)
+  end
+
 end
 
 context "Rack::Utils::Context" do

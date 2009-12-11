@@ -263,6 +263,10 @@ module Rack
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     class HeaderHash < Hash
+      def self.new(hash={})
+        HeaderHash === hash ? hash : super(hash)
+      end
+
       def initialize(hash={})
         super()
         @names = {}
