@@ -281,6 +281,14 @@ context "Rack::Utils::HeaderHash" do
     b.should.equal(a)
   end
 
+  specify "should convert Array values to Strings when responding to #each" do
+    h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
+    h.each do |k,v|
+      k.should.equal("foo")
+      v.should.equal("bar\nbaz")
+    end
+  end
+
 end
 
 context "Rack::Utils::Context" do

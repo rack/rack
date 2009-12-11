@@ -273,6 +273,12 @@ module Rack
         hash.each { |k, v| self[k] = v }
       end
 
+      def each
+        super do |k, v|
+          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
+        end
+      end
+
       def to_hash
         inject({}) do |hash, (k,v)|
           if v.respond_to? :to_ary
