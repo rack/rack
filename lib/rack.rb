@@ -28,6 +28,7 @@ module Rack
   autoload :Chunked, "rack/chunked"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
+  autoload :Config, "rack/config"
   autoload :ContentLength, "rack/content_length"
   autoload :ContentType, "rack/content_type"
   autoload :File, "rack/file"
