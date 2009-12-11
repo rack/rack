@@ -40,6 +40,7 @@ module Rack
   autoload :Head, "rack/head"
   autoload :Lint, "rack/lint"
   autoload :Lock, "rack/lock"
+  autoload :Logger, "rack/logger"
   autoload :MethodOverride, "rack/methodoverride"
   autoload :Mime, "rack/mime"
   autoload :NullLogger, "rack/nulllogger"
