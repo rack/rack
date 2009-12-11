@@ -42,6 +42,7 @@ module Rack
   autoload :Lock, "rack/lock"
   autoload :MethodOverride, "rack/methodoverride"
   autoload :Mime, "rack/mime"
+  autoload :NullLogger, "rack/nulllogger"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :Runtime, "rack/runtime"
