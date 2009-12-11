@@ -27,7 +27,7 @@ module Rack
     module_function :unescape
 
     DEFAULT_SEP = /[&;] */n
-    
+
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
@@ -393,6 +393,12 @@ module Rack
 
     # Responses with HTTP status codes that should not have an entity body
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 304)
+
+    SYMBOL_TO_STATUS_CODE = HTTP_STATUS_CODES.inject({}) { |hash, (code, message)|
+      hash[message.downcase.gsub(/\s|-/, '_').to_sym] = code
+      hash
+    }
+
 
     # A multipart form data parser, adapted from IOWA.
     #
