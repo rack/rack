@@ -17,7 +17,7 @@ module Rack
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
       headers['Content-Type'] ||= @content_type
-      [status, headers.to_hash, body]
+      [status, headers, body]
     end
   end
 end

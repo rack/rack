@@ -27,7 +27,7 @@ module Rack
     module_function :unescape
 
     DEFAULT_SEP = /[&;] */n
-    
+
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
@@ -38,7 +38,9 @@ module Rack
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
-
+        if v =~ /^("|')(.*)\1$/
+          v = $2.gsub('\\'+$1, $1)
+        end
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -67,6 +69,9 @@ module Rack
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
+      if v and v =~ /^("|')(.*)\1$/
+        v = $2.gsub('\\'+$1, $1)
+      end
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
@@ -258,10 +263,20 @@ module Rack
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     class HeaderHash < Hash
+      def self.new(hash={})
+        HeaderHash === hash ? hash : super(hash)
+      end
+
       def initialize(hash={})
         super()
         @names = {}
         hash.each { |k, v| self[k] = v }
+      end
+
+      def each
+        super do |k, v|
+          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
+        end
       end
 
       def to_hash
@@ -378,6 +393,12 @@ module Rack
 
     # Responses with HTTP status codes that should not have an entity body
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 304)
+
+    SYMBOL_TO_STATUS_CODE = HTTP_STATUS_CODES.inject({}) { |hash, (code, message)|
+      hash[message.downcase.gsub(/\s|-/, '_').to_sym] = code
+      hash
+    }
+
 
     # A multipart form data parser, adapted from IOWA.
     #
@@ -507,7 +528,8 @@ module Rack
 
             Utils.normalize_params(params, name, data) unless data.nil?
 
-            break  if buf.empty? || content_length == -1
+            # break if we're at the end of a buffer, but not if it is the end of a field
+            break if (buf.empty? && $1 != EOL) || content_length == -1
           }
 
           input.rewind

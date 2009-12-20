@@ -9,7 +9,7 @@ Thread.abort_on_exception = true
 
 context "Rack::Handler::WEBrick" do
   include TestRequest::Helpers
-  
+
   setup do
     @server = WEBrick::HTTPServer.new(:Host => @host='0.0.0.0',
                                       :Port => @port=9202,
@@ -50,7 +50,7 @@ context "Rack::Handler::WEBrick" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.be.nil
+    response["PATH_INFO"].should.be.equal ""
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 
@@ -60,7 +60,7 @@ context "Rack::Handler::WEBrick" do
     response["REQUEST_PATH"].should.equal "/"
     response["PATH_INFO"].should.equal "/foo"
     response["QUERY_STRING"].should.equal "quux=1"
-    
+
     GET("/test/foo%25encoding?quux=1")
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"

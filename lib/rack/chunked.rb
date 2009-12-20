@@ -19,7 +19,7 @@ module Rack
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers['Content-Length'] ||
          headers['Transfer-Encoding']
-        [status, headers.to_hash, body]
+        [status, headers, body]
       else
         dup.chunk(status, headers, body)
       end
@@ -29,7 +29,7 @@ module Rack
       @body = body
       headers.delete('Content-Length')
       headers['Transfer-Encoding'] = 'chunked'
-      [status, headers.to_hash, self]
+      [status, headers, self]
     end
 
     def each

@@ -30,7 +30,10 @@ context "Rack::Utils" do
   end
 
   specify "should parse query strings correctly" do
-    Rack::Utils.parse_query("foo=bar").should.equal "foo" => "bar"
+    Rack::Utils.parse_query("foo=bar").
+      should.equal "foo" => "bar"
+    Rack::Utils.parse_query("foo=\"bar\"").
+      should.equal "foo" => "bar"
     Rack::Utils.parse_query("foo=bar&foo=quux").
       should.equal "foo" => ["bar", "quux"]
     Rack::Utils.parse_query("foo=1&bar=2").
@@ -46,6 +49,8 @@ context "Rack::Utils" do
     Rack::Utils.parse_nested_query("foo=").
       should.equal "foo" => ""
     Rack::Utils.parse_nested_query("foo=bar").
+      should.equal "foo" => "bar"
+    Rack::Utils.parse_nested_query("foo=\"bar\"").
       should.equal "foo" => "bar"
 
     Rack::Utils.parse_nested_query("foo=bar&foo=quux").
@@ -268,6 +273,22 @@ context "Rack::Utils::HeaderHash" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("Hello").should.be.nil
   end
+
+  specify "should avoid unnecessary object creation if possible" do
+    a = Rack::Utils::HeaderHash.new("foo" => "bar")
+    b = Rack::Utils::HeaderHash.new(a)
+    b.object_id.should.equal(a.object_id)
+    b.should.equal(a)
+  end
+
+  specify "should convert Array values to Strings when responding to #each" do
+    h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
+    h.each do |k,v|
+      k.should.equal("foo")
+      v.should.equal("bar\nbaz")
+    end
+  end
+
 end
 
 context "Rack::Utils::Context" do
@@ -456,6 +477,37 @@ context "Rack::Utils::Multipart" do
     params["people"][0]["submit-name"].should.equal "Larry"
     params["people"][0]["files"][:filename].should.equal "file1.txt"
     params["people"][0]["files"][:tempfile].read.should.equal "contents"
+  end
+  
+  specify "can parse fields that end at the end of the buffer" do
+    input = File.read(multipart_file("bad_robots"))
+    
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    req.POST['file.path'].should.equal "/var/tmp/uploads/4/0001728414"
+    req.POST['addresses'].should.not.equal nil
+  end
+
+  specify "builds complete params with the chunk size of 16384 slicing exactly on boundary" do
+    data = File.open(multipart_file("fail_16384_nofile")) { |f| f.read }.gsub(/\n/, "\r\n")
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryWsY0GnpbI5U7ztzo",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+
+    params.should.not.equal nil
+    params.keys.should.include "AAAAAAAAAAAAAAAAAAA"
+    params["AAAAAAAAAAAAAAAAAAA"].keys.should.include "PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"
+    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"].keys.should.include "new"
+    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"].keys.should.include "-2"
+    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"].keys.should.include "ba_unit_id"
+    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"]["ba_unit_id"].should.equal "1017"
   end
 
   specify "should return nil if no UploadedFiles were used" do

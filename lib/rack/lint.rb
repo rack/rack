@@ -148,6 +148,35 @@ module Rack
         }
       end
 
+      ## <tt>rack.logger</tt>:: A common object interface for logging messages.
+      ##                        The object must implement:
+      if logger = env['rack.logger']
+        ##                         info(message, &block)
+        assert("logger #{logger.inspect} must respond to info") {
+          logger.respond_to?(:info)
+        }
+
+        ##                         debug(message, &block)
+        assert("logger #{logger.inspect} must respond to debug") {
+          logger.respond_to?(:debug)
+        }
+
+        ##                         warn(message, &block)
+        assert("logger #{logger.inspect} must respond to warn") {
+          logger.respond_to?(:warn)
+        }
+
+        ##                         error(message, &block)
+        assert("logger #{logger.inspect} must respond to error") {
+          logger.respond_to?(:error)
+        }
+
+        ##                         fatal(message, &block)
+        assert("logger #{logger.inspect} must respond to fatal") {
+          logger.respond_to?(:fatal)
+        }
+      end
+
       ## The server or the application can store their own data in the
       ## environment, too.  The keys must contain at least one dot,
       ## and should be prefixed uniquely.  The prefix <tt>rack.</tt>
@@ -243,7 +272,7 @@ module Rack
       assert("rack.input #{input} is not opened in binary mode") {
         input.binmode?
       } if input.respond_to?(:binmode?)
-      
+
       ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
       [:gets, :each, :read, :rewind].each { |method|
         assert("rack.input #{input} does not respond to ##{method}") {
@@ -300,9 +329,9 @@ module Rack
             args[1].kind_of?(String)
           }
         end
-        
+
         v = @input.read(*args)
-        
+
         assert("rack.input#read didn't return nil or a String") {
           v.nil? or v.kind_of? String
         }
@@ -311,7 +340,7 @@ module Rack
             !v.nil?
           }
         end
-        
+
         v
       end
 
@@ -325,7 +354,7 @@ module Rack
           yield line
         }
       end
-      
+
       ## * +rewind+ must be called without arguments. It rewinds the input
       ##   stream back to the beginning. It must not raise Errno::ESPIPE:
       ##   that is, it may not be a pipe or a socket. Therefore, handler

@@ -86,7 +86,7 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|Rack::Auth::OpenID)"'}"
+  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache)"'}"
 end
 
 desc "Run all the tests"
@@ -135,7 +135,6 @@ Also see http://rack.rubyforge.org.
       s.add_development_dependency 'fcgi'
       s.add_development_dependency 'memcache-client'
       s.add_development_dependency 'mongrel'
-      s.add_development_dependency 'ruby-openid', '~> 2.0.0'
       s.add_development_dependency 'thin'
     end
 

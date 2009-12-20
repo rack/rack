@@ -29,9 +29,13 @@ module Rack
         super
 
         @mutex = Mutex.new
-        @pool = MemCache.
-          new @default_options[:memcache_server], @default_options
-        raise 'No memcache servers' unless @pool.servers.any?{|s|s.alive?}
+        mserv = @default_options[:memcache_server]
+        mopts = @default_options.
+          reject{|k,v| MemCache::DEFAULT_OPTIONS.include? k }
+        @pool = MemCache.new mserv, mopts
+        unless @pool.active? and @pool.servers.any?{|c| c.alive? }
+          raise 'No memcache servers'
+        end
       end
 
       def generate_sid
@@ -41,24 +45,23 @@ module Rack
         end
       end
 
-      def get_session(env, sid)
-        session = @pool.get(sid) if sid
+      def get_session(env, session_id)
         @mutex.lock if env['rack.multithread']
-        unless sid and session
-          env['rack.errors'].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
-          session = {}
-          sid = generate_sid
-          ret = @pool.add sid, session
-          raise "Session collision on '#{sid.inspect}'" unless /^STORED/ =~ ret
+        unless session_id and session = @pool.get(session_id)
+          session_id, session = generate_sid, {}
+          unless /^STORED/ =~ @pool.add(session_id, session)
+            raise "Session collision on '#{session_id.inspect}'"
+          end
         end
-        session.instance_variable_set('@old', {}.merge(session))
-        return [sid, session]
-      rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
-        warn "#{self} is unable to find server."
+        session.instance_variable_set '@old', @pool.get(session_id, true)
+        return [session_id, session]
+      rescue MemCache::MemCacheError, Errno::ECONNREFUSED
+        # MemCache server cannot be contacted
+        warn "#{self} is unable to find memcached server."
         warn $!.inspect
         return [ nil, {} ]
       ensure
-        @mutex.unlock if env['rack.multithread']
+        @mutex.unlock if @mutex.locked?
       end
 
       def set_session(env, session_id, new_session, options)
@@ -66,43 +69,50 @@ module Rack
         expiry = expiry.nil? ? 0 : expiry + 1
 
         @mutex.lock if env['rack.multithread']
-        session = @pool.get(session_id) || {}
         if options[:renew] or options[:drop]
           @pool.delete session_id
           return false if options[:drop]
           session_id = generate_sid
-          @pool.add session_id, 0 # so we don't worry about cache miss on #set
+          @pool.add session_id, {} # so we don't worry about cache miss on #set
         end
-        old_session = new_session.instance_variable_get('@old') || {}
-        session = merge_sessions session_id, old_session, new_session, session
+
+        session = @pool.get(session_id) || {}
+        old_session = new_session.instance_variable_get '@old'
+        old_session = old_session ? Marshal.load(old_session) : {}
+
+        unless Hash === old_session and Hash === new_session
+          env['rack.errors'].
+            puts 'Bad old_session or new_session sessions provided.'
+        else # merge sessions
+          # alterations are either update or delete, making as few changes as
+          # possible to prevent possible issues.
+
+          # removed keys
+          delete = old_session.keys - new_session.keys
+          if $VERBOSE and not delete.empty?
+            env['rack.errors'].
+              puts "//@#{session_id}: delete #{delete*','}"
+          end
+          delete.each{|k| session.delete k }
+
+          # added or altered keys
+          update = new_session.keys.
+            select{|k| new_session[k] != old_session[k] }
+          if $VERBOSE and not update.empty?
+            env['rack.errors'].puts "//@#{session_id}: update #{update*','}"
+          end
+          update.each{|k| session[k] = new_session[k] }
+        end
+
         @pool.set session_id, session, expiry
         return session_id
-      rescue MemCache::MemCacheError, Errno::ECONNREFUSED # MemCache server cannot be contacted
-        warn "#{self} is unable to find server."
+      rescue MemCache::MemCacheError, Errno::ECONNREFUSED
+        # MemCache server cannot be contacted
+        warn "#{self} is unable to find memcached server."
         warn $!.inspect
         return false
       ensure
-        @mutex.unlock if env['rack.multithread']
-      end
-
-      private
-
-      def merge_sessions sid, old, new, cur=nil
-        cur ||= {}
-        unless Hash === old and Hash === new
-          warn 'Bad old or new sessions provided.'
-          return cur
-        end
-
-        delete = old.keys - new.keys
-        warn "//@#{sid}: delete #{delete*','}" if $VERBOSE and not delete.empty?
-        delete.each{|k| cur.delete k }
-
-        update = new.keys.select{|k| new[k] != old[k] }
-        warn "//@#{sid}: update #{update*','}" if $VERBOSE and not update.empty?
-        update.each{|k| cur[k] = new[k] }
-
-        cur
+        @mutex.unlock if @mutex.locked?
       end
     end
   end

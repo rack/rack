@@ -24,6 +24,23 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
+    def self.parse_file(config, opts = Server::Options.new)
+      options = {}
+      if config =~ /\.ru$/
+        cfgfile = ::File.read(config)
+        if cfgfile[/^#\\(.*)/] && opts
+          options = opts.parse! $1.split(/\s+/)
+        end
+        cfgfile.sub!(/^__END__\n.*/, '')
+        app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
+          TOPLEVEL_BINDING, config
+      else
+        require config
+        app = Object.const_get(::File.basename(config, '.rb').capitalize)
+      end
+      return app, options
+    end
+
     def initialize(&block)
       @ins = []
       instance_eval(&block) if block_given?

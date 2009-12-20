@@ -14,7 +14,7 @@ module Rack
           options[:throttle]       || 0,
           options[:timeout]        || 60)
         # Acts like Rack::URLMap, utilizing Mongrel's own path finding methods.
-        # Use is similar to #run, replacing the app argument with a hash of 
+        # Use is similar to #run, replacing the app argument with a hash of
         # { path=>app, ... } or an instance of Rack::URLMap.
         if options[:map]
           if app.is_a? Hash
@@ -63,7 +63,6 @@ module Rack
                      "rack.url_scheme" => "http",
                    })
         env["QUERY_STRING"] ||= ""
-        env.delete "PATH_INFO"  if env["PATH_INFO"] == ""
 
         status, headers, body = @app.call(env)
 

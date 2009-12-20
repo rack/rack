@@ -130,7 +130,7 @@ Either with the embedded WEBrick starter:
 
 Or with rackup:
 
-    bin/rackup -Ilib example/lobster.ru 
+    bin/rackup -Ilib example/lobster.ru
 
 By default, the lobster is found at http://localhost:9292.
 
@@ -285,13 +285,11 @@ run on port 11211) and memcache-client installed.
 
 == Contact
 
-Please mail bugs, suggestions and patches to
-<mailto:rack-devel@googlegroups.com>.
+Please post bugs, suggestions and patches to
+the bug tracker at <http://rack.lighthouseapp.com/>.
 
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
-
-There is a bug tracker at <http://rack.lighthouseapp.com/>.
 
 Git repository (send Git patches to the mailing list):
 * http://github.com/rack/rack
@@ -349,7 +347,7 @@ all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
@@ -358,6 +356,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Rack:: <http://rack.rubyforge.org/>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 Official Rack repositories:: <http://github.com/rack>
+Rack Lighthouse Bug Tracking:: <http://rack.lighthouseapp.com/>
 rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
 
 Christian Neukirchen:: <http://chneukirchen.org/>

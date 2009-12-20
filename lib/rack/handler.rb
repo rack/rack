@@ -22,6 +22,25 @@ module Rack
       end
     end
 
+    def self.default(options = {})
+      # Guess.
+      if ENV.include?("PHP_FCGI_CHILDREN")
+        # We already speak FastCGI
+        options.delete :File
+        options.delete :Port
+
+        Rack::Handler::FastCGI
+      elsif ENV.include?("REQUEST_METHOD")
+        Rack::Handler::CGI
+      else
+        begin
+          Rack::Handler::Mongrel
+        rescue LoadError => e
+          Rack::Handler::WEBrick
+        end
+      end
+    end
+
     # Transforms server-name constants to their canonical form as filenames,
     # then tries to require them but silences the LoadError if not found
     #

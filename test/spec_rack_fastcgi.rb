@@ -47,7 +47,7 @@ context "Rack::Handler::FastCGI" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test.fcgi"
     response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.be.nil
+    response["PATH_INFO"].should.equal ""
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 

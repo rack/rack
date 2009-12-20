@@ -19,7 +19,7 @@ module Rack
     attr_accessor :length
 
     def initialize(body=[], status=200, header={}, &block)
-      @status = status
+      @status = status.to_i
       @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.
                                       merge(header))
 
@@ -71,9 +71,9 @@ module Rack
 
       if [204, 304].include?(status.to_i)
         header.delete "Content-Type"
-        [status.to_i, header.to_hash, []]
+        [status.to_i, header, []]
       else
-        [status.to_i, header.to_hash, self]
+        [status.to_i, header, self]
       end
     end
     alias to_a finish           # For *response
