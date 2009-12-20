@@ -16,3 +16,6 @@
     end
 
   Of course, use this only when your app runs at "/".
+
+  Since lighttpd 1.4.23, you also can use the "fix-root-scriptname" flag
+  in fastcgi.server.
