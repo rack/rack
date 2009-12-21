@@ -124,8 +124,7 @@ module Rack
         @env["rack.request.query_hash"]
       else
         @env["rack.request.query_string"] = query_string
-        @env["rack.request.query_hash"]   =
-          Utils.parse_nested_query(query_string)
+        @env["rack.request.query_hash"]   = parse_query(query_string)
       end
     end
 
@@ -140,15 +139,14 @@ module Rack
         @env["rack.request.form_hash"]
       elsif form_data? || parseable_data?
         @env["rack.request.form_input"] = @env["rack.input"]
-        unless @env["rack.request.form_hash"] =
-            Utils::Multipart.parse_multipart(env)
+        unless @env["rack.request.form_hash"] = parse_multipart(env)
           form_vars = @env["rack.input"].read
 
           # Fix for Safari Ajax postings that always append \0
           form_vars.sub!(/\0\z/, '')
 
           @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = Utils.parse_nested_query(form_vars)
+          @env["rack.request.form_hash"] = parse_query(form_vars)
 
           @env["rack.input"].rewind
         end
@@ -256,5 +254,14 @@ module Rack
         @env['REMOTE_ADDR']
       end
     end
+
+    protected
+      def parse_query(qs)
+        Utils.parse_nested_query(qs)
+      end
+
+      def parse_multipart(env)
+        Utils::Multipart.parse_multipart(env)
+      end
   end
 end
