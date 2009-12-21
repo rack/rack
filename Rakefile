@@ -86,7 +86,7 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache)"'}"
+  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)"'}"
 end
 
 desc "Run all the tests"
@@ -105,7 +105,7 @@ else
       s.version         = version
       s.platform        = Gem::Platform::RUBY
       s.summary         = "a modular Ruby webserver interface"
-      
+
       s.description = <<-EOF
 Rack provides minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
@@ -123,14 +123,14 @@ Also see http://rack.rubyforge.org.
       s.has_rdoc        = true
       s.extra_rdoc_files = ['README', 'SPEC', 'RDOX', 'KNOWN-ISSUES']
       s.test_files      = Dir['test/{test,spec}_*.rb']
-      
+
       s.author          = 'Christian Neukirchen'
       s.email           = 'chneukirchen@gmail.com'
       s.homepage        = 'http://rack.rubyforge.org'
       s.rubyforge_project = 'rack'
-      
+
       s.add_development_dependency 'test-spec'
-      
+
       s.add_development_dependency 'camping'
       s.add_development_dependency 'fcgi'
       s.add_development_dependency 'memcache-client'
@@ -149,7 +149,7 @@ end
 
 desc "Generate RDoc documentation"
 task :rdoc do
-  sh(*%w{rdoc --line-numbers --main README 
+  sh(*%w{rdoc --line-numbers --main README
               --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
               %w{README KNOWN-ISSUES SPEC RDOX} +
               Dir["lib/**/*.rb"])
