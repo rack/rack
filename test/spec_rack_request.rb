@@ -152,6 +152,16 @@ context "Rack::Request" do
     req.referer.should.equal "/"
   end
 
+  specify "user agent should be extracted correct" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_USER_AGENT" => "Mozilla/4.0 (compatible)")
+    req.user_agent.should.equal "Mozilla/4.0 (compatible)"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/")
+    req.user_agent.should.equal nil
+  end
+
   specify "can cache, but invalidates the cache" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")

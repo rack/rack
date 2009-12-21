@@ -178,6 +178,9 @@ module Rack
     end
     alias referrer referer
 
+    def user_agent
+      @env['HTTP_USER_AGENT']
+    end
 
     def cookies
       return {}  unless @env["HTTP_COOKIE"]
