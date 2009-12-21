@@ -204,6 +204,18 @@ context "Rack::Utils" do
   specify "should return the bytesize of String" do
     Rack::Utils.bytesize("FOO\xE2\x82\xAC").should.equal 6
   end
+
+  specify "should return status code for integer" do
+    Rack::Utils.status_code(200).should.equal 200
+  end
+
+  specify "should return status code for string" do
+    Rack::Utils.status_code("200").should.equal 200
+  end
+
+  specify "should return status code for symbol" do
+    Rack::Utils.status_code(:ok).should.equal 200
+  end
 end
 
 context "Rack::Utils::HeaderHash" do
@@ -249,26 +261,26 @@ context "Rack::Utils::HeaderHash" do
     h.replace(j)
     h["foo"].should.equal "bar"
   end
-  
+
   specify "should be able to delete the given key case-sensitively" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("foo")
     h["foo"].should.be.nil
     h["FOO"].should.be.nil
   end
-  
+
   specify "should be able to delete the given key case-insensitively" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("FOO")
     h["foo"].should.be.nil
     h["FOO"].should.be.nil
   end
-  
+
   specify "should return the deleted value when #delete is called on an existing key" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("Foo").should.equal("bar")
   end
-  
+
   specify "should return nil when #delete is called on a non-existant key" do
     h = Rack::Utils::HeaderHash.new("foo" => "bar")
     h.delete("Hello").should.be.nil
@@ -478,10 +490,10 @@ context "Rack::Utils::Multipart" do
     params["people"][0]["files"][:filename].should.equal "file1.txt"
     params["people"][0]["files"][:tempfile].read.should.equal "contents"
   end
-  
+
   specify "can parse fields that end at the end of the buffer" do
     input = File.read(multipart_file("bad_robots"))
-    
+
     req = Rack::Request.new Rack::MockRequest.env_for("/",
                       "CONTENT_TYPE" => "multipart/form-data, boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
                       "CONTENT_LENGTH" => input.size,

@@ -399,6 +399,14 @@ module Rack
       hash
     }
 
+    def status_code(status)
+      if status.is_a?(Symbol)
+        SYMBOL_TO_STATUS_CODE[status] || 500
+      else
+        status.to_i
+      end
+    end
+    module_function :status_code
 
     # A multipart form data parser, adapted from IOWA.
     #
