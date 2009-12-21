@@ -64,9 +64,17 @@ module Rack
       media_type_params['charset']
     end
 
+    def host_with_port
+      if forwarded = @env["HTTP_X_FORWARDED_HOST"]
+        forwarded.split(/,\s?/).last
+      else
+        @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
+      end
+    end
+
     def host
       # Remove port number.
-      (@env["HTTP_HOST"] || @env["SERVER_NAME"]).to_s.gsub(/:\d+\z/, '')
+      host_with_port.to_s.gsub(/:\d+\z/, '')
     end
 
     def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end

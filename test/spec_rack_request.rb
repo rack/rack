@@ -35,8 +35,17 @@ context "Rack::Request" do
     req.host.should.equal "www2.example.org"
 
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org:9292")
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.should.equal "example.org"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
+    req.host.should.equal "example.org"
+
+    env = Rack::MockRequest.env_for("/", "SERVER_ADDR" => "192.168.1.1", "SERVER_PORT" => "9292")
+    env.delete("SERVER_NAME")
+    req = Rack::Request.new(env)
+    req.host.should.equal "192.168.1.1"
 
     env = Rack::MockRequest.env_for("/")
     env.delete("SERVER_NAME")
