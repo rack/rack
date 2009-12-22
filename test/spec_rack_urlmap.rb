@@ -182,4 +182,28 @@ context "Rack::URLMap" do
     res["X-PathInfo"].should.equal "/"
     res["X-ScriptName"].should.equal ""
   end
+
+  specify "should not squeeze slashes" do
+    map = Rack::URLMap.new("/" => lambda { |env|
+                             [200,
+                              { "Content-Type" => "text/plain",
+                                "X-Position" => "root",
+                                "X-PathInfo" => env["PATH_INFO"],
+                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              }, [""]]},
+                           "/foo" => lambda { |env|
+                             [200,
+                              { "Content-Type" => "text/plain",
+                                "X-Position" => "foo",
+                                "X-PathInfo" => env["PATH_INFO"],
+                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              }, [""]]}
+                           )
+
+    res = Rack::MockRequest.new(map).get("/http://example.org/bar")
+    res.should.be.ok
+    res["X-Position"].should.equal "root"
+    res["X-PathInfo"].should.equal "/http://example.org/bar"
+    res["X-ScriptName"].should.equal ""
+  end
 end
