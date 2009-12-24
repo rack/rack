@@ -28,25 +28,26 @@ module Rack
           raise ArgumentError, "paths need to start with /"
         end
         location = location.chomp('/')
+        match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
 
-        [host, location, app]
-      }.sort_by { |(h, l, a)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
+        [host, location, match, app]
+      }.sort_by { |(h, l, m, a)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
     end
 
     def call(env)
       path = env["PATH_INFO"].to_s
       script_name = env['SCRIPT_NAME']
       hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
-      @mapping.each { |host, location, app|
+      @mapping.each { |host, location, match, app|
         next unless (hHost == host || sName == host \
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
-        next unless location == path[0, location.size]
-        next unless path[location.size] == nil || path[location.size] == ?/
+        next unless path =~ match && rest = $1
+        next unless rest.empty? || rest[0] == ?/
 
         return app.call(
           env.merge(
             'SCRIPT_NAME' => (script_name + location),
-            'PATH_INFO'   => path[location.size..-1]))
+            'PATH_INFO'   => rest))
       }
       [404, {"Content-Type" => "text/plain"}, ["Not Found: #{path}"]]
     end
