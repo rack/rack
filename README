@@ -283,6 +283,35 @@ run on port 11211) and memcache-client installed.
   * Make sure WEBrick respects the :Host option
   * Many Ruby 1.9 fixes.
 
+* December ??th, 2009: Ninth public release 1.1.0.
+  * Added Utils.build_nested_query to complement Utils.parse_nested_query
+  * Added Utils::Multipart.build_multipart to complement Utils::Multipart.parse_multipart
+  * Allow MockRequest to accept hash params
+  * Enforce binary encoding in RewindableInput
+  * SPEC change to document rack.input binary mode in greator detail
+  * Set correct external_encoding for handlers that don't use RewindableInput
+  * Added ogv mime type so that firefox can read theora videos using the html5 <video> tag
+  * Return an empty string for Request#host if HTTP_HOST and SERVER_NAME are both missing
+  * Extracted set and delete cookie helpers into Utils so they can be used outside Response
+  * Update Rack::Utils::HTTP_STATUS_CODES hash
+  * SPEC change that relaxes Lint slightly to allow subclasses of the required types
+  * Refactored rackup into Rack::Server
+  * Removed Auth::OpenID
+  * Response should call #to_i on the status
+  * Added mime type for .manifest
+  * Optimizations to HeaderHash
+  * Imported Config middleware
+  * Imported ETag middleware
+  * Imported Runtime middleware
+  * Imported Sendfile middleware
+  * SPEC define optional rack.logger specification
+  * New Logger and NullLogger middlewares
+  * Add Request#user_agent
+  * Request#host knows about forwared host
+  * Extract parse_query and parse_multipart in Request so subclasses can change their behavior
+  * Add status code lookup utility
+  * Use Content-Type to determine POST params parsing
+
 == Contact
 
 Please post bugs, suggestions and patches to
