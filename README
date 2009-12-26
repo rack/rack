@@ -291,6 +291,7 @@ run on port 11211) and memcache-client installed.
   * Imported Sendfile middleware
   * New Logger and NullLogger middlewares
   * Added mime type for .ogv and .manifest.
+  * Don't squeeze PATH_INFO slashes
   * Use Content-Type to determine POST params parsing
   * Update Rack::Utils::HTTP_STATUS_CODES hash
   * Add status code lookup utility
