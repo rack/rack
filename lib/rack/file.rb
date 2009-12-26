@@ -45,7 +45,8 @@ module Rack
     def forbidden
       body = "Forbidden\n"
       [403, {"Content-Type" => "text/plain",
-             "Content-Length" => body.size.to_s},
+             "Content-Length" => body.size.to_s,
+             "X-Cascade" => "pass"},
        [body]]
     end
 
@@ -73,7 +74,8 @@ module Rack
     def not_found
       body = "File not found: #{@path_info}\n"
       [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s},
+         "Content-Length" => body.size.to_s,
+         "X-Cascade" => "pass"},
        [body]]
     end
 

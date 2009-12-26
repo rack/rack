@@ -48,7 +48,7 @@ module Rack
             'SCRIPT_NAME' => (script_name + location),
             'PATH_INFO'   => path[location.size..-1]))
       }
-      [404, {"Content-Type" => "text/plain"}, ["Not Found: #{path}"]]
+      [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
     end
   end
 end
