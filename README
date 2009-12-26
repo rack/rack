@@ -284,6 +284,7 @@ run on port 11211) and memcache-client installed.
     required types
   * SPEC change to document rack.input binary mode in greator detail
   * SPEC define optional rack.logger specification
+  * File servers support X-Cascade header
   * Imported Config middleware
   * Imported ETag middleware
   * Imported Runtime middleware
