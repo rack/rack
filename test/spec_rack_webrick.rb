@@ -39,7 +39,7 @@ context "Rack::Handler::WEBrick" do
 
   specify "should have rack headers" do
     GET("/test")
-    response["rack.version"].should.equal [1,0]
+    response["rack.version"].should.equal [1,1]
     response["rack.multithread"].should.be true
     response["rack.multiprocess"].should.be false
     response["rack.run_once"].should.be false

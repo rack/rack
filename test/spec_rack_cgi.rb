@@ -36,7 +36,7 @@ context "Rack::Handler::CGI" do
 
   specify "should have rack headers" do
     GET("/test")
-    response["rack.version"].should.equal [1,0]
+    response["rack.version"].should.equal [1,1]
     response["rack.multithread"].should.be false
     response["rack.multiprocess"].should.be true
     response["rack.run_once"].should.be true

@@ -40,7 +40,7 @@ module Rack
     end
 
     DEFAULT_ENV = {
-      "rack.version" => [1,0],
+      "rack.version" => [1,1],
       "rack.input" => StringIO.new,
       "rack.errors" => StringIO.new,
       "rack.multithread" => true,

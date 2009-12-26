@@ -52,7 +52,7 @@ module Rack
         rack_input = request.body || StringIO.new('')
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => [1,0],
+        env.update({"rack.version" => [1,1],
                      "rack.input" => rack_input,
                      "rack.errors" => $stderr,
 

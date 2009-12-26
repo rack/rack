@@ -20,7 +20,7 @@ module Rack
         rack_input = RewindableInput.new($stdin.read.to_s)
 
         env.update(
-          "rack.version" => [1,0],
+          "rack.version" => [1,1],
           "rack.input" => rack_input,
           "rack.errors" => $stderr,
           "rack.multithread" => false,
