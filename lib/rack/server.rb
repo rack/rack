@@ -74,7 +74,7 @@ module Rack
           end
         end
         opt_parser.parse! args
-        options[:rack_file] = args.last if args.last
+        options[:config] = args.last if args.last
         options
       end
     end
@@ -100,17 +100,17 @@ module Rack
         :Port        => 9292,
         :Host        => "0.0.0.0",
         :AccessLog   => [],
-        :rack_file   => ::File.expand_path("config.ru")
+        :config   => ::File.expand_path("config.ru")
       }
     end
 
     def app
       @app ||= begin
-        if !::File.exist? options[:rack_file]
-          abort "configuration #{options[:rack_file]} not found"
+        if !::File.exist? options[:config]
+          abort "configuration #{options[:config]} not found"
         end
 
-        app, options = Rack::Builder.parse_file(self.options[:rack_file], opt_parser)
+        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
         self.options.merge! options
         app
       end
