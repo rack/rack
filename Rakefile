@@ -6,6 +6,31 @@ require 'rake/testtask'
 desc "Run all the tests"
 task :default => [:test]
 
+desc "Make an archive as .tar.gz"
+task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
+  FileUtils.touch("RDOX")
+  sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.ta~
+  sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc rac~
+  sh "gzip -f -9 #{release}.tar"
+end
+
+desc "Make an official release"
+task :officialrelease do
+  puts "Official build for #{release}..."
+  sh "rm -rf stage"
+  sh "git clone --shared . stage"
+  sh "cd stage && rake officialrelease_really"
+  sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
+end
+
+task :officialrelease_really => [:fulltest, "RDOX", "SPEC", :dist, :gem] do
+  sh "sha1sum #{release}.tar.gz #{release}.gem"
+end
+
+def release
+  require File.dirname(__FILE__) + "/lib/rack"
+  "rack-#{Rack.release}"
+end
 
 desc "Make binaries executable"
 task :chmod do
