@@ -37,8 +37,7 @@ These web servers include Rack handlers in their distributions:
 * Fuzed
 * Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
-* Rainbows
-* Sunshowers
+* Rainbows!
 * Unicorn
 * Zbatery
 
