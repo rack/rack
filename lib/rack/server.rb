@@ -48,10 +48,6 @@ module Rack
             options[:Port] = port
           }
 
-          opts.on("-c", "--chdir DIR", "Change to dir before starting") { |dir|
-            options[:chdir] = ::File.expand_path(dir)
-          }
-
           opts.on("-E", "--env ENVIRONMENT", "use ENVIRONMENT for defaults (default: development)") { |e|
             options[:environment] = e
           }
@@ -99,7 +95,6 @@ module Rack
 
     def default_options
       {
-        :chdir       => Dir.pwd,
         :environment => "development",
         :pid         => nil,
         :Port        => 9292,
@@ -135,8 +130,6 @@ module Rack
     end
 
     def start
-      Dir.chdir(options[:chdir])
-
       if options[:debug]
         $DEBUG = true
         require 'pp'
