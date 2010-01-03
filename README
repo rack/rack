@@ -278,7 +278,7 @@ run on port 11211) and memcache-client installed.
   * Make sure WEBrick respects the :Host option
   * Many Ruby 1.9 fixes.
 
-* December ??th, 2009: Ninth public release 1.1.0.
+* January 3rd, 2009: Ninth public release 1.1.0.
   * Moved Auth::OpenID to rack-contrib.
   * SPEC change that relaxes Lint slightly to allow subclasses of the
     required types
