@@ -8,9 +8,8 @@ task :default => [:test]
 
 desc "Make an archive as .tar.gz"
 task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
-  FileUtils.touch("RDOX")
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
-  sh "pax -waf #{release}.tar -s ':^:#{release}/:' RDOX SPEC ChangeLog doc rack.gemspec"
+  sh "pax -waf #{release}.tar -s ':^:#{release}/:' SPEC ChangeLog doc rack.gemspec"
   sh "gzip -f -9 #{release}.tar"
 end
 
@@ -23,13 +22,13 @@ task :officialrelease do
   sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
 end
 
-task :officialrelease_really => [:fulltest, "RDOX", "SPEC", :dist, :gem] do
+task :officialrelease_really => ["SPEC", :dist, :gem] do
   sh "sha1sum #{release}.tar.gz #{release}.gem"
 end
 
 def release
   require File.dirname(__FILE__) + "/lib/rack"
-  "rack-#{Rack.release}"
+  "rack-#{Rack.release}.0"
 end
 
 desc "Make binaries executable"
@@ -57,11 +56,6 @@ task :changelog do
 end
 
 
-desc "Generate RDox"
-task "RDOX" do
-  sh "specrb -Ilib:test -a --rdox >RDOX"
-end
-
 desc "Generate Rack Specification"
 task "SPEC" do
   File.open("SPEC", "wb") { |file|
@@ -84,7 +78,6 @@ task :fulltest => [:chmod] do
 end
 
 task :gem => ["SPEC"] do
-  FileUtils.touch("RDOX")
   sh "gem build rack.gemspec"
 end
 
@@ -92,7 +85,7 @@ desc "Generate RDoc documentation"
 task :rdoc do
   sh(*%w{rdoc --line-numbers --main README
               --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
-              %w{README KNOWN-ISSUES SPEC RDOX} +
+              %w{README KNOWN-ISSUES SPEC} +
               Dir["lib/**/*.rb"])
 end
 
