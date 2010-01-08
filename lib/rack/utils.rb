@@ -216,7 +216,11 @@ module Rack
       end
 
       cookies.reject! { |cookie|
-        cookie =~ /\A#{escape(key)}=/
+        if value[:domain]
+          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
+        else
+          cookie =~ /\A#{escape(key)}=/
+        end
       }
 
       header["Set-Cookie"] = cookies.join("\n")

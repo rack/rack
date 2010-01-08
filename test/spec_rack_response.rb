@@ -55,6 +55,13 @@ context "Rack::Response" do
     response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2", "foo3=bar3"].join("\n")
   end
 
+  specify "can set cookies with the same name for multiple domains" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :domain => "sample.example.com"}
+    response.set_cookie "foo", {:value => "bar", :domain => ".example.com"}
+    response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
+  end
+
   specify "formats the Cookie expiration date accordingly to RFC 2109" do
     response = Rack::Response.new
     
@@ -84,6 +91,18 @@ context "Rack::Response" do
       "foo2=bar2",
       "foo=; expires=Thu, 01-Jan-1970 00:00:00 GMT"
     ].join("\n")
+  end
+
+  specify "can delete cookies with the same name from multiple domains" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :domain => "sample.example.com"}
+    response.set_cookie "foo", {:value => "bar", :domain => ".example.com"}
+    response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
+    response.delete_cookie "foo", :domain => ".example.com"
+    response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
+    response.delete_cookie "foo", :domain => "sample.example.com"
+    response["Set-Cookie"].should.equal ["foo=; domain=.example.com; expires=Thu, 01-Jan-1970 00:00:00 GMT",
+                                         "foo=; domain=sample.example.com; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
   end
 
   specify "can do redirects" do
