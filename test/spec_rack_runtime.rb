@@ -22,10 +22,16 @@ context "Rack::Runtime" do
   end
 
   specify "should allow multiple timers to be set" do
-    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
-    runtime1 = Rack::Runtime.new(app, "App")
-    runtime2 = Rack::Runtime.new(runtime1, "All")
-    response = runtime2.call({})
+    app = lambda { |env| sleep 0.1; [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
+    runtime = Rack::Runtime.new(app, "App")
+
+    # wrap many times to guarantee a measurable difference
+    100.times do |i|
+      runtime = Rack::Runtime.new(runtime, i.to_s)
+    end
+    runtime = Rack::Runtime.new(runtime, "All")
+    
+    response = runtime.call({})
 
     response[1]['X-Runtime-App'].should =~ /[\d\.]+/
     response[1]['X-Runtime-All'].should =~ /[\d\.]+/
