@@ -483,7 +483,7 @@ module Rack
                 dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})*/
 
                 rfc2183 = /^#{condisp}(#{dispparm})+$/i
-                broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*\w+=)/i
+                broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{token}=)/i
                 broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/i
 
                 if head =~ rfc2183
