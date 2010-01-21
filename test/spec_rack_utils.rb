@@ -449,6 +449,21 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  specify "should parse filename and modification param" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_and_modification_param))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "image/jpeg"
+    params["files"][:filename].should.equal "genome.jpeg"
+    params["files"][:head].should.equal "Content-Type: image/jpeg\r\n" +
+      "Content-Disposition: attachment; " +
+      "name=\"files\"; " +
+      "filename=genome.jpeg; " +
+      "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
+      "Content-Description: a complete map of the human genome\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
   specify "should parse filename with escaped quotes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes))
     params = Rack::Utils::Multipart.parse_multipart(env)
@@ -484,6 +499,21 @@ context "Rack::Utils::Multipart" do
       "name=\"files\"; " +
       "filename=\"escape \"quotes\"\r\n" +
       "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  specify "should parse filename with escaped quotes and modification param" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes_and_modification_param))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "image/jpeg"
+    params["files"][:filename].should.equal "\"human\" genome.jpeg"
+    params["files"][:head].should.equal "Content-Type: image/jpeg\r\n" +
+      "Content-Disposition: attachment; " +
+      "name=\"files\"; " +
+      "filename=\"\"human\" genome.jpeg\"; " +
+      "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
+      "Content-Description: a complete map of the human genome\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
   end
