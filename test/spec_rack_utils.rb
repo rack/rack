@@ -449,8 +449,8 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
-  specify "should parse filename with escaped qoutes" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_qoutes))
+  specify "should parse filename with escaped quotes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["files"][:type].should.equal "application/octet-stream"
     params["files"][:filename].should.equal "escape \"quotes"
@@ -462,8 +462,8 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
-  specify "should parse filename with percent escaped qoutes" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_percent_escaped_qoutes))
+  specify "should parse filename with percent escaped quotes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_percent_escaped_quotes))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["files"][:type].should.equal "application/octet-stream"
     params["files"][:filename].should.equal "escape \"quotes"
@@ -475,8 +475,8 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
-  specify "should parse filename with unescaped qoutes" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_qoutes))
+  specify "should parse filename with unescaped quotes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_quotes))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["files"][:type].should.equal "application/octet-stream"
     params["files"][:filename].should.equal "escape \"quotes"
