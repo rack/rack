@@ -484,7 +484,7 @@ module Rack
 
                 rfc2183 = /^#{condisp}(#{dispparm})+$/i
                 broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*\w+=)/i
-                broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/
+                broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/i
 
                 if head =~ rfc2183
                   filename = Hash[head.scan(dispparm)]['filename']
