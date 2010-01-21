@@ -478,7 +478,27 @@ module Rack
                 head = buf.slice!(0, i+2) # First \r\n
                 buf.slice!(0, 2)          # Second \r\n
 
-                filename = head[/Content-Disposition:.* filename=(?:"((?:\\.|[^\"])*)"|([^;\s]*))/ni, 1]
+                token = /[^\s()<>,;:\\"\/\[\]?=]+/
+                condisp = /Content-Disposition:\s*#{token}\s*/i
+                dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})*/
+
+                rfc2183 = /^#{condisp}(#{dispparm})+$/i
+                broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*\w+=)/i
+                broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/
+
+                if head =~ rfc2183
+                  filename = Hash[head.scan(dispparm)]['filename']
+                  filename = $1 if filename and filename =~ /^"(.*)"$/
+                elsif head =~ broken_quoted
+                  filename = $1
+                elsif head =~ broken_unquoted
+                  filename = $1
+                end
+
+                if filename && filename !~ /\\[^\\"]/
+                  filename = Utils.unescape(filename).gsub(/\\(.)/, '\1')
+                end
+
                 content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
                 name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
 
@@ -519,8 +539,7 @@ module Rack
               # This handles the full Windows paths given by Internet Explorer
               # (and perhaps other broken user agents) without affecting
               # those which give the lone filename.
-              filename =~ /^(?:.*[:\\\/])?(.*)/m
-              filename = $1
+              filename = filename.split(/[\/\\]/).last
 
               data = {:filename => filename, :type => content_type,
                       :name => name, :tempfile => body, :head => head}

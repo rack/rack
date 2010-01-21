@@ -449,6 +449,45 @@ context "Rack::Utils::Multipart" do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  specify "should parse filename with escaped qoutes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_qoutes))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "application/octet-stream"
+    params["files"][:filename].should.equal "escape \"quotes"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      "filename=\"escape \\\"quotes\"\r\n" +
+      "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  specify "should parse filename with percent escaped qoutes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_percent_escaped_qoutes))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "application/octet-stream"
+    params["files"][:filename].should.equal "escape \"quotes"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      "filename=\"escape %22quotes\"\r\n" +
+      "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  specify "should parse filename with unescaped qoutes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_qoutes))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "application/octet-stream"
+    params["files"][:filename].should.equal "escape \"quotes"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      "filename=\"escape \"quotes\"\r\n" +
+      "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
   specify "rewinds input after parsing upload" do
     options = multipart_fixture(:text)
     input = options[:input]
