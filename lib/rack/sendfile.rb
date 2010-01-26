@@ -11,7 +11,7 @@ module Rack
   # served from a file and replaces it with a server specific X-Sendfile
   # header. The web server is then responsible for writing the file contents
   # to the client. This can dramatically reduce the amount of work required
-  # by the Ruby backend and takes advantage of the web servers optimized file
+  # by the Ruby backend and takes advantage of the web server's optimized file
   # delivery code.
   #
   # In order to take advantage of this middleware, the response body must
