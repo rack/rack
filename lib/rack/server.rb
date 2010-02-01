@@ -156,7 +156,7 @@ module Rack
     end
 
     def server
-      @_server ||= Rack::Handler.get(options[:server]) || Rack::Handler.default
+      @_server ||= Rack::Handler.get(options[:server]) || Rack::Handler.default(options)
     end
 
     private

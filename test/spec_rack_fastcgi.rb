@@ -23,7 +23,12 @@ context "Rack::Handler::FastCGI" do
       GET("/test.fcgi")
     }.should.not.raise
   end
-
+  
+  specify "should respond via rackup server" do
+    GET("/sample_rackup.ru")
+    status.should.be 200
+  end
+  
   specify "should be a lighttpd" do
     GET("/test.fcgi")
     status.should.be 200
