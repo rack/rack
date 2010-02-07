@@ -35,7 +35,7 @@ module Rack
           super k.to_s, v.to_s
         end
 
-        UNQUOTED = ['qop', 'nc', 'stale']
+        UNQUOTED = ['nc', 'stale']
 
         def to_s
           inject([]) do |parts, (k, v)|
