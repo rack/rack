@@ -82,7 +82,7 @@ task :gem => ["SPEC"] do
 end
 
 desc "Generate RDoc documentation"
-task :rdoc do
+task :rdoc => ["SPEC"] do
   sh(*%w{rdoc --line-numbers --main README
               --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
               %w{README KNOWN-ISSUES SPEC} +
