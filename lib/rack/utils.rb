@@ -1,5 +1,6 @@
 # -*- encoding: binary -*-
 
+require 'fileutils'
 require 'set'
 require 'tempfile'
 
