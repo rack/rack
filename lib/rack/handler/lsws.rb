@@ -1,5 +1,6 @@
 require 'lsapi'
 require 'rack/content_length'
+require 'rack/rewindable_input'
 
 module Rack
   module Handler
@@ -15,14 +16,19 @@ module Rack
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
         env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
-        env.update({"rack.version" => [1,0],
-                     "rack.input" => StringIO.new($stdin.read.to_s),
-                     "rack.errors" => $stderr,
-                     "rack.multithread" => false,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => false,
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
-                   })
+
+        rack_input = RewindableInput.new($stdin.read.to_s)
+
+        env.update(
+          "rack.version" => [1,1],
+          "rack.input" => rack_input,
+          "rack.errors" => $stderr,
+          "rack.multithread" => false,
+          "rack.multiprocess" => true,
+          "rack.run_once" => false,
+          "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+        )
+
         env["QUERY_STRING"] ||= ""
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
         env["REQUEST_PATH"] ||= "/"
@@ -33,6 +39,8 @@ module Rack
         ensure
           body.close if body.respond_to? :close
         end
+      ensure
+        rack_input.close
       end
       def self.send_headers(status, headers)
         print "Status: #{status}\r\n"

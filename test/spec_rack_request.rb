@@ -35,8 +35,22 @@ context "Rack::Request" do
     req.host.should.equal "www2.example.org"
 
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org:9292")
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.should.equal "example.org"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
+    req.host.should.equal "example.org"
+
+    env = Rack::MockRequest.env_for("/", "SERVER_ADDR" => "192.168.1.1", "SERVER_PORT" => "9292")
+    env.delete("SERVER_NAME")
+    req = Rack::Request.new(env)
+    req.host.should.equal "192.168.1.1"
+
+    env = Rack::MockRequest.env_for("/")
+    env.delete("SERVER_NAME")
+    req = Rack::Request.new(env)
+    req.host.should.equal ""
   end
 
   specify "can parse the query string" do
@@ -52,9 +66,11 @@ context "Rack::Request" do
     lambda { req.POST }.should.raise(RuntimeError)
   end
 
-  specify "can parse POST data" do
+  specify "can parse POST data when method is POST and no Content-Type given" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
+      Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'POST',
+        :input => "foo=bar&quux=bla")
     req.content_type.should.be.nil
     req.media_type.should.be.nil
     req.query_string.should.equal "foo=quux"
@@ -63,7 +79,7 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
-  specify "can parse POST data with explicit content type" do
+  specify "can parse POST data with explicit content type regardless of method" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
         "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
@@ -78,6 +94,7 @@ context "Rack::Request" do
   specify "does not parse POST data when media type is not form-data" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'POST',
         "CONTENT_TYPE" => 'text/plain;charset=utf-8',
         :input => "foo=bar&quux=bla")
     req.content_type.should.equal 'text/plain;charset=utf-8'
@@ -85,6 +102,16 @@ context "Rack::Request" do
     req.media_type_params['charset'].should.equal 'utf-8'
     req.POST.should.be.empty
     req.params.should.equal "foo" => "quux"
+    req.body.read.should.equal "foo=bar&quux=bla"
+  end
+
+  specify "can parse POST data on PUT when media type is form-data" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'PUT',
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
+        :input => "foo=bar&quux=bla")
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
     req.body.read.should.equal "foo=bar&quux=bla"
   end
 
@@ -100,7 +127,8 @@ context "Rack::Request" do
 
   specify "cleans up Safari's ajax POST body" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/", :input => "foo=bar&quux=bla\0")
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "foo=bar&quux=bla\0")
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
   end
 
@@ -147,9 +175,21 @@ context "Rack::Request" do
     req.referer.should.equal "/"
   end
 
+  specify "user agent should be extracted correct" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_USER_AGENT" => "Mozilla/4.0 (compatible)")
+    req.user_agent.should.equal "Mozilla/4.0 (compatible)"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/")
+    req.user_agent.should.equal nil
+  end
+
   specify "can cache, but invalidates the cache" do
     req = Rack::Request.new \
-      Rack::MockRequest.env_for("/?foo=quux", :input => "foo=bar&quux=bla")
+      Rack::MockRequest.env_for("/?foo=quux",
+        "CONTENT_TYPE" => "application/x-www-form-urlencoded",
+        :input => "foo=bar&quux=bla")
     req.GET.should.equal "foo" => "quux"
     req.GET.should.equal "foo" => "quux"
     req.env["QUERY_STRING"] = "bla=foo"
@@ -424,6 +464,7 @@ Content-Transfer-Encoding: base64\r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
 EOF
+    input.force_encoding("ASCII-8BIT") if input.respond_to? :force_encoding
     res = Rack::MockRequest.new(Rack::Lint.new(app)).get "/",
       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
       "CONTENT_LENGTH" => input.size.to_s, "rack.input" => StringIO.new(input)

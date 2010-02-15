@@ -11,21 +11,13 @@ which all Rack applications should conform to.
 
 == Specification changes in this release
 
-With Rack 1.0, the Rack specification (found in SPEC) changed in the
-following backward-incompatible ways.  This was done to properly
-support Ruby 1.9 and to deprecate some problematic techniques:
+With Rack 1.1, the Rack specification (found in SPEC) changed in the
+following backward-incompatible ways.
 
-* Rack::VERSION has been pushed to [1,0].
-* Header values must be Strings now, split on "\n".
-* rack.input must be rewindable and support reading into a buffer,
-  wrap with Rack::RewindableInput if it isn't.
-* Content-Length can be missing, in this case chunked transfer
-  encoding is used.
-* Bodies can now additionally respond to #to_path with a filename to
-  be served.
-* String bodies are deprecated and will not work with Ruby 1.9, use an
-  Array with a single String instead.
-* rack.session is now specified.
+* Rack::VERSION has been pushed to [1,1].
+* rack.logger is now specified.
+* The SPEC now allows subclasses of the required types.
+* rack.input has to be opened in binary mode.
 
 == Supported web servers
 
@@ -43,8 +35,11 @@ The included *handlers* connect all kinds of web servers to Rack:
 These web servers include Rack handlers in their distributions:
 * Ebb
 * Fuzed
+* Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
+* Rainbows!
 * Unicorn
+* Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
@@ -70,6 +65,7 @@ These frameworks include Rack adapters in their distributions:
 * Vintage
 * Waves
 * Wee
+* ... and many others.
 
 Current links to these projects can be found at
 http://wiki.ramaze.net/Home#other-frameworks
@@ -130,13 +126,13 @@ Either with the embedded WEBrick starter:
 
 Or with rackup:
 
-    bin/rackup -Ilib example/lobster.ru 
+    bin/rackup -Ilib example/lobster.ru
 
 By default, the lobster is found at http://localhost:9292.
 
 == Installing with RubyGems
 
-A Gem of Rack is available.  You can install it with:
+A Gem of Rack is available at gemcutter.org.  You can install it with:
 
     gem install rack
 
@@ -165,7 +161,6 @@ To run the test suite completely, you need:
   * fcgi
   * memcache-client
   * mongrel
-  * ruby-openid
   * thin
 
 The full set of tests test FCGI access with lighttpd (on port
@@ -272,15 +267,59 @@ run on port 11211) and memcache-client installed.
   * The Rakefile has been rewritten.
   * Many bugfixes and small improvements.
 
+* October 18th, 2009: Eighth public release 1.0.1.
+  * Bump remainder of rack.versions.
+  * Support the pure Ruby FCGI implementation.
+  * Fix for form names containing "=": split first then unescape components
+  * Fixes the handling of the filename parameter with semicolons in names.
+  * Add anchor to nested params parsing regexp to prevent stack overflows
+  * Use more compatible gzip write api instead of "<<".
+  * Make sure that Reloader doesn't break when executed via ruby -e
+  * Make sure WEBrick respects the :Host option
+  * Many Ruby 1.9 fixes.
+
+* January 3rd, 2010: Ninth public release 1.1.0.
+  * Moved Auth::OpenID to rack-contrib.
+  * SPEC change that relaxes Lint slightly to allow subclasses of the
+    required types
+  * SPEC change to document rack.input binary mode in greator detail
+  * SPEC define optional rack.logger specification
+  * File servers support X-Cascade header
+  * Imported Config middleware
+  * Imported ETag middleware
+  * Imported Runtime middleware
+  * Imported Sendfile middleware
+  * New Logger and NullLogger middlewares
+  * Added mime type for .ogv and .manifest.
+  * Don't squeeze PATH_INFO slashes
+  * Use Content-Type to determine POST params parsing
+  * Update Rack::Utils::HTTP_STATUS_CODES hash
+  * Add status code lookup utility
+  * Response should call #to_i on the status
+  * Add Request#user_agent
+  * Request#host knows about forwared host
+  * Return an empty string for Request#host if HTTP_HOST and
+    SERVER_NAME are both missing
+  * Allow MockRequest to accept hash params
+  * Optimizations to HeaderHash
+  * Refactored rackup into Rack::Server
+  * Added Utils.build_nested_query to complement Utils.parse_nested_query
+  * Added Utils::Multipart.build_multipart to complement
+    Utils::Multipart.parse_multipart
+  * Extracted set and delete cookie helpers into Utils so they can be
+    used outside Response
+  * Extract parse_query and parse_multipart in Request so subclasses
+    can change their behavior
+  * Enforce binary encoding in RewindableInput
+  * Set correct external_encoding for handlers that don't use RewindableInput
+
 == Contact
 
-Please mail bugs, suggestions and patches to
-<mailto:rack-devel@googlegroups.com>.
+Please post bugs, suggestions and patches to
+the bug tracker at <http://rack.lighthouseapp.com/>.
 
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
-
-There is a bug tracker at <http://rack.lighthouseapp.com/>.
 
 Git repository (send Git patches to the mailing list):
 * http://github.com/rack/rack
@@ -307,8 +346,14 @@ would like to thank:
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
 * Aredridel, Ben Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd,
-  Tom Robinson, Phil Hagelberg, and S. Brent Faulkner for bug fixing
-  and other improvements.
+  Tom Robinson, Phil Hagelberg, S. Brent Faulkner, Bosko Milekic,
+  Daniel Rodríguez Troitiño, Genki Takiuchi, Geoffrey Grosenbach,
+  Julien Sanchez, Kamal Fariz Mahyuddin, Masayoshi Takahashi, Patrick
+  Aljordm, Mig, and Kazuhiro Nishiyama for bug fixing and other
+  improvements.
+* Eric Wong, Hongli Lai, Jeremy Kemper for their continuous support
+  and API improvements.
+* Yehuda Katz and Carl Lerche for refactoring rackup.
 * Brian Candler, for Rack::ContentType.
 * Graham Batty, for improved handler loading.
 * Stephen Bannasch, for bug reports and documentation.
@@ -323,7 +368,7 @@ would like to thank:
 
 == Copyright
 
-Copyright (C) 2007, 2008, 2009 Christian Neukirchen <http://purl.org/net/chneukirchen>
+Copyright (C) 2007, 2008, 2009, 2010 Christian Neukirchen <http://purl.org/net/chneukirchen>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -338,7 +383,7 @@ all copies or substantial portions of the Software.
 THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL
-THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER 
+THE AUTHORS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER
 IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN
 CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
@@ -347,6 +392,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 Rack:: <http://rack.rubyforge.org/>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 Official Rack repositories:: <http://github.com/rack>
+Rack Lighthouse Bug Tracking:: <http://rack.lighthouseapp.com/>
 rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
 
 Christian Neukirchen:: <http://chneukirchen.org/>

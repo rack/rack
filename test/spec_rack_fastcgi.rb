@@ -23,7 +23,12 @@ context "Rack::Handler::FastCGI" do
       GET("/test.fcgi")
     }.should.not.raise
   end
-
+  
+  specify "should respond via rackup server" do
+    GET("/sample_rackup.ru")
+    status.should.be 200
+  end
+  
   specify "should be a lighttpd" do
     GET("/test.fcgi")
     status.should.be 200
@@ -36,7 +41,7 @@ context "Rack::Handler::FastCGI" do
 
   specify "should have rack headers" do
     GET("/test.fcgi")
-    response["rack.version"].should.equal [1,0]
+    response["rack.version"].should.equal [1,1]
     response["rack.multithread"].should.be false
     response["rack.multiprocess"].should.be true
     response["rack.run_once"].should.be false
@@ -47,7 +52,7 @@ context "Rack::Handler::FastCGI" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test.fcgi"
     response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.be.nil
+    response["PATH_INFO"].should.equal ""
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 

@@ -3,7 +3,7 @@ require 'testrequest'
 
 context "Rack::Handler::CGI" do
   include TestRequest::Helpers
-  
+
   setup do
     @host = '0.0.0.0'
     @port = 9203
@@ -36,7 +36,7 @@ context "Rack::Handler::CGI" do
 
   specify "should have rack headers" do
     GET("/test")
-    response["rack.version"].should.equal [1,0]
+    response["rack.version"].should.equal [1,1]
     response["rack.multithread"].should.be false
     response["rack.multiprocess"].should.be true
     response["rack.run_once"].should.be true
@@ -47,7 +47,7 @@ context "Rack::Handler::CGI" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.be.nil
+    response["PATH_INFO"].should.equal ""
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 

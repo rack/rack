@@ -13,6 +13,17 @@ class TestRequest
   module Helpers
     attr_reader :status, :response
 
+    ROOT = File.expand_path(File.dirname(__FILE__) + "/..")
+    ENV["RUBYOPT"] = "-I#{ROOT}/lib -rubygems"
+
+    def root
+      ROOT
+    end
+
+    def rackup
+      "#{ROOT}/bin/rackup"
+    end
+
     def GET(path, header={})
       Net::HTTP.start(@host, @port) { |http|
         user = header.delete(:user)
@@ -22,7 +33,11 @@ class TestRequest
         get.basic_auth user, passwd  if user && passwd
         http.request(get) { |response|
           @status = response.code.to_i
-          @response = YAML.load(response.body)
+          begin
+            @response = YAML.load(response.body)
+          rescue ArgumentError
+            @response = nil
+          end
         }
       }
     end

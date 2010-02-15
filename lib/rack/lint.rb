@@ -58,11 +58,11 @@ module Rack
 
     ## == The Environment
     def check_env(env)
-      ## The environment must be an true instance of Hash (no
-      ## subclassing allowed) that includes CGI-like headers.
-      ## The application is free to modify the environment.
+      ## The environment must be an instance of Hash that includes
+      ## CGI-like headers.  The application is free to modify the
+      ## environment.
       assert("env #{env.inspect} is not a Hash, but #{env.class}") {
-        env.instance_of? Hash
+        env.kind_of? Hash
       }
 
       ##
@@ -112,7 +112,7 @@ module Rack
       ## In addition to this, the Rack environment must include these
       ## Rack-specific variables:
 
-      ## <tt>rack.version</tt>:: The Array [1,0], representing this version of Rack.
+      ## <tt>rack.version</tt>:: The Array [1,1], representing this version of Rack.
       ## <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the request URL.
       ## <tt>rack.input</tt>:: See below, the input stream.
       ## <tt>rack.errors</tt>:: See below, the error stream.
@@ -149,6 +149,35 @@ module Rack
         }
       end
 
+      ## <tt>rack.logger</tt>:: A common object interface for logging messages.
+      ##                        The object must implement:
+      if logger = env['rack.logger']
+        ##                         info(message, &block)
+        assert("logger #{logger.inspect} must respond to info") {
+          logger.respond_to?(:info)
+        }
+
+        ##                         debug(message, &block)
+        assert("logger #{logger.inspect} must respond to debug") {
+          logger.respond_to?(:debug)
+        }
+
+        ##                         warn(message, &block)
+        assert("logger #{logger.inspect} must respond to warn") {
+          logger.respond_to?(:warn)
+        }
+
+        ##                         error(message, &block)
+        assert("logger #{logger.inspect} must respond to error") {
+          logger.respond_to?(:error)
+        }
+
+        ##                         fatal(message, &block)
+        assert("logger #{logger.inspect} must respond to fatal") {
+          logger.respond_to?(:fatal)
+        }
+      end
+
       ## The server or the application can store their own data in the
       ## environment, too.  The keys must contain at least one dot,
       ## and should be prefixed uniquely.  The prefix <tt>rack.</tt>
@@ -176,7 +205,7 @@ module Rack
       env.each { |key, value|
         next  if key.include? "."   # Skip extensions
         assert("env variable #{key} has non-string value #{value.inspect}") {
-          value.instance_of? String
+          value.kind_of? String
         }
       }
 
@@ -185,7 +214,7 @@ module Rack
 
       ## * <tt>rack.version</tt> must be an array of Integers.
       assert("rack.version must be an Array, was #{env["rack.version"].class}") {
-        env["rack.version"].instance_of? Array
+        env["rack.version"].kind_of? Array
       }
       ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
       assert("rack.url_scheme unknown: #{env["rack.url_scheme"].inspect}") {
@@ -234,8 +263,17 @@ module Rack
     ## === The Input Stream
     ##
     ## The input stream is an IO-like object which contains the raw HTTP
-    ## POST data. If it is a file then it must be opened in binary mode.
+    ## POST data.
     def check_input(input)
+      ## When applicable, its external encoding must be "ASCII-8BIT" and it
+      ## must be opened in binary mode, for Ruby 1.9 compatibility.
+      assert("rack.input #{input} does not have ASCII-8BIT as its external encoding") {
+        input.external_encoding.name == "ASCII-8BIT"
+      } if input.respond_to?(:external_encoding)
+      assert("rack.input #{input} is not opened in binary mode") {
+        input.binmode?
+      } if input.respond_to?(:binmode?)
+
       ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
       [:gets, :each, :read, :rewind].each { |method|
         assert("rack.input #{input} does not respond to ##{method}") {
@@ -261,7 +299,7 @@ module Rack
         assert("rack.input#gets called with arguments") { args.size == 0 }
         v = @input.gets
         assert("rack.input#gets didn't return a String") {
-          v.nil? or v.instance_of? String
+          v.nil? or v.kind_of? String
         }
         v
       end
@@ -292,18 +330,18 @@ module Rack
             args[1].kind_of?(String)
           }
         end
-        
+
         v = @input.read(*args)
-        
+
         assert("rack.input#read didn't return nil or a String") {
-          v.nil? or v.instance_of? String
+          v.nil? or v.kind_of? String
         }
         if args[0].nil?
           assert("rack.input#read(nil) returned nil on EOF") {
             !v.nil?
           }
         end
-        
+
         v
       end
 
@@ -312,12 +350,12 @@ module Rack
         assert("rack.input#each called with arguments") { args.size == 0 }
         @input.each { |line|
           assert("rack.input#each didn't yield a String") {
-            line.instance_of? String
+            line.kind_of? String
           }
           yield line
         }
       end
-      
+
       ## * +rewind+ must be called without arguments. It rewinds the input
       ##   stream back to the beginning. It must not raise Errno::ESPIPE:
       ##   that is, it may not be a pipe or a socket. Therefore, handler
@@ -365,7 +403,7 @@ module Rack
 
       ## * +write+ must be called with a single argument that is a String.
       def write(str)
-        assert("rack.errors#write not called with a String") { str.instance_of? String }
+        assert("rack.errors#write not called with a String") { str.kind_of? String }
         @error.write str
       end
 
@@ -399,7 +437,7 @@ module Rack
       header.each { |key, value|
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
-          key.instance_of? String
+          key.kind_of? String
         }
         ## The header must not contain a +Status+ key,
         assert("header must not contain Status") { key.downcase != "status" }
@@ -482,7 +520,7 @@ module Rack
       @body.each { |part|
         ## and must only yield String values.
         assert("Body yielded non-string value #{part.inspect}") {
-          part.instance_of? String
+          part.kind_of? String
         }
         bytes += Rack::Utils.bytesize(part)
         yield part

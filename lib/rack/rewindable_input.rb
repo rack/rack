@@ -74,7 +74,9 @@ module Rack
       # access it because we have the file handle open.
       @rewindable_io = Tempfile.new('RackRewindableInput')
       @rewindable_io.chmod(0000)
-      if tempfile_unlinkable?
+      @rewindable_io.set_encoding(Encoding::BINARY) if @rewindable_io.respond_to?(:set_encoding)
+      @rewindable_io.binmode
+      if filesystem_has_posix_semantics?
         @rewindable_io.unlink
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
@@ -87,10 +89,6 @@ module Rack
         end
       end
       @rewindable_io.rewind
-    end
-    
-    def tempfile_unlinkable?
-      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/ && RUBY_VERSION < '1.9'
     end
   end
 end

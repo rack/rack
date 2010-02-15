@@ -46,16 +46,7 @@ context "Rack::Session::Cookie" do
         get("/", :fatal => true)
     }.should.raise(Rack::MockRequest::FatalWarning)
   end
-  
-  specify "creates a new cookie with integrity hash" do
-    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
-    if RUBY_VERSION < "1.9"
-      res["Set-Cookie"].should.match("rack.session=BAh7BiIMY291bnRlcmkG%0A--1439b4d37b9d4b04c603848382f712d6fcd31088")
-    else
-      res["Set-Cookie"].should.match("rack.session=BAh7BkkiDGNvdW50ZXIGOg1lbmNvZGluZyINVVMtQVNDSUlpBg%3D%3D%0A--d7a6637b94d2728194a96c18484e1f7ed9074a83")
-    end
-  end
-  
+
   specify "loads from a cookie wih integrity hash" do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
     cookie = res["Set-Cookie"]

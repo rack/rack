@@ -16,6 +16,7 @@ module Rack
     def call(env)
       began_at = Time.now
       status, header, body = @app.call(env)
+      header = Utils::HeaderHash.new(header)
       log(env, status, header, began_at)
       [status, header, body]
     end
@@ -41,12 +42,8 @@ module Rack
     end
 
     def extract_content_length(headers)
-      headers.each do |key, value|
-        if key.downcase == 'content-length'
-          return value.to_s == '0' ? '-' : value
-        end
-      end
-      '-'
+      value = headers['Content-Length'] or return '-'
+      value.to_s == '0' ? '-' : value
     end
   end
 end

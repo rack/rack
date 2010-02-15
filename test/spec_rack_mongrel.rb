@@ -6,14 +6,14 @@ require 'rack/urlmap'
 require 'rack/lint'
 require 'testrequest'
 require 'timeout'
-  
+
 Thread.abort_on_exception = true
 $tcp_defer_accept_opts = nil
 $tcp_cork_opts = nil
 
 context "Rack::Handler::Mongrel" do
   include TestRequest::Helpers
-  
+
   setup do
     server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
     server.register('/test',
@@ -41,7 +41,7 @@ context "Rack::Handler::Mongrel" do
 
   specify "should have rack headers" do
     GET("/test")
-    response["rack.version"].should.equal [1,0]
+    response["rack.version"].should.equal [1,1]
     response["rack.multithread"].should.be true
     response["rack.multiprocess"].should.be false
     response["rack.run_once"].should.be false
@@ -52,7 +52,7 @@ context "Rack::Handler::Mongrel" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/test"
-    response["PATH_INFO"].should.be.nil
+    response["PATH_INFO"].should.be.equal ""
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 

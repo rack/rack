@@ -40,7 +40,7 @@ module Rack
     end
 
     DEFAULT_ENV = {
-      "rack.version" => [1,0],
+      "rack.version" => [1,1],
       "rack.input" => StringIO.new,
       "rack.errors" => StringIO.new,
       "rack.multithread" => true,
@@ -114,12 +114,17 @@ module Rack
         end
       end
 
-      opts[:input] ||= ""
+      empty_str = ""
+      empty_str.force_encoding("ASCII-8BIT") if empty_str.respond_to? :force_encoding
+      opts[:input] ||= empty_str
       if String === opts[:input]
-        env["rack.input"] = StringIO.new(opts[:input])
+        rack_input = StringIO.new(opts[:input])
       else
-        env["rack.input"] = opts[:input]
+        rack_input = opts[:input]
       end
+
+      rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+      env['rack.input'] = rack_input
 
       env["CONTENT_LENGTH"] ||= env["rack.input"].length.to_s
 

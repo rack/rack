@@ -1,5 +1,6 @@
 # -*- encoding: binary -*-
 
+require 'fileutils'
 require 'set'
 require 'tempfile'
 
@@ -13,7 +14,7 @@ module Rack
     # version since it's faster.  (Stolen from Camping).
     def escape(s)
       s.to_s.gsub(/([^ a-zA-Z0-9_.-]+)/n) {
-        '%'+$1.unpack('H2'*$1.size).join('%').upcase
+        '%'+$1.unpack('H2'*bytesize($1)).join('%').upcase
       }.tr(' ', '+')
     end
     module_function :escape
@@ -27,7 +28,7 @@ module Rack
     module_function :unescape
 
     DEFAULT_SEP = /[&;] */n
-    
+
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
@@ -38,7 +39,9 @@ module Rack
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
-
+        if v =~ /^("|')(.*)\1$/
+          v = $2.gsub('\\'+$1, $1)
+        end
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -67,6 +70,9 @@ module Rack
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
+      if v and v =~ /^("|')(.*)\1$/
+        v = $2.gsub('\\'+$1, $1)
+      end
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
@@ -168,6 +174,54 @@ module Rack
     end
     module_function :select_best_encoding
 
+    def set_cookie_header!(header, key, value)
+      case value
+      when Hash
+        domain  = "; domain="  + value[:domain] if value[:domain]
+        path    = "; path="    + value[:path]   if value[:path]
+        # According to RFC 2109, we need dashes here.
+        # N.B.: cgi.rb uses spaces...
+        expires = "; expires=" + value[:expires].clone.gmtime.
+          strftime("%a, %d-%b-%Y %H:%M:%S GMT") if value[:expires]
+        secure = "; secure"  if value[:secure]
+        httponly = "; HttpOnly" if value[:httponly]
+        value = value[:value]
+      end
+      value = [value] unless Array === value
+      cookie = escape(key) + "=" +
+        value.map { |v| escape v }.join("&") +
+        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+
+      case header["Set-Cookie"]
+      when Array
+        header["Set-Cookie"] << cookie
+      when String
+        header["Set-Cookie"] = [header["Set-Cookie"], cookie]
+      when nil
+        header["Set-Cookie"] = cookie
+      end
+
+      nil
+    end
+    module_function :set_cookie_header!
+
+    def delete_cookie_header!(header, key, value = {})
+      unless Array === header["Set-Cookie"]
+        header["Set-Cookie"] = [header["Set-Cookie"]].compact
+      end
+
+      header["Set-Cookie"].reject! { |cookie|
+        cookie =~ /\A#{escape(key)}=/
+      }
+
+      set_cookie_header!(header, key,
+                 {:value => '', :path => nil, :domain => nil,
+                   :expires => Time.at(0) }.merge(value))
+
+      nil
+    end
+    module_function :delete_cookie_header!
+
     # Return the bytesize of String; uses String#length under Ruby 1.8 and
     # String#bytesize under 1.9.
     if ''.respond_to?(:bytesize)
@@ -210,9 +264,20 @@ module Rack
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     class HeaderHash < Hash
+      def self.new(hash={})
+        HeaderHash === hash ? hash : super(hash)
+      end
+
       def initialize(hash={})
+        super()
         @names = {}
         hash.each { |k, v| self[k] = v }
+      end
+
+      def each
+        super do |k, v|
+          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
+        end
       end
 
       def to_hash
@@ -227,7 +292,8 @@ module Rack
       end
 
       def [](k)
-        super(@names[k] ||= @names[k.downcase])
+        super(@names[k]) if @names[k]
+        super(@names[k.downcase])
       end
 
       def []=(k, v)
@@ -238,8 +304,9 @@ module Rack
 
       def delete(k)
         canonical = k.downcase
-        super @names.delete(canonical)
+        result = super @names.delete(canonical)
         @names.delete_if { |name,| name.downcase == canonical }
+        result
       end
 
       def include?(k)
@@ -259,13 +326,23 @@ module Rack
         hash = dup
         hash.merge! other
       end
+
+      def replace(other)
+        clear
+        other.each { |k, v| self[k] = v }
+        self
+      end
     end
 
     # Every standard HTTP code mapped to the appropriate message.
-    # Stolen from Mongrel.
+    # Generated with:
+    #   curl -s http://www.iana.org/assignments/http-status-codes | \
+    #     ruby -ane 'm = /^(\d{3}) +(\S[^\[(]+)/.match($_) and
+    #                puts "      #{m[1]}  => \x27#{m[2].strip}x27,"'
     HTTP_STATUS_CODES = {
       100  => 'Continue',
       101  => 'Switching Protocols',
+      102  => 'Processing',
       200  => 'OK',
       201  => 'Created',
       202  => 'Accepted',
@@ -273,12 +350,15 @@ module Rack
       204  => 'No Content',
       205  => 'Reset Content',
       206  => 'Partial Content',
+      207  => 'Multi-Status',
+      226  => 'IM Used',
       300  => 'Multiple Choices',
       301  => 'Moved Permanently',
       302  => 'Found',
       303  => 'See Other',
       304  => 'Not Modified',
       305  => 'Use Proxy',
+      306  => 'Reserved',
       307  => 'Temporary Redirect',
       400  => 'Bad Request',
       401  => 'Unauthorized',
@@ -294,20 +374,41 @@ module Rack
       411  => 'Length Required',
       412  => 'Precondition Failed',
       413  => 'Request Entity Too Large',
-      414  => 'Request-URI Too Large',
+      414  => 'Request-URI Too Long',
       415  => 'Unsupported Media Type',
       416  => 'Requested Range Not Satisfiable',
       417  => 'Expectation Failed',
+      422  => 'Unprocessable Entity',
+      423  => 'Locked',
+      424  => 'Failed Dependency',
+      426  => 'Upgrade Required',
       500  => 'Internal Server Error',
       501  => 'Not Implemented',
       502  => 'Bad Gateway',
       503  => 'Service Unavailable',
       504  => 'Gateway Timeout',
-      505  => 'HTTP Version Not Supported'
+      505  => 'HTTP Version Not Supported',
+      506  => 'Variant Also Negotiates',
+      507  => 'Insufficient Storage',
+      510  => 'Not Extended',
     }
 
     # Responses with HTTP status codes that should not have an entity body
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 304)
+
+    SYMBOL_TO_STATUS_CODE = HTTP_STATUS_CODES.inject({}) { |hash, (code, message)|
+      hash[message.downcase.gsub(/\s|-/, '_').to_sym] = code
+      hash
+    }
+
+    def status_code(status)
+      if status.is_a?(Symbol)
+        SYMBOL_TO_STATUS_CODE[status] || 500
+      else
+        status.to_i
+      end
+    end
+    module_function :status_code
 
     # A multipart form data parser, adapted from IOWA.
     #
@@ -379,11 +480,31 @@ module Rack
                 head = buf.slice!(0, i+2) # First \r\n
                 buf.slice!(0, 2)          # Second \r\n
 
-                filename = head[/Content-Disposition:.* filename="?([^\";]*)"?/ni, 1]
+                token = /[^\s()<>,;:\\"\/\[\]?=]+/
+                condisp = /Content-Disposition:\s*#{token}\s*/i
+                dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})*/
+
+                rfc2183 = /^#{condisp}(#{dispparm})+$/i
+                broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{token}=)/i
+                broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/i
+
+                if head =~ rfc2183
+                  filename = Hash[head.scan(dispparm)]['filename']
+                  filename = $1 if filename and filename =~ /^"(.*)"$/
+                elsif head =~ broken_quoted
+                  filename = $1
+                elsif head =~ broken_unquoted
+                  filename = $1
+                end
+
+                if filename && filename !~ /\\[^\\"]/
+                  filename = Utils.unescape(filename).gsub(/\\(.)/, '\1')
+                end
+
                 content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
                 name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
 
-                if content_type || filename
+                if filename
                   body = Tempfile.new("RackMultipart")
                   body.binmode  if body.respond_to?(:binmode)
                 end
@@ -420,8 +541,7 @@ module Rack
               # This handles the full Windows paths given by Internet Explorer
               # (and perhaps other broken user agents) without affecting
               # those which give the lone filename.
-              filename =~ /^(?:.*[:\\\/])?(.*)/m
-              filename = $1
+              filename = filename.split(/[\/\\]/).last
 
               data = {:filename => filename, :type => content_type,
                       :name => name, :tempfile => body, :head => head}
@@ -437,7 +557,8 @@ module Rack
 
             Utils.normalize_params(params, name, data) unless data.nil?
 
-            break  if buf.empty? || content_length == -1
+            # break if we're at the end of a buffer, but not if it is the end of a field
+            break if (buf.empty? && $1 != EOL) || content_length == -1
           }
 
           input.rewind

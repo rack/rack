@@ -70,16 +70,15 @@ module Rack
 
         if session_data.size > (4096 - @key.size)
           env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")
-          [status, headers, body]
         else
           options = env["rack.session.options"]
           cookie = Hash.new
           cookie[:value] = session_data
           cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?
-          response = Rack::Response.new(body, status, headers)
-          response.set_cookie(@key, cookie.merge(options))
-          response.to_a
+          Utils.set_cookie_header!(headers, @key, cookie.merge(options))
         end
+
+        [status, headers, body]
       end
 
       def generate_hmac(data)

@@ -118,6 +118,9 @@ context "Rack::Response" do
 
     r = Rack::Response.new([], 500)
     r.status.should.equal 500
+
+    r = Rack::Response.new([], "200 OK")
+    r.status.should.equal 200
   end
 
   specify "has a constructor that can take a block" do
