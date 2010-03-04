@@ -11,13 +11,22 @@ module Rack
       status, headers, body = @app.call(env)
 
       if !headers.has_key?('ETag')
-        parts = []
-        body.each { |part| parts << part.to_s }
-        headers['ETag'] = %("#{Digest::MD5.hexdigest(parts.join(""))}")
-        [status, headers, parts]
-      else
-        [status, headers, body]
+        digest, body = digest_body(body)
+        headers['ETag'] = %("#{digest}")
       end
+
+      [status, headers, body]
     end
+
+    private
+      def digest_body(body)
+        digest = Digest::MD5.new
+        parts = []
+        body.each do |part|
+          digest << part
+          parts << part
+        end
+        [digest.hexdigest, parts]
+      end
   end
 end
