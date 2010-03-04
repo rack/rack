@@ -18,27 +18,27 @@ module Rack
       @rewindable_io = nil
       @unlinked = false
     end
-    
+
     def gets
       make_rewindable unless @rewindable_io
       @rewindable_io.gets
     end
-    
+
     def read(*args)
       make_rewindable unless @rewindable_io
       @rewindable_io.read(*args)
     end
-    
+
     def each(&block)
       make_rewindable unless @rewindable_io
       @rewindable_io.each(&block)
     end
-    
+
     def rewind
       make_rewindable unless @rewindable_io
       @rewindable_io.rewind
     end
-    
+
     # Closes this RewindableInput object without closing the originally
     # wrapped IO oject. Cleans up any temporary resources that this RewindableInput
     # has created.
@@ -54,9 +54,9 @@ module Rack
         @rewindable_io = nil
       end
     end
-    
+
     private
-    
+
     # Ruby's Tempfile class has a bug. Subclass it and fix it.
     class Tempfile < ::Tempfile
       def _close
@@ -82,13 +82,22 @@ module Rack
         @unlinked = true
       end
 
-      buf = ""
-      while @io.read(1024 * 4, buf)
-        while (n = @rewindable_io.write(buf)) != Rack::Utils.bytesize(buf)
-          buf.slice!(0...n)
+      buffer = ""
+      while @io.read(1024 * 4, buffer)
+        entire_buffer_written_out = false
+        while !entire_buffer_written_out
+          written = @rewindable_io.write(buffer)
+          entire_buffer_written_out = written == Rack::Utils.bytesize(buffer)
+          if !entire_buffer_written_out
+            buffer.slice!(0 .. written - 1)
+          end
         end
       end
       @rewindable_io.rewind
+    end
+
+    def filesystem_has_posix_semantics?
+      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/
     end
   end
 end
