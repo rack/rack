@@ -50,9 +50,9 @@ context "Rack::Response" do
     response.set_cookie "foo", "bar"
     response["Set-Cookie"].should.equal "foo=bar"
     response.set_cookie "foo2", "bar2"
-    response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2"]
+    response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2"].join("\n")
     response.set_cookie "foo3", "bar3"
-    response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2", "foo3=bar3"]
+    response["Set-Cookie"].should.equal ["foo=bar", "foo2=bar2", "foo3=bar3"].join("\n")
   end
 
   specify "formats the Cookie expiration date accordingly to RFC 2109" do
@@ -80,8 +80,10 @@ context "Rack::Response" do
     response.set_cookie "foo", "bar"
     response.set_cookie "foo2", "bar2"
     response.delete_cookie "foo"
-    response["Set-Cookie"].should.equal ["foo2=bar2",
-                                  "foo=; expires=Thu, 01-Jan-1970 00:00:00 GMT"]
+    response["Set-Cookie"].should.equal [
+      "foo2=bar2",
+      "foo=; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+    ].join("\n")
   end
 
   specify "can do redirects" do

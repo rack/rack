@@ -193,12 +193,12 @@ module Rack
         "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
-      when Array
-        header["Set-Cookie"] << cookie
-      when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie]
-      when nil
+      when nil, ''
         header["Set-Cookie"] = cookie
+      when String
+        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+      when Array
+        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
       end
 
       nil
@@ -206,13 +206,20 @@ module Rack
     module_function :set_cookie_header!
 
     def delete_cookie_header!(header, key, value = {})
-      unless Array === header["Set-Cookie"]
-        header["Set-Cookie"] = [header["Set-Cookie"]].compact
+      case header["Set-Cookie"]
+      when nil, ''
+        cookies = []
+      when String
+        cookies = header["Set-Cookie"].split("\n")
+      when Array
+        cookies = header["Set-Cookie"]
       end
 
-      header["Set-Cookie"].reject! { |cookie|
+      cookies.reject! { |cookie|
         cookie =~ /\A#{escape(key)}=/
       }
+
+      header["Set-Cookie"] = cookies.join("\n")
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
