@@ -13,7 +13,7 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if !STATUS_WITH_NO_ENTITY_BODY.include?(status) &&
+      if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
          (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
