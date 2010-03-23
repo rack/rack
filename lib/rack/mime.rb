@@ -87,6 +87,7 @@ module Rack
       ".gif"     => "image/gif",
       ".gz"      => "application/x-gzip",
       ".h"       => "text/x-c",
+      ".htc"     => "text/x-component",
       ".hh"      => "text/x-c",
       ".htm"     => "text/html",
       ".html"    => "text/html",
