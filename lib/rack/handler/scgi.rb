@@ -17,9 +17,6 @@ module Rack
 
       def initialize(settings = {})
         @app = Rack::Chunked.new(Rack::ContentLength.new(settings[:app]))
-        @log = Object.new
-        def @log.info(*args); end
-        def @log.error(*args); end
         super(settings)
       end
 
