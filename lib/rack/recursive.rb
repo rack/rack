@@ -35,6 +35,10 @@ module Rack
     end
 
     def call(env)
+      dup._call(env)
+    end
+
+    def _call(env)
       @script_name = env["SCRIPT_NAME"]
       @app.call(env.merge('rack.recursive.include' => method(:include)))
     rescue ForwardRequest => req

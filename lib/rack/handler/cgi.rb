@@ -15,7 +15,7 @@ module Rack
 
         env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
 
-        env.update({"rack.version" => [1,1],
+        env.update({"rack.version" => Rack::VERSION,
                      "rack.input" => $stdin,
                      "rack.errors" => $stderr,
 

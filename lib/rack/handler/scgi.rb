@@ -17,9 +17,6 @@ module Rack
 
       def initialize(settings = {})
         @app = Rack::Chunked.new(Rack::ContentLength.new(settings[:app]))
-        @log = Object.new
-        def @log.info(*args); end
-        def @log.error(*args); end
         super(settings)
       end
 
@@ -36,7 +33,7 @@ module Rack
         rack_input = StringIO.new(input_body)
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => [1,1],
+        env.update({"rack.version" => Rack::VERSION,
                      "rack.input" => rack_input,
                      "rack.errors" => $stderr,
                      "rack.multithread" => true,
