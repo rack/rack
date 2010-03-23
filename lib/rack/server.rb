@@ -168,7 +168,7 @@ module Rack
     def self.middleware
       @middleware ||= begin
         m = Hash.new {|h,k| h[k] = []}
-        m["deployment"].concat  [lambda {|server| server.server =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr] }]
+        m["deployment"].concat  [lambda {|server| server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr] }]
         m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
         m
       end
