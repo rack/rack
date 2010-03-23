@@ -201,6 +201,15 @@ module Rack
 
       daemonize_app if options[:daemonize]
       write_pid if options[:pid]
+
+      trap(:INT) do
+        if server.respond_to?(:shutdown)
+          server.shutdown
+        else
+          exit
+        end
+      end
+
       server.run wrapped_app, options
     end
 

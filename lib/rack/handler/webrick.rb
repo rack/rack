@@ -7,11 +7,15 @@ module Rack
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
       def self.run(app, options={})
         options[:BindAddress] = options.delete(:Host) if options[:Host]
-        server = ::WEBrick::HTTPServer.new(options)
-        server.mount "/", Rack::Handler::WEBrick, app
-        trap(:INT) { server.shutdown }
-        yield server  if block_given?
-        server.start
+        @server = ::WEBrick::HTTPServer.new(options)
+        @server.mount "/", Rack::Handler::WEBrick, app
+        yield @server  if block_given?
+        @server.start
+      end
+
+      def self.shutdown
+        @server.shutdown
+        @server = nil
       end
 
       def initialize(server, app)
