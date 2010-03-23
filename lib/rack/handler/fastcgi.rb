@@ -36,7 +36,7 @@ module Rack
 
         rack_input = RewindableInput.new(request.in)
 
-        env.update({"rack.version" => [1,1],
+        env.update({"rack.version" => Rack::VERSION,
                      "rack.input" => rack_input,
                      "rack.errors" => request.err,
 
