@@ -226,6 +226,7 @@ module Rack
         args.clear if ENV.include?("REQUEST_METHOD")
 
         options.merge! opt_parser.parse! args
+        ENV["RACK_ENV"] = options[:environment]
         options
       end
 
