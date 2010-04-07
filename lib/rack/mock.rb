@@ -1,5 +1,6 @@
 require 'uri'
 require 'stringio'
+require 'rack'
 require 'rack/lint'
 require 'rack/utils'
 require 'rack/response'
