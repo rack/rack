@@ -506,17 +506,6 @@ context "Rack::Lint" do
 end
 
 context "Rack::Lint::InputWrapper" do
-  specify "delegates :size to underlying IO object" do
-    class IOMock
-      def size
-        101
-      end
-    end
-
-    wrapper = Rack::Lint::InputWrapper.new(IOMock.new)
-    wrapper.size.should == 101
-  end
-
   specify "delegates :rewind to underlying IO object" do
     io = StringIO.new("123")
     wrapper = Rack::Lint::InputWrapper.new(io)
