@@ -46,9 +46,6 @@ changing anything.
 
 == Supported web frameworks
 
-The included *adapters* connect Rack with existing Ruby web frameworks:
-* Camping
-
 These frameworks include Rack adapters in their distributions:
 * Camping
 * Coset
