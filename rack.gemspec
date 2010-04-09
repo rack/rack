@@ -30,7 +30,6 @@ EOF
 
   s.add_development_dependency 'test-spec'
 
-  s.add_development_dependency 'camping'
   s.add_development_dependency 'fcgi'
   s.add_development_dependency 'memcache-client'
   s.add_development_dependency 'mongrel'

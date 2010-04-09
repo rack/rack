@@ -78,15 +78,4 @@ module Rack
     autoload :Pool, "rack/session/pool"
     autoload :Memcache, "rack/session/memcache"
   end
-
-  # *Adapters* connect Rack with third party web frameworks.
-  #
-  # Rack includes an adapter for Camping, see README for other
-  # frameworks supporting Rack in their code bases.
-  #
-  # Refer to the submodules for framework-specific calling details.
-
-  module Adapter
-    autoload :Camping, "rack/adapter/camping"
-  end
 end
