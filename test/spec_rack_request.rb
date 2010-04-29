@@ -1,5 +1,6 @@
 require 'test/spec'
 require 'stringio'
+require 'cgi'
 
 require 'rack/request'
 require 'rack/mock'
@@ -542,4 +543,16 @@ EOF
     req2.GET.should.equal "foo" => "bar"
     req2.params.should.equal "foo" => "bar"
   end
+
+  (0x20...0x7E).collect { |a|
+    b = a.chr
+    c = CGI.escape(b)
+    specify "should not strip '#{a}' => '#{c}' => '#{b}' escaped character from parameters when accessed as string" do
+      url = "/?foo=#{c}bar#{c}"
+      env = Rack::MockRequest.env_for(url)
+      req2 = Rack::Request.new(env)
+      req2.GET.should.equal "foo" => "#{b}bar#{b}"
+      req2.params.should.equal "foo" => "#{b}bar#{b}"
+    end
+  }
 end
