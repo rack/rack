@@ -7,6 +7,7 @@ module Rack
   class Lint
     def initialize(app)
       @app = app
+      @content_length = nil
     end
 
     # :stopdoc:
