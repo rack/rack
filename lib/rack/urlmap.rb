@@ -43,11 +43,8 @@ module Rack
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
         next unless path =~ match && rest = $1
         next unless rest.empty? || rest[0] == ?/
-
-        return app.call(
-          env.merge(
-            'SCRIPT_NAME' => (script_name + location),
-            'PATH_INFO'   => rest))
+        env.merge!('SCRIPT_NAME' => (script_name + location), 'PATH_INFO' => rest)
+        return app.call(env)
       }
       [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
     end
