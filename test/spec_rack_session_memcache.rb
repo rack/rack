@@ -42,6 +42,11 @@ begin
     specify "connect to existing server" do
       test_pool = MemCache.new incrementor, :namespace => 'test:rack:session'
     end
+    
+    specify "pass options to MemCache" do
+      pool = Rack::Session::Memcache.new incrementor, :namespace => 'test:rack:session'
+      pool.pool.namespace.should.equal 'test:rack:session'
+    end
 
     specify "creates a new cookie" do
       pool = Rack::Session::Memcache.new(incrementor)
