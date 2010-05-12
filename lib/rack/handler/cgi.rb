@@ -1,4 +1,5 @@
 require 'rack/content_length'
+require 'rack/rewindable_input'
 
 module Rack
   module Handler
@@ -17,7 +18,7 @@ module Rack
         env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
 
         env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => $stdin,
+                     "rack.input" => Rack::RewindableInput.new($stdin),
                      "rack.errors" => $stderr,
 
                      "rack.multithread" => false,
