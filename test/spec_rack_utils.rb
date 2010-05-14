@@ -33,7 +33,7 @@ context "Rack::Utils" do
     Rack::Utils.parse_query("foo=bar").
       should.equal "foo" => "bar"
     Rack::Utils.parse_query("foo=\"bar\"").
-      should.equal "foo" => "bar"
+      should.equal "foo" => "\"bar\""
     Rack::Utils.parse_query("foo=bar&foo=quux").
       should.equal "foo" => ["bar", "quux"]
     Rack::Utils.parse_query("foo=1&bar=2").
@@ -51,7 +51,7 @@ context "Rack::Utils" do
     Rack::Utils.parse_nested_query("foo=bar").
       should.equal "foo" => "bar"
     Rack::Utils.parse_nested_query("foo=\"bar\"").
-      should.equal "foo" => "bar"
+      should.equal "foo" => "\"bar\""
 
     Rack::Utils.parse_nested_query("foo=bar&foo=quux").
       should.equal "foo" => "quux"

@@ -38,9 +38,6 @@ module Rack
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
-        if v =~ /^("|')(.*)\1$/
-          v = $2.gsub('\\'+$1, $1)
-        end
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -69,9 +66,6 @@ module Rack
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
-      if v and v =~ /^("|')(.*)\1$/
-        v = $2.gsub('\\'+$1, $1)
-      end
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
