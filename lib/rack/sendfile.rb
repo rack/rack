@@ -31,19 +31,19 @@ module Rack
   # a private "/files/" area, enable X-Accel-Redirect, and pass the special
   # X-Sendfile-Type and X-Accel-Mapping headers to the backend:
   #
-  #   location /files/ {
+  #   location ~ /files/(.*) {
   #     internal;
-  #     alias /var/www/;
+  #     alias /var/www/$1;
   #   }
   #
   #   location / {
-  #     proxy_redirect     false;
+  #     proxy_redirect     off;
   #
   #     proxy_set_header   Host                $host;
   #     proxy_set_header   X-Real-IP           $remote_addr;
   #     proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
   #
-  #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect
+  #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect;
   #     proxy_set_header   X-Accel-Mapping     /files/=/var/www/;
   #
   #     proxy_pass         http://127.0.0.1:8080/;
