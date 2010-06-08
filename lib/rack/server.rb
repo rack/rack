@@ -100,7 +100,7 @@ module Rack
       new(options).start
     end
 
-    attr_accessor :options
+    attr_writer :options
 
     # Options may include:
     # * :app
@@ -192,7 +192,7 @@ module Rack
       end
 
       if includes = options[:include]
-        $LOAD_PATH.unshift *includes
+        $LOAD_PATH.unshift(*includes)
       end
 
       if library = options[:require]

@@ -57,7 +57,7 @@ context "rackup" do
 
   specify "rackup --help" do
     run_rackup "--help", :port => false
-    output.should.match /--port/
+    output.should =~ /--port/
   end
 
   specify "rackup --port" do
