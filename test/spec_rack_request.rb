@@ -511,7 +511,7 @@ EOF
       'REMOTE_ADDR' => '123.123.123.123',
       'HTTP_X_FORWARDED_FOR' => '234.234.234.234,212.212.212.212'
 
-    res.body.should.equal '212.212.212.212'
+    res.body.should.equal '234.234.234.234'
   end
 
   class MyRequest < Rack::Request
