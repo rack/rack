@@ -35,18 +35,20 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"].to_s
+      path = env["PATH_INFO"]
       script_name = env['SCRIPT_NAME']
       hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
       @mapping.each { |host, location, match, app|
         next unless (hHost == host || sName == host \
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
-        next unless path =~ match && rest = $1
+        next unless path.to_s =~ match && rest = $1
         next unless rest.empty? || rest[0] == ?/
         env.merge!('SCRIPT_NAME' => (script_name + location), 'PATH_INFO' => rest)
         return app.call(env)
       }
       [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+    ensure
+      env.merge! 'PATH_INFO' => path, 'SCRIPT_NAME' => script_name
     end
   end
 end
