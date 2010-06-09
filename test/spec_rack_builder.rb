@@ -9,7 +9,7 @@ require 'rack/auth/basic'
 context "Rack::Builder" do
   specify "supports mapping" do
     app = Rack::Builder.new do
-      map '/' do |env| 
+      map '/' do |env|
         run lambda { |env| [200, {}, ['root']] }
       end
       map '/sub' do
@@ -19,7 +19,7 @@ context "Rack::Builder" do
     Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
     Rack::MockRequest.new(app).get("/sub").body.to_s.should.equal 'sub'
   end
-  
+
   specify "doesnt dupe env even when mapping" do
     class NothingMiddleware
       def initialize(app)
@@ -36,17 +36,17 @@ context "Rack::Builder" do
     end
     app = Rack::Builder.new do
       use NothingMiddleware
-      map '/' do |env| 
-        run lambda { |env| 
+      map '/' do |env|
+        run lambda { |env|
           env['new_key'] = 'new_value'
-          [200, {}, ['root']] 
+          [200, {}, ['root']]
         }
       end
     end.to_app
     Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
     NothingMiddleware.env['new_key'].should.equal 'new_value'
   end
-  
+
   specify "chains apps by default" do
     app = Rack::Builder.new do
       use Rack::ShowExceptions
@@ -84,7 +84,7 @@ context "Rack::Builder" do
     response.status.should.equal 401
 
     # with auth...
-    response = Rack::MockRequest.new(app).get("/", 
+    response = Rack::MockRequest.new(app).get("/",
         'HTTP_AUTHORIZATION' => 'Basic ' + ["joe:secret"].pack("m*"))
     response.status.should.equal 200
     response.body.to_s.should.equal 'Hi Boss'
