@@ -187,6 +187,7 @@ module Rack
       ".vrml"    => "model/vrml",
       ".war"     => "application/java-archive",
       ".wav"     => "audio/x-wav",
+      ".webm"    => "video/webm",
       ".wma"     => "audio/x-ms-wma",
       ".wmv"     => "video/x-ms-wmv",
       ".wmx"     => "video/x-ms-wmx",
