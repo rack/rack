@@ -4,6 +4,7 @@ module Rack
   module Handler
     class CGI
       def self.run(app, options=nil)
+        $stdin.binmode
         serve app
       end
 
@@ -40,20 +41,20 @@ module Rack
       end
 
       def self.send_headers(status, headers)
-        STDOUT.print "Status: #{status}\r\n"
+        $stdout.print "Status: #{status}\r\n"
         headers.each { |k, vs|
           vs.split("\n").each { |v|
-            STDOUT.print "#{k}: #{v}\r\n"
+            $stdout.print "#{k}: #{v}\r\n"
           }
         }
-        STDOUT.print "\r\n"
-        STDOUT.flush
+        $stdout.print "\r\n"
+        $stdout.flush
       end
 
       def self.send_body(body)
         body.each { |part|
-          STDOUT.print part
-          STDOUT.flush
+          $stdout.print part
+          $stdout.flush
         }
       end
     end
