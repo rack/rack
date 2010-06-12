@@ -1,6 +1,8 @@
+require 'lib/rack.rb'
+
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.1.0"
+  s.version         = Rack.release
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
 

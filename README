@@ -9,16 +9,6 @@ middleware) into a single method call.
 The exact details of this are described in the Rack specification,
 which all Rack applications should conform to.
 
-== Specification changes in this release
-
-With Rack 1.1, the Rack specification (found in SPEC) changed in the
-following backward-incompatible ways.
-
-* Rack::VERSION has been pushed to [1,1].
-* rack.logger is now specified.
-* The SPEC now allows subclasses of the required types.
-* rack.input has to be opened in binary mode.
-
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
@@ -310,17 +300,25 @@ run on port 11211) and memcache-client installed.
   * Enforce binary encoding in RewindableInput
   * Set correct external_encoding for handlers that don't use RewindableInput
 
+* June XXth, 2010: Tenth public release 1.2.0.
+  * Removed Camping adapter: Camping 2.0 supports Rack as-is
+  * Removed parsing of quoted values
+  * Add Request.trace? and Request.options?
+  * Add mime-type for .webm and .htc
+  * Fix HTTP_X_FORWARDED_FOR
+  * Various multipart fixes
+
 == Contact
 
 Please post bugs, suggestions and patches to
-the bug tracker at <http://rack.lighthouseapp.com/>.
+the bug tracker at <http://github.com/rack/rack/issues>.
 
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
 
 Git repository (send Git patches to the mailing list):
 * http://github.com/rack/rack
-* http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack.git
+* http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack-github.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
@@ -342,12 +340,14 @@ would like to thank:
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
-* Aredridel, Ben Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd,
-  Tom Robinson, Phil Hagelberg, S. Brent Faulkner, Bosko Milekic,
-  Daniel Rodríguez Troitiño, Genki Takiuchi, Geoffrey Grosenbach,
-  Julien Sanchez, Kamal Fariz Mahyuddin, Masayoshi Takahashi, Patrick
-  Aljordm, Mig, and Kazuhiro Nishiyama for bug fixing and other
-  improvements.
+* Alex Beregszaszi, Alexander Kahn, Anil Wadghule, Aredridel, Ben
+  Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd, Tom Robinson,
+  Phil Hagelberg, S. Brent Faulkner, Bosko Milekic, Daniel Rodríguez
+  Troitiño, Genki Takiuchi, Geoffrey Grosenbach, Julien Sanchez, Kamal
+  Fariz Mahyuddin, Masayoshi Takahashi, Patrick Aljordm, Mig, Kazuhiro
+  Nishiyama, Jon Bardin, Konstantin Haase, Larry Siden, Matias
+  Korhonen, Sam Ruby, Simon Chiang, Tim Connor, Timur Batyrshin, and
+  Zach Brock for bug fixing and other improvements.
 * Eric Wong, Hongli Lai, Jeremy Kemper for their continuous support
   and API improvements.
 * Yehuda Katz and Carl Lerche for refactoring rackup.
