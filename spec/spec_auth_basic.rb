@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/auth/basic'
+require 'rack/mock'
 
 describe Rack::Auth::Basic do
   def realm

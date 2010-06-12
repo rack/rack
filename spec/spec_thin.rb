@@ -1,32 +1,31 @@
 begin
 require 'rack/handler/thin'
-require 'testrequest'
+require File.expand_path('../testrequest', __FILE__)
 require 'timeout'
 
 describe Rack::Handler::Thin do
-  include TestRequest::Helpers
+  extend TestRequest::Helpers
 
-  setup do
-    @app = Rack::Lint.new(TestRequest.new)
-    @server = nil
-    Thin::Logging.silent = true
-    @thread = Thread.new do
-      Rack::Handler::Thin.run(@app, :Host => @host='0.0.0.0', :Port => @port=9204) do |server|
-        @server = server
-      end
+  @app = Rack::Lint.new(TestRequest.new)
+  @server = nil
+  Thin::Logging.silent = true
+
+  @thread = Thread.new do
+    Rack::Handler::Thin.run(@app, :Host => @host='0.0.0.0', :Port => @port=9204) do |server|
+      @server = server
     end
-    Thread.pass until @server && @server.running?
   end
 
-  specify "should respond" do
-    lambda {
-      GET("/")
-    }.should.not.raise
-  end
+  Thread.pass until @server && @server.running?
 
-  specify "should be a Thin" do
+  should "respond" do
     GET("/")
-    status.should.be 200
+    response.should.not.be.nil
+  end
+
+  should "be a Thin" do
+    GET("/")
+    status.should.equal 200
     response["SERVER_SOFTWARE"].should =~ /thin/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
@@ -34,7 +33,7 @@ describe Rack::Handler::Thin do
     response["SERVER_NAME"].should.equal "0.0.0.0"
   end
 
-  specify "should have rack headers" do
+  should "have rack headers" do
     GET("/")
     response["rack.version"].should.equal [0,3]
     response["rack.multithread"].should.be false
@@ -42,7 +41,7 @@ describe Rack::Handler::Thin do
     response["rack.run_once"].should.be false
   end
 
-  specify "should have CGI headers on GET" do
+  should "have CGI headers on GET" do
     GET("/")
     response["REQUEST_METHOD"].should.equal "GET"
     response["REQUEST_PATH"].should.equal "/"
@@ -57,7 +56,7 @@ describe Rack::Handler::Thin do
     response["QUERY_STRING"].should.equal "quux=1"
   end
 
-  specify "should have CGI headers on POST" do
+  should "have CGI headers on POST" do
     POST("/", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
     status.should.equal 200
     response["REQUEST_METHOD"].should.equal "POST"
@@ -67,21 +66,19 @@ describe Rack::Handler::Thin do
     response["test.postdata"].should.equal "rack-form-data=23"
   end
 
-  specify "should support HTTP auth" do
+  should "support HTTP auth" do
     GET("/test", {:user => "ruth", :passwd => "secret"})
     response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  specify "should set status" do
+  should "set status" do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
   end
 
-  teardown do
-    @server.stop!
-    @thread.kill
-  end
+  @server.stop!
+  @thread.kill
 end
 
 rescue LoadError

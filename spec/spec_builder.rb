@@ -1,4 +1,21 @@
-require 'rack'
+require 'rack/builder'
+require 'rack/mock'
+require 'rack/showexceptions'
+require 'rack/urlmap'
+
+class NothingMiddleware
+  def initialize(app)
+    @app = app
+  end
+  def call(env)
+    @@env = env
+    response = @app.call(env)
+    response
+  end
+  def self.env
+    @@env
+  end
+end
 
 describe Rack::Builder do
   it "supports mapping" do
@@ -15,19 +32,6 @@ describe Rack::Builder do
   end
 
   it "doesn't dupe env even when mapping" do
-    class NothingMiddleware
-      def initialize(app)
-        @app = app
-      end
-      def call(env)
-        @@env = env
-        response = @app.call(env)
-        response
-      end
-      def self.env
-        @@env
-      end
-    end
     app = Rack::Builder.new do
       use NothingMiddleware
       map '/' do |outer_env|

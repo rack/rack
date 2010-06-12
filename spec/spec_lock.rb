@@ -1,19 +1,20 @@
-require 'rack'
+require 'rack/lock'
+require 'rack/mock'
 
-describe Rack::Lock do
-  class Lock
-    attr_reader :synchronized
+class Lock
+  attr_reader :synchronized
 
-    def initialize
-      @synchronized = false
-    end
-
-    def synchronize
-      @synchronized = true
-      yield
-    end
+  def initialize
+    @synchronized = false
   end
 
+  def synchronize
+    @synchronized = true
+    yield
+  end
+end
+
+describe Rack::Lock do
   should "call synchronize on lock" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")

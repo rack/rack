@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/auth/digest/md5'
+require 'rack/mock'
 
 describe Rack::Auth::Digest::MD5 do
   def realm

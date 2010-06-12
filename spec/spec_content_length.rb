@@ -1,4 +1,4 @@
-require 'rack'
+require 'rack/content_length'
 
 describe Rack::ContentLength do
   should "set Content-Length on String bodies if none is set" do

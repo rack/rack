@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/utils'
+require 'rack/mock'
 
 describe Rack::Utils do
   should "escape correctly" do

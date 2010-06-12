@@ -1,4 +1,4 @@
-require 'rack'
+require 'rack/nulllogger'
 
 describe Rack::NullLogger do
   should "act as a noop logger" do

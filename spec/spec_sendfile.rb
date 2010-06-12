@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/sendfile'
+require 'rack/mock'
 
 describe Rack::File do
   should "respond to #to_path" do

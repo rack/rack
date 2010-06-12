@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/recursive'
+require 'rack/mock'
 
 describe Rack::Recursive do
   @app1 = lambda { |env|

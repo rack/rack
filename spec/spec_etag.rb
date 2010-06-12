@@ -1,4 +1,4 @@
-require 'rack'
+require 'rack/etag'
 
 describe Rack::ETag do
   should "set ETag if none is set" do

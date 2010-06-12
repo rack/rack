@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/head'
+require 'rack/mock'
 
 describe Rack::Head do
   def test_response(headers = {})

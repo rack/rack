@@ -1,5 +1,6 @@
 require 'thread'
-require 'rack'
+require 'rack/mock'
+require 'rack/session/pool'
 
 describe Rack::Session::Pool do
   session_key = Rack::Session::Pool::DEFAULT_OPTIONS[:key]

@@ -1,5 +1,5 @@
 require 'set'
-require 'rack'
+require 'rack/response'
 
 describe Rack::Response do
   should "have sensible default values" do

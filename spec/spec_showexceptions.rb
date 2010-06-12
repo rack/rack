@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/showexceptions'
+require 'rack/mock'
 
 describe Rack::ShowExceptions do
   it "catches exceptions" do

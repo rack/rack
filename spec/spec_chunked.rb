@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/chunked'
+require 'rack/mock'
 
 describe Rack::Chunked do
   before do

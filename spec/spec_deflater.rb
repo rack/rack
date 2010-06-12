@@ -1,6 +1,7 @@
 require 'stringio'
 require 'time'  # for Time#httpdate
-require 'rack'
+require 'rack/deflater'
+require 'rack/mock'
 
 describe Rack::Deflater do
   def build_response(status, body, accept_encoding, headers = {})

@@ -1,5 +1,5 @@
 require 'yaml'
-require 'rack'
+require 'rack/mock'
 
 app = lambda { |env|
   req = Rack::Request.new(env)

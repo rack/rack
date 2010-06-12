@@ -1,52 +1,55 @@
-require 'testrequest'
+require File.expand_path('../testrequest', __FILE__)
+require 'rack/handler/fastcgi'
 
 describe Rack::Handler::FastCGI do
-  include TestRequest::Helpers
+  extend TestRequest::Helpers
 
-  setup do
-    @host = '0.0.0.0'
-    @port = 9203
-  end
+  @host = '0.0.0.0'
+  @port = 9203
 
   # Keep this first.
-  specify "startup" do
-    $pid = fork {
-      Dir.chdir(File.join(File.dirname(__FILE__), "..", "test", "cgi"))
+  $pid = fork {
+    ENV['RACK_ENV'] = 'deployment'
+    ENV['RUBYLIB'] = [
+      File.expand_path('../../lib', __FILE__),
+      ENV['RUBYLIB'],
+    ].compact.join(':')
+
+    Dir.chdir(File.expand_path("../cgi", __FILE__)) do
       exec "lighttpd -D -f lighttpd.conf"
-    }
-  end
+    end
+  }
 
-  specify "should respond" do
+  should "respond" do
     sleep 1
-    lambda {
-      GET("/test.fcgi")
-    }.should.not.raise
+    GET("/test")
+    response.should.not.be.nil
   end
 
-  specify "should respond via rackup server" do
+  should "respond via rackup server" do
     GET("/sample_rackup.ru")
-    status.should.be 200
+    status.should == 200
   end
 
-  specify "should be a lighttpd" do
+  should "be a lighttpd" do
     GET("/test.fcgi")
-    status.should.be 200
+    status.should == 200
     response["SERVER_SOFTWARE"].should =~ /lighttpd/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
     response["SERVER_PORT"].should.equal @port.to_s
-    response["SERVER_NAME"].should =~ @host
+    response["SERVER_NAME"].should.equal @host
   end
 
-  specify "should have rack headers" do
+  should "have rack headers" do
     GET("/test.fcgi")
     response["rack.version"].should.equal [1,1]
-    response["rack.multithread"].should.be false
-    response["rack.multiprocess"].should.be true
-    response["rack.run_once"].should.be false
+    response["rack.multithread"].should.be.false
+    response["rack.multiprocess"].should.be.true
+    response["rack.run_once"].should.be.false
   end
 
-  specify "should have CGI headers on GET" do
+  should "have CGI headers on GET" do
     GET("/test.fcgi")
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test.fcgi"
@@ -63,7 +66,7 @@ describe Rack::Handler::FastCGI do
     response["QUERY_STRING"].should.equal "quux=1"
   end
 
-  specify "should have CGI headers on POST" do
+  should "have CGI headers on POST" do
     POST("/test.fcgi", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
     status.should.equal 200
     response["REQUEST_METHOD"].should.equal "POST"
@@ -74,19 +77,19 @@ describe Rack::Handler::FastCGI do
     response["test.postdata"].should.equal "rack-form-data=23"
   end
 
-  specify "should support HTTP auth" do
+  should "support HTTP auth" do
     GET("/test.fcgi", {:user => "ruth", :passwd => "secret"})
     response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  specify "should set status" do
+  should "set status" do
     GET("/test.fcgi?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
   end
 
   # Keep this last.
-  specify "shutdown" do
+  should "shutdown" do
     Process.kill 15, $pid
     Process.wait($pid).should.equal $pid
   end

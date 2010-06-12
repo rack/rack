@@ -35,7 +35,7 @@ class TestRequest
           @status = response.code.to_i
           begin
             @response = YAML.load(response.body)
-          rescue ArgumentError
+          rescue TypeError, ArgumentError
             @response = nil
           end
         }

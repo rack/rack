@@ -1,7 +1,7 @@
 begin
 require 'rack'
 require 'rack/handler/mongrel'
-require 'testrequest'
+require File.expand_path('../testrequest', __FILE__)
 require 'timeout'
 
 Thread.abort_on_exception = true
@@ -9,7 +9,7 @@ $tcp_defer_accept_opts = nil
 $tcp_cork_opts = nil
 
 describe Rack::Handler::Mongrel do
-  include TestRequest::Helpers
+  extend TestRequest::Helpers
 
   @server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
   @server.register('/test',
@@ -26,7 +26,7 @@ describe Rack::Handler::Mongrel do
 
   should "be a Mongrel" do
     GET("/test")
-    status.should.be 200
+    status.should.equal 200
     response["SERVER_SOFTWARE"].should =~ /Mongrel/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
@@ -37,9 +37,9 @@ describe Rack::Handler::Mongrel do
   should "have rack headers" do
     GET("/test")
     response["rack.version"].should.equal [1,1]
-    response["rack.multithread"].should.be true
-    response["rack.multiprocess"].should.be false
-    response["rack.run_once"].should.be false
+    response["rack.multithread"].should.be.true
+    response["rack.multiprocess"].should.be.false
+    response["rack.run_once"].should.be.false
   end
 
   should "have CGI headers on GET" do
@@ -90,7 +90,7 @@ describe Rack::Handler::Mongrel do
       }
     }
     sleep 1
-    block_ran.should.be true
+    block_ran.should.be.true
   end
 
   should "provide a .run that maps a hash" do
@@ -99,7 +99,7 @@ describe Rack::Handler::Mongrel do
       map = {'/'=>lambda{},'/foo'=>lambda{}}
       Rack::Handler::Mongrel.run(map, :map => true, :Port => 9221) { |server|
         server.should.be.kind_of Mongrel::HttpServer
-        server.classifier.uris.size.should.be 2
+        server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
         server.classifier.uris.should.include '/'
         server.classifier.uris.should.include '/foo'
@@ -107,7 +107,7 @@ describe Rack::Handler::Mongrel do
       }
     }
     sleep 1
-    block_ran.should.be true
+    block_ran.should.be.true
   end
 
   should "provide a .run that maps a urlmap" do
@@ -116,7 +116,7 @@ describe Rack::Handler::Mongrel do
       map = Rack::URLMap.new({'/'=>lambda{},'/bar'=>lambda{}})
       Rack::Handler::Mongrel.run(map, {:map => true, :Port => 9231}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
-        server.classifier.uris.size.should.be 2
+        server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
         server.classifier.uris.should.include '/'
         server.classifier.uris.should.include '/bar'
@@ -124,7 +124,7 @@ describe Rack::Handler::Mongrel do
       }
     }
     sleep 1
-    block_ran.should.be true
+    block_ran.should.be.true
   end
 
   should "provide a .run that maps a urlmap restricting by host" do
@@ -143,19 +143,19 @@ describe Rack::Handler::Mongrel do
       Rack::Handler::Mongrel.run(map, opt) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.should.include '/'
-        server.classifier.handler_map['/'].size.should.be 2
+        server.classifier.handler_map['/'].size.should.equal 2
         server.classifier.uris.should.include '/foo'
-        server.classifier.handler_map['/foo'].size.should.be 1
+        server.classifier.handler_map['/foo'].size.should.equal 1
         server.classifier.uris.should.include '/bar'
-        server.classifier.handler_map['/bar'].size.should.be 2
+        server.classifier.handler_map['/bar'].size.should.equal 2
         server.classifier.uris.should.not.include '/qux'
         server.classifier.uris.should.not.include '/arf'
-        server.classifier.uris.size.should.be 3
+        server.classifier.uris.size.should.equal 3
         block_ran = true
       }
     }
     sleep 1
-    block_ran.should.be true
+    block_ran.should.be.true
   end
 
   should "stream #each part of the response" do
@@ -174,11 +174,10 @@ describe Rack::Handler::Mongrel do
     body.should.not.be.empty
   end
 
-  teardown do
-    @acc.raise Mongrel::StopServer
-  end
+  @acc.raise Mongrel::StopServer
 end
 
-rescue LoadError
-  $stderr.puts "Skipping Rack::Handler::Mongrel tests (Mongrel is required). `gem install mongrel` and try again."
+rescue LoadError => ex
+  warn ex
+  warn "Skipping Rack::Handler::Mongrel tests (Mongrel is required). `gem install mongrel` and try again."
 end

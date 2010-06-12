@@ -1,5 +1,5 @@
 require 'stringio'
-require 'rack'
+require 'rack/rewindable_input'
 
 shared "a rewindable IO object" do
   before do

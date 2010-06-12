@@ -1,5 +1,5 @@
-require 'rack'
 require 'rack/lobster'
+require 'rack/mock'
 
 describe Rack::Lobster::LambdaLobster do
   should "be a single lambda" do

@@ -1,4 +1,4 @@
-require 'rack'
+require 'rack/content_type'
 
 describe Rack::ContentType do
   should "set Content-Type to default text/html if none is set" do

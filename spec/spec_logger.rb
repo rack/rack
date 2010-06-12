@@ -1,5 +1,5 @@
 require 'stringio'
-require 'rack'
+require 'rack/logger'
 
 describe Rack::Logger do
   should "log to rack.errors" do

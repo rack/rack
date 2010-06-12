@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/showstatus'
+require 'rack/mock'
 
 describe Rack::ShowStatus do
   should "provide a default status message" do

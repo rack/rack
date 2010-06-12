@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/urlmap'
+require 'rack/mock'
 
 describe Rack::URLMap do
   it "dispatches paths correctly" do

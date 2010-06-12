@@ -1,5 +1,6 @@
 require 'stringio'
-require 'rack'
+require 'rack/lint'
+require 'rack/mock'
 
 describe Rack::Lint do
   def env(*args)

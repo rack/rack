@@ -1,5 +1,6 @@
 require 'time'
-require 'rack'
+require 'rack/conditionalget'
+require 'rack/mock'
 
 describe Rack::ConditionalGet do
   should "set a 304 status and truncate body when If-Modified-Since hits" do

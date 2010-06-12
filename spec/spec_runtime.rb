@@ -1,4 +1,4 @@
-require 'rack'
+require 'rack/runtime'
 
 describe Rack::Runtime do
   it "sets X-Runtime is none is set" do

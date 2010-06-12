@@ -1,5 +1,6 @@
 require 'stringio'
-require 'rack'
+require 'rack/methodoverride'
+require 'rack/mock'
 
 describe Rack::MethodOverride do
   should "not affect GET requests" do

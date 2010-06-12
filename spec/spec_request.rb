@@ -1,6 +1,7 @@
 require 'stringio'
 require 'cgi'
-require 'rack'
+require 'rack/request'
+require 'rack/mock'
 
 describe Rack::Request do
   should "wrap the rack variables" do

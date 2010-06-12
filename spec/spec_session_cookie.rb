@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/session/cookie'
+require 'rack/mock'
 
 describe Rack::Session::Cookie do
   incrementor = lambda do |env|

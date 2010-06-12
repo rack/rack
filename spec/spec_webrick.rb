@@ -1,30 +1,29 @@
-require 'testrequest'
+require 'rack/mock'
+require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
 
 describe Rack::Handler::WEBrick do
-  include TestRequest::Helpers
+  extend TestRequest::Helpers
 
-  setup do
-    @server = WEBrick::HTTPServer.new(:Host => @host='0.0.0.0',
-                                      :Port => @port=9202,
-                                      :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-                                      :AccessLog => [])
-    @server.mount "/test", Rack::Handler::WEBrick,
-      Rack::Lint.new(TestRequest.new)
-    Thread.new { @server.start }
-    trap(:INT) { @server.shutdown }
-  end
+  @server = WEBrick::HTTPServer.new(:Host => @host='0.0.0.0',
+                                    :Port => @port=9202,
+                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+                                    :AccessLog => [])
+  @server.mount "/test", Rack::Handler::WEBrick,
+    Rack::Lint.new(TestRequest.new)
+  Thread.new { @server.start }
+  trap(:INT) { @server.shutdown }
 
-  specify "should respond" do
+  should "respond" do
     lambda {
       GET("/test")
     }.should.not.raise
   end
 
-  specify "should be a WEBrick" do
+  should "be a WEBrick" do
     GET("/test")
-    status.should.be 200
+    status.should.equal 200
     response["SERVER_SOFTWARE"].should =~ /WEBrick/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
@@ -32,15 +31,15 @@ describe Rack::Handler::WEBrick do
     response["SERVER_NAME"].should.equal "0.0.0.0"
   end
 
-  specify "should have rack headers" do
+  should "have rack headers" do
     GET("/test")
     response["rack.version"].should.equal [1,1]
-    response["rack.multithread"].should.be true
-    response["rack.multiprocess"].should.be false
-    response["rack.run_once"].should.be false
+    response["rack.multithread"].should.be.true
+    response["rack.multiprocess"].should.be.false
+    response["rack.run_once"].should.be.false
   end
 
-  specify "should have CGI headers on GET" do
+  should "have CGI headers on GET" do
     GET("/test")
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
@@ -64,7 +63,7 @@ describe Rack::Handler::WEBrick do
     response["QUERY_STRING"].should.equal "quux=1"
   end
 
-  specify "should have CGI headers on POST" do
+  should "have CGI headers on POST" do
     POST("/test", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
     status.should.equal 200
     response["REQUEST_METHOD"].should.equal "POST"
@@ -75,18 +74,18 @@ describe Rack::Handler::WEBrick do
     response["test.postdata"].should.equal "rack-form-data=23"
   end
 
-  specify "should support HTTP auth" do
+  should "support HTTP auth" do
     GET("/test", {:user => "ruth", :passwd => "secret"})
     response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  specify "should set status" do
+  should "set status" do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
   end
 
-  specify "should correctly set cookies" do
+  should "correctly set cookies" do
     @server.mount "/cookie-test", Rack::Handler::WEBrick,
     Rack::Lint.new(lambda { |req|
                      res = Rack::Response.new
@@ -102,7 +101,7 @@ describe Rack::Handler::WEBrick do
     }
   end
 
-  specify "should provide a .run" do
+  should "provide a .run" do
     block_ran = false
     catch(:done) {
       Rack::Handler::WEBrick.run(lambda {},
@@ -115,11 +114,9 @@ describe Rack::Handler::WEBrick do
         throw :done
       }
     }
-    block_ran.should.be true
+    block_ran.should.be.true
     @s.shutdown
   end
 
-  teardown do
-    @server.shutdown
-  end
+  @server.shutdown
 end

@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/directory'
+require 'rack/mock'
 
 describe Rack::Directory do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT

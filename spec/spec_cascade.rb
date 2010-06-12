@@ -1,4 +1,7 @@
-require 'rack'
+require 'rack/cascade'
+require 'rack/file'
+require 'rack/urlmap'
+require 'rack/mock'
 
 describe Rack::Cascade do
   docroot = File.expand_path(File.dirname(__FILE__))

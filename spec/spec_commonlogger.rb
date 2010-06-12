@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/commonlogger'
+require 'rack/mock'
 
 describe Rack::CommonLogger do
   obj = 'foobar'

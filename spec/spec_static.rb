@@ -1,4 +1,5 @@
-require 'rack'
+require 'rack/static'
+require 'rack/mock'
 
 class DummyApp
   def call(env)
