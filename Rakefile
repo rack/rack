@@ -1,7 +1,5 @@
 # Rakefile for Rack.  -*-ruby-*-
 require 'rake/rdoctask'
-require 'rake/testtask'
-
 
 desc "Run all the tests"
 task :default => [:test]
@@ -34,7 +32,7 @@ end
 desc "Make binaries executable"
 task :chmod do
   Dir["bin/*"].each { |binary| File.chmod(0775, binary) }
-  Dir["test/cgi/test*"].each { |binary| File.chmod(0775, binary) }
+  Dir["spec/cgi/spec*"].each { |binary| File.chmod(0775, binary) }
 end
 
 desc "Generate a ChangeLog"
@@ -69,12 +67,18 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)"'}"
+  opts     = ENV['TEST'] || '-a'
+  specopts = ENV['TESTOPTS'] ||
+    "-t '^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)'"
+
+  sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
 end
 
 desc "Run all the tests"
 task :fulltest => [:chmod] do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
+  opts     = ENV['TEST'] || '-a'
+  specopts = ENV['TESTOPTS']
+  sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
 end
 
 task :gem => ["SPEC"] do
