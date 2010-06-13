@@ -130,9 +130,9 @@ at my site:
 
 == Running the tests
 
-Testing Rack requires the test/spec testing framework:
+Testing Rack requires the bacon testing framework:
 
-    gem install test-spec
+    gem install bacon
 
 There are two rake-based test tasks:
 
@@ -140,11 +140,10 @@ There are two rake-based test tasks:
     rake fulltest   runs all the tests
 
 The fast testsuite has no dependencies outside of the core Ruby
-installation and test-spec.
+installation and bacon.
 
 To run the test suite completely, you need:
 
-  * camping
   * fcgi
   * memcache-client
   * mongrel
@@ -300,13 +299,14 @@ run on port 11211) and memcache-client installed.
   * Enforce binary encoding in RewindableInput
   * Set correct external_encoding for handlers that don't use RewindableInput
 
-* June XXth, 2010: Tenth public release 1.2.0.
+* June 13th, 2010: Tenth public release 1.2.0.
   * Removed Camping adapter: Camping 2.0 supports Rack as-is
   * Removed parsing of quoted values
   * Add Request.trace? and Request.options?
   * Add mime-type for .webm and .htc
   * Fix HTTP_X_FORWARDED_FOR
   * Various multipart fixes
+  * Switch test suite to bacon
 
 == Contact
 
