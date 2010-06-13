@@ -30,7 +30,7 @@ EOF
   s.homepage        = 'http://rack.rubyforge.org'
   s.rubyforge_project = 'rack'
 
-  s.add_development_dependency 'test-spec'
+  s.add_development_dependency 'bacon'
 
   s.add_development_dependency 'fcgi'
   s.add_development_dependency 'memcache-client'
