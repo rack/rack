@@ -63,7 +63,7 @@ describe Rack::Handler::CGI do
 
   should "have CGI headers on POST" do
     POST("/test", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
-    status.should == 200
+    status.should.equal 200
     response["REQUEST_METHOD"].should.equal "POST"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/"
@@ -79,7 +79,7 @@ describe Rack::Handler::CGI do
 
   should "set status" do
     GET("/test?secret")
-    status.should == 403
+    status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
   end
 

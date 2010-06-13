@@ -69,7 +69,7 @@ desc "Run all the fast tests"
 task :test do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] ||
-    "-t '^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)'"
+    "-q -t '^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)'"
 
   sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
 end
@@ -77,7 +77,7 @@ end
 desc "Run all the tests"
 task :fulltest => [:chmod] do
   opts     = ENV['TEST'] || '-a'
-  specopts = ENV['TESTOPTS']
+  specopts = ENV['TESTOPTS'] || '-q'
   sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
 end
 

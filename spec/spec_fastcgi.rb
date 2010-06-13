@@ -28,12 +28,12 @@ describe Rack::Handler::FastCGI do
 
   should "respond via rackup server" do
     GET("/sample_rackup.ru")
-    status.should == 200
+    status.should.equal 200
   end
 
   should "be a lighttpd" do
     GET("/test.fcgi")
-    status.should == 200
+    status.should.equal 200
     response["SERVER_SOFTWARE"].should =~ /lighttpd/
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
