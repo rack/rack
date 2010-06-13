@@ -61,6 +61,6 @@ describe Rack::ShowExceptions do
 
     res.body.should.include "RuntimeError"
     res.body.should.include "It was never supposed to work"
-    res.body.should.include __FILE__
+    res.body.should.include Rack::Utils.escape_html(__FILE__)
   end
 end

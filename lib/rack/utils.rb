@@ -132,8 +132,9 @@ module Rack
       "&" => "&amp;",
       "<" => "&lt;",
       ">" => "&gt;",
-      "'" => "&#39;",
+      "'" => "&#x27;",
       '"' => "&quot;",
+      "/" => "&#x2F;"
     }
     ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 

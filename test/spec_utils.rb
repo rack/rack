@@ -175,6 +175,17 @@ describe Rack::Utils do
       message.should.equal "value must be a Hash"
   end
 
+  should "should escape html entities [&><'\"/]" do
+    Rack::Utils.escape_html("foo").should.equal "foo"
+    Rack::Utils.escape_html("f&o").should.equal "f&amp;o"
+    Rack::Utils.escape_html("f<o").should.equal "f&lt;o"
+    Rack::Utils.escape_html("f>o").should.equal "f&gt;o"
+    Rack::Utils.escape_html("f'o").should.equal "f&#x27;o"
+    Rack::Utils.escape_html('f"o').should.equal "f&quot;o"
+    Rack::Utils.escape_html("f/o").should.equal "f&#x2F;o"
+    Rack::Utils.escape_html("<foo></foo>").should.equal "&lt;foo&gt;&lt;&#x2F;foo&gt;"
+  end
+
   should "figure out which encodings are acceptable" do
     helper = lambda do |a, b|
       request = Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
