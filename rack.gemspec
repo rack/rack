@@ -14,14 +14,14 @@ middleware) into a single method call.
 Also see http://rack.rubyforge.org.
 EOF
 
-  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
+  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,spec/**/*}'] +
                         %w(COPYING KNOWN-ISSUES rack.gemspec README SPEC)
   s.bindir          = 'bin'
   s.executables     << 'rackup'
   s.require_path    = 'lib'
   s.has_rdoc        = true
   s.extra_rdoc_files = ['README', 'SPEC', 'KNOWN-ISSUES']
-  s.test_files      = Dir['test/{test,spec}_*.rb']
+  s.test_files      = Dir['spec/spec_*.rb']
 
   s.author          = 'Christian Neukirchen'
   s.email           = 'chneukirchen@gmail.com'
@@ -29,6 +29,7 @@ EOF
   s.rubyforge_project = 'rack'
 
   s.add_development_dependency 'bacon'
+  s.add_development_dependency 'rake'
 
   s.add_development_dependency 'fcgi'
   s.add_development_dependency 'memcache-client'
