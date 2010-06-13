@@ -128,13 +128,18 @@ module Rack
     end
     module_function :build_nested_query
 
+    ESCAPE_HTML = {
+      "&" => "&amp;",
+      "<" => "&lt;",
+      ">" => "&gt;",
+      "'" => "&#39;",
+      '"' => "&quot;",
+    }
+    ESCAPE_HTML_PATTERN = Regexp.union(ESCAPE_HTML.keys)
+
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
-      string.to_s.gsub("&", "&amp;").
-        gsub("<", "&lt;").
-        gsub(">", "&gt;").
-        gsub("'", "&#39;").
-        gsub('"', "&quot;")
+      string.to_s.gsub(ESCAPE_HTML_PATTERN){|c| ESCAPE_HTML[c] }
     end
     module_function :escape_html
 
