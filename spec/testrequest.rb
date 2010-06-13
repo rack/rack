@@ -2,10 +2,15 @@ require 'yaml'
 require 'net/http'
 
 class TestRequest
+  NOSERIALIZE = [Method, Proc]
+
   def call(env)
     status = env["QUERY_STRING"] =~ /secret/ ? 403 : 200
     env["test.postdata"] = env["rack.input"].read
-    body = env.to_yaml
+    minienv = env.dup
+    # This may in the future want to replace with a dummy value instead.
+    minienv.delete_if { |k,v| NOSERIALIZE.any? { |c| v.kind_of?(c) } }
+    body = minienv.to_yaml
     size = body.respond_to?(:bytesize) ? body.bytesize : body.size
     [status, {"Content-Type" => "text/yaml", "Content-Length" => size.to_s}, [body]]
   end
