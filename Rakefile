@@ -25,8 +25,7 @@ task :officialrelease_really => ["SPEC", :dist, :gem] do
 end
 
 def release
-  require File.dirname(__FILE__) + "/lib/rack"
-  "rack-#{Rack.release}.0"
+  "rack-#{File.read("rack.gemspec")[/s.version *= *"(.*?)"/, 1]}"
 end
 
 desc "Make binaries executable"
