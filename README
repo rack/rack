@@ -308,6 +308,11 @@ run on port 11211) and memcache-client installed.
   * Various multipart fixes
   * Switch test suite to bacon
 
+* June 15th, 2010: Eleventh public release 1.2.1.
+  * Make CGI handler rewindable
+  * Rename spec/ to test/ to not conflict with SPEC on lesser
+    operating systems
+
 == Contact
 
 Please post bugs, suggestions and patches to
