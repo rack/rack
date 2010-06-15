@@ -32,7 +32,7 @@ end
 desc "Make binaries executable"
 task :chmod do
   Dir["bin/*"].each { |binary| File.chmod(0775, binary) }
-  Dir["spec/cgi/spec*"].each { |binary| File.chmod(0775, binary) }
+  Dir["test/cgi/test*"].each { |binary| File.chmod(0775, binary) }
 end
 
 desc "Generate a ChangeLog"
@@ -71,14 +71,14 @@ task :test do
   specopts = ENV['TESTOPTS'] ||
     "-q -t '^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)'"
 
-  sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
+  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
 end
 
 desc "Run all the tests"
 task :fulltest => [:chmod] do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] || '-q'
-  sh "bacon -I./lib:./spec -w #{opts} #{specopts}"
+  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
 end
 
 task :gem => ["SPEC"] do
