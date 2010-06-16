@@ -24,6 +24,9 @@ begin
       incrementor.call(env)
     end
 
+    # test memcache connection
+    Rack::Session::Memcache.new(incrementor)
+
     it "faults on no connection" do
       if RUBY_VERSION < "1.9"
         lambda{
