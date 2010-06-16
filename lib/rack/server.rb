@@ -69,7 +69,7 @@ module Rack
           end
 
           opts.on_tail("--version", "Show version") do
-            puts "Rack #{Rack.version}  Release: #{Rack.release}"
+            puts "Rack #{Rack.version} (Release: #{Rack.release})"
             exit
           end
         end
