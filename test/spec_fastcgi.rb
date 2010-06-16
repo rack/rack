@@ -1,3 +1,4 @@
+begin
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/fastcgi'
 
@@ -6,6 +7,10 @@ describe Rack::Handler::FastCGI do
 
   @host = '0.0.0.0'
   @port = 9203
+
+  if `which lighttpd` && !$?.success?
+    raise "lighttpd not found"
+  end
 
   # Keep this first.
   $pid = fork {
@@ -93,4 +98,10 @@ describe Rack::Handler::FastCGI do
     Process.kill 15, $pid
     Process.wait($pid).should.equal $pid
   end
+end
+
+rescue RuntimeError
+  $stderr.puts "Skipping Rack::Session::FastCGI tests (lighttpd is required). Install lighttpd and try again."
+rescue LoadError
+  $stderr.puts "Skipping Rack::Handler::FastCGI tests (FCGI is required). `gem install fcgi` and try again."
 end
