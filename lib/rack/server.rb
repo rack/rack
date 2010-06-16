@@ -144,7 +144,7 @@ module Rack
 
     def default_options
       {
-        :environment => "development",
+        :environment => ENV['RACK_ENV'] || "development",
         :pid         => nil,
         :Port        => 9292,
         :Host        => "0.0.0.0",
