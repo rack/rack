@@ -177,7 +177,6 @@ describe Rack::Handler::Mongrel do
   @acc.raise Mongrel::StopServer
 end
 
-rescue LoadError => ex
-  warn ex
+rescue LoadError
   warn "Skipping Rack::Handler::Mongrel tests (Mongrel is required). `gem install mongrel` and try again."
 end
