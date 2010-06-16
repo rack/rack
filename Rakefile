@@ -68,7 +68,7 @@ desc "Run all the fast tests"
 task :test do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] ||
-    "-q -t '^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)'"
+    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|rackup)'"
 
   sh "bacon -I./lib:./test -w #{opts} #{specopts}"
 end

@@ -6,9 +6,17 @@ class RockLobster; end
 describe Rack::Handler do
   it "has registered default handlers" do
     Rack::Handler.get('cgi').should.equal Rack::Handler::CGI
-    Rack::Handler.get('fastcgi').should.equal Rack::Handler::FastCGI
-    Rack::Handler.get('mongrel').should.equal Rack::Handler::Mongrel
     Rack::Handler.get('webrick').should.equal Rack::Handler::WEBrick
+
+    begin
+      Rack::Handler.get('fastcgi').should.equal Rack::Handler::FastCGI
+    rescue LoadError
+    end
+
+    begin
+      Rack::Handler.get('mongrel').should.equal Rack::Handler::Mongrel
+    rescue LoadError
+    end
   end
 
   should "raise NameError if handler doesn't exist" do
