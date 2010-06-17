@@ -135,7 +135,7 @@ module Rack
       "'" => "&#39;",
       '"' => "&quot;",
     }
-    ESCAPE_HTML_PATTERN = Regexp.union(ESCAPE_HTML.keys)
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
