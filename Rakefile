@@ -1,7 +1,5 @@
 # Rakefile for Rack.  -*-ruby-*-
 require 'rake/rdoctask'
-require 'rake/testtask'
-
 
 desc "Run all the tests"
 task :default => [:test]
@@ -27,8 +25,7 @@ task :officialrelease_really => ["SPEC", :dist, :gem] do
 end
 
 def release
-  require File.dirname(__FILE__) + "/lib/rack"
-  "rack-#{Rack.release}.0"
+  "rack-#{File.read("rack.gemspec")[/s.version *= *"(.*?)"/, 1]}"
 end
 
 desc "Make binaries executable"
@@ -69,12 +66,18 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)"'}"
+  opts     = ENV['TEST'] || '-a'
+  specopts = ENV['TESTOPTS'] ||
+    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|rackup)'"
+
+  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
 end
 
 desc "Run all the tests"
 task :fulltest => [:chmod] do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
+  opts     = ENV['TEST'] || '-a'
+  specopts = ENV['TESTOPTS'] || '-q'
+  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
 end
 
 task :gem => ["SPEC"] do

@@ -1,6 +1,5 @@
-#!/usr/bin/env ruby -I ../../lib ../../bin/rackup -E deployment -I ../../lib
+#!../../bin/rackup
 # -*- ruby -*-
 
 require '../testrequest'
-
 run TestRequest.new

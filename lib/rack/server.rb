@@ -69,7 +69,7 @@ module Rack
           end
 
           opts.on_tail("--version", "Show version") do
-            puts "Rack #{Rack.version}"
+            puts "Rack #{Rack.version} (Release: #{Rack.release})"
             exit
           end
         end
@@ -144,7 +144,7 @@ module Rack
 
     def default_options
       {
-        :environment => "development",
+        :environment => ENV['RACK_ENV'] || "development",
         :pid         => nil,
         :Port        => 9292,
         :Host        => "0.0.0.0",

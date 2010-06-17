@@ -1,5 +1,6 @@
 require 'rack/request'
 require 'rack/utils'
+require 'time'
 
 module Rack
   # Rack::Response provides a convenient interface to create a Rack
