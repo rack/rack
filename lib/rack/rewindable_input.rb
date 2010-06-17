@@ -77,7 +77,8 @@ module Rack
       @rewindable_io.set_encoding(Encoding::BINARY) if @rewindable_io.respond_to?(:set_encoding)
       @rewindable_io.binmode
       if filesystem_has_posix_semantics?
-        @rewindable_io.unlink
+        # Use ::File.unlink as 1.9.1 Tempfile has a bug where unlink closes the file!
+        ::File.unlink @rewindable_io.path
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
