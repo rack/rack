@@ -136,6 +136,7 @@ module Rack
     #     require the given libraries
     def initialize(options = nil)
       @options = options
+      @app = options[:app] if options && options[:app]
     end
 
     def options
