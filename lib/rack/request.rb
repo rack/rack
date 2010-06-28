@@ -25,7 +25,6 @@ module Rack
     def scheme;          @env["rack.url_scheme"]                  end
     def script_name;     @env["SCRIPT_NAME"].to_s                 end
     def path_info;       @env["PATH_INFO"].to_s                   end
-    def port;            @env["SERVER_PORT"].to_i                 end
     def request_method;  @env["REQUEST_METHOD"]                   end
     def query_string;    @env["QUERY_STRING"].to_s                end
     def content_length;  @env['CONTENT_LENGTH']                   end
@@ -70,6 +69,12 @@ module Rack
       else
         @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
       end
+    end
+    
+    def port
+      host, port = host_with_port.split(/:/)
+      
+      (port || @env["SERVER_PORT"]).to_i
     end
 
     def host
