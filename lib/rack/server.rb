@@ -179,14 +179,6 @@ module Rack
     end
 
     def start
-      if options[:debug]
-        $DEBUG = true
-        require 'pp'
-        p options[:server]
-        pp wrapped_app
-        pp app
-      end
-
       if options[:warn]
         $-w = true
       end
@@ -197,6 +189,14 @@ module Rack
 
       if library = options[:require]
         require library
+      end
+
+      if options[:debug]
+        $DEBUG = true
+        require 'pp'
+        p options[:server]
+        pp wrapped_app
+        pp app
       end
 
       daemonize_app if options[:daemonize]
