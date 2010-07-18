@@ -12,4 +12,10 @@ describe Rack::ETag do
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.equal "\"abc\""
   end
+
+  should "not set ETag if Last-Modified is set" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Last-Modified' => Time.now.httpdate}, ["Hello, World!"]] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['ETag'].should.be.nil
+  end
 end

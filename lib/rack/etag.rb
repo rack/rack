@@ -10,7 +10,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
 
-      if !headers.has_key?('ETag')
+      if !headers.key?('ETag') && !headers.key?('Last-Modified')
         digest, body = digest_body(body)
         headers['ETag'] = %("#{digest}")
       end
