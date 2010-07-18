@@ -24,7 +24,7 @@ module Rack
 
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      if etag_matches?(env, headers) || modified_since?(env, headers)
+      if fresh?(env, headers)
         status = 304
         headers.delete('Content-Type')
         headers.delete('Content-Length')
@@ -34,14 +34,30 @@ module Rack
     end
 
   private
-    def etag_matches?(env, headers)
-      etag = headers['Etag'] and etag == env['HTTP_IF_NONE_MATCH']
+
+    def fresh?(env, headers)
+      modified_since = env['HTTP_IF_MODIFIED_SINCE']
+      none_match     = env['HTTP_IF_NONE_MATCH']
+
+      return false unless modified_since || none_match
+
+      success = true
+      success &&= modified_since?(to_rfc2822(modified_since), headers) if modified_since
+      success &&= etag_matches?(none_match, headers) if none_match
+      success
     end
 
-    def modified_since?(env, headers)
-      last_modified = headers['Last-Modified'] and
-        last_modified == env['HTTP_IF_MODIFIED_SINCE']
+    def etag_matches?(none_match, headers)
+      etag = headers['Etag'] and etag == none_match
+    end
+
+    def modified_since?(modified_since, headers)
+      last_modified = to_rfc2822(headers['Last-Modified']) and
+        modified_since >= last_modified
+    end
+
+    def to_rfc2822(since)
+      Time.rfc2822(since) rescue nil
     end
   end
-
 end
