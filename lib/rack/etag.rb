@@ -3,9 +3,9 @@ require 'digest/md5'
 module Rack
   # Automatically sets the ETag header on all String bodies.
   #
-  # The ETag header is skipped if ETag or Last-Modified headers
-  # are sent or if a sendfile body (responds_to :path) is given
-  # (since such cases should be handled by apacha/nginx).
+  # The ETag header is skipped if ETag or Last-Modified headers are sent or if
+  # a sendfile body (body.responds_to :to_path) is given (since such cases
+  # should be handled by apache/nginx).
   class ETag
     def initialize(app)
       @app = app
