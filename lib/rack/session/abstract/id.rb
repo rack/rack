@@ -115,6 +115,11 @@ module Rack
           options = env['rack.session.options']
           session_id = options[:id]
 
+          if options[:drop] || options[:renew]
+            session_id = destroy_session(env, session_id, options)
+            return [status, headers, body] unless session_id
+          end
+
           if not data = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
@@ -151,8 +156,16 @@ module Rack
         # All thread safety and session storage proceedures should occur here.
         # Should return true or false dependant on whether or not the session
         # was saved or not.
+
         def set_session(env, sid, session, options)
           raise '#set_session not implemented.'
+        end
+
+        # All thread safety and session destroy proceedures should occur here.
+        # Should return a new session id or nil if options[:drop]
+
+        def destroy_session(env, sid, options)
+          raise '#destroy_session not implemented'
         end
       end
     end

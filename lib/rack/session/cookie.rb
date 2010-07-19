@@ -50,6 +50,12 @@ module Rack
         env["rack.session.options"] = @default_options.dup
       end
 
+      # Overwrite set cookie to bypass content equality and always stream the cookie.
+
+      def set_cookie(env, headers, cookie)
+        Utils.set_cookie_header!(headers, @key, cookie)
+      end
+
       def set_session(env, session_id, session, options)
         session_data = [Marshal.dump(session)].pack("m*")
 
@@ -65,10 +71,9 @@ module Rack
         end
       end
 
-      # Overwrite set cookie to bypass content equality and always stream the cookie.
-
-      def set_cookie(env, headers, cookie)
-        Utils.set_cookie_header!(headers, @key, cookie)
+      def destroy_session(env, session_id, options)
+        # Nothing to do here, data is in the client
+        generate_sid unless options[:drop]
       end
 
       def generate_hmac(data)

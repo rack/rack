@@ -42,59 +42,38 @@ module Rack
       end
 
       def get_session(env, sid)
-        session = @pool[sid] if sid
-        @mutex.lock if env['rack.multithread']
-        unless sid and session
-          env['rack.errors'].puts("Session '#{sid.inspect}' not found, initializing...") if $VERBOSE and not sid.nil?
-          session = {}
-          sid = generate_sid
-          @pool.store sid, session
+        with_lock(env, [nil, {}]) do
+          unless sid and session = @pool[sid]
+            sid, session = generate_sid, {}
+            @pool.store sid, session
+          end
+          [sid, session]
         end
-        session.instance_variable_set('@old', {}.merge(session))
-        return [sid, session]
-      ensure
-        @mutex.unlock if env['rack.multithread']
       end
 
       def set_session(env, session_id, new_session, options)
+        with_lock(env, false) do
+          @pool.store session_id, new_session
+          session_id
+        end
+      end
+
+      def destroy_session(env, session_id, options)
+        with_lock(env) do
+          @pool.delete(session_id)
+          generate_sid unless options[:drop]
+        end
+      end
+
+      def with_lock(env, default=nil)
         @mutex.lock if env['rack.multithread']
-        session = @pool[session_id]
-        if options[:renew] or options[:drop]
-          @pool.delete session_id
-          return false if options[:drop]
-          session_id = generate_sid
-          @pool.store session_id, 0
-        end
-        old_session = new_session.instance_variable_get('@old') || {}
-        session = merge_sessions session_id, old_session, new_session, session
-        @pool.store session_id, session
-        return session_id
+        yield
       rescue
-        warn "#{new_session.inspect} has been lost."
-        warn $!.inspect
+        default
       ensure
-        @mutex.unlock if env['rack.multithread']
+        @mutex.unlock if @mutex.locked?
       end
 
-      private
-
-      def merge_sessions sid, old, new, cur=nil
-        cur ||= {}
-        unless Hash === old and Hash === new
-          warn 'Bad old or new sessions provided.'
-          return cur
-        end
-
-        delete = old.keys - new.keys
-        warn "//@#{sid}: dropping #{delete*','}" if $DEBUG and not delete.empty?
-        delete.each{|k| cur.delete k }
-
-        update = new.keys.select{|k| new[k] != old[k] }
-        warn "//@#{sid}: updating #{update*','}" if $DEBUG and not update.empty?
-        update.each{|k| cur[k] = new[k] }
-
-        cur
-      end
     end
   end
 end

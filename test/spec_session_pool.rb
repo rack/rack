@@ -83,7 +83,7 @@ describe Rack::Session::Pool do
     pool.pool.size.should.equal 1
 
     res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
-    res2["Set-Cookie"].should.equal nil
+    res2["Set-Cookie"].should.be.nil
     res2.body.should.equal '{"counter"=>2}'
     pool.pool.size.should.equal 0
 
