@@ -1,11 +1,6 @@
 require 'rack/file'
 
 module Rack
-  class File #:nodoc:
-    unless instance_methods(false).include?('to_path')
-      alias :to_path :path
-    end
-  end
 
   # = Sendfile
   #
