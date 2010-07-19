@@ -1,6 +1,7 @@
 require 'openssl'
 require 'rack/request'
 require 'rack/response'
+require 'rack/session/abstract/id'
 
 module Rack
 
@@ -21,21 +22,10 @@ module Rack
     #
     #     All parameters are optional.
 
-    class Cookie
-
+    class Cookie < Abstract::ID
       def initialize(app, options={})
-        @app = app
-        @key = options[:key] || "rack.session"
-        @secret = options[:secret]
-        @default_options = {:domain => nil,
-          :path => "/",
-          :expire_after => nil}.merge(options)
-      end
-
-      def call(env)
-        load_session(env)
-        status, headers, body = @app.call(env)
-        commit_session(env, status, headers, body)
+        @secret = options.delete(:secret)
+        super
       end
 
       private
@@ -60,25 +50,25 @@ module Rack
         env["rack.session.options"] = @default_options.dup
       end
 
-      def commit_session(env, status, headers, body)
-        session_data = Marshal.dump(env["rack.session"])
-        session_data = [session_data].pack("m*")
+      def set_session(env, session_id, session, options)
+        session_data = [Marshal.dump(session)].pack("m*")
 
         if @secret
           session_data = "#{session_data}--#{generate_hmac(session_data)}"
         end
 
         if session_data.size > (4096 - @key.size)
-          env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K. Content dropped.")
+          env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
+          nil
         else
-          options = env["rack.session.options"]
-          cookie = Hash.new
-          cookie[:value] = session_data
-          cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?
-          Utils.set_cookie_header!(headers, @key, cookie.merge(options))
+          session_data
         end
+      end
 
-        [status, headers, body]
+      # Overwrite set cookie to bypass content equality and always stream the cookie.
+
+      def set_cookie(env, headers, cookie)
+        Utils.set_cookie_header!(headers, @key, cookie)
       end
 
       def generate_hmac(data)

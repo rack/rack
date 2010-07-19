@@ -44,7 +44,8 @@ module Rack
           :httponly =>      true,
           :defer =>         false,
           :renew =>         false,
-          :sidbits =>       128
+          :sidbits =>       128,
+          :cookie_only =>   true
         }
 
         attr_reader :key, :default_options
@@ -52,6 +53,7 @@ module Rack
           @app = app
           @key = options[:key] || "rack.session"
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
+          @cookie_only = @default_options.delete(:cookie_only)
         end
 
         def call(env)
@@ -81,8 +83,7 @@ module Rack
         # 'rack.session.options'.
 
         def load_session(env)
-          request = Rack::Request.new(env)
-          session_id = request.cookies[@key]
+          session_id = extract_session_id(env)
 
           begin
             session_id, session = get_session(env, session_id)
@@ -95,6 +96,15 @@ module Rack
             merge(:id => session_id)
         end
 
+        # Extract session id from request object.
+
+        def extract_session_id(env)
+          request = Rack::Request.new(env)
+          sid = request.cookies[@key]
+          sid ||= request.params[@key] unless @cookie_only
+          sid
+        end
+
         # Acquires the session from the environment and the session id from
         # the session options and passes them to #set_session. If successful
         # and the :defer option is not true, a cookie will be added to the
@@ -105,18 +115,28 @@ module Rack
           options = env['rack.session.options']
           session_id = options[:id]
 
-          if not session_id = set_session(env, session_id, session, options)
+          if not data = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
             env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
-            cookie[:value] = session_id
-            cookie[:expires] = Time.now + options[:expire_after] unless options[:expire_after].nil?
-            Utils.set_cookie_header!(headers, @key, cookie.merge(options))
+            cookie[:value] = data
+            cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
+            set_cookie(env, headers, cookie.merge!(options))
           end
 
           [status, headers, body]
+        end
+
+        # Sets the cookie back to the client with session id. We skip the cookie
+        # setting if the value didn't change (sid is the same) or expires was given.
+
+        def set_cookie(env, headers, cookie)
+          request = Rack::Request.new(env)
+          if request.cookies[@key] != cookie[:value] || cookie[:expires]
+            Utils.set_cookie_header!(headers, @key, cookie)
+          end
         end
 
         # All thread safety and session retrival proceedures should occur here.

@@ -105,7 +105,7 @@ module Rack
         end
 
         @pool.set session_id, session, expiry
-        return session_id
+        session_id
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
         # MemCache server cannot be contacted
         warn "#{self} is unable to find memcached server."
