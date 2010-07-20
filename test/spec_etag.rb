@@ -7,8 +7,14 @@ describe Rack::ETag do
     res
   end
 
-  should "set ETag if none is set" do
+  should "set ETag if none is set if status is 200" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['ETag'].should.equal "\"65a8e27d8879283831b664bd8b7f0ad4\""
+  end
+
+  should "set ETag if none is set if status is 201" do
+    app = lambda { |env| [201, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.equal "\"65a8e27d8879283831b664bd8b7f0ad4\""
   end
@@ -27,6 +33,12 @@ describe Rack::ETag do
 
   should "not set ETag if a sendfile_body is given" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, sendfile_body] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['ETag'].should.be.nil
+  end
+
+  should "not set ETag if a status is not 200 or 201" do
+    app = lambda { |env| [401, {'Content-Type' => 'text/plain'}, ['Access denied.']] }
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.be.nil
   end

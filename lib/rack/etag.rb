@@ -14,7 +14,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
 
-      if !body.respond_to?(:to_path) && !headers.key?('ETag') && !headers.key?('Last-Modified')
+      if etag_status?(status) && !body.respond_to?(:to_path) && !http_caching?(headers)
         digest, body = digest_body(body)
         headers['ETag'] = %("#{digest}")
       end
@@ -23,6 +23,15 @@ module Rack
     end
 
     private
+
+      def etag_status?(status)
+        status == 200 || status == 201
+      end
+
+      def http_caching?(headers)
+        headers.key?('ETag') || headers.key?('Last-Modified')
+      end
+
       def digest_body(body)
         digest = Digest::MD5.new
         parts = []
