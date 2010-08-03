@@ -232,7 +232,7 @@ module Rack
     end
     module_function :delete_cookie_header!
 
-    # Return the bytesize of String; uses String#length under Ruby 1.8 and
+    # Return the bytesize of String; uses String#size under Ruby 1.8 and
     # String#bytesize under 1.9.
     if ''.respond_to?(:bytesize)
       def bytesize(string)

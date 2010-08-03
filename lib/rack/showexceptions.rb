@@ -23,11 +23,33 @@ module Rack
     def call(env)
       @app.call(env)
     rescue StandardError, LoadError, SyntaxError => e
-      backtrace = pretty(env, e)
+      exception_string = dump_exception(e)
+
+      env["rack.errors"].puts(exception_string)
+      env["rack.errors"].flush
+
+      if prefers_plain_text?(env)
+        content_type = "text/plain"
+        body = [exception_string]
+      else
+        content_type = "text/html"
+        body = pretty(env, e)
+      end
+
       [500,
-       {"Content-Type" => "text/html",
-        "Content-Length" => backtrace.join.size.to_s},
-       backtrace]
+       {"Content-Type" => content_type,
+        "Content-Length" => Rack::Utils.bytesize(body.join).to_s},
+       body]
+    end
+
+    def prefers_plain_text?(env)
+      env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" && (!env["HTTP_ACCEPT"] || !env["HTTP_ACCEPT"].include?("text/html"))
+    end
+
+    def dump_exception(exception)
+      string = "#{exception.class}: #{exception.message}\n"
+      string << exception.backtrace.map { |l| "\t#{l}" }.join("\n")
+      string
     end
 
     def pretty(env, exception)
@@ -57,10 +79,6 @@ module Rack
           nil
         end
       }.compact
-
-      env["rack.errors"].puts "#{exception.class}: #{exception.message}"
-      env["rack.errors"].puts exception.backtrace.map { |l| "\t" + l }
-      env["rack.errors"].flush
 
       [@template.result(binding)]
     end
