@@ -202,6 +202,24 @@ describe Rack::Request do
     req.user_agent.should.equal nil
   end
 
+  should "treat missing content type as nil" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/")
+    req.content_type.should.equal nil
+  end
+
+  should "treat empty content type as nil" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
+    req.content_type.should.equal nil
+  end
+
+  should "return nil media type for empty content type" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
+    req.media_type.should.equal nil
+  end
+
   should "cache, but invalidates the cache" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux",
