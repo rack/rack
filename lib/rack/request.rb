@@ -28,7 +28,12 @@ module Rack
     def request_method;  @env["REQUEST_METHOD"]                   end
     def query_string;    @env["QUERY_STRING"].to_s                end
     def content_length;  @env['CONTENT_LENGTH']                   end
-    def content_type;    @env['CONTENT_TYPE']                     end
+
+    def content_type
+      content_type = @env['CONTENT_TYPE']
+      content_type.nil? || content_type.empty? ? nil : content_type
+    end
+
     def session;         @env['rack.session'] ||= {}              end
     def session_options; @env['rack.session.options'] ||= {}      end
     def logger;          @env['rack.logger']                      end
