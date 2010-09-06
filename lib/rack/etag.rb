@@ -7,8 +7,11 @@ module Rack
   # a sendfile body (body.responds_to :to_path) is given (since such cases
   # should be handled by apache/nginx).
   class ETag
-    def initialize(app)
+    DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
+
+    def initialize(app, cache_control = DEFAULT_CACHE_CONTROL)
       @app = app
+      @cache_control = cache_control
     end
 
     def call(env)
@@ -17,6 +20,7 @@ module Rack
       if etag_status?(status) && !body.respond_to?(:to_path) && !http_caching?(headers)
         digest, body = digest_body(body)
         headers['ETag'] = %("#{digest}")
+        headers['Cache-Control'] = @cache_control unless headers['Cache-Control']
       end
 
       [status, headers, body]

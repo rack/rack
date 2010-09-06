@@ -19,6 +19,24 @@ describe Rack::ETag do
     response[1]['ETag'].should.equal "\"65a8e27d8879283831b664bd8b7f0ad4\""
   end
 
+  should "set Cache-Control to 'max-age=0, private, must-revalidate' (default) if none is set" do
+    app = lambda { |env| [201, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['Cache-Control'].should.equal 'max-age=0, private, must-revalidate'
+  end
+
+  should "set Cache-Control to chosen one if none is set" do
+    app = lambda { |env| [201, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
+    response = Rack::ETag.new(app, 'public').call({})
+    response[1]['Cache-Control'].should.equal 'public'
+  end
+
+  should "not set Cache-Control if it is already set" do
+    app = lambda { |env| [201, {'Content-Type' => 'text/plain', 'Cache-Control' => 'public'}, ["Hello, World!"]] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['Cache-Control'].should.equal 'public'
+  end
+
   should "not change ETag if it is already set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'ETag' => '"abc"'}, ["Hello, World!"]] }
     response = Rack::ETag.new(app).call({})
