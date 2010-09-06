@@ -71,4 +71,16 @@ describe Rack::ConditionalGet do
     response.status.should.equal 200
     response.body.should.equal 'TEST'
   end
+
+  should "not affect non-200 requests" do
+    app = Rack::ConditionalGet.new(lambda { |env|
+      [302, {'Etag'=>'1234'}, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => '1234')
+
+    response.status.should.equal 302
+    response.body.should.equal 'TEST'
+  end
+
 end
