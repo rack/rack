@@ -230,6 +230,7 @@ module Rack
         args.clear if ENV.include?("REQUEST_METHOD")
 
         options.merge! opt_parser.parse! args
+        options[:config] = ::File.expand_path(options[:config])
         ENV["RACK_ENV"] = options[:environment]
         options
       end
