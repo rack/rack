@@ -96,5 +96,7 @@ describe Rack::Handler::CGI do
 end
 
 rescue RuntimeError
-  $stderr.puts "Skipping Rack::Session::FastCGI tests (lighttpd is required). Install lighttpd and try again."
+  $stderr.puts "Skipping Rack::Handler::CGI tests (lighttpd is required). Install lighttpd and try again."
+rescue NotImplementedError
+  $stderr.puts "Your Ruby implemenation or platform does not support fork. Skipping Rack::Handler::CGI tests."
 end
