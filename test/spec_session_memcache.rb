@@ -188,7 +188,7 @@ begin
         else
           session[:f][:g][:h] = :j
         end
-        [200, {}, session.inspect]
+        [200, {}, [session.inspect]]
       end
       pool = Rack::Session::Memcache.new(hash_check)
       req = Rack::MockRequest.new(pool)
