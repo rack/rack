@@ -1,8 +1,9 @@
 require 'yaml'
 require 'net/http'
+require 'rack/lint'
 
 class TestRequest
-  NOSERIALIZE = [Method, Proc]
+  NOSERIALIZE = [Method, Proc, Rack::Lint::InputWrapper]
 
   def call(env)
     status = env["QUERY_STRING"] =~ /secret/ ? 403 : 200
