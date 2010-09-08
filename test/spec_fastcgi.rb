@@ -101,7 +101,7 @@ describe Rack::Handler::FastCGI do
 end
 
 rescue RuntimeError
-  $stderr.puts "Skipping Rack::Session::FastCGI tests (lighttpd is required). Install lighttpd and try again."
+  $stderr.puts "Skipping Rack::Handler::FastCGI tests (lighttpd is required). Install lighttpd and try again."
 rescue LoadError
   $stderr.puts "Skipping Rack::Handler::FastCGI tests (FCGI is required). `gem install fcgi` and try again."
 end
