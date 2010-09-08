@@ -28,15 +28,9 @@ begin
     Rack::Session::Memcache.new(incrementor)
 
     it "faults on no connection" do
-      if RUBY_VERSION < "1.9"
-        lambda{
-          Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
-        }.should.raise
-      else
-        lambda{
-          Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
-        }.should.raise ArgumentError
-      end
+      lambda{
+        Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
+      }.should.raise
     end
 
     it "connects to existing server" do
