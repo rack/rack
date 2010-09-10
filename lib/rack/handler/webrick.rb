@@ -56,9 +56,9 @@ module Rack
             if k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
-              vs.split("\n").each { |v|
-                res[k] = v
-              }
+              # Since WEBrick won't accept repeated headers,
+              # merge the values per RFC 1945 section 4.2.
+              res[k] = vs.split("\n").join(", ")
             end
           }
           body.each { |part|

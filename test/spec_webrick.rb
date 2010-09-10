@@ -118,5 +118,23 @@ describe Rack::Handler::WEBrick do
     @s.shutdown
   end
 
+  should "return repeated headers" do
+    @server.mount "/headers", Rack::Handler::WEBrick,
+    Rack::Lint.new(lambda { |req|
+        [
+          401,
+          { "Content-Type" => "text/plain",
+            "WWW-Authenticate" => "Bar realm=X\nBaz realm=Y" },
+          [""]
+        ]
+      })
+
+    Net::HTTP.start(@host, @port) { |http|
+      res = http.get("/headers")
+      res.code.to_i.should.equal 401
+      res["www-authenticate"].should.equal "Bar realm=X, Baz realm=Y"
+    }
+  end
+
   @server.shutdown
 end
