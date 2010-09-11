@@ -25,14 +25,21 @@ module Rack
 
     def call(env)
       path = env["PATH_INFO"]
-      can_serve = @urls.any? { |url| path.index(url) == 0 }
-
+      
+      unless @urls.kind_of? Hash
+        can_serve = @urls.any? { |url| path.index(url) == 0 }
+      else
+        can_serve = @urls.key? path
+      end
+      
       if can_serve
+        env["PATH_INFO"] = @urls[path] if @urls.kind_of? Hash
         @file_server.call(env)
       else
         @app.call(env)
       end
     end
+    
 
   end
 end
