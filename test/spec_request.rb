@@ -68,6 +68,14 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org")
     req.port.should.equal 80
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_SSL" => "on")
+    req.port.should.equal 443
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_PORT" => "9393")
+    req.port.should.equal 9393
   end
 
   should "parse the query string" do

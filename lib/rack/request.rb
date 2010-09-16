@@ -70,11 +70,13 @@ module Rack
         @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
       end
     end
-    
+
     def port
-      host, port = host_with_port.split(/:/)
-      
-      (port || @env["SERVER_PORT"]).to_i
+      (host_with_port.split(/:/)[1] or if @env["HTTP_X_FORWARDED_HOST"]
+        @env["HTTP_X_FORWARDED_PORT"] or @env["HTTP_X_FORWARDED_SSL"] == "on" ? 443 : 80
+      else
+        @env["SERVER_PORT"]
+      end).to_i
     end
 
     def host
