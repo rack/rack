@@ -189,9 +189,9 @@ module Rack
       keys.map{|key| params[key] }
     end
 
-    # the referer of the client or '/'
+    # the referer of the client
     def referer
-      @env['HTTP_REFERER'] || '/'
+      @env['HTTP_REFERER']
     end
     alias referrer referer
 
