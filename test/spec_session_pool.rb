@@ -12,6 +12,14 @@ describe Rack::Session::Pool do
     Rack::Response.new(env["rack.session"].inspect).to_a
   end
 
+  session_id = lambda do |env|
+    Rack::Response.new(env["rack.session"].inspect).to_a
+  end
+
+  nothing = lambda do |env|
+    Rack::Response.new("Nothing").to_a
+  end
+
   drop_session = lambda do |env|
     env['rack.session.options'][:drop] = true
     incrementor.call(env)
@@ -170,5 +178,23 @@ describe Rack::Session::Pool do
     session = pool.pool[sess_id]
     session.size.should.equal tnum+1 # counter
     session['counter'].should.equal 2 # meeeh
+  end
+
+  it "does not return a cookie if cookie was not read/written" do
+    app = Rack::Session::Cookie.new(nothing)
+    res = Rack::MockRequest.new(app).get("/")
+    res["Set-Cookie"].should.be.nil
+  end
+
+  it "does not return a cookie if cookie was not written (only read)" do
+    app = Rack::Session::Cookie.new(session_id)
+    res = Rack::MockRequest.new(app).get("/")
+    res["Set-Cookie"].should.be.nil
+  end
+
+  it "returns even if not read/written if :expire_after is set" do
+    app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
+    res = Rack::MockRequest.new(app).get("/")
+    res["Set-Cookie"].should.not.be.nil
   end
 end

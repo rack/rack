@@ -229,6 +229,20 @@ describe Rack::Request do
     req.should.be.xhr
   end
 
+  should "figure out if using ssl" do
+    request = Rack::Request.new(Rack::MockRequest.env_for("/"))
+    request.should.not.be.ssl?
+
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTPS' => 'on'))
+    request.should.be.ssl?
+
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8080'))
+    request.should.not.be.ssl?
+
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8443', 'HTTPS' => 'on'))
+    request.should.be.ssl?
+  end
+
   should "parse cookies" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")

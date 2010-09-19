@@ -25,12 +25,26 @@ module Rack
     class Cookie < Abstract::ID
       def initialize(app, options={})
         @secret = options.delete(:secret)
-        super
+        super(app, options.merge!(:cookie_only => true))
       end
 
       private
 
       def load_session(env)
+        data = unpacked_cookie_data(env)
+        data = persistent_session_id!(data)
+        [data["session_id"], data]
+      end
+
+      def extract_session_id(env)
+        if data = unpacked_cookie_data(env)
+          data["session_id"]
+        else
+          nil
+        end
+      end
+
+      def unpacked_cookie_data(env)
         request = Rack::Request.new(env)
         session_data = request.cookies[@key]
 
@@ -39,15 +53,14 @@ module Rack
           session_data = nil  unless digest == generate_hmac(session_data)
         end
 
-        begin
-          session_data = session_data.unpack("m*").first
-          session_data = Marshal.load(session_data)
-          env["rack.session"] = session_data
-        rescue
-          env["rack.session"] = Hash.new
-        end
+        data = Marshal.load(session_data.unpack("m*").first) rescue nil
+        data || {}
+      end
 
-        env["rack.session.options"] = @default_options.dup
+      def persistent_session_id!(data, sid=nil)
+        data ||= {}
+        data["session_id"] ||= sid || generate_sid
+        data
       end
 
       # Overwrite set cookie to bypass content equality and always stream the cookie.
@@ -57,6 +70,7 @@ module Rack
       end
 
       def set_session(env, session_id, session, options)
+        session = persistent_session_id!(session, session_id)
         session_data = [Marshal.dump(session)].pack("m*")
 
         if @secret

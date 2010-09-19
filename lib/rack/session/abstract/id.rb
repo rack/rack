@@ -10,6 +10,123 @@ module Rack
   module Session
 
     module Abstract
+      ENV_SESSION_KEY = 'rack.session'.freeze
+      ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
+
+      # Thin wrapper around Hash that allows us to lazily load session id into session_options.
+
+      class OptionsHash < Hash #:nodoc:
+        def initialize(by, env, default_options)
+          @by = by
+          @env = env
+          @session_id_loaded = false
+          merge!(default_options)
+        end
+
+        def [](key)
+          load_session_id! if key == :id && session_id_not_loaded?
+          super
+        end
+
+      private
+
+        def session_id_not_loaded?
+          !key?(:id) && !@session_id_loaded
+        end
+
+        def load_session_id!
+          self[:id] = @by.send(:extract_session_id, @env)
+          @session_id_loaded = true
+        end
+      end
+
+      # SessionHash is responsible to lazily load the session from store.
+
+      class SessionHash < Hash
+        def initialize(by, env)
+          super()
+          @by = by
+          @env = env
+          @loaded = false
+        end
+
+        def [](key)
+          load_for_read!
+          super(key.to_s)
+        end
+
+        def has_key?(key)
+          load_for_read!
+          super(key.to_s)
+        end
+        alias :key? :has_key?
+
+        def []=(key, value)
+          load_for_write!
+          super(key.to_s, value)
+        end
+
+        def clear
+          load_for_write!
+          super
+        end
+
+        def to_hash
+          load_for_read!
+          h = {}.replace(self)
+          h.delete_if { |k,v| v.nil? }
+          h
+        end
+
+        def update(hash)
+          load_for_write!
+          super(stringify_keys(hash))
+        end
+
+        def delete(key)
+          load_for_write!
+          super(key.to_s)
+        end
+
+        def inspect
+          load_for_read!
+          super
+        end
+
+        def exists?
+          return @exists if instance_variable_defined?(:@exists)
+          @exists = @by.send(:session_exists?, @env)
+        end
+
+        def loaded?
+          @loaded
+        end
+
+      private
+
+        def load_for_read!
+          load! if !loaded? && exists?
+        end
+
+        def load_for_write!
+          load! unless loaded?
+        end
+
+        def load!
+          id, session = @by.send(:load_session, @env)
+          @env[ENV_SESSION_OPTIONS_KEY][:id] = id
+          replace(stringify_keys(session))
+          @loaded = true
+        end
+
+        def stringify_keys(other)
+          hash = {}
+          other.each do |key, value|
+            hash[key.to_s] = value
+          end
+          hash
+        end
+      end
 
       # ID sets up a basic framework for implementing an id based sessioning
       # service. Cookies sent to the client for maintaining sessions will only
@@ -37,6 +154,7 @@ module Rack
 
       class ID
         DEFAULT_OPTIONS = {
+          :key =>           'rack.session',
           :path =>          '/',
           :domain =>        nil,
           :expire_after =>  nil,
@@ -49,10 +167,11 @@ module Rack
         }
 
         attr_reader :key, :default_options
+
         def initialize(app, options={})
           @app = app
-          @key = options[:key] || "rack.session"
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
+          @key = options[:key] || "rack.session"
           @cookie_only = @default_options.delete(:cookie_only)
         end
 
@@ -61,7 +180,7 @@ module Rack
         end
 
         def context(env, app=@app)
-          load_session(env)
+          prepare_session(env)
           status, headers, body = app.call(env)
           commit_session(env, status, headers, body)
         end
@@ -77,23 +196,21 @@ module Rack
             rand(2**@default_options[:sidbits] - 1)
         end
 
+        # Sets the lazy session at 'rack.session' and places options and session
+        # metadata into 'rack.session.options'.
+
+        def prepare_session(env)
+          env[ENV_SESSION_KEY] = SessionHash.new(self, env)
+          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+        end
+
         # Extracts the session id from provided cookies and passes it and the
-        # environment to #get_session. It then sets the resulting session into
-        # 'rack.session', and places options and session metadata into
-        # 'rack.session.options'.
+        # environment to #get_session.
 
         def load_session(env)
-          session_id = extract_session_id(env)
-
-          begin
-            session_id, session = get_session(env, session_id)
-            env['rack.session'] = session
-          rescue
-            env['rack.session'] = Hash.new
-          end
-
-          env['rack.session.options'] = @default_options.
-            merge(:id => session_id)
+          sid = current_session_id(env)
+          sid, session = get_session(env, sid)
+          [sid, session || {}]
         end
 
         # Extract session id from request object.
@@ -105,6 +222,40 @@ module Rack
           sid
         end
 
+        # Returns the current session id from the OptionsHash.
+
+        def current_session_id(env)
+          env[ENV_SESSION_OPTIONS_KEY][:id]
+        end
+
+        # Check if the session exists or not.
+
+        def session_exists?(env)
+          value = current_session_id(env)
+          value && !value.empty?
+        end
+
+        # Session should be commited if it was loaded, any of specific options like :renew, :drop
+        # or :expire_after was given and the security permissions match.
+
+        def commit_session?(env, session, options)
+          (loaded_session?(session) || force_options?(options)) && secure_session?(env, options)
+        end
+
+        def loaded_session?(session)
+          !session.is_a?(SessionHash) || session.loaded?
+        end
+
+        def force_options?(options)
+          options.values_at(:renew, :drop, :defer, :expire_after).any?
+        end
+
+        def secure_session?(env, options)
+          return true unless options[:secure]
+          request = Rack::Request.new(env)
+          request.ssl?
+        end
+
         # Acquires the session from the environment and the session id from
         # the session options and passes them to #set_session. If successful
         # and the :defer option is not true, a cookie will be added to the
@@ -113,12 +264,17 @@ module Rack
         def commit_session(env, status, headers, body)
           session = env['rack.session']
           options = env['rack.session.options']
-          session_id = options[:id]
 
           if options[:drop] || options[:renew]
-            session_id = destroy_session(env, session_id, options)
+            session_id = destroy_session(env, options[:id] || generate_sid, options)
             return [status, headers, body] unless session_id
           end
+
+          return [status, headers, body] unless commit_session?(env, session, options)
+
+          session.send(:load!) unless loaded_session?(session)
+          session = session.to_hash
+          session_id ||= options[:id] || generate_sid
 
           if not data = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")

@@ -266,6 +266,10 @@ module Rack
       end
     end
 
+    def ssl?
+      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
+    end
+
     protected
       def parse_query(qs)
         Utils.parse_nested_query(qs)
