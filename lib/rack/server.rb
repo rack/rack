@@ -63,7 +63,7 @@ module Rack
           opts.separator ""
           opts.separator "Common options:"
 
-          opts.on_tail("-h", "--help", "Show this message") do
+          opts.on_tail("-h", "-?", "--help", "Show this message") do
             puts opts
             exit
           end
@@ -73,7 +73,14 @@ module Rack
             exit
           end
         end
-        opt_parser.parse! args
+
+        begin
+          opt_parser.parse! args
+        rescue OptionParser::InvalidOption => e
+          warn e.message
+          abort opt_parser.to_s
+        end
+
         options[:config] = args.last if args.last
         options
       end
