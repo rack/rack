@@ -319,7 +319,8 @@ module Rack
       end
 
       def [](k)
-        super(k) || super(@names[k.downcase])
+        super(@names[k]) if @names[k]
+        super(@names[k.downcase])
       end
 
       def []=(k, v)
