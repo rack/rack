@@ -309,6 +309,12 @@ describe Rack::Utils::HeaderHash do
     end
   end
 
+  should "not create headers out of thin air" do
+    h = Rack::Utils::HeaderHash.new
+    h['foo']
+    h['foo'].should.be.nil
+    h.should.not.include 'foo'
+  end
 end
 
 describe Rack::Utils::Context do
