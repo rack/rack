@@ -123,17 +123,17 @@ module Rack
     end
 
     private
-      def variation(env)
-        @variation ||
-          env['sendfile.type'] ||
-          env['HTTP_X_SENDFILE_TYPE']
-      end
+    def variation(env)
+      @variation ||
+        env['sendfile.type'] ||
+        env['HTTP_X_SENDFILE_TYPE']
+    end
 
-      def map_accel_path(env, file)
-        if mapping = env['HTTP_X_ACCEL_MAPPING']
-          internal, external = mapping.split('=', 2).map{ |p| p.strip }
-          file.sub(/^#{internal}/i, external)
-        end
+    def map_accel_path(env, file)
+      if mapping = env['HTTP_X_ACCEL_MAPPING']
+        internal, external = mapping.split('=', 2).map{ |p| p.strip }
+        file.sub(/^#{internal}/i, external)
       end
+    end
   end
 end
