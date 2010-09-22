@@ -27,8 +27,14 @@ describe Rack::ETag do
 
   should "set Cache-Control to chosen one if none is set" do
     app = lambda { |env| [201, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
-    response = Rack::ETag.new(app, 'public').call({})
+    response = Rack::ETag.new(app, nil, 'public').call({})
     response[1]['Cache-Control'].should.equal 'public'
+  end
+
+  should "set a given Cache-Control even if digest could not be calculated" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, []] }
+    response = Rack::ETag.new(app, 'no-cache').call({})
+    response[1]['Cache-Control'].should.equal 'no-cache'
   end
 
   should "not set Cache-Control if it is already set" do
@@ -41,6 +47,12 @@ describe Rack::ETag do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'ETag' => '"abc"'}, ["Hello, World!"]] }
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.equal "\"abc\""
+  end
+
+  should "not set ETag if body is empty" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Last-Modified' => Time.now.httpdate}, []] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['ETag'].should.be.nil
   end
 
   should "not set ETag if Last-Modified is set" do
