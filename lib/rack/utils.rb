@@ -324,7 +324,7 @@ module Rack
 
       def []=(k, v)
         canonical = k.downcase
-        delete k unless @names[canonical] == k # .delete is expensive, don't invoke it unless necessary
+        delete k if @names[canonical] && @names[canonical] != k # .delete is expensive, don't invoke it unless necessary
         @names[k] = @names[canonical] = k
         super k, v
       end
