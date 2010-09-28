@@ -37,24 +37,22 @@ module Rack
       end
 
       def extract_session_id(env)
-        if data = unpacked_cookie_data(env)
-          data["session_id"]
-        else
-          nil
-        end
+        unpacked_cookie_data(env)["session_id"]
       end
 
       def unpacked_cookie_data(env)
-        request = Rack::Request.new(env)
-        session_data = request.cookies[@key]
+        env["rack.session.unpacked_cookie_data"] ||= begin
+          request = Rack::Request.new(env)
+          session_data = request.cookies[@key]
 
-        if @secret && session_data
-          session_data, digest = session_data.split("--")
-          session_data = nil  unless digest == generate_hmac(session_data)
+          if @secret && session_data
+            session_data, digest = session_data.split("--")
+            session_data = nil  unless digest == generate_hmac(session_data)
+          end
+
+          data = Marshal.load(session_data.unpack("m*").first) rescue nil
+          data || {}
         end
-
-        data = Marshal.load(session_data.unpack("m*").first) rescue nil
-        data || {}
       end
 
       def persistent_session_id!(data, sid=nil)
