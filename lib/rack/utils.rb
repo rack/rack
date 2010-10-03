@@ -308,14 +308,9 @@ module Rack
       end
 
       def to_hash
-        inject({}) do |hash, (k,v)|
-          if v.respond_to? :to_ary
-            hash[k] = v.to_ary.join("\n")
-          else
-            hash[k] = v
-          end
-          hash
-        end
+        Hash[map do |k, v|
+          [k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v]
+        end]
       end
 
       def [](k)
@@ -423,10 +418,9 @@ module Rack
     # Responses with HTTP status codes that should not have an entity body
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 304)
 
-    SYMBOL_TO_STATUS_CODE = HTTP_STATUS_CODES.inject({}) { |hash, (code, message)|
-      hash[message.downcase.gsub(/\s|-/, '_').to_sym] = code
-      hash
-    }
+    SYMBOL_TO_STATUS_CODE = Hash[HTTP_STATUS_CODES.map { |code, message|
+      [message.downcase.gsub(/\s|-/, '_').to_sym, code]
+    }]
 
     def status_code(status)
       if status.is_a?(Symbol)
