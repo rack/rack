@@ -314,13 +314,13 @@ module Rack
       end
 
       def [](k)
-        super(@names[k]) if @names[k]
-        super(@names[k.downcase])
+        super(k) || super(@names[k.downcase])
       end
 
       def []=(k, v)
-        delete k
-        @names[k] = @names[k.downcase] = k
+        canonical = k.downcase
+        delete k if @names[canonical] && @names[canonical] != k # .delete is expensive, don't invoke it unless necessary
+        @names[k] = @names[canonical] = k
         super k, v
       end
 
