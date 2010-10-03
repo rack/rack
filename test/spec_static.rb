@@ -9,7 +9,7 @@ end
 
 describe Rack::Static do
   root = File.expand_path(File.dirname(__FILE__))
-  
+
   OPTIONS = {:urls => ["/cgi"], :root => root}
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
 
@@ -32,13 +32,13 @@ describe Rack::Static do
     res.should.be.ok
     res.body.should == "Hello World"
   end
-  
+
   it "serves hidden files" do
     res = @hash_request.get("/cgi/sekret")
     res.should.be.ok
     res.body.should =~ /ruby/
   end
-  
+
   it "calls down the chain if the URI is not specified" do
     res = @hash_request.get("/something/else")
     res.should.be.ok
