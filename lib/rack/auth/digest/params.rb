@@ -4,11 +4,10 @@ module Rack
       class Params < Hash
 
         def self.parse(str)
-          split_header_value(str).inject(new) do |header, param|
+          Params[split_header_value(str).map do |param|
             k, v = param.split('=', 2)
-            header[k] = dequote(v)
-            header
-          end
+            [k, dequote(v)]
+          end]
         end
 
         def self.dequote(str) # From WEBrick::HTTPUtils
