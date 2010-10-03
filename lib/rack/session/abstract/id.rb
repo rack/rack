@@ -180,9 +180,7 @@ module Rack
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = options[:key] || "rack.session"
           @cookie_only = @default_options.delete(:cookie_only)
-          @sid_secure = @default_options[:secure_random]
-          @sid_template = "%0#{@default_options[:sidbits] / 4}x"
-          @sid_rand_width = (2**@default_options[:sidbits] - 1)
+          initialize_sid
         end
 
         def call(env)
@@ -196,6 +194,13 @@ module Rack
         end
 
         private
+
+        def initialize_sid
+          sidbits = @default_options.delete(:sidbits)
+          @sid_secure = @default_options.delete(:secure_random)
+          @sid_template = "%0#{sidbits / 4}x"
+          @sid_rand_width = (2**sidbits - 1)
+        end
 
         # Generate a new session id using Ruby #rand.  The size of the
         # session id is controlled by the :sidbits option.
