@@ -65,7 +65,7 @@ begin
       pool = Rack::Session::Memcache.new(incrementor)
       req = Rack::MockRequest.new(pool)
       res = req.get("/")
-      sid = res["Set-Cookie"][session_match][1...-1]
+      sid = res["Set-Cookie"][session_match, 1]
       req.get("/?rack.session=#{sid}").
         body.should.equal '{"counter"=>1}'
       req.get("/?rack.session=#{sid}").
@@ -76,7 +76,7 @@ begin
       pool = Rack::Session::Memcache.new(incrementor, :cookie_only => false)
       req = Rack::MockRequest.new(pool)
       res = req.get("/")
-      sid = res["Set-Cookie"][session_match][1...-1]
+      sid = res["Set-Cookie"][session_match, 1]
       req.get("/?rack.session=#{sid}").
         body.should.equal '{"counter"=>2}'
       req.get("/?rack.session=#{sid}").

@@ -60,6 +60,7 @@ module Rack
           super(key.to_s)
         end
         alias :key? :has_key?
+        alias :include? :has_key?
 
         def []=(key, value)
           load_for_write!
