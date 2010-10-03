@@ -50,9 +50,9 @@ module Rack
     #   { 'charset' => 'utf-8' }
     def media_type_params
       return {} if content_type.nil?
-      Hash[content_type.split(/\s*[;,]\s*/)[1..-1].
+      Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
         collect { |s| s.split('=', 2) }.
-        map { |k,v| [k.downcase, v] }]
+        map { |k,v| [k.downcase, v] }.flatten]
     end
 
     # The character set of the request body if a "charset" media type
@@ -212,9 +212,9 @@ module Rack
         #   precede those with less specific.  Ordering with respect to other
         #   attributes (e.g., Domain) is unspecified.
         @env["rack.request.cookie_hash"] =
-          Hash[Utils.parse_query(@env["rack.request.cookie_string"], ';,').map {|k,v|
+          Hash[*Utils.parse_query(@env["rack.request.cookie_string"], ';,').map {|k,v|
             [k, Array === v ? v.first : v]
-          }]
+          }.flatten]
       end
     end
 
