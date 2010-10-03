@@ -4,6 +4,11 @@
 require 'time'
 require 'rack/request'
 require 'rack/response'
+begin
+  require 'securerandom'
+rescue LoadError
+  # We just won't get securerandom
+end
 
 module Rack
 
@@ -164,7 +169,8 @@ module Rack
           :defer =>         false,
           :renew =>         false,
           :sidbits =>       128,
-          :cookie_only =>   true
+          :cookie_only =>   true,
+          :secure_random => begin ::SecureRandom rescue false end
         }
 
         attr_reader :key, :default_options
@@ -174,6 +180,9 @@ module Rack
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = options[:key] || "rack.session"
           @cookie_only = @default_options.delete(:cookie_only)
+          @sid_secure = @default_options[:secure_random]
+          @sid_template = "%0#{@default_options[:sidbits] / 4}x"
+          @sid_rand_width = (2**@default_options[:sidbits] - 1)
         end
 
         def call(env)
@@ -193,8 +202,12 @@ module Rack
         # Monkey patch this to use custom methods for session id generation.
 
         def generate_sid
-          "%0#{@default_options[:sidbits] / 4}x" %
-            rand(2**@default_options[:sidbits] - 1)
+          r = if @sid_secure
+            SecureRandom.random_number(@sid_rand_width)
+          else
+            Kernel.rand(@sid_rand_width)
+          end
+          @sid_template % r
         end
 
         # Sets the lazy session at 'rack.session' and places options and session
