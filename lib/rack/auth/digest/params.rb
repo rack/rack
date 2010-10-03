@@ -37,9 +37,8 @@ module Rack
         UNQUOTED = ['nc', 'stale']
 
         def to_s
-          inject([]) do |parts, (k, v)|
-            parts << "#{k}=" + (UNQUOTED.include?(k) ? v.to_s : quote(v))
-            parts
+          map do |k, v|
+            "#{k}=" + (UNQUOTED.include?(k) ? v.to_s : quote(v))
           end.join(', ')
         end
 
