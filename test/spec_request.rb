@@ -189,7 +189,7 @@ describe Rack::Request do
 
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/")
-    req.referer.should.equal "/"
+    req.referer.should.equal nil
   end
 
   should "extract user agent correctly" do
