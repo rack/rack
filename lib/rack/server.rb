@@ -170,8 +170,8 @@ module Rack
       @middleware ||= begin
         m = Hash.new {|h,k| h[k] = []}
         m["deployment"].concat [
-          [Rack::Chunked],
           [Rack::ContentLength],
+          [Rack::Chunked],
           lambda { |server|
             server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
           }
