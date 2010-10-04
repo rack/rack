@@ -13,8 +13,6 @@ module Rack
 
       env['rack.logger'] = logger
       @app.call(env)
-    ensure
-      logger.close
     end
   end
 end
