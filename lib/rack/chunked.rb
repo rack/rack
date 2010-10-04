@@ -7,6 +7,9 @@ module Rack
   class Chunked
     include Rack::Utils
 
+    TERM = "\r\n"
+    TAIL = "0#{TERM}#{TERM}"
+
     def initialize(app)
       @app = app
     end
@@ -33,13 +36,13 @@ module Rack
     end
 
     def each
-      term = "\r\n"
+      term = TERM
       @body.each do |chunk|
         size = bytesize(chunk)
         next if size == 0
         yield [size.to_s(16), term, chunk, term].join
       end
-      yield ["0", term, "", term].join
+      yield TAIL
     end
 
     def close
