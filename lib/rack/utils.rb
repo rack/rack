@@ -262,6 +262,39 @@ module Rack
     end
     module_function :rfc2822
 
+    # Parses the "Range:" header, if present, into an array of Range objects.
+    # Returns nil if the header is missing or syntactically invalid.
+    # Returns an empty array if none of the ranges are satisfiable.
+    def byte_ranges(env, size)
+      # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
+      http_range = env['HTTP_RANGE']
+      return nil unless http_range
+      ranges = []
+      http_range.split(/,\s*/).each do |range_spec|
+        matches = range_spec.match(/bytes=(\d*)-(\d*)/)
+        return nil  unless matches
+        r0,r1 = matches[1], matches[2]
+        if r0.empty?
+          return nil  if r1.empty?
+          # suffix-byte-range-spec, represents trailing suffix of file
+          r0 = [size - r1.to_i, 0].max
+          r1 = size - 1
+        else
+          r0 = r0.to_i
+          if r1.empty?
+            r1 = size - 1
+          else
+            r1 = r1.to_i
+            return nil  if r1 < r0  # backwards range is syntactically invalid
+            r1 = size-1  if r1 >= size
+          end
+        end
+        ranges << (r0..r1)  if r0 <= r1
+      end
+      ranges
+    end
+    module_function :byte_ranges
+
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
     # #context which should take the arguments env and app. The first of which
