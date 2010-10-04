@@ -1,12 +1,6 @@
 require 'rack/content_length'
 
 describe Rack::ContentLength do
-  should "set Content-Length on String bodies if none is set" do
-    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
-    response = Rack::ContentLength.new(app).call({})
-    response[1]['Content-Length'].should.equal '13'
-  end
-
   should "set Content-Length on Array bodies if none is set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = Rack::ContentLength.new(app).call({})

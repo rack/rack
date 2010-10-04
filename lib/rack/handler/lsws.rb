@@ -11,8 +11,6 @@ module Rack
         end
       end
       def self.serve(app)
-        app = Rack::ContentLength.new(app)
-
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
         env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"

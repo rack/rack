@@ -27,8 +27,6 @@ module Rack
       end
 
       def self.serve(request, app)
-        app = Rack::ContentLength.new(app)
-
         env = request.env
         env.delete "HTTP_CONTENT_LENGTH"
 

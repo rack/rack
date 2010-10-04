@@ -16,10 +16,10 @@ module Rack
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
-         (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
+         body.respond_to?(:to_ary)
 
-        body = [body] if body.respond_to?(:to_str) # rack 0.4 compat
-        length = body.to_ary.inject(0) { |len, part| len + bytesize(part) }
+        length = 0
+        body.each { |part| length += bytesize(part) }
         headers['Content-Length'] = length.to_s
       end
 

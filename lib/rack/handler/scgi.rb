@@ -16,7 +16,7 @@ module Rack
       end
 
       def initialize(settings = {})
-        @app = Rack::Chunked.new(Rack::ContentLength.new(settings[:app]))
+        @app = settings[:app]
         super(settings)
       end
 

@@ -39,7 +39,7 @@ module Rack
       end
 
       def initialize(app)
-        @app = Rack::Chunked.new(Rack::ContentLength.new(app))
+        @app = app
       end
 
       def process(request, response)

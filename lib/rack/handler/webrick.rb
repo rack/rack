@@ -20,7 +20,7 @@ module Rack
 
       def initialize(server, app)
         super server
-        @app = Rack::ContentLength.new(app)
+        @app = app
       end
 
       def service(req, res)
