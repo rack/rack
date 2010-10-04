@@ -29,64 +29,112 @@ module Rack
 
     def _call(env)
       @path_info = Utils.unescape(env["PATH_INFO"])
-      return forbidden  if @path_info.include? ".."
+      return fail(403, "Forbidden")  if @path_info.include? ".."
 
       @path = F.join(@root, @path_info)
 
       begin
         if F.file?(@path) && F.readable?(@path)
-          serving
+          serving(env)
         else
           raise Errno::EPERM
         end
       rescue SystemCallError
-        not_found
+        fail(404, "File not found: #{@path_info}")
       end
     end
 
-    def forbidden
-      body = "Forbidden\n"
-      [403, {"Content-Type" => "text/plain",
-             "Content-Length" => body.size.to_s,
-             "X-Cascade" => "pass"},
-       [body]]
-    end
+    def serving(env)
+      # NOTE:
+      #   We check via File::size? whether this file provides size info
+      #   via stat (e.g. /proc files often don't), otherwise we have to
+      #   figure it out by reading the whole file into memory.
+      size = F.size?(@path) || Utils.bytesize(F.read(@path))
 
-    # NOTE:
-    #   We check via File::size? whether this file provides size info
-    #   via stat (e.g. /proc files often don't), otherwise we have to
-    #   figure it out by reading the whole file into memory. And while
-    #   we're at it we also use this as body then.
+      response = [200, {
+          "Last-Modified"  => F.mtime(@path).httpdate,
+          "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain')
+        }, self]
 
-    def serving
-      if size = F.size?(@path)
-        body = self
+      ranges = File.byte_ranges(env, size)
+      if ranges.nil? || ranges.length > 1
+        # No ranges, or multiple ranges (which we don't support):
+        # TODO: Support multiple byte-ranges
+        response[0] = 200
+        @range = (0..size-1)
+      elsif ranges.empty?
+        # Unsatisfiable. Return error, and file size:
+        response = fail(416, "Byte range unsatisfiable")
+        response[1]["Content-Range"] = "bytes */#{size}"
+        return response
       else
-        body = [F.read(@path)]
-        size = Utils.bytesize(body.first)
+        # Partial content:
+        @range = ranges[0]
+        response[0] = 206
+        response[1]["Content-Range"]  = "bytes #{@range.begin}-#{@range.end}/#{size}"
+        size = @range.end - @range.begin + 1
       end
 
-      [200, {
-        "Last-Modified"  => F.mtime(@path).httpdate,
-        "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain'),
-        "Content-Length" => size.to_s
-      }, body]
-    end
-
-    def not_found
-      body = "File not found: #{@path_info}\n"
-      [404, {"Content-Type" => "text/plain",
-         "Content-Length" => body.size.to_s,
-         "X-Cascade" => "pass"},
-       [body]]
+      response[1]["Content-Length"] = size.to_s
+      return response
     end
 
     def each
-      F.open(@path, "rb") { |file|
-        while part = file.read(8192)
+      F.open(@path, "rb") do |file|
+        file.seek(@range.begin)
+        remaining_len = @range.end-@range.begin+1
+        while remaining_len > 0
+          part = file.read([8192, remaining_len].min)
+          break unless part
+          remaining_len -= part.length
+
           yield part
         end
-      }
+      end
     end
+
+    # Parses the "Range:" header, if present, into an array of Range objects.
+    # Returns nil if the header is missing or syntactically invalid.
+    # Returns an empty array if none of the ranges are satisfiable.
+    def File.byte_ranges(env, size)
+      # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
+      http_range = env['HTTP_RANGE']
+      return nil unless http_range
+      ranges = []
+      for range_spec in http_range.split(/,\s*/) do
+        matches = range_spec.match(/bytes=(\d*)-(\d*)/)
+        return nil  unless matches
+        r0,r1 = matches[1], matches[2]
+        if r0.empty?
+          return nil  if r1.empty?
+          # suffix-byte-range-spec, represents trailing suffix of file
+          r0 = [size - r1.to_i, 0].max
+          r1 = size - 1
+        else
+          r0 = r0.to_i
+          if r1.empty? then
+            r1 = size-1
+          else
+            r1 = r1.to_i
+            return nil  if r1 < r0  # backwards range is syntactically invalid
+            r1 = size-1  if r1 >= size
+          end
+        end
+        ranges << (r0..r1)  if r0 <= r1
+      end
+      return ranges
+    end
+
+    private
+
+    def fail(status, body)
+      body += "\n"
+      [status,
+        {"Content-Type" => "text/plain",
+             "Content-Length" => body.size.to_s,
+             "X-Cascade" => "pass"},
+        [body]]
+    end
+
   end
 end
