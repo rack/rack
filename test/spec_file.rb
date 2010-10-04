@@ -68,4 +68,66 @@ describe Rack::File do
     body.should.respond_to :to_path
     body.to_path.should.equal path
   end
+
+  should "ignore missing or syntactically invalid byte ranges" do
+    Rack::File.byte_ranges({},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "foobar"},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "furlongs=123-456"},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes="},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-"},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=123,456"},500).should.equal nil
+    # A range of non-positive length is syntactically invalid and ignored:
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=456-123"},500).should.equal nil
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=456-455"},500).should.equal nil
+  end
+
+  should "parse simple byte ranges" do
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=123-456"},500).should.equal [(123..456)]
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=123-"},500).should.equal [(123..499)]
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-100"},500).should.equal [(400..499)]
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=0-0"},500).should.equal [(0..0)]
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=499-499"},500).should.equal [(499..499)]
+  end
+
+  should "truncate byte ranges" do
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=123-999"},500).should.equal [(123..499)]
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=600-999"},500).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-999"},500).should.equal [(0..499)]
+  end
+
+  should "ignore unsatisfiable byte ranges" do
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=500-501"},500).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=500-"},500).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=999-"},500).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-0"},500).should.equal []
+  end
+
+  should "handle byte ranges of empty files" do
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=123-456"},0).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=0-"},0).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-100"},0).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=0-0"},0).should.equal []
+    Rack::File.byte_ranges({"HTTP_RANGE" => "bytes=-0"},0).should.equal []
+  end
+
+  should "return correct byte range in body" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=22-33"
+    res = Rack::MockResponse.new(*Rack::File.new(DOCROOT).call(env))
+
+    res.status.should.equal 206
+    res["Content-Length"].should.equal "12"
+    res["Content-Range"].should.equal "bytes 22-33/193"
+    res.body.should.equal "-*- ruby -*-"
+  end
+
+  should "return error for unsatisfiable byte range" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=1234-5678"
+    res = Rack::MockResponse.new(*Rack::File.new(DOCROOT).call(env))
+
+    res.status.should.equal 416
+    res["Content-Range"].should.equal "bytes */193"
+  end
+
 end
