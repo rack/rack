@@ -266,7 +266,8 @@ module Rack
     end
 
     def ssl?
-      @env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https'
+      (@env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https') ||
+        (@env['rack.url_scheme'] == 'https')
     end
 
     protected
