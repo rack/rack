@@ -213,7 +213,13 @@ TEMPLATE = <<'HTML'
   <h2><%=h exception.message %></h2>
   <table><tr>
     <th>Ruby</th>
-    <td><code><%=h frames.first.filename %></code>: in <code><%=h frames.first.function %></code>, line <%=h frames.first.lineno %></td>
+    <td>
+<% if first = frames.first %>
+      <code><%=h first.filename %></code>: in <code><%=h first.function %></code>, line <%=h frames.first.lineno %>
+<% else %>
+      unknown location
+<% end %>
+    </td>
   </tr><tr>
     <th>Web</th>
     <td><code><%=h req.request_method %> <%=h(req.host + path)%></code></td>

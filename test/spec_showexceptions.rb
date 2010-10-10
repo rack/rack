@@ -63,4 +63,25 @@ describe Rack::ShowExceptions do
     res.body.should.include "It was never supposed to work"
     res.body.should.include Rack::Utils.escape_html(__FILE__)
   end
+
+  it "handles exceptions without a backtrace" do
+    res = nil
+
+    req = Rack::MockRequest.new(
+      Rack::ShowExceptions.new(
+        lambda{|env| raise RuntimeError, "", [] }
+      )
+    )
+
+    lambda{
+      res = req.get("/")
+    }.should.not.raise
+
+    res.should.be.a.server_error
+    res.status.should.equal 500
+
+    res.should =~ /RuntimeError/
+    res.should =~ /ShowExceptions/
+    res.should =~ /unknown location/
+  end
 end
