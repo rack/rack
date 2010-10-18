@@ -15,7 +15,7 @@ Also see http://rack.rubyforge.org.
 EOF
 
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
-                        %w(COPYING KNOWN-ISSUES rack.gemspec Rakefile README SPEC)
+                        %w(COPYING KNOWN-ISSUES rack.gemspec Rakefile README)
   s.bindir          = 'bin'
   s.executables     << 'rackup'
   s.require_path    = 'lib'
