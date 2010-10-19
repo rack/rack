@@ -74,7 +74,11 @@ module Rack
       return if k.empty?
 
       if after == ""
-        params[k] = v
+        if params.key?(k)
+          params[k] = params[k].kind_of?(Array) ? params[k] + [ v ] : [ params[k], v ]
+        else
+          params[k] = v
+        end
       elsif after == "[]"
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
