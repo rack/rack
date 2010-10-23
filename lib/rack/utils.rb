@@ -498,10 +498,19 @@ module Rack
 
       EOL = "\r\n"
       MULTIPART_BOUNDARY = "AaB03x"
-
+      MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
+      TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
+      CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
+      DISPPARM = /;\s*(#{TOKEN})=("(?:\\"|[^"])*"|#{TOKEN})*/
+      RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
+      BROKEN_QUOTED = /^#{CONDISP}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
+      BROKEN_UNQUOTED = /^#{CONDISP}.*;\sfilename=(#{TOKEN})/i
+      MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
+      MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^\";]*)"?/ni
+      MULTIPART_CONTENT_ID = /Content-ID:([^#{EOL}]*)/ni
+      
       def self.parse_multipart(env)
-        unless env['CONTENT_TYPE'] =~
-            %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
+        unless env['CONTENT_TYPE'] =~ MULTIPART
           nil
         else
           boundary = "--#{$1}"
@@ -534,29 +543,21 @@ module Rack
                 head = buf.slice!(0, i+2) # First \r\n
                 buf.slice!(0, 2)          # Second \r\n
 
-                token = /[^\s()<>,;:\\"\/\[\]?=]+/
-                condisp = /Content-Disposition:\s*#{token}\s*/i
-                dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})*/
-
-                rfc2183 = /^#{condisp}(#{dispparm})+$/i
-                broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{token}=)/i
-                broken_unquoted = /^#{condisp}.*;\sfilename=(#{token})/i
-
-                if head =~ rfc2183
-                  filename = Hash[head.scan(dispparm)]['filename']
+                if head =~ RFC2183
+                  filename = Hash[head.scan(DISPPARM)]['filename']
                   filename = $1 if filename and filename =~ /^"(.*)"$/
-                elsif head =~ broken_quoted
+                elsif head =~ BROKEN_QUOTED
                   filename = $1
-                elsif head =~ broken_unquoted
+                elsif head =~ BROKEN_UNQUOTED
                   filename = $1
                 end
 
                 if filename && filename !~ /\\[^\\"]/
                   filename = Utils.unescape(filename).gsub(/\\(.)/, '\1')
                 end
-
-                content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
-                name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
+                
+                content_type = head[MULTIPART_CONTENT_TYPE, 1]
+                name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
 
                 if filename
                   body = Tempfile.new("RackMultipart")
