@@ -22,7 +22,6 @@ module Rack
     end
 
     def body;            @env["rack.input"]                       end
-    def scheme;          @env["rack.url_scheme"]                  end
     def script_name;     @env["SCRIPT_NAME"].to_s                 end
     def path_info;       @env["PATH_INFO"].to_s                   end
     def request_method;  @env["REQUEST_METHOD"]                   end
@@ -61,6 +60,20 @@ module Rack
     # charset are to be considered ISO-8859-1.
     def content_charset
       media_type_params['charset']
+    end
+
+    def scheme
+      if @env['HTTPS'] == 'on'
+        'https'
+      elsif @env['HTTP_X_FORWARDED_PROTO']
+        @env['HTTP_X_FORWARDED_PROTO']
+      else
+        @env["rack.url_scheme"]
+      end
+    end
+
+    def ssl?
+      scheme == 'https'
     end
 
     def host_with_port
@@ -263,11 +276,6 @@ module Rack
       else
         @env['REMOTE_ADDR']
       end
-    end
-
-    def ssl?
-      (@env['HTTPS'] == 'on' || @env['HTTP_X_FORWARDED_PROTO'] == 'https') ||
-        (@env['rack.url_scheme'] == 'https')
     end
 
     protected

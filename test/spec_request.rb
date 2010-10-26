@@ -229,20 +229,29 @@ describe Rack::Request do
     req.should.be.xhr
   end
 
-  should "figure out if using ssl" do
+  should "ssl detection" do
     request = Rack::Request.new(Rack::MockRequest.env_for("/"))
+    request.scheme.should.equal "http"
     request.should.not.be.ssl?
 
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTPS' => 'on'))
+    request.scheme.should.equal "https"
     request.should.be.ssl?
 
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'rack.url_scheme' => 'https'))
+    request.scheme.should.equal "https"
     request.should.be.ssl?
 
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8080'))
+    request.scheme.should.equal "http"
     request.should.not.be.ssl?
 
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8443', 'HTTPS' => 'on'))
+    request.scheme.should.equal "https"
+    request.should.be.ssl?
+
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https'))
+    request.scheme.should.equal "https"
     request.should.be.ssl?
   end
 
