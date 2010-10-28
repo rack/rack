@@ -21,8 +21,8 @@ module Rack
 
     def initialize(body=[], status=200, header={}, &block)
       @status = status.to_i
-      @header = Utils::HeaderHash.new({"Content-Type" => "text/html"}.
-                                      merge(header))
+      @header = Utils::HeaderHash.new("Content-Type" => "text/html").
+                                      merge(header)
 
       @writer = lambda { |x| @body << x }
       @block = nil

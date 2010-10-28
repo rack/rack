@@ -42,6 +42,11 @@ describe Rack::Response do
     response["Content-Type"].should.equal "text/plain"
   end
 
+  it "can override the initial Content-Type with a different case" do
+    response = Rack::Response.new("", 200, "content-type" => "text/plain")
+    response["Content-Type"].should.equal "text/plain"
+  end
+
   it "can set cookies" do
     response = Rack::Response.new
 
