@@ -253,6 +253,10 @@ describe Rack::Request do
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https'))
     request.scheme.should.equal "https"
     request.should.be.ssl?
+    
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https, http, http'))
+    request.scheme.should.equal "https"
+    request.should.be.ssl
   end
 
   should "parse cookies" do
