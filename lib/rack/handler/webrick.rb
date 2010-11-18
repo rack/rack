@@ -43,11 +43,11 @@ module Rack
 
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
         env["QUERY_STRING"] ||= ""
-        env["REQUEST_PATH"] ||= "/"
         unless env["PATH_INFO"] == ""
           path, n = req.request_uri.path, env["SCRIPT_NAME"].length
           env["PATH_INFO"] = path[n, path.length-n]
         end
+        env["REQUEST_PATH"] ||= [env["SCRIPT_NAME"], env["PATH_INFO"]].join
 
         status, headers, body = @app.call(env)
         begin
