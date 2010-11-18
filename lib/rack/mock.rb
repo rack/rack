@@ -149,7 +149,7 @@ module Rack
       @headers = Rack::Utils::HeaderHash.new
       headers.each { |field, values|
         @headers[field] = values
-        @headers[field] = ""  if values.empty?
+        @headers[field] = ""  if (values.nil? || values.empty?)
       }
 
       @body = ""
