@@ -19,8 +19,11 @@ module Rack
   module Handler
     class FastCGI
       def self.run(app, options={})
-        file = options[:File] and STDIN.reopen(UNIXServer.new(file))
-        port = options[:Port] and STDIN.reopen(TCPServer.new(options[:Host], port))
+        if options[:File]
+          file = STDIN.reopen(UNIXServer.new(options[:File]))
+        elsif options[:Port]
+          port = STDIN.reopen(TCPServer.new(options[:Host], options[:Port]))
+        end
         FCGI.each { |request|
           serve request, app
         }
