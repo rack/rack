@@ -12,6 +12,13 @@ module Rack
         yield server if block_given?
         server.start
       end
+
+      def self.valid_options
+        {
+          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Port=PORT" => "Port to listen on (default: 8080)",
+        }
+      end
     end
   end
 end

@@ -38,6 +38,16 @@ module Rack
         server.run.join
       end
 
+      def self.valid_options
+        {
+          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Port=PORT" => "Port to listen on (default: 8080)",
+          "Processors=N" => "Number of concurrent processors to accept (default: 950)",
+          "Timeout=N" => "Time before a request is dropped for inactivity (default: 60)",
+          "Throttle=N" => "Throttle time between socket.accept calls in hundredths of a second (default: 0)",
+        }
+      end
+
       def initialize(app)
         @app = app
       end
