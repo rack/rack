@@ -599,7 +599,7 @@ module Rack
 
               data = {:filename => filename, :type => content_type,
                       :name => name, :tempfile => body, :head => head}
-            elsif !filename && content_type
+            elsif !filename && content_type && !body.instance_of?(String)
               body.rewind
 
               # Generic multipart cases, not coming from a form
