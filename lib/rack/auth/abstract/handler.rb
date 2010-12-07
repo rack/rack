@@ -17,17 +17,17 @@ module Rack
 
       def unauthorized(www_authenticate = challenge)
         return [ 401,
-          { 'Content-Type' => 'text/plain',
-            'Content-Length' => '0',
-            'WWW-Authenticate' => www_authenticate.to_s },
+          { HTTP_HEADER::CONTENT_TYPE => 'text/plain',
+            HTTP_HEADER::CONTENT_LENGTH => '0',
+            HTTP_HEADER::WWW_AUTHENTICATE => www_authenticate.to_s },
           []
         ]
       end
 
       def bad_request
         return [ 400,
-          { 'Content-Type' => 'text/plain',
-            'Content-Length' => '0' },
+          { HTTP_HEADER::CONTENT_TYPE => 'text/plain',
+            HTTP_HEADER::CONTENT_LENGTH => '0' },
           []
         ]
       end

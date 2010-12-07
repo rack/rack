@@ -20,14 +20,14 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
+      return @app.call(env) unless [HTTP_METHOD::GET, HTTP_METHOD::HEAD].include?(env[CGI_VARIABLE::REQUEST_METHOD])
 
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
       if status == 200 && fresh?(env, headers)
         status = 304
-        headers.delete('Content-Type')
-        headers.delete('Content-Length')
+        headers.delete(HTTP_HEADER::CONTENT_TYPE)
+        headers.delete(HTTP_HEADER::CONTENT_LENGTH)
         body = []
       end
       [status, headers, body]
@@ -36,8 +36,8 @@ module Rack
   private
 
     def fresh?(env, headers)
-      modified_since = env['HTTP_IF_MODIFIED_SINCE']
-      none_match     = env['HTTP_IF_NONE_MATCH']
+      modified_since = env[CGI_VARIABLE::HTTP_IF_MODIFIED_SINCE]
+      none_match     = env[CGI_VARIABLE::HTTP_IF_NONE_MATCH]
 
       return false unless modified_since || none_match
 
@@ -48,11 +48,11 @@ module Rack
     end
 
     def etag_matches?(none_match, headers)
-      etag = headers['Etag'] and etag == none_match
+      etag = headers[HTTP_HEADER::ETAG] and etag == none_match
     end
 
     def modified_since?(modified_since, headers)
-      last_modified = to_rfc2822(headers['Last-Modified']) and
+      last_modified = to_rfc2822(headers[HTTP_HEADER::LAST_MODIFIED]) and
         modified_since >= last_modified
     end
 

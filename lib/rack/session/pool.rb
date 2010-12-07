@@ -66,7 +66,7 @@ module Rack
       end
 
       def with_lock(env, default=nil)
-        @mutex.lock if env['rack.multithread']
+        @mutex.lock if env[RACK_VARIABLE::MULTITHREAD]
         yield
       rescue
         default

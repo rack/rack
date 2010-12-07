@@ -8,7 +8,7 @@ class Head
   def call(env)
     status, headers, body = @app.call(env)
 
-    if env["REQUEST_METHOD"] == "HEAD"
+    if env[CGI_VARIABLE::REQUEST_METHOD] == HTTP_METHOD::HEAD
       [status, headers, []]
     else
       [status, headers, body]

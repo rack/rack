@@ -7,8 +7,9 @@ module Rack
   class Chunked
     include Rack::Utils
 
-    TERM = "\r\n"
-    TAIL = "0#{TERM}#{TERM}"
+    TERM = "\r\n".freeze
+    TAIL = "0#{TERM}#{TERM}".freeze
+    HTTP_1_0 = 'HTTP/1.0'.freeze
 
     def initialize(app)
       @app = app
@@ -18,10 +19,10 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if env['HTTP_VERSION'] == 'HTTP/1.0' ||
+      if env[CGI_VARIABLE::HTTP_VERSION] == HTTP_1_0 ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-         headers['Content-Length'] ||
-         headers['Transfer-Encoding']
+         headers[HTTP_HEADER::CONTENT_LENGTH] ||
+         headers[HTTP_HEADER::TRANSFER_ENCODING]
         [status, headers, body]
       else
         dup.chunk(status, headers, body)
@@ -30,8 +31,8 @@ module Rack
 
     def chunk(status, headers, body)
       @body = body
-      headers.delete('Content-Length')
-      headers['Transfer-Encoding'] = 'chunked'
+      headers.delete(HTTP_HEADER::CONTENT_LENGTH)
+      headers[HTTP_HEADER::TRANSFER_ENCODING] = 'chunked'
       [status, headers, self]
     end
 

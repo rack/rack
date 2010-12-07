@@ -35,9 +35,9 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"]
-      script_name = env['SCRIPT_NAME']
-      hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
+      path = env[CGI_VARIABLE::PATH_INFO]
+      script_name = env[CGI_VARIABLE::SCRIPT_NAME]
+      hHost, sName, sPort = env.values_at(CGI_VARIABLE::HTTP_HOST, CGI_VARIABLE::SERVER_NAME, CGI_VARIABLE::SERVER_PORT)
       @mapping.each { |host, location, match, app|
         next unless (hHost == host || sName == host \
           || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
@@ -46,9 +46,9 @@ module Rack
         env.merge!('SCRIPT_NAME' => (script_name + location), 'PATH_INFO' => rest)
         return app.call(env)
       }
-      [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+      [404, {HTTP_HEADER::CONTENT_TYPE => "text/plain", HTTP_HEADER::X_CASCADE => "pass"}, ["Not Found: #{path}"]]
     ensure
-      env.merge! 'PATH_INFO' => path, 'SCRIPT_NAME' => script_name
+      env.merge! CGI_VARIABLE::PATH_INFO => path, CGI_VARIABLE::SCRIPT_NAME => script_name
     end
   end
 end

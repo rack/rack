@@ -19,16 +19,16 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      empty = headers['Content-Length'].to_i <= 0
+      empty = headers[HTTP_HEADER::CONTENT_LENGTH].to_i <= 0
 
       # client or server error, or explicit message
       if (status.to_i >= 400 && empty) || env["rack.showstatus.detail"]
         req = Rack::Request.new(env)
         message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
-        detail = env["rack.showstatus.detail"] || message
+        detail = env[RACK_VARIABLE::SHOWSTATUS_DETAIL] || message
         body = @template.result(binding)
         size = Rack::Utils.bytesize(body)
-        [status, headers.merge("Content-Type" => "text/html", "Content-Length" => size.to_s), [body]]
+        [status, headers.merge(HTTP_HEADER::CONTENT_TYPE => "text/html", HTTP_HEADER::CONTENT_LENGTH => size.to_s), [body]]
       else
         [status, headers, body]
       end

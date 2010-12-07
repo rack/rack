@@ -125,7 +125,7 @@ module Rack
       end
 
       rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
-      env['rack.input'] = rack_input
+      env[RACK_VARIABLE::INPUT] = rack_input
 
       env["CONTENT_LENGTH"] ||= env["rack.input"].length.to_s
 

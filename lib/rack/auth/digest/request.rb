@@ -8,7 +8,7 @@ module Rack
       class Request < Auth::AbstractRequest
 
         def method
-          @env['rack.methodoverride.original_method'] || @env['REQUEST_METHOD']
+          @env[RACK_VARIABLE::METHODOVERRIDE_ORIGINAL_METHOD] || @env[CGI_VARIABLE::REQUEST_METHOD]
         end
 
         def digest?
@@ -16,7 +16,7 @@ module Rack
         end
 
         def correct_uri?
-          (@env['SCRIPT_NAME'].to_s + @env['PATH_INFO'].to_s) == uri
+          (@env[CGI_VARIABLE::SCRIPT_NAME].to_s + @env[CGI_VARIABLE::PATH_INFO].to_s) == uri
         end
 
         def nonce

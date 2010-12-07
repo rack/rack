@@ -30,23 +30,23 @@ module Rack
         rack_input = StringIO.new(req.body.to_s)
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
+        env.update({RACK_VARIABLE::VERSION => Rack::VERSION,
+                     RACK_VARIABLE::INPUT => rack_input,
+                     RACK_VARIABLE::ERRORS => $stderr,
 
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => false,
-                     "rack.run_once" => false,
+                     RACK_VARIABLE::MULTITHREAD => true,
+                     RACK_VARIABLE::MULTIPROCESS => false,
+                     RACK_VARIABLE::RUN_ONCE => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+                     RACK_VARIABLE::URL_SCHEME => Handler.detect_url_scheme
                    })
 
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["QUERY_STRING"] ||= ""
-        env["REQUEST_PATH"] ||= "/"
-        unless env["PATH_INFO"] == ""
-          path, n = req.request_uri.path, env["SCRIPT_NAME"].length
-          env["PATH_INFO"] = path[n, path.length-n]
+        env[CGI_VARIABLE::HTTP_VERSION] ||= env[CGI_VARIABLE::SERVER_PROTOCOL]
+        env[CGI_VARIABLE::QUERY_STRING] ||= ""
+        env[CGI_VARIABLE::REQUEST_PATH] ||= "/"
+        unless env[CGI_VARIABLE::PATH_INFO] == ""
+          path, n = req.request_uri.path, env[CGI_VARIABLE::SCRIPT_NAME].length
+          env[CGI_VARIABLE::PATH_INFO] = path[n, path.length-n]
         end
 
         status, headers, body = @app.call(env)

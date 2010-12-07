@@ -63,12 +63,14 @@ module Rack
     end
 
     module Stat
+      COMPILED_FILES_PATTERN = /\.(so|bundle)$/i
+      
       def rotation
         files = [$0, *$LOADED_FEATURES].uniq
         paths = ['./', *$LOAD_PATH].uniq
 
         files.map{|file|
-          next if file =~ /\.(so|bundle)$/ # cannot reload compiled files
+          next if file =~ COMPILED_FILES_PATTERN # cannot reload compiled files
 
           found, stat = figure_path(file, paths)
           next unless found && stat && mtime = stat.mtime

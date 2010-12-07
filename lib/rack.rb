@@ -22,9 +22,10 @@ module Rack
   def self.release
     "1.2"
   end
-
+  
   autoload :Builder, "rack/builder"
   autoload :Cascade, "rack/cascade"
+  autoload :CGI_VARIABLE, "rack/cgi_variable"
   autoload :Chunked, "rack/chunked"
   autoload :CommonLogger, "rack/commonlogger"
   autoload :ConditionalGet, "rack/conditionalget"
@@ -38,12 +39,15 @@ module Rack
   autoload :ForwardRequest, "rack/recursive"
   autoload :Handler, "rack/handler"
   autoload :Head, "rack/head"
+  autoload :HTTP_HEADER, "rack/http_header"
+  autoload :HTTP_METHOD, "rack/http_method"
   autoload :Lint, "rack/lint"
   autoload :Lock, "rack/lock"
   autoload :Logger, "rack/logger"
   autoload :MethodOverride, "rack/methodoverride"
   autoload :Mime, "rack/mime"
   autoload :NullLogger, "rack/nulllogger"
+  autoload :RACK_VARIABLE, "rack/rack_variable"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :Runtime, "rack/runtime"

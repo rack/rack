@@ -14,13 +14,13 @@ module Rack
       headers = HeaderHash.new(headers)
 
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
-         !headers['Content-Length'] &&
-         !headers['Transfer-Encoding'] &&
+         !headers[HTTP_HEADER::CONTENT_LENGTH] &&
+         !headers[HTTP_HEADER::TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)
 
         length = 0
         body.each { |part| length += bytesize(part) }
-        headers['Content-Length'] = length.to_s
+        headers[HTTP_HEADER::CONTENT_LENGTH] = length.to_s
       end
 
       [status, headers, body]

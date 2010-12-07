@@ -24,13 +24,13 @@ module Rack
 
     def self.default(options = {})
       # Guess.
-      if ENV.include?("PHP_FCGI_CHILDREN")
+      if ENV.include?(VARS::ENV::PHP_FCGI_CHILDREN)
         # We already speak FastCGI
         options.delete :File
         options.delete :Port
 
         Rack::Handler::FastCGI
-      elsif ENV.include?("REQUEST_METHOD")
+      elsif ENV.include?(VARS::ENV::REQUEST_METHOD)
         Rack::Handler::CGI
       else
         begin
@@ -63,6 +63,14 @@ module Rack
     def self.register(server, klass)
       @handlers ||= {}
       @handlers[server] = klass
+    end
+    
+    ON_SWITCHES = ["yes", "on", "1"]
+    HTTP_SCHEME = "http".freeze
+    HTTPS_SCHEME = "https".freeze
+    # Get an actual protocol scheme by looking at the HTTPS CGI variable.
+    def self.detect_url_scheme
+      ON_SWITCHES.include?(ENV[CGI_VARIABLE::HTTPS]) ? HTTPS_SCHEME : HTTP_SCHEME
     end
 
     autoload :CGI, "rack/handler/cgi"

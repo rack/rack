@@ -7,6 +7,7 @@ module Rack
     # lilith.local - - [07/Aug/2006 23:58:02] "GET / HTTP/1.1" 500 -
     #             %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
+    TIME_FORMAT = "%d/%b/%Y %H:%M:%S".freeze
 
     def initialize(app, logger=nil)
       @app = app
@@ -27,22 +28,22 @@ module Rack
       now = Time.now
       length = extract_content_length(header)
 
-      logger = @logger || env['rack.errors']
+      logger = @logger || env[RACK_VARIABLE::ERRORS]
       logger.write FORMAT % [
-        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
-        env["REMOTE_USER"] || "-",
-        now.strftime("%d/%b/%Y %H:%M:%S"),
-        env["REQUEST_METHOD"],
-        env["PATH_INFO"],
-        env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
-        env["HTTP_VERSION"],
+        env[CGI_VARIABLE::HTTP_X_FORWARDED_FOR] || env[CGI_VARIABLE::REMOTE_ADDR] || "-",
+        env[CGI_VARIABLE::REMOTE_USER] || "-",
+        now.strftime(TIME_FORMAT),
+        env[CGI_VARIABLE::REQUEST_METHOD],
+        env[CGI_VARIABLE::PATH_INFO],
+        env[CGI_VARIABLE::QUERY_STRING].empty? ? "" : "?"+env[CGI_VARIABLE::QUERY_STRING],
+        env[CGI_VARIABLE::HTTP_VERSION],
         status.to_s[0..3],
         length,
         now - began_at ]
     end
 
     def extract_content_length(headers)
-      value = headers['Content-Length'] or return '-'
+      value = headers[HTTP_HEADER::CONTENT_LENGTH] or return '-'
       value.to_s == '0' ? '-' : value
     end
   end

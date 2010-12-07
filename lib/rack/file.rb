@@ -28,7 +28,7 @@ module Rack
     F = ::File
 
     def _call(env)
-      @path_info = Utils.unescape(env["PATH_INFO"])
+      @path_info = Utils.unescape(env[CGI_VARIABLE::PATH_INFO])
       return fail(403, "Forbidden")  if @path_info.include? ".."
 
       @path = F.join(@root, @path_info)
@@ -56,8 +56,8 @@ module Rack
       response = [
         200,
         {
-          "Last-Modified"  => F.mtime(@path).httpdate,
-          "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain')
+          HTTP_HEADER::LAST_MODIFIED  => F.mtime(@path).httpdate,
+          HTTP_HEADER::CONTENT_TYPE   => Mime.mime_type(F.extname(@path), 'text/plain')
         },
         self
       ]
@@ -71,17 +71,17 @@ module Rack
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
-        response[1]["Content-Range"] = "bytes */#{size}"
+        response[1][HTTP_HEADER::CONTENT_RANGE] = "bytes */#{size}"
         return response
       else
         # Partial content:
         @range = ranges[0]
         response[0] = 206
-        response[1]["Content-Range"]  = "bytes #{@range.begin}-#{@range.end}/#{size}"
+        response[1][HTTP_HEADER::CONTENT_RANGE]  = "bytes #{@range.begin}-#{@range.end}/#{size}"
         size = @range.end - @range.begin + 1
       end
 
-      response[1]["Content-Length"] = size.to_s
+      response[1][HTTP_HEADER::CONTENT_LENGTH] = size.to_s
       response
     end
 
@@ -106,9 +106,9 @@ module Rack
       [
         status,
         {
-          "Content-Type" => "text/plain",
-          "Content-Length" => body.size.to_s,
-          "X-Cascade" => "pass"
+          HTTP_HEADER::CONTENT_TYPE => "text/plain",
+          HTTP_HEADER::CONTENT_LENGTH => body.size.to_s,
+          HTTP_HEADER::X_CASCADE => "pass"
         },
         [body]
       ]

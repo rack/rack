@@ -12,24 +12,24 @@ module Rack
       end
       def self.serve(app)
         env = ENV.to_hash
-        env.delete "HTTP_CONTENT_LENGTH"
-        env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
+        env.delete CGI_VARIABLE::HTTP_CONTENT_LENGTH
+        env[CGI_VARIABLE::SCRIPT_NAME] = "" if env[CGI_VARIABLE::SCRIPT_NAME] == "/"
 
         rack_input = RewindableInput.new($stdin.read.to_s)
 
         env.update(
-          "rack.version" => Rack::VERSION,
-          "rack.input" => rack_input,
-          "rack.errors" => $stderr,
-          "rack.multithread" => false,
-          "rack.multiprocess" => true,
-          "rack.run_once" => false,
-          "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+          RACK_VARIABLE::VERSION => Rack::VERSION,
+          RACK_VARIABLE::INPUT => rack_input,
+          RACK_VARIABLE::ERRORS => $stderr,
+          RACK_VARIABLE::MULTITHREAD => false,
+          RACK_VARIABLE::MULTIPROCESS => true,
+          RACK_VARIABLE::RUN_ONCE => false,
+          RACK_VARIABLE::URL_SCHEME => Handler.detect_url_scheme
         )
 
-        env["QUERY_STRING"] ||= ""
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["REQUEST_PATH"] ||= "/"
+        env[CGI_VARIABLE::QUERY_STRING] ||= ""
+        env[CGI_VARIABLE::HTTP_VERSION] ||= env[CGI_VARIABLE::SERVER_PROTOCOL]
+        env[CGI_VARIABLE::REQUEST_PATH] ||= "/"
         status, headers, body = app.call(env)
         begin
           send_headers status, headers

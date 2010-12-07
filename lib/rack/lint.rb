@@ -41,8 +41,8 @@ module Rack
       assert("No env given") { env }
       check_env env
 
-      env['rack.input'] = InputWrapper.new(env['rack.input'])
-      env['rack.errors'] = ErrorWrapper.new(env['rack.errors'])
+      env[RACK_VARIABLE::INPUT] = InputWrapper.new(env[RACK_VARIABLE::INPUT])
+      env[RACK_VARIABLE::ERRORS] = ErrorWrapper.new(env[RACK_VARIABLE::ERRORS])
 
       ## and returns an Array of exactly three values:
       status, headers, @body = @app.call(env)
@@ -53,7 +53,7 @@ module Rack
       ## and the *body*.
       check_content_type status, headers
       check_content_length status, headers
-      @head_request = env["REQUEST_METHOD"] == "HEAD"
+      @head_request = env[CGI_VARIABLE::REQUEST_METHOD] == HTTP_METHOD::HEAD
       [status, headers, self]
     end
 
@@ -128,7 +128,7 @@ module Rack
 
       ## <tt>rack.session</tt>:: A hash like interface for storing request session data.
       ##                         The store must implement:
-      if session = env['rack.session']
+      if session = env[RACK_VARIABLE::SESSION]
         ##                         store(key, value)         (aliased as []=);
         assert("session #{session.inspect} must respond to store and []=") {
           session.respond_to?(:store) && session.respond_to?(:[]=)
@@ -152,7 +152,7 @@ module Rack
 
       ## <tt>rack.logger</tt>:: A common object interface for logging messages.
       ##                        The object must implement:
-      if logger = env['rack.logger']
+      if logger = env[RACK_VARIABLE::LOGGER]
         ##                         info(message, &block)
         assert("logger #{logger.inspect} must respond to info") {
           logger.respond_to?(:info)

@@ -25,6 +25,8 @@ module Rack
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
         :namespace => 'rack:session',
         :memcache_server => 'localhost:11211'
+      
+      STORED_PATTERN = /^STORED/
 
       def initialize(app, options={})
         super
@@ -50,7 +52,7 @@ module Rack
         with_lock(env, [nil, {}]) do
           unless sid and session = @pool.get(sid)
             sid, session = generate_sid, {}
-            unless /^STORED/ =~ @pool.add(sid, session)
+            unless STORED_PATTERN =~ @pool.add(sid, session)
               raise "Session collision on '#{sid.inspect}'"
             end
           end
@@ -76,7 +78,7 @@ module Rack
       end
 
       def with_lock(env, default=nil)
-        @mutex.lock if env['rack.multithread']
+        @mutex.lock if env[RACK_VARIABLE::MULTITHREAD]
         yield
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
         if $VERBOSE

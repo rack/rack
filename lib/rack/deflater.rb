@@ -5,6 +5,12 @@ require 'rack/utils'
 
 module Rack
   class Deflater
+    GZIP = "gzip".freeze
+    DEFLATE = "deflate".freeze
+    IDENTITY = "identity".freeze
+    NO_TRANSFORM = /\bno-transform\b/i.freeze
+    ACCEPT_ENCODING = "Accept-Encoding".freeze
+    
     def initialize(app)
       @app = app
     end
@@ -16,7 +22,7 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers['Cache-Control'].to_s =~ /\bno-transform\b/
+          headers[HTTP_HEADER::CACHE_CONTROL].to_s =~ NO_TRANSFORM
         return [status, headers, body]
       end
 
@@ -26,27 +32,27 @@ module Rack
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["Vary"].to_s.split(",").map { |v| v.strip }
-      unless vary.include?("*") || vary.include?("Accept-Encoding")
-        headers["Vary"] = vary.push("Accept-Encoding").join(",")
+      vary = headers[HTTP_HEADER::VARY].to_s.split(",").map { |v| v.strip }
+      unless vary.include?("*") || vary.include?(ACCEPT_ENCODING)
+        headers[HTTP_HEADER::VARY] = vary.push(ACCEPT_ENCODING).join(",")
       end
 
       case encoding
-      when "gzip"
-        headers['Content-Encoding'] = "gzip"
-        headers.delete('Content-Length')
-        mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
+      when GZIP
+        headers[HTTP_HEADER::CONTENT_ENCODING] = GZIP
+        headers.delete(HTTP_HEADER::CONTENT_LENGTH)
+        mtime = headers.key?(HTTP_HEADER::LAST_MODIFIED) ?
+          Time.httpdate(headers[HTTP_HEADER::LAST_MODIFIED]) : Time.now
         [status, headers, GzipStream.new(body, mtime)]
-      when "deflate"
-        headers['Content-Encoding'] = "deflate"
-        headers.delete('Content-Length')
+      when DEFLATE
+        headers[HTTP_HEADER::CONTENT_ENCODING] = DEFLATE
+        headers.delete(HTTP_HEADER::CONTENT_LENGTH)
         [status, headers, DeflateStream.new(body)]
-      when "identity"
+      when IDENTITY
         [status, headers, body]
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
-        [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, [message]]
+        [406, {HTTP_HEADER::CONTENT_TYPE => "text/plain", HTTP_HEADER::CONTENT_LENGTH => message.length.to_s}, [message]]
       end
     end
 

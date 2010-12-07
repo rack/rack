@@ -22,25 +22,25 @@ module Rack
 
       def process_request(request, input_body, socket)
         env = {}.replace(request)
-        env.delete "HTTP_CONTENT_TYPE"
-        env.delete "HTTP_CONTENT_LENGTH"
-        env["REQUEST_PATH"], env["QUERY_STRING"] = env["REQUEST_URI"].split('?', 2)
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["PATH_INFO"] = env["REQUEST_PATH"]
-        env["QUERY_STRING"] ||= ""
-        env["SCRIPT_NAME"] = ""
+        env.delete CGI_VARIABLE::HTTP_CONTENT_TYPE
+        env.delete CGI_VARIABLE::HTTP_CONTENT_LENGTH
+        env[CGI_VARIABLE::REQUEST_PATH], env[CGI_VARIABLE::QUERY_STRING] = env[CGI_VARIABLE::REQUEST_URI].split('?', 2)
+        env[CGI_VARIABLE::HTTP_VERSION] ||= env[CGI_VARIABLE::SERVER_PROTOCOL]
+        env[CGI_VARIABLE::PATH_INFO] = env[CGI_VARIABLE::REQUEST_PATH]
+        env[CGI_VARIABLE::QUERY_STRING] ||= ""
+        env[CGI_VARIABLE::SCRIPT_NAME] = ""
 
         rack_input = StringIO.new(input_body)
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => false,
+        env.update({RACK_VARIABLE::VERSION => Rack::VERSION,
+                     RACK_VARIABLE::INPUT => rack_input,
+                     RACK_VARIABLE::ERRORS => $stderr,
+                     RACK_VARIABLE::MULTITHREAD => true,
+                     RACK_VARIABLE::MULTIPROCESS => true,
+                     RACK_VARIABLE::RUN_ONCE => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http"
+                     RACK_VARIABLE::URL_SCHEME => Handler.detect_url_scheme
                    })
         status, headers, body = app.call(env)
         begin

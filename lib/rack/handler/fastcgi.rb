@@ -28,28 +28,28 @@ module Rack
 
       def self.serve(request, app)
         env = request.env
-        env.delete "HTTP_CONTENT_LENGTH"
+        env.delete CGI_VARIABLE::HTTP_CONTENT_LENGTH
 
-        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+        env[CGI_VARIABLE::SCRIPT_NAME] = ""  if env[CGI_VARIABLE::SCRIPT_NAME] == "/"
 
         rack_input = RewindableInput.new(request.in)
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => rack_input,
-                     "rack.errors" => request.err,
+        env.update({RACK_VARIABLE::VERSION => Rack::VERSION,
+                     RACK_VARIABLE::INPUT => rack_input,
+                     RACK_VARIABLE::ERRORS => request.err,
 
-                     "rack.multithread" => false,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => false,
+                     RACK_VARIABLE::MULTITHREAD => false,
+                     RACK_VARIABLE::MULTIPROCESS => true,
+                     RACK_VARIABLE::RUN_ONCE => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http"
+                     RACK_VARIABLE::URL_SCHEME => Handler.detect_url_scheme
                    })
 
-        env["QUERY_STRING"] ||= ""
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["REQUEST_PATH"] ||= "/"
-        env.delete "CONTENT_TYPE"  if env["CONTENT_TYPE"] == ""
-        env.delete "CONTENT_LENGTH"  if env["CONTENT_LENGTH"] == ""
+        env[CGI_VARIABLE::QUERY_STRING] ||= ""
+        env[CGI_VARIABLE::HTTP_VERSION] ||= env[CGI_VARIABLE::SERVER_PROTOCOL]
+        env[CGI_VARIABLE::REQUEST_PATH] ||= "/"
+        env.delete(CGI_VARIABLE::CONTENT_TYPE)  if env[CGI_VARIABLE::CONTENT_TYPE] == ""
+        env.delete(CGI_VARIABLE::CONTENT_LENGTH)  if env[CGI_VARIABLE::CONTENT_LENGTH] == ""
 
         begin
           status, headers, body = app.call(env)

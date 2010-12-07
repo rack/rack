@@ -20,7 +20,7 @@ module Rack
         return bad_request unless auth.basic?
 
         if valid?(auth)
-          env['REMOTE_USER'] = auth.username
+          env[CGI_VARIABLE::REMOTE_USER] = auth.username
 
           return @app.call(env)
         end

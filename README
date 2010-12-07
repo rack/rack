@@ -119,7 +119,7 @@ By default, the lobster is found at http://localhost:9292.
 
 == Installing with RubyGems
 
-A Gem of Rack is available at gemcutter.org.  You can install it with:
+A Gem of Rack is available at rubygems.org.  You can install it with:
 
     gem install rack
 

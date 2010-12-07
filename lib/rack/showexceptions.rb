@@ -37,13 +37,13 @@ module Rack
       end
 
       [500,
-       {"Content-Type" => content_type,
-        "Content-Length" => Rack::Utils.bytesize(body.join).to_s},
+       {HTTP_HEADER::CONTENT_TYPE => content_type,
+        HTTP_HEADER::CONTENT_LENGTH => Rack::Utils.bytesize(body.join).to_s},
        body]
     end
 
     def prefers_plain_text?(env)
-      env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" && (!env["HTTP_ACCEPT"] || !env["HTTP_ACCEPT"].include?("text/html"))
+      env[CGI_VARIABLE::HTTP_X_REQUESTED_WITH] == "XMLHttpRequest" && (!env[CGI_VARIABLE::HTTP_ACCEPT] || !env[CGI_VARIABLE::HTTP_ACCEPT].include?("text/html"))
     end
 
     def dump_exception(exception)

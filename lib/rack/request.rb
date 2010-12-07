@@ -17,20 +17,30 @@ module Rack
     # The environment of the request.
     attr_reader :env
 
+    CONTENT_TYPE_SPLITTER = /\s*[;,]\s*/.freeze
+    CHARSET = "charset".freeze
+    ON = "on".freeze
+    HTTP_SCHEME = "http".freeze
+    HTTPS_SCHEME = "https".freeze
+    SERVER_PORT_PATTERN = /:\d+\z/.freeze
+    XML_HTTP_REQUEST = "XMLHttpRequest".freeze
+    COMMA_DELIMTED_SPLITTER = /,\s*/.freeze
+    ACCEPT_ENCODING_SPLITTER = /^([^\s,]+?)(?:;\s*q=(\d+(?:\.\d+)?))?$/.freeze
+    
     def initialize(env)
       @env = env
     end
 
-    def body;            @env["rack.input"]                       end
-    def script_name;     @env["SCRIPT_NAME"].to_s                 end
-    def path_info;       @env["PATH_INFO"].to_s                   end
-    def request_method;  @env["REQUEST_METHOD"]                   end
-    def query_string;    @env["QUERY_STRING"].to_s                end
-    def content_length;  @env['CONTENT_LENGTH']                   end
-    def content_type;    @env['CONTENT_TYPE']                     end
-    def session;         @env['rack.session'] ||= {}              end
-    def session_options; @env['rack.session.options'] ||= {}      end
-    def logger;          @env['rack.logger']                      end
+    def body;            @env[RACK_VARIABLE::INPUT]                       end
+    def script_name;     @env[CGI_VARIABLE::SCRIPT_NAME].to_s                 end
+    def path_info;       @env[CGI_VARIABLE::PATH_INFO].to_s                   end
+    def request_method;  @env[CGI_VARIABLE::REQUEST_METHOD]                   end
+    def query_string;    @env[CGI_VARIABLE::QUERY_STRING].to_s                end
+    def content_length;  @env[CGI_VARIABLE::CONTENT_LENGTH]                   end
+    def content_type;    @env[CGI_VARIABLE::CONTENT_TYPE]                     end
+    def session;         @env[RACK_VARIABLE::SESSION] ||= {}              end
+    def session_options; @env[RACK_VARIABLE::SESSION_OPTIONS] ||= {}      end
+    def logger;          @env[RACK_VARIABLE::LOGGER]                      end
 
     # The media type (type/subtype) portion of the CONTENT_TYPE header
     # without any media type parameters. e.g., when CONTENT_TYPE is
@@ -39,7 +49,7 @@ module Rack
     # For more information on the use of media types in HTTP, see:
     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
     def media_type
-      content_type && content_type.split(/\s*[;,]\s*/, 2).first.downcase
+      content_type && content_type.split(CONTENT_TYPE_SPLITTER, 2).first.downcase
     end
 
     # The media type parameters provided in CONTENT_TYPE as a Hash, or
@@ -49,7 +59,7 @@ module Rack
     #   { 'charset' => 'utf-8' }
     def media_type_params
       return {} if content_type.nil?
-      Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
+      Hash[*content_type.split(CONTENT_TYPE_SPLITTER)[1..-1].
         collect { |s| s.split('=', 2) }.
         map { |k,v| [k.downcase, v] }.flatten]
     end
@@ -59,52 +69,52 @@ module Rack
     # that, per RFC2616, text/* media types that specify no explicit
     # charset are to be considered ISO-8859-1.
     def content_charset
-      media_type_params['charset']
+      media_type_params[CHARSET]
     end
 
     def scheme
-      if @env['HTTPS'] == 'on'
+      if @env[CGI_VARIABLE::HTTPS] == ON
         'https'
-      elsif @env['HTTP_X_FORWARDED_PROTO']
-        @env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
+      elsif @env[CGI_VARIABLE::HTTP_X_FORWARDED_PROTO]
+        @env[CGI_VARIABLE::HTTP_X_FORWARDED_PROTO].split(',')[0]
       else
-        @env["rack.url_scheme"]
+        @env[RACK_VARIABLE::URL_SCHEME]
       end
     end
 
     def ssl?
-      scheme == 'https'
+      scheme == HTTPS_SCHEME
     end
 
     def host_with_port
-      if forwarded = @env["HTTP_X_FORWARDED_HOST"]
+      if forwarded = @env[CGI_VARIABLE::HTTP_X_FORWARDED_HOST]
         forwarded.split(/,\s?/).last
       else
-        @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
+        @env[CGI_VARIABLE::HTTP_HOST] || "#{@env[CGI_VARIABLE::SERVER_NAME] || @env[CGI_VARIABLE::SERVER_ADDR]}:#{@env[CGI_VARIABLE::SERVER_PORT]}"
       end
     end
     
     def port
-      host, port = host_with_port.split(/:/)
+      host, port = host_with_port.split(':')
       
-      (port || @env["SERVER_PORT"]).to_i
+      (port || @env[CGI_VARIABLE::SERVER_PORT]).to_i
     end
 
     def host
       # Remove port number.
-      host_with_port.to_s.gsub(/:\d+\z/, '')
+      host_with_port.to_s.gsub(SERVER_PORT_PATTERN, '')
     end
 
-    def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
-    def path_info=(s);   @env["PATH_INFO"] = s.to_s               end
+    def script_name=(s); @env[CGI_VARIABLE::SCRIPT_NAME] = s.to_s             end
+    def path_info=(s);   @env[CGI_VARIABLE::PATH_INFO] = s.to_s               end
 
-    def delete?;  request_method == "DELETE"  end
-    def get?;     request_method == "GET"     end
-    def head?;    request_method == "HEAD"    end
-    def options?; request_method == "OPTIONS" end
-    def post?;    request_method == "POST"    end
-    def put?;     request_method == "PUT"     end
-    def trace?;   request_method == "TRACE"   end
+    def delete?;  request_method == HTTP_METHOD::DELETE  end
+    def get?;     request_method == HTTP_METHOD::GET     end
+    def head?;    request_method == HTTP_METHOD::HEAD    end
+    def options?; request_method == HTTP_METHOD::OPTIONS end
+    def post?;    request_method == HTTP_METHOD::POST    end
+    def put?;     request_method == HTTP_METHOD::PUT     end
+    def trace?;   request_method == HTTP_METHOD::TRACE   end
 
     # The set of form-data media-types. Requests that do not indicate
     # one of the media types presents in this list will not be eligible
@@ -132,8 +142,8 @@ module Rack
     # Content-Type header is provided and the request_method is POST.
     def form_data?
       type = media_type
-      meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+      meth = env[RACK_VARIABLE::METHODOVERRIDE_ORIGINAL_METHOD] || env[CGI_VARIABLE::REQUEST_METHOD]
+      (meth == HTTP_METHOD::POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking
@@ -144,11 +154,11 @@ module Rack
 
     # Returns the data recieved in the query string.
     def GET
-      if @env["rack.request.query_string"] == query_string
-        @env["rack.request.query_hash"]
+      if @env[RACK_VARIABLE::REQUEST_QUERY_STRING] == query_string
+        @env[RACK_VARIABLE::REQUEST_QUERY_HASH]
       else
-        @env["rack.request.query_string"] = query_string
-        @env["rack.request.query_hash"]   = parse_query(query_string)
+        @env[RACK_VARIABLE::REQUEST_QUERY_STRING] = query_string
+        @env[RACK_VARIABLE::REQUEST_QUERY_HASH]   = parse_query(query_string)
       end
     end
 
@@ -157,24 +167,24 @@ module Rack
     # This method support both application/x-www-form-urlencoded and
     # multipart/form-data.
     def POST
-      if @env["rack.input"].nil?
+      if @env[RACK_VARIABLE::INPUT].nil?
         raise "Missing rack.input"
-      elsif @env["rack.request.form_input"].eql? @env["rack.input"]
-        @env["rack.request.form_hash"]
+      elsif @env[RACK_VARIABLE::REQUEST_FORM_INPUT].eql? @env[RACK_VARIABLE::INPUT]
+        @env[RACK_VARIABLE::REQUEST_FORM_HASH]
       elsif form_data? || parseable_data?
-        @env["rack.request.form_input"] = @env["rack.input"]
-        unless @env["rack.request.form_hash"] = parse_multipart(env)
-          form_vars = @env["rack.input"].read
+        @env[RACK_VARIABLE::REQUEST_FORM_INPUT] = @env[RACK_VARIABLE::INPUT]
+        unless @env[RACK_VARIABLE::REQUEST_FORM_HASH] = parse_multipart(env)
+          form_vars = @env[RACK_VARIABLE::INPUT].read
 
           # Fix for Safari Ajax postings that always append \0
           form_vars.sub!(/\0\z/, '')
 
-          @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = parse_query(form_vars)
+          @env[RACK_VARIABLE::REQUEST_FORM_VARS] = form_vars
+          @env[RACK_VARIABLE::REQUEST_FORM_HASH] = parse_query(form_vars)
 
-          @env["rack.input"].rewind
+          @env[RACK_VARIABLE::INPUT].rewind
         end
-        @env["rack.request.form_hash"]
+        @env[RACK_VARIABLE::REQUEST_FORM_HASH]
       else
         {}
       end
@@ -204,35 +214,35 @@ module Rack
 
     # the referer of the client
     def referer
-      @env['HTTP_REFERER']
+      @env[CGI_VARIABLE::HTTP_REFERER]
     end
     alias referrer referer
 
     def user_agent
-      @env['HTTP_USER_AGENT']
+      @env[CGI_VARIABLE::HTTP_USER_AGENT]
     end
 
     def cookies
-      return {}  unless @env["HTTP_COOKIE"]
+      return {}  unless @env[CGI_VARIABLE::HTTP_COOKIE]
 
-      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"]
+      if @env[RACK_VARIABLE::REQUEST_COOKIE_STRING] == @env[CGI_VARIABLE::HTTP_COOKIE]
+        @env[RACK_VARIABLE::REQUEST_COOKIE_HASH]
       else
-        @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
+        @env[RACK_VARIABLE::REQUEST_COOKIE_STRING] = @env[CGI_VARIABLE::HTTP_COOKIE]
         # According to RFC 2109:
         #   If multiple cookies satisfy the criteria above, they are ordered in
         #   the Cookie header such that those with more specific Path attributes
         #   precede those with less specific.  Ordering with respect to other
         #   attributes (e.g., Domain) is unspecified.
-        @env["rack.request.cookie_hash"] =
-          Hash[*Utils.parse_query(@env["rack.request.cookie_string"], ';,').map {|k,v|
+        @env[RACK_VARIABLE::REQUEST_COOKIE_HASH] =
+          Hash[*Utils.parse_query(@env[RACK_VARIABLE::REQUEST_COOKIE_STRING], ';,').map {|k,v|
             [k, Array === v ? v.first : v]
           }.flatten]
       end
     end
 
     def xhr?
-      @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
+      @env[CGI_VARIABLE::HTTP_X_REQUESTED_WITH] == XML_HTTP_REQUEST
     end
 
     # Tries to return a remake of the original request URL as a string.
@@ -240,8 +250,7 @@ module Rack
       url = scheme + "://"
       url << host
 
-      if scheme == "https" && port != 443 ||
-          scheme == "http" && port != 80
+      if (scheme == HTTPS_SCHEME && port != 443) || (scheme == HTTP_SCHEME && port != 80)
         url << ":#{port}"
       end
 
@@ -259,8 +268,8 @@ module Rack
     end
 
     def accept_encoding
-      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/,\s*/).map do |part|
-        m = /^([^\s,]+?)(?:;\s*q=(\d+(?:\.\d+)?))?$/.match(part) # From WEBrick
+      @env[CGI_VARIABLE::HTTP_ACCEPT_ENCODING].to_s.split(COMMA_DELIMTED_SPLITTER).map do |part|
+        m = ACCEPT_ENCODING_SPLITTER.match(part) # From WEBrick
 
         if m
           [m[1], (m[2] || 1.0).to_f]
@@ -271,10 +280,10 @@ module Rack
     end
 
     def ip
-      if addr = @env['HTTP_X_FORWARDED_FOR']
-        (addr.split(',').grep(/\d\./).first || @env['REMOTE_ADDR']).to_s.strip
+      if addr = @env[CGI_VARIABLE::HTTP_X_FORWARDED_FOR]
+        (addr.split(',').grep(/\d\./).first || @env[CGI_VARIABLE::REMOTE_ADDR]).to_s.strip
       else
-        @env['REMOTE_ADDR']
+        @env[CGI_VARIABLE::REMOTE_ADDR]
       end
     end
 

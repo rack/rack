@@ -41,7 +41,7 @@ module Rack
       end
 
       def unpacked_cookie_data(env)
-        env["rack.session.unpacked_cookie_data"] ||= begin
+        env[RACK_VARIABLE::SESSION_UNPACKED_COOKIE_DATA] ||= begin
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
 
@@ -76,7 +76,7 @@ module Rack
         end
 
         if session_data.size > (4096 - @key.size)
-          env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
+          env[RACK_VARIABLE::ERRORS].puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
           nil
         else
           session_data

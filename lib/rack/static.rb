@@ -33,7 +33,7 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"]
+      path = env[CGI_VARIABLE::PATH_INFO]
 
       unless @urls.kind_of? Hash
         can_serve = @urls.any? { |url| path.index(url) == 0 }
@@ -42,7 +42,7 @@ module Rack
       end
 
       if can_serve
-        env["PATH_INFO"] = @urls[path] if @urls.kind_of? Hash
+        env[CGI_VARIABLE::PATH_INFO] = @urls[path] if @urls.kind_of? Hash
         @file_server.call(env)
       else
         @app.call(env)

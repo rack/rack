@@ -21,7 +21,7 @@ module Rack
 
     def initialize(body=[], status=200, header={}, &block)
       @status = status.to_i
-      @header = Utils::HeaderHash.new("Content-Type" => "text/html").
+      @header = Utils::HeaderHash.new(HTTP_HEADER::CONTENT_TYPE => "text/html").
                                       merge(header)
 
       @writer = lambda { |x| @body << x }
@@ -64,14 +64,14 @@ module Rack
 
     def redirect(target, status=302)
       self.status = status
-      self["Location"] = target
+      self[HTTP_HEADER::LOCATION] = target
     end
 
     def finish(&block)
       @block = block
 
       if [204, 304].include?(status.to_i)
-        header.delete "Content-Type"
+        header.delete HTTP_HEADER::CONTENT_TYPE
         [status.to_i, header, []]
       else
         [status.to_i, header, self]
@@ -95,7 +95,7 @@ module Rack
       @length += Rack::Utils.bytesize(s)
       @writer.call s
 
-      header["Content-Length"] = @length.to_s
+      header[HTTP_HEADER::CONTENT_LENGTH] = @length.to_s
       str
     end
 
@@ -133,11 +133,11 @@ module Rack
       end
 
       def content_type
-        headers["Content-Type"]
+        headers[HTTP_HEADER::CONTENT_TYPE]
       end
 
       def content_length
-        cl = headers["Content-Length"]
+        cl = headers[HTTP_HEADER::CONTENT_LENGTH]
         cl ? cl.to_i : cl
       end
 

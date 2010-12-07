@@ -281,8 +281,8 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env['rack.session']
-          options = env['rack.session.options']
+          session = env[RACK_VARIABLE::SESSION]
+          options = env[RACK_VARIABLE::SESSION_OPTIONS]
 
           if options[:drop] || options[:renew]
             session_id = destroy_session(env, options[:id] || generate_sid, options)
@@ -296,9 +296,9 @@ module Rack
           session_id ||= options[:id] || generate_sid
 
           if not data = set_session(env, session_id, session, options)
-            env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            env[RACK_VARIABLE::ERRORS].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
+            env[RACK_VARIABLE::ERRORS].puts("Defering cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = data

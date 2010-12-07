@@ -44,25 +44,25 @@ module Rack
 
       def process(request, response)
         env = {}.replace(request.params)
-        env.delete "HTTP_CONTENT_TYPE"
-        env.delete "HTTP_CONTENT_LENGTH"
+        env.delete CGI_VARIABLE::HTTP_CONTENT_TYPE
+        env.delete CGI_VARIABLE::HTTP_CONTENT_LENGTH
 
-        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+        env[CGI_VARIABLE::SCRIPT_NAME] = ""  if env[CGI_VARIABLE::SCRIPT_NAME] == "/"
 
         rack_input = request.body || StringIO.new('')
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+        
+        env.update({RACK_VARIABLE::VERSION => Rack::VERSION,
+                     RACK_VARIABLE::INPUT => rack_input,
+                     RACK_VARIABLE::ERRORS => $stderr,
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
+                     RACK_VARIABLE::MULTITHREAD => true,
+                     RACK_VARIABLE::MULTIPROCESS => false, # ???
+                     RACK_VARIABLE::RUN_ONCE => false,
 
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => false, # ???
-                     "rack.run_once" => false,
-
-                     "rack.url_scheme" => "http",
+                     RACK_VARIABLE::URL_SCHEME => Handler.detect_url_scheme
                    })
-        env["QUERY_STRING"] ||= ""
+        env[CGI_VARIABLE::QUERY_STRING] ||= ""
 
         status, headers, body = @app.call(env)
 

@@ -92,6 +92,13 @@ module Rack
 
   class Sendfile
     F = ::File
+    
+    X_SEND_FILE = 'X-Sendfile'.freeze
+    X_LIGHTTPD_SEND_FILE = 'X-Lighttpd-Send-File'.freeze
+    X_ACCEL_REDIRECT = 'X-Accel-Redirect'.freeze
+    SENDFILE_TYPE = 'sendfile.type'.freeze
+    HTTP_X_SENDFILE_TYPE = 'HTTP_X_SENDFILE_TYPE'.freeze
+    HTTP_X_ACCEL_MAPPING = 'HTTP_X_ACCEL_MAPPING'.freeze
 
     def initialize(app, variation=nil)
       @app = app
@@ -102,21 +109,21 @@ module Rack
       status, headers, body = @app.call(env)
       if body.respond_to?(:to_path)
         case type = variation(env)
-        when 'X-Accel-Redirect'
+        when X_ACCEL_REDIRECT
           path = F.expand_path(body.to_path)
           if url = map_accel_path(env, path)
             headers[type] = url
             body = []
           else
-            env['rack.errors'] << "X-Accel-Mapping header missing"
+            env[RACK_VARIABLE::ERRORS] << "X-Accel-Mapping header missing"
           end
-        when 'X-Sendfile', 'X-Lighttpd-Send-File'
+        when X_SEND_FILE, X_LIGHTTPD_SEND_FILE
           path = F.expand_path(body.to_path)
           headers[type] = path
           body = []
         when '', nil
         else
-          env['rack.errors'] << "Unknown x-sendfile variation: '#{variation}'.\n"
+          env[RACK_VARIABLE::ERRORS] << "Unknown x-sendfile variation: '#{variation}'.\n"
         end
       end
       [status, headers, body]
@@ -125,12 +132,12 @@ module Rack
     private
     def variation(env)
       @variation ||
-        env['sendfile.type'] ||
-        env['HTTP_X_SENDFILE_TYPE']
+        env[SENDFILE_TYPE] ||
+        env[HTTP_X_SENDFILE_TYPE]
     end
 
     def map_accel_path(env, file)
-      if mapping = env['HTTP_X_ACCEL_MAPPING']
+      if mapping = env[HTTP_X_ACCEL_MAPPING]
         internal, external = mapping.split('=', 2).map{ |p| p.strip }
         file.sub(/^#{internal}/i, external)
       end

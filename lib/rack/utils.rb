@@ -9,11 +9,16 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    NEW_LINE = "\n".freeze
+    
+    URL_ESCAPE_PATTERN = /([^ a-zA-Z0-9_.-]+)/u.freeze
+    URL_UNESCAPE_PATTERN = /((?:%[0-9a-fA-F]{2})+)/n
+    
     # Performs URI escaping so that you can construct proper
     # query strings faster.  Use this rather than the cgi.rb
     # version since it's faster.  (Stolen from Camping).
     def escape(s)
-      s.to_s.gsub(/([^ a-zA-Z0-9_.-]+)/u) {
+      s.to_s.gsub(URL_ESCAPE_PATTERN) {
         '%'+$1.unpack('H2'*bytesize($1)).join('%').upcase
       }.tr(' ', '+')
     end
@@ -21,13 +26,13 @@ module Rack
 
     # Unescapes a URI escaped string. (Stolen from Camping).
     def unescape(s)
-      s.tr('+', ' ').gsub(/((?:%[0-9a-fA-F]{2})+)/n){
+      s.tr('+', ' ').gsub(URL_UNESCAPE_PATTERN){
         [$1.delete('%')].pack('H*')
       }
     end
     module_function :unescape
 
-    DEFAULT_SEP = /[&;] */n
+    DEFAULT_SEP = /[&;] */n.freeze
 
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
@@ -66,8 +71,12 @@ module Rack
     end
     module_function :parse_nested_query
 
+    PARAM_NAME_PATTERN = /\A[\[\]]*([^\[\]]+)\]*/.freeze
+    PARAM_NAME_AFTER_PATTERN_1 = /^\[\]\[([^\[\]]+)\]$/.freeze
+    PARAM_NAME_AFTER_PATTERN_2 = /^\[\](.+)$/.freeze
+    
     def normalize_params(params, name, v = nil)
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
+      name =~ PARAM_NAME_PATTERN
       k = $1 || ''
       after = $' || ''
 
@@ -79,7 +88,7 @@ module Rack
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
+      elsif after =~ PARAM_NAME_AFTER_PATTERN_1 || after =~ PARAM_NAME_AFTER_PATTERN_2
         child_key = $1
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
@@ -136,7 +145,7 @@ module Rack
       '"' => "&quot;",
       "/" => "&#x2F;"
     }
-    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys).freeze
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
@@ -144,6 +153,8 @@ module Rack
     end
     module_function :escape_html
 
+    IDENTITY_ENCODING = "identity".freeze
+    
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 
@@ -160,8 +171,8 @@ module Rack
 
       encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
 
-      unless encoding_candidates.include?("identity")
-        encoding_candidates.push("identity")
+      unless encoding_candidates.include?(IDENTITY_ENCODING)
+        encoding_candidates.push(IDENTITY_ENCODING)
       end
 
       expanded_accept_encoding.find_all { |m, q|
@@ -192,13 +203,13 @@ module Rack
         value.map { |v| escape v }.join("&") +
         "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
-      case header["Set-Cookie"]
+      case header[HTTP_HEADER::SET_COOKIE]
       when nil, ''
-        header["Set-Cookie"] = cookie
+        header[HTTP_HEADER::SET_COOKIE] = cookie
       when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+        header[HTTP_HEADER::SET_COOKIE] = [header[HTTP_HEADER::SET_COOKIE], cookie].join(NEW_LINE)
       when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        header[HTTP_HEADER::SET_COOKIE] = (header[HTTP_HEADER::SET_COOKIE] + [cookie]).join(NEW_LINE)
       end
 
       nil
@@ -206,13 +217,13 @@ module Rack
     module_function :set_cookie_header!
 
     def delete_cookie_header!(header, key, value = {})
-      case header["Set-Cookie"]
+      case header[HTTP_HEADER::SET_COOKIE]
       when nil, ''
         cookies = []
       when String
-        cookies = header["Set-Cookie"].split("\n")
+        cookies = header[HTTP_HEADER::SET_COOKIE].split(NEW_LINE)
       when Array
-        cookies = header["Set-Cookie"]
+        cookies = header[HTTP_HEADER::SET_COOKIE]
       end
 
       cookies.reject! { |cookie|
@@ -223,7 +234,7 @@ module Rack
         end
       }
 
-      header["Set-Cookie"] = cookies.join("\n")
+      header[HTTP_HEADER::SET_COOKIE] = cookies.join(NEW_LINE)
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
@@ -262,16 +273,18 @@ module Rack
     end
     module_function :rfc2822
 
+    RANGE_PATTERN = /bytes=(\d*)-(\d*)/.freeze
+    
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
     # Returns an empty array if none of the ranges are satisfiable.
     def byte_ranges(env, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
-      http_range = env['HTTP_RANGE']
+      http_range = env[CGI_VARIABLE::HTTP_RANGE]
       return nil unless http_range
       ranges = []
       http_range.split(/,\s*/).each do |range_spec|
-        matches = range_spec.match(/bytes=(\d*)-(\d*)/)
+        matches = range_spec.match(RANGE_PATTERN)
         return nil  unless matches
         r0,r1 = matches[1], matches[2]
         if r0.empty?
@@ -336,13 +349,13 @@ module Rack
 
       def each
         super do |k, v|
-          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
+          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join(NEW_LINE) : v)
         end
       end
 
       def to_hash
         Hash[*map do |k, v|
-          [k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v]
+          [k, v.respond_to?(:to_ary) ? v.to_ary.join(NEW_LINE) : v]
         end.flatten]
       end
 
@@ -496,20 +509,18 @@ module Rack
         end
       end
 
-      EOL = "\r\n"
-      MULTIPART_BOUNDARY = "AaB03x"
+      EOL = "\r\n".freeze
+      MULTIPART_BOUNDARY = "AaB03x".freeze
+      CONTENT_TYPE_BOUNDARY_PATTERN = /\Amultipart\/.*boundary=\"?([^\";,]+)\"?/n.freeze
 
       def self.parse_multipart(env)
-        unless env['CONTENT_TYPE'] =~
-            %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
-          nil
-        else
+        if env[CGI_VARIABLE::CONTENT_TYPE] =~ CONTENT_TYPE_BOUNDARY_PATTERN
           boundary = "--#{$1}"
 
           params = {}
           buf = ""
-          content_length = env['CONTENT_LENGTH'].to_i
-          input = env['rack.input']
+          content_length = env[CGI_VARIABLE::CONTENT_LENGTH].to_i
+          input = env[RACK_VARIABLE::INPUT]
           input.rewind
 
           boundary_size = Utils.bytesize(boundary) + EOL.size

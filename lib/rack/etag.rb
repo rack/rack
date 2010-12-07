@@ -24,11 +24,11 @@ module Rack
 
       if etag_status?(status) && etag_body?(body) && !http_caching?(headers)
         digest, body = digest_body(body)
-        headers['ETag'] = %("#{digest}") if digest
+        headers[HTTP_HEADER::ETAG] = %("#{digest}") if digest
       end
 
-      unless headers['Cache-Control']
-        headers['Cache-Control'] = digest ? @cache_control : @no_cache_control
+      unless headers[HTTP_HEADER::CACHE_CONTROL]
+        headers[HTTP_HEADER::CACHE_CONTROL] = digest ? @cache_control : @no_cache_control
       end
 
       [status, headers, body]
@@ -45,7 +45,7 @@ module Rack
       end
 
       def http_caching?(headers)
-        headers.key?('ETag') || headers.key?('Last-Modified')
+        headers.key?(HTTP_HEADER::ETAG) || headers.key?(HTTP_HEADER::LAST_MODIFIED)
       end
 
       def digest_body(body)
