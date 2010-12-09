@@ -508,7 +508,7 @@ module Rack
       MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
       MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name="?([^\";]*)"?/ni
       MULTIPART_CONTENT_ID = /Content-ID:([^#{EOL}]*)/ni
-      
+
       def self.parse_multipart(env)
         unless env['CONTENT_TYPE'] =~ MULTIPART
           nil
@@ -555,7 +555,7 @@ module Rack
                 if filename && filename !~ /\\[^\\"]/
                   filename = Utils.unescape(filename).gsub(/\\(.)/, '\1')
                 end
-                
+
                 content_type = head[MULTIPART_CONTENT_TYPE, 1]
                 name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
 
