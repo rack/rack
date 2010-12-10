@@ -58,6 +58,10 @@ describe Rack::Request do
     req.port.should.equal 80
 
     req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org:81")
+    req.port.should.equal 81
+
+    req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.port.should.equal 9292
 
@@ -68,6 +72,36 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org")
     req.port.should.equal 80
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_SSL" => "on")
+    req.port.should.equal 443
+
+     req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_PROTO" => "https")
+    req.port.should.equal 443
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_PORT" => "9393")
+    req.port.should.equal 9393
+  end
+
+  should "figure out the correct host with port" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org")
+    req.host_with_port.should.equal "www2.example.org"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81")
+    req.host_with_port.should.equal "localhost:81"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
+    req.host_with_port.should.equal "example.org:9292"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
+    req.host_with_port.should.equal "example.org:9292"
   end
 
   should "parse the query string" do
@@ -202,6 +236,24 @@ describe Rack::Request do
     req.user_agent.should.equal nil
   end
 
+  should "treat missing content type as nil" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/")
+    req.content_type.should.equal nil
+  end
+
+  should "treat empty content type as nil" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
+    req.content_type.should.equal nil
+  end
+
+  should "return nil media type for empty content type" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
+    req.media_type.should.equal nil
+  end
+
   should "cache, but invalidates the cache" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/?foo=quux",
@@ -250,9 +302,17 @@ describe Rack::Request do
     request.scheme.should.equal "https"
     request.should.be.ssl?
 
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8443', 'HTTP_X_FORWARDED_SSL' => 'on'))
+    request.scheme.should.equal "https"
+    request.should.be.ssl?
+
     request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https'))
     request.scheme.should.equal "https"
     request.should.be.ssl?
+
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https, http, http'))
+    request.scheme.should.equal "https"
+    request.should.be.ssl
   end
 
   should "parse cookies" do

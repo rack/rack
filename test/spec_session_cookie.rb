@@ -87,8 +87,8 @@ describe Rack::Session::Cookie do
 
     app = Rack::Session::Cookie.new(session_id)
     res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => res["Set-Cookie"])
-    res.body.should.match /"session_id"=>/
-    res.body.should.match /"counter"=>1/
+    res.body.should.match(/"session_id"=>/)
+    res.body.should.match(/"counter"=>1/)
   end
 
   it "does not return a cookie if set to secure but not using ssl" do

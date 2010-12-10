@@ -441,6 +441,7 @@ describe Rack::Utils::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
+    params["submit-name-with-content"].should.equal "Berry"
     params["files"][:type].should.equal "text/plain"
     params["files"][:filename].should.equal "file1.txt"
     params["files"][:head].should.equal "Content-Disposition: form-data; " +
@@ -598,7 +599,7 @@ describe Rack::Utils::Multipart do
     params = Rack::Utils::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
     params["files"][:filename].should.equal "file1.txt"
-    input.read.length.should.equal 197
+    input.read.length.should.equal 307
   end
 
   it "builds multipart body" do

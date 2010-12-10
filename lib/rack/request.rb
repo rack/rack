@@ -27,7 +27,12 @@ module Rack
     def request_method;  @env["REQUEST_METHOD"]                   end
     def query_string;    @env["QUERY_STRING"].to_s                end
     def content_length;  @env['CONTENT_LENGTH']                   end
-    def content_type;    @env['CONTENT_TYPE']                     end
+
+    def content_type
+      content_type = @env['CONTENT_TYPE']
+      content_type.nil? || content_type.empty? ? nil : content_type
+    end
+
     def session;         @env['rack.session'] ||= {}              end
     def session_options; @env['rack.session.options'] ||= {}      end
     def logger;          @env['rack.logger']                      end
@@ -65,8 +70,10 @@ module Rack
     def scheme
       if @env['HTTPS'] == 'on'
         'https'
+      elsif @env['HTTP_X_FORWARDED_SSL'] == 'on'
+        'https'
       elsif @env['HTTP_X_FORWARDED_PROTO']
-        @env['HTTP_X_FORWARDED_PROTO']
+        @env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
       else
         @env["rack.url_scheme"]
       end
@@ -83,11 +90,17 @@ module Rack
         @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
       end
     end
-    
+
     def port
-      host, port = host_with_port.split(/:/)
-      
-      (port || @env["SERVER_PORT"]).to_i
+      if port = host_with_port.split(/:/)[1]
+        port.to_i
+      elsif port = @env['HTTP_X_FORWARDED_PORT']
+        port.to_i
+      elsif ssl?
+        443
+      else
+        @env["SERVER_PORT"].to_i
+      end
     end
 
     def host
