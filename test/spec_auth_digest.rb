@@ -8,7 +8,8 @@ describe Rack::Auth::Digest::MD5 do
 
   def unprotected_app
     lambda do |env|
-      [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}"] ]
+      friend = Rack::Utils.parse_query(env["QUERY_STRING"])["friend"]
+      [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
     end
   end
 
@@ -198,6 +199,23 @@ describe Rack::Auth::Digest::MD5 do
     request_with_digest_auth 'GET', '/protected', 'Alice', 'correct-password' do |response|
       response.status.should.equal 200
       response.body.to_s.should.equal 'Hi Alice'
+    end
+  end
+  
+  should 'return application output when used with a query string and path as uri' do
+    @request = Rack::MockRequest.new(partially_protected_app)
+    request_with_digest_auth 'GET', '/protected?friend=Mike', 'Alice', 'correct-password' do |response|
+      response.status.should.equal 200
+      response.body.to_s.should.equal 'Hi Alice and Mike'
+    end
+  end
+  
+  should 'return application output when used with a query string and fullpath as uri' do
+    @request = Rack::MockRequest.new(partially_protected_app)
+    qs_uri = '/protected?friend=Mike'
+    request_with_digest_auth 'GET', qs_uri, 'Alice', 'correct-password', 'uri' => qs_uri do |response|
+      response.status.should.equal 200
+      response.body.to_s.should.equal 'Hi Alice and Mike'
     end
   end
 
