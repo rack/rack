@@ -258,7 +258,7 @@ module Rack
     def rfc2822(time)
       wday = Time::RFC2822_DAY_NAME[time.wday]
       mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
-      time.strftime("#{wday}, %d-#{mon}-%Y %T GMT")
+      time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
     module_function :rfc2822
 
