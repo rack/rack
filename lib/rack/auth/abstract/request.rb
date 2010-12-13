@@ -1,9 +1,15 @@
+require 'rack/request'
+
 module Rack
   module Auth
     class AbstractRequest
 
       def initialize(env)
         @env = env
+      end
+
+      def request
+        @request ||= Request.new(@env)
       end
 
       def provided?
