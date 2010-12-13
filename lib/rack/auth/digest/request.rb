@@ -16,9 +16,8 @@ module Rack
         end
 
         def correct_uri?
-          base_uri = @env['SCRIPT_NAME'].to_s + @env['PATH_INFO'].to_s
-          query_uri = base_uri + "?" + @env['QUERY_STRING']
-          base_uri == uri || query_uri == uri
+          r = Rack::Request.new(@env)
+          [r.path, r.fullpath].include?(uri)
         end
 
         def nonce
