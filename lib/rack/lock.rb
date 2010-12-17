@@ -2,15 +2,30 @@ require 'thread'
 
 module Rack
   class Lock
+    class Proxy < Struct.new(:target, :mutex) # :nodoc:
+      def each
+        target.each { |x| yield x }
+      end
+
+      def close
+        target.close if target.respond_to?(:close)
+      ensure
+        mutex.unlock
+      end
+    end
+
     FLAG = 'rack.multithread'.freeze
 
-    def initialize(app, lock = Mutex.new)
-      @app, @lock = app, lock
+    def initialize(app, mutex = Mutex.new)
+      @app, @mutex = app, mutex
     end
 
     def call(env)
       old, env[FLAG] = env[FLAG], false
-      @lock.synchronize { @app.call(env) }
+      @mutex.lock
+      response = @app.call(env)
+      response[2] = Proxy.new(response[2], @mutex)
+      response
     ensure
       env[FLAG] = old
     end
