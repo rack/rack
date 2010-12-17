@@ -18,6 +18,57 @@ describe Rack::Session::Cookie do
     Rack::Response.new("Nothing").to_a
   end
 
+  describe 'Base64' do
+    it 'uses base64 to encode' do
+      coder = Rack::Session::Cookie::Base64.new
+      str   = 'fuuuuu'
+      coder.encode(str).should.equal [str].pack('m')
+    end
+
+    it 'uses base64 to decode' do
+      coder = Rack::Session::Cookie::Base64.new
+      str   = ['fuuuuu'].pack('m')
+      coder.decode(str).should.equal str.unpack('m').first
+    end
+
+    describe 'Marshal' do
+      it 'marshals and base64 encodes' do
+        coder = Rack::Session::Cookie::Base64::Marshal.new
+        str   = 'fuuuuu'
+        coder.encode(str).should.equal [::Marshal.dump(str)].pack('m')
+      end
+
+      it 'marshals and base64 decodes' do
+        coder = Rack::Session::Cookie::Base64::Marshal.new
+        str   = [::Marshal.dump('fuuuuu')].pack('m')
+        coder.decode(str).should.equal ::Marshal.load(str.unpack('m').first)
+      end
+
+      it 'rescues failures on decode' do
+        coder = Rack::Session::Cookie::Base64::Marshal.new
+        coder.decode('lulz').should.equal nil
+      end
+    end
+  end
+
+  it 'uses a coder' do
+    identity = Class.new {
+      attr_reader :calls
+
+      def initialize
+        @calls = []
+      end
+
+      def encode(str); @calls << :encode; str; end
+      def decode(str); @calls << :decode; str; end
+    }.new
+    cookie = Rack::Session::Cookie.new(incrementor, :coder => identity)
+    res = Rack::MockRequest.new(cookie).get("/")
+    res["Set-Cookie"].should.include("rack.session=")
+    res.body.should.equal '{"counter"=>1}'
+    identity.calls.should.equal [:decode, :encode]
+  end
+
   it "creates a new cookie" do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
     res["Set-Cookie"].should.include("rack.session=")

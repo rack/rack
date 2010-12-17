@@ -8,8 +8,11 @@ module Rack
   module Session
 
     # Rack::Session::Cookie provides simple cookie based session management.
-    # The session is a Ruby Hash stored as base64 encoded marshalled data
-    # set to :key (default: rack.session).
+    # By default, the session is a Ruby Hash stored as base64 encoded marshalled
+    # data set to :key (default: rack.session).  The object that encodes the
+    # session data is configurable and must respond to +encode+ and +decode+.
+    # Both methods must take a string and return a string.
+    #
     # When the secret key is set, cookie data is checked for data integrity.
     #
     # Example:
@@ -21,10 +24,63 @@ module Rack
     #                                :secret => 'change_me'
     #
     #     All parameters are optional.
+    #
+    # Example of a cookie with no encoding:
+    #
+    #   Rack::Session::Cookie.new(application, {
+    #     :coder => Racke::Session::Cookie::Identity.new
+    #   })
+    #
+    # Example of a cookie with custom encoding:
+    #
+    #   Rack::Session::Cookie.new(application, {
+    #     :coder => Class.new {
+    #       def encode(str); str.reverse; end
+    #       def decode(str); str.reverse; end
+    #     }.new
+    #   })
+    #
 
     class Cookie < Abstract::ID
+      # Encode session cookies as Base64
+      class Base64
+        def encode(str)
+          [str].pack('m')
+        end
+
+        def decode(str)
+          str.unpack('m').first
+        end
+
+        # Encode session cookies as Marshaled Base64 data
+        class Marshal < Base64
+          def encode(str)
+            super(::Marshal.dump(str))
+          end
+
+          def decode(str)
+            ::Marshal.load(super(str)) rescue nil
+          end
+        end
+      end
+
+      # Use no encoding for session cookies
+      class Identity
+        def encode(str); str; end
+        def decode(str); str; end
+      end
+
+      # Reverse string encoding. (trollface)
+      class Reverse
+        def encode(str); str.reverse; end
+        def decode(str); str.reverse; end
+      end
+
+      attr_reader :coder
+
       def initialize(app, options={})
         @secret = options.delete(:secret)
+        @coder  = options.delete(:coder) || Base64::Marshal.new
         super(app, options.merge!(:cookie_only => true))
       end
 
@@ -50,8 +106,7 @@ module Rack
             session_data = nil  unless digest == generate_hmac(session_data)
           end
 
-          data = Marshal.load(session_data.unpack("m*").first) rescue nil
-          data || {}
+          coder.decode(session_data) || {}
         end
       end
 
@@ -69,7 +124,7 @@ module Rack
 
       def set_session(env, session_id, session, options)
         session = persistent_session_id!(session, session_id)
-        session_data = [Marshal.dump(session)].pack("m*")
+        session_data = coder.encode(session)
 
         if @secret
           session_data = "#{session_data}--#{generate_hmac(session_data)}"
