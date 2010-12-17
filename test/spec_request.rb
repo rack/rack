@@ -410,6 +410,47 @@ describe Rack::Request do
       req.media_type_params['bling'].should.equal 'bam'
   end
 
+  should "parse with junk before boundry" do
+    # Adapted from RFC 1867.
+    input = <<EOF
+blah blah\r
+\r
+--AaB03x\r
+content-disposition: form-data; name="reply"\r
+\r
+yes\r
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="dj.jpg"\r
+Content-Type: image/jpeg\r
+Content-Transfer-Encoding: base64\r
+\r
+/9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
+--AaB03x--\r
+EOF
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    req.POST.should.include "fileupload"
+    req.POST.should.include "reply"
+
+    req.should.be.form_data
+    req.content_length.should.equal input.size
+    req.media_type.should.equal 'multipart/form-data'
+    req.media_type_params.should.include 'boundary'
+    req.media_type_params['boundary'].should.equal 'AaB03x'
+
+    req.POST["reply"].should.equal "yes"
+
+    f = req.POST["fileupload"]
+    f.should.be.kind_of Hash
+    f[:type].should.equal "image/jpeg"
+    f[:filename].should.equal "dj.jpg"
+    f.should.include :tempfile
+    f[:tempfile].size.should.equal 76
+  end
+
   should "parse multipart form data" do
     # Adapted from RFC 1867.
     input = <<EOF
