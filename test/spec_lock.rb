@@ -88,6 +88,14 @@ describe Rack::Lock do
     lock.synchronized.should.equal true
   end
 
+  should "unlock if the app raises" do
+    lock = Lock.new
+    env = Rack::MockRequest.env_for("/")
+    app = Rack::Lock.new(lambda { raise Exception }, lock)
+    lambda { app.call(env) }.should.raise(Exception)
+    lock.synchronized.should.equal false
+  end
+
   should "set multithread flag to false" do
     app = Rack::Lock.new(lambda { |env|
       env['rack.multithread'].should.equal false
