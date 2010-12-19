@@ -26,6 +26,9 @@ module Rack
       response = @app.call(env)
       response[2] = Proxy.new(response[2], @mutex)
       response
+    rescue Exception
+      @mutex.unlock
+      raise
     ensure
       env[FLAG] = old
     end
