@@ -39,6 +39,32 @@ describe Rack::Lock do
       response.each { |x| list << x }
       list.should.equal %w{ hi mom }
     end
+
+    should 'delegate to_path' do
+      lock = Lock.new
+      env  = Rack::MockRequest.env_for("/")
+
+      res = ['Hello World']
+      def res.to_path ; "/tmp/hello.txt" ; end
+
+      app = Rack::Lock.new(lambda { |inner_env| [200, {}, res] }, lock)
+      body = app.call(env)[2]
+
+      body.should.respond_to :to_path
+      body.to_path.should.equal "/tmp/hello.txt"
+    end
+
+    should 'not delegate to_path if body does not implement it' do
+      lock = Lock.new
+      env  = Rack::MockRequest.env_for("/")
+
+      res = ['Hello World']
+
+      app = Rack::Lock.new(lambda { |inner_env| [200, {}, res] }, lock)
+      body = app.call(env)[2]
+
+      body.should.not.respond_to :to_path
+    end
   end
 
   should 'call super on close' do

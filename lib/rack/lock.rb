@@ -12,6 +12,14 @@ module Rack
       ensure
         mutex.unlock
       end
+
+      def to_path
+        target.to_path
+      end
+
+      def respond_to?(sym)
+        sym.to_sym == :close || target.respond_to?(sym)
+      end
     end
 
     FLAG = 'rack.multithread'.freeze
