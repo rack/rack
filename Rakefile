@@ -77,7 +77,7 @@ desc "Run all the tests"
 task :fulltest => [:chmod] do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] || '-q'
-  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
+  sh "bacon -rtest/gemloader -I./lib:./test -w #{opts} #{specopts}"
 end
 
 task :gem => ["SPEC"] do
