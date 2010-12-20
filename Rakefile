@@ -59,7 +59,7 @@ end
 
 desc "Generate RDox"
 task "RDOX" do
-  sh "specrb -Ilib:test -a --rdox >RDOX"
+  sh "specrb -rtest/gemloader -Ilib:test -a --rdox >RDOX"
 end
 
 desc "Generate Rack Specification"
@@ -80,7 +80,7 @@ end
 
 desc "Run all the tests"
 task :fulltest => [:chmod] do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
+  sh "specrb -rtest/gemloader -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS']}"
 end
 
 task :gem => ["SPEC"] do
