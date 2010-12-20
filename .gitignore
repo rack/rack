@@ -1,3 +1,6 @@
 RDOX
 SPEC
 *.gem
+lighttpd.errors
+*.rbc
+stage
