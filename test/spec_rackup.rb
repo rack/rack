@@ -22,9 +22,18 @@ context "rackup" do
     return if options[:port] == false
 
     # Wait until the server is available
+    i = 0
     begin
       GET("/")
     rescue
+      i += 1
+      if i > 40
+        Dir["#{root}/**/*.pid"].each {|f|
+          Process.kill(9, File.read(f)) rescue nil
+          File.delete(f)
+        }
+        raise "Server did not start"
+      end
       sleep 0.05
       retry
     end
@@ -39,6 +48,7 @@ context "rackup" do
     GET "/die" rescue nil
 
     Dir["#{root}/**/*.pid"].each do |file|
+      Process.kill(9, File.read(file).strip.to_i) rescue nil
       File.delete(file)
     end
 
@@ -115,7 +125,7 @@ context "rackup" do
 
   specify "rackup --version" do
     run_rackup %{--version}, :port => false
-    output.should =~ /1.0/
+    output.should =~ /Rack 1.1/
   end
 
   specify "rackup --env development includes lint" do
