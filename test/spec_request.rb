@@ -550,6 +550,24 @@ EOF
 
     lambda { req.POST }.should.raise(EOFError)
   end
+  
+  should "correctly parse the part name from Content-Id header" do
+    input = <<EOF
+--AaB03x\r
+Content-Type: text/xml; charset=utf-8\r
+Content-Id: <soap-start>\r
+Content-Transfer-Encoding: 7bit\r
+\r
+foo\r
+--AaB03x--\r
+EOF
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/related, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    req.params.keys.should.equal ["<soap-start>"]
+  end
 
   should "not try to interpret binary as utf8" do
     if /regexp/.respond_to?(:kcode) # < 1.9
