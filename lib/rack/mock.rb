@@ -146,11 +146,8 @@ module Rack
       @status = status.to_i
 
       @original_headers = headers
-      @headers = Rack::Utils::HeaderHash.new
-      headers.each { |field, values|
-        @headers[field] = values
-        @headers[field] = ""  if (values.nil? || values.empty?)
-      }
+      @headers = Rack::Utils::HeaderHash.new("Content-Type" => "text/html").
+        merge(headers)
 
       @body = ""
       body.each { |part| @body << part }
