@@ -53,8 +53,9 @@ task :changelog do
 end
 
 
+file 'lib/rack/lint.rb'
 desc "Generate Rack Specification"
-task "SPEC" do
+file "SPEC" => 'lib/rack/lint.rb' do
   File.open("SPEC", "wb") { |file|
     IO.foreach("lib/rack/lint.rb") { |line|
       if line =~ /## (.*)/
@@ -65,7 +66,7 @@ task "SPEC" do
 end
 
 desc "Run all the fast tests"
-task :test do
+task :test => 'SPEC' do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] ||
     "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|rackup)'"
@@ -74,7 +75,7 @@ task :test do
 end
 
 desc "Run all the tests"
-task :fulltest => [:chmod] do
+task :fulltest => %w[SPEC chmod] do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] || '-q'
   sh "bacon -rtest/gemloader -I./lib:./test -w #{opts} #{specopts}"
