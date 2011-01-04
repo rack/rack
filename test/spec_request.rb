@@ -360,6 +360,13 @@ describe Rack::Request do
     req.env.should == e
   end
 
+  should "restore the base URL" do
+    Rack::Request.new(Rack::MockRequest.env_for("")).base_url.
+      should.equal "http://example.org"
+    Rack::Request.new(Rack::MockRequest.env_for("", "SCRIPT_NAME" => "/foo")).base_url.
+      should.equal "http://example.org"
+  end
+
   should "restore the URL" do
     Rack::Request.new(Rack::MockRequest.env_for("")).url.
       should.equal "http://example.org/"
@@ -550,7 +557,7 @@ EOF
 
     lambda { req.POST }.should.raise(EOFError)
   end
-  
+
   should "correctly parse the part name from Content-Id header" do
     input = <<EOF
 --AaB03x\r

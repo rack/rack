@@ -248,8 +248,7 @@ module Rack
       @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     end
 
-    # Tries to return a remake of the original request URL as a string.
-    def url
+    def base_url
       url = scheme + "://"
       url << host
 
@@ -258,9 +257,12 @@ module Rack
         url << ":#{port}"
       end
 
-      url << fullpath
-
       url
+    end
+
+    # Tries to return a remake of the original request URL as a string.
+    def url
+      base_url + fullpath
     end
 
     def path
