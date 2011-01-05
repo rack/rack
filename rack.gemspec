@@ -35,4 +35,5 @@ EOF
   s.add_development_dependency 'memcache-client'
   s.add_development_dependency 'mongrel'
   s.add_development_dependency 'thin'
+  s.add_development_dependency 'json'
 end
