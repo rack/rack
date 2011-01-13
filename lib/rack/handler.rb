@@ -35,7 +35,7 @@ module Rack
       else
         begin
           Rack::Handler::Mongrel
-        rescue LoadError => e
+        rescue LoadError
           Rack::Handler::WEBrick
         end
       end

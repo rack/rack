@@ -23,7 +23,7 @@ describe Rack::Response do
   it "can be written to" do
     response = Rack::Response.new
 
-    status, header, body = response.finish do
+    _, _, body = response.finish do
       response.write "foo"
       response.write "bar"
       response.write "baz"
@@ -152,7 +152,7 @@ describe Rack::Response do
       res.status = 404
       res.write "foo"
     }
-    status, header, body = r.finish
+    status, _, body = r.finish
     str = ""; body.each { |part| str << part }
     str.should.equal "foo"
     status.should.equal 404
@@ -160,7 +160,7 @@ describe Rack::Response do
 
   it "doesn't return invalid responses" do
     r = Rack::Response.new(["foo", "bar"], 204)
-    status, header, body = r.finish
+    _, header, body = r.finish
     str = ""; body.each { |part| str << part }
     str.should.be.empty
     header["Content-Type"].should.equal nil

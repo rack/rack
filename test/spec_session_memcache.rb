@@ -113,7 +113,7 @@ begin
       req = Rack::MockRequest.new(pool)
 
       res0 = req.get("/")
-      session = (cookie = res0["Set-Cookie"])[session_match]
+      cookie = res0["Set-Cookie"][session_match]
       res0.body.should.equal '{"counter"=>1}'
 
       res1 = req.get("/", "HTTP_COOKIE" => cookie)
@@ -179,7 +179,6 @@ begin
     end
 
     it "updates deep hashes correctly" do
-      store = nil
       hash_check = proc do |env|
         session = env['rack.session']
         unless session.include? 'test'
@@ -197,7 +196,7 @@ begin
       session_id = (cookie = res0["Set-Cookie"])[session_match, 1]
       ses0 = pool.pool.get(session_id, true)
 
-      res1 = req.get("/", "HTTP_COOKIE" => cookie)
+      req.get("/", "HTTP_COOKIE" => cookie)
       ses1 = pool.pool.get(session_id, true)
 
       ses1.should.not.equal ses0
@@ -244,13 +243,6 @@ begin
 
       tnum = rand(7).to_i+5
       r = Array.new(tnum) do |i|
-        delta_time = proc do |env|
-          env['rack.session'][i]  = Time.now
-          Thread.stop
-          env['rack.session']     = env['rack.session'].dup
-          env['rack.session'][i] -= Time.now
-          incrementor.call(env)
-        end
         app = Rack::Utils::Context.new pool, time_delta
         req = Rack::MockRequest.new app
         Thread.new(req) do |run|

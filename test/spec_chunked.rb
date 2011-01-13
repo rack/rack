@@ -52,7 +52,7 @@ describe Rack::Chunked do
   [100, 204, 304].each do |status_code|
     should "not modify response when status code is #{status_code}" do
       app = lambda { |env| [status_code, {}, []] }
-      status, headers, body = Rack::Chunked.new(app).call(@env)
+      status, headers, _ = Rack::Chunked.new(app).call(@env)
       status.should.equal status_code
       headers.should.not.include 'Transfer-Encoding'
     end

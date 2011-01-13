@@ -179,7 +179,7 @@ describe Rack::MockRequest do
 
   should "behave valid according to the Rack spec" do
     lambda {
-      res = Rack::MockRequest.new(app).
+      Rack::MockRequest.new(app).
         get("https://bla.example.org:9292/meh/foo?bar", :lint => true)
     }.should.not.raise(Rack::Lint::LintError)
   end
