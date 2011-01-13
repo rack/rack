@@ -186,6 +186,18 @@ describe Rack::MockRequest do
 end
 
 describe Rack::MockResponse do
+  should "contain specified headers" do
+    headers = {
+      "X-UA-Compatible" => "IE=Edge,chrome=1",
+      "ETag"            => "\"5af83e3196bf99f440f31f2e1a6c9afe\"",
+      "Cache-Control"   => "max-age=0, private, must-revalidate",
+      "X-Runtime"       => "0.002101"
+    }
+
+    res = Rack::MockResponse.new(304, headers, [" "])
+    res.headers.to_hash.should.equal headers
+  end
+
   should "provide access to the HTTP status" do
     res = Rack::MockRequest.new(app).get("")
     res.should.be.successful

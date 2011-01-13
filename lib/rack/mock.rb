@@ -146,8 +146,7 @@ module Rack
       @status = status.to_i
 
       @original_headers = headers
-      @headers = Rack::Utils::HeaderHash.new("Content-Type" => "text/html").
-        merge(headers)
+      @headers = Rack::Utils::HeaderHash.new(headers)
 
       @body = ""
       body.each { |part| @body << part }
