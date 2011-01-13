@@ -142,43 +142,41 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
-    def initialize(status, headers, body, errors=StringIO.new(""))
-      @status = status.to_i
-
-      @original_headers = headers
-      @headers = Rack::Utils::HeaderHash.new("Content-Type" => "text/html").
-        merge(headers)
-
-      @body = ""
-      body.each { |part| @body << part }
-
-      @errors = errors.string if errors.respond_to?(:string)
-    end
-
-    # Status
-    attr_reader :status
-
     # Headers
-    attr_reader :headers, :original_headers
-
-    def [](field)
-      headers[field]
-    end
-
-
-    # Body
-    attr_reader :body
-
-    def =~(other)
-      @body =~ other
-    end
-
-    def match(other)
-      @body.match other
-    end
+    attr_reader :original_headers
 
     # Errors
     attr_accessor :errors
+
+    def initialize(status, headers, body, errors=StringIO.new(""))
+      @original_headers = headers
+      @errors           = errors.string if errors.respond_to?(:string)
+      @body_string      = nil
+
+      super(body, status, headers)
+    end
+
+    def =~(other)
+      body =~ other
+    end
+
+    def match(other)
+      body.match other
+    end
+
+    def body
+      # FIXME: apparently users of MockResponse expect the return value of
+      # MockResponse#body to be a string.  However, the real response object
+      # returns the body as a list.
+      #
+      # See spec_showstatus.rb:
+      #
+      #   should "not replace existing messages" do
+      #     ...
+      #     res.body.should == "foo!"
+      #   end
+      super.join
+    end
 
     def empty?
       [201, 204, 304].include? status

@@ -24,9 +24,10 @@ module Rack
       @header = Utils::HeaderHash.new("Content-Type" => "text/html").
                                       merge(header)
 
-      @writer = lambda { |x| @body << x }
-      @block = nil
-      @length = 0
+      @chunked = "chunked" == @header['Transfer-Encoding']
+      @writer  = lambda { |x| @body << x }
+      @block   = nil
+      @length  = 0
 
       @body = []
 
@@ -92,10 +93,10 @@ module Rack
     #
     def write(str)
       s = str.to_s
-      @length += Rack::Utils.bytesize(s)
+      @length += Rack::Utils.bytesize(s) unless @chunked
       @writer.call s
 
-      header["Content-Length"] = @length.to_s
+      header["Content-Length"] = @length.to_s unless @chunked
       str
     end
 
