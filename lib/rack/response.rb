@@ -123,7 +123,6 @@ module Rack
       def not_found?;     @status == 404;                        end
 
       def redirect?;      [301, 302, 303, 307].include? @status; end
-      def empty?;         [201, 204, 304].include?      @status; end
 
       # Headers
       attr_reader :headers, :original_headers

@@ -141,7 +141,7 @@ module Rack
   # Usually, you don't create the MockResponse on your own, but use
   # MockRequest.
 
-  class MockResponse
+  class MockResponse < Rack::Response
     def initialize(status, headers, body, errors=StringIO.new(""))
       @status = status.to_i
 
@@ -177,11 +177,11 @@ module Rack
       @body.match other
     end
 
-
     # Errors
     attr_accessor :errors
 
-
-    include Response::Helpers
+    def empty?
+      [201, 204, 304].include? status
+    end
   end
 end
