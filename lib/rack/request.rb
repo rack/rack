@@ -196,7 +196,7 @@ module Rack
     # The union of GET and POST data.
     def params
       self.GET.update(self.POST)
-    rescue EOFError => e
+    rescue EOFError
       self.GET
     end
 

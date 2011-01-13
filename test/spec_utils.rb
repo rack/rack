@@ -188,7 +188,7 @@ describe Rack::Utils do
 
   should "figure out which encodings are acceptable" do
     helper = lambda do |a, b|
-      request = Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
+      Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
       Rack::Utils.select_best_encoding(a, b)
     end
 

@@ -27,7 +27,7 @@ describe Rack::CommonLogger do
 
   should "log to anything with +write+" do
     log = StringIO.new
-    res = Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
     log.string.should =~ /"GET \/ " 200 #{length} /
   end

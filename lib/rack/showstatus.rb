@@ -23,9 +23,16 @@ module Rack
 
       # client or server error, or explicit message
       if (status.to_i >= 400 && empty) || env["rack.showstatus.detail"]
-        req = Rack::Request.new(env)
+        # This double assignment is to prevent an "unused variable" warning on
+        # Ruby 1.9.3.  Yes, it is dumb, but I don't like Ruby yelling at me.
+        req = req = Rack::Request.new(env)
+
         message = Rack::Utils::HTTP_STATUS_CODES[status.to_i] || status.to_s
-        detail = env["rack.showstatus.detail"] || message
+
+        # This double assignment is to prevent an "unused variable" warning on
+        # Ruby 1.9.3.  Yes, it is dumb, but I don't like Ruby yelling at me.
+        detail = detail = env["rack.showstatus.detail"] || message
+
         body = @template.result(binding)
         size = Rack::Utils.bytesize(body)
         [status, headers.merge("Content-Type" => "text/html", "Content-Length" => size.to_s), [body]]

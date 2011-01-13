@@ -31,7 +31,7 @@ module Rack
         match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
 
         [host, location, match, app]
-      }.sort_by { |(h, l, m, a)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
+      }.sort_by { |(h, l, _, _)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
     end
 
     def call(env)

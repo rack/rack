@@ -271,9 +271,9 @@ describe Rack::Lint do
 
   should "notice body errors" do
     lambda {
-      status, header, body = Rack::Lint.new(lambda { |env|
+      body = Rack::Lint.new(lambda { |env|
                                [200, {"Content-type" => "text/plain","Content-length" => "3"}, [1,2,3]]
-                             }).call(env({}))
+                             }).call(env({}))[2]
       body.each { |part| }
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/yielded non-string/)

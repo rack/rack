@@ -64,7 +64,7 @@ describe Rack::Session::Pool do
     req = Rack::MockRequest.new(pool)
 
     res0 = req.get("/")
-    session = (cookie = res0["Set-Cookie"])[session_match]
+    cookie = res0["Set-Cookie"][session_match]
     res0.body.should.equal '{"counter"=>1}'
     pool.pool.size.should.equal 1
 
@@ -170,9 +170,9 @@ describe Rack::Session::Pool do
         run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
       end
     end.reverse.map{|t| t.run.join.value }
-    r.each do |res|
-      res['Set-Cookie'].should.equal cookie
-      res.body.should.include '"counter"=>2'
+    r.each do |resp|
+      resp['Set-Cookie'].should.equal cookie
+      resp.body.should.include '"counter"=>2'
     end
 
     session = pool.pool[sess_id]
