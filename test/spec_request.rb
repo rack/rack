@@ -84,6 +84,14 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_X_FORWARDED_PORT" => "9393")
     req.port.should.equal 9393
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9393", "SERVER_PORT" => "80")
+    req.port.should.equal 9393
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "SERVER_PORT" => "9393")
+    req.port.should.equal 80
   end
 
   should "figure out the correct host with port" do
@@ -102,6 +110,10 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host_with_port.should.equal "example.org:9292"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "SERVER_PORT" => "9393")
+    req.host_with_port.should.equal "example.org"
   end
 
   should "parse the query string" do
