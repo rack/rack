@@ -98,6 +98,8 @@ module Rack
         port.to_i
       elsif ssl?
         443
+      elsif @env.has_key?("HTTP_X_FORWARDED_HOST")
+        80
       else
         @env["SERVER_PORT"].to_i
       end
