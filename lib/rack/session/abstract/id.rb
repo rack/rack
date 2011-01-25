@@ -34,6 +34,9 @@ module Rack
       # recommended to change its value.
       #
       # Is Rack::Utils::Context compatible.
+      #
+      # Not included by default; you must require 'rack/session/abstract/id'
+      # to use.
 
       class ID
         DEFAULT_OPTIONS = {
