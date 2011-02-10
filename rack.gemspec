@@ -1,6 +1,9 @@
+$:.unshift(File.expand_path('../lib', __FILE__))
+require 'rack' # For Rack.release
+
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.1.1.pre"
+  s.version         = Rack.release
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
 
