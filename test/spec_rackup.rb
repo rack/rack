@@ -16,7 +16,7 @@ context "rackup" do
     @port = options[:port] || 9292
 
     Dir.chdir("#{root}/test/rackup") do
-      @in, @rackup, @err = Open3.popen3("#{Gem.ruby} -S #{rackup} #{flags}")
+      @in, @rackup, @err = Open3.popen3("#{ruby} -S #{rackup} #{flags}")
     end
 
     return if options[:port] == false
@@ -111,7 +111,7 @@ context "rackup" do
   end
 
   specify "rackup --daemonize --pid" do
-    run_rackup %{--daemonize --pid testing.pid}
+    run_rackup "--daemonize --pid testing.pid"
     status.should.be 200
     @rackup.should.be.eof?
     Dir["#{root}/**/testing.pid"].should.not.be.empty?

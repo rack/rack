@@ -57,7 +57,7 @@ module Rack
           }
 
           opts.on("-P", "--pid FILE", "file to store PID (default: rack.pid)") { |f|
-            options[:pid] = f
+            options[:pid] = ::File.expand_path(f, Dir.pwd)
           }
 
           opts.separator ""
@@ -100,7 +100,7 @@ module Rack
         :Port        => 9292,
         :Host        => "0.0.0.0",
         :AccessLog   => [],
-        :config      => "config.ru"
+        :config      => ::File.expand_path("config.ru", Dir.pwd)
       }
     end
 

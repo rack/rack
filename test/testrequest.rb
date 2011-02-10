@@ -16,6 +16,10 @@ class TestRequest
     ROOT = File.expand_path(File.dirname(__FILE__) + "/..")
     ENV["RUBYOPT"] = "-I#{ROOT}/lib -rubygems"
 
+    def ruby
+      "#{Gem.ruby} #{ENV['RUBYOPT']}"
+    end
+
     def root
       ROOT
     end
