@@ -47,7 +47,7 @@ context "Rack::Handler::CGI" do
     response["REQUEST_METHOD"].should.equal "GET"
     response["SCRIPT_NAME"].should.equal "/test"
     response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.equal ""
+    response["PATH_INFO"].should.be nil
     response["QUERY_STRING"].should.equal ""
     response["test.postdata"].should.equal ""
 
