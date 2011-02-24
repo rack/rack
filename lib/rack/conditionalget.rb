@@ -20,17 +20,20 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
-
-      status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash.new(headers)
-      if status == 200 && fresh?(env, headers)
-        status = 304
-        headers.delete('Content-Type')
-        headers.delete('Content-Length')
-        body = []
+      case env['REQUEST_METHOD']
+      when "GET", "HEAD"
+        status, headers, body = @app.call(env)
+        headers = Utils::HeaderHash.new(headers)
+        if status == 200 && fresh?(env, headers)
+          status = 304
+          headers.delete('Content-Type')
+          headers.delete('Content-Length')
+          body = []
+        end
+        [status, headers, body]
+      else
+        @app.call(env)
       end
-      [status, headers, body]
     end
 
   private
