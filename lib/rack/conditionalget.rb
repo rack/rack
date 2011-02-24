@@ -51,7 +51,7 @@ module Rack
     end
 
     def etag_matches?(none_match, headers)
-      etag = headers['Etag'] and etag == none_match
+      etag = headers['ETag'] and etag == none_match
     end
 
     def modified_since?(modified_since, headers)
