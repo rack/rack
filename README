@@ -313,6 +313,11 @@ run on port 11211) and memcache-client installed.
   * Rename spec/ to test/ to not conflict with SPEC on lesser
     operating systems
 
+* Note released yet
+  * Rack::Middleware abstract base class added.  This class is not part of the
+    spec, so users cannot assume that middleware inherits from this class.  You
+    are encouraged to use this base class, but not required.
+
 == Contact
 
 Please post bugs, suggestions and patches to
