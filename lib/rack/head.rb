@@ -1,12 +1,9 @@
+require 'rack/middleware'
 module Rack
 
-class Head
-  def initialize(app)
-    @app = app
-  end
-
+class Head < Rack::Middleware
   def call(env)
-    status, headers, body = @app.call(env)
+    status, headers, body = super
 
     if env["REQUEST_METHOD"] == "HEAD"
       [status, headers, []]

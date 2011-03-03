@@ -1,16 +1,13 @@
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
   # Sets the Content-Length header on responses with fixed-length bodies.
-  class ContentLength
+  class ContentLength < Rack::Middleware
     include Rack::Utils
 
-    def initialize(app)
-      @app = app
-    end
-
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       headers = HeaderHash.new(headers)
 
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&

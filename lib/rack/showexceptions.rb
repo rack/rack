@@ -2,6 +2,7 @@ require 'ostruct'
 require 'erb'
 require 'rack/request'
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
   # Rack::ShowExceptions catches all exceptions raised from the app it
@@ -12,16 +13,16 @@ module Rack
   # Be careful when you use this on public-facing sites as it could
   # reveal information helpful to attackers.
 
-  class ShowExceptions
+  class ShowExceptions < Rack::Middleware
     CONTEXT = 7
 
     def initialize(app)
-      @app = app
+      super
       @template = ERB.new(TEMPLATE)
     end
 
     def call(env)
-      @app.call(env)
+      super
     rescue StandardError, LoadError, SyntaxError => e
       exception_string = dump_exception(e)
 

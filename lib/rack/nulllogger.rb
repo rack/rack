@@ -1,12 +1,9 @@
+require 'rack/middleware'
 module Rack
-  class NullLogger
-    def initialize(app)
-      @app = app
-    end
-
+  class NullLogger < Rack::Middleware
     def call(env)
       env['rack.logger'] = self
-      @app.call(env)
+      super
     end
 
     def info(progname = nil, &block);  end

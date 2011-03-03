@@ -1,4 +1,5 @@
 require 'rack/file'
+require 'rack/middleware'
 
 module Rack
 
@@ -90,16 +91,16 @@ module Rack
   #   ProxyPassReverse / http://localhost:8001/
   #   XSendFile on
 
-  class Sendfile
+  class Sendfile < Rack::Middleware
     F = ::File
 
     def initialize(app, variation=nil)
-      @app = app
+      super(app)
       @variation = variation
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       if body.respond_to?(:to_path)
         case type = variation(env)
         when 'X-Accel-Redirect'

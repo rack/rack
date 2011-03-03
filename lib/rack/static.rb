@@ -1,3 +1,4 @@
+require 'rack/middleware'
 module Rack
 
   # The Rack::Static middleware intercepts requests for static files
@@ -23,10 +24,10 @@ module Rack
   #     use Rack::Static, :urls => {"/" => 'index.html'}, :root => 'public'
   #
 
-  class Static
+  class Static < Rack::Middleware
 
     def initialize(app, options={})
-      @app = app
+      super(app)
       @urls = options[:urls] || ["/favicon.ico"]
       root = options[:root] || Dir.pwd
       @file_server = Rack::File.new(root)
@@ -45,7 +46,7 @@ module Rack
         env["PATH_INFO"] = @urls[path] if @urls.kind_of? Hash
         @file_server.call(env)
       else
-        @app.call(env)
+        super
       end
     end
 

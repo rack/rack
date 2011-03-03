@@ -3,6 +3,7 @@
 #      See COPYING or http://www.opensource.org/licenses/mit-license.php.
 
 require 'pathname'
+require 'rack/middleware'
 
 module Rack
 
@@ -19,9 +20,9 @@ module Rack
   #
   # It is performing a check/reload cycle at the start of every request, but
   # also respects a cool down time, during which nothing will be done.
-  class Reloader
+  class Reloader < Rack::Middleware
     def initialize(app, cooldown = 10, backend = Stat)
-      @app = app
+      super(app)
       @cooldown = cooldown
       @last = (Time.now - cooldown)
       @cache = {}
@@ -41,7 +42,7 @@ module Rack
         @last = Time.now
       end
 
-      @app.call(env)
+      super
     end
 
     def reload!(stderr = $stderr)

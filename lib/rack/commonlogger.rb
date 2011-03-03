@@ -1,21 +1,23 @@
+require 'rack/middleware'
+
 module Rack
   # Rack::CommonLogger forwards every request to an +app+ given, and
   # logs a line in the Apache common log format to the +logger+, or
   # rack.errors by default.
-  class CommonLogger
+  class CommonLogger < Rack::Middleware
     # Common Log Format: http://httpd.apache.org/docs/1.3/logs.html#common
     # lilith.local - - [07/Aug/2006 23:58:02] "GET / HTTP/1.1" 500 -
     #             %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
 
     def initialize(app, logger=nil)
-      @app = app
+      super(app)
       @logger = logger
     end
 
     def call(env)
       began_at = Time.now
-      status, header, body = @app.call(env)
+      status, header, body = super
       header = Utils::HeaderHash.new(header)
       log(env, status, header, began_at)
       [status, header, body]

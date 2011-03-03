@@ -1,7 +1,8 @@
 require 'thread'
+require 'rack/middleware'
 
 module Rack
-  class Lock
+  class Lock < Rack::Middleware
     class Proxy < Struct.new(:target, :mutex) # :nodoc:
       def each
         target.each { |x| yield x }
@@ -25,13 +26,14 @@ module Rack
     FLAG = 'rack.multithread'.freeze
 
     def initialize(app, mutex = Mutex.new)
-      @app, @mutex = app, mutex
+      super(app)
+      @mutex = mutex
     end
 
     def call(env)
       old, env[FLAG] = env[FLAG], false
       @mutex.lock
-      response = @app.call(env)
+      response = super
       response[2] = Proxy.new(response[2], @mutex)
       response
     rescue Exception

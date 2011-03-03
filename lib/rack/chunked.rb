@@ -1,21 +1,18 @@
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
 
   # Middleware that applies chunked transfer encoding to response bodies
   # when the response does not include a Content-Length header.
-  class Chunked
+  class Chunked < Rack::Middleware
     include Rack::Utils
 
     TERM = "\r\n"
     TAIL = "0#{TERM}#{TERM}"
 
-    def initialize(app)
-      @app = app
-    end
-
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       headers = HeaderHash.new(headers)
 
       if env['HTTP_VERSION'] == 'HTTP/1.0' ||

@@ -1,13 +1,10 @@
+require 'rack/middleware'
 module Rack
-  class MethodOverride
+  class MethodOverride < Rack::Middleware
     HTTP_METHODS = %w(GET HEAD PUT POST DELETE OPTIONS)
 
     METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
-
-    def initialize(app)
-      @app = app
-    end
 
     def call(env)
       if env["REQUEST_METHOD"] == "POST"
@@ -21,7 +18,7 @@ module Rack
         end
       end
 
-      @app.call(env)
+      super
     end
   end
 end

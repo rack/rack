@@ -2,15 +2,12 @@ require "zlib"
 require "stringio"
 require "time"  # for Time.httpdate
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
-  class Deflater
-    def initialize(app)
-      @app = app
-    end
-
+  class Deflater < Rack::Middleware
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       headers = Utils::HeaderHash.new(headers)
 
       # Skip compressing empty entity body responses and responses with

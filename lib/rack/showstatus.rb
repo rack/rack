@@ -1,6 +1,7 @@
 require 'erb'
 require 'rack/request'
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
   # Rack::ShowStatus catches all empty responses the app it wraps and
@@ -10,14 +11,14 @@ module Rack
   # and will be shown as HTML.  If such details exist, the error page
   # is always rendered, even if the reply was not empty.
 
-  class ShowStatus
+  class ShowStatus < Rack::Middleware
     def initialize(app)
-      @app = app
+      super
       @template = ERB.new(TEMPLATE)
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       headers = Utils::HeaderHash.new(headers)
       empty = headers['Content-Length'].to_i <= 0
 

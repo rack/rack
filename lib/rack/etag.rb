@@ -1,4 +1,5 @@
 require 'digest/md5'
+require 'rack/middleware'
 
 module Rack
   # Automatically sets the ETag header on all String bodies.
@@ -10,17 +11,17 @@ module Rack
   # On initialization, you can pass two parameters: a Cache-Control directive
   # used when Etag is absent and a directive when it is present. The first
   # defaults to nil, while the second defaults to "max-age=0, privaute, must-revalidate"
-  class ETag
+  class ETag < Rack::Middleware
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
 
     def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)
-      @app = app
+      super(app)
       @cache_control = cache_control
       @no_cache_control = no_cache_control
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = super
 
       if etag_status?(status) && etag_body?(body) && !http_caching?(headers)
         digest, body = digest_body(body)

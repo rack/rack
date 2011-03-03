@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'rack/middleware'
 
 module Rack
 
@@ -14,15 +15,11 @@ module Rack
   #
   # Adapted from Michael Klishin's Merb implementation:
   # http://github.com/wycats/merb-core/tree/master/lib/merb-core/rack/middleware/conditional_get.rb
-  class ConditionalGet
-    def initialize(app)
-      @app = app
-    end
-
+  class ConditionalGet < Rack::Middleware
     def call(env)
-      return @app.call(env) unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
+      return super unless %w[GET HEAD].include?(env['REQUEST_METHOD'])
 
-      status, headers, body = @app.call(env)
+      status, headers, body = super
       headers = Utils::HeaderHash.new(headers)
       if status == 200 && fresh?(env, headers)
         status = 304
