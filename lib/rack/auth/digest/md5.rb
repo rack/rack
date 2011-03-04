@@ -91,7 +91,8 @@ module Rack
         end
 
         def valid_digest?(auth)
-          digest(auth, @authenticator.call(auth.username)) == auth.response
+          pw = @authenticator.call(auth.username)
+          pw && digest(auth, pw) == auth.response
         end
 
         def md5(data)
