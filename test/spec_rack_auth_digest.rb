@@ -151,6 +151,12 @@ context 'Rack::Auth::Digest::MD5' do
     end
   end
 
+  specify 'rechallenge if incorrect user and blank password given' do
+    request_with_digest_auth 'GET', '/', 'Bob', '' do |response|
+      assert_digest_auth_challenge response
+    end
+  end
+
   specify 'should rechallenge with stale parameter if nonce is stale' do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 1
