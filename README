@@ -313,6 +313,10 @@ run on port 11211) and memcache-client installed.
   * Rename spec/ to test/ to not conflict with SPEC on lesser
     operating systems
 
+* March 13th, 2011: Twelfth public release 1.2.2/1.1.2.
+  * Security fix in Rack::Auth::Digest::MD5: when authenticator
+    returned nil, permission was granted on empty password.
+
 == Contact
 
 Please post bugs, suggestions and patches to
