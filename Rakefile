@@ -23,7 +23,7 @@ task :officialrelease do
   sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
 end
 
-task :officialrelease_really => [:fulltest, "RDOX", "SPEC", :dist, :gem] do
+task :officialrelease_really => ["SPEC", :dist, :gem] do
   sh "sha1sum #{release}.tar.gz #{release}.gem"
 end
 
@@ -92,7 +92,7 @@ desc "Generate RDoc documentation"
 task :rdoc do
   sh(*%w{rdoc --line-numbers --main README
               --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
-              %w{README KNOWN-ISSUES SPEC RDOX} +
+              %w{README KNOWN-ISSUES SPEC} +
               Dir["lib/**/*.rb"])
 end
 
