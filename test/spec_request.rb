@@ -16,6 +16,7 @@ describe Rack::Request do
     req.should.not.be.put
     req.should.not.be.delete
     req.should.not.be.head
+    req.should.not.be.patch
 
     req.script_name.should.equal ""
     req.path_info.should.equal "/"
