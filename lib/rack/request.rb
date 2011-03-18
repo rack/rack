@@ -117,6 +117,7 @@ module Rack
     def get?;     request_method == "GET"     end
     def head?;    request_method == "HEAD"    end
     def options?; request_method == "OPTIONS" end
+    def patch?;   request_method == "PATCH"   end
     def post?;    request_method == "POST"    end
     def put?;     request_method == "PUT"     end
     def trace?;   request_method == "TRACE"   end
