@@ -21,7 +21,7 @@ module Rack
         end
 
         def initialize
-          super
+          super()
 
           yield self if block_given?
         end
