@@ -22,12 +22,12 @@ describe Rack::MethodOverride do
   should "modify REQUEST_METHOD for POST requests when X-HTTP-Method-Override is set" do
     env = Rack::MockRequest.env_for("/",
             :method => "POST",
-            "HTTP_X_HTTP_METHOD_OVERRIDE" => "PUT"
+            "HTTP_X_HTTP_METHOD_OVERRIDE" => "PATCH"
           )
     app = Rack::MethodOverride.new(lambda{|envx| Rack::Request.new(envx) })
     req = app.call(env)
 
-    req.env["REQUEST_METHOD"].should.equal "PUT"
+    req.env["REQUEST_METHOD"].should.equal "PATCH"
   end
 
   should "not modify REQUEST_METHOD if the method is unknown" do
