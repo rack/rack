@@ -14,12 +14,9 @@ describe Rack::Auth::Digest::MD5 do
   end
 
   def protected_app
-    app = Rack::Auth::Digest::MD5.new(unprotected_app) do |username|
+    Rack::Auth::Digest::MD5.new(unprotected_app, :realm => realm, :opaque => 'this-should-be-secret') do |username|
       { 'Alice' => 'correct-password' }[username]
     end
-    app.realm = realm
-    app.opaque = 'this-should-be-secret'
-    app
   end
 
   def protected_app_with_hashed_passwords
