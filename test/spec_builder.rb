@@ -120,4 +120,27 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").should.be.server_error
   end
 
+  describe "parse_file" do
+    def config_file(name)
+      File.join(File.dirname(__FILE__), 'builder', name)
+    end
+
+    it "parses commented options" do
+      app, options = Rack::Builder.parse_file config_file('options.ru')
+      options[:debug].should.be.true
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+    end
+
+    it "removes __END__ before evaluating app" do
+      app, options = Rack::Builder.parse_file config_file('end.ru')
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+    end
+
+    it "requires anything not ending in .ru" do
+      $: << File.dirname(__FILE__)
+      app, options = Rack::Builder.parse_file 'builder/anything'
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+      $:.pop
+    end
+  end
 end
