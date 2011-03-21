@@ -112,6 +112,7 @@ module Rack
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
           path = F.expand_path(body.to_path)
+          headers['Content-Length'] = '0'
           headers[type] = path
           body = []
         when '', nil
