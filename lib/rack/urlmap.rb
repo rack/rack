@@ -17,6 +17,9 @@ module Rack
     end
 
     def remap(map)
+      longest_path_first = lambda do |host, location, _, _|
+        [host ? -host.size : (-1.0 / 0.0), -location.size]
+      end
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2
@@ -31,7 +34,7 @@ module Rack
         match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
 
         [host, location, match, app]
-      }.sort_by { |(h, l, _, _)| [h ? -h.size : (-1.0 / 0.0), -l.size] }  # Longest path first
+      }.sort_by(&longest_path_first)
     end
 
     def call(env)
