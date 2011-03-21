@@ -11,13 +11,11 @@ module Rack
     def self.get(server)
       return unless server
       server = server.to_s
+      try_require('rack/handler', server) unless @handlers.include? server
 
       if klass = @handlers[server]
-        obj = Object
-        klass.split("::").each { |x| obj = obj.const_get(x) }
-        obj
+        klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
-        try_require('rack/handler', server)
         const_get(server)
       end
     end
@@ -62,7 +60,7 @@ module Rack
 
     def self.register(server, klass)
       @handlers ||= {}
-      @handlers[server] = klass
+      @handlers[server.to_s] = klass.to_s
     end
 
     autoload :CGI, "rack/handler/cgi"

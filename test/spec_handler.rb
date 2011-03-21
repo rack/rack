@@ -46,4 +46,14 @@ describe Rack::Handler do
       $LOAD_PATH.delete File.expand_path('../unregistered_handler', __FILE__)
     end
   end
+
+  should "allow autoloaded handlers to be registered properly while being loaded" do
+    path = File.expand_path('../registering_handler', __FILE__)
+    begin
+      $LOAD_PATH.push path
+      Rack::Handler.get('registering_myself').should.equal Rack::Handler::RegisteringMyself
+    ensure
+      $LOAD_PATH.delete path
+    end
+  end
 end
