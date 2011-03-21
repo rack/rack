@@ -12,13 +12,15 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
+    NEGATIVE_INFINITY = -(Float.const_defined?(:INFINITY) ? Float::INFINITY : (1.0 / 0.0))
+
     def initialize(map = {})
       remap(map)
     end
 
     def remap(map)
       longest_path_first = lambda do |host, location, _, _|
-        [host ? -host.size : (-1.0 / 0.0), -location.size]
+        [host ? -host.size : NEGATIVE_INFINITY, -location.size]
       end
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
