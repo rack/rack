@@ -11,13 +11,19 @@ module Rack
     def self.get(server)
       return unless server
       server = server.to_s
-      try_require('rack/handler', server) unless @handlers.include? server
+
+      unless @handlers.include? server
+        load_error = try_require('rack/handler', server)
+      end
 
       if klass = @handlers[server]
         klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
         const_get(server)
       end
+
+    rescue NameError => name_error
+      raise load_error || name_error
     end
 
     def self.default(options = {})
@@ -55,7 +61,9 @@ module Rack
         gsub(/[A-Z]+[^A-Z]/, '_\&').downcase
 
       require(::File.join(prefix, file))
-    rescue LoadError
+      nil
+    rescue LoadError => error
+      error
     end
 
     def self.register(server, klass)

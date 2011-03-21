@@ -19,10 +19,10 @@ describe Rack::Handler do
     end
   end
 
-  should "raise NameError if handler doesn't exist" do
+  should "raise LoadError if handler doesn't exist" do
     lambda {
       Rack::Handler.get('boom')
-    }.should.raise(NameError)
+    }.should.raise(LoadError)
   end
 
   should "get unregistered, but already required, handler by name" do
@@ -40,7 +40,7 @@ describe Rack::Handler do
       Rack::Handler.get('Unregistered').should.equal Rack::Handler::Unregistered
       lambda {
         Rack::Handler.get('UnRegistered')
-      }.should.raise(NameError)
+      }.should.raise LoadError
       Rack::Handler.get('UnregisteredLongOne').should.equal Rack::Handler::UnregisteredLongOne
     ensure
       $LOAD_PATH.delete File.expand_path('../unregistered_handler', __FILE__)
