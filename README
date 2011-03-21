@@ -21,15 +21,15 @@ The included *handlers* connect all kinds of web servers to Rack:
 * SCGI
 * LiteSpeed
 * Thin
+* Rainbows!
+* Unicorn
+* Zbatery
 
 These web servers include Rack handlers in their distributions:
 * Ebb
 * Fuzed
 * Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
-* Rainbows!
-* Unicorn
-* Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.

@@ -74,6 +74,9 @@ module Rack
     autoload :LSWS, "rack/handler/lsws"
     autoload :SCGI, "rack/handler/scgi"
     autoload :Thin, "rack/handler/thin"
+    autoload :Unicorn, "rack/handler/unicorn"
+    autoload :Rainbows, "rack/handler/rainbows"
+    autoload :Zbatery, "rack/handler/zbatery"
 
     register 'cgi', 'Rack::Handler::CGI'
     register 'fastcgi', 'Rack::Handler::FastCGI'
@@ -84,5 +87,8 @@ module Rack
     register 'lsws', 'Rack::Handler::LSWS'
     register 'scgi', 'Rack::Handler::SCGI'
     register 'thin', 'Rack::Handler::Thin'
+    register 'unicorn', 'Rack::Handler::Unicorn'
+    register 'rainbows', 'Rack::Handler::Rainbows'
+    register 'zbatery', 'Rack::Handler::Zbatery'
   end
 end
