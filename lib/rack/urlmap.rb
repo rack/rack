@@ -12,7 +12,7 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
-    NEGATIVE_INFINITY = -(Float.const_defined?(:INFINITY) ? Float::INFINITY : (1.0 / 0.0))
+    NEGATIVE_INFINITY = -1.0 / 0.0
 
     def initialize(map = {})
       remap(map)
