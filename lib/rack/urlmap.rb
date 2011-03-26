@@ -19,7 +19,7 @@ module Rack
     end
 
     def remap(map)
-      longest_path_first = lambda do |host, location, _, _|
+      longest_path_first = lambda do |(host, location, _, _)|
         [host ? -host.size : NEGATIVE_INFINITY, -location.size]
       end
       @mapping = map.map { |location, app|
