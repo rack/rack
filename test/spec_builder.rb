@@ -136,6 +136,12 @@ describe Rack::Builder do
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
     end
 
+    it "supports multi-line comments" do
+      lambda {
+        Rack::Builder.parse_file config_file('comment.ru')
+      }.should.not.raise(SyntaxError)
+    end
+
     it "requires anything not ending in .ru" do
       $: << File.dirname(__FILE__)
       app, options = Rack::Builder.parse_file 'builder/anything'
