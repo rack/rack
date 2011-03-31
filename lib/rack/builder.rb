@@ -4,6 +4,7 @@ module Rack
   #
   # Example:
   #
+  #  require 'rack/lobster'
   #  app = Rack::Builder.new do
   #    use Rack::CommonLogger
   #    use Rack::ShowExceptions
