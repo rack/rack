@@ -23,6 +23,8 @@ module Rack
   #    lambda { |env| [200, {'Content-Type' => 'text/plain'}, 'OK'] }
   #  end
   #
+  #  run app
+  #
   # +use+ adds a middleware to the stack, +run+ dispatches to an application.
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
