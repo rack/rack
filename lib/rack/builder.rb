@@ -4,14 +4,14 @@ module Rack
   #
   # Example:
   #
-  #  app = Rack::Builder.new {
+  #  app = Rack::Builder.new do
   #    use Rack::CommonLogger
   #    use Rack::ShowExceptions
   #    map "/lobster" do
   #      use Rack::Lint
   #      run Rack::Lobster.new
   #    end
-  #  }
+  #  end
   #
   # Or
   #
