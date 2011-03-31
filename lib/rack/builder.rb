@@ -50,14 +50,66 @@ module Rack
       self.new(&block).to_app
     end
 
+    # Specifies a middleware to use in a stack.
+    #
+    #   class Middleware
+    #     def initialize(app)
+    #       @app = app
+    #     end
+    #
+    #     def call(env)
+    #       env["rack.some_header"] = "setting an example"
+    #       @app.call(env)
+    #     end
+    #   end
+    #
+    #   use Middleware
+    #   run lambda { |env| [200, { "Content-Type => "text/plain" }, ["OK"]] }
+    #
+    # All requests through to this application will first be processed by the middleware class.
+    # The +call+ method in this example sets an additional environment key which then can be
+    # referenced in the application if required.
     def use(middleware, *args, &block)
       @ins << lambda { |app| middleware.new(app, *args, &block) }
     end
 
+    # Takes an argument that is an object that responds to #call and returns a Rack response.
+    # The simplest form of this is a lambda object:
+    #
+    #   run lambda { |env| [200, { "Content-Type" => "text/plain" }, ["OK"]] }
+    #
+    # However this could also be a class:
+    #
+    #   class Heartbeat
+    #     def self.call(env)
+    #      [200, { "Content-Type" => "text/plain" }, ["OK"]]
+    #    end
+    #   end
+    #
+    #   run Heartbeat
     def run(app)
       @ins << app #lambda { |nothing| app }
     end
 
+    # Creates a route within the application.
+    #
+    #   Rack::Builder.app do
+    #     map '/' do
+    #       run Heartbeat
+    #     end
+    #   end
+    #
+    # The +use+ method can also be used here to specify middleware to run under a specific path:
+    #
+    #   Rack::Builder.app do
+    #     map '/' do
+    #       use Middleware
+    #       run Heartbeat
+    #     end
+    #   end
+    #
+    # This example includes a piece of middleware which will run before requests hit +Heartbeat+. 
+    #
     def map(path, &block)
       if @ins.last.kind_of? Hash
         @ins.last[path] = self.class.new(&block).to_app
