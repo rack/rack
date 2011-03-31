@@ -13,6 +13,8 @@ module Rack
   #    end
   #  end
   #
+  #  run app
+  #
   # Or
   #
   #  app = Rack::Builder.app do
