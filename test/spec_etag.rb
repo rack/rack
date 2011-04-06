@@ -1,4 +1,5 @@
 require 'rack/etag'
+require 'time'
 
 describe Rack::ETag do
   def sendfile_body
@@ -69,6 +70,12 @@ describe Rack::ETag do
 
   should "not set ETag if a status is not 200 or 201" do
     app = lambda { |env| [401, {'Content-Type' => 'text/plain'}, ['Access denied.']] }
+    response = Rack::ETag.new(app).call({})
+    response[1]['ETag'].should.be.nil
+  end
+
+  should "not set ETag if no-cache is given" do
+    app = lambda { |env| [200, {'Cache-Control' => 'no-cache'}, ['Hello, World!']] }
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.be.nil
   end

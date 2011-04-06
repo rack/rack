@@ -22,7 +22,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
 
-      if etag_status?(status) && etag_body?(body) && !http_caching?(headers)
+      if etag_status?(status) && etag_body?(body) && !skip_caching?(headers)
         digest, body = digest_body(body)
         headers['ETag'] = %("#{digest}") if digest
       end
@@ -44,8 +44,9 @@ module Rack
         !body.respond_to?(:to_path)
       end
 
-      def http_caching?(headers)
-        headers.key?('ETag') || headers.key?('Last-Modified')
+      def skip_caching?(headers)
+        headers['Cache-Control'] == 'no-cache' ||
+          headers.key?('ETag') || headers.key?('Last-Modified')
       end
 
       def digest_body(body)
