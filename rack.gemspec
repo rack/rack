@@ -19,7 +19,6 @@ EOF
   s.bindir          = 'bin'
   s.executables     << 'rackup'
   s.require_path    = 'lib'
-  s.has_rdoc        = true
   s.extra_rdoc_files = ['README', 'KNOWN-ISSUES']
   s.test_files      = Dir['test/spec_*.rb']
 
