@@ -7,8 +7,31 @@ module Rack
   class Chunked
     include Rack::Utils
 
-    TERM = "\r\n"
-    TAIL = "0#{TERM}#{TERM}"
+    # A body wrapper that emits chunked responses
+    class Body
+      TERM = "\r\n"
+      TAIL = "0#{TERM}#{TERM}"
+
+      include Rack::Utils
+
+      def initialize(body)
+        @body = body
+      end
+
+      def each
+        term = TERM
+        @body.each do |chunk|
+          size = bytesize(chunk)
+          next if size == 0
+          yield [size.to_s(16), term, chunk, term].join
+        end
+        yield TAIL
+      end
+
+      def close
+        @body.close if @body.respond_to?(:close)
+      end
+    end
 
     def initialize(app)
       @app = app
@@ -24,29 +47,10 @@ module Rack
          headers['Transfer-Encoding']
         [status, headers, body]
       else
-        dup.chunk(status, headers, body)
+        headers.delete('Content-Length')
+        headers['Transfer-Encoding'] = 'chunked'
+        [status, headers, Body.new(body)]
       end
-    end
-
-    def chunk(status, headers, body)
-      @body = body
-      headers.delete('Content-Length')
-      headers['Transfer-Encoding'] = 'chunked'
-      [status, headers, self]
-    end
-
-    def each
-      term = TERM
-      @body.each do |chunk|
-        size = bytesize(chunk)
-        next if size == 0
-        yield [size.to_s(16), term, chunk, term].join
-      end
-      yield TAIL
-    end
-
-    def close
-      @body.close if @body.respond_to?(:close)
     end
   end
 end
