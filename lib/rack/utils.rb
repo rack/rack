@@ -154,9 +154,7 @@ module Rack
           else
             [[m, q]]
           end
-        }.inject([]) { |mem, list|
-          mem + list
-        }
+        }.flatten(1)
 
       encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
 
