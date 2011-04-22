@@ -151,7 +151,7 @@ table { width:100%%; }
         return format % (int.to_f / size) if int >= size
       end
 
-      int.to_s + 'B'
+      int.to_s << 'B'
     end
   end
 end

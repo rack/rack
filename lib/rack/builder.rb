@@ -37,7 +37,7 @@ module Rack
           options = opts.parse! $1.split(/\s+/)
         end
         cfgfile.sub!(/^__END__\n.*/, '')
-        app = eval "Rack::Builder.new {( " + cfgfile + "\n )}.to_app",
+        app = eval "Rack::Builder.new {( " << cfgfile << "\n )}.to_app",
           TOPLEVEL_BINDING, config
       else
         require config

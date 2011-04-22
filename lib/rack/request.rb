@@ -252,8 +252,7 @@ module Rack
     end
 
     def base_url
-      url = scheme + "://"
-      url << host
+      url = scheme.dup << "://" << host
 
       if scheme == "https" && port != 443 ||
           scheme == "http" && port != 80
@@ -265,11 +264,11 @@ module Rack
 
     # Tries to return a remake of the original request URL as a string.
     def url
-      base_url + fullpath
+      base_url << fullpath
     end
 
     def path
-      script_name + path_info
+      script_name << path_info
     end
 
     def fullpath

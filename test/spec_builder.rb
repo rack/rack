@@ -83,7 +83,7 @@ describe Rack::Builder do
 
     # with auth...
     response = Rack::MockRequest.new(app).get("/",
-        'HTTP_AUTHORIZATION' => 'Basic ' + ["joe:secret"].pack("m*"))
+        'HTTP_AUTHORIZATION' => 'Basic ' << ["joe:secret"].pack("m*"))
     response.status.should.equal 200
     response.body.to_s.should.equal 'Hi Boss'
   end

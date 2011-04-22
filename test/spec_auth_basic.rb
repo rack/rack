@@ -21,7 +21,7 @@ describe Rack::Auth::Basic do
   end
 
   def request_with_basic_auth(username, password, &block)
-    request 'HTTP_AUTHORIZATION' => 'Basic ' + ["#{username}:#{password}"].pack("m*"), &block
+    request 'HTTP_AUTHORIZATION' => 'Basic ' << ["#{username}:#{password}"].pack("m*"), &block
   end
 
   def request(headers = {})
