@@ -175,19 +175,19 @@ module Rack
     def set_cookie_header!(header, key, value)
       case value
       when Hash
-        domain  = "; domain="  + value[:domain] if value[:domain]
-        path    = "; path="    + value[:path]   if value[:path]
+        domain  = "; domain="  << value[:domain] if value[:domain]
+        path    = "; path="    << value[:path]   if value[:path]
         # According to RFC 2109, we need dashes here.
         # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" +
+        expires = "; expires=" <<
           rfc2822(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if value[:httponly]
         value = value[:value]
       end
       value = [value] unless Array === value
-      cookie = escape(key) + "=" +
-        value.map { |v| escape v }.join("&") +
+      cookie = escape(key) << "=" <<
+        value.map { |v| escape v }.join("&") <<
         "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
@@ -196,7 +196,7 @@ module Rack
       when String
         header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
       when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        header["Set-Cookie"] = (header["Set-Cookie"] << cookie).join("\n")
       end
 
       nil
@@ -657,7 +657,7 @@ module Rack
             }
           when Hash
             build_multipart(value, false).each { |subkey, subvalue|
-              flattened_params[k + subkey] = subvalue
+              flattened_params[k << subkey] = subvalue
             }
           else
             flattened_params[k] = value
@@ -686,7 +686,7 @@ Content-Disposition: form-data; name="#{name}"\r
 #{file}\r
 EOF
             end
-          }.join + "--#{MULTIPART_BOUNDARY}--\r"
+          }.join << "--#{MULTIPART_BOUNDARY}--\r"
         else
           flattened_params
         end

@@ -123,7 +123,7 @@ describe Rack::Session::Cookie do
     response1.body.should.equal '{"counter"=>1}'
 
     _, digest = response1["Set-Cookie"].split("--")
-    tampered_with_cookie = "hackerman-was-here" + "--" + digest
+    tampered_with_cookie = "hackerman-was-here" << "--" << digest
     response2 = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" =>
                                                tampered_with_cookie)
 

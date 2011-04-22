@@ -19,7 +19,7 @@ class TestRequest
   module Helpers
     attr_reader :status, :response
 
-    ROOT = File.expand_path(File.dirname(__FILE__) + "/..")
+    ROOT = File.expand_path(File.dirname(__FILE__) << "/..")
     ENV["RUBYOPT"] = "-I#{ROOT}/lib -rubygems"
 
     def root

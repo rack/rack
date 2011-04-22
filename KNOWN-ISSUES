@@ -9,7 +9,7 @@
       end
 
       def call(env)
-        env["PATH_INFO"] = env["SCRIPT_NAME"].to_s + env["PATH_INFO"].to_s
+        env["PATH_INFO"] = env["SCRIPT_NAME"].to_s << env["PATH_INFO"].to_s
         env["SCRIPT_NAME"] = ""
         @app.call(env)
       end
