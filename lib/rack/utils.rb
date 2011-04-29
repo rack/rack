@@ -531,6 +531,7 @@ module Rack
           loop do
             read_buffer = input.gets
             break if read_buffer == boundary + EOL
+            raise EOFError, "bad content body" if read_buffer.nil?
           end
 
           rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/n
