@@ -3,7 +3,13 @@
 require 'fileutils'
 require 'set'
 require 'tempfile'
-require 'cgi/util'
+
+if RUBY_VERSION[/^\d+\.\d+/] == '1.8'
+  # pull in backports
+  require 'rack/backports/cgi/util'
+else
+  require 'cgi/util'
+end
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
