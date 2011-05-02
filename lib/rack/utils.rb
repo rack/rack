@@ -3,7 +3,7 @@
 require 'fileutils'
 require 'set'
 require 'tempfile'
-require 'cgi'
+require 'cgi/util'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
