@@ -167,7 +167,7 @@ describe Rack::MockRequest do
   end
 
   should "accept params and build multipart encoded params for POST requests" do
-    files = Rack::Utils::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
+    files = Rack::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
     res = Rack::MockRequest.new(app).post("/foo", :params => { "submit-name" => "Larry", "files" => files })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "POST"
