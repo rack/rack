@@ -164,6 +164,7 @@ describe Rack::Response do
     str = ""; body.each { |part| str << part }
     str.should.be.empty
     header["Content-Type"].should.equal nil
+    header['Content-Length'].should.equal nil
 
     lambda {
       Rack::Response.new(Object.new)

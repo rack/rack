@@ -73,6 +73,7 @@ module Rack
 
       if [204, 304].include?(status.to_i)
         header.delete "Content-Type"
+        header.delete "Content-Length"
         [status.to_i, header, []]
       else
         [status.to_i, header, self]
