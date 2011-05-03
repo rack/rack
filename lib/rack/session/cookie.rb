@@ -79,8 +79,8 @@ module Rack
       attr_reader :coder
 
       def initialize(app, options={})
-        @secret = options.delete(:secret)
-        @coder  = options.delete(:coder) || Base64::Marshal.new
+        @secret = options[:secret]
+        @coder  = options[:coder] ||= Base64::Marshal.new
         super(app, options.merge!(:cookie_only => true))
       end
 
