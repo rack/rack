@@ -125,6 +125,20 @@ describe Rack::Request do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  should "not unify GET and POST when calling params" do
+    mr = Rack::MockRequest.env_for("/?foo=quux",
+      "REQUEST_METHOD" => 'POST',
+      :input => "foo=bar&quux=bla"
+    )
+    req = Rack::Request.new mr
+
+    req.params
+
+    req.GET.should.equal "foo" => "quux"
+    req.POST.should.equal "foo" => "bar", "quux" => "bla"
+    req.params.should.equal req.GET.merge(req.POST)
+  end
+
   should "raise if rack.input is missing" do
     req = Rack::Request.new({})
     lambda { req.POST }.should.raise(RuntimeError)
