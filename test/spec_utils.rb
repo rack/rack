@@ -445,6 +445,13 @@ describe Rack::Utils::Multipart do
     Rack::Utils::Multipart.parse_multipart(env).should.equal nil
   end
 
+  should "parse multipart form webkit style" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
+    env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params['profile']['bio'].should.include 'hello'
+  end
+
   should "parse multipart upload with text file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Utils::Multipart.parse_multipart(env)
