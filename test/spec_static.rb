@@ -45,4 +45,12 @@ describe Rack::Static do
     res.body.should == "Hello World"
   end
 
+  it "supports serving fixed cache-control" do
+    opts = OPTIONS.merge(:cache_control => 'public')
+    request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, opts))
+    res = request.get("/cgi/test")
+    res.should.be.ok
+    res.headers['Cache-Control'].should == 'public'
+  end
+
 end

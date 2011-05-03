@@ -22,6 +22,10 @@ module Rack
   #
   #     use Rack::Static, :urls => {"/" => 'index.html'}, :root => 'public'
   #
+  # Set a fixed Cache-Control header for all served files:
+  #
+  #     use Rack::Static, :root => 'public', :cache_control => 'public'
+  #
 
   class Static
 
@@ -29,7 +33,8 @@ module Rack
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
       root = options[:root] || Dir.pwd
-      @file_server = Rack::File.new(root)
+      cache_control = options[:cache_control]
+      @file_server = Rack::File.new(root, cache_control)
     end
 
     def call(env)
