@@ -54,6 +54,7 @@ module Rack
   autoload :Static, "rack/static"
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"
+  autoload :Multipart, "rack/multipart"
 
   autoload :MockRequest, "rack/mock"
   autoload :MockResponse, "rack/mock"

@@ -303,7 +303,7 @@ module Rack
       end
 
       def parse_multipart(env)
-        Utils::Multipart.parse_multipart(env)
+        Rack::Multipart.parse_multipart(env)
       end
   end
 end

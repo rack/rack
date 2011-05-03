@@ -1,5 +1,3 @@
-require 'rack/utils'
-
 module Rack
   # A multipart form data parser, adapted from IOWA.
   #

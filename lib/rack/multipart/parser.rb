@@ -1,3 +1,5 @@
+require 'rack/utils'
+
 module Rack
   module Multipart
     class Parser
