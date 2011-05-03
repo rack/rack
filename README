@@ -317,6 +317,25 @@ run on port 11211) and memcache-client installed.
   * Security fix in Rack::Auth::Digest::MD5: when authenticator
     returned nil, permission was granted on empty password.
 
+* unknown: Thirteenth? public release 1.3.0
+  * Various performance optimizations
+  * Various multipart fixes
+  * Various multipart refactors
+  * Infinite loop fix for multipart
+  * Test coverage for Rack::Server returns
+  * Allow files with '..', but not path components that are '..'
+  * rackup accepts handler-specific options on the command line
+  * Request#params no longer merges POST into GET (but returns the same)
+  * Use URI.encode_www_form_component instead. Use core methods for escaping.
+  * Allow multi-line comments in the config file
+  * Bug L#94 reported by Nikolai Lugovoi, query parameter unescaping.
+  * Rack::Response now deletes Content-Length when appropriate
+  * Rack::Deflater now supports streaming
+  * Improved Rack::Handler loading and searching
+  * Support for the PATCH verb
+
+
+
 == Contact
 
 Please post bugs, suggestions and patches to
