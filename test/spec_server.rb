@@ -7,7 +7,7 @@ require 'open-uri'
 describe Rack::Server do
 
   def app
-    lambda { [200, {'Content-Type' => 'text/plain'}, ['success']] }
+    lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
   end
 
   it "overrides :config if :app is passed in" do
