@@ -61,7 +61,7 @@ module Rack
       params = {}
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
-        k, v = unescape(p).split('=', 2)
+        k, v = p.split('=', 2).map { |s| unescape(s) }
         normalize_params(params, k, v)
       end
 
