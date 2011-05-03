@@ -8,9 +8,9 @@ require 'rack/multipart'
 
 if RUBY_VERSION[/^\d+\.\d+/] == '1.8'
   # pull in backports
-  require 'rack/backports/cgi/util'
+  require 'rack/backports/uri/common'
 else
-  require 'cgi/util'
+  require 'uri/common'
 end
 
 module Rack
@@ -20,7 +20,7 @@ module Rack
   module Utils
     # URI escapes a string. (CGI style space to +)
     def escape(s)
-      CGI.escape(s.to_s)
+      URI.encode_www_form_component(s)
     end
     module_function :escape
 
@@ -33,7 +33,7 @@ module Rack
 
     # Unescapes a URI escaped string.
     def unescape(s)
-      CGI.unescape(s)
+      URI.decode_www_form_component(s)
     end
     module_function :unescape
 
