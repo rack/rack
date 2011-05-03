@@ -9,10 +9,18 @@ module Rack
       attr_accessor :app
 
       def self.run(app, options=nil)
+        options[:Socket] = UNIXServer.new(options[:File]) if options[:File]
         new(options.merge(:app=>app,
                           :host=>options[:Host],
                           :port=>options[:Port],
                           :socket=>options[:Socket])).listen
+      end
+      
+      def self.valid_options
+        {
+          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Port=PORT" => "Port to listen on (default: 8080)",
+        }
       end
 
       def initialize(settings = {})
