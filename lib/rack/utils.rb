@@ -93,7 +93,7 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params[k].last.is_a?(Hash) && !params[k].last.key?(child_key)
+        if params[k].last.is_a?(Hash) && !params[k].last.key?(child_key) && !recursive_query_key?(params[k].last, child_key)
           normalize_params(params[k].last, child_key, v)
         else
           params[k] << normalize_params({}, child_key, v)
@@ -107,6 +107,23 @@ module Rack
       return params
     end
     module_function :normalize_params
+
+    # Test if given key is a nested one like [a][b]
+    # and if given params string does contain that key.
+    # Returns true or false.
+    def recursive_query_key?(params, key)
+      return false unless key.match(%r(\]\[))
+      test = params
+      for k in key.scan(/\[([^\[\]]+)\]/).first
+        if test.key?(k)
+          test = test[k]
+        else
+          return false
+        end
+      end
+      true
+    end
+    module_function :recursive_query_key?
 
     def build_query(params)
       params.map { |k, v|
