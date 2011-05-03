@@ -12,6 +12,8 @@ module Rack
   # like sendfile on the +path+.
 
   class File
+    SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+
     attr_accessor :root
     attr_accessor :path
 
@@ -29,9 +31,11 @@ module Rack
 
     def _call(env)
       @path_info = Utils.unescape(env["PATH_INFO"])
-      return fail(403, "Forbidden")  if @path_info.include? ".."
+      parts = @path_info.split SEPS
 
-      @path = F.join(@root, @path_info)
+      return fail(403, "Forbidden")  if parts.include? ".."
+
+      @path = F.join(@root, *parts)
 
       available = begin
         F.file?(@path) && F.readable?(@path)

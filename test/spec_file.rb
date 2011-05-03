@@ -31,10 +31,30 @@ describe Rack::File do
   end
 
   should "not allow directory traversal" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/../test")
-
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    res = req.get("/cgi/../test")
     res.should.be.forbidden
+
+    res = req.get("../test")
+    res.should.be.forbidden
+
+    res = req.get("..")
+    res.should.be.forbidden
+
+    res = req.get("test/..")
+    res.should.be.forbidden
+  end
+
+  should "allow files with .. in their name" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    res = req.get("/cgi/..test")
+    res.should.be.not_found
+
+    res = req.get("/cgi/test..")
+    res.should.be.not_found
+
+    res = req.get("/cgi../test..")
+    res.should.be.not_found
   end
 
   should "not allow directory traversal with encoded periods" do
