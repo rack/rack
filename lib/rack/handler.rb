@@ -12,14 +12,18 @@ module Rack
       return unless server
       server = server.to_s
 
+      unless @handlers.include? server
+        load_error = try_require('rack/handler', server)
+      end
+
       if klass = @handlers[server]
-        obj = Object
-        klass.split("::").each { |x| obj = obj.const_get(x) }
-        obj
+        klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
-        try_require('rack/handler', server)
         const_get(server)
       end
+
+    rescue NameError => name_error
+      raise load_error || name_error
     end
 
     def self.default(options = {})
@@ -57,12 +61,14 @@ module Rack
         gsub(/[A-Z]+[^A-Z]/, '_\&').downcase
 
       require(::File.join(prefix, file))
-    rescue LoadError
+      nil
+    rescue LoadError => error
+      error
     end
 
     def self.register(server, klass)
       @handlers ||= {}
-      @handlers[server] = klass
+      @handlers[server.to_s] = klass.to_s
     end
 
     autoload :CGI, "rack/handler/cgi"

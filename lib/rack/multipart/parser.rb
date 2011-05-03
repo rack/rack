@@ -10,7 +10,7 @@ module Rack
       def parse
         return nil unless setup_parse
 
-        fast_forward_to_first_boundry
+        fast_forward_to_first_boundary
 
         loop do
           head, filename, content_type, name, body = 
@@ -56,7 +56,7 @@ module Rack
         true
       end
 
-      def full_boundry
+      def full_boundary
         @boundary + EOL
       end
 
@@ -64,8 +64,12 @@ module Rack
         @rx ||= /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
       end
 
-      def fast_forward_to_first_boundry
-        until @io.gets == full_boundry; end
+      def fast_forward_to_first_boundary
+        loop do
+          read_buffer = @io.gets
+          break if read_buffer == full_boundary
+          raise EOFError, "bad content body" if read_buffer.nil?
+        end
       end
 
       def get_current_head_and_filename_and_content_type_and_name_and_body

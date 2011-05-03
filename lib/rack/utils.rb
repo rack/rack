@@ -467,5 +467,6 @@ module Rack
     module_function :status_code
 
     Multipart = Rack::Multipart
+
   end
 end
