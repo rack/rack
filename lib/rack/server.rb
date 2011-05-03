@@ -57,7 +57,7 @@ module Rack
           }
 
           opts.on("-P", "--pid FILE", "file to store PID (default: rack.pid)") { |f|
-            options[:pid] = f
+            options[:pid] = ::File.expand_path(f)
           }
 
           opts.separator ""
@@ -173,15 +173,19 @@ module Rack
       end
     end
 
+    def self.logging_middleware
+      lambda { |server|
+        server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
+      }
+    end
+
     def self.middleware
       @middleware ||= begin
         m = Hash.new {|h,k| h[k] = []}
         m["deployment"].concat [
           [Rack::ContentLength],
           [Rack::Chunked],
-          lambda { |server|
-            server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
-          }
+          logging_middleware
         ]
         m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
         m
