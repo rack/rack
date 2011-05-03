@@ -183,7 +183,8 @@ module Rack
           form_vars = @env["rack.input"].read
 
           # Fix for Safari Ajax postings that always append \0
-          form_vars.sub!(/\0\z/, '')
+          # form_vars.sub!(/\0\z/, '') # performance replacement:
+          form_vars.slice!(-1) if form_vars[-1] == ?\0
 
           @env["rack.request.form_vars"] = form_vars
           @env["rack.request.form_hash"] = parse_query(form_vars)
