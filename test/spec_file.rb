@@ -109,4 +109,14 @@ describe Rack::File do
     res["Content-Range"].should.equal "bytes */193"
   end
 
+  should "support cache control options" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = Rack::File.new(DOCROOT, 'public, max-age=38').call(env)
+
+    path = File.join(DOCROOT, "/cgi/test")
+
+    status.should.equal 200
+    heads['Cache-Control'].should.equal 'public, max-age=38'
+  end
+
 end

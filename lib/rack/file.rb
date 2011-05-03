@@ -16,11 +16,13 @@ module Rack
 
     attr_accessor :root
     attr_accessor :path
+    attr_accessor :cache_control
 
     alias :to_path :path
 
-    def initialize(root)
+    def initialize(root, cache_control = nil)
       @root = root
+      @cache_control = cache_control
     end
 
     def call(env)
@@ -65,6 +67,7 @@ module Rack
         },
         self
       ]
+      response[1].merge! 'Cache-Control' => @cache_control if @cache_control
 
       ranges = Rack::Utils.byte_ranges(env, size)
       if ranges.nil? || ranges.length > 1
