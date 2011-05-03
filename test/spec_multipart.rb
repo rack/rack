@@ -24,6 +24,12 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).should.equal nil
   end
 
+  should "parse multipart content when content type present but filename is not" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text"].should.equal "contents"
+  end
+
   should "parse multipart form webkit style" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
