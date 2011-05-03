@@ -471,6 +471,30 @@ EOF
     f[:tempfile].size.should.equal 76
   end
 
+  should "not infinite loop with a malformed HTTP request" do
+    # Adapted from RFC 1867.
+    input = <<EOF
+--AaB03x
+content-disposition: form-data; name="reply"
+
+yes
+--AaB03x
+content-disposition: form-data; name="fileupload"; filename="dj.jpg"
+Content-Type: image/jpeg
+Content-Transfer-Encoding: base64
+
+/9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg
+--AaB03x--
+EOF
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    lambda{req.POST}.should.raise(EOFError)
+  end
+
+
   should "parse multipart form data" do
     # Adapted from RFC 1867.
     input = <<EOF
