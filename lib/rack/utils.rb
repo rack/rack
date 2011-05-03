@@ -18,11 +18,18 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    # URI escapes a string.
+    # URI escapes a string. (CGI style space to +)
     def escape(s)
       CGI.escape(s.to_s)
     end
     module_function :escape
+
+    # Like URI escaping, but with %20 instead of +. Strictly speaking this is
+    # true URI escaping.
+    def escape_path(s)
+      escape(s).gsub('+', '%20')
+    end
+    module_function :escape_path
 
     # Unescapes a URI escaped string.
     def unescape(s)

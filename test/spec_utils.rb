@@ -26,6 +26,10 @@ describe Rack::Utils do
     end
   end
 
+  should "escape path spaces with %20" do
+    Rack::Utils.escape_path("foo bar").should.equal  "foo%20bar"
+  end
+
   should "unescape correctly" do
     Rack::Utils.unescape("fo%3Co%3Ebar").should.equal "fo<o>bar"
     Rack::Utils.unescape("a+space").should.equal "a space"
