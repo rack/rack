@@ -28,6 +28,14 @@ module Rack
           serve request, app
         }
       end
+      
+      def self.valid_options
+        {
+          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Port=PORT" => "Port to listen on (default: 8080)",
+          "File=PATH" => "Creates a Domain socket at PATH instead of a TCP socket. Ignores Host and Port if set.",
+        }
+      end
 
       def self.serve(request, app)
         env = request.env
