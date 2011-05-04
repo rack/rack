@@ -199,10 +199,9 @@ module Rack
         private
 
         def initialize_sid
-          sidbits = @default_options.delete(:sidbits)
-          @sid_secure = @default_options.delete(:secure_random)
-          @sid_template = "%0#{sidbits / 4}x"
-          @sid_rand_width = (2**sidbits - 1)
+          @sidbits = @default_options[:sidbits]
+          @sid_secure = @default_options[:secure_random]
+          @sid_length = @sidbits / 4
         end
 
         # Generate a new session id using Ruby #rand.  The size of the
@@ -210,12 +209,11 @@ module Rack
         # Monkey patch this to use custom methods for session id generation.
 
         def generate_sid
-          r = if @sid_secure
-            SecureRandom.random_number(@sid_rand_width)
+          if @sid_secure
+            SecureRandom.hex(@sid_length)
           else
-            Kernel.rand(@sid_rand_width)
+            "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
-          @sid_template % r
         end
 
         # Sets the lazy session at 'rack.session' and places options and session
