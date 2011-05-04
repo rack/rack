@@ -208,12 +208,14 @@ module Rack
         # session id is controlled by the :sidbits option.
         # Monkey patch this to use custom methods for session id generation.
 
-        def generate_sid
-          if @sid_secure
+        def generate_sid(secure = @sid_secure)
+          if secure
             SecureRandom.hex(@sid_length)
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
+        rescue NotImpelentedError
+          generate_sid(false)
         end
 
         # Sets the lazy session at 'rack.session' and places options and session
