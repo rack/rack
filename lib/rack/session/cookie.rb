@@ -123,7 +123,7 @@ module Rack
       end
 
       def set_session(env, session_id, session, options)
-        session = persistent_session_id!(session, session_id)
+        session = session.merge("session_id" => session_id)
         session_data = coder.encode(session)
 
         if @secret

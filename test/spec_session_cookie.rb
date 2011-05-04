@@ -87,6 +87,27 @@ describe Rack::Session::Cookie do
     res.body.should.equal '{"counter"=>3}'
   end
 
+  renewer = lambda do |env|
+    env["rack.session.options"][:renew] = true
+    Rack::Response.new("Nothing").to_a
+  end
+
+  only_session_id = lambda do |env|
+    Rack::Response.new(env["rack.session"]["session_id"]).to_a
+  end
+
+  it "renew session id" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(only_session_id)).
+      get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+    old_session_id = res.body
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(renewer)).
+      get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(only_session_id)).
+      get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+    res.body.should.not.equal old_session_id
+  end
+
   it "survives broken cookies" do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
       get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
