@@ -14,6 +14,12 @@ describe Rack::Session::Cookie do
     Rack::Response.new(env["rack.session"].inspect).to_a
   end
 
+  session_option = lambda do |opt|
+    lambda do |env|
+      Rack::Response.new(env["rack.session.options"][opt].inspect).to_a
+    end
+  end
+
   nothing = lambda do |env|
     Rack::Response.new("Nothing").to_a
   end
@@ -188,5 +194,17 @@ describe Rack::Session::Cookie do
     app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
     res = Rack::MockRequest.new(app).get("/")
     res["Set-Cookie"].should.not.be.nil
+  end
+
+  it "exposes :secret in env['rack.session.option']" do
+    app = Rack::Session::Cookie.new(session_option[:secret], :secret => "foo")
+    res = Rack::MockRequest.new(app).get("/")
+    res.body.should == '"foo"'
+  end
+
+  it "exposes :coder in env['rack.session.option']" do
+    app = Rack::Session::Cookie.new(session_option[:coder])
+    res = Rack::MockRequest.new(app).get("/")
+    res.body.should.match(/Base64::Marshal/)
   end
 end
