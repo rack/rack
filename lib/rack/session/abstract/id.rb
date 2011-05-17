@@ -145,6 +145,8 @@ module Rack
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
       #   cookie options as by Rack::Response#add_cookie
       # * :defer will not set a cookie in the response.
+      # * :skip similarly to :defer, it will not set a cookie in the response
+      #   but it also won't persist the changes
       # * :renew (implementation dependent) will prompt the generation of a new
       #   session id, and migration of data to be referenced at the new id. If
       #   :defer is set, it will be overridden and the cookie will be set.
@@ -261,7 +263,8 @@ module Rack
         # or :expire_after was given and the security permissions match.
 
         def commit_session?(env, session, options)
-          (loaded_session?(session) || force_options?(options)) && secure_session?(env, options)
+          !options[:skip] && secure_session?(env, options) &&
+            (loaded_session?(session) || force_options?(options))
         end
 
         def loaded_session?(session)
@@ -287,12 +290,12 @@ module Rack
           session = env['rack.session']
           options = env['rack.session.options']
 
+          return [status, headers, body] unless commit_session?(env, session, options)
+
           if options[:drop] || options[:renew]
             session_id = destroy_session(env, options[:id] || generate_sid, options)
             return [status, headers, body] unless session_id
           end
-
-          return [status, headers, body] unless commit_session?(env, session, options)
 
           session.send(:load!) unless loaded_session?(session)
           session = session.to_hash

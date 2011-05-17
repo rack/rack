@@ -19,6 +19,10 @@ begin
       env['rack.session.options'][:renew] = true
       incrementor.call(env)
     end
+    skip_session = proc do |env|
+      env['rack.session.options'][:skip] = true
+      incrementor.call(env)
+    end
     defer_session = proc do |env|
       env['rack.session.options'][:defer] = true
       incrementor.call(env)
@@ -166,6 +170,23 @@ begin
       # Old cookie was deleted
       res4 = req.get("/", "HTTP_COOKIE" => cookie)
       res4.body.should.equal '{"counter"=>1}'
+    end
+
+    it "skips sending the cookie and saving new session with :skip option" do
+      pool = Rack::Session::Memcache.new(incrementor)
+      req = Rack::MockRequest.new(pool)
+      skip = Rack::Utils::Context.new(pool, skip_session)
+      sreq = Rack::MockRequest.new(skip)
+
+      res1 = req.get("/")
+      session = (cookie = res1["Set-Cookie"])[session_match]
+      res1.body.should.equal '{"counter"=>1}'
+
+      res2 = sreq.get("/", "HTTP_COOKIE" => cookie)
+      res2.body.should.equal '{"counter"=>2}'
+
+      res3 = req.get("/", "HTTP_COOKIE" => cookie)
+      res3.body.should.equal '{"counter"=>2}'
     end
 
     it "omits cookie with :defer option" do
