@@ -93,6 +93,22 @@ describe Rack::Session::Cookie do
     res.body.should.equal '{"counter"=>3}'
   end
 
+  skipper = lambda do |env|
+    env["rack.session.options"][:skip] = true
+    incrementor.call(env)
+  end
+
+  it "skips sending the cookie" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(skipper)).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>2}'
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>2}'
+  end
+
   renewer = lambda do |env|
     env["rack.session.options"][:renew] = true
     Rack::Response.new("Nothing").to_a
