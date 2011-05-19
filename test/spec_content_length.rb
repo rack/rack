@@ -7,13 +7,13 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].should.equal '13'
   end
 
-  should "not set Content-Length on variable length bodies" do
+  should "set Content-Length even on variable length bodies" do
     body = lambda { "Hello World!" }
     def body.each ; yield call ; end
 
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
     response = Rack::ContentLength.new(app).call({})
-    response[1]['Content-Length'].should.be.nil
+    response[1]['Content-Length'].should.equal '12'
   end
 
   should "not change Content-Length if it is already set" do
@@ -25,6 +25,12 @@ describe Rack::ContentLength do
   should "not set Content-Length on 304 responses" do
     app = lambda { |env| [304, {'Content-Type' => 'text/plain'}, []] }
     response = Rack::ContentLength.new(app).call({})
+    response[1]['Content-Length'].should.equal nil
+  end
+
+  should "not set Content-Length on sendfile responses" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'X-Sendfile' => 'foo'}, %w(Hello World)] }
+    response = Rack::ContentLength.new(app, "X-Sendfile").call({})
     response[1]['Content-Length'].should.equal nil
   end
 
