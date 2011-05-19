@@ -5,8 +5,9 @@ module Rack
   class ContentLength
     include Rack::Utils
 
-    def initialize(app)
+    def initialize(app, sendfile=nil)
       @app = app
+      @sendfile = sendfile
     end
 
     def call(env)
@@ -16,10 +17,14 @@ module Rack
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
-         body.respond_to?(:to_ary)
+         !(@sendfile && headers[@sendfile])
 
-        length = 0
-        body.each { |part| length += bytesize(part) }
+        new_body, length = [], 0
+        body.each do |part|
+          new_body << part
+          length += bytesize(part)
+        end
+        body = new_body
         headers['Content-Length'] = length.to_s
       end
 
