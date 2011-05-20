@@ -34,18 +34,21 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].should.equal nil
   end
 
-  should "not force a Content-Length when Connection:close" do
-    app = lambda { |env| [200, {'Connection' => 'close'}, []] }
-    response = Rack::ContentLength.new(app).call({})
-    response[1]['Content-Length'].should.equal nil
-  end
+  # Using "Connection: close" for this is fairly contended. It might be useful
+  # to have some other way to signal this.
+  #
+  # should "not force a Content-Length when Connection:close" do
+  #   app = lambda { |env| [200, {'Connection' => 'close'}, []] }
+  #   response = Rack::ContentLength.new(app).call({})
+  #   response[1]['Content-Length'].should.equal nil
+  # end
 
   should "close bodies that need to be closed" do
     body = Struct.new(:body) do
       attr_reader :closed
       def each; body.join; end
       def close; @closed = true; end
-      def to_ary; end # XXX remove - see note in implementation
+      def to_ary; end
     end.new(%w[one two three])
 
     app = lambda { |env| [200, {}, body] }
@@ -58,7 +61,7 @@ describe Rack::ContentLength do
       def each
         yield body.shift until body.empty?
       end
-      def to_ary; end # XXX remove - see note in implementation
+      def to_ary; end
     end.new(%w[one two three])
 
     app = lambda { |env| [200, {}, body] }

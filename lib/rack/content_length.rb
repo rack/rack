@@ -15,13 +15,8 @@ module Rack
       headers = HeaderHash.new(headers)
 
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
-         headers['Connection'] != 'close' &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
-         # XXX this should likely be removed, but doing so will mean it will
-         # set content length for variable length bodies. This is better
-         # behavior and streaming should be done with explicitly connection:
-         # close or the chunked middleware.
          body.respond_to?(:to_ary)
 
         obody = body
