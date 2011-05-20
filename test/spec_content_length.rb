@@ -33,4 +33,36 @@ describe Rack::ContentLength do
     response = Rack::ContentLength.new(app).call({})
     response[1]['Content-Length'].should.equal nil
   end
+
+  should "not force a Content-Length when Connection:close" do
+    app = lambda { |env| [200, {'Connection' => 'close'}, []] }
+    response = Rack::ContentLength.new(app).call({})
+    response[1]['Content-Length'].should.equal nil
+  end
+
+  should "close bodies that need to be closed" do
+    body = Struct.new(:body) do
+      attr_reader :closed
+      def each; body.join; end
+      def close; @closed = true; end
+      def to_ary; end # XXX remove - see note in implementation
+    end.new(%w[one two three])
+
+    app = lambda { |env| [200, {}, body] }
+    response = Rack::ContentLength.new(app).call({})
+    body.closed.should.equal true
+  end
+
+  should "support single-execute bodies" do
+    body = Struct.new(:body) do
+      def each
+        yield body.shift until body.empty?
+      end
+      def to_ary; end # XXX remove - see note in implementation
+    end.new(%w[one two three])
+
+    app = lambda { |env| [200, {}, body] }
+    response = Rack::ContentLength.new(app).call({})
+    response[1]['Content-Length'].should.equal %w[one two three].join.size.to_s
+  end
 end
