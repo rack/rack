@@ -333,8 +333,9 @@ run on port 11211) and memcache-client installed.
   * Rack::Deflater now supports streaming
   * Improved Rack::Handler loading and searching
   * Support for the PATCH verb
-
-
+  * env['rack.session.options'] now contains session options
+  * Cookies respect renew
+  * Session middleware uses SecureRandom.hex
 
 == Contact
 
