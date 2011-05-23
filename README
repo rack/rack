@@ -317,7 +317,7 @@ run on port 11211) and memcache-client installed.
   * Security fix in Rack::Auth::Digest::MD5: when authenticator
     returned nil, permission was granted on empty password.
 
-* unknown: Thirteenth? public release 1.3.0.beta
+* May 22nd, 2011: Thirteenth public release 1.3.0
   * Various performance optimizations
   * Various multipart fixes
   * Various multipart refactors
