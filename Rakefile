@@ -1,5 +1,4 @@
 # Rakefile for Rack.  -*-ruby-*-
-require 'rake/rdoctask'
 
 desc "Run all the tests"
 task :default => [:test]
