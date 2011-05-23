@@ -337,6 +337,10 @@ run on port 11211) and memcache-client installed.
   * Cookies respect renew
   * Session middleware uses SecureRandom.hex
 
+* May 22nd, 2011: Fourteenth public release 1.2.3
+  * Pulled in relevant bug fixes from 1.3
+  * Fixed 1.8.6 support
+
 == Contact
 
 Please post bugs, suggestions and patches to
