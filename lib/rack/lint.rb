@@ -30,7 +30,7 @@ module Rack
 
     ## = Rack applications
 
-    ## A Rack application is an Ruby object (not a class) that
+    ## A Rack application is a Ruby object (not a class) that
     ## responds to +call+.
     def call(env=nil)
       dup._call(env)
@@ -302,7 +302,7 @@ module Rack
       end
 
       ## * +read+ behaves like IO#read. Its signature is <tt>read([length, [buffer]])</tt>.
-      ##   If given, +length+ must be an non-negative Integer (>= 0) or +nil+, and +buffer+ must
+      ##   If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must
       ##   be a String and may not be nil. If +length+ is given and not nil, then this method
       ##   reads at most +length+ bytes from the input stream. If +length+ is not given or nil,
       ##   then this method reads all data until EOF.
