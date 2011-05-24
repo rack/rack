@@ -24,7 +24,7 @@ module Rack
         def initialize(app, realm=nil, opaque=nil, &authenticator)
           @passwords_hashed = nil
           if opaque.nil? and realm.respond_to? :values_at
-            realm, opaque, @passwords_hashed = realm.values_at :realm, :opaque, :passwords_hashed 
+            realm, opaque, @passwords_hashed = realm.values_at :realm, :opaque, :passwords_hashed
           end
           super(app, realm, &authenticator)
           @opaque = opaque

@@ -15,7 +15,7 @@ module Rack
                           :port=>options[:Port],
                           :socket=>options[:Socket])).listen
       end
-      
+
       def self.valid_options
         {
           "Host=HOST" => "Hostname to listen on (default: localhost)",
