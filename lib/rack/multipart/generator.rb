@@ -68,7 +68,7 @@ module Rack
           h
         end
       end
-   
+
       def content_for_tempfile(io, file, name)
 <<-EOF
 --#{MULTIPART_BOUNDARY}\r

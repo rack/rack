@@ -76,7 +76,7 @@ describe Rack::Utils do
       should.equal "foo" => "bar", "baz" => ""
     Rack::Utils.parse_nested_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F").
       should.equal "my weird field" => "q1!2\"'w$5&7/z8)?"
-      
+
     Rack::Utils.parse_nested_query("a=b&pid%3D1234=1023").
       should.equal "pid=1234" => "1023", "a" => "b"
 
