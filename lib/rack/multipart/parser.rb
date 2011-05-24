@@ -15,7 +15,7 @@ module Rack
         fast_forward_to_first_boundary
 
         loop do
-          head, filename, content_type, name, body = 
+          head, filename, content_type, name, body =
             get_current_head_and_filename_and_content_type_and_name_and_body
 
           # Save the rest.

@@ -113,7 +113,7 @@ module Rack
     #     end
     #   end
     #
-    # This example includes a piece of middleware which will run before requests hit +Heartbeat+. 
+    # This example includes a piece of middleware which will run before requests hit +Heartbeat+.
     #
     def map(path, &block)
       if @ins.last.kind_of? Hash
