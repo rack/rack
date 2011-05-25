@@ -12,7 +12,7 @@ module Rack
     def call(env)
       if env["REQUEST_METHOD"] == "POST"
         req = Request.new(env)
-        method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
+        method = req.params[METHOD_OVERRIDE_PARAM_KEY] ||
           env[HTTP_METHOD_OVERRIDE_HEADER]
         method = method.to_s.upcase
         if HTTP_METHODS.include?(method)
