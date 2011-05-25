@@ -1,12 +1,12 @@
 # -*- encoding: binary -*-
-
 require 'fileutils'
 require 'set'
 require 'tempfile'
-
 require 'rack/multipart'
 
-if RUBY_VERSION[/^\d+\.\d+/] == '1.8'
+major, minor, patch = RUBY_VERSION.split('.')
+
+if (major == 1 && minor < 9) || (major == 1 && minor == 9 && patch < 2)
   # pull in backports
   require 'rack/backports/uri/common'
 else
