@@ -86,9 +86,9 @@ end
 
 desc "Generate RDoc documentation"
 task :rdoc => ["SPEC"] do
-  sh(*%w{rdoc --line-numbers --main README
+  sh(*%w{rdoc --line-numbers --main README.rdoc
               --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
-              %w{README KNOWN-ISSUES SPEC} +
+              %w{README.rdoc KNOWN-ISSUES SPEC} +
               Dir["lib/**/*.rb"])
 end
 
