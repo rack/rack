@@ -4,7 +4,7 @@ require 'set'
 require 'tempfile'
 require 'rack/multipart'
 
-major, minor, patch = RUBY_VERSION.split('.')
+major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
 
 if (major == 1 && minor < 9) || (major == 1 && minor == 9 && patch < 2)
   # pull in backports

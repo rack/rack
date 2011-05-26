@@ -20,20 +20,26 @@ module URI
   #
   # See URI.decode_www_form_component, URI.encode_www_form
   def self.encode_www_form_component(str)
-    if TBLENCWWWCOMP_.empty?
-      tbl = {}
-      256.times do |i|
-        tbl[i.chr] = '%%%02X' % i
+    if RUBY_VERSION < "1.9" && $KCODE =~ /u/i
+      str.gsub(/([^ a-zA-Z0-9_.-]+)/) do
+        '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
+      end.tr(' ', '+')
+    else
+      if TBLENCWWWCOMP_.empty?
+        tbl = {}
+        256.times do |i|
+          tbl[i.chr] = '%%%02X' % i
+        end
+        tbl[' '] = '+'
+        begin
+          TBLENCWWWCOMP_.replace(tbl)
+          TBLENCWWWCOMP_.freeze
+        rescue
+        end
       end
-      tbl[' '] = '+'
-      begin
-        TBLENCWWWCOMP_.replace(tbl)
-        TBLENCWWWCOMP_.freeze
-      rescue
-      end
+      str = str.to_s
+      str.gsub(/[^*\-.0-9A-Z_a-z]/) {|m| TBLENCWWWCOMP_[m]}
     end
-    str = str.to_s
-    str.gsub(/[^*\-.0-9A-Z_a-z]/) {|m| TBLENCWWWCOMP_[m]}
   end
 
   # Decode given +str+ of URL-encoded form data.
