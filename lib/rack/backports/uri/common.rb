@@ -22,7 +22,7 @@ module URI
   def self.encode_www_form_component(str)
     if RUBY_VERSION < "1.9" && $KCODE =~ /u/i
       str.gsub(/([^ a-zA-Z0-9_.-]+)/) do
-        '%' + $1.unpack('H2' * $1.bytesize).join('%').upcase
+        '%' + $1.unpack('H2' * Rack::Utils.bytesize($1)).join('%').upcase
       end.tr(' ', '+')
     else
       if TBLENCWWWCOMP_.empty?
