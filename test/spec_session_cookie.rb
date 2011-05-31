@@ -207,4 +207,10 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(app).get("/")
     res.body.should.match(/Base64::Marshal/)
   end
+
+  it "allows passing in a hash with session data from middleware in front" do
+    app = Rack::Session::Cookie.new(session_id)
+    res = Rack::MockRequest.new(app).get("/", 'rack.session' => {:foo => 'bar'})
+    res.body.should.match(/foo/)
+  end
 end
