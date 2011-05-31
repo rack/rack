@@ -120,6 +120,17 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").should.be.server_error
   end
 
+  it "allows use after run" do
+    app = Rack::Builder.app do
+      run lambda { |env| raise "bzzzt" }
+      use Rack::ShowExceptions
+    end
+
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+  end
+
   describe "parse_file" do
     def config_file(name)
       File.join(File.dirname(__FILE__), 'builder', name)

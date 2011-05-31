@@ -47,7 +47,7 @@ module Rack
     end
 
     def initialize(&block)
-      @ins = []
+      @use, @map, @run = [], {}, []
       instance_eval(&block) if block_given?
     end
 
@@ -75,7 +75,7 @@ module Rack
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
     def use(middleware, *args, &block)
-      @ins << lambda { |app| middleware.new(app, *args, &block) }
+      @use << proc { |app| middleware.new(app, *args, &block) }
     end
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
@@ -93,7 +93,7 @@ module Rack
     #
     #   run Heartbeat
     def run(app)
-      @ins << app #lambda { |nothing| app }
+      @run = app
     end
 
     # Creates a route within the application.
@@ -116,18 +116,12 @@ module Rack
     # This example includes a piece of middleware which will run before requests hit +Heartbeat+.
     #
     def map(path, &block)
-      if @ins.last.kind_of? Hash
-        @ins.last[path] = self.class.new(&block).to_app
-      else
-        @ins << {}
-        map(path, &block)
-      end
+      @map[path] = self.class.app(&block)
     end
 
     def to_app
-      @ins[-1] = Rack::URLMap.new(@ins.last)  if Hash === @ins.last
-      inner_app = @ins.last
-      @ins[0...-1].reverse.inject(inner_app) { |a, e| e.call(a) }
+      app = @map.empty? ? @run : Rack::URLMap.new(@map)
+      @use.reverse.inject(app) { |a,e| e[a] }
     end
 
     def call(env)
