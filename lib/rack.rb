@@ -24,6 +24,7 @@ module Rack
   end
 
   autoload :Builder, "rack/builder"
+  autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
   autoload :Chunked, "rack/chunked"
   autoload :CommonLogger, "rack/commonlogger"
