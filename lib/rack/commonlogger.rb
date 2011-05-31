@@ -1,3 +1,5 @@
+require 'rack/body_proxy'
+
 module Rack
   # Rack::CommonLogger forwards every request to an +app+ given, and
   # logs a line in the Apache common log format to the +logger+, or
@@ -17,7 +19,7 @@ module Rack
       began_at = Time.now
       status, header, body = @app.call(env)
       header = Utils::HeaderHash.new(header)
-      log(env, status, header, began_at)
+      body = BodyProxy.new(body) { log(env, status, header, began_at) }
       [status, header, body]
     end
 
