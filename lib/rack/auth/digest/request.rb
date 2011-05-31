@@ -6,7 +6,6 @@ module Rack
   module Auth
     module Digest
       class Request < Auth::AbstractRequest
-
         def method
           @env['rack.methodoverride.original_method'] || @env['REQUEST_METHOD']
         end
@@ -27,13 +26,15 @@ module Rack
           @params ||= Params.parse(parts.last)
         end
 
-        def method_missing(sym)
-          if params.has_key? key = sym.to_s
-            return params[key]
-          end
-          super
+        def respond_to?(sym, *)
+          super or params.has_key? sym.to_s
         end
 
+        def method_missing(sym, *args)
+          return super unless params.has_key?(key = sym.to_s)
+          return params[key] if args.size == 0
+          raise ArgumentError, "wrong number of arguments (#{args.size} for 0)"
+        end
       end
     end
   end
