@@ -99,6 +99,26 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").should.be.server_error
   end
 
+  it "can mix map and run for endpoints" do
+    app = Rack::Builder.app do
+      map('/sub') { run lambda { |inner_env| [200, {}, ['sub']] }}
+      run lambda { |inner_env| [200, {}, ['root']] }
+    end
+
+    Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
+    Rack::MockRequest.new(app).get("/sub").body.to_s.should.equal 'sub'
+  end
+
+  it "accepts middleware-only map blocks" do
+    app = Rack::Builder.app do
+      map('/foo') { use Rack::ShowExceptions }
+      run lambda { |env| raise "bzzzt" }
+    end
+
+    proc { Rack::MockRequest.new(app).get("/") }.should.raise(RuntimeError)
+    Rack::MockRequest.new(app).get("/foo").should.be.server_error
+  end
+
   should "initialize apps once" do
     app = Rack::Builder.new do
       class AppClass
