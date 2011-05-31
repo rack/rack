@@ -47,7 +47,7 @@ module Rack
     end
 
     def initialize(&block)
-      @use, @map, @run = [], {}, []
+      @use, @map, @run = [], {}, nil
       instance_eval(&block) if block_given?
     end
 
@@ -121,6 +121,7 @@ module Rack
 
     def to_app
       app = @map.empty? ? @run : Rack::URLMap.new(@map)
+      fail "missing run or map statement" unless app
       @use.reverse.inject(app) { |a,e| e[a] }
     end
 
