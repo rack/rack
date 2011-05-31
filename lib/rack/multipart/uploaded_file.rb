@@ -22,6 +22,10 @@ module Rack
       end
       alias_method :local_path, :path
 
+      def respond_to?(*args)
+        super or @tempfile.respond_to?(*args)
+      end
+
       def method_missing(method_name, *args, &block) #:nodoc:
         @tempfile.__send__(method_name, *args, &block)
       end
