@@ -46,13 +46,13 @@ module Rack
       return app, options
     end
 
-    def initialize(&block)
-      @ins = []
+    def initialize(default_app = nil,&block)
+      @use, @map, @run = [], nil, default_app
       instance_eval(&block) if block_given?
     end
 
-    def self.app(&block)
-      self.new(&block).to_app
+    def self.app(default_app = nil, &block)
+      self.new(default_app, &block).to_app
     end
 
     # Specifies a middleware to use in a stack.
@@ -75,7 +75,11 @@ module Rack
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
     def use(middleware, *args, &block)
-      @ins << lambda { |app| middleware.new(app, *args, &block) }
+      if @map
+        mapping, @map = @map, nil
+        @use << proc { |app| generate_map app, mapping }
+      end
+      @use << proc { |app| middleware.new(app, *args, &block) }
     end
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
@@ -93,7 +97,7 @@ module Rack
     #
     #   run Heartbeat
     def run(app)
-      @ins << app #lambda { |nothing| app }
+      @run = app
     end
 
     # Creates a route within the application.
@@ -116,22 +120,26 @@ module Rack
     # This example includes a piece of middleware which will run before requests hit +Heartbeat+.
     #
     def map(path, &block)
-      if @ins.last.kind_of? Hash
-        @ins.last[path] = self.class.new(&block).to_app
-      else
-        @ins << {}
-        map(path, &block)
-      end
+      @map ||= {}
+      @map[path] = block
     end
 
     def to_app
-      @ins[-1] = Rack::URLMap.new(@ins.last)  if Hash === @ins.last
-      inner_app = @ins.last
-      @ins[0...-1].reverse.inject(inner_app) { |a, e| e.call(a) }
+      app = @map ? generate_map(@run, @map) : @run
+      fail "missing run or map statement" unless app
+      @use.reverse.inject(app) { |a,e| e[a] }
     end
 
     def call(env)
       to_app.call(env)
+    end
+
+    private
+
+    def generate_map(default_app, mapping)
+      mapped = default_app ? {'/' => default_app} : {}
+      mapping.each { |r,b| mapped[r] = self.class.new(default_app, &b) }
+      URLMap.new(mapped)
     end
   end
 end

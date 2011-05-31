@@ -99,6 +99,26 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").should.be.server_error
   end
 
+  it "can mix map and run for endpoints" do
+    app = Rack::Builder.app do
+      map('/sub') { run lambda { |inner_env| [200, {}, ['sub']] }}
+      run lambda { |inner_env| [200, {}, ['root']] }
+    end
+
+    Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
+    Rack::MockRequest.new(app).get("/sub").body.to_s.should.equal 'sub'
+  end
+
+  it "accepts middleware-only map blocks" do
+    app = Rack::Builder.app do
+      map('/foo') { use Rack::ShowExceptions }
+      run lambda { |env| raise "bzzzt" }
+    end
+
+    proc { Rack::MockRequest.new(app).get("/") }.should.raise(RuntimeError)
+    Rack::MockRequest.new(app).get("/foo").should.be.server_error
+  end
+
   should "initialize apps once" do
     app = Rack::Builder.new do
       class AppClass
@@ -118,6 +138,23 @@ describe Rack::Builder do
 
     Rack::MockRequest.new(app).get("/").status.should.equal 200
     Rack::MockRequest.new(app).get("/").should.be.server_error
+  end
+
+  it "allows use after run" do
+    app = Rack::Builder.app do
+      run lambda { |env| raise "bzzzt" }
+      use Rack::ShowExceptions
+    end
+
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").should.be.server_error
+  end
+
+  it 'complains about a missing run' do
+    proc do
+      Rack::Builder.app { use Rack::ShowExceptions }
+    end.should.raise(RuntimeError)
   end
 
   describe "parse_file" do
