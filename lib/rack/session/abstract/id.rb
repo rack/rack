@@ -222,8 +222,10 @@ module Rack
         # metadata into 'rack.session.options'.
 
         def prepare_session(env)
-          env[ENV_SESSION_KEY] = SessionHash.new(self, env)
+          session_was                  = env[ENV_SESSION_KEY]
+          env[ENV_SESSION_KEY]         = SessionHash.new(self, env)
           env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+          env[ENV_SESSION_KEY].merge! session_was if session_was
         end
 
         # Extracts the session id from provided cookies and passes it and the
