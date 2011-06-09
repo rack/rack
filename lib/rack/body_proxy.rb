@@ -1,5 +1,5 @@
 module Rack
-  class BodyProxy < defined?(BasicObject) ? BasicObject : Object
+  class BodyProxy
     def initialize(body, &block)
       @body, @block = body, block
     end
