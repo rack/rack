@@ -154,6 +154,7 @@ module Rack
       @body_string      = nil
 
       super(body, status, headers)
+      body.close if body.respond_to?(:close)
     end
 
     def =~(other)

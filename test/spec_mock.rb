@@ -233,6 +233,14 @@ describe Rack::MockResponse do
     res.errors.should.include "foo"
   end
 
+  should "call close on the original body object" do
+    called = false
+    body = Rack::BodyProxy.new(['hi']) { called = true }
+    called.should.equal false
+    Rack::MockResponse.new(200, {}, body)
+    called.should.equal true
+  end
+
   should "optionally make Rack errors fatal" do
     lambda {
       Rack::MockRequest.new(app).get("/?error=foo", :fatal => true)
