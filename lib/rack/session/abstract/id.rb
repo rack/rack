@@ -214,7 +214,7 @@ module Rack
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
-        rescue NotImpelentedError
+        rescue NotImplementedError
           generate_sid(false)
         end
 
