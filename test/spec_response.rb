@@ -1,5 +1,6 @@
 require 'set'
 require 'rack/response'
+require 'stringio'
 
 describe Rack::Response do
   should "have sensible default values" do
@@ -243,4 +244,10 @@ describe Rack::Response do
     res.headers["Content-Length"].should.equal "8"
   end
 
+  it "calls close on #body" do
+    res = Rack::Response.new
+    res.body = StringIO.new
+    res.close
+    res.body.should.be.closed
+  end
 end
