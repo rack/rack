@@ -101,6 +101,10 @@ module Rack
       str
     end
 
+    def close
+      body.close if body.respond_to?(:close)
+    end
+
     def empty?
       @block == nil && @body.empty?
     end
