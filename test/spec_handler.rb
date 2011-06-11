@@ -14,7 +14,7 @@ describe Rack::Handler do
     end
 
     begin
-      Rack::Handler.get('mongrel').should.equal Rack::Handler::Mongrel
+      Rack::Handler.get('thin').should.equal Rack::Handler::Thin
     rescue LoadError
     end
   end

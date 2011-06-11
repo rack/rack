@@ -38,7 +38,7 @@ module Rack
         Rack::Handler::CGI
       else
         begin
-          Rack::Handler::Mongrel
+          Rack::Handler::Thin
         rescue LoadError
           Rack::Handler::WEBrick
         end
