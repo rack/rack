@@ -1,7 +1,7 @@
 module Rack
   class BodyProxy
     def initialize(body, &block)
-      @body, @block = body, block
+      @body, @block, @closed = body, block, false
     end
 
     def respond_to?(*args)
@@ -9,9 +9,17 @@ module Rack
     end
 
     def close
-      @body.close if @body.respond_to? :close
-    ensure
-      @block.call
+      return if closed?
+      begin
+        @body.close if @body.respond_to? :close
+      ensure
+        @block.call
+        @closed = true
+      end
+    end
+
+    def closed?
+      @closed
     end
 
     def method_missing(*args, &block)
