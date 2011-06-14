@@ -188,7 +188,7 @@ describe Rack::MockRequest do
   should "call close on the original body object" do
     called = false
     body   = Rack::BodyProxy.new(['hi']) { called = true }
-    capp   = proc { |e| [200, {'Content-Type' => 'text/plain '}, body] }
+    capp   = proc { |e| [200, {'Content-Type' => 'text/plain'}, body] }
     called.should.equal false
     Rack::MockRequest.new(capp).get('/', :lint => true)
     called.should.equal true
