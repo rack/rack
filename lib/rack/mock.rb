@@ -68,7 +68,10 @@ module Rack
       end
 
       errors = env["rack.errors"]
-      MockResponse.new(*(app.call(env) + [errors]))
+      status, headers, body  = app.call(env)
+      MockResponse.new(status, headers, body, errors)
+    ensure
+      body.close if body.respond_to?(:close)
     end
 
     # Return the Rack environment used for a request to +uri+.
@@ -154,7 +157,6 @@ module Rack
       @body_string      = nil
 
       super(body, status, headers)
-      body.close if body.respond_to?(:close)
     end
 
     def =~(other)
