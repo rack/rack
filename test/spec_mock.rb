@@ -1,5 +1,6 @@
 require 'yaml'
 require 'rack/mock'
+require 'stringio'
 
 app = lambda { |env|
   req = Rack::Request.new(env)
@@ -183,6 +184,15 @@ describe Rack::MockRequest do
         get("https://bla.example.org:9292/meh/foo?bar", :lint => true)
     }.should.not.raise(Rack::Lint::LintError)
   end
+
+  should "call close on the original body object" do
+    called = false
+    body   = Rack::BodyProxy.new(['hi']) { called = true }
+    capp   = proc { |e| [200, {'Content-Type' => 'text/plain '}, body] }
+    called.should.equal false
+    Rack::MockRequest.new(capp).get('/', :lint => true)
+    called.should.equal true
+  end
 end
 
 describe Rack::MockResponse do
@@ -233,12 +243,12 @@ describe Rack::MockResponse do
     res.errors.should.include "foo"
   end
 
-  should "call close on the original body object" do
-    called = false
-    body = Rack::BodyProxy.new(['hi']) { called = true }
-    called.should.equal false
-    Rack::MockResponse.new(200, {}, body)
-    called.should.equal true
+  should "allow calling body.close afterwards" do
+    # this is exactly what rack-test does
+    body = StringIO.new("hi")
+    res = Rack::MockResponse.new(200, {}, body)
+    body.close if body.respond_to?(:close)
+    res.body.should == 'hi'
   end
 
   should "optionally make Rack errors fatal" do
