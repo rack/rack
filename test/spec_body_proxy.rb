@@ -33,7 +33,8 @@ describe Rack::BodyProxy do
   end
 
   should 'not close more than one time' do
-    proxy = Rack::BodyProxy.new([]) { }
+    count = 0
+    proxy = Rack::BodyProxy.new([]) { count += 1; raise "Block invoked more than 1 time!" if count > 1 }
     proxy.close
     lambda {
       proxy.close
