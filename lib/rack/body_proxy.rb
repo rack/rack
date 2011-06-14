@@ -10,10 +10,12 @@ module Rack
 
     def close
       raise IOError, "closed stream" if @closed
-      @body.close if @body.respond_to? :close
-    ensure
-      @block.call
-      @closed = true
+      begin
+        @body.close if @body.respond_to? :close
+      ensure
+        @block.call
+        @closed = true
+      end
     end
 
     def closed?
