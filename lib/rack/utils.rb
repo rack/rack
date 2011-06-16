@@ -351,9 +351,9 @@ module Rack
       end
 
       def to_hash
-        Hash[*map do |k, v|
-          [k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v]
-        end.flatten]
+        hash = {}
+        each { |k,v| hash[k] = v }
+        hash
       end
 
       def [](k)
