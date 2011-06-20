@@ -811,6 +811,18 @@ EOF
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
     res.body.should.equal '3.4.5.6'
 
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '::1,2620:0:1c00:0:812c:9583:754b:ca11'
+    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '2620:0:1c00:0:812c:9583:754b:ca11,::1'
+    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'fd5b:982e:9130:247f:0000:0000:0000:0000,2620:0:1c00:0:812c:9583:754b:ca11'
+    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '2620:0:1c00:0:812c:9583:754b:ca11,fd5b:982e:9130:247f:0000:0000:0000:0000'
+    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
+
     res = mock.get '/',
       'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 127.0.0.1',
       'HTTP_CLIENT_IP' => '1.1.1.1'
