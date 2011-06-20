@@ -290,11 +290,24 @@ module Rack
     end
 
     def ip
-      if addr = @env['HTTP_X_FORWARDED_FOR']
-        (addr.split(',').grep(/\d\./).first || @env['REMOTE_ADDR']).to_s.strip
-      else
-        @env['REMOTE_ADDR']
+      # Copied from https://github.com/rails/rails/blob/master/actionpack/lib/
+      # action_dispatch/middleware/remote_ip.rb 
+      trusted_proxies = /(^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.)/i
+      
+      remote_addrs = @env['REMOTE_ADDR'] ? @env['REMOTE_ADDR'].split(/[,\s]+/) : []
+      remote_addrs.reject! { |addr| addr =~ trusted_proxies }
+      
+      return remote_addrs.first if remote_addrs.any?
+
+      forwarded_ips = @env['HTTP_X_FORWARDED_FOR'] ? @env['HTTP_X_FORWARDED_FOR'].strip.split(/[,\s]+/) : []
+
+      if client_ip = @env['HTTP_CLIENT_IP']
+        # If forwarded_ips doesn't include the client_ip, it might be an
+        # ip spoofing attempt, so we ignore HTTP_CLIENT_IP
+        return client_ip if forwarded_ips.include?(client_ip)
       end
+
+      return forwarded_ips.reject { |ip| ip =~ trusted_proxies }.last || @env["REMOTE_ADDR"]
     end
 
     protected
