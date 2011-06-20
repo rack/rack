@@ -289,13 +289,13 @@ module Rack
       end
     end
 
+    def trusted_proxy?(ip)
+      ip =~ /^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|^::1$|^fd[0-9a-f]{2}:.+/i
+    end
+
     def ip
-      # Copied from https://github.com/rails/rails/blob/master/actionpack/lib/
-      # action_dispatch/middleware/remote_ip.rb 
-      trusted_proxies = /(^127\.0\.0\.1$|^(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.)/i
-      
       remote_addrs = @env['REMOTE_ADDR'] ? @env['REMOTE_ADDR'].split(/[,\s]+/) : []
-      remote_addrs.reject! { |addr| addr =~ trusted_proxies }
+      remote_addrs.reject! { |addr| trusted_proxy?(addr) }
       
       return remote_addrs.first if remote_addrs.any?
 
@@ -307,7 +307,7 @@ module Rack
         return client_ip if forwarded_ips.include?(client_ip)
       end
 
-      return forwarded_ips.reject { |ip| ip =~ trusted_proxies }.last || @env["REMOTE_ADDR"]
+      return forwarded_ips.reject { |ip| trusted_proxy?(ip) }.last || @env["REMOTE_ADDR"]
     end
 
     protected
