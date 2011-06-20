@@ -770,26 +770,63 @@ EOF
     }
 
     mock = Rack::MockRequest.new(Rack::Lint.new(app))
-    res = mock.get '/', 'REMOTE_ADDR' => '123.123.123.123'
-    res.body.should.equal '123.123.123.123'
+
+    res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4'
+    res.body.should.equal '1.2.3.4'
+
+    res = mock.get '/', 'REMOTE_ADDR' => 'fe80::202:b3ff:fe1e:8329'
+    res.body.should.equal 'fe80::202:b3ff:fe1e:8329'
+
+    res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4,3.4.5.6'
+    res.body.should.equal '1.2.3.4'
 
     res = mock.get '/',
-      'REMOTE_ADDR' => '123.123.123.123',
-      'HTTP_X_FORWARDED_FOR' => '234.234.234.234'
-
-    res.body.should.equal '234.234.234.234'
-
-    res = mock.get '/',
-      'REMOTE_ADDR' => '123.123.123.123',
-      'HTTP_X_FORWARDED_FOR' => '234.234.234.234,212.212.212.212'
-
-    res.body.should.equal '234.234.234.234'
+      'REMOTE_ADDR' => '1.2.3.4',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    res.body.should.equal '1.2.3.4'
 
     res = mock.get '/',
-      'REMOTE_ADDR' => '123.123.123.123',
-      'HTTP_X_FORWARDED_FOR' => 'unknown,234.234.234.234,212.212.212.212'
+      'REMOTE_ADDR' => '127.0.0.1',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    res.body.should.equal '3.4.5.6'
 
-    res.body.should.equal '234.234.234.234'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1,3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1, 10.0.0.1, 3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
+    res.body.should.equal 'unknown'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
+    res.body.should.equal '3.4.5.6'
+
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 127.0.0.1',
+      'HTTP_CLIENT_IP' => '1.1.1.1'
+    res.body.should.equal '1.1.1.1'
+
+    # Spoofing attempt
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
+      'HTTP_CLIENT_IP' => '2.2.2.2'
+    res.body.should.equal '1.1.1.1'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
+    res.body.should.equal '9.9.9.9'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, fe80::202:b3ff:fe1e:8329'
+    res.body.should.equal 'fe80::202:b3ff:fe1e:8329'
   end
 
   class MyRequest < Rack::Request
