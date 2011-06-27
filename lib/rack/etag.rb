@@ -9,7 +9,7 @@ module Rack
   #
   # On initialization, you can pass two parameters: a Cache-Control directive
   # used when Etag is absent and a directive when it is present. The first
-  # defaults to nil, while the second defaults to "max-age=0, privaute, must-revalidate"
+  # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
   class ETag
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
 
@@ -28,7 +28,8 @@ module Rack
       end
 
       unless headers['Cache-Control']
-        headers['Cache-Control'] = digest ? @cache_control : @no_cache_control
+        headers['Cache-Control'] =
+          (digest ? @cache_control : @no_cache_control) || []
       end
 
       [status, headers, body]
