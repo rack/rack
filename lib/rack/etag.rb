@@ -28,7 +28,8 @@ module Rack
       end
 
       unless headers['Cache-Control']
-        headers['Cache-Control'] = digest ? @cache_control : @no_cache_control
+        headers['Cache-Control'] =
+          (digest ? @cache_control : @no_cache_control) || []
       end
 
       [status, headers, body]
