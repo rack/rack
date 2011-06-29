@@ -351,6 +351,10 @@ run on port 11211) and memcache-client installed.
   * Rack::CommonLogger handles streaming responses correctly
   * Rack::MockResponse calls close on the body object
 
+* Not yet release: public release 1.4.0
+  * Raise sane error messages for broken config.ru
+  * Allow combining run and map in a config.ru
+
 == Contact
 
 Please post bugs, suggestions and patches to
