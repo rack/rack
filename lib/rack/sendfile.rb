@@ -52,10 +52,9 @@ module Rack
   #   }
   #
   # Note that the X-Sendfile-Type header must be set exactly as shown above. The
-  # X-Accel-Mapping header should specify the name of the private URL pattern,
-  # followed by an equals sign (=), followed by the location on the file system
-  # that it maps to. The middleware performs a simple substitution on the
-  # resulting path.
+  # X-Accel-Mapping header should specify the internal URI path, followed by an
+  # equals sign (=), followed name of the location in the file system that it maps
+  # to. The middleware performs a simple substitution on the resulting path.
   #
   # See Also: http://wiki.codemongers.com/NginxXSendfile
   #
