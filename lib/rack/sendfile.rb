@@ -46,7 +46,7 @@ module Rack
   #     proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
   #
   #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect;
-  #     proxy_set_header   X-Accel-Mapping     /files/=/var/www/;
+  #     proxy_set_header   X-Accel-Mapping     /var/www/=/files/;
   #
   #     proxy_pass         http://127.0.0.1:8080/;
   #   }
