@@ -1,4 +1,4 @@
-= Rack, a modular Ruby webserver interface
+= Rack, a modular Ruby web server interface
 
 Rack provides a minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
@@ -359,11 +359,9 @@ the bug tracker at <http://github.com/rack/rack/issues>.
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
 
-Git repository (send Git patches to the mailing list):
-* http://github.com/rack/rack
-* http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack-github.git
+Git repository at <http://github.com/rack/rack>.
 
-You are also welcome to join the #rack channel on irc.freenode.net.
+You are also welcome to join the *#rack* channel on *irc.freenode.net*.
 
 == Thanks
 
@@ -408,9 +406,9 @@ would like to thank:
   Rack builds up on.
 * All bug reporters and patch contributors not mentioned above.
 
-== Copyright
+== License
 
-Copyright (C) 2007, 2008, 2009, 2010 Christian Neukirchen <http://purl.org/net/chneukirchen>
+Copyright (C) 2007, 2008, 2009, 2010 Christian Neukirchen <http://chneukirchen.org/infopage.html>
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
