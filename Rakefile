@@ -89,7 +89,7 @@ YARD::Rake::YardocTask.new do |t|
   t.options = ['--no-cache']
 end
 
-task :pushsite => [:yard] do
+task :pushsite => ["SPEC.rdoc", :yard] do
   sh "cd site && git gc"
   sh "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
   sh "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"
