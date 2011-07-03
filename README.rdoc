@@ -40,25 +40,22 @@ changing anything.
 == Supported web frameworks
 
 These frameworks include Rack adapters in their distributions:
-* Camping
-* Coset
-* Halcyon
-* Mack
-* Maveric
-* Merb
+* Camping[http://camping.rubyforge.org/]
+* Coset[https://github.com/chneukirchen/coset-mirror]
+* Halcyon[http://halcyon.rubyforge.org/]
+* Innate[https://github.com/Ramaze/innate]
+* Mack[https://github.com/markbates/mack]
+* Maveric[https://github.com/scytrin/maveric]
+* Merb[http://www.merbivore.com/]
 * Racktools::SimpleApplication
-* Ramaze
-* Ruby on Rails
-* Rum
-* Sinatra
-* Sin
-* Vintage
-* Waves
-* Wee
+* Ramaze[http://ramaze.net/]
+* {Ruby on Rails}[http://rubyonrails.org/]
+* Rum[https://github.com/chneukirchen/rum]
+* Sinatra[http://www.sinatrarb.com/]
+* Sin[https://github.com/raggi/sin]
+* Waves[http://www.rocket.ly/waves]
+* Wee[https://github.com/mneumann/wee]
 * ... and many others.
-
-Current links to these projects can be found at
-http://wiki.ramaze.net/Home#other-frameworks
 
 == Available middleware
 
