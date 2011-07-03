@@ -23,7 +23,7 @@ module Rack
     include Assertion
 
     ## This specification aims to formalize the Rack protocol.  You
-    ## can (and should) use Rack::Lint to enforce it.
+    ## can (and should) use {Rack::Lint} to enforce it.
     ##
     ## When you develop middleware, be sure to add a Lint before and
     ## after to catch all mistakes.

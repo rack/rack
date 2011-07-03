@@ -61,11 +61,11 @@ These frameworks include Rack adapters in their distributions:
 
 Between the server and the framework, Rack can be customized to your
 applications needs using middleware, for example:
-* Rack::URLMap, to route to multiple applications inside the same process.
-* Rack::CommonLogger, for creating Apache-style logfiles.
-* Rack::ShowException, for catching unhandled exceptions and
+* {Rack::URLMap}, to route to multiple applications inside the same process.
+* {Rack::CommonLogger}, for creating Apache-style logfiles.
+* {Rack::ShowExceptions}, for catching unhandled exceptions and
   presenting them in a nice and helpful way with clickable backtrace.
-* Rack::File, for serving static files.
+* {Rack::Static}, for serving static files.
 * ...many others!
 
 All these components use the same interface, which is described in
@@ -78,11 +78,11 @@ If you want to develop outside of existing frameworks, implement your
 own ones, or develop middleware, Rack provides many helpers to create
 Rack applications quickly and without doing the same web stuff all
 over:
-* Rack::Request, which also provides query string parsing and
+* {Rack::Request}, which also provides query string parsing and
   multipart handling.
-* Rack::Response, for convenient generation of HTTP replies and
+* {Rack::Response}, for convenient generation of HTTP replies and
   cookie handling.
-* Rack::MockRequest and Rack::MockResponse for efficient and quick
+* {Rack::MockRequest} and {Rack::MockResponse} for efficient and quick
   testing of Rack application without real HTTP round-trips.
 
 == rack-contrib
@@ -96,7 +96,7 @@ add-on components for Rack and it is easy to contribute new modules.
 == rackup
 
 rackup is a useful tool for running Rack applications, which uses the
-Rack::Builder DSL to configure middleware and build up applications
+{Rack::Builder} DSL to configure middleware and build up applications
 easily.
 
 rackup automatically figures out the environment it is run in, and
@@ -109,10 +109,12 @@ Try the lobster!
 
 Either with the embedded WEBrick starter:
 
+    !!!bash
     ruby -Ilib lib/rack/lobster.rb
 
 Or with rackup:
 
+    !!!bash
     bin/rackup -Ilib example/lobster.ru
 
 By default, the lobster is found at http://localhost:9292.
@@ -136,29 +138,29 @@ Testing Rack requires the bacon testing framework:
 
 There are two rake-based test tasks:
 
+    !!!bash
     rake test       tests all the fast tests (no Handlers or Adapters)
     rake fulltest   runs all the tests
 
-The fast testsuite has no dependencies outside of the core Ruby
+The fast test-suite has no dependencies outside of the core Ruby
 installation and bacon.
 
 To run the test suite completely, you need:
 
-  * fcgi
-  * memcache-client
-  * mongrel
-  * thin
+* fcgi
+* memcache-client
+* mongrel
+* thin
 
 The full set of tests test FCGI access with lighttpd (on port
 9203) so you will need lighttpd installed as well as the FCGI
 libraries and the fcgi gem:
 
-Download and install lighttpd:
-
-    http://www.lighttpd.net/download
+Download and install lighttpd[http://www.lighttpd.net/download].
 
 Installing the FCGI libraries:
 
+    !!!bash
     curl -O http://www.fastcgi.com/dist/fcgi-2.4.0.tar.gz
     tar xzvf fcgi-2.4.0.tar.gz
     cd fcgi-2.4.0
@@ -379,7 +381,7 @@ The Rack Core Team, consisting of
 would like to thank:
 
 * Adrian Madrid, for the LiteSpeed handler.
-* Christoffer Sawicki, for the first Rails adapter and Rack::Deflater.
+* Christoffer Sawicki, for the first Rails adapter and {Rack::Deflater}.
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
@@ -394,11 +396,11 @@ would like to thank:
 * Eric Wong, Hongli Lai, Jeremy Kemper for their continuous support
   and API improvements.
 * Yehuda Katz and Carl Lerche for refactoring rackup.
-* Brian Candler, for Rack::ContentType.
+* Brian Candler, for {Rack::ContentType}.
 * Graham Batty, for improved handler loading.
 * Stephen Bannasch, for bug reports and documentation.
-* Gary Wright, for proposing a better Rack::Response interface.
-* Jonathan Buch, for improvements regarding Rack::Response.
+* Gary Wright, for proposing a better {Rack::Response} interface.
+* Jonathan Buch, for improvements regarding {Rack::Response}.
 * Armin Röhrl, for tracking down bugs in the Cookie generator.
 * Alexander Kellett for testing the Gem and reviewing the announcement.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
