@@ -561,7 +561,6 @@ module Rack
 end
 
 ## == Thanks
-## Some parts of this specification are adopted from PEP333: Python
-## Web Server Gateway Interface
-## v1.0 (http://www.python.org/dev/peps/pep-0333/). I'd like to thank
+## Some parts of this specification are adopted from {http://www.python.org/dev/peps/pep-0333/ PEP333}:
+## Python Web Server Gateway Interface v1.0. I'd like to thank
 ## everyone involved in that effort.

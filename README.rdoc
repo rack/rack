@@ -12,27 +12,27 @@ which all Rack applications should conform to.
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
-* Mongrel[https://github.com/fauna/mongrel/]
-* EventedMongrel[http://swiftiply.swiftcore.org/mongrel.html]
-* SwiftipliedMongrel[http://swiftiply.swiftcore.org/mongrel.html]
+* {https://github.com/fauna/mongrel/ Mongrel}
+* {http://swiftiply.swiftcore.org/mongrel.html EventedMongrel}
+* {http://swiftiply.swiftcore.org/mongrel.html SwiftipliedMongrel}
 * WEBrick
 * FCGI
 * CGI
 * SCGI
-* LiteSpeed[http://www.litespeedtech.com/]
-* Thin[http://code.macournoyer.com/thin/]
+* {http://www.litespeedtech.com/ LiteSpeed}
+* {http://code.macournoyer.com/thin/ Thin}
 
 These web servers include Rack handlers in their distributions:
-* ControlTower[http://www.macruby.org/blog/2010/09/20/announcing-control-tower.html]
-* Ebb[http://ebb.rubyforge.org/]
-* Glassfish[https://github.com/jruby/glassfish-gem]
-* {Phusion Passenger}[http://www.modrails.com/] (which is mod_rack for Apache[http://httpd.apache.org/] and for nginx[http://nginx.org/])
-* Pow[http://pow.cx/]
-* Rainbows![http://rainbows.rubyforge.org/]
-* TorqueBox[http://torquebox.org/]
-* Trinidad[https://github.com/trinidad/trinidad]
-* Unicorn[http://unicorn.bogomips.org/]
-* Zbatery[http://zbatery.bogomip.org/]
+* {http://www.macruby.org/blog/2010/09/20/announcing-control-tower.html ControlTower}
+* {http://ebb.rubyforge.org/ Ebb}
+* {https://github.com/jruby/glassfish-gem Glassfish}
+* {http://www.modrails.com/ Phusion Passenger} (which is mod_rack for {http://httpd.apache.org/ Apache} and for {http://nginx.org/ nginx})
+* {http://pow.cx/ Pow}
+* {http://rainbows.rubyforge.org/ Rainbows!}
+* {http://torquebox.org/ TorqueBox}
+* {https://github.com/trinidad/trinidad Trinidad}
+* {http://unicorn.bogomips.org/ Unicorn}
+* {http://zbatery.bogomip.org/ Zbatery}
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
@@ -40,21 +40,21 @@ changing anything.
 == Supported web frameworks
 
 These frameworks include Rack adapters in their distributions:
-* Camping[http://camping.rubyforge.org/]
-* Coset[https://github.com/chneukirchen/coset-mirror]
-* Halcyon[http://halcyon.rubyforge.org/]
-* Innate[https://github.com/Ramaze/innate]
-* Mack[https://github.com/markbates/mack]
-* Maveric[https://github.com/scytrin/maveric]
-* Merb[http://www.merbivore.com/]
+* {http://camping.rubyforge.org/ Camping}
+* {https://github.com/chneukirchen/coset-mirror Coset}
+* {http://halcyon.rubyforge.org/ Halcyon}
+* {https://github.com/Ramaze/innate Innate}
+* {https://github.com/markbates/mack Mack}
+* {https://github.com/scytrin/maveric Maveric}
+* {http://www.merbivore.com/ Merb}
 * Racktools::SimpleApplication
-* Ramaze[http://ramaze.net/]
-* {Ruby on Rails}[http://rubyonrails.org/]
-* Rum[https://github.com/chneukirchen/rum]
-* Sinatra[http://www.sinatrarb.com/]
-* Sin[https://github.com/raggi/sin]
-* Waves[http://www.rocket.ly/waves]
-* Wee[https://github.com/mneumann/wee]
+* {http://ramaze.net/ Ramaze}
+* {http://rubyonrails.org/ Ruby on Rails}
+* {https://github.com/chneukirchen/rum Rum}
+* {http://www.sinatrarb.com/ Sinatra}
+* {https://github.com/raggi/sin Sin}
+* {http://www.rocket.ly/waves Waves}
+* {https://github.com/mneumann/wee Wee}
 * ... and many others.
 
 == Available middleware
@@ -91,7 +91,7 @@ The plethora of useful middleware created the need for a project that
 collects fresh Rack middleware.  rack-contrib includes a variety of
 add-on components for Rack and it is easy to contribute new modules.
 
-* http://github.com/rack/rack-contrib
+* {http://github.com/rack/rack-contrib}
 
 == rackup
 
@@ -117,7 +117,7 @@ Or with rackup:
     !!!bash
     bin/rackup -Ilib example/lobster.ru
 
-By default, the lobster is found at http://localhost:9292.
+By default, the lobster is found at {http://localhost:9292}.
 
 == Installing with RubyGems
 
@@ -151,7 +151,7 @@ The full set of tests test FCGI access with lighttpd (on port
 9203) so you will need lighttpd installed as well as the FCGI
 libraries and the fcgi gem:
 
-Download and install lighttpd[http://www.lighttpd.net/download].
+Download and install {http://www.lighttpd.net/download lighttpd}.
 
 Installing the FCGI libraries:
 
@@ -351,14 +351,14 @@ run on port 11211) and memcache-client installed.
 == Contact
 
 Please post bugs, suggestions and patches to
-the bug tracker at <http://github.com/rack/rack/issues>.
+the bug tracker at {http://github.com/rack/rack/issues}.
 
 Mailing list archives are available at
-<http://groups.google.com/group/rack-devel>.
+{http://groups.google.com/group/rack-devel}.
 
-Git repository at <http://github.com/rack/rack>.
+Git repository at {http://github.com/rack/rack}.
 
-You are also welcome to join the *#rack* channel on *irc.freenode.net*.
+You are also welcome to join the #rack channel on irc.freenode.net.
 
 == Thanks
 
@@ -405,7 +405,7 @@ would like to thank:
 
 == License
 
-Copyright (C) 2007, 2008, 2009, 2010 Christian Neukirchen <http://chneukirchen.org/infopage.html>
+Copyright (C) 2007, 2008, 2009, 2010 {http://chneukirchen.org/infopage.html Christian Neukirchen}
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to
@@ -426,11 +426,11 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 == Links
 
-Rack:: <http://rack.rubyforge.org/>
-Official Rack repositories:: <http://github.com/rack>
-Rack Bug Tracking:: <http://github.com/rack/rack/issues>
-rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
-Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
+Rack:: {http://rack.rubyforge.org/}
+Official Rack repositories:: {http://github.com/rack}
+Rack Bug Tracking:: {http://github.com/rack/rack/issues}
+rack-devel mailing list:: {http://groups.google.com/group/rack-devel}
+Rack's Rubyforge project:: {http://rubyforge.org/projects/rack}
 
-Christian Neukirchen:: <http://chneukirchen.org/>
+Christian Neukirchen:: {http://chneukirchen.org/}
 
