@@ -3,5 +3,5 @@
 --main README.rdoc
 --charset utf-8
 lib/**/*.rb
-- README.rdoc KNOWN-ISSUES SPEC
+- README.rdoc KNOWN-ISSUES.rdoc SPEC.rdoc
 
