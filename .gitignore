@@ -3,3 +3,7 @@ RDOX
 lighttpd.errors
 *.rbc
 stage
+.bundle
+Gemfile.lock
+pkg/*
+.rvmrc
