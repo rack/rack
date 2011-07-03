@@ -23,7 +23,7 @@ module Rack
       status, headers, body = @app.call(env)
 
       if etag_status?(status) && etag_body?(body) && !skip_caching?(headers)
-        digest, body = digest_body(body)
+        digest = digest_body(body)
         headers['ETag'] = %("#{digest}") if digest
       end
 
@@ -51,11 +51,13 @@ module Rack
       end
 
       def digest_body(body)
-        parts = []
-        body.each { |part| parts << part }
-        string_body = parts.join
-        digest = Digest::MD5.hexdigest(string_body) unless string_body.empty?
-        [digest, parts]
+        digest = Digest::MD5.new
+        empty = true
+        body.each do |part|
+          empty = false if empty && !part.empty?
+          digest.update(part)
+        end
+        digest.to_s unless empty
       end
   end
 end
