@@ -4,7 +4,7 @@ desc "Run all the tests"
 task :default => [:test]
 
 desc "Make an archive as .tar.gz"
-task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
+task :dist => [:chmod, :changelog, :yard, "SPEC"] do
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
   sh "pax -waf #{release}.tar -s ':^:#{release}/:' SPEC ChangeLog doc rack.gemspec"
   sh "gzip -f -9 #{release}.tar"
@@ -84,15 +84,12 @@ task :gem => ["SPEC"] do
   sh "gem build rack.gemspec"
 end
 
-desc "Generate RDoc documentation"
-task :rdoc => ["SPEC"] do
-  sh(*%w{rdoc --line-numbers --main README.rdoc
-              --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
-              %w{README.rdoc KNOWN-ISSUES SPEC} +
-              Dir["lib/**/*.rb"])
+require 'yard'
+YARD::Rake::YardocTask.new do |t|
+  t.options = ['--no-cache']
 end
 
-task :pushsite => [:rdoc] do
+task :pushsite => [:yard] do
   sh "cd site && git gc"
   sh "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
   sh "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"

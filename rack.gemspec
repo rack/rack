@@ -29,6 +29,7 @@ EOF
 
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'
+  s.add_development_dependency 'yard'
 
   s.add_development_dependency 'fcgi'
   s.add_development_dependency 'memcache-client'

@@ -1,0 +1,7 @@
+--title "Rack Documentation"
+--output-dir doc
+--main README.rdoc
+--charset utf-8
+lib/**/*.rb
+- README.rdoc KNOWN-ISSUES SPEC
+
