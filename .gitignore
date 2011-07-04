@@ -1,5 +1,13 @@
 RDOX
-*.gem
 lighttpd.errors
 *.rbc
 stage
+.rvmrc
+
+*.gem
+Gemfile.lock
+pkg/*
+.bundle
+
+.yardoc
+doc/

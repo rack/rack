@@ -4,9 +4,9 @@ desc "Run all the tests"
 task :default => [:test]
 
 desc "Make an archive as .tar.gz"
-task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
+task :dist => [:chmod, :changelog, "SPEC.rdoc", :yard] do
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
-  sh "pax -waf #{release}.tar -s ':^:#{release}/:' SPEC ChangeLog doc rack.gemspec"
+  sh "pax -waf #{release}.tar -s ':^:#{release}/:' SPEC.rdoc ChangeLog doc rack.gemspec"
   sh "gzip -f -9 #{release}.tar"
 end
 
@@ -19,7 +19,7 @@ task :officialrelease do
   sh "mv stage/#{release}.tar.gz stage/#{release}.gem ."
 end
 
-task :officialrelease_really => ["SPEC", :dist, :gem] do
+task :officialrelease_really => ["SPEC.rdoc", :dist, :gem] do
   sh "sha1sum #{release}.tar.gz #{release}.gem"
 end
 
@@ -54,8 +54,8 @@ end
 
 file 'lib/rack/lint.rb'
 desc "Generate Rack Specification"
-file "SPEC" => 'lib/rack/lint.rb' do
-  File.open("SPEC", "wb") { |file|
+file "SPEC.rdoc" => 'lib/rack/lint.rb' do
+  File.open("SPEC.rdoc", "wb") { |file|
     IO.foreach("lib/rack/lint.rb") { |line|
       if line =~ /## (.*)/
         file.puts $1
@@ -65,7 +65,7 @@ file "SPEC" => 'lib/rack/lint.rb' do
 end
 
 desc "Run all the fast tests"
-task :test => 'SPEC' do
+task :test => 'SPEC.rdoc' do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] ||
     "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server)'"
@@ -74,25 +74,22 @@ task :test => 'SPEC' do
 end
 
 desc "Run all the tests"
-task :fulltest => %w[SPEC chmod] do
+task :fulltest => %w[SPEC.rdoc chmod] do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] || '-q'
   sh "bacon -r./test/gemloader -I./lib:./test -w #{opts} #{specopts}"
 end
 
-task :gem => ["SPEC"] do
+task :gem => ["SPEC.rdoc"] do
   sh "gem build rack.gemspec"
 end
 
-desc "Generate RDoc documentation"
-task :rdoc => ["SPEC"] do
-  sh(*%w{rdoc --line-numbers --main README.rdoc
-              --title 'Rack\ Documentation' --charset utf-8 -U -o doc} +
-              %w{README.rdoc KNOWN-ISSUES SPEC} +
-              Dir["lib/**/*.rb"])
+require 'yard'
+YARD::Rake::YardocTask.new do |t|
+  t.options = ['--no-cache']
 end
 
-task :pushsite => [:rdoc] do
+task :pushsite => ["SPEC.rdoc", :yard] do
   sh "cd site && git gc"
   sh "rsync -avz doc/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
   sh "rsync -avz site/ chneukirchen@rack.rubyforge.org:/var/www/gforge-projects/rack/"

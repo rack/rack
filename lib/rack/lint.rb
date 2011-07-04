@@ -23,7 +23,7 @@ module Rack
     include Assertion
 
     ## This specification aims to formalize the Rack protocol.  You
-    ## can (and should) use Rack::Lint to enforce it.
+    ## can (and should) use {Rack::Lint} to enforce it.
     ##
     ## When you develop middleware, be sure to add a Lint before and
     ## after to catch all mistakes.
@@ -561,7 +561,6 @@ module Rack
 end
 
 ## == Thanks
-## Some parts of this specification are adopted from PEP333: Python
-## Web Server Gateway Interface
-## v1.0 (http://www.python.org/dev/peps/pep-0333/). I'd like to thank
+## Some parts of this specification are adopted from {http://www.python.org/dev/peps/pep-0333/ PEP333}:
+## Python Web Server Gateway Interface v1.0. I'd like to thank
 ## everyone involved in that effort.

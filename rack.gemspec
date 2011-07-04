@@ -2,10 +2,10 @@ Gem::Specification.new do |s|
   s.name            = "rack"
   s.version         = "1.3.0"
   s.platform        = Gem::Platform::RUBY
-  s.summary         = "a modular Ruby webserver interface"
+  s.summary         = "a modular Ruby web server interface"
 
   s.description = <<-EOF
-Rack provides minimal, modular and adaptable interface for developing
+Rack provides a minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
 the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
@@ -15,11 +15,11 @@ Also see http://rack.rubyforge.org.
 EOF
 
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
-                        %w(COPYING KNOWN-ISSUES rack.gemspec Rakefile README.rdoc SPEC)
+                        %w(COPYING KNOWN-ISSUES.rdoc rack.gemspec Rakefile README.rdoc SPEC.rdoc)
   s.bindir          = 'bin'
   s.executables     << 'rackup'
   s.require_path    = 'lib'
-  s.extra_rdoc_files = ['README.rdoc', 'KNOWN-ISSUES']
+  s.extra_rdoc_files = ['README.rdoc', 'KNOWN-ISSUES.rdoc', 'SPEC.rdoc']
   s.test_files      = Dir['test/spec_*.rb']
 
   s.author          = 'Christian Neukirchen'
@@ -29,6 +29,7 @@ EOF
 
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'
+  s.add_development_dependency 'yard'
 
   s.add_development_dependency 'fcgi'
   s.add_development_dependency 'memcache-client'
