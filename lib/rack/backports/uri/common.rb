@@ -64,7 +64,27 @@ module URI
       rescue
       end
     end
-    raise ArgumentError, "invalid %-encoding (#{str})" unless /\A(?:%[0-9a-fA-F]{2}|[^%]+)*\z/ =~ str
+    raise ArgumentError, "invalid %-encoding (#{str})" unless valid_encoding?(str)
     str.gsub(/\+|%[0-9a-fA-F]{2}/) {|m| TBLDECWWWCOMP_[m]}
   end
+
+  def self.valid_encoding?(str)
+    in_esc_seq = false
+    esc_char_count = 0
+    str.each_char do |c|
+      if in_esc_seq
+        return false unless c =~ /[0-9A-Fa-f]/
+        esc_char_count += 1
+        if esc_char_count == 2
+          in_esc_seq = false
+          esc_char_count = 0
+        end
+      else
+        in_esc_seq = true if c == '%'
+      end
+    end
+    return false if in_esc_seq
+    return true
+  end
+
 end
