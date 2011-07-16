@@ -99,7 +99,7 @@ describe Rack::Session::Cookie do
   end
 
   only_session_id = lambda do |env|
-    Rack::Response.new(env["rack.session"]["session_id"]).to_a
+    Rack::Response.new(env["rack.session"]["session_id"].to_s).to_a
   end
 
   it "renew session id" do
@@ -192,8 +192,14 @@ describe Rack::Session::Cookie do
 
   it "returns even if not read/written if :expire_after is set" do
     app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
-    res = Rack::MockRequest.new(app).get("/")
+    res = Rack::MockRequest.new(app).get("/", 'rack.session' => {'not' => 'empty'})
     res["Set-Cookie"].should.not.be.nil
+  end
+
+  it "returns no cookie if no data was written and no session was created previously, even if :expire_after is set" do
+    app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
+    res = Rack::MockRequest.new(app).get("/")
+    res["Set-Cookie"].should.be.nil
   end
 
   it "exposes :secret in env['rack.session.option']" do

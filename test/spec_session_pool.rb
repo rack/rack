@@ -181,20 +181,26 @@ describe Rack::Session::Pool do
   end
 
   it "does not return a cookie if cookie was not read/written" do
-    app = Rack::Session::Cookie.new(nothing)
+    app = Rack::Session::Pool.new(nothing)
     res = Rack::MockRequest.new(app).get("/")
     res["Set-Cookie"].should.be.nil
   end
 
   it "does not return a cookie if cookie was not written (only read)" do
-    app = Rack::Session::Cookie.new(session_id)
+    app = Rack::Session::Pool.new(session_id)
     res = Rack::MockRequest.new(app).get("/")
     res["Set-Cookie"].should.be.nil
   end
 
   it "returns even if not read/written if :expire_after is set" do
-    app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
-    res = Rack::MockRequest.new(app).get("/")
+    app = Rack::Session::Pool.new(nothing, :expire_after => 3600)
+    res = Rack::MockRequest.new(app).get("/", 'rack.session' => {'not' => 'empty'})
     res["Set-Cookie"].should.not.be.nil
+  end
+
+  it "returns no cookie if no data was written and no session was created previously, even if :expire_after is set" do
+    app = Rack::Session::Pool.new(nothing, :expire_after => 3600)
+    res = Rack::MockRequest.new(app).get("/")
+    res["Set-Cookie"].should.be.nil
   end
 end

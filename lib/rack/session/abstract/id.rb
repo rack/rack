@@ -263,7 +263,7 @@ module Rack
         # or :expire_after was given and the security permissions match.
 
         def commit_session?(env, session, options)
-          (loaded_session?(session) || force_options?(options)) && secure_session?(env, options)
+          (loaded_session?(session) || (force_options?(options) && session && !session.empty?)) && secure_session?(env, options)
         end
 
         def loaded_session?(session)
