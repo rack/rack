@@ -41,6 +41,14 @@ describe Rack::Utils do
     end
   end
 
+  should "escape objects that responds to to_s" do
+    default_kcode, $KCODE = $KCODE, 'U'
+
+    Rack::Utils.escape(:id).should.equal "id"
+
+    $KCODE = default_kcode
+  end
+
   if "".respond_to?(:encode)
     should "escape non-UTF8 strings" do
       Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
