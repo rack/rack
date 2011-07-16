@@ -46,10 +46,11 @@ module Rack
   #     proxy_pass         http://127.0.0.1:8080/;
   #   }
   #
-  # Note that the X-Sendfile-Type header must be set exactly as shown above. The
-  # X-Accel-Mapping header should specify the internal URI path, followed by an
-  # equals sign (=), followed name of the location in the file system that it maps
-  # to. The middleware performs a simple substitution on the resulting path.
+  # Note that the X-Sendfile-Type header must be set exactly as shown above.
+  # The X-Accel-Mapping header should specify the location on the file system,
+  # followed by an equals sign (=), followed name of the private URL pattern
+  # that it maps to. The middleware performs a simple substitution on the
+  # resulting path.
   #
   # See Also: http://wiki.codemongers.com/NginxXSendfile
   #
