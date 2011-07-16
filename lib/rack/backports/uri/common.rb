@@ -10,7 +10,7 @@ module URI
   TBLENCWWWCOMP_ = {} # :nodoc:
   TBLDECWWWCOMP_ = {} # :nodoc:
 
-  # Encode given +str+ to URL-encoded form data.
+  # Encode given +s+ to URL-encoded form data.
   #
   # This method doesn't convert *, -, ., 0-9, A-Z, _, a-z, but does convert SP
   # (ASCII space) to + and converts others to %XX.
@@ -19,7 +19,8 @@ module URI
   # http://www.w3.org/TR/html5/forms.html#url-encoded-form-data
   #
   # See URI.decode_www_form_component, URI.encode_www_form
-  def self.encode_www_form_component(str)
+  def self.encode_www_form_component(s)
+    str = s.to_s
     if RUBY_VERSION < "1.9" && $KCODE =~ /u/i
       str.gsub(/([^ a-zA-Z0-9_.-]+)/) do
         '%' + $1.unpack('H2' * Rack::Utils.bytesize($1)).join('%').upcase
@@ -37,7 +38,6 @@ module URI
         rescue
         end
       end
-      str = str.to_s
       str.gsub(/[^*\-.0-9A-Z_a-z]/) {|m| TBLENCWWWCOMP_[m]}
     end
   end
