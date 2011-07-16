@@ -18,7 +18,7 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    # URI escapes a string. (CGI style space to +)
+    # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
     end
