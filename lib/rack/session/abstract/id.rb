@@ -304,6 +304,8 @@ module Rack
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
             env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
+          elsif session.empty?
+            delete_cookie(env, headers)
           else
             cookie = Hash.new
             cookie[:value] = data
@@ -322,6 +324,10 @@ module Rack
           if request.cookies[@key] != cookie[:value] || cookie[:expires]
             Utils.set_cookie_header!(headers, @key, cookie)
           end
+        end
+
+        def delete_cookie(env, headers)
+          Utils.delete_cookie_header!(headers, @key)
         end
 
         # All thread safety and session retrival proceedures should occur here.
