@@ -19,7 +19,7 @@ module Rack
   class Response
     attr_accessor :length
 
-    def initialize(body=[], status=200, header={}, &block)
+    def initialize(body=[], status=200, header={})
       @status = status.to_i
       @header = Utils::HeaderHash.new("Content-Type" => "text/html").
                                       merge(header)
