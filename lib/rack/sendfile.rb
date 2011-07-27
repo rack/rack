@@ -80,7 +80,7 @@ module Rack
   #
   # X-Sendfile is supported under Apache 2.x using a separate module:
   #
-  # http://tn123.ath.cx/mod_xsendfile/
+  # https://tn123.org/mod_xsendfile/
   #
   # Once the module is compiled and installed, you can enable it using
   # XSendFile config directive:
