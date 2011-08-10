@@ -3,3 +3,4 @@ RDOX
 lighttpd.errors
 *.rbc
 stage
+Gemfile.lock

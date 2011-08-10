@@ -1,0 +1,8 @@
+script: bundle exec rake fulltest
+rvm:
+  - 1.8.7
+  - rbx
+  - rbx-2.0
+  - ree
+notifications:
+  email: false
