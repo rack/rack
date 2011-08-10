@@ -5,6 +5,7 @@ group :test do
   gem "rake" # for travis-ci.org
   gem "thin"
   gem "fcgi"
+  gem "memcache-client"
 
   platform :mri_18 do
     gem "mongrel"
