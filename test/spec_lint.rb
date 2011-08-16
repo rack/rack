@@ -241,7 +241,7 @@ describe Rack::Lint do
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/No Content-Type/)
 
-    [100, 101, 204, 304].each do |status|
+    [100, 101, 204, 205, 304].each do |status|
       lambda {
         Rack::Lint.new(lambda { |env|
                          [status, {"Content-type" => "text/plain", "Content-length" => "0"}, []]
@@ -252,7 +252,7 @@ describe Rack::Lint do
   end
 
   should "notice content-length errors" do
-    [100, 101, 204, 304].each do |status|
+    [100, 101, 204, 205, 304].each do |status|
       lambda {
         Rack::Lint.new(lambda { |env|
                          [status, {"Content-length" => "0"}, []]

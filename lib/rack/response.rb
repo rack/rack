@@ -71,7 +71,7 @@ module Rack
     def finish(&block)
       @block = block
 
-      if [204, 304].include?(status.to_i)
+      if [204, 205, 304].include?(status.to_i)
         header.delete "Content-Type"
         header.delete "Content-Length"
         [status.to_i, header, []]
