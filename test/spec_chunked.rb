@@ -49,7 +49,7 @@ describe Rack::Chunked do
     body.join.should.equal 'Hello World!'
   end
 
-  [100, 204, 304].each do |status_code|
+  [100, 204, 205, 304].each do |status_code|
     should "not modify response when status code is #{status_code}" do
       app = lambda { |env| [status_code, {}, []] }
       status, headers, _ = Rack::Chunked.new(app).call(@env)

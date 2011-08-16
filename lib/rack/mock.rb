@@ -182,7 +182,7 @@ module Rack
     end
 
     def empty?
-      [201, 204, 304].include? status
+      [201, 204, 205, 304].include? status
     end
   end
 end
