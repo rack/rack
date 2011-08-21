@@ -735,7 +735,8 @@ EOF
     parser.call("compress;q=0.5, gzip;q=1.0").should.equal([["compress", 0.5], ["gzip", 1.0]])
     parser.call("gzip;q=1.0, identity; q=0.5, *;q=0").should.equal([["gzip", 1.0], ["identity", 0.5], ["*", 0] ])
 
-    lambda { parser.call("gzip ; q=1.0") }.should.raise(RuntimeError)
+    parser.call("gzip ; q=0.9").should.equal([["gzip", 0.9]])
+    parser.call("gzip ; deflate").should.equal([["gzip", 1.0]])
   end
 
   should 'provide ip information' do

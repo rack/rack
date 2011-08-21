@@ -278,14 +278,13 @@ module Rack
     end
 
     def accept_encoding
-      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/,\s*/).map do |part|
-        m = /^([^\s,]+?)(?:;\s*q=(\d+(?:\.\d+)?))?$/.match(part) # From WEBrick
-
-        if m
-          [m[1], (m[2] || 1.0).to_f]
-        else
-          raise "Invalid value for Accept-Encoding: #{part.inspect}"
+      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/\s*,\s*/).map do |part|
+        encoding, parameters = part.split(/\s*;\s*/, 2)
+        quality = 1.0
+        if parameters and /\Aq=([\d.]+)/ =~ parameters
+          quality = $1.to_f
         end
+        [encoding, quality]
       end
     end
 
