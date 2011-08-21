@@ -175,7 +175,8 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
     env["CONTENT_TYPE"].should.equal "multipart/form-data; boundary=AaB03x"
-    env["mock.postdata"].length.should.equal 206
+    # The gsub accounts for differences in YAMLs affect on the data.
+    env["mock.postdata"].gsub("\r", "").length.should.equal 206
   end
 
   should "behave valid according to the Rack spec" do
