@@ -64,13 +64,13 @@ file "SPEC" => 'lib/rack/lint.rb' do
   }
 end
 
-desc "Run all the fast tests"
+desc "Run all the fast + platform agnostic tests"
 task :test => 'SPEC' do
   opts     = ENV['TEST'] || '-a'
   specopts = ENV['TESTOPTS'] ||
-    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server)'"
+    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
 
-  sh "bacon -I./lib:./test -w #{opts} #{specopts}"
+  sh "bacon -I./lib:./test #{opts} #{specopts}"
 end
 
 desc "Run all the tests"
