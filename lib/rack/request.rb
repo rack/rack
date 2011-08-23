@@ -230,22 +230,20 @@ module Rack
     end
 
     def cookies
-      return {}  unless @env["HTTP_COOKIE"]
+      hash   = @env["rack.request.cookie_hash"] ||= {}
+      string = @env["HTTP_COOKIE"]
 
-      if @env["rack.request.cookie_string"] == @env["HTTP_COOKIE"]
-        @env["rack.request.cookie_hash"]
-      else
-        @env["rack.request.cookie_string"] = @env["HTTP_COOKIE"]
-        # According to RFC 2109:
-        #   If multiple cookies satisfy the criteria above, they are ordered in
-        #   the Cookie header such that those with more specific Path attributes
-        #   precede those with less specific.  Ordering with respect to other
-        #   attributes (e.g., Domain) is unspecified.
-        @env["rack.request.cookie_hash"] =
-          Hash[*Utils.parse_query(@env["rack.request.cookie_string"], ';,').map {|k,v|
-            [k, Array === v ? v.first : v]
-          }.flatten]
-      end
+      hash.clear unless string
+      return hash if string == @env["rack.request.cookie_string"]
+
+      # According to RFC 2109:
+      #   If multiple cookies satisfy the criteria above, they are ordered in
+      #   the Cookie header such that those with more specific Path attributes
+      #   precede those with less specific.  Ordering with respect to other
+      #   attributes (e.g., Domain) is unspecified.
+      Utils.parse_query(string, ';,').each { |k,v| hash[k] = Array(v).first }
+      @env["rack.request.cookie_string"] = string
+      hash
     end
 
     def xhr?

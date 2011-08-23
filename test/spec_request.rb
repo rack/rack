@@ -351,6 +351,19 @@ describe Rack::Request do
     req.cookies.should.equal({})
   end
 
+  should "always return the same hash object" do
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
+    hash = req.cookies
+    req.env.delete("HTTP_COOKIE")
+    req.cookies.should.equal(hash)
+  end
+
+  should "raise any errors on every request" do
+    req = Rack::Request.new Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
+    2.times { proc { req.cookies }.should.raise(ArgumentError) }
+  end
+
   should "parse cookies according to RFC 2109" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for('', 'HTTP_COOKIE' => 'foo=bar;foo=car')
