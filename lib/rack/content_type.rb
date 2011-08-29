@@ -9,6 +9,8 @@ module Rack
   #
   # When no content type argument is provided, "text/html" is assumed.
   class ContentType
+    include Rack::Utils
+
     def initialize(app, content_type = "text/html")
       @app, @content_type = app, content_type
     end
@@ -16,7 +18,11 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      headers['Content-Type'] ||= @content_type
+
+      unless STATUS_WITH_NO_ENTITY_BODY.include?(status)
+        headers['Content-Type'] ||= @content_type
+      end
+
       [status, headers, body]
     end
   end
