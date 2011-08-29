@@ -26,4 +26,10 @@ describe Rack::ContentType do
     headers.to_a.select { |k,v| k.downcase == "content-type" }.
       should.equal [["CONTENT-Type","foo/bar"]]
   end
+
+  should "not set Content-Type on 304 responses" do
+    app = lambda { |env| [304, {}, []] }
+    response = Rack::ContentType.new(app, "text/html").call({})
+    response[1]['Content-Type'].should.equal nil
+  end
 end
