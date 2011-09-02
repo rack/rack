@@ -233,8 +233,8 @@ module Rack
       hash   = @env["rack.request.cookie_hash"] ||= {}
       string = @env["HTTP_COOKIE"]
 
-      hash.clear unless string
       return hash if string == @env["rack.request.cookie_string"]
+      hash.clear
 
       # According to RFC 2109:
       #   If multiple cookies satisfy the criteria above, they are ordered in
