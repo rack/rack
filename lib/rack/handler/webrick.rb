@@ -1,6 +1,7 @@
 require 'webrick'
 require 'stringio'
 require 'rack/content_length'
+require 'cgi/util'
 
 module Rack
   module Handler
@@ -55,6 +56,9 @@ module Rack
           env["PATH_INFO"] = path[n, path.length-n]
         end
         env["REQUEST_PATH"] ||= [env["SCRIPT_NAME"], env["PATH_INFO"]].join
+        
+        env["REQUEST_PATH"] = Object::CGI.unescape(env["REQUEST_PATH"])
+        env["PATH_INFO"] = Object::CGI.unescape(env["PATH_INFO"])
 
         status, headers, body = @app.call(env)
         begin
