@@ -364,6 +364,9 @@ run on port 11211) and memcache-client installed.
 * Not yet release: public release 1.4.0
   * Raise sane error messages for broken config.ru
   * Allow combining run and map in a config.ru
+  * Rack::ContentType will not set Content-Type for responses without a body
+  * Status code 205 does not send a response body
+  * Rack::Response::Helpers will not rely on instance variables
 
 == Contact
 
