@@ -56,6 +56,7 @@ module Rack
 
     def modified_since?(modified_since, headers)
       last_modified = to_rfc2822(headers['Last-Modified']) and
+        modified_since and
         modified_since >= last_modified
     end
 

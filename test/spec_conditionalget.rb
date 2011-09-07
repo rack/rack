@@ -83,4 +83,16 @@ describe Rack::ConditionalGet do
     response.body.should.equal 'TEST'
   end
 
+  should "not affect requests with malformed HTTP_IF_NONE_MATCH" do
+    bad_timestamp = Time.now.strftime('%Y-%m-%d %H:%M:%S %z')
+    app = Rack::ConditionalGet.new(lambda { |env|
+      [200,{'Last-Modified'=>(Time.now - 3600).httpdate}, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_MODIFIED_SINCE' => bad_timestamp)
+
+    response.status.should.equal 200
+    response.body.should.equal 'TEST'
+  end
+
 end
