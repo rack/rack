@@ -174,8 +174,8 @@ module Rack
         path    = "; path="    + value[:path]   if value[:path]
         # According to RFC 2109, we need dashes here.
         # N.B.: cgi.rb uses spaces...
-        expires = "; expires=" + value[:expires].clone.gmtime.
-          strftime("%a, %d-%b-%Y %H:%M:%S GMT") if value[:expires]
+        expires = "; expires=" +
+          rfc2822(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if value[:httponly]
         value = value[:value]
@@ -186,12 +186,12 @@ module Rack
         "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
-      when Array
-        header["Set-Cookie"] << cookie
-      when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie]
-      when nil
+      when nil, ''
         header["Set-Cookie"] = cookie
+      when String
+        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+      when Array
+        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
       end
 
       nil
@@ -199,13 +199,24 @@ module Rack
     module_function :set_cookie_header!
 
     def delete_cookie_header!(header, key, value = {})
-      unless Array === header["Set-Cookie"]
-        header["Set-Cookie"] = [header["Set-Cookie"]].compact
+      case header["Set-Cookie"]
+      when nil, ''
+        cookies = []
+      when String
+        cookies = header["Set-Cookie"].split("\n")
+      when Array
+        cookies = header["Set-Cookie"]
       end
 
-      header["Set-Cookie"].reject! { |cookie|
-        cookie =~ /\A#{escape(key)}=/
+      cookies.reject! { |cookie|
+        if value[:domain]
+          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
+        else
+          cookie =~ /\A#{escape(key)}=/
+        end
       }
+
+      header["Set-Cookie"] = cookies.join("\n")
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
@@ -214,6 +225,22 @@ module Rack
       nil
     end
     module_function :delete_cookie_header!
+
+    # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
+    # of '% %b %Y'.
+    # It assumes that the time is in GMT to comply to the RFC 2109.
+    #
+    # NOTE: I'm not sure the RFC says it requires GMT, but is ambigous enough
+    # that I'm certain someone implemented only that option.
+    # Do not use %a and %b from Time.strptime, it would use localized names for
+    # weekday and month.
+    #
+    def rfc2822(time)
+      wday = Time::RFC2822_DAY_NAME[time.wday]
+      mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
+      time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
+    end
+    module_function :rfc2822
 
     # Return the bytesize of String; uses String#length under Ruby 1.8 and
     # String#bytesize under 1.9.
