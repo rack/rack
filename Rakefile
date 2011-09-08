@@ -75,7 +75,7 @@ end
 
 desc "Run all the fast tests"
 task :test do
-  sh "specrb -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)"'}"
+  sh "specrb -rtest/gemloader -Ilib:test -w #{ENV['TEST'] || '-a'} #{ENV['TESTOPTS'] || '-t "^(?!Rack::Handler|Rack::Adapter|Rack::Session::Memcache|rackup)"'}"
 end
 
 desc "Run all the tests"

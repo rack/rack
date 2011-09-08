@@ -6,6 +6,10 @@ begin
   require 'rack/mock'
 
   $-w, w = nil, $-w               # yuck
+
+  # campings dependencies also don't pull this in anymore:
+  class Object;def meta_def m,&b;(class<<self;self;end).send:define_method,m,&b end end
+
   require 'camping'
   require 'rack/adapter/camping'
 
