@@ -22,6 +22,23 @@ describe Rack::File do
     res["Last-Modified"].should.equal File.mtime(path).httpdate
   end
 
+  should "return 304 if file isn't modified since last serve" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
+
+    res.status.should.equal 304
+    res.body.should.be.empty
+  end
+
+  should "return the file if it's modified since last serve" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => (File.mtime(path) - 100).httpdate)
+
+    res.should.be.ok
+  end
+
   should "serve files with URL encoded filenames" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/cgi/%74%65%73%74") # "/cgi/test"
