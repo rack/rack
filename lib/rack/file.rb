@@ -53,21 +53,23 @@ module Rack
     end
 
     def serving(env)
-      # NOTE:
-      #   We check via File::size? whether this file provides size info
-      #   via stat (e.g. /proc files often don't), otherwise we have to
-      #   figure it out by reading the whole file into memory.
-      size = F.size?(@path) || Utils.bytesize(F.read(@path))
-
+      last_modified = F.mtime(@path).httpdate
+      return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
       response = [
         200,
         {
-          "Last-Modified"  => F.mtime(@path).httpdate,
+          "Last-Modified"  => last_modified,
           "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain')
         },
         self
       ]
       response[1].merge! 'Cache-Control' => @cache_control if @cache_control
+
+      # NOTE:
+      #   We check via File::size? whether this file provides size info
+      #   via stat (e.g. /proc files often don't), otherwise we have to
+      #   figure it out by reading the whole file into memory.
+      size = F.size?(@path) || Utils.bytesize(F.read(@path))
 
       ranges = Rack::Utils.byte_ranges(env, size)
       if ranges.nil? || ranges.length > 1
