@@ -113,14 +113,31 @@ module Rack
     def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
     def path_info=(s);   @env["PATH_INFO"] = s.to_s               end
 
+
+    # Checks the HTTP request method (or verb) to see if it was of type DELETE
     def delete?;  request_method == "DELETE"  end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type GET
     def get?;     request_method == "GET"     end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type HEAD
     def head?;    request_method == "HEAD"    end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
     def options?; request_method == "OPTIONS" end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type PATCH
     def patch?;   request_method == "PATCH"   end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type POST
     def post?;    request_method == "POST"    end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type PUT
     def put?;     request_method == "PUT"     end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type TRACE
     def trace?;   request_method == "TRACE"   end
+
 
     # The set of form-data media-types. Requests that do not indicate
     # one of the media types presents in this list will not be eligible
