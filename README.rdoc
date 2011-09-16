@@ -361,6 +361,9 @@ run on port 11211) and memcache-client installed.
   * Prevents XSS attacks enabled by bug in Ruby 1.8's regexp engine
   * Rack::ConditionalGet handles broken If-Modified-Since helpers
 
+* September 16, 2011: Eighteenth public release 1.2.4
+  * Fix a bug with MRI regex engine to prevent XSS by malformed unicode
+
 * Not yet release: public release 1.4.0
   * Raise sane error messages for broken config.ru
   * Allow combining run and map in a config.ru
