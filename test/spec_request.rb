@@ -357,6 +357,15 @@ describe Rack::Request do
     hash = req.cookies
     req.env.delete("HTTP_COOKIE")
     req.cookies.should.equal(hash)
+    req.env["HTTP_COOKIE"] = "zoo=m"
+    req.cookies.should.equal(hash)
+  end
+
+  should "modify the cookies hash in place" do
+    req = Rack::Request.new(Rack::MockRequest.env_for(""))
+    req.cookies.should.equal({})
+    req.cookies['foo'] = 'bar'
+    req.cookies.should.equal 'foo' => 'bar'
   end
 
   should "raise any errors on every request" do
