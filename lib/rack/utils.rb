@@ -234,6 +234,8 @@ module Rack
       cookies.reject! { |cookie|
         if value[:domain]
           cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
+        elsif value[:path]
+          cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/
         else
           cookie =~ /\A#{escape(key)}=/
         end

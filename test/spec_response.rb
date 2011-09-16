@@ -109,6 +109,18 @@ describe Rack::Response do
                                          "foo=; domain=sample.example.com; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
   end
 
+  it "can delete cookies with the same name with different paths" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :path => "/"}
+    response.set_cookie "foo", {:value => "bar", :path => "/path"}
+    response["Set-Cookie"].should.equal ["foo=bar; path=/",
+                                         "foo=bar; path=/path"].join("\n")
+
+    response.delete_cookie "foo", :path => "/path"
+    response["Set-Cookie"].should.equal ["foo=bar; path=/",
+                                         "foo=; path=/path; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
+  end
+
   it "can do redirects" do
     response = Rack::Response.new
     response.redirect "/foo"
