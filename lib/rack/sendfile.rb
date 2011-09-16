@@ -108,7 +108,7 @@ module Rack
             headers[type] = url
             body = []
           else
-            env['rack.errors'] << "X-Accel-Mapping header missing"
+            env['rack.errors'].puts "X-Accel-Mapping header missing"
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
           path = F.expand_path(body.to_path)
@@ -117,7 +117,7 @@ module Rack
           body = []
         when '', nil
         else
-          env['rack.errors'] << "Unknown x-sendfile variation: '#{variation}'.\n"
+          env['rack.errors'].puts "Unknown x-sendfile variation: '#{variation}'.\n"
         end
       end
       [status, headers, body]
