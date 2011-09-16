@@ -2,6 +2,14 @@ require 'rack/utils'
 require 'rack/mock'
 
 describe Rack::Utils do
+  def kcodeu
+    one8 = RUBY_VERSION.to_f < 1.9
+    default_kcode, $KCODE = $KCODE, 'U' if one8
+    yield
+  ensure
+    $KCODE = default_kcode if one8
+  end
+
   should "escape correctly" do
     Rack::Utils.escape("fo<o>bar").should.equal "fo%3Co%3Ebar"
     Rack::Utils.escape("a space").should.equal "a+space"
@@ -16,6 +24,38 @@ describe Rack::Utils do
     matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
     matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
     Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
+  end
+
+  if RUBY_VERSION[/^\d+\.\d+/] == '1.8'
+    should "escape correctly for multibyte characters if $KCODE is set to 'U'" do
+      kcodeu do
+        matz_name = "\xE3\x81\xBE\xE3\x81\xA4\xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsumoto
+        matz_name.force_encoding("UTF-8") if matz_name.respond_to? :force_encoding
+        Rack::Utils.escape(matz_name).should.equal '%E3%81%BE%E3%81%A4%E3%82%82%E3%81%A8'
+        matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
+        matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
+        Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
+      end
+    end
+
+    should "unescape multibyte characters correctly if $KCODE is set to 'U'" do
+      kcodeu do
+        Rack::Utils.unescape('%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8').should.equal(
+        "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0])
+      end
+    end
+  end
+
+  should "escape objects that responds to to_s" do
+    kcodeu do
+      Rack::Utils.escape(:id).should.equal "id"
+    end
+  end
+
+  if "".respond_to?(:encode)
+    should "escape non-UTF8 strings" do
+      Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
+    end
   end
 
   should "unescape correctly" do
@@ -173,6 +213,38 @@ describe Rack::Utils do
     lambda { Rack::Utils.build_nested_query("foo=bar") }.
       should.raise(ArgumentError).
       message.should.equal "value must be a Hash"
+  end
+
+  should "escape html entities [&><'\"/]" do
+    Rack::Utils.escape_html("foo").should.equal "foo"
+    Rack::Utils.escape_html("f&o").should.equal "f&amp;o"
+    Rack::Utils.escape_html("f<o").should.equal "f&lt;o"
+    Rack::Utils.escape_html("f>o").should.equal "f&gt;o"
+    Rack::Utils.escape_html("f'o").should.equal "f&#39;o"
+    Rack::Utils.escape_html('f"o').should.equal "f&quot;o"
+    Rack::Utils.escape_html("f/o").should.equal "f&#47;o"
+    Rack::Utils.escape_html("<foo></foo>").should.equal "&lt;foo&gt;&lt;&#47;foo&gt;"
+  end
+
+  should "escape html entities even on MRI when it's bugged" do
+    test_escape = lambda do
+      kcodeu do
+        Rack::Utils.escape_html("\300<").should.equal "\300&lt;"
+      end
+    end
+
+    if RUBY_VERSION.to_f < 1.9
+      test_escape.call
+    else
+      test_escape.should.raise(ArgumentError)
+    end
+  end
+
+  if "".respond_to?(:encode)
+    should "escape html entities in unicode strings" do
+      # the following will cause warnings if the regex is poorly encoded:
+      Rack::Utils.escape_html("☃").should.equal "☃"
+    end
   end
 
   should "figure out which encodings are acceptable" do

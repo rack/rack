@@ -134,8 +134,15 @@ module Rack
       ">" => "&gt;",
       "'" => "&#39;",
       '"' => "&quot;",
+      "/" => "&#47;"
     }
-    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
+    if //.respond_to?(:encoding)
+      ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
+    else
+      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwhise
+      # TODO doesn't apply to jruby, so a better condition above might be preferable?
+      ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
+    end
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
