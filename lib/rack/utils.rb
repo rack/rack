@@ -3,15 +3,7 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'rack/multipart'
-
-major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
-
-if (major == 1 && minor < 9) || (major == 1 && minor == 9 && patch < 2)
-  # pull in backports
-  require 'rack/backports/uri/common'
-else
-  require 'uri/common'
-end
+require 'rack/backports/uri/common' # pull in backports
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
