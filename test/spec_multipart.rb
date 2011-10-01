@@ -284,4 +284,24 @@ describe Rack::Multipart do
       message.should.equal "value must be a Hash"
   end
 
+  it "can parse fields with a content type" do
+    data = <<-EOF
+--1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon\r
+Content-Disposition: form-data; name="description"\r
+Content-Type: text/plain"\r
+\r
+Very very blue\r
+--1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon--\r
+EOF
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+
+    params.should.equal({"description"=>"Very very blue"})
+  end
+
 end
