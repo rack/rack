@@ -812,6 +812,9 @@ EOF
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
     res.body.should.equal 'unknown'
 
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'other,unknown,192.168.0.1'
+    res.body.should.equal 'unknown'
+
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
     res.body.should.equal '3.4.5.6'
 
