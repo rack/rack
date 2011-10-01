@@ -113,7 +113,7 @@ module Rack
         if v.class == Array
           build_query(v.map { |x| [k, x] })
         else
-          "#{escape(k)}=#{escape(v)}"
+          v.nil? ? escape(k) : "#{escape(k)}=#{escape(v)}"
         end
       }.join("&")
     end

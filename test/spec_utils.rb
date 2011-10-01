@@ -42,7 +42,7 @@ describe Rack::Utils do
     should "unescape multibyte characters correctly if $KCODE is set to 'U'" do
       kcodeu do
         Rack::Utils.unescape('%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8').should.equal(
-        "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0])
+          "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0])
       end
     end
   end
@@ -197,22 +197,22 @@ describe Rack::Utils do
     # unordered hash. Test that build_nested_query performs the inverse
     # function of parse_nested_query.
     [{"foo" => nil, "bar" => ""},
-     {"foo" => "bar", "baz" => ""},
-     {"foo" => ["1", "2"]},
-     {"foo" => "bar", "baz" => ["1", "2", "3"]},
-     {"foo" => ["bar"], "baz" => ["1", "2", "3"]},
-     {"foo" => ["1", "2"]},
-     {"foo" => "bar", "baz" => ["1", "2", "3"]},
-     {"x" => {"y" => {"z" => "1"}}},
-     {"x" => {"y" => {"z" => ["1"]}}},
-     {"x" => {"y" => {"z" => ["1", "2"]}}},
-     {"x" => {"y" => [{"z" => "1"}]}},
-     {"x" => {"y" => [{"z" => ["1"]}]}},
-     {"x" => {"y" => [{"z" => "1", "w" => "2"}]}},
-     {"x" => {"y" => [{"v" => {"w" => "1"}}]}},
-     {"x" => {"y" => [{"z" => "1", "v" => {"w" => "2"}}]}},
-     {"x" => {"y" => [{"z" => "1"}, {"z" => "2"}]}},
-     {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}}
+      {"foo" => "bar", "baz" => ""},
+      {"foo" => ["1", "2"]},
+      {"foo" => "bar", "baz" => ["1", "2", "3"]},
+      {"foo" => ["bar"], "baz" => ["1", "2", "3"]},
+      {"foo" => ["1", "2"]},
+      {"foo" => "bar", "baz" => ["1", "2", "3"]},
+      {"x" => {"y" => {"z" => "1"}}},
+      {"x" => {"y" => {"z" => ["1"]}}},
+      {"x" => {"y" => {"z" => ["1", "2"]}}},
+      {"x" => {"y" => [{"z" => "1"}]}},
+      {"x" => {"y" => [{"z" => ["1"]}]}},
+      {"x" => {"y" => [{"z" => "1", "w" => "2"}]}},
+      {"x" => {"y" => [{"v" => {"w" => "1"}}]}},
+      {"x" => {"y" => [{"z" => "1", "v" => {"w" => "2"}}]}},
+      {"x" => {"y" => [{"z" => "1"}, {"z" => "2"}]}},
+      {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}}
     ].each { |params|
       qs = Rack::Utils.build_nested_query(params)
       Rack::Utils.parse_nested_query(qs).should.equal params
@@ -221,6 +221,17 @@ describe Rack::Utils do
     lambda { Rack::Utils.build_nested_query("foo=bar") }.
       should.raise(ArgumentError).
       message.should.equal "value must be a Hash"
+  end
+
+  should "parse query strings that have a non-existent value" do
+    key = "post/2011/08/27/Deux-%22rat%C3%A9s%22-de-l-Universit"
+    Rack::Utils.parse_query(key).should.equal Rack::Utils.unescape(key) => nil
+  end
+
+  should "build query strings without = with non-existent values" do
+    key = "post/2011/08/27/Deux-%22rat%C3%A9s%22-de-l-Universit"
+    key = Rack::Utils.unescape(key)
+    Rack::Utils.build_query(key => nil).should.equal Rack::Utils.escape(key)
   end
 
   should "escape html entities [&><'\"/]" do

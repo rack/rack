@@ -370,6 +370,7 @@ run on port 11211) and memcache-client installed.
   * Rack::ContentType will not set Content-Type for responses without a body
   * Status code 205 does not send a response body
   * Rack::Response::Helpers will not rely on instance variables
+	* Rack::Utils.build_query no longer outputs '=' for nil query values
 
 == Contact
 
