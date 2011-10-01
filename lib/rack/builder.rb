@@ -37,7 +37,7 @@ module Rack
           options = opts.parse! $1.split(/\s+/)
         end
         cfgfile.sub!(/^__END__\n.*/, '')
-        app = eval "Rack::Builder.new {\n" + cfgfile + "\n}.to_app",
+        app = eval "Rack::Builder.new {\n set_require_relative_path(" + ::File.dirname(config).dump + ")\n" + cfgfile + "\n}.to_app",
           TOPLEVEL_BINDING, config
       else
         require config
@@ -53,6 +53,15 @@ module Rack
 
     def self.app(default_app = nil, &block)
       self.new(default_app, &block).to_app
+    end
+
+    def set_require_relative_path(base)
+      @base = base
+      class << self
+        define_method(:require_relative) do |fname|
+          require ::File.absolute_path(fname,@base)
+        end
+      end
     end
 
     # Specifies a middleware to use in a stack.
