@@ -37,8 +37,9 @@ module Rack
           options = opts.parse! $1.split(/\s+/)
         end
         cfgfile.sub!(/^__END__\n.*/, '')
-        app = eval "Rack::Builder.new {\n set_require_relative_path(" + ::File.dirname(config).dump + ")\n" + cfgfile + "\n}.to_app",
-          TOPLEVEL_BINDING, config
+        builder = eval "Rack::Builder.new {\n set_require_relative_path(" + ::File.dirname(config).dump + ")\n" + cfgfile + "\n}", TOPLEVEL_BINDING, config
+	options.merge!(builder.options)
+        app = builder.to_app
       else
         require config
         app = Object.const_get(::File.basename(config, '.rb').capitalize)
@@ -63,6 +64,14 @@ module Rack
         end
       end
     end
+
+    def options(opts={})
+      @options ||= {}
+      @options.merge! opts
+      @options
+    end
+
+    alias_method :option, :options
 
     # Specifies a middleware to use in a stack.
     #

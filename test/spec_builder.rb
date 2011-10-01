@@ -195,5 +195,12 @@ describe Rack::Builder do
       app, options = Rack::Builder.parse_file 'builder/reqrel'
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
     end
+
+    it "supports setting options from within a .ru script" do
+      app, options = Rack::Builder.parse_file config_file('opts.ru')
+      options[:recv].should.equal "tcp://*:6767"
+      options[:send].should.equal "ipc:///socket.ipc"
+    end
+
   end
 end
