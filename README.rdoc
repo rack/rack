@@ -361,6 +361,12 @@ run on port 11211) and memcache-client installed.
   * Prevents XSS attacks enabled by bug in Ruby 1.8's regexp engine
   * Rack::ConditionalGet handles broken If-Modified-Since helpers
 
+* October 1, 2011: Eighteenth public release 1.3.4
+  * Backport security fix from 1.9.3, also fixes some roundtrip issues in URI
+	* Small documentation update
+	* Fix an issue where BodyProxy could cause an infinite recursion
+	* Add some supporting files for travis-ci
+
 == Contact
 
 Please post bugs, suggestions and patches to
