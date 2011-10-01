@@ -38,7 +38,7 @@ module Rack
         end
         cfgfile.sub!(/^__END__\n.*/, '')
         builder = eval "Rack::Builder.new {\n set_require_relative_path(" + ::File.dirname(config).dump + ")\n" + cfgfile + "\n}", TOPLEVEL_BINDING, config
-	options.merge!(builder.options)
+        options.merge!(builder.options)
         app = builder.to_app
       else
         require config
