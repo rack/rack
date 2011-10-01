@@ -40,4 +40,11 @@ describe Rack::BodyProxy do
       proxy.close
     }.should.raise(IOError)
   end
+
+  should 'be closed when the callback is triggered' do
+    closed = false
+    proxy = Rack::BodyProxy.new([]) { closed = proxy.closed? }
+    proxy.close
+    closed.should.equal true
+  end
 end
