@@ -6,9 +6,10 @@ require 'rack/multipart'
 
 major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
 
-if (major == 1 && minor < 9) || (major == 1 && minor == 9 && patch < 2)
-  # pull in backports
-  require 'rack/backports/uri/common'
+if major == 1 && minor < 9
+  require 'rack/backports/uri/common_18'
+elsif major == 1 && minor == 9 && patch < 3
+  require 'rack/backports/uri/common_192'
 else
   require 'uri/common'
 end

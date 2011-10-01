@@ -58,6 +58,16 @@ describe Rack::Utils do
       Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
     end
   end
+  
+  should "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
+    lambda {
+      timeout(1) do
+        lambda {
+          URI.decode_www_form_component "A string that causes catastrophic backtracking as it gets longer %"
+        }.should.raise(ArgumentError)
+      end
+    }.should.not.raise(Timeout::Error)
+  end
 
   should "escape path spaces with %20" do
     Rack::Utils.escape_path("foo bar").should.equal  "foo%20bar"
