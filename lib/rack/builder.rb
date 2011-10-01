@@ -58,7 +58,7 @@ module Rack
     def set_require_relative_path(base)
       @base = base
       class << self
-	define_method(:require_relative) do |fname|
+        define_method(:require_relative) do |fname|
           require ::File.absolute_path(fname,@base)
         end
       end
