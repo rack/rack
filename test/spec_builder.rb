@@ -190,5 +190,10 @@ describe Rack::Builder do
       app, options = Rack::Builder.parse_file config_file('reqrel.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
     end
+
+    it "supports (default) require_relative in .rb" do
+      app, options = Rack::Builder.parse_file 'builder/reqrel'
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+    end
   end
 end
