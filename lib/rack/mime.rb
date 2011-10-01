@@ -28,6 +28,9 @@ module Rack
     #     list = WEBrick::HTTPUtils.load_mime_types('/etc/mime.types')
     #     Rack::Mime::MIME_TYPES.merge!(list)
     #
+    # N.B. On Ubuntu the mime.types file does not include the leading period, so
+    # users may need to modify the data before merging into the hash.
+    #
     # To add the list mongrel provides, use:
     #
     #     require 'mongrel/handlers'
