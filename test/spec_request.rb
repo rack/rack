@@ -761,15 +761,15 @@ EOF
     parser.call("gzip ; deflate").should.equal([["gzip", 1.0]])
   end
 
-  should 'provide ip information' do
-    app = lambda { |env|
-      request = Rack::Request.new(env)
-      response = Rack::Response.new
-      response.write request.ip
-      response.finish
-    }
+  ip_app = lambda { |env|
+    request = Rack::Request.new(env)
+    response = Rack::Response.new
+    response.write request.ip
+    response.finish
+  }
 
-    mock = Rack::MockRequest.new(Rack::Lint.new(app))
+  should 'provide ip information' do
+    mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
 
     res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4'
     res.body.should.equal '1.2.3.4'
@@ -779,6 +779,10 @@ EOF
 
     res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4,3.4.5.6'
     res.body.should.equal '1.2.3.4'
+  end
+
+  should 'deals with proxies' do
+    mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
 
     res = mock.get '/',
       'REMOTE_ADDR' => '1.2.3.4',
