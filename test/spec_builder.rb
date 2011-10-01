@@ -185,5 +185,10 @@ describe Rack::Builder do
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
       $:.pop
     end
+
+    it "supports require_relative in .ru" do
+      app, options = Rack::Builder.parse_file config_file('reqrel.ru')
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+    end
   end
 end
