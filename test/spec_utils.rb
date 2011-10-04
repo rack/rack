@@ -11,6 +11,16 @@ describe Rack::Utils do
     $KCODE = default_kcode if one8
   end
 
+  should "round trip binary data" do
+    r = [218, 0].pack 'CC'
+    if defined?(::Encoding)
+      z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
+    else
+      z = Rack::Utils.unescape(Rack::Utils.escape(r))
+    end
+    r.should.equal z
+  end
+
   should "escape correctly" do
     Rack::Utils.escape("fo<o>bar").should.equal "fo%3Co%3Ebar"
     Rack::Utils.escape("a space").should.equal "a+space"
