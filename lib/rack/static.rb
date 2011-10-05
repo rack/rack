@@ -40,10 +40,14 @@ module Rack
     def call(env)
       path = env["PATH_INFO"]
 
-      unless @urls.kind_of? Hash
-        can_serve = @urls.any? { |url| path.index(url) == 0 }
+      if ['GET', 'HEAD'].include?(env["REQUEST_METHOD"])
+        unless @urls.kind_of? Hash
+          can_serve = @urls.any? { |url| path.index(url) == 0 }
+        else
+          can_serve = @urls.key? path
+        end
       else
-        can_serve = @urls.key? path
+        can_sere = false
       end
 
       if can_serve
