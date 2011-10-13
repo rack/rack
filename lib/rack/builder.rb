@@ -36,7 +36,7 @@ module Rack
         if cfgfile[/^#\\(.*)/] && opts
           options = opts.parse! $1.split(/\s+/)
         end
-        cfgfile.sub!(/^__END__\n.*/, '')
+        cfgfile.sub!(/^__END__\n.*\Z/m, '')
         app = eval "Rack::Builder.new {\n" + cfgfile + "\n}.to_app",
           TOPLEVEL_BINDING, config
       else
