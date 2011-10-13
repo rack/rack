@@ -92,6 +92,9 @@ module Rack
       return if k.empty?
 
       if after == ""
+	if v.respond_to?(:force_encoding) and v =~ /[\x80-\xFF]/m
+	  v.force_encoding(Encoding::UTF_8)
+	end
         params[k] = v
       elsif after == "[]"
         params[k] ||= []
