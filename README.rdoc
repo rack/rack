@@ -370,6 +370,9 @@ run on port 11211) and memcache-client installed.
   * Fix an issue where BodyProxy could cause an infinite recursion
   * Add some supporting files for travis-ci
 
+* October 17, 2011: Twentieth public release 1.3.5
+  * Fix annoying warnings caused by the backport in 1.3.4
+
 == Contact
 
 Please post bugs, suggestions and patches to
