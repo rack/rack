@@ -105,6 +105,7 @@ module Rack
         when 'X-Accel-Redirect'
           path = F.expand_path(body.to_path)
           if url = map_accel_path(env, path)
+            headers['Content-Length'] = '0'
             headers[type] = url
             body = []
           else
