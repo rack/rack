@@ -50,6 +50,10 @@ below.
                            the presence or absence of the
                            appropriate HTTP header in the
                            request.
+<tt>CONTENT_TYPE</tt>:: The media type of the entity-body sent to the recipient or, in the case of the HEAD method, the media type that would have been sent had the request been a GET.
+
+The environment must not contain the keys <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt> (use the versions without <tt>HTTP_</tt>).
+
 In addition to this, the Rack environment must include these
 Rack-specific variables:
 <tt>rack.version</tt>:: The Array [1,1], representing this version of Rack.
@@ -80,9 +84,6 @@ environment, too.  The keys must contain at least one dot,
 and should be prefixed uniquely.  The prefix <tt>rack.</tt>
 is reserved for use with the Rack core distribution and other
 accepted specifications and must not be used otherwise.
-The environment must not contain the keys
-<tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
-(use the versions without <tt>HTTP_</tt>).
 The CGI keys (named without a period) must have String values.
 There are the following restrictions:
 * <tt>rack.version</tt> must be an array of Integers.
