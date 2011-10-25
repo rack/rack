@@ -121,6 +121,7 @@ module Rack
       def server_error?;  status >= 500 && status < 600;        end
 
       def ok?;            status == 200;                        end
+      def bad_request?;   status == 400;                        end
       def forbidden?;     status == 403;                        end
       def not_found?;     status == 404;                        end
 
