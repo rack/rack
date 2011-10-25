@@ -218,6 +218,11 @@ describe Rack::Response do
     res.should.be.client_error
     res.should.be.not_found
 
+    res.status = 422
+    res.should.not.be.successful
+    res.should.be.client_error
+    res.should.be.unprocessable
+
     res.status = 501
     res.should.not.be.successful
     res.should.be.server_error

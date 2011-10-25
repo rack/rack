@@ -124,6 +124,7 @@ module Rack
       def bad_request?;   status == 400;                        end
       def forbidden?;     status == 403;                        end
       def not_found?;     status == 404;                        end
+      def unprocessable?; status == 422;                        end
 
       def redirect?;      [301, 302, 303, 307].include? status; end
 
