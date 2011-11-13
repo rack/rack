@@ -14,6 +14,7 @@ module Rack
     # Both methods must take a string and return a string.
     #
     # When the secret key is set, cookie data is checked for data integrity.
+    # The old secret key is also accepted and allows graceful secret rotation.
     #
     # Example:
     #
@@ -21,7 +22,8 @@ module Rack
     #                                :domain => 'foo.com',
     #                                :path => '/',
     #                                :expire_after => 2592000,
-    #                                :secret => 'change_me'
+    #                                :secret => 'change_me',
+    #                                :old_secret => 'also_change_me'
     #
     #     All parameters are optional.
     #
@@ -80,6 +82,7 @@ module Rack
 
       def initialize(app, options={})
         @secret = options[:secret]
+        @old_secret = options[:old_secret]
         @coder  = options[:coder] ||= Base64::Marshal.new
         super(app, options.merge!(:cookie_only => true))
       end
@@ -101,9 +104,11 @@ module Rack
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
 
-          if @secret && session_data
+          if (@secret || @old_secret) && session_data
             session_data, digest = session_data.split("--")
-            session_data = nil  unless digest == generate_hmac(session_data)
+            if (digest != generate_hmac(session_data, @secret)) && (digest != generate_hmac(session_data, @old_secret))
+              session_data = nil
+            end
           end
 
           coder.decode(session_data) || {}
@@ -127,7 +132,7 @@ module Rack
         session_data = coder.encode(session)
 
         if @secret
-          session_data = "#{session_data}--#{generate_hmac(session_data)}"
+          session_data = "#{session_data}--#{generate_hmac(session_data, @secret)}"
         end
 
         if session_data.size > (4096 - @key.size)
@@ -143,8 +148,8 @@ module Rack
         generate_sid unless options[:drop]
       end
 
-      def generate_hmac(data)
-        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, @secret, data)
+      def generate_hmac(data, secret)
+        OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, secret, data)
       end
 
     end
