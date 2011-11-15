@@ -254,7 +254,7 @@ module Rack
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
-                   :max_age => 0 }.merge(value))
+                   :max_age => '0' }.merge(value))
 
       nil
     end
