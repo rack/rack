@@ -207,6 +207,7 @@ module Rack
         # N.B.: cgi.rb uses spaces...
         expires = "; expires=" +
           rfc2822(value[:expires].clone.gmtime) if value[:expires]
+        max_age = "; max-age=" + value[:max_age] if value[:max_age]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if value[:httponly]
         value = value[:value]
@@ -214,7 +215,7 @@ module Rack
       value = [value] unless Array === value
       cookie = escape(key) + "=" +
         value.map { |v| escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+        "#{domain}#{max_age}#{path}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
       when nil, ''
@@ -253,7 +254,7 @@ module Rack
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
-                   :expires => Time.at(0) }.merge(value))
+                   :max_age => 0 }.merge(value))
 
       nil
     end
