@@ -215,7 +215,7 @@ module Rack
       value = [value] unless Array === value
       cookie = escape(key) + "=" +
         value.map { |v| escape v }.join("&") +
-        "#{domain}#{max_age}#{path}#{expires}#{secure}#{httponly}"
+        "#{domain}#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
       when nil, ''
