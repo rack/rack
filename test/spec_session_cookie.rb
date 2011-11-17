@@ -190,6 +190,13 @@ describe Rack::Session::Cookie do
     res["Set-Cookie"].should.be.nil
   end
 
+  it "does not return a cookie if cookie was not written (only read) and a session already exists" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(session_id)).get("/", "HTTP_COOKIE" => cookie)
+    res["Set-Cookie"].should.be.nil
+  end
+
   it "returns even if not read/written if :expire_after is set" do
     app = Rack::Session::Cookie.new(nothing, :expire_after => 3600)
     res = Rack::MockRequest.new(app).get("/", 'rack.session' => {'not' => 'empty'})
