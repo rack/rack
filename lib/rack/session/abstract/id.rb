@@ -53,6 +53,7 @@ module Rack
           @by = by
           @env = env
           @loaded = false
+          @written = false
         end
 
         def [](key)
@@ -108,6 +109,10 @@ module Rack
           @loaded
         end
 
+        def written?
+          @written
+        end
+
       private
 
         def load_for_read!
@@ -115,6 +120,7 @@ module Rack
         end
 
         def load_for_write!
+          @written = true
           load! unless loaded?
         end
 
@@ -263,7 +269,11 @@ module Rack
         # or :expire_after was given and the security permissions match.
 
         def commit_session?(env, session, options)
-          (loaded_session?(session) || (force_options?(options) && session && !session.empty?)) && secure_session?(env, options)
+          (written_session?(session) || (force_options?(options) && session && !session.empty?)) && secure_session?(env, options)
+        end
+
+        def written_session?(session)
+          !session.is_a?(SessionHash) || session.written?
         end
 
         def loaded_session?(session)
