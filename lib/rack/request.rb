@@ -261,8 +261,6 @@ module Rack
       Utils.parse_query(string, ';,').each { |k,v| hash[k] = Array === v ? v.first : v }
       @env["rack.request.cookie_string"] = string
       hash
-    rescue => error
-      raise error.class, "cannot parse Cookie header: #{error.message}"
     end
 
     def xhr?

@@ -56,7 +56,11 @@ module Rack
       params = {}
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
-        k, v = p.split('=', 2).map { |x| unescape(x) }
+        begin
+          k, v = p.split('=', 2).map { |x| unescape(x) }
+        rescue
+          next # Ignore invalid (key,value) pairs
+        end
         if cur = params[k]
           if cur.class == Array
             params[k] << v

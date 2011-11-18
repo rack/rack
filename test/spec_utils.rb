@@ -105,6 +105,13 @@ describe Rack::Utils do
     Rack::Utils.parse_query("foo%3Dbaz=bar").should.equal "foo=baz" => "bar"
   end
 
+  should "ignore incorrectly escaped query strings" do
+    Rack::Utils.parse_query("foo=100%wrong").
+      should.be.empty
+    Rack::Utils.parse_query("foo=bar&nasty=100%wrong&baz=okay").
+      should.equal "foo" => "bar", "baz" => "okay"
+  end
+
   should "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       should.equal "foo" => nil
