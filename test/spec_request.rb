@@ -369,8 +369,8 @@ describe Rack::Request do
   end
 
   should "raise any errors on every request" do
-    req = Rack::Request.new Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
-    2.times { proc { req.cookies }.should.raise(ArgumentError) }
+    req = Rack::Request.new Rack::MockRequest.env_for("", "rack.input" => nil)
+    2.times { proc { req.POST }.should.raise(RuntimeError) }
   end
 
   should "parse cookies according to RFC 2109" do
