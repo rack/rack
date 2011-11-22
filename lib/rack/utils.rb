@@ -58,8 +58,11 @@ module Rack
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         begin
           k, v = p.split('=', 2).map { |x| unescape(x) }
-        rescue
-          next # Ignore invalid (key,value) pairs
+        rescue ArgumentError => e
+          # Ignore invalid (key,value) pairs
+          next if /^invalid %-encoding \(.*\)$/.match e.message
+          # Reraise other errors
+          raise
         end
         if cur = params[k]
           if cur.class == Array
