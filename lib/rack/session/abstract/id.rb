@@ -144,7 +144,9 @@ module Rack
       #   'rack.session'
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
       #   cookie options as by Rack::Response#add_cookie
-      # * :defer will not set a cookie in the response.
+      # * :skip will not a set a cookie in the response nor update the session state
+      # * :defer will not set a cookie in the response but still update the session
+      #   state if it is used with a backend
       # * :renew (implementation dependent) will prompt the generation of a new
       #   session id, and migration of data to be referenced at the new id. If
       #   :defer is set, it will be overridden and the cookie will be set.
@@ -260,21 +262,30 @@ module Rack
         end
 
         # Session should be commited if it was loaded, any of specific options like :renew, :drop
-        # or :expire_after was given and the security permissions match.
+        # or :expire_after was given and the security permissions match. Skips if skip is given.
 
         def commit_session?(env, session, options)
-          (loaded_session?(session) || (force_options?(options) && session && !session.empty?)) && secure_session?(env, options)
+          if options[:skip]
+            false
+          else
+            has_session = loaded_session?(session) || forced_session_update?(session, options)
+            has_session && security_matches?(env, options)
+          end
         end
 
         def loaded_session?(session)
           !session.is_a?(SessionHash) || session.loaded?
         end
 
+        def forced_session_update?(session, options)
+          force_options?(options) && session && !session.empty?
+        end
+
         def force_options?(options)
           options.values_at(:renew, :drop, :defer, :expire_after).any?
         end
 
-        def secure_session?(env, options)
+        def security_matches?(env, options)
           return true unless options[:secure]
           request = Rack::Request.new(env)
           request.ssl?
