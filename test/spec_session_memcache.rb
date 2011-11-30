@@ -23,6 +23,10 @@ begin
       env['rack.session.options'][:defer] = true
       incrementor.call(env)
     end
+    skip_session = proc do |env|
+      env['rack.session.options'][:skip] = true
+      incrementor.call(env)
+    end
 
     # test memcache connection
     Rack::Session::Memcache.new(incrementor)
@@ -168,14 +172,40 @@ begin
       res4.body.should.equal '{"counter"=>1}'
     end
 
-    it "omits cookie with :defer option" do
+    it "omits cookie with :defer option but still updates the state" do
       pool = Rack::Session::Memcache.new(incrementor)
+      count = Rack::Utils::Context.new(pool, incrementor)
       defer = Rack::Utils::Context.new(pool, defer_session)
       dreq = Rack::MockRequest.new(defer)
+      creq = Rack::MockRequest.new(count)
 
       res0 = dreq.get("/")
       res0["Set-Cookie"].should.equal nil
       res0.body.should.equal '{"counter"=>1}'
+
+      res0 = creq.get("/")
+      res1 = dreq.get("/", "HTTP_COOKIE" => res0["Set-Cookie"])
+      res1.body.should.equal '{"counter"=>2}'
+      res2 = dreq.get("/", "HTTP_COOKIE" => res0["Set-Cookie"])
+      res2.body.should.equal '{"counter"=>3}'
+    end
+
+    it "omits cookie and state update with :skip option" do
+      pool = Rack::Session::Memcache.new(incrementor)
+      count = Rack::Utils::Context.new(pool, incrementor)
+      skip = Rack::Utils::Context.new(pool, skip_session)
+      sreq = Rack::MockRequest.new(skip)
+      creq = Rack::MockRequest.new(count)
+
+      res0 = sreq.get("/")
+      res0["Set-Cookie"].should.equal nil
+      res0.body.should.equal '{"counter"=>1}'
+
+      res0 = creq.get("/")
+      res1 = sreq.get("/", "HTTP_COOKIE" => res0["Set-Cookie"])
+      res1.body.should.equal '{"counter"=>2}'
+      res2 = sreq.get("/", "HTTP_COOKIE" => res0["Set-Cookie"])
+      res2.body.should.equal '{"counter"=>2}'
     end
 
     it "updates deep hashes correctly" do
