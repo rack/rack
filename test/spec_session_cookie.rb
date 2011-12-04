@@ -144,6 +144,18 @@ describe Rack::Session::Cookie do
     res.body.should.equal '{"counter"=>3}'
   end
 
+  it "loads from a cookie wih accept-only integrity hash for graceful key rotation" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test2', :old_secret => 'test')).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>2}'
+    cookie = res["Set-Cookie"]
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test3', :old_secret => 'test2')).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>3}'
+  end
+
   it "ignores tampered with session cookies" do
     app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
     response1 = Rack::MockRequest.new(app).get("/")
