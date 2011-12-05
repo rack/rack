@@ -32,7 +32,7 @@ module Rack
     F = ::File
 
     def _call(env)
-      @path_info = Utils.unescape(env["PATH_INFO"])
+      @path_info = env["PATH_INFO"]
       parts = @path_info.split SEPS
 
       return fail(403, "Forbidden")  if parts.include? ".."
