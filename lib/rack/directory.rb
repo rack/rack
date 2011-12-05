@@ -80,13 +80,17 @@ table { width:100%%; }
       @files = [['../','Parent Directory','','','']]
       glob = F.join(@path, '*')
 
+      url_head = ([@script_name] + @path_info.split('/')).map do |part|
+        Rack::Utils.escape part
+      end
+
       Dir[glob].sort.each do |node|
         stat = stat(node)
         next  unless stat
         basename = F.basename(node)
         ext = F.extname(node)
 
-        url = F.join(@script_name, @path_info, basename)
+        url = F.join(*url_head + [Rack::Utils.escape basename])
         size = stat.size
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
