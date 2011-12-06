@@ -11,10 +11,7 @@ module Rack
 
     def call(env)
       if env["REQUEST_METHOD"] == "POST"
-        req = Request.new(env)
-        method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
-          env[HTTP_METHOD_OVERRIDE_HEADER]
-        method = method.to_s.upcase
+        method = method_override(env)
         if HTTP_METHODS.include?(method)
           env["rack.methodoverride.original_method"] = env["REQUEST_METHOD"]
           env["REQUEST_METHOD"] = method
@@ -22,6 +19,15 @@ module Rack
       end
 
       @app.call(env)
+    end
+
+    def method_override(env)
+      req = Request.new(env)
+      method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
+        env[HTTP_METHOD_OVERRIDE_HEADER]
+      method.to_s.upcase
+    rescue EOFError
+      ""
     end
   end
 end
