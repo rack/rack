@@ -14,6 +14,9 @@ module Rack
 
         fast_forward_to_first_boundary
 
+        max_key_space = Utils.key_space_limit
+        bytes = 0
+
         loop do
           head, filename, content_type, name, body =
             get_current_head_and_filename_and_content_type_and_name_and_body
@@ -27,6 +30,13 @@ module Rack
           end
 
           filename, data = get_data(filename, body, content_type, name, head)
+
+          if name
+            bytes += name.size
+            if bytes > max_key_space
+              raise RangeError, "exceeded available parameter key space"
+            end
+          end
 
           Utils.normalize_params(@params, name, data) unless data.nil?
 
