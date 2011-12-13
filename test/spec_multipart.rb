@@ -30,6 +30,17 @@ describe Rack::Multipart do
     params["text"].should.equal "contents"
   end
 
+  should "raise RangeError if the key space is exhausted" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+    begin
+      lambda { Rack::Multipart.parse_multipart(env) }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
+  end
+
   should "parse multipart form webkit style" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"

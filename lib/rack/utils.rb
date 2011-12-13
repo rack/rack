@@ -40,6 +40,14 @@ module Rack
 
     DEFAULT_SEP = /[&;] */n
 
+    class << self
+      attr_accessor :key_space_limit
+    end
+
+    # The default number of bytes to allow parameter keys to take up.
+    # This helps prevent a rogue client from flooding a Request.
+    self.key_space_limit = 65536
+
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
@@ -48,8 +56,19 @@ module Rack
     def parse_query(qs, d = nil)
       params = {}
 
+      max_key_space = Utils.key_space_limit
+      bytes = 0
+
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
+
+        if k
+          bytes += k.size
+          if bytes > max_key_space
+            raise RangeError, "exceeded available parameter key space"
+          end
+        end
+
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -68,8 +87,19 @@ module Rack
     def parse_nested_query(qs, d = nil)
       params = {}
 
+      max_key_space = Utils.key_space_limit
+      bytes = 0
+
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |s| unescape(s) }
+
+        if k
+          bytes += k.size
+          if bytes > max_key_space
+            raise RangeError, "exceeded available parameter key space"
+          end
+        end
+
         normalize_params(params, k, v)
       end
 
