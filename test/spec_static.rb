@@ -11,9 +11,11 @@ describe Rack::Static do
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = {:urls => ["/cgi"], :root => root}
+  STATIC_OPTIONS = {:urls => [""], :root => root, :index => 'static/index.html'}
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
 
   @request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, OPTIONS))
+  @static_request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, STATIC_OPTIONS))
   @hash_request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, HASH_OPTIONS))
 
   it "serves files" do
@@ -31,6 +33,12 @@ describe Rack::Static do
     res = @request.get("/something/else")
     res.should.be.ok
     res.body.should == "Hello World"
+  end
+
+  it "calls index file when requesting root" do
+    res = @static_request.get("/")
+    res.should.be.ok
+    res.body.should =~ /index!/
   end
 
   it "serves hidden files" do
