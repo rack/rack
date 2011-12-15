@@ -212,6 +212,12 @@ describe Rack::Utils do
       should.equal "foo[]="
     Rack::Utils.build_nested_query("foo" => ["bar"]).
       should.equal "foo[]=bar"
+    Rack::Utils.build_nested_query("foo" => true).
+      should.equal "foo=true"
+    Rack::Utils.build_nested_query("foo" => false).
+      should.equal "foo=false"
+    Rack::Utils.build_nested_query("foo" => {"bar" => true}).
+      should.equal "foo[bar]=true"
 
     # The ordering of the output query string is unpredictable with 1.8's
     # unordered hash. Test that build_nested_query performs the inverse
