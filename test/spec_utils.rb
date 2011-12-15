@@ -238,7 +238,8 @@ describe Rack::Utils do
       {"x" => {"y" => [{"v" => {"w" => "1"}}]}},
       {"x" => {"y" => [{"z" => "1", "v" => {"w" => "2"}}]}},
       {"x" => {"y" => [{"z" => "1"}, {"z" => "2"}]}},
-      {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}}
+      {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}},
+      {"foo" => false}, {"foo" => {"bar" => true}}
     ].each { |params|
       qs = Rack::Utils.build_nested_query(params)
       Rack::Utils.parse_nested_query(qs).should.equal params
