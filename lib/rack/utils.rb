@@ -92,7 +92,11 @@ module Rack
       return if k.empty?
 
       if after == ""
-        params[k] = v
+        if v == "false" || v == "true"
+          params[k] = eval(v)
+        else
+          params[k] = v
+        end
       elsif after == "[]"
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
@@ -137,7 +141,7 @@ module Rack
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
         }.join("&")
-      when String
+      when String, TrueClass, FalseClass
         raise ArgumentError, "value must be a Hash" if prefix.nil?
         "#{prefix}=#{escape(value)}"
       else
