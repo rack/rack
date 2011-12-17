@@ -95,8 +95,11 @@ module Rack
         end
 
         def inspect
-          load_for_read!
-          super
+          if loaded?
+            super
+          else
+            "#<#{self.class}:#{self.object_id} not yet loaded>"
+          end
         end
 
         def exists?
