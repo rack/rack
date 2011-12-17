@@ -154,4 +154,21 @@ describe Rack::File do
     heads['Cache-Control'].should.equal 'public, max-age=38'
   end
 
+  should "only support GET and HEAD requests" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+
+    forbidden = %w[post put delete]
+    forbidden.each do |method|
+
+      res = req.send(method, "/cgi/test")
+      res.should.be.forbidden
+    end
+
+    allowed = %w[get] # TODO: head
+    allowed.each do |method|
+      res = req.send(method, "/cgi/test")
+      res.should.be.successful
+    end
+  end
+
 end

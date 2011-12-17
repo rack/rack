@@ -13,6 +13,7 @@ module Rack
 
   class File
     SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+    ALLOWED_VERBS = %w[GET]
 
     attr_accessor :root
     attr_accessor :path
@@ -32,6 +33,10 @@ module Rack
     F = ::File
 
     def _call(env)
+      unless ALLOWED_VERBS.include? env["REQUEST_METHOD"]
+        return fail(403, "Forbidden")
+      end
+
       @path_info = Utils.unescape(env["PATH_INFO"])
       parts = @path_info.split SEPS
 
