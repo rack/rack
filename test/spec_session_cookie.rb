@@ -170,6 +170,38 @@ describe Rack::Session::Cookie do
     response2.body.should.equal '{"counter"=>1}'
   end
 
+  describe "1.9 bugs relating to inspecting yet-to-be-loaded from cookie data: Rack::Session::Abstract::SessionHash" do
+
+    it "can handle Rack::Lint middleware" do
+      app = Rack::Session::Cookie.new(incrementor)
+      res = Rack::MockRequest.new(app).get("/")
+
+      app = Rack::Session::Cookie.new(Rack::Lint.new(session_id))
+      res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+      res.body.should.not.be.nil
+    end
+
+    it "can handle a middleware that inspects the env" do
+      class TestEnvInspector
+        def initialize(app)
+          @app = app
+        end
+        def call(env)
+          env.inspect
+          @app.call(env)
+        end
+      end
+
+      app = Rack::Session::Cookie.new(incrementor)
+      res = Rack::MockRequest.new(app).get("/")
+
+      app = Rack::Session::Cookie.new(TestEnvInspector.new(session_id))
+      res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+      res.body.should.not.be.nil
+    end
+
+  end
+
   it "returns the session id in the session hash" do
     app = Rack::Session::Cookie.new(incrementor)
     res = Rack::MockRequest.new(app).get("/")
