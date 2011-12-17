@@ -262,7 +262,8 @@ module Rack
       @env["rack.request.cookie_string"] = string
       hash
     rescue => error
-      raise error.class, "cannot parse Cookie header: #{error.message}"
+      error.message.replace "cannot parse Cookie header: #{error.message}"
+      raise
     end
 
     def xhr?
