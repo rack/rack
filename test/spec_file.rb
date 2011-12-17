@@ -47,18 +47,29 @@ describe Rack::File do
     res.should =~ /ruby/
   end
 
-  should "not allow directory traversal" do
+  should "allow safe directory traversal" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
-    res = req.get("/cgi/../test")
+
+    res = req.get('/cgi/../cgi/test')
+    res.should.be.successful
+
+    res = req.get('.')
+    res.should.be.not_found
+
+    res = req.get("test/..")
+    res.should.be.not_found
+  end
+
+  should "not allow unsafe directory traversal" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+
+    res = req.get("/../README")
     res.should.be.forbidden
 
     res = req.get("../test")
     res.should.be.forbidden
 
     res = req.get("..")
-    res.should.be.forbidden
-
-    res = req.get("test/..")
     res.should.be.forbidden
   end
 
@@ -74,11 +85,18 @@ describe Rack::File do
     res.should.be.not_found
   end
 
-  should "not allow directory traversal with encoded periods" do
+  should "not allow unsafe directory traversal with encoded periods" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/%2E%2E/README")
 
     res.should.be.forbidden
+  end
+
+  should "allow safe directory traversal with encoded periods" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/%2E%2E/cgi/test")
+
+    res.should.be.successful
   end
 
   should "404 if it can't find the file" do

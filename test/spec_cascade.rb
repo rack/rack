@@ -17,7 +17,7 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade).get("/cgi/test").should.be.ok
     Rack::MockRequest.new(cascade).get("/foo").should.be.ok
     Rack::MockRequest.new(cascade).get("/toobad").should.be.not_found
-    Rack::MockRequest.new(cascade).get("/cgi/../bla").should.be.forbidden
+    Rack::MockRequest.new(cascade).get("/cgi/../..").should.be.forbidden
   end
 
   should "dispatch onward on whatever is passed" do
@@ -37,7 +37,7 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade).get('/cgi/../bla').should.be.not_found
     cascade << app1
     Rack::MockRequest.new(cascade).get('/cgi/test').should.be.ok
-    Rack::MockRequest.new(cascade).get('/cgi/../bla').should.be.forbidden
+    Rack::MockRequest.new(cascade).get('/cgi/../..').should.be.forbidden
     Rack::MockRequest.new(cascade).get('/foo').should.be.not_found
     cascade << app3
     Rack::MockRequest.new(cascade).get('/foo').should.be.ok

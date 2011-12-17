@@ -35,7 +35,17 @@ module Rack
       @path_info = Utils.unescape(env["PATH_INFO"])
       parts = @path_info.split SEPS
 
-      return fail(403, "Forbidden")  if parts.include? ".."
+      total_depth = parts.inject(0) do |depth, part|
+        case part
+        when '', '.'
+          depth
+        when '..'
+          return fail(403, "Forbiden") if depth - 1 < 0
+          depth - 1
+        else
+          depth + 1
+        end
+      end
 
       @path = F.join(@root, *parts)
 
