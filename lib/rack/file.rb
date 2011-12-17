@@ -13,7 +13,7 @@ module Rack
 
   class File
     SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
-    ALLOWED_VERBS = %w[GET]
+    ALLOWED_VERBS = %w[GET HEAD]
 
     attr_accessor :root
     attr_accessor :path
@@ -76,7 +76,7 @@ module Rack
           "Last-Modified"  => last_modified,
           "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain')
         },
-        self
+        env["REQUEST_METHOD"] == "HEAD" ? [] : self
       ]
       response[1].merge! 'Cache-Control' => @cache_control if @cache_control
 

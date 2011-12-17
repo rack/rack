@@ -164,7 +164,7 @@ describe Rack::File do
       res.should.be.forbidden
     end
 
-    allowed = %w[get] # TODO: head
+    allowed = %w[get head]
     allowed.each do |method|
       res = req.send(method, "/cgi/test")
       res.should.be.successful
