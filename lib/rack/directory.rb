@@ -90,7 +90,7 @@ table { width:100%%; }
         basename = F.basename(node)
         ext = F.extname(node)
 
-        url = F.join(*url_head + [Rack::Utils.escape basename])
+        url = F.join(*url_head + [Rack::Utils.escape(basename)])
         size = stat.size
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
