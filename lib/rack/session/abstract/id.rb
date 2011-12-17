@@ -98,7 +98,7 @@ module Rack
           if loaded?
             super
           else
-            "#<#{self.class}:#{self.object_id} not yet loaded>"
+            "#<#{self.class}:0x#{self.object_id.to_s(16)} not yet loaded>"
           end
         end
 

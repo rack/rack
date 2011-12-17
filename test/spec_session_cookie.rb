@@ -11,7 +11,7 @@ describe Rack::Session::Cookie do
   end
 
   session_id = lambda do |env|
-    Rack::Response.new(env["rack.session"].inspect).to_a
+    Rack::Response.new(env["rack.session"].to_hash.inspect).to_a
   end
 
   session_option = lambda do |opt|
