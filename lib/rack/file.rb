@@ -40,7 +40,7 @@ module Rack
         when '', '.'
           depth
         when '..'
-          return fail(403, "Forbiden") if depth - 1 < 0
+          return fail(403, "Forbidden") if depth - 1 < 0
           depth - 1
         else
           depth + 1
