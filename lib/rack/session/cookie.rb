@@ -30,7 +30,7 @@ module Rack
     # Example of a cookie with no encoding:
     #
     #   Rack::Session::Cookie.new(application, {
-    #     :coder => Racke::Session::Cookie::Identity.new
+    #     :coder => Rack::Session::Cookie::Identity.new
     #   })
     #
     # Example of a cookie with custom encoding:
