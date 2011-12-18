@@ -4,7 +4,7 @@ module Rack
   # status codes).
 
   class Cascade
-    NotFound = [404, {}, []]
+    NotFound = [404, {"Content-Type" => "text/plain"}, []]
 
     attr_reader :apps
 

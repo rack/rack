@@ -1,19 +1,20 @@
 require 'rack/commonlogger'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::CommonLogger do
   obj = 'foobar'
   length = obj.size
 
-  app = lambda { |env|
+  app = Rack::Lint.new lambda { |env|
     [200,
      {"Content-Type" => "text/html", "Content-Length" => length.to_s},
      [obj]]}
-  app_without_length = lambda { |env|
+  app_without_length = Rack::Lint.new lambda { |env|
     [200,
      {"Content-Type" => "text/html"},
      []]}
-  app_with_zero_length = lambda { |env|
+  app_with_zero_length = Rack::Lint.new lambda { |env|
     [200,
      {"Content-Type" => "text/html", "Content-Length" => "0"},
      []]}
