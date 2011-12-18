@@ -1,4 +1,5 @@
 require 'rack/auth/digest/md5'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Auth::Digest::MD5 do
@@ -7,10 +8,10 @@ describe Rack::Auth::Digest::MD5 do
   end
 
   def unprotected_app
-    lambda do |env|
+    Rack::Lint.new lambda { |env|
       friend = Rack::Utils.parse_query(env["QUERY_STRING"])["friend"]
       [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
-    end
+    }
   end
 
   def protected_app

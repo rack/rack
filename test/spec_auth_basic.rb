@@ -1,4 +1,5 @@
 require 'rack/auth/basic'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Auth::Basic do
@@ -7,7 +8,9 @@ describe Rack::Auth::Basic do
   end
 
   def unprotected_app
-    lambda { |env| [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}"] ] }
+    Rack::Lint.new lambda { |env|
+      [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}"] ]
+    }
   end
 
   def protected_app
