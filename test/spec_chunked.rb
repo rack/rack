@@ -3,6 +3,8 @@ require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Chunked do
+  Enumerator = ::Enumerator rescue ::Enumerable::Enumerator
+
   def chunked(app)
     proc do |env|
       app = Rack::Chunked.new(app)
