@@ -40,7 +40,7 @@ module Rack
       @path_info = Utils.unescape(env["PATH_INFO"])
       parts = @path_info.split SEPS
 
-      total_depth = parts.inject(0) do |depth, part|
+      parts.inject(0) do |depth, part|
         case part
         when '', '.'
           depth

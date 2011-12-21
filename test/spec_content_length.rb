@@ -52,7 +52,7 @@ describe Rack::ContentLength do
     end.new(%w[one two three])
 
     app = lambda { |env| [200, {}, body] }
-    response = Rack::ContentLength.new(app).call({})
+    Rack::ContentLength.new(app).call({})
     body.closed.should.equal true
   end
 

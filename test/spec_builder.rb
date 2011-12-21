@@ -181,6 +181,7 @@ describe Rack::Builder do
 
     it "removes __END__ before evaluating app" do
       app, options = Rack::Builder.parse_file config_file('end.ru')
+      options = nil # ignored, prevents warning
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
     end
 
