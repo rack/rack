@@ -5,7 +5,7 @@ require 'rack/handler/cgi'
 describe Rack::Handler::CGI do
   extend TestRequest::Helpers
 
-  @host = '0.0.0.0'
+  @host = '127.0.0.1'
   @port = 9203
 
   if `which lighttpd` && !$?.success?

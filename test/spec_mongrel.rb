@@ -11,7 +11,7 @@ $tcp_cork_opts = nil
 describe Rack::Handler::Mongrel do
   extend TestRequest::Helpers
 
-  @server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
+  @server = Mongrel::HttpServer.new(@host='127.0.0.1', @port=9201)
   @server.register('/test',
                   Rack::Handler::Mongrel.new(Rack::Lint.new(TestRequest.new)))
   @server.register('/stream',
@@ -31,7 +31,7 @@ describe Rack::Handler::Mongrel do
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
     response["SERVER_PORT"].should.equal "9201"
-    response["SERVER_NAME"].should.equal "0.0.0.0"
+    response["SERVER_NAME"].should.equal "127.0.0.1"
   end
 
   should "have rack headers" do
