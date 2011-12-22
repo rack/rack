@@ -84,7 +84,7 @@ describe Rack::Handler::Mongrel do
   should "provide a .run" do
     block_ran = false
     Thread.new {
-      Rack::Handler::Mongrel.run(lambda {}, {:Port => 9211}) { |server|
+      Rack::Handler::Mongrel.run(lambda {}, {:Host => '127.0.0.1', :Port => 9211}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         block_ran = true
       }
@@ -97,7 +97,7 @@ describe Rack::Handler::Mongrel do
     block_ran = false
     Thread.new {
       map = {'/'=>lambda{},'/foo'=>lambda{}}
-      Rack::Handler::Mongrel.run(map, :map => true, :Port => 9221) { |server|
+      Rack::Handler::Mongrel.run(map, :map => true, :Host => '127.0.0.1', :Port => 9221) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
@@ -114,7 +114,7 @@ describe Rack::Handler::Mongrel do
     block_ran = false
     Thread.new {
       map = Rack::URLMap.new({'/'=>lambda{},'/bar'=>lambda{}})
-      Rack::Handler::Mongrel.run(map, {:map => true, :Port => 9231}) { |server|
+      Rack::Handler::Mongrel.run(map, {:map => true, :Host => '127.0.0.1', :Port => 9231}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
@@ -134,12 +134,12 @@ describe Rack::Handler::Mongrel do
         '/' => lambda{},
         '/foo' => lambda{},
         '/bar' => lambda{},
-        'http://localhost/' => lambda{},
-        'http://localhost/bar' => lambda{},
+        'http://127.0.0.1/' => lambda{},
+        'http://127.0.0.1/bar' => lambda{},
         'http://falsehost/arf' => lambda{},
         'http://falsehost/qux' => lambda{}
       })
-      opt = {:map => true, :Port => 9241, :Host => 'localhost'}
+      opt = {:map => true, :Port => 9241, :Host => '127.0.0.1'}
       Rack::Handler::Mongrel.run(map, opt) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.should.include '/'

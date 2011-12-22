@@ -106,7 +106,9 @@ describe Rack::Handler::WEBrick do
     block_ran = false
     catch(:done) {
       Rack::Handler::WEBrick.run(lambda {},
-                                 {:Port => 9210,
+                                 {
+                                   :Host => '127.0.0.1',
+                                   :Port => 9210,
                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                    :AccessLog => []}) { |server|
         block_ran = true
