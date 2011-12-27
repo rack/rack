@@ -111,6 +111,11 @@ module Rack
           @loaded
         end
 
+        def empty?
+          load_for_read!
+          super
+        end
+
       private
 
         def load_for_read!
