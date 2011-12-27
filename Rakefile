@@ -3,6 +3,18 @@
 desc "Run all the tests"
 task :default => [:test]
 
+desc "Install gem dependencies"
+task :deps do
+  require 'rubygems'
+  spec = Gem::Specification.load('rack.gemspec')
+  spec.dependencies.each do |dep|
+    reqs = dep.requirements_list
+    reqs = (["-v"] * reqs.size).zip(reqs).flatten
+    # Use system over sh, because we want to ignore errors!
+    system "gem", "install", '--conservative', dep.name, *reqs
+  end
+end
+
 desc "Make an archive as .tar.gz"
 task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
