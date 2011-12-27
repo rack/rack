@@ -1,7 +1,7 @@
 module Rack
   # *Handlers* connect web servers with Rack.
   #
-  # Rack includes Handlers for Mongrel, WEBrick, FastCGI, CGI, SCGI
+  # Rack includes Handlers for Thin, WEBrick, FastCGI, CGI, SCGI
   # and LiteSpeed.
   #
   # Handlers usually are activated by calling <tt>MyHandler.run(myapp)</tt>.
@@ -38,7 +38,7 @@ module Rack
         Rack::Handler::CGI
       else
         begin
-          Rack::Handler::Mongrel
+          Rack::Handler::Thin
         rescue LoadError
           Rack::Handler::WEBrick
         end
