@@ -106,11 +106,16 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(only_session_id)).
       get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+
+    res.body.should.not.equal ""
     old_session_id = res.body
+
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(renewer)).
       get("/", "HTTP_COOKIE" => res["Set-Cookie"])
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(only_session_id)).
       get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+
+    res.body.should.not.equal ""
     res.body.should.not.equal old_session_id
   end
 
