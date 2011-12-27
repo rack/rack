@@ -85,6 +85,11 @@ task :test => 'SPEC' do
   sh "bacon -I./lib:./test #{opts} #{specopts}"
 end
 
+desc "Run all the tests we run on CI"
+task :ci => 'SPEC' do
+  sh "bacon -r./test/gemloader -I./lib:./test -w -a -q -t '^Rack::Handler::CGI'"
+end
+
 desc "Run all the tests"
 task :fulltest => %w[SPEC chmod] do
   opts     = ENV['TEST'] || '-a'
