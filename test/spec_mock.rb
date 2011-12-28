@@ -1,8 +1,9 @@
 require 'yaml'
+require 'rack/lint'
 require 'rack/mock'
 require 'stringio'
 
-app = lambda { |env|
+app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
 
   env["mock.postdata"] = env["rack.input"].read
@@ -11,10 +12,11 @@ app = lambda { |env|
     env["rack.errors"].flush
   end
 
-  Rack::Response.new(env.to_yaml,
+  body = req.head? ? "" : env.to_yaml
+  Rack::Response.new(body,
                      req.GET["status"] || 200,
                      "Content-Type" => "text/yaml").finish
-}
+})
 
 describe Rack::MockRequest do
   should "return a MockResponse" do
@@ -62,10 +64,9 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).delete("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "DELETE"
-
-    res = Rack::MockRequest.new(app).head("", :input => "foo")
-    env = YAML.load(res.body)
-    env["REQUEST_METHOD"].should.equal "HEAD"
+    
+    Rack::MockRequest.env_for("/", :method => "HEAD")["REQUEST_METHOD"].
+      should.equal "HEAD"
 
     Rack::MockRequest.env_for("/", :method => "OPTIONS")["REQUEST_METHOD"].
       should.equal "OPTIONS"

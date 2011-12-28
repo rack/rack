@@ -1,3 +1,4 @@
+require 'rack/lint'
 require 'rack/recursive'
 require 'rack/mock'
 
@@ -28,11 +29,14 @@ describe Rack::Recursive do
   @app4 = lambda { |env|
     raise Rack::ForwardRequest.new("http://example.org/app1/quux?meh")
   }
+  
+  def recursive(map)
+    Rack::Lint.new Rack::Recursive.new(Rack::URLMap.new(map))
+  end
 
   should "allow for subrequests" do
-    res = Rack::MockRequest.new(Rack::Recursive.new(
-                                  Rack::URLMap.new("/app1" => @app1,
-                                                   "/app2" => @app2))).
+    res = Rack::MockRequest.new(recursive("/app1" => @app1,
+                                          "/app2" => @app2)).
       get("/app2")
 
     res.should.be.ok
@@ -41,9 +45,8 @@ describe Rack::Recursive do
 
   should "raise error on requests not below the app" do
     app = Rack::URLMap.new("/app1" => @app1,
-                           "/app" => Rack::Recursive.new(
-                              Rack::URLMap.new("/1" => @app1,
-                                               "/2" => @app2)))
+                           "/app" => recursive("/1" => @app1,
+                                               "/2" => @app2))
 
     lambda {
       Rack::MockRequest.new(app).get("/app/2")
@@ -52,9 +55,9 @@ describe Rack::Recursive do
   end
 
   should "support forwarding" do
-    app = Rack::Recursive.new(Rack::URLMap.new("/app1" => @app1,
-                                               "/app3" => @app3,
-                                               "/app4" => @app4))
+    app = recursive("/app1" => @app1,
+                    "/app3" => @app3,
+                    "/app4" => @app4)
 
     res = Rack::MockRequest.new(app).get("/app3")
     res.should.be.ok
