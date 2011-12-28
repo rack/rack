@@ -1,3 +1,6 @@
+require 'enumerator'
+require 'rack/lint'
+require 'rack/mock'
 require 'rack/nulllogger'
 
 describe Rack::NullLogger do
@@ -6,7 +9,13 @@ describe Rack::NullLogger do
       env['rack.logger'].warn "b00m"
       [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]]
     }
-    logger = Rack::NullLogger.new(app)
-    lambda{ logger.call({}) }.should.not.raise
+    
+    logger = Rack::Lint.new(Rack::NullLogger.new(app))
+    
+    res = logger.call(Rack::MockRequest.env_for)
+    res[0..1].should.equal [
+      200, {'Content-Type' => 'text/plain'}
+    ]
+    Enumerator.new(res[2]).to_a.should.equal ["Hello, World!"]
   end
 end
