@@ -4,6 +4,8 @@ require 'rack/mock'
 require 'rack/nulllogger'
 
 describe Rack::NullLogger do
+  Enumerator = ::Enumerable::Enumerator unless defined?(Enumerator)
+  
   should "act as a noop logger" do
     app = lambda { |env|
       env['rack.logger'].warn "b00m"
