@@ -8,10 +8,10 @@ describe Rack::Chunked do
   def chunked(app)
     proc do |env|
       app = Rack::Chunked.new(app)
-      Rack::Lint.new(app).call(env).tap do |response|
-        # we want to use body like an array, but it only has #each
-        response[2] = Enumerator.new(response[2]).to_a
-      end
+      response = Rack::Lint.new(app).call(env)
+      # we want to use body like an array, but it only has #each
+      response[2] = Enumerator.new(response[2]).to_a
+      response
     end
   end
   

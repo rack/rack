@@ -14,9 +14,9 @@ describe Rack::Deflater do
   def build_response(status, body, accept_encoding, headers = {})
     body = [body]  if body.respond_to? :to_str
     app = lambda do |env|
-      [status, {}, body].tap do |res|
-        res[1]["Content-Type"] = "text/plain" unless res[0] == 304
-      end
+      res = [status, {}, body]
+      res[1]["Content-Type"] = "text/plain" unless res[0] == 304
+      res
     end
     request = Rack::MockRequest.env_for("", headers.merge("HTTP_ACCEPT_ENCODING" => accept_encoding))
     response = deflater(app).call(request)

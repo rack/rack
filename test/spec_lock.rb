@@ -115,11 +115,11 @@ describe Rack::Lock do
     env  = Rack::MockRequest.env_for("/")
     body = [200, {"Content-Type" => "text/plain"}, %w{ hi mom }]
     app  = lock_app(lambda { |inner_env| body })
-    app.call(env).tap do |res|
-      res[0].should.equal body[0]
-      res[1].should.equal body[1]
-      Enumerator.new(res[2]).to_a.should.equal ["hi", "mom"]
-    end
+    
+    res = app.call(env)
+    res[0].should.equal body[0]
+    res[1].should.equal body[1]
+    Enumerator.new(res[2]).to_a.should.equal ["hi", "mom"]
   end
 
   should "call synchronize on lock" do
