@@ -15,7 +15,7 @@ context "Rack::Logger" do
 
     errors = StringIO.new
     Rack::Logger.new(app).call({'rack.errors' => errors})
-    errors.string.should.match "INFO -- : Program started"
-    errors.string.should.match "WARN -- : Nothing to do"
+    errors.string.should.match "Program started"
+    errors.string.should.match "Nothing to do"
   end
 end
