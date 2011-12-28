@@ -1,3 +1,5 @@
+require 'thread'
+
 module Rack
   class Lock
     FLAG = 'rack.multithread'.freeze
