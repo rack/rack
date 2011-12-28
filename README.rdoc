@@ -373,6 +373,10 @@ run on port 11211) and memcache-client installed.
 * October 17, 2011: Twentieth public release 1.3.5
   * Fix annoying warnings caused by the backport in 1.3.4
 
+* December 28th, 2011: Twenty third public release: 1.3.6
+  * Security fix. http://www.ocert.org/advisories/ocert-2011-003.html
+    Further information here: http://jruby.org/2011/12/27/jruby-1-6-5-1
+
 == Contact
 
 Please post bugs, suggestions and patches to
