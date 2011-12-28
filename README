@@ -344,6 +344,10 @@ run on port 11211) and memcache-client installed.
 * September 16, 2011: Eighteenth public release 1.2.4
   * Fix a bug with MRI regex engine to prevent XSS by malformed unicode
 
+* December 28th, 2011: Twenty second public release: 1.2.5
+  * Security fix. http://www.ocert.org/advisories/ocert-2011-003.html
+    Further information here: http://jruby.org/2011/12/27/jruby-1-6-5-1
+
 == Contact
 
 Please post bugs, suggestions and patches to
