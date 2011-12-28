@@ -79,6 +79,32 @@ context "Rack::Request" do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  specify "limit the keys from the GET query string" do
+    env = Rack::MockRequest.env_for("/?foo=bar")
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+    begin
+      req = Rack::Request.new(env)
+      lambda { req.GET }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
+  end
+
+  specify "limit the keys from the POST form data" do
+    env = Rack::MockRequest.env_for("",
+            "REQUEST_METHOD" => 'POST',
+            :input => "foo=bar&quux=bla")
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+    begin
+      req = Rack::Request.new(env)
+      lambda { req.POST }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
+  end
+
   specify "can parse POST data with explicit content type regardless of method" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
@@ -293,6 +319,29 @@ context "Rack::Request" do
       req.media_type_params.should.not.include 'BLING'
       req.media_type_params.should.include 'bling'
       req.media_type_params['bling'].should.equal 'bam'
+  end
+
+  specify "raise RangeError if the key space is exhausted" do
+    input = <<EOF
+--AaB03x\r
+Content-Disposition: form-data; name="text"\r
+Content-Type: text/plain; charset=US-ASCII\r
+\r
+contents\r
+--AaB03x--\r
+EOF
+
+    env = Rack::MockRequest.env_for("/", 
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+    begin
+      lambda { Rack::Utils::Multipart.parse_multipart(env) }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
   end
 
   specify "can parse multipart form data" do
