@@ -1,22 +1,27 @@
 require 'rack/static'
+require 'rack/lint'
 require 'rack/mock'
 
 class DummyApp
   def call(env)
-    [200, {}, ["Hello World"]]
+    [200, {"Content-Type" => "text/plain"}, ["Hello World"]]
   end
 end
 
 describe Rack::Static do
+  def static(app, *args)
+    Rack::Lint.new Rack::Static.new(app, *args)
+  end
+  
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = {:urls => ["/cgi"], :root => root}
   STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
 
-  @request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, OPTIONS))
-  @static_request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, STATIC_OPTIONS))
-  @hash_request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, HASH_OPTIONS))
+  @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
+  @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
+  @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
 
   it "serves files" do
     res = @request.get("/cgi/test")
@@ -67,7 +72,7 @@ describe Rack::Static do
 
   it "supports serving fixed cache-control" do
     opts = OPTIONS.merge(:cache_control => 'public')
-    request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, opts))
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
     res = request.get("/cgi/test")
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public'
