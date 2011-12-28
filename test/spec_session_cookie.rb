@@ -1,4 +1,5 @@
 require 'rack/session/cookie'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Session::Cookie do
@@ -9,7 +10,7 @@ describe Rack::Session::Cookie do
     hash.delete("session_id")
     Rack::Response.new(hash.inspect).to_a
   end
-
+  
   session_id = lambda do |env|
     Rack::Response.new(env["rack.session"].to_hash.inspect).to_a
   end
@@ -22,6 +23,39 @@ describe Rack::Session::Cookie do
 
   nothing = lambda do |env|
     Rack::Response.new("Nothing").to_a
+  end
+
+  renewer = lambda do |env|
+    env["rack.session.options"][:renew] = true
+    Rack::Response.new("Nothing").to_a
+  end
+
+  only_session_id = lambda do |env|
+    Rack::Response.new(env["rack.session"]["session_id"].to_s).to_a
+  end
+
+  bigcookie = lambda do |env|
+    env["rack.session"]["cookie"] = "big" * 3000
+    Rack::Response.new(env["rack.session"].inspect).to_a
+  end
+
+  destroy_session = lambda do |env|
+    env["rack.session"].destroy
+    Rack::Response.new("Nothing").to_a
+  end
+
+  def response_for(options={})
+    request_options = options.fetch(:request, {})
+    cookie = if options[:cookie].is_a?(Rack::Response)
+      options[:cookie]["Set-Cookie"]
+    else
+      options[:cookie]
+    end
+    request_options["HTTP_COOKIE"] = cookie || ""
+
+    app_with_cookie = Rack::Session::Cookie.new(*options[:app])
+    app_with_cookie = Rack::Lint.new(app_with_cookie)
+    Rack::MockRequest.new(app_with_cookie).get("/", request_options)
   end
 
   before do

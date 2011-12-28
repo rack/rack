@@ -1,4 +1,5 @@
 require 'thread'
+require 'rack/lint'
 require 'rack/mock'
 require 'rack/session/pool'
 
@@ -12,28 +13,30 @@ describe Rack::Session::Pool do
     Rack::Response.new(env["rack.session"].inspect).to_a
   end
 
-  session_id = lambda do |env|
+  session_id = Rack::Lint.new(lambda do |env|
     Rack::Response.new(env["rack.session"].inspect).to_a
-  end
+  end)
 
-  nothing = lambda do |env|
+  nothing = Rack::Lint.new(lambda do |env|
     Rack::Response.new("Nothing").to_a
-  end
+  end)
 
-  drop_session = lambda do |env|
+  drop_session = Rack::Lint.new(lambda do |env|
     env['rack.session.options'][:drop] = true
     incrementor.call(env)
-  end
+  end)
 
-  renew_session = lambda do |env|
+  renew_session = Rack::Lint.new(lambda do |env|
     env['rack.session.options'][:renew] = true
     incrementor.call(env)
-  end
+  end)
 
-  defer_session = lambda do |env|
+  defer_session = Rack::Lint.new(lambda do |env|
     env['rack.session.options'][:defer] = true
     incrementor.call(env)
-  end
+  end)
+  
+  incrementor = Rack::Lint.new(incrementor)
 
   it "creates a new cookie" do
     pool = Rack::Session::Pool.new(incrementor)
