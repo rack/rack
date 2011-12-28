@@ -1,11 +1,13 @@
+require 'enumerator'
 require 'rack/head'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Head do
   def test_response(headers = {})
     app = lambda { |env| [200, {"Content-type" => "test/plain", "Content-length" => "3"}, ["foo"]] }
     request = Rack::MockRequest.env_for("/", headers)
-    response = Rack::Head.new(app).call(request)
+    response = Rack::Lint.new(Rack::Head.new(app)).call(request)
 
     return response
   end
@@ -16,7 +18,7 @@ describe Rack::Head do
 
       resp[0].should.equal(200)
       resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-      resp[2].should.equal(["foo"])
+      Enumerator.new(resp[2]).to_a.should.equal(["foo"])
     end
   end
 
@@ -25,6 +27,6 @@ describe Rack::Head do
 
     resp[0].should.equal(200)
     resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    resp[2].should.equal([])
+    Enumerator.new(resp[2]).to_a.should.equal([])
   end
 end

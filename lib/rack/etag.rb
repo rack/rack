@@ -29,7 +29,7 @@ module Rack
 
       unless headers['Cache-Control']
         headers['Cache-Control'] =
-          (digest ? @cache_control : @no_cache_control) || []
+          (digest ? @cache_control : @no_cache_control) || ""
       end
 
       [status, headers, body]
