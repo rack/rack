@@ -29,6 +29,14 @@ module Rack
 
     DEFAULT_SEP = /[&;] */n
 
+    class << self
+      attr_accessor :key_space_limit
+    end
+
+    # The default number of bytes to allow parameter keys to take up.
+    # This helps prevent a rogue client from flooding a Request.
+    self.key_space_limit = 65536
+
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
     # and ';' characters.  You can also use this to parse
@@ -37,8 +45,19 @@ module Rack
     def parse_query(qs, d = nil)
       params = {}
 
+      max_key_space = Utils.key_space_limit
+      bytes = 0
+
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
+
+        if k
+          bytes += k.size
+          if bytes > max_key_space
+            raise RangeError, "exceeded available parameter key space"
+          end
+        end
+
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -57,8 +76,19 @@ module Rack
     def parse_nested_query(qs, d = nil)
       params = {}
 
+      max_key_space = Utils.key_space_limit
+      bytes = 0
+
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = unescape(p).split('=', 2)
+
+        if k
+          bytes += k.size
+          if bytes > max_key_space
+            raise RangeError, "exceeded available parameter key space"
+          end
+        end
+
         normalize_params(params, k, v)
       end
 
@@ -503,6 +533,9 @@ module Rack
 
           rx = /(?:#{EOL})?#{Regexp.quote boundary}(#{EOL}|--)/n
 
+          max_key_space = Utils.key_space_limit
+          bytes = 0
+
           loop {
             head = nil
             body = ''
@@ -537,7 +570,14 @@ module Rack
                 content_type = head[/Content-Type: (.*)#{EOL}/ni, 1]
                 name = head[/Content-Disposition:.*\s+name="?([^\";]*)"?/ni, 1] || head[/Content-ID:\s*([^#{EOL}]*)/ni, 1]
 
-                if filename
+                if name
+                  bytes += name.size
+                  if bytes > max_key_space
+                    raise RangeError, "exceeded available parameter key space"
+                  end
+                end
+
+                if content_type || filename
                   body = Tempfile.new("RackMultipart")
                   body.binmode  if body.respond_to?(:binmode)
                 end
