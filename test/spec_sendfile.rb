@@ -43,7 +43,7 @@ describe Rack::Sendfile do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
+      response.headers['Content-Length'].should.equal '0'
       response.headers['X-Sendfile'].should.equal '/tmp/rack_sendfile'
     end
   end
@@ -52,7 +52,7 @@ describe Rack::Sendfile do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Lighttpd-Send-File' do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
+      response.headers['Content-Length'].should.equal '0'
       response.headers['X-Lighttpd-Send-File'].should.equal '/tmp/rack_sendfile'
     end
   end
@@ -65,7 +65,7 @@ describe Rack::Sendfile do
     request headers do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
+      response.headers['Content-Length'].should.equal '0'
       response.headers['X-Accel-Redirect'].should.equal '/foo/bar/rack_sendfile'
     end
   end
