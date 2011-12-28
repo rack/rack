@@ -42,7 +42,7 @@ describe Rack::Chunked do
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.should.not.include 'Content-Length'
     response.headers['Transfer-Encoding'].should.equal 'chunked'
-    response.body.encoding.to_s.should == "ASCII-8BIT"
+    response.body.encoding.to_s.should.equal "ASCII-8BIT"
     response.body.should.equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n"
   end if RUBY_VERSION >= "1.9"
 
