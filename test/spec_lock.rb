@@ -36,6 +36,8 @@ module LockHelpers
 end
 
 describe Rack::Lock do
+  Enumerator = ::Enumerable::Enumerator unless defined?(Enumerator)
+  
   extend LockHelpers
   
   describe 'Proxy' do
