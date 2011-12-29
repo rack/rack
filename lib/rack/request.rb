@@ -158,7 +158,7 @@ module Rack
       PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
     end
 
-    # Returns the data recieved in the query string.
+    # Returns the data received in the query string.
     def GET
       if @env["rack.request.query_string"] == query_string
         @env["rack.request.query_hash"]
@@ -168,7 +168,7 @@ module Rack
       end
     end
 
-    # Returns the data recieved in the request body.
+    # Returns the data received in the request body.
     #
     # This method support both application/x-www-form-urlencoded and
     # multipart/form-data.
