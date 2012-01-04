@@ -65,7 +65,7 @@ applications needs using middleware, for example:
 * Rack::CommonLogger, for creating Apache-style logfiles.
 * Rack::ShowException, for catching unhandled exceptions and
   presenting them in a nice and helpful way with clickable backtrace.
-* Rack::File, for serving static files.
+* Rack::Files, for serving static files.
 * ...many others!
 
 All these components use the same interface, which is described in
@@ -194,7 +194,7 @@ run on port 11211) and memcache-client installed.
   * Pool sessions, by blink.
   * OpenID authentication, by blink.
   * :Port and :File options for opening FastCGI sockets, by blink.
-  * Last-Modified HTTP header for Rack::File, by blink.
+  * Last-Modified HTTP header for Rack::Files, by blink.
   * Rack::Builder#use now accepts blocks, by Corey Jewett.
     (See example/protectedlobster.ru)
   * HTTP status 201 can contain a Content-Type and a body now.
@@ -229,7 +229,7 @@ run on port 11211) and memcache-client installed.
   * Many bugfixes and small improvements.
 
 * January 9th, 2009: Sixth public release 0.9.1.
-  * Fix directory traversal exploits in Rack::File and Rack::Directory.
+  * Fix directory traversal exploits in Rack::Files and Rack::Directory.
 
 * April 25th, 2009: Seventh public release 1.0.0.
   * SPEC change: Rack::VERSION has been pushed to [1,0].
@@ -384,7 +384,7 @@ run on port 11211) and memcache-client installed.
   * Various mime types added
   * Rack::MockRequest now supports HEAD
   * Rack::Directory now supports files that contain RFC3986 reserved chars
-  * Rack::File now only supports GET and HEAD requests
+  * Rack::Files now only supports GET and HEAD requests
   * Rack::Server#start now passes the block to Rack::Handler::<h>#run
   * Rack::Static now supports an index option
   * Added the Teapot status code
