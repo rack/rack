@@ -1,3 +1,5 @@
+require 'rack/files'
+
 module Rack
 
   # The Rack::Static middleware intercepts requests for static files
