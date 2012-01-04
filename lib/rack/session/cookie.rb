@@ -104,10 +104,11 @@ module Rack
           request = Rack::Request.new(env)
           session_data = request.cookies[@key]
 
-          if (@secret || @old_secret) && session_data
+          if @secret && session_data
             session_data, digest = session_data.split("--")
-            if (digest != generate_hmac(session_data, @secret)) && (digest != generate_hmac(session_data, @old_secret))
-              session_data = nil
+            unless digest == generate_hmac(session_data, @secret)
+              # Clear the session data if secret doesn't match and old secret doesn't match
+              session_data = nil if (@old_secret.nil? || (digest != generate_hmac(session_data, @old_secret)))
             end
           end
 
