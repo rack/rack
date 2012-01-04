@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "rack/file"
+require "rack/files"
 require "rack/utils"
 
 require_relative 'core_ext/regexp'
@@ -9,7 +9,7 @@ module Rack
 
   # The Rack::Static middleware intercepts requests for static files
   # (javascript files, images, stylesheets, etc) based on the url prefixes or
-  # route mappings passed in the options, and serves them using a Rack::File
+  # route mappings passed in the options, and serves them using a Rack::Files
   # object. This allows a Rack stack to serve both static and dynamic content.
   #
   # Examples:
@@ -100,7 +100,7 @@ module Rack
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
       @header_rules.unshift([:all, { CACHE_CONTROL => options[:cache_control] }]) if options[:cache_control]
 
-      @file_server = Rack::File.new(root)
+      @file_server = Rack::Files.new(root)
     end
 
     def add_index_root?(path)

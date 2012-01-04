@@ -76,7 +76,7 @@ applications needs using middleware, for example:
 * Rack::CommonLogger, for creating Apache-style logfiles.
 * Rack::ShowException, for catching unhandled exceptions and
   presenting them in a nice and helpful way with clickable backtrace.
-* Rack::File, for serving static files.
+* Rack::Files, for serving static files.
 * ...many others!
 
 All these components use the same interface, which is described in

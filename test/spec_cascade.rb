@@ -3,7 +3,7 @@
 require 'minitest/global_expectations/autorun'
 require 'rack'
 require 'rack/cascade'
-require 'rack/file'
+require 'rack/files'
 require 'rack/lint'
 require 'rack/urlmap'
 require 'rack/mock'
@@ -14,7 +14,7 @@ describe Rack::Cascade do
   end
 
   docroot = File.expand_path(File.dirname(__FILE__))
-  app1 = Rack::File.new(docroot)
+  app1 = Rack::Files.new(docroot)
 
   app2 = Rack::URLMap.new("/crash" => lambda { |env| raise "boom" })
 

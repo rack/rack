@@ -10,7 +10,7 @@ module Rack
   # will be presented in an html based index. If a file is found, the env will
   # be passed to the specified +app+.
   #
-  # If +app+ is not specified, a Rack::File of the same +root+ will be used.
+  # If +app+ is not specified, a Rack::Files of the same +root+ will be used.
 
   class Directory
     DIR_FILE = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>"
@@ -60,7 +60,7 @@ table { width:100%%; }
 
     def initialize(root, app = nil)
       @root = ::File.expand_path(root)
-      @app = app || Rack::File.new(@root)
+      @app = app || Rack::Files.new(@root)
       @head = Rack::Head.new(lambda { |env| get env })
     end
 

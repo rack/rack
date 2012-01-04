@@ -17,6 +17,7 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Add Falcon to the default handler fallbacks. ([@ioquatix](https://github.com/ioquatix))
 - Update codebase to avoid string mutations in preparation for `frozen_string_literals`. ([@pat](https://github.com/pat))
 - Change `MockRequest#env_for` to rely on the input optionally responding to `#size` instead of `#length`. ([@janko](https://github.com/janko))
+- Rename `Rack::File` -> `Rack::Files` and add deprecation notice. ([@postmodern](https://github.com/postmodern)).
 
 ### Removed
 
@@ -216,7 +217,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Rack::Auth::AbstractRequest#scheme now yields strings, not symbols
   - Rack::Utils cookie functions now format expires in RFC 2822 format
   - Rack::File now has a default mime type
-  - rackup -b 'run Rack::File.new(".")', option provides command line configs
+  - rackup -b 'run Rack::Files.new(".")', option provides command line configs
   - Rack::Deflater will no longer double encode bodies
   - Rack::Mime#match? provides convenience for Accept header matching
   - Rack::Utils#q_values provides splitting for Accept headers

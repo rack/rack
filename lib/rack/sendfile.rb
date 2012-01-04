@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rack/file'
+require 'rack/files'
 require 'rack/body_proxy'
 
 module Rack
@@ -16,7 +16,7 @@ module Rack
   #
   # In order to take advantage of this middleware, the response body must
   # respond to +to_path+ and the request must include an X-Sendfile-Type
-  # header. Rack::File and other components implement +to_path+ so there's
+  # header. Rack::Files and other components implement +to_path+ so there's
   # rarely anything you need to do in your application. The X-Sendfile-Type
   # header is typically set in your web servers configuration. The following
   # sections attempt to document
