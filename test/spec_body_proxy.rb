@@ -1,4 +1,5 @@
 require 'rack/body_proxy'
+require 'stringio'
 
 describe Rack::BodyProxy do
   should 'call each on the wrapped body' do
