@@ -137,7 +137,7 @@ describe Rack::Session::Cookie do
     }.should.raise(Rack::MockRequest::FatalWarning)
   end
 
-  it "loads from a cookie wih integrity hash" do
+  it "loads from a cookie with integrity hash" do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).get("/")
     cookie = res["Set-Cookie"]
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).
@@ -147,6 +147,9 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'test')).
       get("/", "HTTP_COOKIE" => cookie)
     res.body.should.equal '{"counter"=>3}'
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor, :secret => 'other')).
+      get("/", "HTTP_COOKIE" => cookie)
+    res.body.should.equal '{"counter"=>1}'
   end
 
   it "loads from a cookie wih accept-only integrity hash for graceful key rotation" do
@@ -165,6 +168,8 @@ describe Rack::Session::Cookie do
     app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
     response1 = Rack::MockRequest.new(app).get("/")
     response1.body.should.equal '{"counter"=>1}'
+    response1 = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => response1["Set-Cookie"])
+    response1.body.should.equal '{"counter"=>2}'
 
     _, digest = response1["Set-Cookie"].split("--")
     tampered_with_cookie = "hackerman-was-here" + "--" + digest
@@ -173,6 +178,19 @@ describe Rack::Session::Cookie do
 
     # Tampared cookie was ignored. Counter is back to 1.
     response2.body.should.equal '{"counter"=>1}'
+  end
+
+  it "supports either of secret or old_secret" do
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    res = Rack::MockRequest.new(app).get("/")
+    res.body.should.equal '{"counter"=>1}'
+    res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+    res.body.should.equal '{"counter"=>2}'
+    app = Rack::Session::Cookie.new(incrementor, :old_secret => 'test')
+    res = Rack::MockRequest.new(app).get("/")
+    res.body.should.equal '{"counter"=>1}'
+    res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => res["Set-Cookie"])
+    res.body.should.equal '{"counter"=>2}'
   end
 
   describe "1.9 bugs relating to inspecting yet-to-be-loaded from cookie data: Rack::Session::Abstract::SessionHash" do
