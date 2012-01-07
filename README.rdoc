@@ -1,4 +1,4 @@
-= Rack, a modular Ruby webserver interface
+= Rack, a modular Ruby webserver interface {<img src="https://secure.travis-ci.org/rack/rack.png" alt="Build Status" />}[http://travis-ci.org/rack/rack] {<img src="https://gemnasium.com/rack/rack.png" alt="Dependency Status" />}[https://gemnasium.com/rack/rack]
 
 Rack provides a minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
