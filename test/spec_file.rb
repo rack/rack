@@ -169,4 +169,11 @@ describe Rack::File do
     end
   end
 
+  should "set Content-Length correctly for HEAD requests" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    res = req.head "/cgi/test"
+    res.should.be.successful
+    res['Content-Length'].should.equal "193"
+  end
+
 end
