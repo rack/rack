@@ -3,6 +3,15 @@ require 'rack/utils'
 require 'rack/mock'
 
 describe Rack::Utils do
+
+  # A helper method which checks
+  # if certain query parameters 
+  # are equal.
+  def equal_query_to(query)
+    parts = query.split('&')
+    lambda{|other| (parts & other.split('&')) == parts }
+  end
+
   def kcodeu
     one8 = RUBY_VERSION.to_f < 1.9
     default_kcode, $KCODE = $KCODE, 'U' if one8
@@ -187,13 +196,13 @@ describe Rack::Utils do
   end
 
   should "build query strings correctly" do
-    Rack::Utils.build_query("foo" => "bar").should.equal "foo=bar"
+    Rack::Utils.build_query("foo" => "bar").should.be equal_query_to("foo=bar")
     Rack::Utils.build_query("foo" => ["bar", "quux"]).
-      should.equal "foo=bar&foo=quux"
+      should.be equal_query_to("foo=bar&foo=quux")
     Rack::Utils.build_query("foo" => "1", "bar" => "2").
-      should.equal "foo=1&bar=2"
+      should.be equal_query_to("foo=1&bar=2")
     Rack::Utils.build_query("my weird field" => "q1!2\"'w$5&7/z8)?").
-      should.equal "my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F"
+      should.be equal_query_to("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F")
   end
 
   should "build nested query strings correctly" do
@@ -202,9 +211,9 @@ describe Rack::Utils do
     Rack::Utils.build_nested_query("foo" => "bar").should.equal "foo=bar"
 
     Rack::Utils.build_nested_query("foo" => "1", "bar" => "2").
-      should.equal "foo=1&bar=2"
+      should.be equal_query_to("foo=1&bar=2")
     Rack::Utils.build_nested_query("my weird field" => "q1!2\"'w$5&7/z8)?").
-      should.equal "my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F"
+      should.be equal_query_to("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F")
 
     Rack::Utils.build_nested_query("foo" => [nil]).
       should.equal "foo[]"

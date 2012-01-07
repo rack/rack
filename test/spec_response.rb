@@ -1,4 +1,3 @@
-require 'set'
 require 'rack/response'
 require 'stringio'
 
@@ -125,7 +124,6 @@ describe Rack::Response do
     response = Rack::Response.new
     response.redirect "/foo"
     status, header, body = response.finish
-
     status.should.equal 302
     header["Location"].should.equal "/foo"
 
@@ -147,7 +145,12 @@ describe Rack::Response do
     str = ""; body.each { |part| str << part }
     str.should.equal "foobar"
 
-    r = Rack::Response.new(["foo", "bar"].to_set)
+    object_with_each = Object.new
+    def object_with_each.each
+      yield "foo"
+      yield "bar"
+    end
+    r = Rack::Response.new(object_with_each)
     r.write "foo"
     status, header, body = r.finish
     str = ""; body.each { |part| str << part }
