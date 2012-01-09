@@ -36,7 +36,7 @@ module LockHelpers
 end
 
 describe Rack::Lock do
-  Enumerator = ::Enumerable::Enumerator unless defined?(Enumerator)
+  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
   
   extend LockHelpers
   
