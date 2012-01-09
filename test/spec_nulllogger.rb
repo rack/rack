@@ -4,7 +4,7 @@ require 'rack/mock'
 require 'rack/nulllogger'
 
 describe Rack::NullLogger do
-  Enumerator = ::Enumerable::Enumerator unless defined?(Enumerator)
+  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
   
   should "act as a noop logger" do
     app = lambda { |env|
