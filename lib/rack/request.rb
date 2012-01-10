@@ -314,7 +314,7 @@ module Rack
 
     def ip
       remote_addrs = split_ip_addresses(@env['REMOTE_ADDR'])
-      remote_addrs = filter_trusted_ip_addresses(remote_addrs)
+      remote_addrs = reject_trusted_ip_addresses(remote_addrs)
       
       return remote_addrs.first if remote_addrs.any?
 
@@ -326,7 +326,7 @@ module Rack
         return client_ip if forwarded_ips.include?(client_ip)
       end
 
-      return filter_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
+      return reject_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
     end
 
     protected
@@ -334,7 +334,7 @@ module Rack
         ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
       end
 
-      def filter_trusted_ip_addresses(ip_addresses)
+      def reject_trusted_ip_addresses(ip_addresses)
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
