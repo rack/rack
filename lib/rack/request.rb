@@ -313,12 +313,12 @@ module Rack
     end
 
     def ip
-      remote_addrs = @env['REMOTE_ADDR'] ? @env['REMOTE_ADDR'].split(/[,\s]+/) : []
-      remote_addrs.reject! { |addr| trusted_proxy?(addr) }
+      remote_addrs = split_ip_addresses(@env['REMOTE_ADDR'])
+      remote_addrs = filter_trusted_ip_addresses(remote_addrs)
       
       return remote_addrs.first if remote_addrs.any?
 
-      forwarded_ips = @env['HTTP_X_FORWARDED_FOR'] ? @env['HTTP_X_FORWARDED_FOR'].strip.split(/[,\s]+/) : []
+      forwarded_ips = split_ip_addresses(@env['HTTP_X_FORWARDED_FOR'])
 
       if client_ip = @env['HTTP_CLIENT_IP']
         # If forwarded_ips doesn't include the client_ip, it might be an
@@ -326,10 +326,18 @@ module Rack
         return client_ip if forwarded_ips.include?(client_ip)
       end
 
-      return forwarded_ips.reject { |ip| trusted_proxy?(ip) }.last || @env["REMOTE_ADDR"]
+      return filter_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
     end
 
     protected
+      def split_ip_addresses(ip_addresses)
+        ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
+      end
+
+      def filter_trusted_ip_addresses(ip_addresses)
+        ip_addresses.reject { |ip| trusted_proxy?(ip) }
+      end
+
       def parse_query(qs)
         Utils.parse_nested_query(qs)
       end
