@@ -220,6 +220,7 @@ describe Rack::Session::Cookie do
 
     res = Rack::MockRequest.new(app).get("/", "HTTPS" => "on")
     res["Set-Cookie"].should.not.be.nil
+    res["Set-Cookie"].should.match(/secure/)
   end
 
   it "does not return a cookie if cookie was not read/written" do
