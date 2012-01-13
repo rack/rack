@@ -11,8 +11,11 @@ module Rack
     def close
       return if @closed
       @closed = true
-      @body.close if @body.respond_to? :close
-      @block.call
+      begin
+        @body.close if @body.respond_to? :close
+      ensure
+        @block.call
+      end
     end
 
     def closed?
