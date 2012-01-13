@@ -33,6 +33,22 @@ describe Rack::BodyProxy do
     called.should.equal true
   end
 
+  should 'call the passed block on close even if there is an exception' do
+    object = Object.new
+    def object.close() raise "No!" end
+    called = false
+
+    begin
+      proxy  = Rack::BodyProxy.new(object) { called = true }
+      called.should.equal false
+      proxy.close
+    rescue RuntimeError => e
+    end
+
+    raise "Expected exception to have been raised" unless e
+    called.should.equal true
+  end
+
   should 'not close more than one time' do
     count = 0
     proxy = Rack::BodyProxy.new([]) { count += 1; raise "Block invoked more than 1 time!" if count > 1 }
