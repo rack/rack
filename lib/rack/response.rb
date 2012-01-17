@@ -12,7 +12,7 @@ module Rack
   # You can use Response#write to iteratively generate your response,
   # but note that this is buffered by Rack::Response until you call
   # +finish+.  +finish+ however can take a block inside which calls to
-  # +write+ are syncronous with the Rack response.
+  # +write+ are synchronous with the Rack response.
   #
   # Your application's +call+ should end returning Response#finish.
 
