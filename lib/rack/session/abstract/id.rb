@@ -36,7 +36,7 @@ module Rack
       private
 
         def session_id_not_loaded?
-          !key?(:id) && !@session_id_loaded
+          !(@session_id_loaded || key?(:id))
         end
 
         def load_session_id!
