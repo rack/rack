@@ -183,7 +183,7 @@ module Rack
           :renew =>         false,
           :sidbits =>       128,
           :cookie_only =>   true,
-          :secure_random => begin ::SecureRandom rescue false end
+          :secure_random => (::SecureRandom rescue false)
         }
 
         attr_reader :key, :default_options
