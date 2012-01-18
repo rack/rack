@@ -191,7 +191,7 @@ module Rack
         def initialize(app, options={})
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
-          @key = options[:key] || "rack.session"
+          @key = @default_options.delete(:key)
           @cookie_only = @default_options.delete(:cookie_only)
           initialize_sid
         end
