@@ -36,7 +36,7 @@ module Rack
       private
 
         def session_id_not_loaded?
-          !key?(:id) && !@session_id_loaded
+          !(@session_id_loaded || key?(:id))
         end
 
         def load_session_id!
@@ -183,7 +183,7 @@ module Rack
           :renew =>         false,
           :sidbits =>       128,
           :cookie_only =>   true,
-          :secure_random => begin ::SecureRandom rescue false end
+          :secure_random => (::SecureRandom rescue false)
         }
 
         attr_reader :key, :default_options
@@ -191,7 +191,7 @@ module Rack
         def initialize(app, options={})
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
-          @key = options[:key] || "rack.session"
+          @key = @default_options.delete(:key)
           @cookie_only = @default_options.delete(:cookie_only)
           initialize_sid
         end
