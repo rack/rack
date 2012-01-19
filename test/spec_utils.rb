@@ -333,6 +333,15 @@ describe Rack::Utils do
   should "return status code for symbol" do
     Rack::Utils.status_code(:ok).should.equal 200
   end
+
+  should "accept a key space limit on parse_query" do
+    should.raise(RangeError){ Rack::Utils.parse_query('foo=bar', nil, 1) }
+  end
+
+  should "accept a key space limit on parse_nested_query" do
+    should.raise(RangeError){ Rack::Utils.parse_nested_query('foo=bar', nil, 1) }
+  end
+
 end
 
 describe Rack::Utils, "byte_range" do
