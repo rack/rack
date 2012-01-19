@@ -922,4 +922,76 @@ EOF
       req2.params.should.equal "foo" => "#{b}bar#{b}"
     end
   }
+
+  describe "key_space_limit" do
+
+    it "should default to Utils.key_space_limit if not set" do
+      env = Rack::MockRequest.env_for('/')
+      req = Rack::Request.new(env)
+      req.key_space_limit.should == Rack::Utils.key_space_limit
+
+      begin
+        old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+        req.key_space_limit.should == 1
+      ensure
+        Rack::Utils.key_space_limit = old
+      end
+    end
+
+    it "should use rack.key_space_limit if set" do
+      env = Rack::MockRequest.env_for('/')
+      env['rack.key_space_limit'] = 1
+      req = Rack::Request.new(env)
+      req.key_space_limit.should == 1
+    end
+
+    it "should set rack.key_space_limit" do
+      env = Rack::MockRequest.env_for('/')
+      req = Rack::Request.new(env)
+      req.key_space_limit = 50
+      env['rack.key_space_limit'].should == 50
+    end
+
+    it "should be actually used to parse queries" do
+      begin
+        old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 2
+        env = Rack::MockRequest.env_for('/?foo=bar')
+        req = Rack::Request.new(env)
+        should.raise(RangeError){ req.GET['foo'] }
+        req.key_space_limit = 4
+        req.GET['foo'].should == 'bar'
+      ensure
+        Rack::Utils.key_space_limit = old
+      end
+    end
+
+    it "should be actually used to parse post data" do
+      begin
+        old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 2
+        env = Rack::MockRequest.env_for('/', :method => 'POST', :params => {'foo'=>'bar'})
+        req = Rack::Request.new(env)
+        should.raise(RangeError){ req.POST['foo'] }
+        req.key_space_limit = 4
+        req.POST['foo'].should == 'bar'
+      ensure
+        Rack::Utils.key_space_limit = old
+      end
+    end
+
+    it "should be actually used to parse cookie data" do
+      begin
+        old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+        env = Rack::MockRequest.env_for('/')
+        env['HTTP_COOKIE'] = 'foo=bar'
+        req = Rack::Request.new(env)
+        should.raise(RangeError){ req.cookies['foo'] }
+        req.key_space_limit = 4
+        req.cookies['foo'].should == 'bar'
+      ensure
+        Rack::Utils.key_space_limit = old
+      end
+    end
+
+  end
+
 end

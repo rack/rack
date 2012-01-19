@@ -37,6 +37,16 @@ module Rack
     def session_options; @env['rack.session.options'] ||= {}      end
     def logger;          @env['rack.logger']                      end
 
+    # Returns the key space limit for this request.
+    # Defaults to Utils.key_space_limit.
+    # See Rack::Utils.key_space_limit for documentation.
+    def key_space_limit; @env['rack.key_space_limit'] || Utils.key_space_limit end
+
+    # Sets the key space limit for this request.
+    def key_space_limit=(limit); 
+      @env['rack.key_space_limit'] = limit
+    end
+
     # The media type (type/subtype) portion of the CONTENT_TYPE header
     # without any media type parameters. e.g., when CONTENT_TYPE is
     # "text/plain;charset=utf-8", the media-type is "text/plain".
@@ -182,8 +192,11 @@ module Rack
       if @env["rack.request.query_string"] == query_string
         @env["rack.request.query_hash"]
       else
+        # Set the query string _after_ the parsing to ensure
+        # that it won't be set if parse_query raises an error.
+        @env["rack.request.query_hash"]   = hash = parse_query(query_string)
         @env["rack.request.query_string"] = query_string
-        @env["rack.request.query_hash"]   = parse_query(query_string)
+        return hash
       end
     end
 
@@ -197,19 +210,21 @@ module Rack
       elsif @env["rack.request.form_input"].eql? @env["rack.input"]
         @env["rack.request.form_hash"]
       elsif form_data? || parseable_data?
-        @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] = parse_multipart(env)
-          form_vars = @env["rack.input"].read
+          begin
+            form_vars = @env["rack.input"].read
 
-          # Fix for Safari Ajax postings that always append \0
-          # form_vars.sub!(/\0\z/, '') # performance replacement:
-          form_vars.slice!(-1) if form_vars[-1] == ?\0
+            # Fix for Safari Ajax postings that always append \0
+            # form_vars.sub!(/\0\z/, '') # performance replacement:
+            form_vars.slice!(-1) if form_vars[-1] == ?\0
 
-          @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = parse_query(form_vars)
-
-          @env["rack.input"].rewind
+            @env["rack.request.form_vars"] = form_vars
+            @env["rack.request.form_hash"] = parse_query(form_vars)
+          ensure
+            @env["rack.input"].rewind
+          end
         end
+        @env["rack.request.form_input"] = @env["rack.input"]
         @env["rack.request.form_hash"]
       else
         {}
@@ -260,7 +275,7 @@ module Rack
       #   the Cookie header such that those with more specific Path attributes
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
-      Utils.parse_query(string, ';,').each { |k,v| hash[k] = Array === v ? v.first : v }
+      Utils.parse_query(string, ';,',key_space_limit).each { |k,v| hash[k] = Array === v ? v.first : v }
       @env["rack.request.cookie_string"] = string
       hash
     rescue => error
@@ -331,7 +346,7 @@ module Rack
 
     protected
       def parse_query(qs)
-        Utils.parse_nested_query(qs)
+        Utils.parse_nested_query(qs, nil, key_space_limit)
       end
 
       def parse_multipart(env)
