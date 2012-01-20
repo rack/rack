@@ -188,7 +188,7 @@ describe Rack::Utils do
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[]=1") }.
       should.raise(TypeError).
-      message.should.equal "expected Array (got Hash) for param `x'"
+      message.should.match /expected Array \(got [^)]*\) for param `x'/
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
       should.raise(TypeError).

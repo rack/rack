@@ -61,20 +61,10 @@ module Rack
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
     def parse_query(qs, d = nil)
-      params = {}
-
-      max_key_space = Utils.key_space_limit
-      bytes = 0
+      params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
-
-        if k
-          bytes += k.size
-          if bytes > max_key_space
-            raise RangeError, "exceeded available parameter key space"
-          end
-        end
 
         if cur = params[k]
           if cur.class == Array
@@ -87,30 +77,20 @@ module Rack
         end
       end
 
-      return params
+      return params.to_params_hash
     end
     module_function :parse_query
 
     def parse_nested_query(qs, d = nil)
-      params = {}
-
-      max_key_space = Utils.key_space_limit
-      bytes = 0
+      params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |s| unescape(s) }
 
-        if k
-          bytes += k.size
-          if bytes > max_key_space
-            raise RangeError, "exceeded available parameter key space"
-          end
-        end
-
         normalize_params(params, k, v)
       end
 
-      return params
+      return params.to_params_hash
     end
     module_function :parse_nested_query
 
@@ -131,14 +111,14 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params[k].last.is_a?(Hash) && !params[k].last.key?(child_key)
+        if params[k].last.is_a?(KeySpaceConstrainedParams) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
-          params[k] << normalize_params({}, child_key, v)
+          params[k] << normalize_params(KeySpaceConstrainedParams.new, child_key, v)
         end
       else
-        params[k] ||= {}
-        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Hash)
+        params[k] ||= KeySpaceConstrainedParams.new
+        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(KeySpaceConstrainedParams)
         params[k] = normalize_params(params[k], after, v)
       end
 
@@ -442,6 +422,41 @@ module Rack
         clear
         other.each { |k, v| self[k] = v }
         self
+      end
+    end
+
+    class KeySpaceConstrainedParams
+      def initialize(limit = Utils.key_space_limit)
+        @limit  = limit
+        @size   = 0
+        @params = {}
+      end
+
+      def [](key)
+        @params[key]
+      end
+
+      def []=(key, value)
+        @size += key.size unless @params.key?(key)
+        raise RangeError, 'exceeded available parameter key space' if @size > @limit
+        @params[key] = value
+      end
+
+      def key?(key)
+        @params.key?(key)
+      end
+
+      def to_params_hash
+        hash = @params
+        hash.keys.each do |key|
+          value = hash[key]
+          if value.kind_of?(self.class)
+            hash[key] = value.to_params_hash
+          elsif value.kind_of?(Array)
+            value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
+          end
+        end
+        hash
       end
     end
 
