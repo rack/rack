@@ -61,20 +61,10 @@ module Rack
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
     def parse_query(qs, d = nil)
-      params = {}
-
-      max_key_space = Utils.key_space_limit
-      bytes = 0
+      params = KeySpaceConstrainedHash.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
-
-        if k
-          bytes += k.size
-          if bytes > max_key_space
-            raise RangeError, "exceeded available parameter key space"
-          end
-        end
 
         if cur = params[k]
           if cur.class == Array
@@ -92,20 +82,10 @@ module Rack
     module_function :parse_query
 
     def parse_nested_query(qs, d = nil)
-      params = {}
-
-      max_key_space = Utils.key_space_limit
-      bytes = 0
+      params = KeySpaceConstrainedHash.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |s| unescape(s) }
-
-        if k
-          bytes += k.size
-          if bytes > max_key_space
-            raise RangeError, "exceeded available parameter key space"
-          end
-        end
 
         normalize_params(params, k, v)
       end
@@ -134,10 +114,10 @@ module Rack
         if params[k].last.is_a?(Hash) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
-          params[k] << normalize_params({}, child_key, v)
+          params[k] << normalize_params(KeySpaceConstrainedHash.new, child_key, v)
         end
       else
-        params[k] ||= {}
+        params[k] ||= KeySpaceConstrainedHash.new
         raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Hash)
         params[k] = normalize_params(params[k], after, v)
       end
@@ -442,6 +422,20 @@ module Rack
         clear
         other.each { |k, v| self[k] = v }
         self
+      end
+    end
+
+    class KeySpaceConstrainedHash < Hash
+      def initialize(*args)
+        @key_space_size  = 0
+        @key_space_limit = Utils.key_space_limit
+        super
+      end
+
+      def []=(key, value)
+        @key_space_size += key.size unless key?(key)
+        raise RangeError, 'exceeded available parameter key space' if @key_space_size > @key_space_limit
+        super
       end
     end
 

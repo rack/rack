@@ -137,6 +137,19 @@ describe Rack::Request do
     end
   end
 
+  should "limit the key size per nested params hash" do
+    nested_query = Rack::MockRequest.env_for("/?foo[bar][baz][qux]=1")
+    plain_query  = Rack::MockRequest.env_for("/?foo_bar__baz__qux_=1")
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 3
+    begin
+      lambda { Rack::Request.new(nested_query).GET }.should.not.raise(RangeError)
+      lambda { Rack::Request.new(plain_query).GET  }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
+  end
+
   should "not unify GET and POST when calling params" do
     mr = Rack::MockRequest.env_for("/?foo=quux",
       "REQUEST_METHOD" => 'POST',
