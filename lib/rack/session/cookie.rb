@@ -106,8 +106,10 @@ module Rack
           if @secrets.size > 0 && session_data
             session_data, digest = session_data.split("--")
 
-            ok = @secrets.any? do |secret|
-              secret && digest == generate_hmac(session_data, secret)
+            if session_data && digest
+              ok = @secrets.any? do |secret|
+                secret && digest == generate_hmac(session_data, secret)
+              end
             end
 
             session_data = nil unless ok
