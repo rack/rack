@@ -123,6 +123,10 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
       get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
     res.body.should.equal '{"counter"=>1}'
+
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => "rack.session=")
+    res.body.should.equal '{"counter"=>1}'
   end
 
   bigcookie = lambda do |env|
@@ -176,7 +180,7 @@ describe Rack::Session::Cookie do
     response2 = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" =>
                                                tampered_with_cookie)
 
-    # Tampared cookie was ignored. Counter is back to 1.
+    # Tampered cookie was ignored. Counter is back to 1.
     response2.body.should.equal '{"counter"=>1}'
   end
 
