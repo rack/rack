@@ -3,8 +3,8 @@ require 'rack/request'
 require 'rack/utils'
 
 module Rack
-  # Rack::ShowStatus catches all empty responses the app it wraps and
-  # replaces them with a site explaining the error.
+  # Rack::ShowStatus catches all empty responses and replaces them 
+  # with a site explaining the error.
   #
   # Additional details can be put into <tt>rack.showstatus.detail</tt>
   # and will be shown as HTML.  If such details exist, the error page
