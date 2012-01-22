@@ -221,6 +221,11 @@ describe Rack::Response do
     res.should.be.client_error
     res.should.be.not_found
 
+    res.status = 405
+    res.should.not.be.successful
+    res.should.be.client_error
+    res.should.be.method_not_allowed
+
     res.status = 422
     res.should.not.be.successful
     res.should.be.client_error

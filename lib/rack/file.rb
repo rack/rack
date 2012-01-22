@@ -34,7 +34,7 @@ module Rack
 
     def _call(env)
       unless ALLOWED_VERBS.include? env["REQUEST_METHOD"]
-        return fail(403, "Forbidden")
+        return fail(405, "Method Not Allowed")
       end
 
       @path_info = Utils.unescape(env["PATH_INFO"])
@@ -45,7 +45,7 @@ module Rack
         when '', '.'
           depth
         when '..'
-          return fail(403, "Forbidden") if depth - 1 < 0
+          return fail(404, "Not Found") if depth - 1 < 0
           depth - 1
         else
           depth + 1

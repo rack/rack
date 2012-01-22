@@ -8,7 +8,7 @@ module Rack
 
     attr_reader :apps
 
-    def initialize(apps, catch=404)
+    def initialize(apps, catch=[404, 405])
       @apps = []; @has_app = {}
       apps.each { |app| add app }
 

@@ -64,13 +64,15 @@ describe Rack::File do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
 
     res = req.get("/../README")
-    res.should.be.forbidden
+    res.should.be.client_error
 
     res = req.get("../test")
-    res.should.be.forbidden
+    res.should.be.client_error
 
     res = req.get("..")
-    res.should.be.forbidden
+    res.should.be.client_error
+
+    res.should.be.not_found
   end
 
   should "allow files with .. in their name" do
@@ -89,7 +91,8 @@ describe Rack::File do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/%2E%2E/README")
 
-    res.should.be.forbidden
+    res.should.be.client_error?
+    res.should.be.not_found
   end
 
   should "allow safe directory traversal with encoded periods" do
@@ -159,7 +162,8 @@ describe Rack::File do
     forbidden.each do |method|
 
       res = req.send(method, "/cgi/test")
-      res.should.be.forbidden
+      res.should.be.client_error
+      res.should.be.method_not_allowed
     end
 
     allowed = %w[get head]
