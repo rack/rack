@@ -111,20 +111,25 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params[k].last.is_a?(KeySpaceConstrainedParams) && !params[k].last.key?(child_key)
+        if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
-          params[k] << normalize_params(KeySpaceConstrainedParams.new, child_key, v)
+          params[k] << normalize_params(params.class.new, child_key, v)
         end
       else
-        params[k] ||= KeySpaceConstrainedParams.new
-        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(KeySpaceConstrainedParams)
+        params[k] ||= params.class.new
+        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
         params[k] = normalize_params(params[k], after, v)
       end
 
       return params
     end
     module_function :normalize_params
+
+    def params_hash_type?(obj)
+      obj.kind_of?(KeySpaceConstrainedParams) || obj.kind_of?(Hash)
+    end
+    module_function :params_hash_type?
 
     def build_query(params)
       params.map { |k, v|
