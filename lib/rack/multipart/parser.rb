@@ -135,8 +135,11 @@ module Rack
           filename = $1
         end
 
-        if filename && filename !~ /\\[^\\"]/ && filename !~ /%[^0-9a-fA-F]{2}/
-          filename = Utils.unescape(filename).gsub(/\\(.)/, '\1')
+        if filename && filename !~ /%[^0-9a-fA-F]{2}/
+          filename = Utils.unescape(filename)
+        end
+        if filename && filename !~ /\\[^\\"]/
+          filename = filename.gsub(/\\(.)/, '\1')
         end
         filename
       end
