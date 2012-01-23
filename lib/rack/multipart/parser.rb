@@ -125,7 +125,7 @@ module Rack
           filename = $1
         end
 
-        if filename && filename.scan(/%..?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
+        if filename && filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
           filename = Utils.unescape(filename)
         end
         if filename && filename !~ /\\[^\\"]/
