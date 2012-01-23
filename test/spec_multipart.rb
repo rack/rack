@@ -226,6 +226,21 @@ Content-Type: image/jpeg\r
     files[:tempfile].read.should.equal "contents"
   end
 
+  should "parse filename with unescaped percentage characters that look like partial hex escapes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages2, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
+    params = Rack::Multipart.parse_multipart(env)
+    files = params["document"]["attachment"]
+    files[:type].should.equal "image/jpeg"
+    files[:filename].should.equal "100%a"
+    files[:head].should.equal <<-MULTIPART
+Content-Disposition: form-data; name="document[attachment]"; filename="100%a"\r
+Content-Type: image/jpeg\r
+    MULTIPART
+
+    files[:name].should.equal "document[attachment]"
+    files[:tempfile].read.should.equal "contents"
+  end
+
   it "rewinds input after parsing upload" do
     options = multipart_fixture(:text)
     input = options[:input]
