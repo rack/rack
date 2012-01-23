@@ -392,6 +392,22 @@ run on port 11211) and memcache-client installed.
   * Support added for HTTP_X_FORWARDED_SCHEME
   * Numerous bug fixes, including many fixes for new and alternate rubies
 
+* January 22nd, 2012: Twenty fifth public release 1.4.1
+  * Alter the keyspace limit calculations to reduce issues with nested params
+  * Add a workaround for multipart parsing where files contian unescaped "%"
+  * Added Rack::Response::Helpers#method_not_allowed? (code 405)
+  * Rack::File now returns 404's for illegal directory traversals
+  * Rack::File now returns 405's for illegal methods (non HEAD/GET)
+  * Rack::Cascade now catches 405 by default, as well as 404
+  * Cookies missing '--' no longer cause an exception to be raised
+  * Various style changes and documentation spelling errors
+  * Rack::BodyProxy always ensures to execute it's block
+  * Additional test coverage around cookies and secrets
+  * Rack::Session::Cookie can now be supplied either secret or old_secret
+  * Tests are no longer dependent on set order
+  * Rack::Static no longer defaults to serving index files
+  * Rack.release was fixed
+
 == Contact
 
 Please post bugs, suggestions and patches to
