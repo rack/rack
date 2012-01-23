@@ -51,7 +51,7 @@ module Rack
       attr_accessor :key_space_limit
     end
 
-    # The default number of bytes to allow parameter keys to take up.
+    # The default number of characters to allow parameter keys to take up.
     # This helps prevent a rogue client from flooding a Request.
     self.key_space_limit = 65536
 
@@ -60,10 +60,11 @@ module Rack
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
-    def parse_query(qs, d = nil)
+    # The third parameter is used as a limit for the total
+    # number of characters in the query keys.
+    def parse_query(qs, d = nil, max_key_space = Utils.key_space_limit )
       params = {}
 
-      max_key_space = Utils.key_space_limit
       bytes = 0
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
@@ -91,10 +92,9 @@ module Rack
     end
     module_function :parse_query
 
-    def parse_nested_query(qs, d = nil)
+    def parse_nested_query(qs, d = nil, max_key_space = Utils.key_space_limit)
       params = {}
 
-      max_key_space = Utils.key_space_limit
       bytes = 0
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
