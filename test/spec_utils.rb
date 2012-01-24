@@ -112,6 +112,12 @@ describe Rack::Utils do
     Rack::Utils.parse_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F").
       should.equal "my weird field" => "q1!2\"'w$5&7/z8)?"
     Rack::Utils.parse_query("foo%3Dbaz=bar").should.equal "foo=baz" => "bar"
+    Rack::Utils.parse_query("=").should.equal "" => ""
+    Rack::Utils.parse_query("=value").should.equal "" => "value"
+    Rack::Utils.parse_query("key=").should.equal "key" => ""
+    Rack::Utils.parse_query("&key&").should.equal "key" => nil
+    Rack::Utils.parse_query(";key;", ";,").should.equal "key" => nil
+    Rack::Utils.parse_query(",key,", ";,").should.equal "key" => nil
   end
 
   should "parse nested query strings correctly" do
