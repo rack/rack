@@ -65,6 +65,7 @@ module Rack
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map { |x| unescape(x) }
+        next unless k || v
 
         if cur = params[k]
           if cur.class == Array
@@ -442,7 +443,7 @@ module Rack
       end
 
       def []=(key, value)
-        @size += key.size unless @params.key?(key)
+        @size += key.size if key && !@params.key?(key)
         raise RangeError, 'exceeded available parameter key space' if @size > @limit
         @params[key] = value
       end
