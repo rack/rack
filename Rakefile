@@ -6,12 +6,14 @@ task :default => [:test]
 desc "Install gem dependencies"
 task :deps do
   require 'rubygems'
+  require 'rbconfig'
   spec = Gem::Specification.load('rack.gemspec')
   spec.dependencies.each do |dep|
     reqs = dep.requirements_list
     reqs = (["-v"] * reqs.size).zip(reqs).flatten
     # Use system over sh, because we want to ignore errors!
-    system "gem", "install", '--conservative', dep.name, *reqs
+    ruby = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"])
+    system ruby, "-S", "gem", "install", '--conservative', dep.name, *reqs
   end
 end
 
