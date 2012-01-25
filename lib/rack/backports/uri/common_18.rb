@@ -8,7 +8,21 @@
 
 module URI
   TBLENCWWWCOMP_ = {} # :nodoc:
+  256.times do |i|
+    TBLENCWWWCOMP_[i.chr] = '%%%02X' % i
+  end
+  TBLENCWWWCOMP_[' '] = '+'
+  TBLENCWWWCOMP_.freeze
   TBLDECWWWCOMP_ = {} # :nodoc:
+  256.times do |i|
+    h, l = i>>4, i&15
+    TBLDECWWWCOMP_['%%%X%X' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%x%X' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%X%x' % [h, l]] = i.chr
+    TBLDECWWWCOMP_['%%%x%x' % [h, l]] = i.chr
+  end
+  TBLDECWWWCOMP_['+'] = ' '
+  TBLDECWWWCOMP_.freeze
 
   # Encode given +s+ to URL-encoded form data.
   #
@@ -26,18 +40,6 @@ module URI
         '%' + $1.unpack('H2' * Rack::Utils.bytesize($1)).join('%').upcase
       end.tr(' ', '+')
     else
-      if TBLENCWWWCOMP_.empty?
-        tbl = {}
-        256.times do |i|
-          tbl[i.chr] = '%%%02X' % i
-        end
-        tbl[' '] = '+'
-        begin
-          TBLENCWWWCOMP_.replace(tbl)
-          TBLENCWWWCOMP_.freeze
-        rescue
-        end
-      end
       str.gsub(/[^*\-.0-9A-Z_a-z]/) {|m| TBLENCWWWCOMP_[m]}
     end
   end
@@ -48,22 +50,6 @@ module URI
   #
   # See URI.encode_www_form_component, URI.decode_www_form
   def self.decode_www_form_component(str, enc=nil)
-    if TBLDECWWWCOMP_.empty?
-      tbl = {}
-      256.times do |i|
-        h, l = i>>4, i&15
-        tbl['%%%X%X' % [h, l]] = i.chr
-        tbl['%%%x%X' % [h, l]] = i.chr
-        tbl['%%%X%x' % [h, l]] = i.chr
-        tbl['%%%x%x' % [h, l]] = i.chr
-      end
-      tbl['+'] = ' '
-      begin
-        TBLDECWWWCOMP_.replace(tbl)
-        TBLDECWWWCOMP_.freeze
-      rescue
-      end
-    end
     raise ArgumentError, "invalid %-encoding (#{str})" unless /\A(?:%[0-9a-fA-F]{2}|[^%])*\z/ =~ str
     str.gsub(/\+|%[0-9a-fA-F]{2}/) {|m| TBLDECWWWCOMP_[m]}
   end
