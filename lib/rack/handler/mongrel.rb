@@ -53,7 +53,7 @@ module Rack
       end
 
       def process(request, response)
-        env = {}.replace(request.params)
+        env = Hash[request.params]
         env.delete "HTTP_CONTENT_TYPE"
         env.delete "HTTP_CONTENT_LENGTH"
 
