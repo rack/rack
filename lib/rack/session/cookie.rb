@@ -108,7 +108,7 @@ module Rack
 
             if session_data && digest
               ok = @secrets.any? do |secret|
-                secret && digest == generate_hmac(session_data, secret)
+                digest == generate_hmac(session_data, secret)
               end
             end
 
