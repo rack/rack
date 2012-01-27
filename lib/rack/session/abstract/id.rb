@@ -79,9 +79,7 @@ module Rack
 
         def to_hash
           load_for_read!
-          h = Hash[self]
-          h.delete_if { |k,v| v.nil? }
-          h
+          Hash[self].delete_if { |k,v| v.nil? }
         end
 
         def update(hash)
