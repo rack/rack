@@ -61,6 +61,7 @@ module Rack
           end
 
           def decode(str)
+            return unless str
             ::Marshal.load(super(str)) rescue nil
           end
         end
