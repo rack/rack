@@ -136,7 +136,7 @@ module Rack
         session_data = coder.encode(session)
 
         if @secrets.first
-          session_data = "#{session_data}--#{generate_hmac(session_data, @secrets.first)}"
+          session_data << "--#{generate_hmac(session_data, @secrets.first)}"
         end
 
         if session_data.size > (4096 - @key.size)
