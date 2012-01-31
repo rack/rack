@@ -61,6 +61,7 @@ module Rack
           end
 
           def decode(str)
+            return unless str
             ::Marshal.load(super(str)) rescue nil
           end
         end
@@ -105,14 +106,7 @@ module Rack
 
           if @secrets.size > 0 && session_data
             session_data, digest = session_data.split("--")
-
-            if session_data && digest
-              ok = @secrets.any? do |secret|
-                secret && digest == generate_hmac(session_data, secret)
-              end
-            end
-
-            session_data = nil unless ok
+            session_data = nil unless digest_match?(session_data, digest)
           end
 
           coder.decode(session_data) || {}
@@ -150,6 +144,13 @@ module Rack
       def destroy_session(env, session_id, options)
         # Nothing to do here, data is in the client
         generate_sid unless options[:drop]
+      end
+
+      def digest_match?(data, digest)
+        return unless data && digest
+        @secrets.any? do |secret|
+          digest == generate_hmac(data, secret)
+        end
       end
 
       def generate_hmac(data, secret)
