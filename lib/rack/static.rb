@@ -26,7 +26,7 @@ module Rack
   # directory but uses index.html as default route for "/"
   #
   #     use Rack::Static, :urls => [""], :root => 'public', :index =>
-  #     'public/index.html'
+  #     'index.html'
   #
   # Set a fixed Cache-Control header for all served files:
   #
@@ -45,7 +45,7 @@ module Rack
     end
 
     def overwrite_file_path(path)
-      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path == '/'
+      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path =~ /\/$/
     end
 
     def route_file(path)
@@ -60,7 +60,7 @@ module Rack
       path = env["PATH_INFO"]
 
       if can_serve(path)
-        env["PATH_INFO"] = (path == '/' ? @index : @urls[path]) if overwrite_file_path(path)
+        env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
         @file_server.call(env)
       else
         @app.call(env)

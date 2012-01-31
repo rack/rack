@@ -11,7 +11,7 @@ describe Rack::Static do
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = {:urls => ["/cgi"], :root => root}
-  STATIC_OPTIONS = {:urls => [""], :root => root, :index => 'static/index.html'}
+  STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
 
   @request = Rack::MockRequest.new(Rack::Static.new(DummyApp.new, OPTIONS))
@@ -35,12 +35,19 @@ describe Rack::Static do
     res.body.should == "Hello World"
   end
 
-  it "calls index file when requesting root" do
+  it "calls index file when requesting root in the given folder" do
     res = @static_request.get("/")
     res.should.be.ok
     res.body.should =~ /index!/
+
+    res = @static_request.get("/other/")
+    res.should.be.not_found
+
+    res = @static_request.get("/another/")
+    res.should.be.ok
+    res.body.should =~ /another index!/
   end
-  
+
   it "doesn't call index file if :index option was omitted" do
     res = @request.get("/")
     res.body.should == "Hello World"
