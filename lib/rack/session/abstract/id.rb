@@ -77,6 +77,12 @@ module Rack
           super
         end
 
+        def destroy
+         clear
+         options = @env[ENV_SESSION_OPTIONS_KEY]
+         options[:id] = @by.send(:destroy_session, @env, options[:id], options)
+        end
+
         def to_hash
           load_for_read!
           Hash[self].delete_if { |k,v| v.nil? }

@@ -38,6 +38,11 @@ describe Rack::Session::Cookie do
     Rack::Response.new(env["rack.session"].inspect).to_a
   end
 
+  destroy_session = lambda do |env|
+    env["rack.session"].destroy
+    Rack::Response.new("Nothing").to_a
+  end
+
   def response_for(options={})
     request_options = options.fetch(:request, {})
     request_options["HTTP_COOKIE"] = options[:cookie].is_a?(Rack::Response) ?
@@ -124,6 +129,21 @@ describe Rack::Session::Cookie do
     response = response_for(:app => renewer, :cookie => response)
     response = response_for(:app => only_session_id, :cookie => response)
 
+    response.body.should.not.equal ""
+    response.body.should.not.equal old_session_id
+  end
+
+  it "destroys session" do
+    response = response_for(:app => incrementor)
+    response = response_for(:app => only_session_id, :cookie => response)
+
+    response.body.should.not.equal ""
+    old_session_id = response.body
+
+    response = response_for(:app => destroy_session, :cookie => response)
+    response = response_for(:app => only_session_id, :cookie => response)
+
+    response.body.should.not.equal ""
     response.body.should.not.equal old_session_id
   end
 
