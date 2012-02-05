@@ -164,11 +164,11 @@ module Rack
     # +FORM_DATA_MEDIA_TYPES+ array.
     #
     # A request body is also assumed to contain form-data when no
-    # Content-Type header is provided and the request_method is POST.
+    # Content-Type header is provided and the request_method is POST or PUT.
     def form_data?
       type = media_type
       meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+      (['POST', 'PUT'].include?(meth) && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking
