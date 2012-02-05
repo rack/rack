@@ -285,6 +285,22 @@ module Rack
     end
     module_function :bytesize
 
+    # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
+    # of '% %b %Y'.
+    # It assumes that the time is in GMT to comply to the RFC 2109.
+    #
+    # NOTE: I'm not sure the RFC says it requires GMT, but is ambigous enough
+    # that I'm certain someone implemented only that option.
+    # Do not use %a and %b from Time.strptime, it would use localized names for
+    # weekday and month.
+    #
+    def rfc2822(time)
+      wday = Time::RFC2822_DAY_NAME[time.wday]
+      mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
+      time.strftime("#{wday}, %d-#{mon}-%Y %T GMT")
+    end
+    module_function :rfc2822
+
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
     # #context which should take the arguments env and app. The first of which
