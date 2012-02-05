@@ -50,10 +50,11 @@ module Rack
         with_lock(env, [nil, {}]) do
           unless sid and session = @pool.get(sid)
             sid, session = generate_sid, {}
-            unless /^STORED/ =~ @pool.add(sid, session)
+            unless /^STORED/ =~ @pool.add(sid, JSON.generate(session))
               raise "Session collision on '#{sid.inspect}'"
             end
           end
+          session = session.class == String ? JSON.parse(session) : session
           [sid, session]
         end
       end
@@ -63,7 +64,7 @@ module Rack
         expiry = expiry.nil? ? 0 : expiry + 1
 
         with_lock(env, false) do
-          @pool.set session_id, new_session, expiry
+          @pool.set session_id, JSON.generate(new_session), expiry
           session_id
         end
       end
