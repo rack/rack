@@ -42,7 +42,7 @@ describe Rack::MockRequest do
     env["mock.postdata"].should.be.empty
   end
 
-  should "allow GET/POST/PUT/DELETE" do
+  should "allow GET/POST/PUT/DELETE/HEAD" do
     res = Rack::MockRequest.new(app).get("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "GET"
@@ -58,6 +58,10 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).delete("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "DELETE"
+
+    res = Rack::MockRequest.new(app).head("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "HEAD"
 
     Rack::MockRequest.env_for("/", :method => "OPTIONS")["REQUEST_METHOD"].
       should.equal "OPTIONS"

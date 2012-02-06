@@ -11,7 +11,7 @@ $tcp_cork_opts = nil
 describe Rack::Handler::Mongrel do
   extend TestRequest::Helpers
 
-  @server = Mongrel::HttpServer.new(@host='0.0.0.0', @port=9201)
+  @server = Mongrel::HttpServer.new(@host='127.0.0.1', @port=9201)
   @server.register('/test',
                   Rack::Handler::Mongrel.new(Rack::Lint.new(TestRequest.new)))
   @server.register('/stream',
@@ -31,7 +31,7 @@ describe Rack::Handler::Mongrel do
     response["HTTP_VERSION"].should.equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
     response["SERVER_PORT"].should.equal "9201"
-    response["SERVER_NAME"].should.equal "0.0.0.0"
+    response["SERVER_NAME"].should.equal "127.0.0.1"
   end
 
   should "have rack headers" do
@@ -84,7 +84,7 @@ describe Rack::Handler::Mongrel do
   should "provide a .run" do
     block_ran = false
     Thread.new {
-      Rack::Handler::Mongrel.run(lambda {}, {:Port => 9211}) { |server|
+      Rack::Handler::Mongrel.run(lambda {}, {:Host => '127.0.0.1', :Port => 9211}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         block_ran = true
       }
@@ -97,7 +97,7 @@ describe Rack::Handler::Mongrel do
     block_ran = false
     Thread.new {
       map = {'/'=>lambda{},'/foo'=>lambda{}}
-      Rack::Handler::Mongrel.run(map, :map => true, :Port => 9221) { |server|
+      Rack::Handler::Mongrel.run(map, :map => true, :Host => '127.0.0.1', :Port => 9221) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
@@ -114,7 +114,7 @@ describe Rack::Handler::Mongrel do
     block_ran = false
     Thread.new {
       map = Rack::URLMap.new({'/'=>lambda{},'/bar'=>lambda{}})
-      Rack::Handler::Mongrel.run(map, {:map => true, :Port => 9231}) { |server|
+      Rack::Handler::Mongrel.run(map, {:map => true, :Host => '127.0.0.1', :Port => 9231}) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.size.should.equal 2
         server.classifier.uris.should.not.include '/arf'
@@ -134,12 +134,12 @@ describe Rack::Handler::Mongrel do
         '/' => lambda{},
         '/foo' => lambda{},
         '/bar' => lambda{},
-        'http://localhost/' => lambda{},
-        'http://localhost/bar' => lambda{},
+        'http://127.0.0.1/' => lambda{},
+        'http://127.0.0.1/bar' => lambda{},
         'http://falsehost/arf' => lambda{},
         'http://falsehost/qux' => lambda{}
       })
-      opt = {:map => true, :Port => 9241, :Host => 'localhost'}
+      opt = {:map => true, :Port => 9241, :Host => '127.0.0.1'}
       Rack::Handler::Mongrel.run(map, opt) { |server|
         server.should.be.kind_of Mongrel::HttpServer
         server.classifier.uris.should.include '/'

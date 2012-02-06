@@ -54,4 +54,16 @@ describe Rack::Directory do
 
     res.should.be.not_found
   end
+
+  should "uri escape path parts" do # #265, properly escape file names
+    mr = Rack::MockRequest.new(Rack::Lint.new(app))
+
+    res = mr.get("/cgi/test%2bdirectory")
+
+    res.should.be.ok
+    res.body.should =~ %r[/cgi/test%2Bdirectory/test%2Bfile]
+
+    res = mr.get("/cgi/test%2bdirectory/test%2bfile")
+    res.should.be.ok
+  end
 end

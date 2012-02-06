@@ -5,3 +5,4 @@ lighttpd.errors
 stage
 *.tar.gz
 Gemfile.lock
+.rbx

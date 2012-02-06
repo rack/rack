@@ -36,7 +36,7 @@ module Rack
       private
 
         def session_id_not_loaded?
-          !key?(:id) && !@session_id_loaded
+          !(@session_id_loaded || key?(:id))
         end
 
         def load_session_id!
@@ -77,11 +77,15 @@ module Rack
           super
         end
 
+        def destroy
+         clear
+         options = @env[ENV_SESSION_OPTIONS_KEY]
+         options[:id] = @by.send(:destroy_session, @env, options[:id], options)
+        end
+
         def to_hash
           load_for_read!
-          h = {}.replace(self)
-          h.delete_if { |k,v| v.nil? }
-          h
+          Hash[self].delete_if { |k,v| v.nil? }
         end
 
         def update(hash)
@@ -95,8 +99,11 @@ module Rack
         end
 
         def inspect
-          load_for_read!
-          super
+          if loaded?
+            super
+          else
+            "#<#{self.class}:0x#{self.object_id.to_s(16)} not yet loaded>"
+          end
         end
 
         def exists?
@@ -106,6 +113,11 @@ module Rack
 
         def loaded?
           @loaded
+        end
+
+        def empty?
+          load_for_read!
+          super
         end
 
       private
@@ -144,7 +156,9 @@ module Rack
       #   'rack.session'
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
       #   cookie options as by Rack::Response#add_cookie
-      # * :defer will not set a cookie in the response.
+      # * :skip will not a set a cookie in the response nor update the session state
+      # * :defer will not set a cookie in the response but still update the session
+      #   state if it is used with a backend
       # * :renew (implementation dependent) will prompt the generation of a new
       #   session id, and migration of data to be referenced at the new id. If
       #   :defer is set, it will be overridden and the cookie will be set.
@@ -173,7 +187,7 @@ module Rack
           :renew =>         false,
           :sidbits =>       128,
           :cookie_only =>   true,
-          :secure_random => begin ::SecureRandom rescue false end
+          :secure_random => (::SecureRandom rescue false)
         }
 
         attr_reader :key, :default_options
@@ -181,7 +195,7 @@ module Rack
         def initialize(app, options={})
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
-          @key = options[:key] || "rack.session"
+          @key = @default_options.delete(:key)
           @cookie_only = @default_options.delete(:cookie_only)
           initialize_sid
         end
@@ -260,21 +274,30 @@ module Rack
         end
 
         # Session should be commited if it was loaded, any of specific options like :renew, :drop
-        # or :expire_after was given and the security permissions match.
+        # or :expire_after was given and the security permissions match. Skips if skip is given.
 
         def commit_session?(env, session, options)
-          (loaded_session?(session) || (force_options?(options) && session && !session.empty?)) && secure_session?(env, options)
+          if options[:skip]
+            false
+          else
+            has_session = loaded_session?(session) || forced_session_update?(session, options)
+            has_session && security_matches?(env, options)
+          end
         end
 
         def loaded_session?(session)
           !session.is_a?(SessionHash) || session.loaded?
         end
 
+        def forced_session_update?(session, options)
+          force_options?(options) && session && !session.empty?
+        end
+
         def force_options?(options)
           options.values_at(:renew, :drop, :defer, :expire_after).any?
         end
 
-        def secure_session?(env, options)
+        def security_matches?(env, options)
           return true unless options[:secure]
           request = Rack::Request.new(env)
           request.ssl?

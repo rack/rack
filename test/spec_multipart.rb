@@ -2,11 +2,11 @@ require 'rack/utils'
 require 'rack/mock'
 
 describe Rack::Multipart do
-  def multipart_fixture(name)
+  def multipart_fixture(name, boundary = "AaB03x")
     file = multipart_file(name)
     data = File.open(file, 'rb') { |io| io.read }
 
-    type = "multipart/form-data; boundary=AaB03x"
+    type = "multipart/form-data; boundary=#{boundary}"
     length = data.respond_to?(:bytesize) ? data.bytesize : data.size
 
     { "CONTENT_TYPE" => type,
@@ -28,6 +28,17 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
     params["text"].should.equal "contents"
+  end
+
+  should "raise RangeError if the key space is exhausted" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+
+    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
+    begin
+      lambda { Rack::Multipart.parse_multipart(env) }.should.raise(RangeError)
+    ensure
+      Rack::Utils.key_space_limit = old
+    end
   end
 
   should "parse multipart form webkit style" do
@@ -198,6 +209,51 @@ describe Rack::Multipart do
       "Content-Description: a complete map of the human genome\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  should "parse filename with unescaped percentage characters" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
+    params = Rack::Multipart.parse_multipart(env)
+    files = params["document"]["attachment"]
+    files[:type].should.equal "image/jpeg"
+    files[:filename].should.equal "100% of a photo.jpeg"
+    files[:head].should.equal <<-MULTIPART
+Content-Disposition: form-data; name="document[attachment]"; filename="100% of a photo.jpeg"\r
+Content-Type: image/jpeg\r
+    MULTIPART
+
+    files[:name].should.equal "document[attachment]"
+    files[:tempfile].read.should.equal "contents"
+  end
+
+  should "parse filename with unescaped percentage characters that look like partial hex escapes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages2, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
+    params = Rack::Multipart.parse_multipart(env)
+    files = params["document"]["attachment"]
+    files[:type].should.equal "image/jpeg"
+    files[:filename].should.equal "100%a"
+    files[:head].should.equal <<-MULTIPART
+Content-Disposition: form-data; name="document[attachment]"; filename="100%a"\r
+Content-Type: image/jpeg\r
+    MULTIPART
+
+    files[:name].should.equal "document[attachment]"
+    files[:tempfile].read.should.equal "contents"
+  end
+
+  should "parse filename with unescaped percentage characters that look like partial hex escapes" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages3, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
+    params = Rack::Multipart.parse_multipart(env)
+    files = params["document"]["attachment"]
+    files[:type].should.equal "image/jpeg"
+    files[:filename].should.equal "100%"
+    files[:head].should.equal <<-MULTIPART
+Content-Disposition: form-data; name="document[attachment]"; filename="100%"\r
+Content-Type: image/jpeg\r
+    MULTIPART
+
+    files[:name].should.equal "document[attachment]"
+    files[:tempfile].read.should.equal "contents"
   end
 
   it "rewinds input after parsing upload" do

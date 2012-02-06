@@ -19,9 +19,6 @@ module Rack
     end
 
     def remap(map)
-      longest_path_first = lambda do |(host, location, _, _)|
-        [host ? -host.size : NEGATIVE_INFINITY, -location.size]
-      end
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2
@@ -32,28 +29,46 @@ module Rack
         unless location[0] == ?/
           raise ArgumentError, "paths need to start with /"
         end
+
         location = location.chomp('/')
         match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
 
         [host, location, match, app]
-      }.sort_by(&longest_path_first)
+      }.sort_by do |(host, location, _, _)|
+        [host ? -host.size : NEGATIVE_INFINITY, -location.size]
+      end
     end
 
     def call(env)
       path = env["PATH_INFO"]
       script_name = env['SCRIPT_NAME']
-      hHost, sName, sPort = env.values_at('HTTP_HOST','SERVER_NAME','SERVER_PORT')
-      @mapping.each { |host, location, match, app|
-        next unless (hHost == host || sName == host \
-          || (host.nil? && (hHost == sName || hHost == sName+':'+sPort)))
-        next unless path.to_s =~ match && rest = $1
-        next unless rest.empty? || rest[0] == ?/
-        env.merge!('SCRIPT_NAME' => (script_name + location), 'PATH_INFO' => rest)
+      hHost = env['HTTP_HOST']
+      sName = env['SERVER_NAME']
+      sPort = env['SERVER_PORT']
+
+      @mapping.each do |host, location, match, app|
+        unless hHost == host \
+            || sName == host \
+            || (!host && (hHost == sName || hHost == sName+':'+sPort))
+          next
+        end
+
+        next unless m = match.match(path.to_s)
+
+        rest = m[1]
+        next unless !rest || rest.empty? || rest[0] == ?/
+
+        env['SCRIPT_NAME'] = (script_name + location)
+        env['PATH_INFO'] = rest
+
         return app.call(env)
-      }
+      end
+
       [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+
     ensure
-      env.merge! 'PATH_INFO' => path, 'SCRIPT_NAME' => script_name
+      env['PATH_INFO'] = path
+      env['SCRIPT_NAME'] = script_name
     end
   end
 end

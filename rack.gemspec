@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.3.5"
+  s.version         = "1.4.1"
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
 
@@ -30,7 +30,7 @@ EOF
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'
 
-  s.add_development_dependency 'fcgi'
+  s.add_development_dependency 'ruby-fcgi'
   s.add_development_dependency 'memcache-client'
   s.add_development_dependency 'mongrel', '>= 1.2.0.pre2'
   s.add_development_dependency 'thin'

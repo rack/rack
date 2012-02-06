@@ -61,8 +61,8 @@ describe Rack::Server do
       :daemonize   => false,
       :server      => 'webrick'
     )
-    t = Thread.new { server.start }
-    until t.status == 'sleep'; t.join(0.01) end
+    t = Thread.new { server.start { |s| Thread.current[:server] = s } }
+    t.join(0.01) until t[:server] && t[:server].status != :Stop
     body = open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
     body.should.eql('success')
 

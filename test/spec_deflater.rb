@@ -51,7 +51,7 @@ describe Rack::Deflater do
     response[2].each { |part| buf << inflater.inflate(part) }
     buf << inflater.finish
     buf.delete_if { |part| part.empty? }
-    buf.should.equal(%w(foo bar))
+    buf.join.should.equal("foobar")
   end
 
   # TODO: This is really just a special case of the above...
@@ -104,7 +104,7 @@ describe Rack::Deflater do
     response[2].each { |part| buf << inflater.inflate(part) }
     buf << inflater.finish
     buf.delete_if { |part| part.empty? }
-    buf.should.equal(%w(foo bar))
+    buf.join.should.equal("foobar")
   end
 
   should "be able to fallback to no deflation" do

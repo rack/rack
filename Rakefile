@@ -3,6 +3,20 @@
 desc "Run all the tests"
 task :default => [:test]
 
+desc "Install gem dependencies"
+task :deps do
+  require 'rubygems'
+  require 'rbconfig'
+  spec = Gem::Specification.load('rack.gemspec')
+  spec.dependencies.each do |dep|
+    reqs = dep.requirements_list
+    reqs = (["-v"] * reqs.size).zip(reqs).flatten
+    # Use system over sh, because we want to ignore errors!
+    ruby = File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"])
+    system ruby, "-S", "gem", "install", '--conservative', dep.name, *reqs
+  end
+end
+
 desc "Make an archive as .tar.gz"
 task :dist => [:chmod, :changelog, :rdoc, "SPEC"] do
   sh "git archive --format=tar --prefix=#{release}/ HEAD^{tree} >#{release}.tar"
@@ -72,6 +86,9 @@ task :test => 'SPEC' do
 
   sh "bacon -I./lib:./test #{opts} #{specopts}"
 end
+
+desc "Run all the tests we run on CI"
+task :ci => :test
 
 desc "Run all the tests"
 task :fulltest => %w[SPEC chmod] do

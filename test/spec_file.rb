@@ -47,19 +47,32 @@ describe Rack::File do
     res.should =~ /ruby/
   end
 
-  should "not allow directory traversal" do
+  should "allow safe directory traversal" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
-    res = req.get("/cgi/../test")
-    res.should.be.forbidden
 
-    res = req.get("../test")
-    res.should.be.forbidden
+    res = req.get('/cgi/../cgi/test')
+    res.should.be.successful
 
-    res = req.get("..")
-    res.should.be.forbidden
+    res = req.get('.')
+    res.should.be.not_found
 
     res = req.get("test/..")
-    res.should.be.forbidden
+    res.should.be.not_found
+  end
+
+  should "not allow unsafe directory traversal" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+
+    res = req.get("/../README")
+    res.should.be.client_error
+
+    res = req.get("../test")
+    res.should.be.client_error
+
+    res = req.get("..")
+    res.should.be.client_error
+
+    res.should.be.not_found
   end
 
   should "allow files with .. in their name" do
@@ -74,11 +87,19 @@ describe Rack::File do
     res.should.be.not_found
   end
 
-  should "not allow directory traversal with encoded periods" do
+  should "not allow unsafe directory traversal with encoded periods" do
     res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
       get("/%2E%2E/README")
 
-    res.should.be.forbidden
+    res.should.be.client_error?
+    res.should.be.not_found
+  end
+
+  should "allow safe directory traversal with encoded periods" do
+    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+      get("/cgi/%2E%2E/cgi/test")
+
+    res.should.be.successful
   end
 
   should "404 if it can't find the file" do
@@ -130,10 +151,33 @@ describe Rack::File do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = Rack::File.new(DOCROOT, 'public, max-age=38').call(env)
 
-    path = File.join(DOCROOT, "/cgi/test")
-
     status.should.equal 200
     heads['Cache-Control'].should.equal 'public, max-age=38'
+  end
+
+  should "only support GET and HEAD requests" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+
+    forbidden = %w[post put delete]
+    forbidden.each do |method|
+
+      res = req.send(method, "/cgi/test")
+      res.should.be.client_error
+      res.should.be.method_not_allowed
+    end
+
+    allowed = %w[get head]
+    allowed.each do |method|
+      res = req.send(method, "/cgi/test")
+      res.should.be.successful
+    end
+  end
+
+  should "set Content-Length correctly for HEAD requests" do
+    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    res = req.head "/cgi/test"
+    res.should.be.successful
+    res['Content-Length'].should.equal "193"
   end
 
 end

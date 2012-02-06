@@ -55,4 +55,19 @@ describe Rack::MethodOverride do
 
     req.env["rack.methodoverride.original_method"].should.equal "POST"
   end
+
+  should "not modify REQUEST_METHOD when given invalid multipart form data" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+EOF
+    env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :method => "POST", :input => input)
+    app = Rack::MethodOverride.new(lambda{|envx| Rack::Request.new(envx) })
+    req = app.call(env)
+
+    req.env["REQUEST_METHOD"].should.equal "POST"
+  end
 end

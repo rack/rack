@@ -13,6 +13,7 @@ module Rack
 
   class File
     SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+    ALLOWED_VERBS = %w[GET HEAD]
 
     attr_accessor :root
     attr_accessor :path
@@ -32,10 +33,24 @@ module Rack
     F = ::File
 
     def _call(env)
+      unless ALLOWED_VERBS.include? env["REQUEST_METHOD"]
+        return fail(405, "Method Not Allowed")
+      end
+
       @path_info = Utils.unescape(env["PATH_INFO"])
       parts = @path_info.split SEPS
 
-      return fail(403, "Forbidden")  if parts.include? ".."
+      parts.inject(0) do |depth, part|
+        case part
+        when '', '.'
+          depth
+        when '..'
+          return fail(404, "Not Found") if depth - 1 < 0
+          depth - 1
+        else
+          depth + 1
+        end
+      end
 
       @path = F.join(@root, *parts)
 
@@ -61,7 +76,7 @@ module Rack
           "Last-Modified"  => last_modified,
           "Content-Type"   => Mime.mime_type(F.extname(@path), 'text/plain')
         },
-        self
+        env["REQUEST_METHOD"] == "HEAD" ? [] : self
       ]
       response[1].merge! 'Cache-Control' => @cache_control if @cache_control
 

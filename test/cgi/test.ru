@@ -2,4 +2,4 @@
 # -*- ruby -*-
 
 require '../testrequest'
-run TestRequest.new
+run Rack::Lint.new(TestRequest.new)
