@@ -69,8 +69,8 @@ module Rack
         end
 
         def destroy
-         clear
-         @id = @by.send(:destroy_session, @env, id, options)
+          clear
+          @id = @by.send(:destroy_session, @env, id, options)
         end
 
         def to_hash
