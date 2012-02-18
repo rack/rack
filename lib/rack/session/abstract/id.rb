@@ -20,20 +20,17 @@ module Rack
 
       # SessionHash is responsible to lazily load the session from store.
 
-      class SessionHash < Hash
+      class SessionHash
         attr_writer :id
 
         def initialize(by, env)
-          super()
           @by = by
           @env = env
           @loaded = false
-          @id_loaded = false
         end
 
         def id
-          return @id if @loaded or @id_loaded
-          @id_loaded = true
+          return @id if @loaded or instance_variable_defined?(:@id)
           @id = @by.send(:extract_session_id, @env)
         end
 
@@ -43,24 +40,26 @@ module Rack
 
         def [](key)
           load_for_read!
-          super(key.to_s)
+          @data[key.to_s]
         end
+        alias :fetch :[]
 
         def has_key?(key)
           load_for_read!
-          super(key.to_s)
+          @data.has_key?(key.to_s)
         end
         alias :key? :has_key?
         alias :include? :has_key?
 
         def []=(key, value)
           load_for_write!
-          super(key.to_s, value)
+          @data[key.to_s] = value
         end
+        alias :store :[]=
 
         def clear
           load_for_write!
-          super
+          @data.clear
         end
 
         def destroy
@@ -70,22 +69,28 @@ module Rack
 
         def to_hash
           load_for_read!
-          Hash[self].delete_if { |k,v| v.nil? }
+          @data.dup
         end
 
         def update(hash)
           load_for_write!
-          super(stringify_keys(hash))
+          @data.update(stringify_keys(hash))
+        end
+        alias :merge! :update
+
+        def replace(hash)
+          load_for_write!
+          @data.replace(stringify_keys(hash))
         end
 
         def delete(key)
           load_for_write!
-          super(key.to_s)
+          @data.delete(key.to_s)
         end
 
         def inspect
           if loaded?
-            super
+            @data.inspect
           else
             "#<#{self.class}:0x#{self.object_id.to_s(16)} not yet loaded>"
           end
@@ -93,6 +98,7 @@ module Rack
 
         def exists?
           return @exists if instance_variable_defined?(:@exists)
+          @data = {}
           @exists = @by.send(:session_exists?, @env)
         end
 
@@ -102,7 +108,7 @@ module Rack
 
         def empty?
           load_for_read!
-          super
+          @data.empty?
         end
 
       private
@@ -117,7 +123,7 @@ module Rack
 
         def load!
           @id, session = @by.send(:load_session, @env)
-          replace(stringify_keys(session))
+          @data = stringify_keys(session)
           @loaded = true
         end
 
@@ -297,7 +303,6 @@ module Rack
           options = session.options
 
           if options[:drop] || options[:renew]
-            # if there is no session.id then we have nothing to destroy?!
             session_id = destroy_session(env, session.id || generate_sid, options)
             return [status, headers, body] unless session_id
           end
@@ -306,9 +311,9 @@ module Rack
 
           session.send(:load!) unless loaded_session?(session)
           session_id ||= session.id || generate_sid
-          session = session.to_hash
+          session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
-          if not data = set_session(env, session_id, session, options)
+          if not data = set_session(env, session_id, session_data, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
             env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
