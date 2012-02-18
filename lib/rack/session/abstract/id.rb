@@ -37,6 +37,10 @@ module Rack
           @id = @by.send(:extract_session_id, @env)
         end
 
+        def options
+          @env[ENV_SESSION_OPTIONS_KEY]
+        end
+
         def [](key)
           load_for_read!
           super(key.to_s)
@@ -61,7 +65,7 @@ module Rack
 
         def destroy
          clear
-         @id = @by.send(:destroy_session, @env, id, @env[ENV_SESSION_OPTIONS_KEY])
+         @id = @by.send(:destroy_session, @env, id, options)
         end
 
         def to_hash
@@ -290,7 +294,7 @@ module Rack
 
         def commit_session(env, status, headers, body)
           session = env[ENV_SESSION_KEY]
-          options = env[ENV_SESSION_OPTIONS_KEY]
+          options = session.options
 
           if options[:drop] || options[:renew]
             # if there is no session.id then we have nothing to destroy?!
