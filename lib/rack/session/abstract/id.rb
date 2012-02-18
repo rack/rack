@@ -18,41 +18,23 @@ module Rack
       ENV_SESSION_KEY = 'rack.session'.freeze
       ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
 
-      # Thin wrapper around Hash that allows us to lazily load session id into session_options.
-
-      class OptionsHash < Hash #:nodoc:
-        def initialize(by, env, default_options)
-          @by = by
-          @env = env
-          @session_id_loaded = false
-          merge!(default_options)
-        end
-
-        def [](key)
-          load_session_id! if key == :id && session_id_not_loaded?
-          super
-        end
-
-      private
-
-        def session_id_not_loaded?
-          !(@session_id_loaded || key?(:id))
-        end
-
-        def load_session_id!
-          self[:id] = @by.send(:extract_session_id, @env)
-          @session_id_loaded = true
-        end
-      end
-
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash < Hash
+        attr_writer :id
+
         def initialize(by, env)
           super()
           @by = by
           @env = env
           @loaded = false
+          @id_loaded = false
+        end
+
+        def id
+          return @id if @loaded or @id_loaded
+          @id_loaded = true
+          @id = @by.send(:extract_session_id, @env)
         end
 
         def [](key)
@@ -79,8 +61,7 @@ module Rack
 
         def destroy
          clear
-         options = @env[ENV_SESSION_OPTIONS_KEY]
-         options[:id] = @by.send(:destroy_session, @env, options[:id], options)
+         @id = @by.send(:destroy_session, @env, id, @env[ENV_SESSION_OPTIONS_KEY])
         end
 
         def to_hash
@@ -131,8 +112,7 @@ module Rack
         end
 
         def load!
-          id, session = @by.send(:load_session, @env)
-          @env[ENV_SESSION_OPTIONS_KEY][:id] = id
+          @id, session = @by.send(:load_session, @env)
           replace(stringify_keys(session))
           @loaded = true
         end
@@ -238,7 +218,7 @@ module Rack
         def prepare_session(env)
           session_was                  = env[ENV_SESSION_KEY]
           env[ENV_SESSION_KEY]         = SessionHash.new(self, env)
-          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+          env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
           env[ENV_SESSION_KEY].merge! session_was if session_was
         end
 
@@ -263,7 +243,7 @@ module Rack
         # Returns the current session id from the OptionsHash.
 
         def current_session_id(env)
-          env[ENV_SESSION_OPTIONS_KEY][:id]
+          env[ENV_SESSION_KEY].id
         end
 
         # Check if the session exists or not.
@@ -313,15 +293,16 @@ module Rack
           options = env['rack.session.options']
 
           if options[:drop] || options[:renew]
-            session_id = destroy_session(env, options[:id] || generate_sid, options)
+            # if there is no session.id then we have nothing to destroy?!
+            session_id = destroy_session(env, session.id || generate_sid, options)
             return [status, headers, body] unless session_id
           end
 
           return [status, headers, body] unless commit_session?(env, session, options)
 
           session.send(:load!) unless loaded_session?(session)
+          session_id ||= session.id || generate_sid
           session = session.to_hash
-          session_id ||= options[:id] || generate_sid
 
           if not data = set_session(env, session_id, session, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
