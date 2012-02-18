@@ -289,8 +289,8 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env['rack.session']
-          options = env['rack.session.options']
+          session = env[ENV_SESSION_KEY]
+          options = env[ENV_SESSION_OPTIONS_KEY]
 
           if options[:drop] || options[:renew]
             # if there is no session.id then we have nothing to destroy?!
