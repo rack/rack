@@ -21,6 +21,7 @@ module Rack
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash
+        include Enumerable
         attr_writer :id
 
         def initialize(by, env)
@@ -36,6 +37,11 @@ module Rack
 
         def options
           @env[ENV_SESSION_OPTIONS_KEY]
+        end
+
+        def each(&block)
+          load_for_read!
+          @data.each(&block)
         end
 
         def [](key)
