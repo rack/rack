@@ -33,10 +33,10 @@ module Rack
 
         location = location.chomp('/')
 
-        pattern = "^#{Regexp.quote(location).gsub('/', '/+')}(?<rack.rest>.*)"
+        pattern = "^#{Regexp.quote(location).gsub('/', '/+')}(.*)"
         pattern = pattern.gsub(/((:\w+))/) do |match|
           keys << $2[1..-1]
-          "(?<#{keys.last}>[^/?#]+)"
+          "([^/?#]+)"
         end
         pattern = Regexp.new(pattern, nil, 'n')
 
@@ -62,14 +62,12 @@ module Rack
 
         next unless m = pattern.match(path.to_s)
 
-        rest = m["rack.rest"]
+        rest = m.values_at(-1).first
         next unless !rest || rest.empty? || rest[0] == ?/
 
         env['SCRIPT_NAME'] = (script_name + location)
         env['PATH_INFO'] = rest
-        env['rack.url_params'] = {}
-
-        m.names.each { |k| env['rack.url_params'][k.to_sym] = m[k] unless k == "rack.rest" }
+        env['rack.url_params'] = Hash[*keys.collect!{|x| x.to_sym}.zip(m.values_at(1..-2)).flatten]
 
         return app.call(env)
       end
