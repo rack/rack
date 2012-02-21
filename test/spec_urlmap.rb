@@ -210,4 +210,36 @@ describe Rack::URLMap do
     res["X-PathInfo"].should.equal "/http://example.org/bar"
     res["X-ScriptName"].should.equal ""
   end
+
+  should "handle named parameters in URL" do
+    app = lambda { |env|
+      [200, {
+        "X-URLParams" => env["rack.url_params"],
+        "Content-Type" => "text/plain"
+      }, [""]]
+    }
+    map = Rack::URLMap.new({
+      "/foo" => app,
+      "/foo/:bar" => app,
+      "/foo/:bar/baz" => app,
+      "/foo/:bar/baz/:qux" => app
+    })
+
+    res = Rack::MockRequest.new(map).get("/foo")
+    res.should.be.ok
+    res["X-URLParams"].should.equal({})
+
+    res = Rack::MockRequest.new(map).get("/foo/2")
+    res.should.be.ok
+    res["X-URLParams"].should.equal({:bar=>"2"})
+
+    res = Rack::MockRequest.new(map).get("/foo/2/baz")
+    res.should.be.ok
+    res["X-URLParams"].should.equal({:bar=>"2"})
+
+    res = Rack::MockRequest.new(map).get("/foo/2/baz/four")
+    res.should.be.ok
+    res["X-URLParams"].should.equal({:bar=>"2",:qux=>"four"})
+  end
+
 end

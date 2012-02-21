@@ -20,6 +20,7 @@ module Rack
 
     def remap(map)
       @mapping = map.map { |location, app|
+        keys = []
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2
         else
@@ -31,9 +32,15 @@ module Rack
         end
 
         location = location.chomp('/')
-        match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
 
-        [host, location, match, app]
+        pattern = "^#{Regexp.quote(location).gsub('/', '/+')}(?<rack.rest>.*)"
+        pattern = pattern.gsub(/((:\w+))/) do |match|
+          keys << $2[1..-1]
+          "(?<#{keys.last}>[^/?#]+)"
+        end
+        pattern = Regexp.new(pattern, nil, 'n')
+
+        [host, location, pattern, app, keys]
       }.sort_by do |(host, location, _, _)|
         [host ? -host.size : NEGATIVE_INFINITY, -location.size]
       end
@@ -46,20 +53,23 @@ module Rack
       sName = env['SERVER_NAME']
       sPort = env['SERVER_PORT']
 
-      @mapping.each do |host, location, match, app|
+      @mapping.each do |host, location, pattern, app, keys|
         unless hHost == host \
             || sName == host \
             || (!host && (hHost == sName || hHost == sName+':'+sPort))
           next
         end
 
-        next unless m = match.match(path.to_s)
+        next unless m = pattern.match(path.to_s)
 
-        rest = m[1]
+        rest = m["rack.rest"]
         next unless !rest || rest.empty? || rest[0] == ?/
 
         env['SCRIPT_NAME'] = (script_name + location)
         env['PATH_INFO'] = rest
+        env['rack.url_params'] = {}
+
+        m.names.each { |k| env['rack.url_params'][k.to_sym] = m[k] unless k == "rack.rest" }
 
         return app.call(env)
       end
