@@ -9,12 +9,12 @@ module Rack
   # Rack::MockRequest helps testing your Rack application without
   # actually using HTTP.
   #
-  # After performing a request on a URL with get/post/put/delete, it
+  # After performing a request on a URL with get/post/put/patch/delete, it
   # returns a MockResponse with useful helper methods for effective
   # testing.
   #
   # You can pass a hash with additional configuration to the
-  # get/post/put/delete.
+  # get/post/put/patch/delete.
   # <tt>:input</tt>:: A String or IO-like to be used as rack.input.
   # <tt>:fatal</tt>:: Raise a FatalWarning if the app writes to rack.errors.
   # <tt>:lint</tt>:: If true, wrap the application in a Rack::Lint.
@@ -56,6 +56,7 @@ module Rack
     def get(uri, opts={})    request("GET", uri, opts)    end
     def post(uri, opts={})   request("POST", uri, opts)   end
     def put(uri, opts={})    request("PUT", uri, opts)    end
+    def patch(uri, opts={})  request("PATCH", uri, opts)    end
     def delete(uri, opts={}) request("DELETE", uri, opts) end
     def head(uri, opts={})   request("HEAD", uri, opts)   end
 
