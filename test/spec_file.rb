@@ -158,7 +158,7 @@ describe Rack::File do
   should "only support GET and HEAD requests" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
 
-    forbidden = %w[post put delete]
+    forbidden = %w[post put patch delete]
     forbidden.each do |method|
 
       res = req.send(method, "/cgi/test")

@@ -55,6 +55,10 @@ describe Rack::MockRequest do
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "PUT"
 
+    res = Rack::MockRequest.new(app).patch("", :input => "foo")
+    env = YAML.load(res.body)
+    env["REQUEST_METHOD"].should.equal "PATCH"
+
     res = Rack::MockRequest.new(app).delete("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "DELETE"
