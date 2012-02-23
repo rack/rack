@@ -41,8 +41,8 @@ module Rack
         pattern = Regexp.new(pattern, nil, 'n')
 
         [host, location, pattern, app, keys]
-      }.sort_by do |(host, location, _, _)|
-        [host ? -host.size : NEGATIVE_INFINITY, -location.size]
+      }.sort_by do |(host, location, _, _, _)|
+        [host ? -host.size : NEGATIVE_INFINITY, -location.gsub(/:\w+\/?/, "").size]
       end
     end
 

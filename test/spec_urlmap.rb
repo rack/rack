@@ -242,4 +242,43 @@ describe Rack::URLMap do
     res["X-URLParams"].should.equal({:bar=>"2",:qux=>"four"})
   end
 
+  should "prioritize named parameters in URL correctly" do
+    app1 = lambda { |env|
+      [200, {
+        "Content-Type" => "text/plain"
+      }, ["app1"]]
+    }
+    app2 = lambda { |env|
+      [200, {
+        "Content-Type" => "text/plain"
+      }, ["app2"]]
+    }
+
+    map1 = Rack::URLMap.new({
+      "/foo/baaaaar" => app1,
+      "/foo/:short"  => app2
+    })
+
+    map2 = Rack::URLMap.new({
+      "/foo/baaaaar"       => app1,
+      "/foo/:looooooooong" => app2
+    })
+
+    res = Rack::MockRequest.new(map1).get("/foo/baaaaar")
+    res.should.be.ok
+    res.body.should.equal 'app1' # <= as expected
+
+    res = Rack::MockRequest.new(map1).get("/foo/not-bar")
+    res.should.be.ok
+    res.body.should.equal 'app2' # <= as expected
+
+    res = Rack::MockRequest.new(map2).get("/foo/baaaaar")
+    res.should.be.ok
+    res.body.should.equal 'app1' # <= fails!
+
+    res = Rack::MockRequest.new(map2).get("/foo/not-bar")
+    res.should.be.ok
+    res.body.should.equal 'app2' # <= as expected
+
+  end
 end
