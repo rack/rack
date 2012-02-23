@@ -75,7 +75,7 @@ describe Rack::ETag do
   end
 
   should "not set ETag if no-cache is given" do
-    app = lambda { |env| [200, {'Cache-Control' => 'no-cache'}, ['Hello, World!']] }
+    app = lambda { |env| [200, {'Cache-Control' => 'no-cache, must-revalidate'}, ['Hello, World!']] }
     response = Rack::ETag.new(app).call({})
     response[1]['ETag'].should.be.nil
   end

@@ -46,7 +46,7 @@ module Rack
       end
 
       def skip_caching?(headers)
-        headers['Cache-Control'] == 'no-cache' ||
+        (headers['Cache-Control'] && headers['Cache-Control'].include?('no-cache')) ||
           headers.key?('ETag') || headers.key?('Last-Modified')
       end
 
