@@ -10,15 +10,17 @@ module Rack
       @app = app
     end
 
+    def no_length_header_but_with_body(status, headers, body)
+      !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
+        !headers['Content-Length'] && !headers['Transfer-Encoding'] &&
+        body.respond_to?(:to_ary)
+    end
+
     def call(env)
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
-         !headers['Content-Length'] &&
-         !headers['Transfer-Encoding'] &&
-         body.respond_to?(:to_ary)
-
+      if no_length_header_but_with_body(status, headers, body)
         obody = body
         body, length = [], 0
         obody.each { |part| body << part; length += bytesize(part) }

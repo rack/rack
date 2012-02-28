@@ -36,14 +36,8 @@ module Rack
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = defined?(Encoding) ? Encoding::UTF_8 : nil)
+      URI.decode_www_form_component(s, encoding)
     end
     module_function :unescape
 
@@ -234,28 +228,28 @@ module Rack
         value.map { |v| escape v }.join("&") +
         "#{domain}#{path}#{expires}#{secure}#{httponly}"
 
-      case header["Set-Cookie"]
-      when nil, ''
-        header["Set-Cookie"] = cookie
-      when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
-      when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
-      end
+      header["Set-Cookie"] = case header["Set-Cookie"]
+                             when nil, ''
+                               cookie
+                             when String
+                               [header["Set-Cookie"], cookie].join("\n")
+                             when Array
+                               (header["Set-Cookie"] + [cookie]).join("\n")
+                             end
 
       nil
     end
     module_function :set_cookie_header!
 
     def delete_cookie_header!(header, key, value = {})
-      case header["Set-Cookie"]
-      when nil, ''
-        cookies = []
-      when String
-        cookies = header["Set-Cookie"].split("\n")
-      when Array
-        cookies = header["Set-Cookie"]
-      end
+      cookies = case header["Set-Cookie"]
+                when nil, ''
+                  []
+                when String
+                  header["Set-Cookie"].split("\n")
+                when Array
+                  header["Set-Cookie"]
+                end
 
       cookies.reject! { |cookie|
         if value[:domain]
@@ -279,14 +273,8 @@ module Rack
 
     # Return the bytesize of String; uses String#size under Ruby 1.8 and
     # String#bytesize under 1.9.
-    if ''.respond_to?(:bytesize)
-      def bytesize(string)
-        string.bytesize
-      end
-    else
-      def bytesize(string)
-        string.size
-      end
+    def bytesize(string)
+      ''.respond_to?(:bytesize) ? string.bytesize : string.size
     end
     module_function :bytesize
 
