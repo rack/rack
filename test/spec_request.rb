@@ -892,6 +892,13 @@ EOF
 
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, fe80::202:b3ff:fe1e:8329'
     res.body.should.equal 'fe80::202:b3ff:fe1e:8329'
+
+    # Unix Sockets
+    res = mock.get '/',
+      'REMOTE_ADDR' => 'unix',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    res.body.should.equal '3.4.5.6'
+
   end
 
   class MyRequest < Rack::Request
