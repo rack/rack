@@ -66,6 +66,6 @@ module URI
     str.gsub(/\+|%\h\h/, TBLDECWWWCOMP_).force_encoding(enc)
   end
 
-  remove_const :WFKV_
-  WFKV_ = '(?:[^%#=;&]*(?:%\h\h[^%#=;&]*)*)' if defined?(WFKV_) # :nodoc:
+  remove_const :WFKV_ if defined?(WFKV_)
+  WFKV_ = '(?:[^%#=;&]*(?:%\h\h[^%#=;&]*)*)' # :nodoc:
 end
