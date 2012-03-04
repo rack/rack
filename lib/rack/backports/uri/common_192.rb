@@ -67,5 +67,5 @@ module URI
   end
 
   remove_const :WFKV_
-  WFKV_ = '(?:[^%#=;&]*(?:%\h\h[^%#=;&]*)*)' # :nodoc:
+  WFKV_ = '(?:[^%#=;&]*(?:%\h\h[^%#=;&]*)*)' if defined?(WFKV_) # :nodoc:
 end
