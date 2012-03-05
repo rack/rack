@@ -10,7 +10,7 @@ if major == 1 && minor < 9
   require 'rack/backports/uri/common_18'
 elsif major == 1 && minor == 9 && patch < 3
   require 'rack/backports/uri/common_192'
-elsif major == 1 && minor == 9 && patch == 3
+elsif major == 1 && minor == 9 && patch == 3 && RUBY_PATCHLEVEL < 125
   require 'rack/backports/uri/common_193'
 else
   require 'uri/common'
