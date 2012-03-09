@@ -36,6 +36,10 @@ module Rack
     # target encoding of the string returned, and it defaults to UTF-8
     if defined?(::Encoding)
       def unescape(s, encoding = Encoding::UTF_8)
+        s = s.gsub(/%u[0-9A-F]{4}/) do |unicode_string|
+          utf16char = ["FEFF" + unicode_string[2,4]].pack('H*').force_encoding(Encoding::UTF_16)
+          escape(utf16char.encode(encoding))
+        end
         URI.decode_www_form_component(s, encoding)
       end
     else
