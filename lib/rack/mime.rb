@@ -10,8 +10,6 @@ module Rack
     # Usage:
     #     Rack::Mime.mime_type('.foo')
     #
-    # This is a shortcut for:
-    #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
     def mime_type(ext, fallback='application/octet-stream')
       MIME_TYPES.fetch(ext.to_s.downcase, fallback)
