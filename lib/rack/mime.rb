@@ -12,7 +12,9 @@ module Rack
     #
 
     def mime_type(ext, fallback='application/octet-stream')
-      MIME_TYPES.fetch(ext.to_s.downcase, fallback)
+      ext = ext.to_s.downcase
+      return fallback if ext == '' || ext.nil?
+      return MIME_TYPES.fetch(ext, 'application/octet-stream')
     end
     module_function :mime_type
 
