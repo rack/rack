@@ -6,7 +6,7 @@ describe Rack::Response do
     response = Rack::Response.new
     status, header, body = response.finish
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal({})
     body.each { |part|
       part.should.equal ""
     }
@@ -14,7 +14,7 @@ describe Rack::Response do
     response = Rack::Response.new
     status, header, body = *response
     status.should.equal 200
-    header.should.equal "Content-Type" => "text/html"
+    header.should.equal({})
     body.each { |part|
       part.should.equal ""
     }
@@ -37,7 +37,7 @@ describe Rack::Response do
 
   it "can set and read headers" do
     response = Rack::Response.new
-    response["Content-Type"].should.equal "text/html"
+    response["Content-Type"].should.equal nil
     response["Content-Type"] = "text/plain"
     response["Content-Type"].should.equal "text/plain"
   end
