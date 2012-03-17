@@ -37,8 +37,8 @@ module Rack
         return fail(405, "Method Not Allowed")
       end
 
-      @path_info = Utils.unescape(env["PATH_INFO"])
-      parts = @path_info.split SEPS
+      path_info = Utils.unescape(env["PATH_INFO"])
+      parts = path_info.split SEPS
 
       parts.inject(0) do |depth, part|
         case part
@@ -63,7 +63,7 @@ module Rack
       if available
         serving(env)
       else
-        fail(404, "File not found: #{@path_info}")
+        fail(404, "File not found: #{path_info}")
       end
     end
 
