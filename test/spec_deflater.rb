@@ -166,4 +166,24 @@ describe Rack::Deflater do
     response[1].should.not.include "Content-Encoding"
     response[2].join.should.equal("Hello World!")
   end
+
+  should "do nothing when Content-Encoding already present" do
+    app = lambda { |env| [200, {'Content-Encoding' => 'gzip'}, ['Hello World!']] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
+    response = Rack::Deflater.new(app).call(request)
+
+    response[0].should.equal(200)
+    response[2].join.should.equal("Hello World!")
+  end
+
+  should "deflate when Content-Encoding is identity" do
+    app = lambda { |env| [200, {'Content-Encoding' => 'identity'}, ['Hello World!']] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "deflate")
+    response = Rack::Deflater.new(app).call(request)
+
+    response[0].should.equal(200)
+    buf = ''
+    response[2].each { |part| buf << part }
+    inflate(buf).should.equal("Hello World!")
+  end
 end
