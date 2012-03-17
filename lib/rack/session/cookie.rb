@@ -119,12 +119,6 @@ module Rack
         data
       end
 
-      # Overwrite set cookie to bypass content equality and always stream the cookie.
-
-      def set_cookie(env, headers, cookie)
-        Utils.set_cookie_header!(headers, @key, cookie)
-      end
-
       def set_session(env, session_id, session, options)
         session = session.merge("session_id" => session_id)
         session_data = coder.encode(session)

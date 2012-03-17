@@ -121,13 +121,16 @@ describe Rack::Session::Cookie do
 
   it "renew session id" do
     response = response_for(:app => incrementor)
-    response = response_for(:app => only_session_id, :cookie => response)
+    cookie   = response['Set-Cookie']
+    response = response_for(:app => only_session_id, :cookie => cookie)
+    cookie   = response['Set-Cookie'] if response['Set-Cookie']
 
     response.body.should.not.equal ""
     old_session_id = response.body
 
-    response = response_for(:app => renewer, :cookie => response)
-    response = response_for(:app => only_session_id, :cookie => response)
+    response = response_for(:app => renewer, :cookie => cookie)
+    cookie   = response['Set-Cookie'] if response['Set-Cookie']
+    response = response_for(:app => only_session_id, :cookie => cookie)
 
     response.body.should.not.equal ""
     response.body.should.not.equal old_session_id
