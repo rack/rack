@@ -4,6 +4,8 @@ require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::ContentLength do
+  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
+
   def content_length(app)
     Rack::Lint.new Rack::ContentLength.new(app)
   end
