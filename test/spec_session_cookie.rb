@@ -24,6 +24,17 @@ describe Rack::Session::Cookie do
     Rack::Response.new("Nothing").to_a
   end
 
+  before do
+    @warnings = warnings = []
+    Rack::Session::Cookie.class_eval do
+      define_method(:warn) { |m| warnings << m }
+    end
+  end
+
+  after do
+    Rack::Session::Cookie.class_eval { remove_method :warn }
+  end
+
   describe 'Base64' do
     it 'uses base64 to encode' do
       coder = Rack::Session::Cookie::Base64.new
@@ -55,6 +66,14 @@ describe Rack::Session::Cookie do
         coder.decode('lulz').should.equal nil
       end
     end
+  end
+
+  it "warns if no secret is given" do
+    cookie = Rack::Session::Cookie.new(incrementor)
+    @warnings.first.should =~ /no secret/i
+    @warnings.clear
+    cookie = Rack::Session::Cookie.new(incrementor, :secret => 'abc')
+    @warnings.should.be.empty?
   end
 
   it 'uses a coder' do
