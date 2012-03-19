@@ -83,6 +83,15 @@ module Rack
 
       def initialize(app, options={})
         @secrets = options.values_at(:secret, :old_secret).compact
+        warn <<-MSG unless @secrets.size >= 1
+        SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
+        This poses a security threat. It is strongly recommended that you
+        provide a secret to prevent exploits that may be possible from crafted
+        cookies. This will not be supported in future versions of Rack, and
+        future versions will even invalidate your existing user cookies.
+
+        Called from: #{caller[0]}.
+        MSG
         @coder  = options[:coder] ||= Base64::Marshal.new
         super(app, options.merge!(:cookie_only => true))
       end
