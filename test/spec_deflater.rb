@@ -7,6 +7,8 @@ require 'rack/mock'
 require 'zlib'
 
 describe Rack::Deflater do
+  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
+
   def deflater(app)
     Rack::Lint.new Rack::Deflater.new(app)
   end
