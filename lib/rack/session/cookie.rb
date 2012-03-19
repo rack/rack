@@ -27,6 +27,15 @@ module Rack
         @app = app
         @key = options[:key] || "rack.session"
         @secret = options[:secret]
+        warn <<-MSG unless @secret
+        SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
+        This poses a security threat. It is strongly recommended that you
+        provide a secret to prevent exploits that may be possible from crafted
+        cookies. This will not be supported in future versions of Rack, and
+        future versions will even invalidate your existing user cookies.
+
+        Called from: #{caller[0]}.
+        MSG
         @default_options = {:domain => nil,
           :path => "/",
           :expire_after => nil}.merge(options)

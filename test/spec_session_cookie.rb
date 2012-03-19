@@ -8,6 +8,25 @@ describe Rack::Session::Cookie do
     Rack::Response.new(env["rack.session"].inspect).to_a
   end
 
+  before do
+    @warnings = warnings = []
+    Rack::Session::Cookie.class_eval do
+      define_method(:warn) { |m| warnings << m }
+    end
+  end
+
+  after do
+    Rack::Session::Cookie.class_eval { remove_method :warn }
+  end
+
+  it "warns if no secret is given" do
+    cookie = Rack::Session::Cookie.new(incrementor)
+    @warnings.first.should =~ /no secret/i
+    @warnings.clear
+    cookie = Rack::Session::Cookie.new(incrementor, :secret => 'abc')
+    @warnings.should.be.empty?
+  end
+
   it "creates a new cookie" do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).get("/")
     res["Set-Cookie"].should.include("rack.session=")
