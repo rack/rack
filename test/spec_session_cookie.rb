@@ -256,7 +256,7 @@ describe Rack::Session::Cookie do
     response.body.should.not.be.nil
   end
 
-  it "can handle a middleware that inspects the env" do
+  it "can handle middleware that inspects the env" do
     class TestEnvInspector
       def initialize(app)
         @app = app
