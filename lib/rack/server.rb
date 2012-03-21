@@ -247,11 +247,14 @@ module Rack
         pp app
       end
 
+      check_pid! if options[:pid]
+
       # Touch the wrapped app, so that the config.ru is loaded before
       # daemonization (i.e. before chdir, etc).
       wrapped_app
 
       daemonize_app if options[:daemonize]
+
       write_pid if options[:pid]
 
       trap(:INT) do
@@ -319,5 +322,14 @@ module Rack
         ::File.open(options[:pid], 'w'){ |f| f.write("#{Process.pid}") }
         at_exit { ::File.delete(options[:pid]) if ::File.exist?(options[:pid]) }
       end
+
+      def check_pid!
+        return unless ::File.exist?(options[:pid])
+        pid = ::File.read(options[:pid])
+        STDERR.puts "There is already a pid file wrote a by process with pid #{pid}"
+        STDERR.puts "If this process is no longer running, you have to remove the pidfile #{options[:pid]}"
+        exit(1)
+      end
+
   end
 end
