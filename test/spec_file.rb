@@ -63,13 +63,13 @@ describe Rack::File do
   should "not allow unsafe directory traversal" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
 
-    res = req.get("/../README")
+    res = req.get("/../README.rdoc")
     res.should.be.client_error
 
-    res = req.get("../test")
+    res = req.get("../test/spec_file.rb")
     res.should.be.client_error
 
-    res = req.get("..")
+    res = req.get("../README.rdoc")
     res.should.be.client_error
 
     res.should.be.not_found
