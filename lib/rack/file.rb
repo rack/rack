@@ -38,21 +38,8 @@ module Rack
       end
 
       path_info = Utils.unescape(env["PATH_INFO"])
-      parts = path_info.split SEPS
-
-      parts.inject(0) do |depth, part|
-        case part
-        when '', '.'
-          depth
-        when '..'
-          return fail(404, "Not Found") if depth - 1 < 0
-          depth - 1
-        else
-          depth + 1
-        end
-      end
-
-      @path = F.join(@root, *parts)
+      return fail(404, "Not Found") unless safe_traversal?(path_info)
+      @path = F.join(@root, path_info)
 
       available = begin
         F.file?(@path) && F.readable?(@path)
@@ -138,5 +125,9 @@ module Rack
       ]
     end
 
+    def safe_traversal?(path)
+      fake_dir = F.expand_path('a' * path.size)
+      F.expand_path(F.join(fake_dir, path)).start_with?(fake_dir)
+    end
   end
 end
