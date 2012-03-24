@@ -78,7 +78,7 @@ module Rack
         },
         env["REQUEST_METHOD"] == "HEAD" ? [] : self
       ]
-      response[1].merge! 'Cache-Control' => @cache_control if @cache_control
+      response[1]['Cache-Control'] = @cache_control if @cache_control
 
       # NOTE:
       #   We check via File::size? whether this file provides size info
@@ -101,7 +101,7 @@ module Rack
         # Partial content:
         @range = ranges[0]
         response[0] = 206
-        response[1]["Content-Range"]  = "bytes #{@range.begin}-#{@range.end}/#{size}"
+        response[1]["Content-Range"] = "bytes #{@range.begin}-#{@range.end}/#{size}"
         size = @range.end - @range.begin + 1
       end
 
