@@ -25,7 +25,7 @@ module Rack
   #
   #  run app
   #
-  # +use+ adds a middleware to the stack, +run+ dispatches to an application.
+  # +use+ adds middleware to the stack, +run+ dispatches to an application.
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
@@ -55,7 +55,7 @@ module Rack
       self.new(default_app, &block).to_app
     end
 
-    # Specifies a middleware to use in a stack.
+    # Specifies middleware to use in a stack.
     #
     #   class Middleware
     #     def initialize(app)
