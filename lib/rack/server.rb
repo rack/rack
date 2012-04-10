@@ -36,7 +36,7 @@ module Rack
 
           opts.separator ""
           opts.separator "Rack options:"
-          opts.on("-s", "--server SERVER", "serve using SERVER (webrick/mongrel)") { |s|
+          opts.on("-s", "--server SERVER", "serve using SERVER (thin/puma/webrick/mongrel)") { |s|
             options[:server] = s
           }
 
