@@ -63,6 +63,7 @@ module Rack
       bytes = 0
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
+        next if p.empty?
         k, v = p.split('=', 2).map { |x| unescape(x) }
 
         if k
