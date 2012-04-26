@@ -26,7 +26,7 @@ module Rack
 
           opts.on("-I", "--include PATH",
                   "specify $LOAD_PATH (may be used more than once)") { |path|
-            options[:include] = path.split(":")
+            (options[:include] ||= []).concat(path.split(":"))
           }
 
           opts.on("-r", "--require LIBRARY",
