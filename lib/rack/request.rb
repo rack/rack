@@ -217,10 +217,31 @@ module Rack
     end
 
     # The union of GET and POST data.
+    #
+    # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
     def params
       @params ||= self.GET.merge(self.POST)
     rescue EOFError
-      self.GET
+      self.GET.dup
+    end
+
+    # Destructively update a parameter, whether it's in GET and/or POST. Returns nil.
+    #
+    # The parameter is added to both GET and POST to reduce confusion.
+    def update_param(k, v)
+      self.GET[k] = v
+      self.POST[k] = v
+      @params = nil
+      nil
+    end
+
+    # Destructively delete a parameter, whether it's in GET or POST. Returns the value of the deleted parameter.
+    #
+    # If the parameter is in both GET and POST, the POST value takes precedence since that's how #params works.
+    def delete_param(k)
+      v = [ self.POST.delete(k), self.GET.delete(k) ].compact.first
+      @params = nil
+      v
     end
 
     # shortcut for request.params[key]
@@ -229,6 +250,8 @@ module Rack
     end
 
     # shortcut for request.params[key] = value
+    #
+    # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
     def []=(key, value)
       params[key.to_s] = value
     end
