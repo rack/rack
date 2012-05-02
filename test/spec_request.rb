@@ -451,6 +451,26 @@ describe Rack::Request do
     req2.params.should.equal 'foo' => 'bar'
   end
 
+  should "modify params hash by changing only GET" do
+    e = Rack::MockRequest.env_for("?foo=duhget")
+    req = Rack::Request.new(e)
+    req.GET.should.equal 'foo' => 'duhget'
+    req.POST.should.equal({})
+    req.update_param 'foo', 'bar'
+    req.GET.should.equal 'foo' => 'bar'
+    req.POST.should.equal({})
+  end
+
+  should "modify params hash by changing only POST" do
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
+    req = Rack::Request.new(e)
+    req.GET.should.equal({})
+    req.POST.should.equal 'foo' => 'duhpost'
+    req.update_param 'foo', 'bar'
+    req.GET.should.equal({})
+    req.POST.should.equal 'foo' => 'bar'
+  end
+
   should "modify params hash, even if param is defined in both POST and GET" do
     e = Rack::MockRequest.env_for("?foo=duhget", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
     req1 = Rack::Request.new(e)
