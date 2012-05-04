@@ -1,3 +1,5 @@
+require 'fileutils'
+require 'rack/lint'
 require 'rack/sendfile'
 require 'rack/mock'
 
@@ -9,8 +11,9 @@ end
 
 describe Rack::Sendfile do
   def sendfile_body
+    FileUtils.touch "/tmp/rack_sendfile"
     res = ['Hello World']
-    def res.to_path ; "/tmp/hello.txt" ; end
+    def res.to_path ; "/tmp/rack_sendfile" ; end
     res
   end
 
@@ -19,7 +22,7 @@ describe Rack::Sendfile do
   end
 
   def sendfile_app(body=sendfile_body)
-    Rack::Sendfile.new(simple_app(body))
+    Rack::Lint.new Rack::Sendfile.new(simple_app(body))
   end
 
   @request = Rack::MockRequest.new(sendfile_app)
@@ -40,8 +43,8 @@ describe Rack::Sendfile do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
-      response.headers['X-Sendfile'].should.equal '/tmp/hello.txt'
+      response.headers['Content-Length'].should.equal '0'
+      response.headers['X-Sendfile'].should.equal '/tmp/rack_sendfile'
     end
   end
 
@@ -49,8 +52,8 @@ describe Rack::Sendfile do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Lighttpd-Send-File' do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
-      response.headers['X-Lighttpd-Send-File'].should.equal '/tmp/hello.txt'
+      response.headers['Content-Length'].should.equal '0'
+      response.headers['X-Lighttpd-Send-File'].should.equal '/tmp/rack_sendfile'
     end
   end
 
@@ -62,8 +65,8 @@ describe Rack::Sendfile do
     request headers do |response|
       response.should.be.ok
       response.body.should.be.empty
-      response.headers['Content-Length'].should == '0'
-      response.headers['X-Accel-Redirect'].should.equal '/foo/bar/hello.txt'
+      response.headers['Content-Length'].should.equal '0'
+      response.headers['X-Accel-Redirect'].should.equal '/foo/bar/rack_sendfile'
     end
   end
 

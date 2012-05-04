@@ -1,5 +1,6 @@
 begin
   require 'rack/session/memcache'
+  require 'rack/lint'
   require 'rack/mock'
   require 'thread'
 
@@ -11,22 +12,23 @@ begin
       env["rack.session"]["counter"] += 1
       Rack::Response.new(env["rack.session"].inspect).to_a
     end
-    drop_session = proc do |env|
+    drop_session = Rack::Lint.new(proc do |env|
       env['rack.session.options'][:drop] = true
       incrementor.call(env)
-    end
-    renew_session = proc do |env|
+    end)
+    renew_session = Rack::Lint.new(proc do |env|
       env['rack.session.options'][:renew] = true
       incrementor.call(env)
-    end
-    defer_session = proc do |env|
+    end)
+    defer_session = Rack::Lint.new(proc do |env|
       env['rack.session.options'][:defer] = true
       incrementor.call(env)
-    end
-    skip_session = proc do |env|
+    end)
+    skip_session = Rack::Lint.new(proc do |env|
       env['rack.session.options'][:skip] = true
       incrementor.call(env)
-    end
+    end)
+    incrementor = Rack::Lint.new(incrementor)
 
     # test memcache connection
     Rack::Session::Memcache.new(incrementor)

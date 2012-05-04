@@ -10,11 +10,11 @@ describe Rack::URLMap do
         'Content-Type' => 'text/plain'
       }, [""]]
     }
-    map = Rack::URLMap.new({
+    map = Rack::Lint.new(Rack::URLMap.new({
       'http://foo.org/bar' => app,
       '/foo' => app,
       '/foo/bar' => app
-    })
+    }))
 
     res = Rack::MockRequest.new(map).get("/")
     res.should.be.not_found
@@ -66,7 +66,7 @@ describe Rack::URLMap do
 
 
   it "dispatches hosts correctly" do
-    map = Rack::URLMap.new("http://foo.org/" => lambda { |env|
+    map = Rack::Lint.new(Rack::URLMap.new("http://foo.org/" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "foo.org",
@@ -90,7 +90,7 @@ describe Rack::URLMap do
                                 "X-Position" => "default.org",
                                 "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]}
-                           )
+                           ))
 
     res = Rack::MockRequest.new(map).get("/")
     res.should.be.ok
@@ -124,7 +124,7 @@ describe Rack::URLMap do
   end
 
   should "be nestable" do
-    map = Rack::URLMap.new("/foo" =>
+    map = Rack::Lint.new(Rack::URLMap.new("/foo" =>
       Rack::URLMap.new("/bar" =>
         Rack::URLMap.new("/quux" =>  lambda { |env|
                            [200,
@@ -133,7 +133,7 @@ describe Rack::URLMap do
                               "X-PathInfo" => env["PATH_INFO"],
                               "X-ScriptName" => env["SCRIPT_NAME"],
                             }, [""]]}
-                         )))
+                         ))))
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.not_found
@@ -146,7 +146,7 @@ describe Rack::URLMap do
   end
 
   should "route root apps correctly" do
-    map = Rack::URLMap.new("/" => lambda { |env|
+    map = Rack::Lint.new(Rack::URLMap.new("/" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "root",
@@ -160,7 +160,7 @@ describe Rack::URLMap do
                                 "X-PathInfo" => env["PATH_INFO"],
                                 "X-ScriptName" => env["SCRIPT_NAME"]
                               }, [""]]}
-                           )
+                           ))
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.ok
@@ -188,7 +188,7 @@ describe Rack::URLMap do
   end
 
   should "not squeeze slashes" do
-    map = Rack::URLMap.new("/" => lambda { |env|
+    map = Rack::Lint.new(Rack::URLMap.new("/" => lambda { |env|
                              [200,
                               { "Content-Type" => "text/plain",
                                 "X-Position" => "root",
@@ -202,7 +202,7 @@ describe Rack::URLMap do
                                 "X-PathInfo" => env["PATH_INFO"],
                                 "X-ScriptName" => env["SCRIPT_NAME"]
                               }, [""]]}
-                           )
+                           ))
 
     res = Rack::MockRequest.new(map).get("/http://example.org/bar")
     res.should.be.ok
