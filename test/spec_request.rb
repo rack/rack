@@ -411,6 +411,103 @@ describe Rack::Request do
     req.cookies.should.equal 'foo' => 'bar'
   end
 
+  should "not modify the params hash in place" do
+    e = Rack::MockRequest.env_for("")
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal({})
+    req1.params['foo'] = 'bar'
+    req1.params.should.equal 'foo' => 'bar'
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal({})
+  end
+
+  should "modify params hash if param is in GET" do
+    e = Rack::MockRequest.env_for("?foo=duh")
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal 'foo' => 'duh'
+    req1.update_param 'foo', 'bar'
+    req1.params.should.equal 'foo' => 'bar'
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal 'foo' => 'bar'
+  end
+
+  should "modify params hash if param is in POST" do
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => 'foo=duh')
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal 'foo' => 'duh'
+    req1.update_param 'foo', 'bar'
+    req1.params.should.equal 'foo' => 'bar'
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal 'foo' => 'bar'
+  end
+
+  should "modify params hash, even if param didn't exist before" do
+    e = Rack::MockRequest.env_for("")
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal({})
+    req1.update_param 'foo', 'bar'
+    req1.params.should.equal 'foo' => 'bar'
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal 'foo' => 'bar'
+  end
+
+  should "modify params hash by changing only GET" do
+    e = Rack::MockRequest.env_for("?foo=duhget")
+    req = Rack::Request.new(e)
+    req.GET.should.equal 'foo' => 'duhget'
+    req.POST.should.equal({})
+    req.update_param 'foo', 'bar'
+    req.GET.should.equal 'foo' => 'bar'
+    req.POST.should.equal({})
+  end
+
+  should "modify params hash by changing only POST" do
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
+    req = Rack::Request.new(e)
+    req.GET.should.equal({})
+    req.POST.should.equal 'foo' => 'duhpost'
+    req.update_param 'foo', 'bar'
+    req.GET.should.equal({})
+    req.POST.should.equal 'foo' => 'bar'
+  end
+
+  should "modify params hash, even if param is defined in both POST and GET" do
+    e = Rack::MockRequest.env_for("?foo=duhget", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
+    req1 = Rack::Request.new(e)
+    req1.GET.should.equal 'foo' => 'duhget'
+    req1.POST.should.equal 'foo' => 'duhpost'
+    req1.params.should.equal 'foo' => 'duhpost'
+    req1.update_param 'foo', 'bar'
+    req1.GET.should.equal 'foo' => 'bar'
+    req1.POST.should.equal 'foo' => 'bar'
+    req1.params.should.equal 'foo' => 'bar'
+    req2 = Rack::Request.new(e)
+    req2.GET.should.equal 'foo' => 'bar'
+    req2.POST.should.equal 'foo' => 'bar'
+    req2.params.should.equal 'foo' => 'bar'
+    req2.params.should.equal 'foo' => 'bar'
+  end
+
+  should "allow deleting from params hash if param is in GET" do
+    e = Rack::MockRequest.env_for("?foo=bar")
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal 'foo' => 'bar'
+    req1.delete_param('foo').should.equal 'bar'
+    req1.params.should.equal({})
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal({})
+  end
+
+  should "allow deleting from params hash if param is in POST" do
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => 'foo=bar')
+    req1 = Rack::Request.new(e)
+    req1.params.should.equal 'foo' => 'bar'
+    req1.delete_param('foo').should.equal 'bar'
+    req1.params.should.equal({})
+    req2 = Rack::Request.new(e)
+    req2.params.should.equal({})
+  end
+
   should "raise any errors on every request" do
     req = Rack::Request.new Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
     2.times { proc { req.cookies }.should.raise(ArgumentError) }
