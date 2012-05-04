@@ -118,6 +118,8 @@ describe Rack::Utils do
     Rack::Utils.parse_query("&key&").should.equal "key" => nil
     Rack::Utils.parse_query(";key;", ";,").should.equal "key" => nil
     Rack::Utils.parse_query(",key,", ";,").should.equal "key" => nil
+    Rack::Utils.parse_query(";foo=bar,;", ";,").should.equal "foo" => "bar"
+    Rack::Utils.parse_query(",foo=bar;,", ";,").should.equal "foo" => "bar"
   end
 
   should "parse nested query strings correctly" do
