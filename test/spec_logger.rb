@@ -1,5 +1,7 @@
 require 'stringio'
+require 'rack/lint'
 require 'rack/logger'
+require 'rack/mock'
 
 describe Rack::Logger do
   app = lambda { |env|
@@ -10,13 +12,6 @@ describe Rack::Logger do
 
     [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]]
   }
-
-  should "log to rack.errors" do
-    errors = StringIO.new
-    Rack::Logger.new(app).call('rack.errors' => errors)
-    errors.string.should.match(/INFO -- : Program started/)
-    errors.string.should.match(/WARN -- : Nothing to do/)
-  end
 
   should "conform to Rack::Lint" do
     errors = StringIO.new

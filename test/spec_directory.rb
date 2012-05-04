@@ -1,10 +1,11 @@
 require 'rack/directory'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Directory do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
   FILE_CATCH = proc{|env| [200, {'Content-Type'=>'text/plain', "Content-Length" => "7"}, ['passed!']] }
-  app = Rack::Directory.new DOCROOT, FILE_CATCH
+  app = Rack::Lint.new(Rack::Directory.new(DOCROOT, FILE_CATCH))
 
   should "serve directory indices" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).

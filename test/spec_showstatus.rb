@@ -1,10 +1,15 @@
 require 'rack/showstatus'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::ShowStatus do
+  def show_status(app)
+    Rack::Lint.new Rack::ShowStatus.new(app)
+  end
+  
   should "provide a default status message" do
     req = Rack::MockRequest.new(
-      Rack::ShowStatus.new(lambda{|env|
+      show_status(lambda{|env|
         [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
     }))
 
@@ -19,7 +24,7 @@ describe Rack::ShowStatus do
 
   should "let the app provide additional information" do
     req = Rack::MockRequest.new(
-      Rack::ShowStatus.new(
+      show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
           [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
@@ -37,7 +42,7 @@ describe Rack::ShowStatus do
 
   should "not replace existing messages" do
     req = Rack::MockRequest.new(
-      Rack::ShowStatus.new(
+      show_status(
         lambda{|env|
           [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
     }))
@@ -52,7 +57,7 @@ describe Rack::ShowStatus do
     headers = {"WWW-Authenticate" => "Basic blah"}
 
     req = Rack::MockRequest.new(
-      Rack::ShowStatus.new(lambda{|env| [401, headers, []] }))
+      show_status(lambda{|env| [401, headers, []] }))
     res = req.get("/", :lint => true)
 
     res["WWW-Authenticate"].should.equal("Basic blah")
@@ -60,7 +65,7 @@ describe Rack::ShowStatus do
 
   should "replace existing messages if there is detail" do
     req = Rack::MockRequest.new(
-      Rack::ShowStatus.new(
+      show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
           [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
