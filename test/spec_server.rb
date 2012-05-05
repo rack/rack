@@ -71,4 +71,30 @@ describe Rack::Server do
     open(pidfile) { |f| f.read.should.eql $$.to_s }
   end
 
+  should "check pid file presence and running process" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write($$); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :running
+  end
+
+  should "check pid file presence and dead process" do
+    dead_pid = `echo $$`.to_i
+    pidfile = Tempfile.open('pidfile') { |f| f.write(dead_pid); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :dead
+  end
+
+  should "check pid file presence and exited process" do
+    pidfile = Tempfile.open('pidfile') { |f| break f }.path
+    ::File.delete(pidfile)
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :exited
+  end
+
+  should "check pid file presence and not owned process" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :not_owned
+  end
+
 end

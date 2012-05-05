@@ -324,11 +324,30 @@ module Rack
       end
 
       def check_pid!
-        return unless ::File.exist?(options[:pid])
-        pid = ::File.read(options[:pid])
+        case pidfile_process_status
+        when :running
+          STDERR.puts "The process is still alive. aborting."
+          exit(1)
+        when :not_owned
+          STDERR.puts "The process is still alive. And owned by another user aborting."
+          exit(1)
+        when :dead
+          STDERR.puts "The process is no longer running. Removing the pid file."
+          ::File.delete(options[:pid])
+        end
+      end
+
+      def pidfile_process_status
+        return :exited unless ::File.exist?(options[:pid])
+
+        pid = ::File.read(options[:pid]).to_i
         STDERR.puts "There is already a pid file wrote a by process with pid #{pid}"
-        STDERR.puts "If this process is no longer running, you have to remove the pidfile #{options[:pid]}"
-        exit(1)
+        Process.kill(0, pid)
+        :running
+      rescue Errno::ESRCH
+        :dead
+      rescue Errno::EPERM
+        :not_owned
       end
 
   end
