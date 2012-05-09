@@ -30,6 +30,7 @@ These web servers include Rack handlers in their distributions:
 * Puma
 * Rainbows!
 * Unicorn
+* unixrack
 * Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
