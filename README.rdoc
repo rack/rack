@@ -457,7 +457,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 == Links
 
-Rack:: <http://rack.rubyforge.org/>
+Rack:: <http://rack.github.com/>
 Official Rack repositories:: <http://github.com/rack>
 Rack Bug Tracking:: <http://github.com/rack/rack/issues>
 rack-devel mailing list:: <http://groups.google.com/group/rack-devel>
