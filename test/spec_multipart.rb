@@ -367,4 +367,26 @@ EOF
     params = Rack::Multipart.parse_multipart(env)
     params['profile']['bio'].should.include 'hello'
   end
+
+  should "parse very long unquoted multipart file names" do
+    data = <<-EOF
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Disposition: attachment; name=file; filename=#{'long' * 100}\r
+\r
+contents\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+
+    params["file"][:filename].should.equal('long' * 100)
+  end
+
 end
