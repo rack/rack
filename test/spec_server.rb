@@ -10,6 +10,13 @@ describe Rack::Server do
     lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
   end
 
+  def with_stderr
+    old, $stderr = $stderr, StringIO.new
+    yield $stderr
+  ensure
+    $stderr = old
+  end
+
   it "overrides :config if :app is passed in" do
     server = Rack::Server.new(:app => "FOO")
     server.app.should == "FOO"
@@ -95,6 +102,20 @@ describe Rack::Server do
     pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
     server = Rack::Server.new(:pid => pidfile)
     server.send(:pidfile_process_status).should.eql :not_owned
+  end
+
+  should "inform the user about existing pidfiles with running processes" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    with_stderr do |err|
+      should.raise(SystemExit) do
+        server.start
+      end
+      err.rewind
+      output = err.read
+      output.should.match(/already running/)
+      output.should.include? pidfile
+    end
   end
 
 end
