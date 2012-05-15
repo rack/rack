@@ -78,27 +78,29 @@ table { width:100%%; }
 
     def list_directory
       @files = [['../','Parent Directory','','','']]
-      glob = F.join(@path, '*')
 
       url_head = ([@script_name] + @path_info.split('/')).map do |part|
         Rack::Utils.escape part
       end
 
-      Dir[glob].sort.each do |node|
-        stat = stat(node)
-        next  unless stat
-        basename = F.basename(node)
-        ext = F.extname(node)
+      Dir.new(@path).sort.each do |filename|
+        unless filename.start_with?('.')
+          node = F.join(@path, filename)
+          stat = stat(node)
+          next  unless stat
+          basename = F.basename(node)
+          ext = F.extname(node)
 
-        url = F.join(*url_head + [Rack::Utils.escape(basename)])
-        size = stat.size
-        type = stat.directory? ? 'directory' : Mime.mime_type(ext)
-        size = stat.directory? ? '-' : filesize_format(size)
-        mtime = stat.mtime.httpdate
-        url << '/'  if stat.directory?
-        basename << '/'  if stat.directory?
+          url = F.join(*url_head + [Rack::Utils.escape(basename)])
+          size = stat.size
+          type = stat.directory? ? 'directory' : Mime.mime_type(ext)
+          size = stat.directory? ? '-' : filesize_format(size)
+          mtime = stat.mtime.httpdate
+          url << '/'  if stat.directory?
+          basename << '/'  if stat.directory?
 
-        @files << [ url, basename, size, type, mtime ]
+          @files << [ url, basename, size, type, mtime ]
+        end
       end
 
       return [ 200, {'Content-Type'=>'text/html; charset=utf-8'}, self ]
