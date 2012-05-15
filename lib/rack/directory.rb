@@ -83,25 +83,22 @@ table { width:100%%; }
         Rack::Utils.escape part
       end
 
-      Dir.new(@path).sort.each do |filename|
-        unless filename.start_with?('.')
-          node = F.join(@path, filename)
-          stat = stat(node)
-          next  unless stat
-          basename = F.basename(node)
-          ext = F.extname(node)
+      @files.concat visible_files.map { |node|
+        stat = stat(node)
+        next  unless stat
+        basename = F.basename(node)
+        ext = F.extname(node)
 
-          url = F.join(*url_head + [Rack::Utils.escape(basename)])
-          size = stat.size
-          type = stat.directory? ? 'directory' : Mime.mime_type(ext)
-          size = stat.directory? ? '-' : filesize_format(size)
-          mtime = stat.mtime.httpdate
-          url << '/'  if stat.directory?
-          basename << '/'  if stat.directory?
+        url = F.join(*url_head + [Rack::Utils.escape(basename)])
+        size = stat.size
+        type = stat.directory? ? 'directory' : Mime.mime_type(ext)
+        size = stat.directory? ? '-' : filesize_format(size)
+        mtime = stat.mtime.httpdate
+        url << '/'  if stat.directory?
+        basename << '/'  if stat.directory?
 
-          @files << [ url, basename, size, type, mtime ]
-        end
-      end
+        [ url, basename, size, type, mtime ]
+      }.compact
 
       return [ 200, {'Content-Type'=>'text/html; charset=utf-8'}, self ]
     end
@@ -158,6 +155,10 @@ table { width:100%%; }
       end
 
       int.to_s + 'B'
+    end
+
+    def visible_files
+      Dir.new(@path).reject{ |fn| fn.start_with? '.' }.sort.map{ |fn| F.join(@path, fn) }
     end
   end
 end
