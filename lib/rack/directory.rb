@@ -78,13 +78,12 @@ table { width:100%%; }
 
     def list_directory
       @files = [['../','Parent Directory','','','']]
-      glob = F.join(@path, '*')
 
       url_head = ([@script_name] + @path_info.split('/')).map do |part|
         Rack::Utils.escape part
       end
 
-      Dir[glob].sort.each do |node|
+      @files.concat visible_files.map { |node|
         stat = stat(node)
         next  unless stat
         basename = F.basename(node)
@@ -98,8 +97,8 @@ table { width:100%%; }
         url << '/'  if stat.directory?
         basename << '/'  if stat.directory?
 
-        @files << [ url, basename, size, type, mtime ]
-      end
+        [ url, basename, size, type, mtime ]
+      }.compact
 
       return [ 200, {'Content-Type'=>'text/html; charset=utf-8'}, self ]
     end
@@ -156,6 +155,10 @@ table { width:100%%; }
       end
 
       int.to_s + 'B'
+    end
+
+    def visible_files
+      Dir.new(@path).reject{ |fn| fn.start_with? '.' }.sort.map{ |fn| F.join(@path, fn) }
     end
   end
 end
