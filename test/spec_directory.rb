@@ -67,4 +67,15 @@ describe Rack::Directory do
     res = mr.get("/cgi/test%2bdirectory/test%2bfile")
     res.should.be.ok
   end
+
+  should "escape glob characters" do
+    mr = Rack::MockRequest.new(Rack::Lint.new(app))
+    res = mr.get("/cgi/test%7B1%7D")
+
+    res.should.be.ok
+    res.body.should =~ %r{/cgi/test%7B1%7D/file%5B1%5D}
+
+    res = mr.get("/cgi/test%7B1%7D/file%5B1%5D")
+    res.should.be.ok
+  end
 end

@@ -78,7 +78,7 @@ table { width:100%%; }
 
     def list_directory
       @files = [['../','Parent Directory','','','']]
-      glob = F.join(@path, '*')
+      glob = F.join(@path.gsub(/[*?{}\[\]]/, '\\\\\\&'), '*')
 
       url_head = ([@script_name] + @path_info.split('/')).map do |part|
         Rack::Utils.escape part
