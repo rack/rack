@@ -277,7 +277,7 @@ module Rack
         options = default_options
 
         # Don't evaluate CGI ISINDEX parameters.
-        # http://hoohoo.ncsa.uiuc.edu/cgi/cl.html
+        # http://www.meb.uni-bonn.de/docs/cgi/cl.html
         args.clear if ENV.include?("REQUEST_METHOD")
 
         options.merge! opt_parser.parse!(args)
