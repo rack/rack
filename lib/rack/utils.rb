@@ -519,6 +519,9 @@ module Rack
       423  => 'Locked',
       424  => 'Failed Dependency',
       426  => 'Upgrade Required',
+      428  => 'Precondition Required',
+      429  => 'Too Many Requests',
+      431  => 'Request Header Fields Too Large',
       500  => 'Internal Server Error',
       501  => 'Not Implemented',
       502  => 'Bad Gateway',
@@ -528,6 +531,7 @@ module Rack
       506  => 'Variant Also Negotiates',
       507  => 'Insufficient Storage',
       510  => 'Not Extended',
+      511  => 'Network Authentication Required',
     }
 
     # Responses with HTTP status codes that should not have an entity body
