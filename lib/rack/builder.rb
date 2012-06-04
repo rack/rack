@@ -38,7 +38,7 @@ module Rack
         end
         cfgfile.sub!(/^__END__\n.*\Z/m, '')
         app = eval "Rack::Builder.new {\n" + cfgfile + "\n}.to_app",
-          TOPLEVEL_BINDING, config
+          TOPLEVEL_BINDING, config, 0
       else
         require config
         app = Object.const_get(::File.basename(config, '.rb').capitalize)
