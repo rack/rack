@@ -69,7 +69,8 @@ module Rack
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         next if p.empty?
         k, v = p.split('=', 2).map { |x| unescape(x) }
-        next unless k || v
+        v = '' if v.nil?
+        next unless k
 
         if cur = params[k]
           if cur.class == Array
@@ -102,6 +103,7 @@ module Rack
     def normalize_params(params, name, v = nil)
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
+      v = '' if v.nil?
       after = $' || ''
 
       return if k.empty?
