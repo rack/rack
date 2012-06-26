@@ -202,9 +202,7 @@ server, and must not be sent back to the client.
 The header keys must be Strings.
 The header must not contain a +Status+ key,
 contain keys with <tt>:</tt> or newlines in their name,
-contain keys names that end in <tt>-</tt> or <tt>_</tt>,
-but only contain keys that consist of
-letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
+but only contain keys that match the token rule according to RFC 2616.
 The values of the header must be Strings,
 consisting of lines (for multiple header values, e.g. multiple
 <tt>Set-Cookie</tt> values) seperated by "\n".
