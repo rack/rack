@@ -152,6 +152,20 @@ describe Rack::Auth::Digest::MD5 do
     end
   end
 
+  should 'not rechallenge if nonce is not stale' do
+    begin
+      Rack::Auth::Digest::Nonce.time_limit = 10
+
+      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', :wait => 1 do |response|
+        response.status.should.equal 200
+        response.body.to_s.should.equal 'Hi Alice'
+        response.headers['WWW-Authenticate'].should.not =~ /\bstale=true\b/
+      end
+    ensure
+      Rack::Auth::Digest::Nonce.time_limit = nil
+    end
+  end
+
   should 'rechallenge with stale parameter if nonce is stale' do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 1
