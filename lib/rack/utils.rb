@@ -9,7 +9,7 @@ ruby_engine = defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby'
 
 if major == 1 && minor < 9
   require 'rack/backports/uri/common_18'
-elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL < 318 && RUBY_ENGINE != 'jruby'
+elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL <= 320 && RUBY_ENGINE != 'jruby'
   require 'rack/backports/uri/common_192'
 elsif major == 1 && minor == 9 && patch == 3 && RUBY_PATCHLEVEL < 125
   require 'rack/backports/uri/common_193'
