@@ -310,4 +310,11 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(app).get("/", 'rack.session' => {:foo => 'bar'})
     res.body.should.match(/foo/)
   end
+
+  it "allows modifying session data with session data from middleware in front" do
+    request = { 'rack.session' => { :foo => 'bar' }}
+    response = response_for(:app => incrementor, :request => request)
+    response.body.should.match(/counter/)
+    response.body.should.match(/foo/)
+  end
 end
