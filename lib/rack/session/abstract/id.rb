@@ -120,6 +120,11 @@ module Rack
           super
         end
 
+        def merge!(hash)
+          load_for_write!
+          super
+        end
+
       private
 
         def load_for_read!
