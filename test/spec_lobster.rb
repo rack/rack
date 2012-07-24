@@ -14,7 +14,7 @@ end
 
 describe Rack::Lobster::LambdaLobster do
   extend LobsterHelpers
-  
+
   should "be a single lambda" do
     Rack::Lobster::LambdaLobster.should.be.kind_of Proc
   end
@@ -35,7 +35,7 @@ end
 
 describe Rack::Lobster do
   extend LobsterHelpers
-  
+
   should "look like a lobster" do
     res = lobster.get("/")
     res.should.be.ok

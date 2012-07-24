@@ -29,7 +29,7 @@ describe Rack::Recursive do
   @app4 = lambda { |env|
     raise Rack::ForwardRequest.new("http://example.org/app1/quux?meh")
   }
-  
+
   def recursive(map)
     Rack::Lint.new Rack::Recursive.new(Rack::URLMap.new(map))
   end

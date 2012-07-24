@@ -8,7 +8,7 @@ describe Rack::Cascade do
   def cascade(*args)
     Rack::Lint.new Rack::Cascade.new(*args)
   end
-  
+
   docroot = File.expand_path(File.dirname(__FILE__))
   app1 = Rack::File.new(docroot)
 

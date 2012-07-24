@@ -6,7 +6,7 @@ describe Rack::ShowStatus do
   def show_status(app)
     Rack::Lint.new Rack::ShowStatus.new(app)
   end
-  
+
   should "provide a default status message" do
     req = Rack::MockRequest.new(
       show_status(lambda{|env|

@@ -12,7 +12,7 @@ describe Rack::Static do
   def static(app, *args)
     Rack::Lint.new Rack::Static.new(app, *args)
   end
-  
+
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = {:urls => ["/cgi"], :root => root}

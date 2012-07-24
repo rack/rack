@@ -12,7 +12,7 @@ describe Rack::Deflater do
   def deflater(app)
     Rack::Lint.new Rack::Deflater.new(app)
   end
-  
+
   def build_response(status, body, accept_encoding, headers = {})
     body = [body]  if body.respond_to? :to_str
     app = lambda do |env|

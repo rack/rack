@@ -9,11 +9,11 @@ describe Rack::ContentLength do
   def content_length(app)
     Rack::Lint.new Rack::ContentLength.new(app)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   should "set Content-Length on Array bodies if none is set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = content_length(app).call(request)
