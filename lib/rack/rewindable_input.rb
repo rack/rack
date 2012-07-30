@@ -98,7 +98,7 @@ module Rack
     end
 
     def filesystem_has_posix_semantics?
-      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/
+      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java/darwin)/
     end
   end
 end
