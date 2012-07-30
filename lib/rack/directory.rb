@@ -80,7 +80,7 @@ table { width:100%%; }
       @files = [['../','Parent Directory','','','']]
       glob = F.join(@path, '*')
 
-      url_head = ([@script_name] + @path_info.split('/')).map do |part|
+      url_head = [@script_name] + @path_info.split('/').map do |part|
         Rack::Utils.escape part
       end
 
