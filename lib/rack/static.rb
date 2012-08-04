@@ -37,30 +37,43 @@ module Rack
 
     def initialize(app, options={})
       @app = app
-      @urls = options[:urls] || ["/favicon.ico"]
+      @urls  = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
-      root = options[:root] || Dir.pwd
+      @root  = options[:root] || Dir.pwd
       cache_control = options[:cache_control]
-      @file_server = Rack::File.new(root, cache_control)
+      @file_server = Rack::File.new(@root, cache_control)
     end
 
-    def overwrite_file_path(path)
-      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path =~ /\/$/
+    # Determine if a path is a directory by looking for
+    # trailing `/`, and failing that checking the file system.
+    def directory?(path)
+      path.end_with?('/') || ::File.directory?(::File.join(@root, path))
     end
 
+    # Look up path in urls, return nil if not present.
     def route_file(path)
-      @urls.kind_of?(Array) && @urls.any? { |url| path.index(url) == 0 }
-    end
-
-    def can_serve(path)
-      route_file(path) || overwrite_file_path(path)
+      case @urls
+      when Array
+        @urls.any?{ |url| path.index(url) == 0 } ? path : nil
+      when Hash
+        @urls[path]
+      else
+        nil
+      end
     end
 
     def call(env)
-      path = env["PATH_INFO"]
+      path  = env["PATH_INFO"].strip
+      route = route_file(path)
 
-      if can_serve(path)
-        env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
+      if route
+        if @index && directory?(route)
+          route = route.chomp('/') + '/' + @index
+        end
+        env["PATH_INFO"] = route
+        @file_server.call(env)
+      elsif @index && directory?(path)
+        env["PATH_INFO"] = path.chomp('/') + '/' + @index
         @file_server.call(env)
       else
         @app.call(env)
