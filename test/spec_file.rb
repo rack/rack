@@ -145,12 +145,31 @@ describe Rack::File do
     res["Content-Range"].should.equal "bytes */193"
   end
 
-  should "support cache control options" do
+  should "support legacy cache control options provided as string" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = file(DOCROOT, 'public, max-age=38').call(env)
 
     status.should.equal 200
     heads['Cache-Control'].should.equal 'public, max-age=38'
+  end
+
+  should "support custom http headers" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = file(DOCROOT, 'Cache-Control' => 'public, max-age=38',
+     'Access-Control-Allow-Origin' => '*').call(env)
+
+    status.should.equal 200
+    heads['Cache-Control'].should.equal 'public, max-age=38'
+    heads['Access-Control-Allow-Origin'].should.equal '*'
+  end
+
+  should "support not add custom http headers if none are supplied" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = file(DOCROOT).call(env)
+
+    status.should.equal 200
+    heads['Cache-Control'].should.equal nil
+    heads['Access-Control-Allow-Origin'].should.equal nil
   end
 
   should "only support GET and HEAD requests" do
