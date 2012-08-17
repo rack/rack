@@ -51,7 +51,8 @@ module Rack
       @index = options[:index]
       root = options[:root] || Dir.pwd
       headers = options[:headers] || {}
-      # Allow for legacy :cache_control option while prioritizing headers hash settings
+      # Allow for legacy :cache_control option
+      # while prioritizing :headers => {'Cache-Control' => ''} settings
       headers['Cache-Control'] ||= options[:cache_control] if options[:cache_control]
       @file_server = Rack::File.new(root, headers)
     end
