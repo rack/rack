@@ -25,6 +25,8 @@ module Rack
       @root = root
       # Allow a cache_control string for backwards compatibility
       if headers.instance_of? String
+        warn \
+          "Rack::File headers parameter replaces cache_control after Rack 1.5."
         @headers = { 'Cache-Control' => headers }
       else
         @headers = headers
