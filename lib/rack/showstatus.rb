@@ -3,7 +3,7 @@ require 'rack/request'
 require 'rack/utils'
 
 module Rack
-  # Rack::ShowStatus catches all empty responses and replaces them 
+  # Rack::ShowStatus catches all empty responses and replaces them
   # with a site explaining the error.
   #
   # Additional details can be put into <tt>rack.showstatus.detail</tt>

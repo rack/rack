@@ -118,25 +118,25 @@ module Rack
 
     # Checks the HTTP request method (or verb) to see if it was of type DELETE
     def delete?;  request_method == "DELETE"  end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type GET
     def get?;     request_method == "GET"     end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type HEAD
     def head?;    request_method == "HEAD"    end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
     def options?; request_method == "OPTIONS" end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type PATCH
     def patch?;   request_method == "PATCH"   end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type POST
     def post?;    request_method == "POST"    end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type PUT
     def put?;     request_method == "PUT"     end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type TRACE
     def trace?;   request_method == "TRACE"   end
 
@@ -352,7 +352,7 @@ module Rack
     def ip
       remote_addrs = split_ip_addresses(@env['REMOTE_ADDR'])
       remote_addrs = reject_trusted_ip_addresses(remote_addrs)
-      
+
       return remote_addrs.first if remote_addrs.any?
 
       forwarded_ips = split_ip_addresses(@env['HTTP_X_FORWARDED_FOR'])

@@ -6,7 +6,7 @@ describe Rack::ShowExceptions do
   def show_exceptions(app)
     Rack::Lint.new Rack::ShowExceptions.new(app)
   end
-  
+
   it "catches exceptions" do
     res = nil
 

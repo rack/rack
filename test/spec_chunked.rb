@@ -14,7 +14,7 @@ describe Rack::Chunked do
       response
     end
   end
-  
+
   before do
     @env = Rack::MockRequest.
       env_for('/', 'HTTP_VERSION' => '1.1', 'REQUEST_METHOD' => 'GET')
