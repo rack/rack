@@ -67,4 +67,22 @@ describe Rack::Directory do
     res = mr.get("/cgi/test%2bdirectory/test%2bfile")
     res.should.be.ok
   end
+
+  should "correctly escape script name" do
+    app2 = Rack::Builder.new do
+      map '/script-path' do
+        run app
+      end
+    end
+
+    mr = Rack::MockRequest.new(Rack::Lint.new(app2))
+
+    res = mr.get("/script-path/cgi/test%2bdirectory")
+
+    res.should.be.ok
+    res.body.should =~ %r[/script-path/cgi/test%2Bdirectory/test%2Bfile]
+
+    res = mr.get("/script-path/cgi/test%2bdirectory/test%2bfile")
+    res.should.be.ok
+  end
 end
