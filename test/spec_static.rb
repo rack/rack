@@ -12,7 +12,7 @@ describe Rack::Static do
   def static(app, *args)
     Rack::Lint.new Rack::Static.new(app, *args)
   end
-  
+
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = {:urls => ["/cgi"], :root => root}
@@ -76,6 +76,25 @@ describe Rack::Static do
     res = request.get("/cgi/test")
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public'
+  end
+
+  it "supports serving custom http headers" do
+    opts = OPTIONS.merge(:headers => {'Cache-Control' => 'public, max-age=42',
+      'Access-Control-Allow-Origin' => '*'})
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    res = request.get("/cgi/test")
+    res.should.be.ok
+    res.headers['Cache-Control'].should == 'public, max-age=42'
+    res.headers['Access-Control-Allow-Origin'].should == '*'
+  end
+
+  it "allows headers hash to take priority over fixed cache-control" do
+    opts = OPTIONS.merge(:cache_control => 'public, max-age=38',
+      :headers => {'Cache-Control' => 'public, max-age=42'})
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    res = request.get("/cgi/test")
+    res.should.be.ok
+    res.headers['Cache-Control'].should == 'public, max-age=42'
   end
 
 end

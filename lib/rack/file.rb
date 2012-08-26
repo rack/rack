@@ -21,9 +21,14 @@ module Rack
 
     alias :to_path :path
 
-    def initialize(root, cache_control = nil)
+    def initialize(root, headers={})
       @root = root
-      @cache_control = cache_control
+      # Allow a cache_control string for backwards compatibility
+      if headers.instance_of? String
+        @headers = { 'Cache-Control' => headers }
+      else
+        @headers = headers
+      end
     end
 
     def call(env)
@@ -78,7 +83,9 @@ module Rack
         },
         env["REQUEST_METHOD"] == "HEAD" ? [] : self
       ]
-      response[1]['Cache-Control'] = @cache_control if @cache_control
+
+      # Set custom headers
+      @headers.each { |field, content| response[1][field] = content } if @headers
 
       # NOTE:
       #   We check via File::size? whether this file provides size info
