@@ -54,6 +54,12 @@ describe Rack::ETag do
     response[1]['Cache-Control'].should.equal 'public'
   end
 
+  should "not set Cache-Control if directive isn't present" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
+    response = etag(app, nil, nil).call(request)
+    response[1]['Cache-Control'].should.equal nil
+  end
+
   should "not change ETag if it is already set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'ETag' => '"abc"'}, ["Hello, World!"]] }
     response = etag(app).call(request)
