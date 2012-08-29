@@ -247,11 +247,14 @@ module Rack
         pp app
       end
 
+      check_pid! if options[:pid]
+
       # Touch the wrapped app, so that the config.ru is loaded before
       # daemonization (i.e. before chdir, etc).
       wrapped_app
 
       daemonize_app if options[:daemonize]
+
       write_pid if options[:pid]
 
       trap(:INT) do
@@ -274,7 +277,7 @@ module Rack
         options = default_options
 
         # Don't evaluate CGI ISINDEX parameters.
-        # http://hoohoo.ncsa.uiuc.edu/cgi/cl.html
+        # http://www.meb.uni-bonn.de/docs/cgi/cl.html
         args.clear if ENV.include?("REQUEST_METHOD")
 
         options.merge! opt_parser.parse!(args)
@@ -319,5 +322,28 @@ module Rack
         ::File.open(options[:pid], 'w'){ |f| f.write("#{Process.pid}") }
         at_exit { ::File.delete(options[:pid]) if ::File.exist?(options[:pid]) }
       end
+
+      def check_pid!
+        case pidfile_process_status
+        when :running, :not_owned
+          $stderr.puts "A server is already running. Check #{options[:pid]}."
+          exit(1)
+        when :dead
+          ::File.delete(options[:pid])
+        end
+      end
+
+      def pidfile_process_status
+        return :exited unless ::File.exist?(options[:pid])
+
+        pid = ::File.read(options[:pid]).to_i
+        Process.kill(0, pid)
+        :running
+      rescue Errno::ESRCH
+        :dead
+      rescue Errno::EPERM
+        :not_owned
+      end
+
   end
 end

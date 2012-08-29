@@ -32,6 +32,16 @@ module Rack
   #
   #     use Rack::Static, :root => 'public', :cache_control => 'public'
   #
+  # Set custom HTTP Headers for all served files:
+  #
+  #     use Rack::Static, :root => 'public', :headers =>
+  #         {'Cache-Control' => 'public, max-age=31536000',
+  #         'Access-Control-Allow-Origin' => '*'}
+  #
+  #     Note: If both :headers => {'Cache-Control' => 'public, max-age=42'}
+  #           and :cache_control => 'public, max-age=38' are being provided
+  #           the :headers setting takes precedence
+  #
 
   class Static
 
@@ -40,8 +50,11 @@ module Rack
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
       root = options[:root] || Dir.pwd
-      cache_control = options[:cache_control]
-      @file_server = Rack::File.new(root, cache_control)
+      headers = options[:headers] || {}
+      # Allow for legacy :cache_control option
+      # while prioritizing :headers => {'Cache-Control' => ''} settings
+      headers['Cache-Control'] ||= options[:cache_control] if options[:cache_control]
+      @file_server = Rack::File.new(root, headers)
     end
 
     def overwrite_file_path(path)
