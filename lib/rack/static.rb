@@ -114,8 +114,7 @@ module Rack
 
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
-        @path = env["PATH_INFO"]
-        set_headers
+        set_headers(env["PATH_INFO"])
         @file_server.call(env)
       else
         @app.call(env)
@@ -123,22 +122,30 @@ module Rack
     end
 
     # Convert header rules to headers
-    def set_headers
+    def set_headers(path)
       @header_rules.each do |rule, headers|
-        case rule
-        when :global # Global
+        if rule == :global # Global
           set_header(headers)
-        when :fonts  # Fonts Shortcut
-          set_header(headers) if @path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
-        when String  # Folder
-          path = ::Rack::Utils.unescape(@path)
-          set_header(headers) if
-            (path.start_with?(rule) || path.start_with?('/' + rule))
-        when Array   # Extension/Extensions
+        elsif rule == :fonts  # Fonts Shortcut
+          if path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
+            set_header(headers)
+          end
+        elsif rule.instance_of?(String)  # Folder
+          path = ::Rack::Utils.unescape(path)
+          if path.start_with?(rule)
+            set_header(headers)
+          elsif path.start_with?('/' + rule)
+            set_header(headers)
+          end
+        elsif rule.instance_of?(Array)   # Extension/Extensions
           extensions = rule.join('|')
-          set_header(headers) if @path.match(%r{\.(#{extensions})\z})
-        when Regexp  # Flexible Regexp
-          set_header(headers) if @path.match(rule)
+          if path.match(%r{\.(#{extensions})\z})
+            set_header(headers)
+          end
+        elsif rule.instance_of?(Regexp)  # Flexible Regexp
+          if path.match(rule)
+            set_header(headers)
+          end
         else
         end
       end
