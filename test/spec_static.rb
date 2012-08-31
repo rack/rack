@@ -23,6 +23,16 @@ describe Rack::Static do
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
 
+  @header_rules = {
+    :header_rules => {
+      :global     => {'Cache-Control' => 'public, max-age=100'},
+      :fonts      => {'Cache-Control' => 'public, max-age=200'},
+      %w(png jpg) => {'Cache-Control' => 'public, max-age=300'},
+      'cgi/assets/folder/'     => {'Cache-Control' => 'public, max-age=400'},
+      '/cgi/assets/javascripts' => {'Cache-Control' => 'public, max-age=500'},
+      /\.(css|erb)\z/ => {'Cache-Control' => 'public, max-age=600'},
+    }}
+
   it "serves files" do
     res = @request.get("/cgi/test")
     res.should.be.ok
@@ -91,40 +101,58 @@ describe Rack::Static do
     res.headers['Cache-Control'].should == 'public, max-age=42'
   end
 
-  it "support HTTP header rules" do
-    opts = OPTIONS.merge(:header_rules => {
-      :global     => {'Cache-Control' => 'public, max-age=100'},
-      :fonts      => {'Cache-Control' => 'public, max-age=200'},
-      %w(png jpg) => {'Cache-Control' => 'public, max-age=300'},
-      'cgi/assets/folder/'     => {'Cache-Control' => 'public, max-age=400'},
-      '/cgi/assets/javascripts' => {'Cache-Control' => 'public, max-age=500'},
-      /\.(css|erb)\z/ => {'Cache-Control' => 'public, max-age=600'},
-    })
+  it "support HTTP header rule :global" do
+    opts = OPTIONS.merge(@header_rules)
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     # Global Headers via :global shortcut
     res = request.get('/cgi/assets/index.html')
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public, max-age=100'
+  end
+
+  it "support HTTP header rule :fonts" do
+    opts = OPTIONS.merge(@header_rules)
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     # Headers for web fonts via :fonts shortcut
     res = request.get('/cgi/assets/fonts/font.eot')
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public, max-age=200'
+  end
+
+  it "support HTTP header rules for file extensions via Array" do
+    opts = OPTIONS.merge(@header_rules)
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     # Headers for file extensions via array
     res = request.get('/cgi/assets/images/image.png')
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public, max-age=300'
+  end
+
+  it "support HTTP header rules for folders via String starting without '/'" do
+    opts = OPTIONS.merge(@header_rules)
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     # Headers for files in folder via string
     res = request.get('/cgi/assets/folder/test.js')
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public, max-age=400'
+  end
+
+  it "support HTTP header rules for folders via String starting with '/'" do
+    opts = OPTIONS.merge(@header_rules)
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     res = request.get('/cgi/assets/javascripts/app.js')
     res.should.be.ok
     res.headers['Cache-Control'].should == 'public, max-age=500'
+  end
+
+  it "support flexible HTTP header rules via Regexp" do
+    opts = OPTIONS.merge(@header_rules)
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
 
     # Flexible Headers via Regexp
     res = request.get('/cgi/assets/stylesheets/app.css')
