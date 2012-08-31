@@ -28,19 +28,58 @@ module Rack
   #     use Rack::Static, :urls => [""], :root => 'public', :index =>
   #     'index.html'
   #
-  # Set a fixed Cache-Control header for all served files:
+  # Set custom HTTP Headers for based on rules:
   #
-  #     use Rack::Static, :root => 'public', :cache_control => 'public'
+  #     use Rack::Static, :root => 'public',
+  #         :header_rules => {
+  #           rule         => { header_field => content },
+  #           another_rule => { header_field => content }
+  #         }
   #
-  # Set custom HTTP Headers for all served files:
+  #  These rules for generating HTTP Headers are shipped along:
+  #  1) Global
+  #  :global => Matches every file
   #
-  #     use Rack::Static, :root => 'public', :headers =>
-  #         {'Cache-Control' => 'public, max-age=31536000',
-  #         'Access-Control-Allow-Origin' => '*'}
+  #  Ex.:
+  #    :header_rules => {
+  #      :global => {'Cache-Control' => 'public, max-age=123'}
+  #    }
   #
-  #     Note: If both :headers => {'Cache-Control' => 'public, max-age=42'}
-  #           and :cache_control => 'public, max-age=38' are being provided
-  #           the :headers setting takes precedence
+  #  2) Folders
+  #  '/folder' => Matches all files in a certain folder
+  #  '/folder/subfolder' => ...
+  #    Note: Provide the folder as a string,
+  #          with or without the starting slash
+  #
+  #  3) File Extensions
+  #  ['css', 'js'] => Will match all files ending in .css or .js
+  #  %w(css js) => ...
+  #    Note: Provide the file extensions in an array,
+  #          use any ruby syntax you like to set that array up
+  #
+  #  4) Regular Expressions / Regexp
+  #  %r{\.(?:css|js)\z} => will match all files ending in .css or .js
+  #  /\.(?:eot|ttf|otf|woff|svg)\z/ => will match all files ending
+  #     in the most common web font formats
+  #
+  #  5) Shortcuts
+  #  There is currently only one shortcut defined.
+  #  :fonts => will match all files ending in eot, ttf, otf, woff, svg
+  #     using the Regexp stated right above
+  #
+  #  Example use:
+  #
+  #     use Rack::Static, :root => 'public',
+  #         :header_rules => {
+  #           # Cache all static files in http caches as well as on the client
+  #           :global => { 'Cache-Control' => 'public, max-age=31536000' },
+  #           # Provide Web Fonts with Access-Control-Headers
+  #           :fonts  => { 'Access-Control-Allow-Origin' => '*' }
+  #         }
+  #
+  #  Note: The rules will be applied in the order they are provided,
+  #        thus more special rules further down below can override
+  #        general global HTTP header settings
   #
 
   class Static
@@ -50,11 +89,12 @@ module Rack
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
       root = options[:root] || Dir.pwd
-      headers = options[:headers] || {}
-      # Allow for legacy :cache_control option
-      # while prioritizing :headers => {'Cache-Control' => ''} settings
-      headers['Cache-Control'] ||= options[:cache_control] if options[:cache_control]
-      @file_server = Rack::File.new(root, headers)
+      @headers = {}
+      @header_rules = options[:header_rules] || {}
+      # Allow for legacy :cache_control option while prioritizing global header_rules setting
+      @header_rules[:global] ||= {}
+      @header_rules[:global]['Cache-Control'] ||= options[:cache_control] if options[:cache_control]
+      @file_server = Rack::File.new(root, @headers)
     end
 
     def overwrite_file_path(path)
@@ -74,10 +114,38 @@ module Rack
 
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
+        @path = env["PATH_INFO"]
+        set_headers
         @file_server.call(env)
       else
         @app.call(env)
       end
+    end
+
+    # Convert header rules to headers
+    def set_headers
+      @header_rules.each do |rule, headers|
+        case rule
+        when :global # Global
+          set_header(headers)
+        when :fonts  # Fonts Shortcut
+          set_header(headers) if @path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
+        when String  # Folder
+          path = ::Rack::Utils.unescape(@path)
+          set_header(headers) if
+            (path.start_with?(rule) || path.start_with?('/' + rule))
+        when Array   # Extension/Extensions
+          extensions = rule.join('|')
+          set_header(headers) if @path.match(%r{\.(#{extensions})\z})
+        when Regexp  # Flexible Regexp
+          set_header(headers) if @path.match(rule)
+        else
+        end
+      end
+    end
+
+    def set_header(headers)
+      headers.each { |field, content| @headers[field] = content }
     end
 
   end
