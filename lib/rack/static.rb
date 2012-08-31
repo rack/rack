@@ -81,6 +81,21 @@ module Rack
   #        thus more special rules further down below can override
   #        general global HTTP header settings
   #
+  #  Note: In MRI Ruby 1.8.7, Ruby Enterprise Edition (REE)
+  #        or certain versions of Rubinius hashes are unordered.
+  #        This means that when you provide rules using a hash
+  #        they will be applied in a random, different order
+  #        to every file served and each time a file is served.
+  #
+  #        You can circumvent this issue by providing an array of arrays,
+  #        thus encapsulating each rule, as shown here:
+  #
+  #        use Rack::Static, :root => 'public',
+  #          :header_rules => [
+  #            [:global => { 'Cache-Control' => 'public, max-age=31536000' }],
+  #            [:fonts  => { 'Access-Control-Allow-Origin' => '*' }]
+  #           ]
+  #
 
   class Static
 
@@ -92,8 +107,15 @@ module Rack
       @headers = {}
       @header_rules = options[:header_rules] || {}
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
-      @header_rules[:global] ||= {}
-      @header_rules[:global]['Cache-Control'] ||= options[:cache_control] if options[:cache_control]
+      if options[:cache_control]
+        if @header_rules.instance_of? Array
+            cache_control = [{ :global => {'Cache-Control' => options[:cache_control]} }]
+            @header_rules.insert(0, cache_control)
+        else
+          @header_rules[:global] ||= {}
+          @header_rules[:global]['Cache-Control'] ||= options[:cache_control]
+        end
+      end
       @file_server = Rack::File.new(root, @headers)
     end
 
@@ -114,7 +136,8 @@ module Rack
 
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
-        set_headers(env["PATH_INFO"])
+        @path = env["PATH_INFO"]
+        set_headers
         @file_server.call(env)
       else
         @app.call(env)
@@ -122,32 +145,33 @@ module Rack
     end
 
     # Convert header rules to headers
-    def set_headers(path)
-      @header_rules.each do |rule, headers|
-        if rule == :global # Global
-          set_header(headers)
-        elsif rule == :fonts  # Fonts Shortcut
-          if path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
-            set_header(headers)
-          end
-        elsif rule.instance_of?(String)  # Folder
-          path = ::Rack::Utils.unescape(path)
-          if path.start_with?(rule)
-            set_header(headers)
-          elsif path.start_with?('/' + rule)
-            set_header(headers)
-          end
-        elsif rule.instance_of?(Array)   # Extension/Extensions
-          extensions = rule.join('|')
-          if path.match(%r{\.(#{extensions})\z})
-            set_header(headers)
-          end
-        elsif rule.instance_of?(Regexp)  # Flexible Regexp
-          if path.match(rule)
-            set_header(headers)
-          end
-        else
+    def set_headers
+      if @header_rules.instance_of? Array
+        @header_rules.each do |header_rule|
+          header_rule[0].each { |rule, headers| apply_rule(rule, headers) } if header_rule
         end
+      elsif @header_rules.instance_of? Hash
+        @header_rules.each do |rule, headers|
+          apply_rule(rule, headers)
+        end
+      end
+    end
+
+    def apply_rule(rule, headers)
+      case rule
+      when :global # Global
+        set_header(headers)
+      when :fonts  # Fonts Shortcut
+        set_header(headers) if @path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
+      when String  # Folder
+        path = ::Rack::Utils.unescape(@path)
+        set_header(headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
+      when Array   # Extension/Extensions
+        extensions = rule.join('|')
+        set_header(headers) if @path.match(%r{\.(#{extensions})\z})
+      when Regexp  # Flexible Regexp
+        set_header(headers) if @path.match(rule)
+      else
       end
     end
 
