@@ -146,70 +146,74 @@ describe Rack::Static do
     end
   end
 
-  it 'should support HTTP header rules, provided with a hash' do
-    # Setup
-    HASH_HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => {
-      :global     => {'Cache-Control' => 'public, max-age=100'},
-      :fonts      => {'Cache-Control' => 'public, max-age=200'},
-      %w(png jpg) => {'Cache-Control' => 'public, max-age=300'},
-      '/cgi/assets/folder/'      => {'Cache-Control' => 'public, max-age=400'},
-      'cgi/assets/javascripts' => {'Cache-Control' => 'public, max-age=500'},
-      /\.(css|erb)\z/ => {'Cache-Control' => 'public, max-age=600'}
-    }}
-    @hash_header_request = Rack::MockRequest.new(static(DummyApp.new, HASH_HEADER_OPTIONS))
+  # Test header rules provided using an (ordered) hash on Ruby >= 1.9
+  if RUBY_VERSION.to_f >= 1.9
+    it 'should support HTTP header rules, provided with a hash' do
+      # Setup
+      HASH_HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => {
+        :global     => {'Cache-Control' => 'public, max-age=100'},
+        :fonts      => {'Cache-Control' => 'public, max-age=200'},
+        %w(png jpg) => {'Cache-Control' => 'public, max-age=300'},
+        '/cgi/assets/folder/'      => {'Cache-Control' => 'public, max-age=400'},
+        'cgi/assets/javascripts' => {'Cache-Control' => 'public, max-age=500'},
+        /\.(css|erb)\z/ => {'Cache-Control' => 'public, max-age=600'}
+      }}
+      @hash_header_request = Rack::MockRequest.new(static(DummyApp.new, HASH_HEADER_OPTIONS))
 
-    it "supports rule :global (:header_rules HASH)" do
-      # Global Headers via :global shortcut
-      res = @hash_header_request.get('/cgi/assets/index.html')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=100'
+      it "supports rule :global (:header_rules HASH)" do
+        # Global Headers via :global shortcut
+        res = @hash_header_request.get('/cgi/assets/index.html')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=100'
+      end
+
+      it "supports rule :fonts (:header_rules HASH)" do
+        # Headers for web fonts via :fonts shortcut
+        res = @hash_header_request.get('/cgi/assets/fonts/font.eot')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=200'
+      end
+
+      it "supports file extension rules provided as an Array (:header_rules HASH)" do
+        # Headers for file extensions via array
+        res = @hash_header_request.get('/cgi/assets/images/image.png')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=300'
+      end
+
+      it "supports folder rules provided as a String (:header_rules HASH)" do
+        # Headers for files in folder via string
+        res = @hash_header_request.get('/cgi/assets/folder/test.js')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=400'
+      end
+
+      it "supports folder rules provided as a String not starting with a slash (:header_rules HASH)" do
+        res = @hash_header_request.get('/cgi/assets/javascripts/app.js')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=500'
+      end
+
+      it "supports flexible rules provided as Regexp (:header_rules HASH)" do
+        # Flexible Headers via Regexp
+        res = @hash_header_request.get('/cgi/assets/stylesheets/app.css')
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=600'
+      end
+
+      it "prioritizes header rules over fixed cache-control setting (legacy option) (:header_rules HASH)" do
+        opts = OPTIONS.merge(
+          :cache_control => 'public, max-age=24',
+          :header_rules => {
+            :global => {'Cache-Control' => 'public, max-age=42'}
+          })
+
+        request = Rack::MockRequest.new(static(DummyApp.new, opts))
+        res = request.get("/cgi/test")
+        res.should.be.ok
+        res.headers['Cache-Control'].should == 'public, max-age=42'
+      end
     end
 
-    it "supports rule :fonts (:header_rules HASH)" do
-      # Headers for web fonts via :fonts shortcut
-      res = @hash_header_request.get('/cgi/assets/fonts/font.eot')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=200'
-    end
-
-    it "supports file extension rules provided as an Array (:header_rules HASH)" do
-      # Headers for file extensions via array
-      res = @hash_header_request.get('/cgi/assets/images/image.png')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=300'
-    end
-
-    it "supports folder rules provided as a String (:header_rules HASH)" do
-      # Headers for files in folder via string
-      res = @hash_header_request.get('/cgi/assets/folder/test.js')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=400'
-    end
-
-    it "supports folder rules provided as a String not starting with a slash (:header_rules HASH)" do
-      res = @hash_header_request.get('/cgi/assets/javascripts/app.js')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=500'
-    end
-
-    it "supports flexible rules provided as Regexp (:header_rules HASH)" do
-      # Flexible Headers via Regexp
-      res = @hash_header_request.get('/cgi/assets/stylesheets/app.css')
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=600'
-    end
-
-    it "prioritizes header rules over fixed cache-control setting (legacy option) (:header_rules HASH)" do
-      opts = OPTIONS.merge(
-        :cache_control => 'public, max-age=24',
-        :header_rules => {
-          :global => {'Cache-Control' => 'public, max-age=42'}
-        })
-
-      request = Rack::MockRequest.new(static(DummyApp.new, opts))
-      res = request.get("/cgi/test")
-      res.should.be.ok
-      res.headers['Cache-Control'].should == 'public, max-age=42'
-    end
   end
 end
