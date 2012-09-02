@@ -8,3 +8,4 @@ stage
 Gemfile.lock
 .rbx
 doc
+/.bundle
