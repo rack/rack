@@ -15,7 +15,7 @@ module Rack
       response = @app.call(env)
       response[2] = BodyProxy.new(response[2]) { @mutex.unlock }
       response
-    rescue Exception
+    rescue
       @mutex.unlock
       raise
     ensure
