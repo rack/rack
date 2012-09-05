@@ -13,12 +13,11 @@ module Rack
       old, env[FLAG] = env[FLAG], false
       @mutex.lock
       response = @app.call(env)
-      response[2] = BodyProxy.new(response[2]) { @mutex.unlock }
+      body = BodyProxy.new(response[2]) { @mutex.unlock }
+      response[2] = body
       response
-    rescue Exception
-      @mutex.unlock
-      raise
     ensure
+      @mutex.unlock unless body
       env[FLAG] = old
     end
   end
