@@ -134,8 +134,16 @@ describe Rack::Lock do
   should "unlock if the app raises" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
-    app = lock_app(lambda { raise Exception })
+    app = lock_app(lambda { raise Exception }, lock)
     lambda { app.call(env) }.should.raise(Exception)
+    lock.synchronized.should.equal false
+  end
+
+  should "unlock if the app throws" do
+    lock = Lock.new
+    env = Rack::MockRequest.env_for("/")
+    app = lock_app(lambda {|env| throw :bacon }, lock)
+    lambda { app.call(env) }.should.throw(:bacon)
     lock.synchronized.should.equal false
   end
 
