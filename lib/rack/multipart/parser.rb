@@ -137,6 +137,9 @@ module Rack
         if filename && filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
           filename = Utils.unescape(filename)
         end
+        if filename && String.method_defined?(:valid_encoding?) && !filename.valid_encoding?
+          filename = filename.chars.select { |char| char.valid_encoding? }.join
+        end
         if filename && filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
         end
