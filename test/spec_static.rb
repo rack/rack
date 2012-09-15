@@ -82,12 +82,12 @@ describe Rack::Static do
       on ruby platforms where hashes are not ordered' do
     # Setup
     ARRAY_HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => [
-      [:global     => {'Cache-Control' => 'public, max-age=100'}],
-      [:fonts      => {'Cache-Control' => 'public, max-age=200'}],
-      [%w(png jpg) => {'Cache-Control' => 'public, max-age=300'}],
-      ['/cgi/assets/folder/'      => {'Cache-Control' => 'public, max-age=400'}],
-      ['cgi/assets/javascripts' => {'Cache-Control' => 'public, max-age=500'}],
-      [/\.(css|erb)\z/ => {'Cache-Control' => 'public, max-age=600'}]
+      [:global, {'Cache-Control' => 'public, max-age=100'}],
+      [:fonts, {'Cache-Control' => 'public, max-age=200'}],
+      [%w(png jpg), {'Cache-Control' => 'public, max-age=300'}],
+      ['/cgi/assets/folder/', {'Cache-Control' => 'public, max-age=400'}],
+      ['cgi/assets/javascripts', {'Cache-Control' => 'public, max-age=500'}],
+      [/\.(css|erb)\z/, {'Cache-Control' => 'public, max-age=600'}]
     ]}
     @array_header_request = Rack::MockRequest.new(static(DummyApp.new, ARRAY_HEADER_OPTIONS))
 
@@ -136,7 +136,7 @@ describe Rack::Static do
       opts = OPTIONS.merge(
         :cache_control => 'public, max-age=24',
         :header_rules => [
-          [:global => {'Cache-Control' => 'public, max-age=42'}]
+          [:global, {'Cache-Control' => 'public, max-age=42'}]
         ])
 
       request = Rack::MockRequest.new(static(DummyApp.new, opts))

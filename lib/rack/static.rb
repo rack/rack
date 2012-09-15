@@ -87,13 +87,14 @@ module Rack
   #        they will be applied in a random, different order
   #        to every file served and each time a file is served.
   #
-  #        You can circumvent this issue by providing an array of arrays,
-  #        thus encapsulating each rule, as shown here:
+  #        You can circumvent this issue by providing an array of arrays
+  #        as shown here:
   #
   #        use Rack::Static, :root => 'public',
   #          :header_rules => [
-  #            [:global => { 'Cache-Control' => 'public, max-age=31536000' }],
-  #            [:fonts  => { 'Access-Control-Allow-Origin' => '*' }]
+  #            [rule, {header_field => field_content}],
+  #            [:global, { 'Cache-Control' => 'public, max-age=31536000' }],
+  #            [:fonts,  { 'Access-Control-Allow-Origin' => '*' }]
   #           ]
   #
 
@@ -104,13 +105,13 @@ module Rack
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
       root = options[:root] || Dir.pwd
+      # HTTP Headers
       @headers = {}
       @header_rules = options[:header_rules] || {}
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
       if options[:cache_control]
         if @header_rules.instance_of? Array
-            cache_control = [{ :global => {'Cache-Control' => options[:cache_control]} }]
-            @header_rules.insert(0, cache_control)
+          @header_rules.insert(0, [:global, {'Cache-Control' => options[:cache_control]}])
         else
           @header_rules[:global] ||= {}
           @header_rules[:global]['Cache-Control'] ||= options[:cache_control]
@@ -144,16 +145,12 @@ module Rack
       end
     end
 
-    # Convert header rules to headers
+    # Convert HTTP header rules to HTTP headers
     def set_headers
-      if @header_rules.instance_of? Array
-        @header_rules.each do |header_rule|
-          header_rule[0].each { |rule, headers| apply_rule(rule, headers) } if header_rule
-        end
-      elsif @header_rules.instance_of? Hash
-        @header_rules.each do |rule, headers|
-          apply_rule(rule, headers)
-        end
+      rules = @header_rules.to_a
+
+      rules.each do |rule, headers|
+        apply_rule(rule, headers)
       end
     end
 
