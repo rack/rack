@@ -32,8 +32,8 @@ module Rack
   #
   #     use Rack::Static, :root => 'public',
   #         :header_rules => [
-  #           [rule_1, { header_field_1 => content, header_field_2 => content }],
-  #           [rule_2 => { header_field => content }]
+  #           [rule, {header_field => content, header_field => content}],
+  #           [rule, {header_field => content}]
   #         ]
   #
   #  Rules for selecting files:
@@ -69,11 +69,11 @@ module Rack
   #         :header_rules => [
   #           # Cache all static files in public caches (e.g. Rack::Cache)
   #           #  as well as in the browser
-  #           [:all, {'Cache-Control' => 'public, max-age=31536000' }],
+  #           [:all, {'Cache-Control' => 'public, max-age=31536000'}],
   #
   #           # Provide web fonts with cross-origin access-control-headers
   #           #  Firefox requires this when serving assets using a Content Delivery Network
-  #           [:fonts, { 'Access-Control-Allow-Origin' => '*' }]
+  #           [:fonts, {'Access-Control-Allow-Origin' => '*'}]
   #         ]
   #
   class Static
