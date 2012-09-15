@@ -31,73 +31,51 @@ module Rack
   # Set custom HTTP Headers for based on rules:
   #
   #     use Rack::Static, :root => 'public',
-  #         :header_rules => {
-  #           rule         => { header_field => content },
-  #           another_rule => { header_field => content }
-  #         }
+  #         :header_rules => [
+  #           [rule_1, { header_field_1 => content, header_field_2 => content }],
+  #           [rule_2 => { header_field => content }]
+  #         ]
   #
-  #  These rules for generating HTTP Headers are shipped along:
-  #  1) Global
-  #  :global => Matches every file
+  #  Rules for selecting files:
   #
-  #  Ex.:
-  #    :header_rules => {
-  #      :global => {'Cache-Control' => 'public, max-age=123'}
-  #    }
+  #  1) All files
+  #     Provide the :all symbol
+  #     :all => Matches every file
   #
   #  2) Folders
-  #  '/folder' => Matches all files in a certain folder
-  #  '/folder/subfolder' => ...
-  #    Note: Provide the folder as a string,
-  #          with or without the starting slash
+  #     Provide the folder path as a string
+  #     '/folder' or '/folder/subfolder' => Matches files in a certain folder
   #
   #  3) File Extensions
-  #  ['css', 'js'] => Will match all files ending in .css or .js
-  #  %w(css js) => ...
-  #    Note: Provide the file extensions in an array,
-  #          use any ruby syntax you like to set that array up
+  #     Provide the file extensions as an array
+  #     ['css', 'js'] or %w(css js) => Matches files ending in .css or .js
   #
   #  4) Regular Expressions / Regexp
-  #  %r{\.(?:css|js)\z} => will match all files ending in .css or .js
-  #  /\.(?:eot|ttf|otf|woff|svg)\z/ => will match all files ending
-  #     in the most common web font formats
+  #     %r{\.(?:css|js)\z} => Matches files ending in .css or .js
+  #     /\.(?:eot|ttf|otf|woff|svg)\z/ => Matches files ending in
+  #       the most common web font formats (.eot, .ttf, .otf, .woff, .svg)
+  #       Note: This Regexp is available as a shortcut, using the :fonts rule
   #
-  #  5) Shortcuts
-  #  There is currently only one shortcut defined.
-  #  :fonts => will match all files ending in eot, ttf, otf, woff, svg
-  #     using the Regexp stated right above
+  #  5) Font Shortcut
+  #     :fonts => Uses the Regexp rule stated right above to match all common web font endings
   #
-  #  Example use:
+  #  Rule Ordering:
+  #    Rules are applied in the order that they are provided.
+  #    List rather general rules above special ones.
+  #
+  #  Complete example use case including HTTP header rules:
   #
   #     use Rack::Static, :root => 'public',
-  #         :header_rules => {
-  #           # Cache all static files in http caches as well as on the client
-  #           :global => { 'Cache-Control' => 'public, max-age=31536000' },
-  #           # Provide Web Fonts with Access-Control-Headers
-  #           :fonts  => { 'Access-Control-Allow-Origin' => '*' }
-  #         }
+  #         :header_rules => [
+  #           # Cache all static files in public caches (e.g. Rack::Cache)
+  #           #  as well as in the browser
+  #           [:all, {'Cache-Control' => 'public, max-age=31536000' }],
   #
-  #  Note: The rules will be applied in the order they are provided,
-  #        thus more special rules further down below can override
-  #        general global HTTP header settings
+  #           # Provide web fonts with cross-origin access-control-headers
+  #           #  Firefox requires this when serving assets using a Content Delivery Network
+  #           [:fonts, { 'Access-Control-Allow-Origin' => '*' }]
+  #         ]
   #
-  #  Note: In MRI Ruby 1.8.7, Ruby Enterprise Edition (REE)
-  #        or certain versions of Rubinius hashes are unordered.
-  #        This means that when you provide rules using a hash
-  #        they will be applied in a random, different order
-  #        to every file served and each time a file is served.
-  #
-  #        You can circumvent this issue by providing an array of arrays
-  #        as shown here:
-  #
-  #        use Rack::Static, :root => 'public',
-  #          :header_rules => [
-  #            [rule, {header_field => field_content}],
-  #            [:global, { 'Cache-Control' => 'public, max-age=31536000' }],
-  #            [:fonts,  { 'Access-Control-Allow-Origin' => '*' }]
-  #           ]
-  #
-
   class Static
 
     def initialize(app, options={})
@@ -105,18 +83,13 @@ module Rack
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
       root = options[:root] || Dir.pwd
+
       # HTTP Headers
-      @headers = {}
-      @header_rules = options[:header_rules] || {}
+      @header_rules = options[:header_rules] || []
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
-      if options[:cache_control]
-        if @header_rules.instance_of? Array
-          @header_rules.insert(0, [:global, {'Cache-Control' => options[:cache_control]}])
-        else
-          @header_rules[:global] ||= {}
-          @header_rules[:global]['Cache-Control'] ||= options[:cache_control]
-        end
-      end
+      @header_rules.insert(0, [:all, {'Cache-Control' => options[:cache_control]}]) if options[:cache_control]
+      @headers = {}
+
       @file_server = Rack::File.new(root, @headers)
     end
 
@@ -147,25 +120,23 @@ module Rack
 
     # Convert HTTP header rules to HTTP headers
     def set_headers
-      rules = @header_rules.to_a
-
-      rules.each do |rule, headers|
+      @header_rules.each do |rule, headers|
         apply_rule(rule, headers)
       end
     end
 
     def apply_rule(rule, headers)
       case rule
-      when :global # Global
+      when :all    # All files
         set_header(headers)
       when :fonts  # Fonts Shortcut
-        set_header(headers) if @path.match(%r{\.(?:ttf|otf|eot|woff|svg)\z})
+        set_header(headers) if @path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
       when String  # Folder
         path = ::Rack::Utils.unescape(@path)
         set_header(headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
       when Array   # Extension/Extensions
         extensions = rule.join('|')
-        set_header(headers) if @path.match(%r{\.(#{extensions})\z})
+        set_header(headers) if @path.match(/\.(#{extensions})\z/)
       when Regexp  # Flexible Regexp
         set_header(headers) if @path.match(rule)
       else
