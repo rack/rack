@@ -360,4 +360,11 @@ EOF
     params.should.equal({"description"=>"Very very blue"})
   end
 
+  should "parse multipart upload with no content-length header" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
+    env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
+    env.delete 'CONTENT_LENGTH'
+    params = Rack::Multipart.parse_multipart(env)
+    params['profile']['bio'].should.include 'hello'
+  end
 end
