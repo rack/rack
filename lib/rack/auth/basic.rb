@@ -36,7 +36,7 @@ module Rack
       end
 
       def valid?(auth)
-        @authenticator.call(*auth.credentials, *auth.request)
+        @authenticator.call(*auth.credentials, auth.request)
       end
 
       class Request < Auth::AbstractRequest
