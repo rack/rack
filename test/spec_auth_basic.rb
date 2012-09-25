@@ -21,7 +21,8 @@ describe Rack::Auth::Basic do
 
   def protected_dir_app
     app = Rack::Auth::Basic.new(unprotected_app) do |username, password, request|
-         /restaurant/i.match(request.path_info) && 'Zarniwoop' == username || /heart/i.match(request.path_info) && 'Marvin' == username
+        request.instance_of?(Rack::Request).should.equal true
+        /restaurant/i.match(request.path_info) && 'Zarniwoop' == username || /heart/i.match(request.path_info) && 'Marvin' == username
     end
     app.realm = realm
     app
