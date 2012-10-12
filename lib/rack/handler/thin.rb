@@ -6,9 +6,9 @@ module Rack
   module Handler
     class Thin
       def self.run(app, options={})
-        server = ::Thin::Server.new(options[:Host] || '0.0.0.0',
-                                    options[:Port] || 8080,
-                                    app)
+        host = options.delete(:Host) || '0.0.0.0'
+        port = options.delete(:Port) || 8080
+        server = ::Thin::Server.new(host, port, app, options)
         yield server if block_given?
         server.start
       end
