@@ -229,7 +229,7 @@ module Rack
 
         def generate_sid(secure = @sid_secure)
           if secure
-            SecureRandom.hex(@sid_length)
+            secure.hex(@sid_length)
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
