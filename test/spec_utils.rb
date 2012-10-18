@@ -272,6 +272,15 @@ describe Rack::Utils do
     Rack::Utils.build_query(key => nil).should.equal Rack::Utils.escape(key)
   end
 
+  should "parse q-values properly" do
+    header = "foo;q=0.5,bar,baz;q=0.9"
+    Rack::Utils.q_values(header).should.equal [
+      [ 'bar', 1.0 ],
+      [ 'baz', 0.9 ],
+      [ 'foo', 0.5 ]
+    ]
+  end
+
   should "escape html entities [&><'\"/]" do
     Rack::Utils.escape_html("foo").should.equal "foo"
     Rack::Utils.escape_html("f&o").should.equal "f&amp;o"
