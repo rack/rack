@@ -40,4 +40,14 @@ describe Rack::Session::Abstract::ID do
     end
   end
 
+  should "allow to use another securerandom provider" do
+    secure_random = Class.new do
+      def hex(*args)
+        'fake_hex'
+      end
+    end
+    id = Rack::Session::Abstract::ID.new nil, :secure_random => secure_random.new
+    id.send(:generate_sid).should.eql 'fake_hex'
+  end
+
 end
