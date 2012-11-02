@@ -223,6 +223,7 @@ module Rack
       when Hash
         domain  = "; domain="  + value[:domain] if value[:domain]
         path    = "; path="    + value[:path]   if value[:path]
+        max_age = "; max-age=" + value[:max_age] if value[:max_age]
         # According to RFC 2109, we need dashes here.
         # N.B.: cgi.rb uses spaces...
         expires = "; expires=" +
@@ -234,7 +235,7 @@ module Rack
       value = [value] unless Array === value
       cookie = escape(key) + "=" +
         value.map { |v| escape v }.join("&") +
-        "#{domain}#{path}#{expires}#{secure}#{httponly}"
+        "#{domain}#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
       when nil, ''
@@ -273,6 +274,7 @@ module Rack
 
       set_cookie_header!(header, key,
                  {:value => '', :path => nil, :domain => nil,
+                   :max_age => '0',
                    :expires => Time.at(0) }.merge(value))
 
       nil
