@@ -5,6 +5,7 @@ module Rack
     end
 
     def respond_to?(*args)
+      return false if args.first.to_s =~ /^to_ary$/
       super or @body.respond_to?(*args)
     end
 
@@ -20,6 +21,7 @@ module Rack
     end
 
     def method_missing(*args, &block)
+      super if args.first.to_s =~ /^to_ary$/
       @body.__send__(*args, &block)
     end
   end
