@@ -76,7 +76,7 @@ module Rack
         header.delete "Content-Length"
         [status.to_i, header, []]
       else
-        [status.to_i, header, self]
+        [status.to_i, header, BodyProxy.new(self){}]
       end
     end
     alias to_a finish           # For *response

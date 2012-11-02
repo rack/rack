@@ -280,4 +280,10 @@ describe Rack::Response do
     res.close
     res.body.should.be.closed
   end
+
+  it "wraps the body from #to_ary to prevent infinite loops" do
+    res = Rack::Response.new
+    res.finish.last.should.not.respond_to?(:to_ary)
+    lambda { res.finish.last.to_ary }.should.raise(NoMethodError)
+  end
 end
