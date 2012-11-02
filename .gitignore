@@ -8,4 +8,3 @@ stage
 Gemfile.lock
 .rbx
 doc
-.rbenv-version
