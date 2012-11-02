@@ -79,6 +79,22 @@ describe Rack::Handler::Thin do
 
   @server.stop!
   @thread.kill
+
+  # Passing additional options to thin
+
+  @thread = Thread.new do
+    Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204, :tag => 'foo') do |server|
+      @server = server
+    end
+  end
+
+  should "set tag for server" do
+    @server.tag.should.equal 'foo'
+  end
+
+  @server.stop!
+  @thread.kill
+
 end
 
 rescue LoadError
