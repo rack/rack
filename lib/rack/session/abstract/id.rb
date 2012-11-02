@@ -122,7 +122,7 @@ module Rack
 
         def merge!(hash)
           load_for_write!
-          super
+          super(stringify_keys(hash))
         end
 
       private
