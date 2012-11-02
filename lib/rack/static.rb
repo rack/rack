@@ -113,7 +113,7 @@ module Rack
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
         @path = env["PATH_INFO"]
-        set_headers
+        apply_header_rules
         @file_server.call(env)
       else
         @app.call(env)
@@ -121,7 +121,7 @@ module Rack
     end
 
     # Convert HTTP header rules to HTTP headers
-    def set_headers
+    def apply_header_rules
       @header_rules.each do |rule, headers|
         apply_rule(rule, headers)
       end
@@ -130,22 +130,22 @@ module Rack
     def apply_rule(rule, headers)
       case rule
       when :all    # All files
-        set_header(headers)
+        set_headers(headers)
       when :fonts  # Fonts Shortcut
-        set_header(headers) if @path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
+        set_headers(headers) if @path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
       when String  # Folder
         path = ::Rack::Utils.unescape(@path)
-        set_header(headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
+        set_headers(headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
       when Array   # Extension/Extensions
         extensions = rule.join('|')
-        set_header(headers) if @path.match(/\.(#{extensions})\z/)
+        set_headers(headers) if @path.match(/\.(#{extensions})\z/)
       when Regexp  # Flexible Regexp
-        set_header(headers) if @path.match(rule)
+        set_headers(headers) if @path.match(rule)
       else
       end
     end
 
-    def set_header(headers)
+    def set_headers(headers)
       headers.each { |field, content| @headers[field] = content }
     end
 
