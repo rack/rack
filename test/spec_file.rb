@@ -145,14 +145,6 @@ describe Rack::File do
     res["Content-Range"].should.equal "bytes */193"
   end
 
-  should "support legacy cache control options provided as string" do
-    env = Rack::MockRequest.env_for("/cgi/test")
-    status, heads, _ = file(DOCROOT, 'public, max-age=38').call(env)
-
-    status.should.equal 200
-    heads['Cache-Control'].should.equal 'public, max-age=38'
-  end
-
   should "support custom http headers" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = file(DOCROOT, 'Cache-Control' => 'public, max-age=38',
