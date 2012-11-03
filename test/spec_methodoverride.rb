@@ -8,6 +8,12 @@ describe Rack::MethodOverride do
       [200, {"Content-Type" => "text/plain"}, []]
     }))
   end
+
+  def app_with_get
+    Rack::Lint.new(Rack::MethodOverride.new(lambda {|e|
+      [200, {"Content-Type" => "text/plain"}, []]
+    }, ["POST", "GET"]))
+  end
   
   should "not affect GET requests" do
     env = Rack::MockRequest.env_for("/?_method=delete", :method => "GET")
@@ -68,5 +74,17 @@ EOF
     app.call env
 
     env["REQUEST_METHOD"].should.equal "POST"
+  end
+
+  should "allow you to override trusted original headers" do
+    %w(POST GET).each do |original_method|
+      Rack::MethodOverride::HTTP_METHODS.each do |header|
+        env = Rack::MockRequest.env_for("/?_method=#{header}", :method => original_method)
+        app_with_get.call env
+        
+        env["REQUEST_METHOD"].should.equal header.upcase
+        env["rack.methodoverride.original_method"].should.equal original_method
+      end 
+    end
   end
 end
