@@ -39,14 +39,25 @@ module Rack
     # target encoding of the string returned, and it defaults to UTF-8
     if defined?(::Encoding)
       def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
+        URI.decode_www_form_component(unescape_unicode(s), encoding)
       end
     else
       def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
+        URI.decode_www_form_component(unescape_unicode(s), encoding)
       end
     end
     module_function :unescape
+
+    # See:
+    # http://en.wikipedia.org/wiki/Percent-encoding#Non-standard_implementations
+    # Issue 337
+    # Issue 360
+    def unescape_unicode(s)
+      s.gsub(/((?:%u[0-9a-fA-F]{4})+)/n){
+        [$1.delete('%u')].pack('H*').unpack("n*").pack("U*")
+      }
+    end
+    module_function :unescape_unicode
 
     DEFAULT_SEP = /[&;] */n
 

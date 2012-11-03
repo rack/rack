@@ -101,6 +101,11 @@ describe Rack::Utils do
       should.equal "q1!2\"'w$5&7/z8)?\\"
   end
 
+  should "unescape non-standard unicode uri escaping (e.g. ECMA-262)" do
+    Rack::Utils.unescape_unicode("%u3042").should.equal "あ"
+    Rack::Utils.unescape("%u3042").should.equal "あ"
+  end
+
   should "parse query strings correctly" do
     Rack::Utils.parse_query("foo=bar").
       should.equal "foo" => "bar"
