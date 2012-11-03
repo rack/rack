@@ -117,11 +117,6 @@ module Rack
           @data.empty?
         end
 
-        def merge!(hash)
-          load_for_write!
-          super(stringify_keys(hash))
-        end
-
       private
 
         def load_for_read!
