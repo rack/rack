@@ -10,11 +10,11 @@ module Rack
     # Usage:
     #     Rack::Mime.mime_type('.foo')
     #
-    # This is a shortcut for:
-    #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
     def mime_type(ext, fallback='application/octet-stream')
-      MIME_TYPES.fetch(ext.to_s.downcase, fallback)
+      ext = ext.to_s.downcase
+      return fallback if ext == '' || ext.nil?
+      return MIME_TYPES.fetch(ext, 'application/octet-stream')
     end
     module_function :mime_type
 
@@ -598,7 +598,7 @@ module Rack
       ".wmv"       => "video/x-ms-wmv",
       ".wmx"       => "video/x-ms-wmx",
       ".wmz"       => "application/x-ms-wmz",
-      ".woff"      => "application/octet-stream",
+      ".woff"      => "application/x-font-woff",
       ".wpd"       => "application/vnd.wordperfect",
       ".wpl"       => "application/vnd.ms-wpl",
       ".wps"       => "application/vnd.ms-works",
