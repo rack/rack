@@ -134,7 +134,11 @@ at my site:
 
 Testing Rack requires the bacon testing framework:
 
-    gem install bacon
+    bundle install --without extra # to be able to run the fast tests
+
+Or:
+
+    bundle install # this assumes that you have installed native extensions!
 
 There are two rake-based test tasks:
 
