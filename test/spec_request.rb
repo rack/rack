@@ -118,11 +118,11 @@ describe Rack::Request do
   end
 
   should "parse the query string" do
-    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla&empty"))
     req.query_string.should.equal "foo=bar&quux=bla"
-    req.GET.should.equal "foo" => "bar", "quux" => "bla"
+    req.GET.should.equal "foo" => "bar", "quux" => "bla", "empty" => ""
     req.POST.should.be.empty
-    req.params.should.equal "foo" => "bar", "quux" => "bla"
+    req.params.should.equal "foo" => "bar", "quux" => "bla", "empty" => ""
   end
 
   should "limit the keys from the GET query string" do
