@@ -93,9 +93,12 @@ module Rack
   class Sendfile
     F = ::File
 
-    def initialize(app, variation=nil)
+    def initialize(app, variation=nil, mappings={})
       @app = app
       @variation = variation
+      @mappings = mappings.map do |internal, external|
+        [/^#{internal}/i, external]
+      end
     end
 
     def call(env)
@@ -131,10 +134,12 @@ module Rack
         env['HTTP_X_SENDFILE_TYPE']
     end
 
-    def map_accel_path(env, file)
-      if mapping = env['HTTP_X_ACCEL_MAPPING']
+    def map_accel_path(env, path)
+      if mapping = @mappings.detect { |internal,_| internal =~ path }
+        path.sub(*mapping)
+      elsif mapping = env['HTTP_X_ACCEL_MAPPING']
         internal, external = mapping.split('=', 2).map{ |p| p.strip }
-        file.sub(/^#{internal}/i, external)
+        path.sub(/^#{internal}/i, external)
       end
     end
   end
