@@ -89,15 +89,11 @@ describe Rack::Sendfile do
       dir1 = Dir.mktmpdir
       dir2 = Dir.mktmpdir
 
-      first_body = ['hello world']
-      first_body.define_singleton_method(:to_path) do
-        File.expand_path(FileUtils.touch(File.join(dir1, 'rack_sendfile')).first)
-      end
+      first_body = File.open(File.join(dir1, 'rack_sendfile'), 'w+')
+      first_body.puts 'hello world'
 
-      second_body = ['goodbye world']
-      second_body.define_singleton_method(:to_path) do
-        File.expand_path(FileUtils.touch(File.join(dir2, 'rack_sendfile')).first)
-      end
+      second_body = File.open(File.join(dir2, 'rack_sendfile'), 'w+')
+      second_body.puts 'goodbye world'
 
       mappings = {
         "#{dir1}/" => '/foo/bar/',
