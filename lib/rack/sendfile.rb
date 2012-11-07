@@ -93,7 +93,7 @@ module Rack
   class Sendfile
     F = ::File
 
-    def initialize(app, variation=nil, mappings={})
+    def initialize(app, variation=nil, mappings=[])
       @app = app
       @variation = variation
       @mappings = mappings.map do |internal, external|

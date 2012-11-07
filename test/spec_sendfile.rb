@@ -21,12 +21,20 @@ describe Rack::Sendfile do
     lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
   end
 
-  def sendfile_app(body, mappings = {})
+  def sendfile_app(body, mappings = [])
     Rack::Lint.new Rack::Sendfile.new(simple_app(body), nil, mappings)
   end
 
-  def request(headers={}, body=sendfile_body, mappings={})
+  def request(headers={}, body=sendfile_body, mappings=[])
     yield Rack::MockRequest.new(sendfile_app(body, mappings)).get('/', headers)
+  end
+
+  def open_file(path)
+    Class.new(File) do
+      unless method_defined?(:to_path)
+        alias :to_path :path
+      end
+    end.open(path, 'w+')
   end
 
   it "does nothing when no X-Sendfile-Type header present" do
@@ -84,21 +92,21 @@ describe Rack::Sendfile do
     end
   end
 
-  it "sets X-Accel-Redirect response header and discards body when initialized with multiple mapping" do
+  it "sets X-Accel-Redirect response header and discards body when initialized with multiple mappings" do
     begin
       dir1 = Dir.mktmpdir
       dir2 = Dir.mktmpdir
 
-      first_body = File.open(File.join(dir1, 'rack_sendfile'), 'w+')
+      first_body = open_file(File.join(dir1, 'rack_sendfile'))
       first_body.puts 'hello world'
 
-      second_body = File.open(File.join(dir2, 'rack_sendfile'), 'w+')
+      second_body = open_file(File.join(dir2, 'rack_sendfile'))
       second_body.puts 'goodbye world'
 
-      mappings = {
-        "#{dir1}/" => '/foo/bar/',
-        "#{dir2}/" => '/wibble/'
-      }
+      mappings = [
+        ["#{dir1}/", '/foo/bar/'],
+        ["#{dir2}/", '/wibble/']
+      ]
 
       request({'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect'}, first_body, mappings) do |response|
         response.should.be.ok
