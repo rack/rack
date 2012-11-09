@@ -316,16 +316,16 @@ module Rack
     def byte_ranges(env, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
       http_range = env['HTTP_RANGE']
-      return nil unless http_range
+      return nil unless http_range && http_range =~ /bytes=([^;]+)/
       ranges = []
-      http_range.split(/,\s*/).each do |range_spec|
-        matches = range_spec.match(/bytes=(\d*)-(\d*)/)
-        return nil  unless matches
-        r0,r1 = matches[1], matches[2]
+      $1.split(/,\s*/).each do |range_spec|
+        return nil  unless range_spec =~ /(\d*)-(\d*)/
+        r0,r1 = $1, $2
         if r0.empty?
           return nil  if r1.empty?
           # suffix-byte-range-spec, represents trailing suffix of file
-          r0 = [size - r1.to_i, 0].max
+          r0 = size - r1.to_i
+          r0 = 0  if r0 < 0
           r1 = size - 1
         else
           r0 = r0.to_i

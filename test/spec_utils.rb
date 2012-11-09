@@ -365,6 +365,10 @@ describe Rack::Utils, "byte_range" do
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=499-499"},500).should.equal [(499..499)]
   end
 
+  should "parse several byte ranges" do
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=500-600,601-999"},1000).should.equal [(500..600),(601..999)]
+  end
+
   should "truncate byte ranges" do
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=123-999"},500).should.equal [(123..499)]
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=600-999"},500).should.equal []
