@@ -37,9 +37,11 @@ module Rack
       elsif ENV.include?("REQUEST_METHOD")
         Rack::Handler::CGI
       else
-        begin
+        if defined? Thin
           Rack::Handler::Thin
-        rescue LoadError
+        elsif defined? Puma
+          Rack::Handler::Puma
+        else
           Rack::Handler::WEBrick
         end
       end
@@ -80,6 +82,7 @@ module Rack
     autoload :LSWS, "rack/handler/lsws"
     autoload :SCGI, "rack/handler/scgi"
     autoload :Thin, "rack/handler/thin"
+    autoload :Puma, "rack/handler/puma"
 
     register 'cgi', 'Rack::Handler::CGI'
     register 'fastcgi', 'Rack::Handler::FastCGI'
@@ -90,5 +93,6 @@ module Rack
     register 'lsws', 'Rack::Handler::LSWS'
     register 'scgi', 'Rack::Handler::SCGI'
     register 'thin', 'Rack::Handler::Thin'
+    register 'puma', 'Rack::Handler::Puma'
   end
 end
