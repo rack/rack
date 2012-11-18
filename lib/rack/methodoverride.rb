@@ -26,8 +26,6 @@ module Rack
       method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
         env[HTTP_METHOD_OVERRIDE_HEADER]
       method.to_s.upcase
-    rescue EOFError
-      ""
     end
   end
 end
