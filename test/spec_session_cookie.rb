@@ -102,6 +102,53 @@ describe Rack::Session::Cookie do
     end
   end
 
+  describe 'Encrypted' do
+    it 'performs no encryption unless :crypto_key is specified' do
+      xcoder = Rack::Session::Cookie::Base64::Marshal.new
+      coder  = Rack::Session::Cookie::Encrypted.new
+      str    = 'fuuuuu'
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.encode(str).should.equal [xcoder.encode(str)].pack('m')
+    end
+
+    it 'performs no decryption unless :crypto_key is specified' do
+      coder = Rack::Session::Cookie::Encrypted.new
+      str   = coder.encode('fuuuuu')
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.decode(str).should.equal 'fuuuuu'
+    end
+
+    it 'encrypts the cookie' do
+      xcoder = Rack::Session::Cookie::Base64::Marshal.new
+      coder  = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey')
+      str    = 'fuuuuu'
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.encode(str).should.not.equal [xcoder.encode(str)].pack('m')
+    end
+
+    it 'decrypts the cookie' do
+      coder = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey')
+      str   = coder.encode('fuuuuu')
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.decode(str).should.equal 'fuuuuu'
+    end
+
+    it 'encrypts the cookie (wrapping a custom coder)' do
+      xcoder = Rack::Session::Cookie::Reverse.new
+      coder  = Rack::Session::Cookie::Encrypted.new(xcoder,:crypto_key => 'cryptokey')
+      str    = 'fuuuuu'
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Reverse')
+      coder.encode(str).should.not.equal [xcoder.encode(str)].pack('m')
+    end
+
+    it 'decrypts the cookie (wrapping a custom coder)' do
+      coder = Rack::Session::Cookie::Encrypted.new(Rack::Session::Cookie::Reverse.new,:crypto_key => 'cryptokey')
+      str   = coder.encode('fuuuuu')
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Reverse')
+      coder.decode(str).should.equal 'fuuuuu'
+    end
+  end
+
   it "warns if no secret is given" do
     cookie = Rack::Session::Cookie.new(incrementor)
     @warnings.first.should =~ /no secret/i

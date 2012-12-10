@@ -4,9 +4,7 @@ require 'rack/response'
 require 'rack/session/abstract/id'
 
 module Rack
-
   module Session
-
     # Rack::Session::Cookie provides simple cookie based session management.
     # By default, the session is a Ruby Hash stored as base64 encoded marshalled
     # data set to :key (default: rack.session).  The object that encodes the
@@ -26,6 +24,29 @@ module Rack
     #                                :old_secret => 'also_change_me'
     #
     #     All parameters are optional.
+    #
+    # Optional encryption of the session cookie is supported. You can
+    # specify the following additional options
+    # (see OpenSSL::PKCS5 for more info):
+    #
+    #     :cipher     => 'aes-256-cbc', # The cipher algorithm to use
+    #     :salt       => 'salthere',    # Salt to use for key generation
+    #     :rounds     => 2000,          # Number of iterations for key generation
+    #     :crypto_key => 'yoursecret',  # A password from which to generate the key
+    #
+    # :crypto_key must be specified in order to enable encryption.
+    # :salt should be specified as well. All other options have defaults available.
+    #
+    # Example of a cookie with encryption:
+    #
+    #     use Rack::Session::Cookie, :key        => 'rack.session',
+    #                                :domain     => 'foo.com',
+    #                                :path       => '/',
+    #                                :salt       => 'salthere',
+    #                                :crypto_key => 'my_secret'
+    #
+    # Note: If you specify a custom coder, and :crypto_key, then your coder will
+    # be automatically wrapped to deal with encryption.
     #
     # Example of a cookie with no encoding:
     #
@@ -67,6 +88,70 @@ module Rack
         end
       end
 
+      # Encrypted cookie
+      class Encrypted
+        attr_accessor :coder
+
+        def initialize(coder=nil,options={})
+          @coder   = coder                 || Base64::Marshal.new
+          @cipher  = options[:cipher]      || 'aes-256-cbc'
+          @salt    = options[:salt]        || 'R@cK$e5S'
+          @rounds  = options[:rounds].to_i || 2000
+          @key     = options[:crypto_key]  || nil
+          @crypto  = @key.nil? ? false : true
+        end
+
+        def encode(str)
+          return [cipher(:encrypt,@coder.encode(str))].pack('m')
+        end
+
+        def decode(str)
+          return unless str
+          return @coder.decode(cipher(:decrypt,str.unpack('m').first))
+        end
+
+        def cipher(mode,str)
+            return str unless @crypto && !str.nil?
+            begin
+              cipher = OpenSSL::Cipher::Cipher.new(@cipher)
+              cipher.send(mode)
+            rescue
+              @crypto = false
+              return str
+            end
+
+            cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(@key,@salt,@rounds,cipher.key_len)
+            iv         = cipher.random_iv
+            xstr       = str
+
+            if mode == :decrypt
+              # Extract the IV
+              iv_len    = iv.length
+              str_b,iv  = Array[str[0...iv_len<<1].unpack('C*')].transpose.partition.with_index { |x,i| (i&1).zero? }
+              iv.flatten! ; str_b.flatten!
+
+              # Set the IV and buffer
+              iv   = iv.pack('C*')
+              xstr = str_b.pack('C*') + str[iv_len<<1...str.length]
+            end
+
+            # Otherwise, use the random IV
+            cipher.iv = iv
+
+            # Get the result
+            result = nil
+            begin
+              result = cipher.update(xstr) + cipher.final
+              result = result.bytes.to_a.zip(iv.bytes.to_a).flatten.compact.pack('C*') if mode == :encrypt
+            rescue OpenSSL::Cipher::CipherError
+              @crypto = false
+              return str
+            end
+
+            return result
+        end
+      end
+
       # Use no encoding for session cookies
       class Identity
         def encode(str); str; end
@@ -92,7 +177,8 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder  = options[:coder] ||= Base64::Marshal.new
+        @coder = options[:coder] ||= Base64::Marshal.new
+        @coder = Encrypted.new(@coder,options) if options[:cipher_key]
         super(app, options.merge!(:cookie_only => true))
       end
 
@@ -159,7 +245,6 @@ module Rack
       def generate_hmac(data, secret)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, secret, data)
       end
-
     end
   end
 end
