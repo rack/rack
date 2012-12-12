@@ -98,10 +98,8 @@ module Rack
         port.to_i
       elsif port = @env['HTTP_X_FORWARDED_PORT']
         port.to_i
-      elsif ssl?
-        443
       elsif @env.has_key?("HTTP_X_FORWARDED_HOST")
-        80
+        DEFAULT_PORTS[scheme]
       else
         @env["SERVER_PORT"].to_i
       end
@@ -156,6 +154,10 @@ module Rack
       'multipart/related',
       'multipart/mixed'
     ]
+
+    # Default ports depending on scheme. Used to decide whether or not
+    # to include the port in a generated URI.
+    DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
     # Determine whether the request body contains form-data by checking
     # the request Content-Type for one of the media-types:
@@ -310,14 +312,8 @@ module Rack
     end
 
     def base_url
-      url = scheme + "://"
-      url << host
-
-      if scheme == "https" && port != 443 ||
-          scheme == "http" && port != 80
-        url << ":#{port}"
-      end
-
+      url = "#{scheme}://#{host}"
+      url << ":#{port}" if port != DEFAULT_PORTS[scheme]
       url
     end
 

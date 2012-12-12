@@ -569,7 +569,10 @@ describe Rack::Request do
       should.equal "http://example.org:8080/"
     Rack::Request.new(Rack::MockRequest.env_for("https://example.org/")).url.
       should.equal "https://example.org/"
-
+    Rack::Request.new(Rack::MockRequest.env_for("coffee://example.org/")).url.
+      should.equal "coffee://example.org/"
+    Rack::Request.new(Rack::MockRequest.env_for("coffee://example.org:443/")).url.
+      should.equal "coffee://example.org:443/"
     Rack::Request.new(Rack::MockRequest.env_for("https://example.com:8080/foo?foo")).url.
       should.equal "https://example.com:8080/foo?foo"
   end
