@@ -101,7 +101,7 @@ module Rack
         return unless file
         stat = ::File.stat(file)
         return file, stat if stat.file?
-      rescue Errno::ENOENT, Errno::ENOTDIR
+      rescue Errno::ENOENT, Errno::ENOTDIR, Errno::ESRCH
         @cache.delete(file) and false
       end
     end

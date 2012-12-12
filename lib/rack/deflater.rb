@@ -46,6 +46,7 @@ module Rack
       when "identity"
         [status, headers, body]
       when nil
+        body.close if body.respond_to?(:close)
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, [message]]
       end
@@ -65,6 +66,7 @@ module Rack
           gzip.write(part)
           gzip.flush
         }
+      ensure
         @body.close if @body.respond_to?(:close)
         gzip.close
         @writer = nil
@@ -91,9 +93,11 @@ module Rack
       def each
         deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
         @body.each { |part| yield deflater.deflate(part, Zlib::SYNC_FLUSH) }
-        @body.close if @body.respond_to?(:close)
         yield deflater.finish
         nil
+      ensure
+        @body.close if @body.respond_to?(:close)
+        deflater.close
       end
     end
   end

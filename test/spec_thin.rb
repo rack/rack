@@ -11,7 +11,7 @@ describe Rack::Handler::Thin do
   Thin::Logging.silent = true
 
   @thread = Thread.new do
-    Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204) do |server|
+    Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204, :tag => "tag") do |server|
       @server = server
     end
   end
@@ -77,8 +77,13 @@ describe Rack::Handler::Thin do
     response["rack.url_scheme"].should.equal "http"
   end
 
+  should "set tag for server" do
+    @server.tag.should.equal 'tag'
+  end
+
   @server.stop!
   @thread.kill
+
 end
 
 rescue LoadError

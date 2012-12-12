@@ -18,89 +18,85 @@ module Rack
       ENV_SESSION_KEY = 'rack.session'.freeze
       ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
 
-      # Thin wrapper around Hash that allows us to lazily load session id into session_options.
-
-      class OptionsHash < Hash #:nodoc:
-        def initialize(by, env, default_options)
-          @by = by
-          @env = env
-          @session_id_loaded = false
-          merge!(default_options)
-        end
-
-        def [](key)
-          load_session_id! if key == :id && session_id_not_loaded?
-          super
-        end
-
-      private
-
-        def session_id_not_loaded?
-          !(@session_id_loaded || key?(:id))
-        end
-
-        def load_session_id!
-          self[:id] = @by.send(:extract_session_id, @env)
-          @session_id_loaded = true
-        end
-      end
-
       # SessionHash is responsible to lazily load the session from store.
 
-      class SessionHash < Hash
+      class SessionHash
+        include Enumerable
+        attr_writer :id
+
         def initialize(by, env)
-          super()
           @by = by
           @env = env
           @loaded = false
         end
 
+        def id
+          return @id if @loaded or instance_variable_defined?(:@id)
+          @id = @by.send(:extract_session_id, @env)
+        end
+
+        def options
+          @env[ENV_SESSION_OPTIONS_KEY]
+        end
+
+        def each(&block)
+          load_for_read!
+          @data.each(&block)
+        end
+
         def [](key)
           load_for_read!
-          super(key.to_s)
+          @data[key.to_s]
         end
+        alias :fetch :[]
 
         def has_key?(key)
           load_for_read!
-          super(key.to_s)
+          @data.has_key?(key.to_s)
         end
         alias :key? :has_key?
         alias :include? :has_key?
 
         def []=(key, value)
           load_for_write!
-          super(key.to_s, value)
+          @data[key.to_s] = value
         end
+        alias :store :[]=
 
         def clear
           load_for_write!
-          super
+          @data.clear
         end
 
         def destroy
-         clear
-         options = @env[ENV_SESSION_OPTIONS_KEY]
-         options[:id] = @by.send(:destroy_session, @env, options[:id], options)
+          clear
+          @id = @by.send(:destroy_session, @env, id, options)
         end
 
         def to_hash
           load_for_read!
-          Hash[self].delete_if { |k,v| v.nil? }
+          @data.dup
         end
 
         def update(hash)
           load_for_write!
-          super(stringify_keys(hash))
+          @data.update(stringify_keys(hash))
+        end
+        alias :merge! :update
+
+        def replace(hash)
+          load_for_write!
+          @data.replace(stringify_keys(hash))
         end
 
         def delete(key)
           load_for_write!
-          super(key.to_s)
+          @data.delete(key.to_s)
         end
 
         def inspect
           if loaded?
-            super
+            @data.inspect
           else
             "#<#{self.class}:0x#{self.object_id.to_s(16)} not yet loaded>"
           end
@@ -108,6 +104,7 @@ module Rack
 
         def exists?
           return @exists if instance_variable_defined?(:@exists)
+          @data = {}
           @exists = @by.send(:session_exists?, @env)
         end
 
@@ -117,12 +114,7 @@ module Rack
 
         def empty?
           load_for_read!
-          super
-        end
-
-        def merge!(hash)
-          load_for_write!
-          super
+          @data.empty?
         end
 
       private
@@ -136,9 +128,8 @@ module Rack
         end
 
         def load!
-          id, session = @by.send(:load_session, @env)
-          @env[ENV_SESSION_OPTIONS_KEY][:id] = id
-          replace(stringify_keys(session))
+          @id, session = @by.send(:load_session, @env)
+          @data = stringify_keys(session)
           @loaded = true
         end
 
@@ -229,7 +220,7 @@ module Rack
 
         def generate_sid(secure = @sid_secure)
           if secure
-            SecureRandom.hex(@sid_length)
+            secure.hex(@sid_length)
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
@@ -243,7 +234,7 @@ module Rack
         def prepare_session(env)
           session_was                  = env[ENV_SESSION_KEY]
           env[ENV_SESSION_KEY]         = SessionHash.new(self, env)
-          env[ENV_SESSION_OPTIONS_KEY] = OptionsHash.new(self, env, @default_options)
+          env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
           env[ENV_SESSION_KEY].merge! session_was if session_was
         end
 
@@ -268,7 +259,7 @@ module Rack
         # Returns the current session id from the OptionsHash.
 
         def current_session_id(env)
-          env[ENV_SESSION_OPTIONS_KEY][:id]
+          env[ENV_SESSION_KEY].id
         end
 
         # Check if the session exists or not.
@@ -314,21 +305,21 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env['rack.session']
-          options = env['rack.session.options']
+          session = env[ENV_SESSION_KEY]
+          options = session.options
 
           if options[:drop] || options[:renew]
-            session_id = destroy_session(env, options[:id] || generate_sid, options)
+            session_id = destroy_session(env, session.id || generate_sid, options)
             return [status, headers, body] unless session_id
           end
 
           return [status, headers, body] unless commit_session?(env, session, options)
 
           session.send(:load!) unless loaded_session?(session)
-          session = session.to_hash
-          session_id ||= options[:id] || generate_sid
+          session_id ||= session.id || generate_sid
+          session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
-          if not data = set_session(env, session_id, session, options)
+          if not data = set_session(env, session_id, session_data, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
             env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
