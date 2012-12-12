@@ -12,13 +12,17 @@ describe Rack::Head do
     return response
   end
 
+  def enum
+    defined?(Enumerator) ? Enumerator : Enumerable::Enumerator
+  end
+
   should "pass GET, POST, PUT, DELETE, OPTIONS, TRACE requests" do
     %w[GET POST PUT DELETE OPTIONS TRACE].each do |type|
       resp = test_response("REQUEST_METHOD" => type)
 
       resp[0].should.equal(200)
       resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-      Enumerator.new(resp[2]).to_a.should.equal(["foo"])
+      enum.new(resp[2]).to_a.should.equal(["foo"])
     end
   end
 
@@ -27,6 +31,6 @@ describe Rack::Head do
 
     resp[0].should.equal(200)
     resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    Enumerator.new(resp[2]).to_a.should.equal([])
+    enum.new(resp[2]).to_a.should.equal([])
   end
 end
