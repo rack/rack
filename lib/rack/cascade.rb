@@ -19,11 +19,12 @@ module Rack
     def call(env)
       result = NotFound
 
-      @apps.each do |app|
+      @apps[0..-2].each do |app|
         result = app.call(env)
         break unless @catch.include?(result[0].to_i)
+        result[2].close if result[2].respond_to?(:close)
       end
-
+      result = @apps[-1].call(env) if @catch.include?(result[0].to_i) && @apps[-1]
       result
     end
 

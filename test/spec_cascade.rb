@@ -28,6 +28,24 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade).put("/foo").should.be.ok
   end
 
+  should "call close on the response's body if the response was dispatch onward and it is not the last in the cascade" do
+    called = false
+    appa = Rack::URLMap.new("/nope" => lambda { |env|
+                                [404, { "Content-Type" => "text/plain"}, Rack::BodyProxy.new([]) { called = true }]})
+    cascade = cascade([appa, app1])
+    Rack::MockRequest.new(cascade).get("/nope")
+    called.should.be.true
+  end
+
+  should "not call close if the last response in the cascade was dispatch onward" do
+    called = false
+    appa = Rack::URLMap.new("/nope" => lambda { |env|
+                                [404, { "Content-Type" => "text/plain"}, Rack::BodyProxy.new([]) { called = true }]})
+    cascade = cascade([app1, appa])
+    Rack::MockRequest.new(cascade).get("/nope", :dontclose => true)
+    called.should.be.false
+  end
+
   should "dispatch onward on whatever is passed" do
     cascade = cascade([app1, app2, app3], [404, 403])
     Rack::MockRequest.new(cascade).get("/cgi/../bla").should.be.not_found
