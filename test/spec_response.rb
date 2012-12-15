@@ -281,6 +281,15 @@ describe Rack::Response do
     res.body.should.be.closed
   end
 
+  it "calls close on #body when a response is not modified" do
+    body = StringIO.new
+    res = Rack::Response.new
+    res.body = body
+    res.status = 304
+    res.finish
+    body.should.be.closed
+  end
+
   it "wraps the body from #to_ary to prevent infinite loops" do
     res = Rack::Response.new
     res.finish.last.should.not.respond_to?(:to_ary)
