@@ -1,6 +1,6 @@
 module Rack
-  # Rack::Cascade tries an request on several apps, and returns the
-  # first response that is not 404 (or in a list of configurable
+  # Rack::Cascade tries a request on several apps, and returns the
+  # first response that is not 404 or 405 (or in a list of configurable
   # status codes).
 
   class Cascade
