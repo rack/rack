@@ -74,6 +74,7 @@ module Rack
       if [204, 205, 304].include?(status.to_i)
         header.delete "Content-Type"
         header.delete "Content-Length"
+        body.close if body.respond_to? :close
         [status.to_i, header, []]
       else
         [status.to_i, header, BodyProxy.new(self){}]
