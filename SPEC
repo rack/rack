@@ -69,6 +69,7 @@ be implemented by the server.
                         fetch(key, default = nil) (aliased as []);
                         delete(key);
                         clear;
+                        each; (yelds key and value for every element)
 <tt>rack.logger</tt>:: A common object interface for logging messages.
                        The object must implement:
                         info(message, &block)
