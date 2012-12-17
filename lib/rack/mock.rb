@@ -73,7 +73,7 @@ module Rack
       status, headers, body  = app.call(env)
       MockResponse.new(status, headers, body, errors)
     ensure
-      body.close if body.respond_to?(:close)
+      body.close if body.respond_to?(:close) unless opts[:dontclose]
     end
 
     # Return the Rack environment used for a request to +uri+.
