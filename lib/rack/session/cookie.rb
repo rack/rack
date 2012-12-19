@@ -132,6 +132,9 @@ module Rack
               cipher = OpenSSL::Cipher::Cipher.new(@cipher)
               cipher.send(mode)
             rescue
+              warn <<-XXX
+              SECURITY WARNING: Cookie encryption has been disabled because: #{$!.message}
+              XXX
               @crypto = false
               return str
             end
@@ -160,6 +163,9 @@ module Rack
               result = cipher.update(xstr) + cipher.final
               result = result.bytes.to_a.zip(iv.bytes.to_a).flatten.compact.pack('C*') if mode == :encrypt
             rescue OpenSSL::Cipher::CipherError
+              warn <<-XXX
+              SECURITY WARNING: Cookie encryption has been disabled because: #{$!.message}
+              XXX
               @crypto = false
               return str
             end
