@@ -25,25 +25,41 @@ module Rack
     #
     #     All parameters are optional.
     #
-    # Optional encryption of the session cookie is supported. You can
-    # specify the following additional options
-    # (see OpenSSL::PKCS5 for more info):
+    # Optional encryption of the session cookie is supported. This can be
+    # done either with a password-based key, or with a key which you
+    # generate using something like:
+    #
+    #     SecureRandom.random_bytes(key_size_in_bytes_here)
+    #
+    # For using a password-based key, specify the following options:
     #
     #     :cipher     => 'aes-256-cbc', # The cipher algorithm to use
     #     :salt       => 'salthere',    # Salt to use for key generation
     #     :rounds     => 2000,          # Number of iterations for key generation
     #     :crypto_key => 'yoursecret',  # A password from which to generate the key
     #
-    # :crypto_key must be specified in order to enable encryption.
-    # :salt should be specified as well. All other options have defaults available.
+    # :crypto_key and :salt must be specified in order to enable encryption.
+    # All other options have defaults available.
     #
-    # Example of a cookie with encryption:
+    # Example:
     #
     #     use Rack::Session::Cookie, :key        => 'rack.session',
     #                                :domain     => 'foo.com',
     #                                :path       => '/',
     #                                :salt       => 'salthere',
     #                                :crypto_key => 'my_secret'
+    #
+    # For using a pre-generated key, specify the following options:
+    #
+    #     :cipher     => 'aes-256-cbc', # The cipher algorithm to use
+    #     :crypto_key => your_key_here, # Your pre-generated key
+    #
+    # Example:
+    #
+    #     use Rack::Session::Cookie, :key        => 'rack.session',
+    #                                :domain     => 'foo.com',
+    #                                :path       => '/',
+    #                                :crypto_key => your_key
     #
     # Note: If you specify a custom coder, and :crypto_key, then your coder will
     # be automatically wrapped to deal with encryption.
@@ -95,7 +111,7 @@ module Rack
         def initialize(coder=nil,options={})
           @coder   = coder                 || Base64::Marshal.new
           @cipher  = options[:cipher]      || 'aes-256-cbc'
-          @salt    = options[:salt]        || 'R@cK$e5S'
+          @salt    = options[:salt]        || nil
           @rounds  = options[:rounds].to_i || 2000
           @key     = options[:crypto_key]  || nil
           @crypto  = @key.nil? ? false : true
@@ -120,7 +136,7 @@ module Rack
               return str
             end
 
-            cipher.key = OpenSSL::PKCS5.pbkdf2_hmac_sha1(@key,@salt,@rounds,cipher.key_len)
+            cipher.key = @salt.nil? ? @key : OpenSSL::PKCS5.pbkdf2_hmac_sha1(@key,@salt,@rounds,cipher.key_len)
             iv         = cipher.random_iv
             xstr       = str
 

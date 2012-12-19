@@ -120,14 +120,29 @@ describe Rack::Session::Cookie do
 
     it 'encrypts the cookie' do
       xcoder = Rack::Session::Cookie::Base64::Marshal.new
-      coder  = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey')
+      coder  = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => SecureRandom.random_bytes(32))
       str    = 'fuuuuu'
       coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
       coder.encode(str).should.not.equal [xcoder.encode(str)].pack('m')
     end
 
     it 'decrypts the cookie' do
-      coder = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey')
+      coder = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => SecureRandom.random_bytes(32))
+      str   = coder.encode('fuuuuu')
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.decode(str).should.equal 'fuuuuu'
+    end
+
+    it 'encrypts the cookie (password-style)' do
+      xcoder = Rack::Session::Cookie::Base64::Marshal.new
+      coder  = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey', :salt => 'r@ck5e$$')
+      str    = 'fuuuuu'
+      coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
+      coder.encode(str).should.not.equal [xcoder.encode(str)].pack('m')
+    end
+
+    it 'decrypts the cookie (password-style)' do
+      coder = Rack::Session::Cookie::Encrypted.new(nil,:crypto_key => 'cryptokey', :salt => 'r@ck5e$$')
       str   = coder.encode('fuuuuu')
       coder.coder.class.name.should.equal('Rack::Session::Cookie::Base64::Marshal')
       coder.decode(str).should.equal 'fuuuuu'
@@ -135,14 +150,14 @@ describe Rack::Session::Cookie do
 
     it 'encrypts the cookie (wrapping a custom coder)' do
       xcoder = Rack::Session::Cookie::Reverse.new
-      coder  = Rack::Session::Cookie::Encrypted.new(xcoder,:crypto_key => 'cryptokey')
+      coder  = Rack::Session::Cookie::Encrypted.new(xcoder,:crypto_key => 'cryptokey', :salt => 'r@ck5e$$')
       str    = 'fuuuuu'
       coder.coder.class.name.should.equal('Rack::Session::Cookie::Reverse')
       coder.encode(str).should.not.equal [xcoder.encode(str)].pack('m')
     end
 
     it 'decrypts the cookie (wrapping a custom coder)' do
-      coder = Rack::Session::Cookie::Encrypted.new(Rack::Session::Cookie::Reverse.new,:crypto_key => 'cryptokey')
+      coder = Rack::Session::Cookie::Encrypted.new(Rack::Session::Cookie::Reverse.new,:crypto_key => 'cryptokey', :salt => 'r@ck5e$$')
       str   = coder.encode('fuuuuu')
       coder.coder.class.name.should.equal('Rack::Session::Cookie::Reverse')
       coder.decode(str).should.equal 'fuuuuu'
