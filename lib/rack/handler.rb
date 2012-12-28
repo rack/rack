@@ -54,7 +54,7 @@ module Rack
       elsif ENV.include?("REQUEST_METHOD")
         Rack::Handler::CGI
       else
-        pick ['thin', 'webrick']
+        pick ['thin', 'puma', 'webrick']
       end
     end
 
