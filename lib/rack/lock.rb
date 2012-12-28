@@ -2,6 +2,8 @@ require 'thread'
 require 'rack/body_proxy'
 
 module Rack
+  # Rack::Lock locks every request inside a mutex, so that every request
+  # will effectively be executed synchronously.
   class Lock
     FLAG = 'rack.multithread'.freeze
 
