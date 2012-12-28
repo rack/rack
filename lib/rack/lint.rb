@@ -528,7 +528,9 @@ module Rack
       ## The Body itself should not be an instance of String, as this will
       ## break in Ruby 1.9.
       ##
-      ## If the Body responds to +close+, it will be called after iteration.
+      ## If the Body responds to +close+, it will be called after iteration. If
+      ## the body is replaced by a middleware after action, the original body
+      ## must be closed first, if it repsonds to close.
       # XXX howto: assert("Body has not been closed") { @closed }
 
 
