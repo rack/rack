@@ -19,8 +19,19 @@ module Rack
     def call(env)
       result = NotFound
 
+      last_body = nil
+
       @apps.each do |app|
+        # The SPEC says that the body must be closed after it has been iterated
+        # by the server, or if it is replaced by a middleware action. Cascade
+        # replaces the body each time a cascade happens. It is assumed that nil
+        # does not respond to close, otherwise the previous application body
+        # will be closed. The final application body will not be closed, as it
+        # will be passed to the server as a result.
+        last_body.close if last_body.respond_to? :close
+
         result = app.call(env)
+        last_body = result[2]
         break unless @catch.include?(result[0].to_i)
       end
 
