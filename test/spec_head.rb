@@ -3,19 +3,8 @@ require 'rack/mock'
 
 describe Rack::Head do
 
-  @closable_body = Struct.new(:body, :closed) do
-    def each
-      yield body
-    end
-
-    def close
-      self.closed = true
-    end
-    alias closed? closed
-  end
-
   def test_response(headers = {})
-    body = @closable_body.new("foo", false)
+    body = StringIO.new "foo"
     app = lambda do |env|
       [200, {"Content-type" => "test/plain", "Content-length" => "3"}, body]
     end
