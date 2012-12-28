@@ -251,6 +251,30 @@ describe Rack::Response do
     res.body.should.be.closed
   end
 
+  it "calls close on #body when 204, 205, or 304" do
+    res = Rack::Response.new
+    res.body = StringIO.new
+    res.finish
+    res.body.should.not.be.closed
+
+    res.status = 204
+    _, _, b = res.finish
+    res.body.should.be.closed
+    b.should.not == res.body
+
+    res.body = StringIO.new
+    res.status = 205
+    _, _, b = res.finish
+    res.body.should.be.closed
+    b.should.not == res.body
+
+    res.body = StringIO.new
+    res.status = 304
+    _, _, b = res.finish
+    res.body.should.be.closed
+    b.should.not == res.body
+  end
+
   it "wraps the body from #to_ary to prevent infinite loops" do
     res = Rack::Response.new
     res.finish.last.should.not.respond_to?(:to_ary)
