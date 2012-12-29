@@ -3,18 +3,16 @@ require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Chunked do
-  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
-
   def chunked(app)
     proc do |env|
       app = Rack::Chunked.new(app)
       response = Rack::Lint.new(app).call(env)
       # we want to use body like an array, but it only has #each
-      response[2] = Enumerator.new(response[2]).to_a
+      response[2] = response[2].to_enum.to_a
       response
     end
   end
-  
+
   before do
     @env = Rack::MockRequest.
       env_for('/', 'HTTP_VERSION' => '1.1', 'REQUEST_METHOD' => 'GET')

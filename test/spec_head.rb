@@ -1,4 +1,3 @@
-require 'enumerator'
 require 'rack/head'
 require 'rack/lint'
 require 'rack/mock'
@@ -16,17 +15,13 @@ describe Rack::Head do
     return response, body
   end
 
-  def enum
-    defined?(Enumerator) ? Enumerator : Enumerable::Enumerator
-  end
-
   should "pass GET, POST, PUT, DELETE, OPTIONS, TRACE requests" do
     %w[GET POST PUT DELETE OPTIONS TRACE].each do |type|
       resp, _ = test_response("REQUEST_METHOD" => type)
 
       resp[0].should.equal(200)
       resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-      enum.new(resp[2]).to_a.should.equal(["foo"])
+      resp[2].to_enum.to_a.should.equal(["foo"])
     end
   end
 
@@ -35,14 +30,14 @@ describe Rack::Head do
 
     resp[0].should.equal(200)
     resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    enum.new(resp[2]).to_a.should.equal([])
+    resp[2].to_enum.to_a.should.equal([])
   end
 
   should "close the body when it is removed" do
     resp, body = test_response("REQUEST_METHOD" => "HEAD")
     resp[0].should.equal(200)
     resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    enum.new(resp[2]).to_a.should.equal([])
+    resp[2].to_enum.to_a.should.equal([])
     body.should.be.closed
   end
 end

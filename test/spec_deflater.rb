@@ -1,4 +1,3 @@
-require 'enumerator'
 require 'stringio'
 require 'time'  # for Time#httpdate
 require 'rack/deflater'
@@ -7,12 +6,10 @@ require 'rack/mock'
 require 'zlib'
 
 describe Rack::Deflater do
-  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
-
   def deflater(app)
     Rack::Lint.new Rack::Deflater.new(app)
   end
-  
+
   def build_response(status, body, accept_encoding, headers = {})
     body = [body]  if body.respond_to? :to_str
     app = lambda do |env|
@@ -129,7 +126,7 @@ describe Rack::Deflater do
 
     response[0].should.equal(200)
     response[1].should.equal({ "Vary" => "Accept-Encoding", "Content-Type" => "text/plain" })
-    Enumerator.new(response[2]).to_a.should.equal(["Hello world!"])
+    response[2].to_enum.to_a.should.equal(["Hello world!"])
   end
 
   should "be able to skip when there is no response entity body" do
@@ -137,19 +134,19 @@ describe Rack::Deflater do
 
     response[0].should.equal(304)
     response[1].should.equal({})
-    Enumerator.new(response[2]).to_a.should.equal([])
+    response[2].to_enum.to_a.should.equal([])
   end
 
   should "handle the lack of an acceptable encoding" do
     response1 = build_response(200, "Hello world!", "identity;q=0", "PATH_INFO" => "/")
     response1[0].should.equal(406)
     response1[1].should.equal({"Content-Type" => "text/plain", "Content-Length" => "71"})
-    Enumerator.new(response1[2]).to_a.should.equal(["An acceptable encoding for the requested resource / could not be found."])
+    response1[2].to_enum.to_a.should.equal(["An acceptable encoding for the requested resource / could not be found."])
 
     response2 = build_response(200, "Hello world!", "identity;q=0", "SCRIPT_NAME" => "/foo", "PATH_INFO" => "/bar")
     response2[0].should.equal(406)
     response2[1].should.equal({"Content-Type" => "text/plain", "Content-Length" => "78"})
-    Enumerator.new(response2[2]).to_a.should.equal(["An acceptable encoding for the requested resource /foo/bar could not be found."])
+    response2[2].to_enum.to_a.should.equal(["An acceptable encoding for the requested resource /foo/bar could not be found."])
   end
 
   should "handle gzip response with Last-Modified header" do
@@ -182,7 +179,7 @@ describe Rack::Deflater do
 
     response[0].should.equal(200)
     response[1].should.not.include "Content-Encoding"
-    Enumerator.new(response[2]).to_a.join.should.equal("Hello World!")
+    response[2].to_enum.to_a.join.should.equal("Hello World!")
   end
 
   should "do nothing when Content-Encoding already present" do
@@ -191,7 +188,7 @@ describe Rack::Deflater do
     response = deflater(app).call(request)
 
     response[0].should.equal(200)
-    Enumerator.new(response[2]).to_a.join.should.equal("Hello World!")
+    response[2].to_enum.to_a.join.should.equal("Hello World!")
   end
 
   should "deflate when Content-Encoding is identity" do
