@@ -598,7 +598,7 @@ module Rack
       ".wmv"       => "video/x-ms-wmv",
       ".wmx"       => "video/x-ms-wmx",
       ".wmz"       => "application/x-ms-wmz",
-      ".woff"      => "application/octet-stream",
+      ".woff"      => "application/font-woff",
       ".wpd"       => "application/vnd.wordperfect",
       ".wpl"       => "application/vnd.ms-wpl",
       ".wps"       => "application/vnd.ms-works",
