@@ -63,12 +63,14 @@ module Rack
     # and ';' characters.  You can also use this to parse
     # cookies by changing the characters used in the second
     # parameter (which defaults to '&;').
-    def parse_query(qs, d = nil)
+    def parse_query(qs, d = nil, &unescaper)
+      unescaper ||= method(:unescape)
+
       params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         next if p.empty?
-        k, v = p.split('=', 2).map { |x| unescape(x) }
+        k, v = p.split('=', 2).map(&unescaper)
         next unless k || v
 
         if cur = params[k]

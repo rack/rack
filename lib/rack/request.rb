@@ -260,12 +260,10 @@ module Rack
       #   the Cookie header such that those with more specific Path attributes
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
-      Utils.parse_query(string, ';,').each { |k,v| hash[k] = Array === v ? v.first : v }
+      cookies = Utils.parse_query(string, ';,') { |s| Rack::Utils.unescape(s) rescue s }
+      cookies.each { |k,v| hash[k] = Array === v ? v.first : v }
       @env["rack.request.cookie_string"] = string
       hash
-    rescue => error
-      error.message.replace "cannot parse Cookie header: #{error.message}"
-      raise
     end
 
     def xhr?
