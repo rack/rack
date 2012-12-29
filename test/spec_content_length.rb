@@ -1,19 +1,16 @@
-require 'enumerator'
 require 'rack/content_length'
 require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::ContentLength do
-  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
-
   def content_length(app)
     Rack::Lint.new Rack::ContentLength.new(app)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   should "set Content-Length on Array bodies if none is set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = content_length(app).call(request)
@@ -81,6 +78,6 @@ describe Rack::ContentLength do
     response = content_length(app).call(request)
     expected = %w[one two three]
     response[1]['Content-Length'].should.equal expected.join.size.to_s
-    Enumerator.new(response[2]).to_a.should.equal expected
+    response[2].to_enum.to_a.should.equal expected
   end
 end
