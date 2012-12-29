@@ -43,7 +43,7 @@ describe Rack::Chunked do
     response.headers.should.not.include 'Content-Length'
     response.headers['Transfer-Encoding'].should.equal 'chunked'
     response.body.encoding.to_s.should.equal "ASCII-8BIT"
-    response.body.should.equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n"
+    response.body.should.equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".force_encoding("BINARY")
   end if RUBY_VERSION >= "1.9"
 
   should 'not modify response when Content-Length header present' do
