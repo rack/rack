@@ -26,6 +26,23 @@ module Rack
       raise load_error || name_error
     end
 
+    # Select first available Rack handler given an `Array` of server names.
+    # Raises `LoadError` if no handler was found.
+    #
+    #   > pick ['thin', 'webrick']
+    #   => Rack::Handler::WEBrick
+    def self.pick(server_names)
+      server_names = Array(server_names)
+      server_names.each do |server_name|
+        begin
+          return get(server_name.to_s)
+        rescue LoadError, NameError
+        end
+      end
+
+      raise LoadError, "Couldn't find handler for: #{server_names.join(', ')}."
+    end
+
     def self.default(options = {})
       # Guess.
       if ENV.include?("PHP_FCGI_CHILDREN")
@@ -37,11 +54,7 @@ module Rack
       elsif ENV.include?("REQUEST_METHOD")
         Rack::Handler::CGI
       else
-        begin
-          Rack::Handler::Thin
-        rescue LoadError
-          Rack::Handler::WEBrick
-        end
+        pick ['thin', 'puma', 'webrick']
       end
     end
 
