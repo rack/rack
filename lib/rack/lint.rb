@@ -464,9 +464,8 @@ module Rack
     ## === The Content-Type
     def check_content_type(status, headers)
       headers.each { |key, value|
-        ## There must be a <tt>Content-Type</tt>, except when the
-        ## +Status+ is 1xx, 204, 205 or 304, in which case there must be none
-        ## given.
+        ## There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
+        ## 204, 205 or 304.
         if key.downcase == "content-type"
           assert("Content-Type header found in #{status} response, not allowed") {
             not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
@@ -474,10 +473,6 @@ module Rack
           return
         end
       }
-      # This is a SHOULD in HTTP 1.0 and 1.1:
-      # assert("No Content-Type header found") {
-      #   Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-      # }
     end
 
     ## === The Content-Length
