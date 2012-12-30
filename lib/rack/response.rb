@@ -21,8 +21,7 @@ module Rack
 
     def initialize(body=[], status=200, header={})
       @status = status.to_i
-      @header = Utils::HeaderHash.new("Content-Type" => "text/html").
-                                      merge(header)
+      @header = Utils::HeaderHash.new.merge(header)
 
       @chunked = "chunked" == @header['Transfer-Encoding']
       @writer  = lambda { |x| @body << x }
