@@ -53,6 +53,19 @@ describe Rack::Static do
     res.body.should =~ /another index!/
   end
 
+  it "calls index file for existing folders without specific root request" do
+    res = @static_request.get("")
+    res.should.be.ok
+    res.body.should =~ /index!/
+
+    res = @static_request.get("/other")
+    res.should.be.not_found
+
+    res = @static_request.get("/another")
+    res.should.be.ok
+    res.body.should =~ /another index!/
+  end
+
   it "doesn't call index file if :index option was omitted" do
     res = @request.get("/")
     res.body.should == "Hello World"
