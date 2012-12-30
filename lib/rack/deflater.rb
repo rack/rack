@@ -9,25 +9,8 @@ module Rack
       @app = app
     end
 
-    def deflate_type?(mime)
-      return true if mime == nil
-      type, sub = mime.split('/')
-      return true if type == 'text'
-      return false if type == 'audio' || type == 'video' || type == 'image'
-      if type == 'application'
-        sub = sub.split(';')[0]
-        return true if ['x-javascript', 'json', 'ecmascript', 'x-python-code'].include?(sub) || sub.include?('xml')
-        reject_type = ['mp4', 'octet-stream', 'ogg', 'pdf', 'rar', 'zip', 'postscript']
-        return false if reject_type.include?(sub) || sub[0..1] == 'x-' || ['vnd.', 'java'].include?(sub[0..3])
-      end
-      return true
-    end
-
     def call(env)
       status, headers, body = @app.call(env)
-
-      return [status, headers, body] unless deflate_type?(headers['Content-Type'])
-
       headers = Utils::HeaderHash.new(headers)
 
       # Skip compressing empty entity body responses and responses with
