@@ -474,9 +474,10 @@ module Rack
           return
         end
       }
-      assert("No Content-Type header found") {
-        Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
-      }
+      # This is a SHOULD in HTTP 1.0 and 1.1:
+      # assert("No Content-Type header found") {
+      #   Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+      # }
     end
 
     ## === The Content-Length
