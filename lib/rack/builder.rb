@@ -37,13 +37,17 @@ module Rack
           options = opts.parse! $1.split(/\s+/)
         end
         cfgfile.sub!(/^__END__\n.*\Z/m, '')
-        app = eval "Rack::Builder.new {\n" + cfgfile + "\n}.to_app",
-          TOPLEVEL_BINDING, config, 0
+        app = new_from_string cfgfile, config
       else
         require config
         app = Object.const_get(::File.basename(config, '.rb').capitalize)
       end
       return app, options
+    end
+
+    def self.new_from_string(builder_script, file="(rackup)")
+      eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
+        TOPLEVEL_BINDING, file, 0
     end
 
     def initialize(default_app = nil,&block)
