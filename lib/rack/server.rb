@@ -17,6 +17,10 @@ module Rack
             lineno += 1
           }
 
+          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
+            options[:builder] = line
+          }
+
           opts.on("-d", "--debug", "set debugging flags (set $DEBUG to true)") {
             options[:debug] = true
           }
@@ -192,15 +196,7 @@ module Rack
     end
 
     def app
-      @app ||= begin
-        if !::File.exist? options[:config]
-          abort "configuration #{options[:config]} not found"
-        end
-
-        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        self.options.merge! options
-        app
-      end
+      @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
 
     def self.logging_middleware
@@ -273,6 +269,20 @@ module Rack
     end
 
     private
+      def build_app_and_options_from_config
+        if !::File.exist? options[:config]
+          abort "configuration #{options[:config]} not found"
+        end
+
+        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
+        self.options.merge! options
+        app
+      end
+
+      def build_app_from_string
+        Rack::Builder.new_from_string(self.options[:builder])
+      end
+
       def parse_options(args)
         options = default_options
 
