@@ -48,7 +48,7 @@ describe Rack::Handler::FastCGI do
 
   should "have rack headers" do
     GET("/test.fcgi")
-    response["rack.version"].should.equal [1,1]
+    response["rack.version"].should.equal [1,2]
     response["rack.multithread"].should.be.false
     response["rack.multiprocess"].should.be.true
     response["rack.run_once"].should.be.false
