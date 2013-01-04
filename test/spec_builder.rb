@@ -204,4 +204,11 @@ describe Rack::Builder do
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal '1'
     end
   end
+
+  describe 'new_from_string' do
+    it "builds a rack app from string" do
+      app, = Rack::Builder.new_from_string "run lambda{|env| [200, {'Content-Type' => 'text/plane'}, ['OK']] }"
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+    end
+  end
 end

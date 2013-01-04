@@ -22,6 +22,12 @@ describe Rack::Server do
     server.app.should == "FOO"
   end
 
+  should "prefer to use :builder when it is passed in" do
+    server = Rack::Server.new(:builder => "run lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }")
+    server.app.class.should == Proc
+    Rack::MockRequest.new(server.app).get("/").body.to_s.should.equal 'success'
+  end
+
   should "not include Rack::Lint in deployment or none environments" do
     server = Rack::Server.new(:app => 'foo')
     server.middleware['deployment'].flatten.should.not.include(Rack::Lint)
