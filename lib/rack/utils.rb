@@ -548,7 +548,7 @@ module Rack
 
                 token = /[^\s()<>,;:\\"\/\[\]?=]+/
                 condisp = /Content-Disposition:\s*#{token}\s*/i
-                dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})*/
+                dispparm = /;\s*(#{token})=("(?:\\"|[^"])*"|#{token})/
 
                 rfc2183 = /^#{condisp}(#{dispparm})+$/i
                 broken_quoted = /^#{condisp}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{token}=)/i
