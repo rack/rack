@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'forwardable'
 
 module Rack
   # Rack::Lint validates your application and the requests and
@@ -121,6 +122,9 @@ module Rack
       ## <tt>rack.multithread</tt>:: true if the application object may be simultaneously invoked by another thread in the same process, false otherwise.
       ## <tt>rack.multiprocess</tt>:: true if an equivalent application object may be simultaneously invoked by another process, false otherwise.
       ## <tt>rack.run_once</tt>:: true if the server expects (but does not guarantee!) that the application will only be invoked this one time during the life of its containing process. Normally, this will only be true for a server based on CGI (or something similar).
+      ## <tt>rack.hijack?</tt>:: present and true if the server supports connection hijacking. See below, hijacking.
+      ## <tt>rack.hijack</tt>:: an object responding to #call that must be called at least once before using rack.hijack_io. It is recommended #call return rack.hijack_io as well as setting it in env if necessary.
+      ## <tt>rack.hijack_io</tt>:: if rack.hijack? is true, and rack.hijack has received #call, this will contain an object resembling an IO. See hijacking.
       ##
 
       ## Additional environment specifications have approved to
@@ -227,6 +231,8 @@ module Rack
       check_input env["rack.input"]
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
       check_error env["rack.errors"]
+      ## * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
+      check_hijack env
 
       ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
       assert("REQUEST_METHOD unknown: #{env["REQUEST_METHOD"]}") {
@@ -414,6 +420,73 @@ module Rack
       ## * +close+ must never be called on the error stream.
       def close(*args)
         assert("rack.errors#close must not be called") { false }
+      end
+    end
+
+    class HijackWrapper
+      include Assertion
+      extend Forwardable
+
+      REQUIRED_METHODS = [
+        :read, :write, :read_nonblock, :write_nonblock, :flush, :close,
+        :close_read, :close_write, :closed?
+      ]
+
+      def_delegators :@io, *REQUIRED_METHODS
+
+      def initialize(io)
+        @io = io
+        REQUIRED_METHODS.each do |meth|
+          assert("rack.hijack_io must respond to #{meth}") { io.respond_to? meth }
+        end
+      end
+    end
+
+    ## === Hijacking
+    #
+    # AUTHORS: n.b. The trailing whitespace between paragraphs is important and
+    # should not be removed. The whitespace creates paragraphs in the RDoc
+    # output.
+    def check_hijack(env)
+      if env['rack.hijack?']
+        ## If rack.hijack? is true then rack.hijack must respond to #call.
+        original_hijack = env['rack.hijack']
+        assert("rack.hijack must respond to call") { original_hijack.respond_to?(:call) }
+        env['rack.hijack'] = proc do
+          ## rack.hijack should return the io that will also be assigned (or is
+          ## already present, in rack.hijack_io.
+          result = original_hijack.call
+          ## 
+          ## rack.hijack_io must respond to:
+          ## <tt>read, write, read_nonblock, write_nonblock, flush, close,
+          ## close_read, close_write, closed?</tt>
+          ## 
+          ## The semantics of these IO methods must be a best effort match to
+          ## those of a normal ruby IO or Socket object, using standard
+          ## arguments and raising standard exceptions. Servers are encouraged
+          ## to simply pass on real IO objects, although it is recognized that
+          ## this approach is not directly compatible with SPDY and HTTP 2.0.
+          ## 
+          ## IO provided in rack.hijack_io should preference the
+          ## IO::WaitReadable and IO::WaitWritable APIs wherever supported.
+          ## 
+          ## There is a deliberate lack of full specification around
+          ## rack.hijack_io, as semantics will change from server to server.
+          ## Users are encouraged to utilize this API with a knowledge of their
+          ## server choice, and servers may extend the functionality of
+          ## hijack_io to provide additional features to users. The purpose of
+          ## rack.hijack is for Rack to "get out of the way", as such, Rack only
+          ## provides the minimum of specification and support.
+          env['rack.hijack_io'] = HijackWrapper.new(env['rack.hijack_io'])
+          result
+        end
+      else
+        ## 
+        ## If rack.hijack? is false, then rack.hijack should not be set.
+        assert("rack.hijack? is false, but rack.hijack is present") { env['rack.hijack'].nil? }
+        ## 
+        ## If rack.hijack? is false, then rack.hijack_io should not be set.
+        assert("rack.hijack? is false, but rack.hijack_io is present") { env['rack.hijack_io'].nil? }
       end
     end
 
