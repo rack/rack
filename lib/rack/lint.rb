@@ -51,6 +51,9 @@ module Rack
       check_status status
       ## the *headers*,
       check_headers headers
+
+      check_hijack_response headers, env
+
       ## and the *body*.
       check_content_type status, headers
       check_content_length status, headers
@@ -447,6 +450,8 @@ module Rack
     # AUTHORS: n.b. The trailing whitespace between paragraphs is important and
     # should not be removed. The whitespace creates paragraphs in the RDoc
     # output.
+    #
+    ## ==== Request (before status)
     def check_hijack(env)
       if env['rack.hijack?']
         ## If rack.hijack? is true then rack.hijack must respond to #call.
@@ -490,6 +495,45 @@ module Rack
       end
     end
 
+    ## ==== Response (after headers)
+    ## It is also possible to hijack a response after the status and headers
+    ## have been sent.
+    def check_hijack_response(headers, env)
+      ## In order to do this, an application may set the special header
+      ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
+      ## accepting an argument that conforms to the <tt>rack.hijack_io</tt>
+      ## protocol.
+      ## 
+      ## After the headers have been sent, and this hijack callback has been
+      ## called, the application is now responsible for the remaining lifecycle
+      ## of the IO. The application is also responsible for maintaining HTTP
+      ## semantics. Of specific note, in almost all cases in the current SPEC,
+      ## applications will have wanted to specify the header Connection:close in
+      ## HTTP/1.1, and not Connection:keep-alive, as there is no protocol for
+      ## returning hijacked sockets to the web server. For that purpose, use the
+      ## body streaming API instead (progressively yielding strings via each).
+      ## 
+      ## Servers must ignore the <tt>body</tt> part of the response tuple when
+      ## the <tt>rack.hijack</tt> response API is in use.
+
+      if env['rack.hijack?'] && headers['rack.hijack']
+        assert('rack.hijack header must respond to #call') {
+          headers['rack.hijack'].respond_to? :call
+        }
+        original_hijack = headers['rack.hijack']
+        headers['rack.hijack'] = proc do |io|
+          original_hijack.call HijackWrapper.new(io)
+        end
+      else
+        ## 
+        ## The special response header <tt>rack.hijack</tt> must only be set
+        ## if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
+        assert('rack.hijack header must not be present if server does not support hijacking') {
+          headers['rack.hijack'].nil?
+        }
+      end
+    end
+
     ## == The Response
 
     ## === The Status
@@ -506,6 +550,10 @@ module Rack
          header.respond_to? :each
       }
       header.each { |key, value|
+        ## Special headers starting "rack." are for communicating with the
+        ## server, and must not be sent back to the client.
+        next if key =~ /^rack\..+$/
+
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
           key.kind_of? String

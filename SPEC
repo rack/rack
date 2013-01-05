@@ -134,6 +134,7 @@ The error stream must respond to +puts+, +write+ and +flush+.
   in order to make the error appear for sure.
 * +close+ must never be called on the error stream.
 === Hijacking
+==== Request (before status)
 If rack.hijack? is true then rack.hijack must respond to #call.
 rack.hijack should return the io that will also be assigned (or is
 already present, in rack.hijack_io.
@@ -162,12 +163,36 @@ provides the minimum of specification and support.
 If rack.hijack? is false, then rack.hijack should not be set.
 
 If rack.hijack? is false, then rack.hijack_io should not be set.
+==== Response (after headers)
+It is also possible to hijack a response after the status and headers
+have been sent.
+In order to do this, an application may set the special header
+<tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
+accepting an argument that conforms to the <tt>rack.hijack_io</tt>
+protocol.
+
+After the headers have been sent, and this hijack callback has been
+called, the application is now responsible for the remaining lifecycle
+of the IO. The application is also responsible for maintaining HTTP
+semantics. Of specific note, in almost all cases in the current SPEC,
+applications will have wanted to specify the header Connection:close in
+HTTP/1.1, and not Connection:keep-alive, as there is no protocol for
+returning hijacked sockets to the web server. For that purpose, use the
+body streaming API instead (progressively yielding strings via each).
+
+Servers must ignore the <tt>body</tt> part of the response tuple when
+the <tt>rack.hijack</tt> response API is in use.
+
+The special response header <tt>rack.hijack</tt> must only be set
+if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
 == The Response
 === The Status
 This is an HTTP status. When parsed as integer (+to_i+), it must be
 greater than or equal to 100.
 === The Headers
 The header must respond to +each+, and yield values of key and value.
+Special headers starting "rack." are for communicating with the
+server, and must not be sent back to the client.
 The header keys must be Strings.
 The header must not contain a +Status+ key,
 contain keys with <tt>:</tt> or newlines in their name,
