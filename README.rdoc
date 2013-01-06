@@ -27,8 +27,11 @@ These web servers include Rack handlers in their distributions:
 * Fuzed
 * Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
+* Puma
 * Rainbows!
 * Unicorn
+* unixrack
+* uWSGI
 * Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
@@ -132,7 +135,11 @@ at my site:
 
 Testing Rack requires the bacon testing framework:
 
-    gem install bacon
+    bundle install --without extra # to be able to run the fast tests
+
+Or:
+
+    bundle install # this assumes that you have installed native extensions!
 
 There are two rake-based test tasks:
 
@@ -355,7 +362,7 @@ run on port 11211) and memcache-client installed.
 * July 16, 2011: Sixteenth public release 1.3.2
   * Fix for Rails and rack-test, Rack::Utils#escape calls to_s
 
-* Not Yet Released: Seventeenth public release 1.3.3
+* September 16, 2011: Seventeenth public release 1.3.3
   * Fix bug with broken query parameters in Rack::ShowExceptions
   * Rack::Request#cookies no longer swallows exceptions on broken input
   * Prevents XSS attacks enabled by bug in Ruby 1.8's regexp engine
@@ -372,6 +379,10 @@ run on port 11211) and memcache-client installed.
 
 * October 17, 2011: Twentieth public release 1.3.5
   * Fix annoying warnings caused by the backport in 1.3.4
+
+* December 28th, 2011: Twenty first public release: 1.1.3.
+  * Security fix. http://www.ocert.org/advisories/ocert-2011-003.html
+    Further information here: http://jruby.org/2011/12/27/jruby-1-6-5-1
 
 * December 28th, 2011: Twenty fourth public release 1.4.0
   * Ruby 1.8.6 support has officially been dropped. Not all tests pass.
@@ -407,6 +418,60 @@ run on port 11211) and memcache-client installed.
   * Tests are no longer dependent on set order
   * Rack::Static no longer defaults to serving index files
   * Rack.release was fixed
+
+* January 6th, 2013: Twenty sixth public release 1.1.4
+  * Add warnings when users do not provide a session secret
+
+* January 6th, 2013: Twenty seventh public release 1.2.6
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+
+* January 6th, 2013: Twenty eighth public release 1.3.7
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+  * Updated URI backports
+  * Fix URI backport version matching, and silence constant warnings
+  * Correct parameter parsing with empty values
+  * Correct rackup '-I' flag, to allow multiple uses
+  * Correct rackup pidfile handling
+  * Report rackup line numbers correctly
+  * Fix request loops caused by non-stale nonces with time limits
+  * Fix reloader on Windows
+  * Prevent infinite recursions from Response#to_ary
+  * Various middleware better conforms to the body close specification
+  * Updated language for the body close specification
+  * Additional notes regarding ECMA escape compatibility issues
+  * Fix the parsing of multiple ranges in range headers
+
+* January 6th, 2013: Twenty ninth public release 1.4.2
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+  * Updated URI backports
+  * Fix URI backport version matching, and silence constant warnings
+  * Correct parameter parsing with empty values
+  * Correct rackup '-I' flag, to allow multiple uses
+  * Correct rackup pidfile handling
+  * Report rackup line numbers correctly
+  * Fix request loops caused by non-stale nonces with time limits
+  * Fix reloader on Windows
+  * Prevent infinite recursions from Response#to_ary
+  * Various middleware better conforms to the body close specification
+  * Updated language for the body close specification
+  * Additional notes regarding ECMA escape compatibility issues
+  * Fix the parsing of multiple ranges in range headers
+  * Prevent errors from empty parameter keys
+  * Added PATCH verb to Rack::Request
+  * Various documentation updates
+  * Fix session merge semantics (fixes rack-test)
+  * Rack::Static :index can now handle multiple directories
+  * All tests now utilize Rack::Lint (special thanks to Lars Gierth)
+  * Rack::File cache_control parameter is now deprecated, and removed by 1.5
+  * Correct Rack::Directory script name escaping
+  * Rack::Static supports header rules for sophisticated configurations
+  * Multipart parsing now works without a Content-Length header
+  * New logos courtesy of Zachary Scott!
+  * Rack::BodyProxy now explicitly defines #each, useful for C extensions
+  * Cookies that are not URI escaped no longer cause exceptions
 
 == Contact
 
