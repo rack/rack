@@ -380,6 +380,10 @@ run on port 11211) and memcache-client installed.
 * October 17, 2011: Twentieth public release 1.3.5
   * Fix annoying warnings caused by the backport in 1.3.4
 
+* December 28th, 2011: Twenty first public release: 1.1.3.
+  * Security fix. http://www.ocert.org/advisories/ocert-2011-003.html
+    Further information here: http://jruby.org/2011/12/27/jruby-1-6-5-1
+
 * December 28th, 2011: Twenty fourth public release 1.4.0
   * Ruby 1.8.6 support has officially been dropped. Not all tests pass.
   * Raise sane error messages for broken config.ru
