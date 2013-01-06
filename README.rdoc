@@ -1,4 +1,4 @@
-= Rack, a modular Ruby webserver interface
+= Rack, a modular Ruby webserver interface {<img src="https://secure.travis-ci.org/rack/rack.png" alt="Build Status" />}[http://travis-ci.org/rack/rack] {<img src="https://gemnasium.com/rack/rack.png" alt="Dependency Status" />}[https://gemnasium.com/rack/rack]
 
 Rack provides a minimal, modular and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
@@ -27,8 +27,11 @@ These web servers include Rack handlers in their distributions:
 * Fuzed
 * Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
+* Puma
 * Rainbows!
 * Unicorn
+* unixrack
+* uWSGI
 * Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
@@ -132,7 +135,11 @@ at my site:
 
 Testing Rack requires the bacon testing framework:
 
-    gem install bacon
+    bundle install --without extra # to be able to run the fast tests
+
+Or:
+
+    bundle install # this assumes that you have installed native extensions!
 
 There are two rake-based test tasks:
 
@@ -373,9 +380,98 @@ run on port 11211) and memcache-client installed.
 * October 17, 2011: Twentieth public release 1.3.5
   * Fix annoying warnings caused by the backport in 1.3.4
 
-* December 28th, 2011: Twenty third public release: 1.3.6
+* December 28th, 2011: Twenty first public release: 1.1.3.
   * Security fix. http://www.ocert.org/advisories/ocert-2011-003.html
     Further information here: http://jruby.org/2011/12/27/jruby-1-6-5-1
+
+* December 28th, 2011: Twenty fourth public release 1.4.0
+  * Ruby 1.8.6 support has officially been dropped. Not all tests pass.
+  * Raise sane error messages for broken config.ru
+  * Allow combining run and map in a config.ru
+  * Rack::ContentType will not set Content-Type for responses without a body
+  * Status code 205 does not send a response body
+  * Rack::Response::Helpers will not rely on instance variables
+  * Rack::Utils.build_query no longer outputs '=' for nil query values
+  * Various mime types added
+  * Rack::MockRequest now supports HEAD
+  * Rack::Directory now supports files that contain RFC3986 reserved chars
+  * Rack::File now only supports GET and HEAD requests
+  * Rack::Server#start now passes the block to Rack::Handler::<h>#run
+  * Rack::Static now supports an index option
+  * Added the Teapot status code
+  * rackup now defaults to Thin instead of Mongrel (if installed)
+  * Support added for HTTP_X_FORWARDED_SCHEME
+  * Numerous bug fixes, including many fixes for new and alternate rubies
+
+* January 22nd, 2012: Twenty fifth public release 1.4.1
+  * Alter the keyspace limit calculations to reduce issues with nested params
+  * Add a workaround for multipart parsing where files contain unescaped "%"
+  * Added Rack::Response::Helpers#method_not_allowed? (code 405)
+  * Rack::File now returns 404 for illegal directory traversals
+  * Rack::File now returns 405 for illegal methods (non HEAD/GET)
+  * Rack::Cascade now catches 405 by default, as well as 404
+  * Cookies missing '--' no longer cause an exception to be raised
+  * Various style changes and documentation spelling errors
+  * Rack::BodyProxy always ensures to execute its block
+  * Additional test coverage around cookies and secrets
+  * Rack::Session::Cookie can now be supplied either secret or old_secret
+  * Tests are no longer dependent on set order
+  * Rack::Static no longer defaults to serving index files
+  * Rack.release was fixed
+
+* January 6th, 2013: Twenty sixth public release 1.1.4
+  * Add warnings when users do not provide a session secret
+
+* January 6th, 2013: Twenty seventh public release 1.2.6
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+
+* January 6th, 2013: Twenty eighth public release 1.3.7
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+  * Updated URI backports
+  * Fix URI backport version matching, and silence constant warnings
+  * Correct parameter parsing with empty values
+  * Correct rackup '-I' flag, to allow multiple uses
+  * Correct rackup pidfile handling
+  * Report rackup line numbers correctly
+  * Fix request loops caused by non-stale nonces with time limits
+  * Fix reloader on Windows
+  * Prevent infinite recursions from Response#to_ary
+  * Various middleware better conforms to the body close specification
+  * Updated language for the body close specification
+  * Additional notes regarding ECMA escape compatibility issues
+  * Fix the parsing of multiple ranges in range headers
+
+* January 6th, 2013: Twenty ninth public release 1.4.2
+  * Add warnings when users do not provide a session secret
+  * Fix parsing performance for unquoted filenames
+  * Updated URI backports
+  * Fix URI backport version matching, and silence constant warnings
+  * Correct parameter parsing with empty values
+  * Correct rackup '-I' flag, to allow multiple uses
+  * Correct rackup pidfile handling
+  * Report rackup line numbers correctly
+  * Fix request loops caused by non-stale nonces with time limits
+  * Fix reloader on Windows
+  * Prevent infinite recursions from Response#to_ary
+  * Various middleware better conforms to the body close specification
+  * Updated language for the body close specification
+  * Additional notes regarding ECMA escape compatibility issues
+  * Fix the parsing of multiple ranges in range headers
+  * Prevent errors from empty parameter keys
+  * Added PATCH verb to Rack::Request
+  * Various documentation updates
+  * Fix session merge semantics (fixes rack-test)
+  * Rack::Static :index can now handle multiple directories
+  * All tests now utilize Rack::Lint (special thanks to Lars Gierth)
+  * Rack::File cache_control parameter is now deprecated, and removed by 1.5
+  * Correct Rack::Directory script name escaping
+  * Rack::Static supports header rules for sophisticated configurations
+  * Multipart parsing now works without a Content-Length header
+  * New logos courtesy of Zachary Scott!
+  * Rack::BodyProxy now explicitly defines #each, useful for C extensions
+  * Cookies that are not URI escaped no longer cause exceptions
 
 == Contact
 
