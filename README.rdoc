@@ -473,6 +473,12 @@ run on port 11211) and memcache-client installed.
   * Rack::BodyProxy now explicitly defines #each, useful for C extensions
   * Cookies that are not URI escaped no longer cause exceptions
 
+* January 7th, 2013: Thirtieth public release 1.3.8
+  * Security: Prevent unbounded reads in large multipart boundaries
+
+* January 7th, 2013: Thirty first public release 1.4.3
+  * Security: Prevent unbounded reads in large multipart boundaries
+
 == Contact
 
 Please post bugs, suggestions and patches to
