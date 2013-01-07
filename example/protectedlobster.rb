@@ -11,4 +11,4 @@ protected_lobster.realm = 'Lobster 2.0'
 
 pretty_protected_lobster = Rack::ShowStatus.new(Rack::ShowExceptions.new(protected_lobster))
 
-Rack::Handler::WEBrick.run pretty_protected_lobster, :Port => 9292
+Rack::Server.start :app => pretty_protected_lobster, :Port => 9292
