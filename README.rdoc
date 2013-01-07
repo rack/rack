@@ -57,9 +57,6 @@ These frameworks include Rack adapters in their distributions:
 * Wee
 * ... and many others.
 
-Current links to these projects can be found at
-http://wiki.ramaze.net/Home#other-frameworks
-
 == Available middleware
 
 Between the server and the framework, Rack can be customized to your
