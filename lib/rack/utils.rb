@@ -5,7 +5,6 @@ require 'tempfile'
 require 'rack/multipart'
 
 major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
-ruby_engine = defined?(RUBY_ENGINE) ? RUBY_ENGINE : 'ruby'
 
 if major == 1 && minor < 9
   require 'rack/backports/uri/common_18'
