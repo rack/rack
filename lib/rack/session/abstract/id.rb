@@ -24,15 +24,15 @@ module Rack
         include Enumerable
         attr_writer :id
 
-        def initialize(by, env)
-          @by = by
+        def initialize(store, env)
+          @store = store
           @env = env
           @loaded = false
         end
 
         def id
           return @id if @loaded or instance_variable_defined?(:@id)
-          @id = @by.send(:extract_session_id, @env)
+          @id = @store.send(:extract_session_id, @env)
         end
 
         def options
@@ -70,7 +70,7 @@ module Rack
 
         def destroy
           clear
-          @id = @by.send(:destroy_session, @env, id, options)
+          @id = @store.send(:destroy_session, @env, id, options)
         end
 
         def to_hash
@@ -105,7 +105,7 @@ module Rack
         def exists?
           return @exists if instance_variable_defined?(:@exists)
           @data = {}
-          @exists = @by.send(:session_exists?, @env)
+          @exists = @store.send(:session_exists?, @env)
         end
 
         def loaded?
@@ -128,7 +128,7 @@ module Rack
         end
 
         def load!
-          @id, session = @by.send(:load_session, @env)
+          @id, session = @store.send(:load_session, @env)
           @data = stringify_keys(session)
           @loaded = true
         end
