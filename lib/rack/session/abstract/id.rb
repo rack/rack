@@ -316,7 +316,7 @@ module Rack
           return [status, headers, body] unless commit_session?(env, session, options)
 
           session.send(:load!) unless loaded_session?(session)
-          session_id ||= session.id || generate_sid
+          session_id ||= session.id
           session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
           if not data = set_session(env, session_id, session_data, options)
