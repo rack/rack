@@ -256,7 +256,7 @@ module Rack
           sid
         end
 
-        # Returns the current session id from the OptionsHash.
+        # Returns the current session id from the SessionHash.
 
         def current_session_id(env)
           env[ENV_SESSION_KEY].id
