@@ -21,5 +21,31 @@ describe Rack::Mime do
     Rack::Mime.mime_type('.nothing', nil).should == nil
   end
 
+  it "should match exact mimes" do
+    Rack::Mime.match?('text/html', 'text/html').should == true
+    Rack::Mime.match?('text/html', 'text/meme').should == false
+    Rack::Mime.match?('text', 'text').should == true
+    Rack::Mime.match?('text', 'binary').should == false
+  end
+
+  it "should match class wildcard mimes" do
+    Rack::Mime.match?('text/html', 'text/*').should == true
+    Rack::Mime.match?('text/plain', 'text/*').should == true
+    Rack::Mime.match?('application/json', 'text/*').should == false
+    Rack::Mime.match?('text/html', 'text').should == true
+  end
+
+  it "should match full wildcards" do
+    Rack::Mime.match?('text/html', '*').should == true
+    Rack::Mime.match?('text/plain', '*').should == true
+    Rack::Mime.match?('text/html', '*/*').should == true
+    Rack::Mime.match?('text/plain', '*/*').should == true
+  end
+
+  it "should match type wildcard mimes" do
+    Rack::Mime.match?('text/html', '*/html').should == true
+    Rack::Mime.match?('text/plain', '*/plain').should == true
+  end
+
 end
 
