@@ -98,7 +98,7 @@ module Rack
 
       private
 
-      def load_session(env)
+      def get_session(env, sid)
         data = unpacked_cookie_data(env)
         data = persistent_session_id!(data)
         [data["session_id"], data]
