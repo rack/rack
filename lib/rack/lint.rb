@@ -458,9 +458,10 @@ module Rack
         original_hijack = env['rack.hijack']
         assert("rack.hijack must respond to call") { original_hijack.respond_to?(:call) }
         env['rack.hijack'] = proc do
-          ## rack.hijack should return the io that will also be assigned (or is
+          ## rack.hijack must return the io that will also be assigned (or is
           ## already present, in rack.hijack_io.
-          result = original_hijack.call
+          io = original_hijack.call
+          HijackWrapper.new(io)
           ## 
           ## rack.hijack_io must respond to:
           ## <tt>read, write, read_nonblock, write_nonblock, flush, close,
@@ -483,7 +484,7 @@ module Rack
           ## rack.hijack is for Rack to "get out of the way", as such, Rack only
           ## provides the minimum of specification and support.
           env['rack.hijack_io'] = HijackWrapper.new(env['rack.hijack_io'])
-          result
+          io
         end
       else
         ## 
@@ -533,6 +534,12 @@ module Rack
         }
       end
     end
+    ## ==== Conventions
+    ## * Middleware should not use hijack unless it is handling the whole
+    ##   response.
+    ## * Middleware may wrap the IO object for the response pattern.
+    ## * Middleware should not wrap the IO object for the request pattern. The
+    ##   request pattern is intended to provide the hijacker with "raw tcp".
 
     ## == The Response
 

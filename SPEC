@@ -136,7 +136,7 @@ The error stream must respond to +puts+, +write+ and +flush+.
 === Hijacking
 ==== Request (before status)
 If rack.hijack? is true then rack.hijack must respond to #call.
-rack.hijack should return the io that will also be assigned (or is
+rack.hijack must return the io that will also be assigned (or is
 already present, in rack.hijack_io.
 
 rack.hijack_io must respond to:
@@ -185,6 +185,12 @@ the <tt>rack.hijack</tt> response API is in use.
 
 The special response header <tt>rack.hijack</tt> must only be set
 if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
+==== Conventions
+* Middleware should not use hijack unless it is handling the whole
+  response.
+* Middleware may wrap the IO object for the response pattern.
+* Middleware should not wrap the IO object for the request pattern. The
+  request pattern is intended to provide the hijacker with "raw tcp".
 == The Response
 === The Status
 This is an HTTP status. When parsed as integer (+to_i+), it must be
