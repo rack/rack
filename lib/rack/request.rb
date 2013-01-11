@@ -329,14 +329,7 @@ module Rack
     end
 
     def accept_encoding
-      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/\s*,\s*/).map do |part|
-        encoding, parameters = part.split(/\s*;\s*/, 2)
-        quality = 1.0
-        if parameters and /\Aq=([\d.]+)/ =~ parameters
-          quality = $1.to_f
-        end
-        [encoding, quality]
-      end
+      Rack::Utils.q_values( @env["HTTP_ACCEPT_ENCODING"] )
     end
 
     def trusted_proxy?(ip)
