@@ -89,6 +89,13 @@ module Rack
   #   RequestHeader Set X-Sendfile-Type X-Sendfile
   #   ProxyPassReverse / http://localhost:8001/
   #   XSendFile on
+  #
+  # === Mapping parameter
+  #
+  # The third parameter allows for an overriding extension of the
+  # X-Accel-Mapping header. Mappings should be provided in tuples of internal to
+  # external. The internal values may contain regular expression syntax, they
+  # will be matched with case indifference.
 
   class Sendfile
     F = ::File
@@ -110,6 +117,7 @@ module Rack
           if url = map_accel_path(env, path)
             headers['Content-Length'] = '0'
             headers[type] = url
+            body.close if body.respond_to?(:close)
             body = []
           else
             env['rack.errors'].puts "X-Accel-Mapping header missing"
@@ -118,6 +126,7 @@ module Rack
           path = F.expand_path(body.to_path)
           headers['Content-Length'] = '0'
           headers[type] = path
+          body.close if body.respond_to?(:close)
           body = []
         when '', nil
         else
@@ -135,7 +144,7 @@ module Rack
     end
 
     def map_accel_path(env, path)
-      if mapping = @mappings.detect { |internal,_| internal =~ path }
+      if mapping = @mappings.find { |internal,_| internal =~ path }
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
         internal, external = mapping.split('=', 2).map{ |p| p.strip }
