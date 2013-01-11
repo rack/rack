@@ -999,6 +999,10 @@ EOF
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     res.body.should.equal '3.4.5.6'
 
+    res = mock.get '/',
+      'REMOTE_ADDR' => 'unix:/tmp/foo',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+    res.body.should.equal '3.4.5.6'
   end
 
   class MyRequest < Rack::Request
