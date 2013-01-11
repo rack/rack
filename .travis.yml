@@ -1,8 +1,4 @@
-language: ruby
-before_install:
-  - sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
-  - mkdir /tmp/rack
-env: TMPDIR=/tmp/rack
+before_install: sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
 install:
   - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
   - gem install --conservative rake
