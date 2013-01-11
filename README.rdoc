@@ -29,6 +29,7 @@ These web servers include Rack handlers in their distributions:
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
 * Puma
 * Rainbows!
+* Reel
 * Unicorn
 * unixrack
 * uWSGI
@@ -42,6 +43,7 @@ changing anything.
 These frameworks include Rack adapters in their distributions:
 * Camping
 * Coset
+* Espresso
 * Halcyon
 * Mack
 * Maveric
