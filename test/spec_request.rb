@@ -994,11 +994,12 @@ EOF
     res.body.should.equal 'fe80::202:b3ff:fe1e:8329'
 
     # Unix Sockets
-    res = mock.get '/',
-      'REMOTE_ADDR' => 'unix',
-      'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
-    res.body.should.equal '3.4.5.6'
-
+    %w( unix unix: ).each do |addr|
+      res = mock.get '/',
+        'REMOTE_ADDR' => addr,
+        'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
+      res.body.should.equal '3.4.5.6'
+    end
   end
 
   class MyRequest < Rack::Request
