@@ -167,6 +167,31 @@ module Rack
     end
     module_function :build_nested_query
 
+    def q_values(q_value_header)
+      q_value_header.to_s.split(/\s*,\s*/).map do |part|
+        value, parameters = part.split(/\s*;\s*/, 2)
+        quality = 1.0
+        if md = /\Aq=([\d.]+)/.match(parameters)
+          quality = md[1].to_f
+        end
+        [value, quality]
+      end
+    end
+    module_function :q_values
+
+    def best_q_match(q_value_header, available_mimes)
+      values = q_values(q_value_header)
+
+      values.map do |req_mime, quality|
+        match = available_mimes.first { |am| Rack::Mime.match?(am, req_mime) }
+        next unless match
+        [match, quality]
+      end.compact.sort_by do |match, quality|
+        (match.split('/', 2).count('*') * -10) + quality
+      end.last.first
+    end
+    module_function :best_q_match
+
     ESCAPE_HTML = {
       "&" => "&amp;",
       "<" => "&lt;",

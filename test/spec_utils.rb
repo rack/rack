@@ -272,6 +272,29 @@ describe Rack::Utils do
     Rack::Utils.build_query(key => nil).should.equal Rack::Utils.escape(key)
   end
 
+  should "parse q-values" do
+    # XXX handle accept-extension
+    Rack::Utils.q_values("foo;q=0.5,bar,baz;q=0.9").should.equal [
+      [ 'foo', 0.5 ],
+      [ 'bar', 1.0 ],
+      [ 'baz', 0.9 ]
+    ]
+  end
+
+  should "select best quality match" do
+    Rack::Utils.best_q_match("text/html", %w[text/html]).should == "text/html"
+
+    # More specific matches are preferred
+    Rack::Utils.best_q_match("text/*;q=0.5,text/html;q=1.0", %w[text/html]).should == "text/html"
+
+    # Higher quality matches are preferred
+    Rack::Utils.best_q_match("text/*;q=0.5,text/plain;q=1.0", %w[text/plain text/html]).should == "text/plain"
+
+    # All else equal, the available mimes are preferred in order
+    Rack::Utils.best_q_match("text/*", %w[text/html text/plain]).should == "text/html"
+    Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).should == "text/html"
+  end
+
   should "escape html entities [&><'\"/]" do
     Rack::Utils.escape_html("foo").should.equal "foo"
     Rack::Utils.escape_html("f&o").should.equal "f&amp;o"
