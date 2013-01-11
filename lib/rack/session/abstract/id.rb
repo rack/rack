@@ -233,7 +233,7 @@ module Rack
 
         def prepare_session(env)
           session_was                  = env[ENV_SESSION_KEY]
-          env[ENV_SESSION_KEY]         = SessionHash.new(self, env)
+          env[ENV_SESSION_KEY]         = session_class.new(self, env)
           env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
           env[ENV_SESSION_KEY].merge! session_was if session_was
         end
@@ -282,7 +282,7 @@ module Rack
         end
 
         def loaded_session?(session)
-          !session.is_a?(SessionHash) || session.loaded?
+          !session.is_a?(session_class) || session.loaded?
         end
 
         def forced_session_update?(session, options)
@@ -341,6 +341,12 @@ module Rack
           if request.cookies[@key] != cookie[:value] || cookie[:expires]
             Utils.set_cookie_header!(headers, @key, cookie)
           end
+        end
+
+        # Allow subclasses to prepare_session for different Session classes
+
+        def session_class
+          SessionHash
         end
 
         # All thread safety and session retrival proceedures should occur here.
