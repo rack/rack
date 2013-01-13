@@ -85,7 +85,7 @@ task :test => 'SPEC' do
   specopts = ENV['TESTOPTS'] ||
     "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
 
-  sh "bacon -I./lib:./test #{opts} #{specopts}"
+  sh "bacon -w -I./lib:./test #{opts} #{specopts}"
 end
 
 desc "Run all the tests we run on CI"
