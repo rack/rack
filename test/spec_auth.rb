@@ -1,22 +1,22 @@
 require 'rack'
 
-describe Rack::Auth do
-  it "should have all common authentication schemes" do
+context "Rack::Auth" do
+  specify "should have all common authentication schemes" do
     Rack::Auth.schemes.should.include? 'basic'
     Rack::Auth.schemes.should.include? 'digest'
     Rack::Auth.schemes.should.include? 'bearer'
     Rack::Auth.schemes.should.include? 'token'
   end
 
-  it "should allow registration of new auth schemes" do
+  specify "should allow registration of new auth schemes" do
     Rack::Auth.schemes.should.not.include "test"
     Rack::Auth.add_scheme "test"
     Rack::Auth.schemes.should.include "test"
   end
 end
 
-describe Rack::Auth::AbstractRequest do
-  it "should symbolize known auth schemes" do
+context "Rack::Auth::AbstractRequest" do
+  specify "should symbolize known auth schemes" do
     env = Rack::MockRequest.env_for('/')
     env['HTTP_AUTHORIZATION'] = 'Basic aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
@@ -48,7 +48,7 @@ describe Rack::Auth::AbstractRequest do
     req.scheme.should == :oauth2
   end
 
-  it "should not symbolize unknown auth schemes" do
+  specify "should not symbolize unknown auth schemes" do
     env = Rack::MockRequest.env_for('/')
     env['HTTP_AUTHORIZATION'] = 'magic aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
