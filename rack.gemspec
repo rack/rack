@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.3.8"
+  s.version         = "1.3.9"
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
 
