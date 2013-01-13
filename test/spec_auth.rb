@@ -20,32 +20,32 @@ describe Rack::Auth::AbstractRequest do
     env = Rack::MockRequest.env_for('/')
     env['HTTP_AUTHORIZATION'] = 'Basic aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :basic
+    req.scheme.should.equal :basic
 
 
     env['HTTP_AUTHORIZATION'] = 'Digest aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :digest
+    req.scheme.should.equal :digest
 
     env['HTTP_AUTHORIZATION'] = 'Bearer aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :bearer
+    req.scheme.should.equal :bearer
 
     env['HTTP_AUTHORIZATION'] = 'MAC aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :mac
+    req.scheme.should.equal :mac
 
     env['HTTP_AUTHORIZATION'] = 'Token aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :token
+    req.scheme.should.equal :token
 
     env['HTTP_AUTHORIZATION'] = 'OAuth aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :oauth
+    req.scheme.should.equal :oauth
 
     env['HTTP_AUTHORIZATION'] = 'OAuth2 aXJyZXNwb25zaWJsZQ=='
     req = Rack::Auth::AbstractRequest.new(env)
-    req.scheme.should == :oauth2
+    req.scheme.should.equal :oauth2
   end
 
   it "should not symbolize unknown auth schemes" do
