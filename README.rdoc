@@ -488,10 +488,10 @@ Please post bugs, suggestions and patches to
 the bug tracker at <http://github.com/rack/rack/issues>.
 
 Please post security related bugs and suggestions to the core team at
-<https://groups.google.com/group/rack-core> or rack-core@googlegroups.com. Due
-to wide usage of the library, it is strongly preferred that we manage timing in
-order to provide viable patches at the time of disclosure. Your assistance in
-this matter is greatly appreciated.
+<https://groups.google.com/group/rack-core> or rack-core@googlegroups.com. This
+list is not public. Due to wide usage of the library, it is strongly preferred
+that we manage timing in order to provide viable patches at the time of
+disclosure. Your assistance in this matter is greatly appreciated.
 
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
