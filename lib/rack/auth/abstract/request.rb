@@ -21,11 +21,7 @@ module Rack
       end
 
       def scheme
-        @scheme ||=
-          begin
-            s = parts.first.downcase
-            Rack::Auth.schemes.include?(s) ? s.to_sym : s
-          end
+        @scheme ||= parts.first.downcase
       end
 
       def params

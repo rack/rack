@@ -11,7 +11,7 @@ module Rack
         end
 
         def digest?
-          :digest == scheme
+          "digest" == scheme
         end
 
         def correct_uri?
