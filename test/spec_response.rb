@@ -263,12 +263,6 @@ describe Rack::Response do
     b.should.not == res.body
 
     res.body = StringIO.new
-    res.status = 205
-    _, _, b = res.finish
-    res.body.should.be.closed
-    b.should.not == res.body
-
-    res.body = StringIO.new
     res.status = 304
     _, _, b = res.finish
     res.body.should.be.closed
