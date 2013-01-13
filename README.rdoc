@@ -478,10 +478,20 @@ run on port 11211) and memcache-client installed.
 * January 7th, 2013: Thirty first public release 1.4.3
   * Security: Prevent unbounded reads in large multipart boundaries
 
+* January 13th, 2013: Thirty second public release 1.4.4, 1.3.9, 1.2.7, 1.1.5
+  * [SEC] Rack::Auth::AbstractRequest no longer symbolizes arbitrary strings
+  * Fixed erroneous test case in the 1.3.x series
+
 == Contact
 
 Please post bugs, suggestions and patches to
 the bug tracker at <http://github.com/rack/rack/issues>.
+
+Please post security related bugs and suggestions to the core team at
+<https://groups.google.com/group/rack-core> or rack-core@googlegroups.com. Due
+to wide usage of the library, it is strongly preferred that we manage timing in
+order to provide viable patches at the time of disclosure. Your assistance in
+this matter is greatly appreciated.
 
 Mailing list archives are available at
 <http://groups.google.com/group/rack-devel>.
