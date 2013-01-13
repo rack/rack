@@ -73,6 +73,18 @@ module Rack
       autoload :Params, "rack/auth/digest/params"
       autoload :Request, "rack/auth/digest/request"
     end
+
+    # Not all of the following schemes are "standards", but they are used often.
+    @schemes = %w[basic digest bearer mac token oauth oauth2]
+
+    def self.add_scheme scheme
+      @schemes << scheme
+      @schemes.uniq!
+    end
+
+    def self.schemes
+      @schemes.dup
+    end
   end
 
   module Session
