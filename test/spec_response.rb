@@ -290,19 +290,19 @@ describe Rack::Response do
     res.status = 204
     _, _, b = res.finish
     res.body.should.be.closed
-    b.should.not == res.body
+    b.should.not.equal res.body
 
     res.body = StringIO.new
     res.status = 205
     _, _, b = res.finish
     res.body.should.be.closed
-    b.should.not == res.body
+    b.should.not.equal res.body
 
     res.body = StringIO.new
     res.status = 304
     _, _, b = res.finish
     res.body.should.be.closed
-    b.should.not == res.body
+    b.should.not.equal res.body
   end
 
   it "wraps the body from #to_ary to prevent infinite loops" do

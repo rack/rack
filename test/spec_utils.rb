@@ -282,17 +282,17 @@ describe Rack::Utils do
   end
 
   should "select best quality match" do
-    Rack::Utils.best_q_match("text/html", %w[text/html]).should == "text/html"
+    Rack::Utils.best_q_match("text/html", %w[text/html]).should.equal "text/html"
 
     # More specific matches are preferred
-    Rack::Utils.best_q_match("text/*;q=0.5,text/html;q=1.0", %w[text/html]).should == "text/html"
+    Rack::Utils.best_q_match("text/*;q=0.5,text/html;q=1.0", %w[text/html]).should.equal "text/html"
 
     # Higher quality matches are preferred
-    Rack::Utils.best_q_match("text/*;q=0.5,text/plain;q=1.0", %w[text/plain text/html]).should == "text/plain"
+    Rack::Utils.best_q_match("text/*;q=0.5,text/plain;q=1.0", %w[text/plain text/html]).should.equal "text/plain"
 
     # All else equal, the available mimes are preferred in order
-    Rack::Utils.best_q_match("text/*", %w[text/html text/plain]).should == "text/html"
-    Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).should == "text/html"
+    Rack::Utils.best_q_match("text/*", %w[text/html text/plain]).should.equal "text/html"
+    Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).should.equal "text/html"
   end
 
   should "escape html entities [&><'\"/]" do

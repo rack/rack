@@ -19,12 +19,12 @@ describe Rack::Server do
 
   it "overrides :config if :app is passed in" do
     server = Rack::Server.new(:app => "FOO")
-    server.app.should == "FOO"
+    server.app.should.equal "FOO"
   end
 
   should "prefer to use :builder when it is passed in" do
     server = Rack::Server.new(:builder => "run lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }")
-    server.app.class.should == Proc
+    server.app.class.should.equal Proc
     Rack::MockRequest.new(server.app).get("/").body.to_s.should.equal 'success'
   end
 
