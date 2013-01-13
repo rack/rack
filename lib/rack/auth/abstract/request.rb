@@ -21,10 +21,7 @@ module Rack
       end
 
       def scheme
-        @scheme ||= begin
-          scheme_string = parts.first.downcase
-          ['basic', 'digest'].include?(scheme_string) ? scheme_string.to_sym : scheme_string
-        end
+        @scheme ||= parts.first.downcase.to_sym
       end
 
       def params
