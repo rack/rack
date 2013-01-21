@@ -2,6 +2,7 @@ require 'fileutils'
 require 'rack/lint'
 require 'rack/sendfile'
 require 'rack/mock'
+require 'tmpdir'
 
 describe Rack::File do
   should "respond to #to_path" do
@@ -11,9 +12,9 @@ end
 
 describe Rack::Sendfile do
   def sendfile_body
-    FileUtils.touch "/tmp/rack_sendfile"
+    FileUtils.touch File.join(Dir.tmpdir,  "rack_sendfile")
     res = ['Hello World']
-    def res.to_path ; "/tmp/rack_sendfile" ; end
+    def res.to_path ; File.join(Dir.tmpdir,  "rack_sendfile") ; end
     res
   end
 
@@ -50,7 +51,7 @@ describe Rack::Sendfile do
       response.should.be.ok
       response.body.should.be.empty
       response.headers['Content-Length'].should.equal '0'
-      response.headers['X-Sendfile'].should.equal '/tmp/rack_sendfile'
+      response.headers['X-Sendfile'].should.equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
@@ -59,14 +60,14 @@ describe Rack::Sendfile do
       response.should.be.ok
       response.body.should.be.empty
       response.headers['Content-Length'].should.equal '0'
-      response.headers['X-Lighttpd-Send-File'].should.equal '/tmp/rack_sendfile'
+      response.headers['X-Lighttpd-Send-File'].should.equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
   it "sets X-Accel-Redirect response header and discards body" do
     headers = {
       'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
-      'HTTP_X_ACCEL_MAPPING' => '/tmp/=/foo/bar/'
+      'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar/"
     }
     request headers do |response|
       response.should.be.ok
