@@ -365,6 +365,14 @@ describe Rack::Utils do
   should "return status code for symbol" do
     Rack::Utils.status_code(:ok).should.equal 200
   end
+
+  should "return rfc2822 format from rfc2822 helper" do
+    Rack::Utils.rfc2822(Time.at(0).gmtime).should == "Thu, 01 Jan 1970 00:00:00 -0000"
+  end
+
+  should "return rfc2109 format from rfc2109 helper" do
+    Rack::Utils.rfc2109(Time.at(0).gmtime).should == "Thu, 01-Jan-1970 00:00:00 GMT"
+  end
 end
 
 describe Rack::Utils, "byte_range" do

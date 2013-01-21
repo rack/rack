@@ -3,6 +3,7 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'rack/multipart'
+require 'time'
 
 major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
 
@@ -252,7 +253,7 @@ module Rack
         # According to RFC 2109, we need dashes here.
         # N.B.: cgi.rb uses spaces...
         expires = "; expires=" +
-          rfc2822(value[:expires].clone.gmtime) if value[:expires]
+          rfc2109(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if value[:httponly]
         value = value[:value]
@@ -319,6 +320,11 @@ module Rack
     end
     module_function :bytesize
 
+    def rfc2822(time)
+      time.rfc2822
+    end
+    module_function :rfc2822
+
     # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
     # of '% %b %Y'.
     # It assumes that the time is in GMT to comply to the RFC 2109.
@@ -328,12 +334,12 @@ module Rack
     # Do not use %a and %b from Time.strptime, it would use localized names for
     # weekday and month.
     #
-    def rfc2822(time)
+    def rfc2109(time)
       wday = Time::RFC2822_DAY_NAME[time.wday]
       mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
       time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
-    module_function :rfc2822
+    module_function :rfc2109
 
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
