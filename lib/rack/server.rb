@@ -304,8 +304,8 @@ module Rack
         middleware[options[:environment]].reverse_each do |middleware|
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
-          klass = middleware.shift
-          app = klass.new(app, *middleware)
+          klass, *args = middleware
+          app = klass.new(app, *args)
         end
         app
       end
