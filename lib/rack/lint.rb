@@ -500,6 +500,11 @@ module Rack
     ## It is also possible to hijack a response after the status and headers
     ## have been sent.
     def check_hijack_response(headers, env)
+
+      # this check uses headers like a hash, but the spec only requires
+      # headers respond to #each
+      headers = Rack::Utils::HeaderHash.new(headers)
+
       ## In order to do this, an application may set the special header
       ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
       ## accepting an argument that conforms to the <tt>rack.hijack_io</tt>
