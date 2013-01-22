@@ -930,6 +930,11 @@ EOF
     res.body.should.equal '1.2.3.4'
 
     res = mock.get '/',
+      'REMOTE_ADDR' => '1.2.3.4',
+      'HTTP_X_FORWARDED_FOR' => 'unknown'
+    res.body.should.equal '1.2.3.4'
+
+    res = mock.get '/',
       'REMOTE_ADDR' => '127.0.0.1',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     res.body.should.equal '3.4.5.6'
