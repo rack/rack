@@ -65,12 +65,12 @@ describe Rack::Response do
     response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
   end
 
-  it "formats the Cookie expiration date accordingly to RFC 2109" do
+  it "formats the Cookie expiration date accordingly to RFC 6265" do
     response = Rack::Response.new
 
     response.set_cookie "foo", {:value => "bar", :expires => Time.now+10}
     response["Set-Cookie"].should.match(
-      /expires=..., \d\d-...-\d\d\d\d \d\d:\d\d:\d\d .../)
+      /expires=..., \d\d ... \d\d\d\d \d\d:\d\d:\d\d .../)
   end
 
   it "can set secure cookies" do
@@ -92,7 +92,7 @@ describe Rack::Response do
     response.delete_cookie "foo"
     response["Set-Cookie"].should.equal [
       "foo2=bar2",
-      "foo=; max-age=0; expires=Thu, 01-Jan-1970 00:00:00 GMT"
+      "foo=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
     ].join("\n")
   end
 
@@ -102,10 +102,10 @@ describe Rack::Response do
     response.set_cookie "foo", {:value => "bar", :domain => ".example.com"}
     response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
     response.delete_cookie "foo", :domain => ".example.com"
-    response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
+    response["Set-Cookie"].should.equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
     response.delete_cookie "foo", :domain => "sample.example.com"
-    response["Set-Cookie"].should.equal ["foo=; domain=.example.com; max-age=0; expires=Thu, 01-Jan-1970 00:00:00 GMT",
-                                         "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
+    response["Set-Cookie"].should.equal ["foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000",
+                                         "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
   end
 
   it "can delete cookies with the same name with different paths" do
@@ -117,7 +117,7 @@ describe Rack::Response do
 
     response.delete_cookie "foo", :path => "/path"
     response["Set-Cookie"].should.equal ["foo=bar; path=/",
-                                         "foo=; path=/path; max-age=0; expires=Thu, 01-Jan-1970 00:00:00 GMT"].join("\n")
+                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
   end
 
   it "can do redirects" do
