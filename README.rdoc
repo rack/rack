@@ -482,6 +482,30 @@ run on port 11211) and memcache-client installed.
   * [SEC] Rack::Auth::AbstractRequest no longer symbolizes arbitrary strings
   * Fixed erroneous test case in the 1.3.x series
 
+* January 21st, 2013: Thirty third public release 1.5.0
+  * Introduced hijack SPEC, for before-response and after-response hijacking
+  * SessionHash is no longer a Hash subclass
+  * Rack::File cache_control parameter is removed, in place of headers options
+  * Rack::Auth::AbstractRequest#scheme now yields strings, not symbols
+  * Rack::Utils cookie functions now format expires in RFC 2822 format
+  * Rack::File now has a default mime type
+  * rackup -b 'run Rack::File.new(".")', option provides command line configs
+  * Rack::Deflater will no longer double encode bodies
+  * Rack::Mime#match? provides convenience for Accept header matching
+  * Rack::Utils#q_values provides splitting for Accept headers
+  * Rack::Utils#best_q_match provides a helper for Accept headers
+  * Rack::Handler.pick provides convenience for finding available servers
+  * Puma added to the list of default servers (preferred over Webrick)
+  * Various middleware now correctly close body when replacing it
+  * Rack::Request#params is no longer persistent with only GET params
+  * Rack::Request#update_param and #delete_param provide persistent operations
+  * Rack::Request#trusted_proxy? now returns true for local unix sockets
+  * Rack::Response no longer forces Content-Types
+  * Rack::Sendfile provides local mapping configuration options
+  * Rack::Utils#rfc2109 provides old netscape style time output
+  * Updated HTTP status codes
+  * Ruby 1.8.6 likely no longer passes tests, and is no longer fully supported
+
 == Contact
 
 Please post bugs, suggestions and patches to
