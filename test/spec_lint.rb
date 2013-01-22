@@ -231,6 +231,13 @@ describe Rack::Lint do
                        [200, {"Foo-Bar" => "one\ntwo\nthree", "Content-Length" => "0", "Content-Type" => "text/plain" }, []]
                      }).call(env({}))
     }.should.not.raise(Rack::Lint::LintError)
+
+    # non-Hash header responses should be allowed
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, [%w(Content-Type text/plain), %w(Content-Length 0)], []]
+                     }).call(env({}))
+    }.should.not.raise(TypeError)
   end
 
   should "notice content-type errors" do
