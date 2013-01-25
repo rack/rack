@@ -359,8 +359,8 @@ module Rack
         end
 
         # All thread safety and session storage proceedures should occur here.
-        # Should return true or false dependant on whether or not the session
-        # was saved or not.
+        # Must return the session id if the session was saved successfully, or
+        # false if the session could not be saved.
 
         def set_session(env, sid, session, options)
           raise '#set_session not implemented.'
