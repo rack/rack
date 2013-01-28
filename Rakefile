@@ -52,7 +52,9 @@ task :changelog => %w[ChangeLog]
 file '.git/index'
 file "ChangeLog" => '.git/index' do
   File.open("ChangeLog", "w") { |out|
-    `git log -z`.split("\0").map { |chunk|
+    log = `git log -z`
+    log.force_encoding(Encoding::BINARY) if log.respond_to?(:force_encoding)
+    log.split("\0").map { |chunk|
       author = chunk[/Author: (.*)/, 1].strip
       date = chunk[/Date: (.*)/, 1].strip
       desc, detail = $'.strip.split("\n", 2)
