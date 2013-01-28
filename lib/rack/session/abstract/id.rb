@@ -24,6 +24,10 @@ module Rack
         include Enumerable
         attr_writer :id
 
+        def self.set_options(env, options)
+          env[ENV_SESSION_OPTIONS_KEY] = options.dup
+        end
+
         def initialize(store, env)
           @store = store
           @env = env
@@ -115,6 +119,14 @@ module Rack
         def empty?
           load_for_read!
           @data.empty?
+        end
+
+        def keys
+          @data.keys
+        end
+
+        def values
+          @data.values
         end
 
       private
