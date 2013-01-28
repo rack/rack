@@ -506,6 +506,11 @@ run on port 11211) and memcache-client installed.
   * Updated HTTP status codes
   * Ruby 1.8.6 likely no longer passes tests, and is no longer fully supported
 
+* January 28th, 2013: Thirty fourth public release 1.5.1
+  * Rack::Lint check_hijack now conforms to other parts of SPEC
+  * Added hash-like methods to Abstract::ID::SessionHash for compatibility
+  * Various documentation corrections
+
 == Contact
 
 Please post bugs, suggestions and patches to
