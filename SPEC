@@ -53,7 +53,7 @@ below.
                            RFC3875 section 4.1.18</a> for specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
-<tt>rack.version</tt>:: The Array [1,1], representing this version of Rack.
+<tt>rack.version</tt>:: The Array representing this version of Rack. See Rack::VERSION, that corresponds to the version of this SPEC.
 <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the request URL.
 <tt>rack.input</tt>:: See below, the input stream.
 <tt>rack.errors</tt>:: See below, the error stream.
