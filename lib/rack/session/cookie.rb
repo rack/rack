@@ -73,12 +73,6 @@ module Rack
         def decode(str); str; end
       end
 
-      # Reverse string encoding. (trollface)
-      class Reverse
-        def encode(str); str.reverse; end
-        def decode(str); str.reverse; end
-      end
-
       attr_reader :coder
 
       def initialize(app, options={})
