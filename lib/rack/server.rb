@@ -329,8 +329,11 @@ module Rack
       end
 
       def write_pid
-        ::File.open(options[:pid], 'w'){ |f| f.write("#{Process.pid}") }
+        ::File.open(options[:pid], ::File::CREAT | ::File::EXCL | ::File::WRONLY ){ |f| f.write("#{Process.pid}") }
         at_exit { ::File.delete(options[:pid]) if ::File.exist?(options[:pid]) }
+      rescue Errno::EEXIST
+        check_pid!
+        retry
       end
 
       def check_pid!
