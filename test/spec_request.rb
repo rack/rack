@@ -1010,6 +1010,30 @@ EOF
     res.body.should.equal '3.4.5.6'
   end
 
+  should "regard local addresses as proxies" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("/"))
+    req.trusted_proxy?('127.0.0.1').should.equal 0
+    req.trusted_proxy?('10.0.0.1').should.equal 0
+    req.trusted_proxy?('172.16.0.1').should.equal 0
+    req.trusted_proxy?('172.20.0.1').should.equal 0
+    req.trusted_proxy?('172.30.0.1').should.equal 0
+    req.trusted_proxy?('172.31.0.1').should.equal 0
+    req.trusted_proxy?('192.168.0.1').should.equal 0
+    req.trusted_proxy?('::1').should.equal 0
+    req.trusted_proxy?('fd00::').should.equal 0
+    req.trusted_proxy?('localhost').should.equal 0
+    req.trusted_proxy?('unix').should.equal 0
+    req.trusted_proxy?('unix:/tmp/sock').should.equal 0
+
+    req.trusted_proxy?("unix.example.org").should.equal nil
+    req.trusted_proxy?("example.org\n127.0.0.1").should.equal nil
+    req.trusted_proxy?("127.0.0.1\nexample.org").should.equal nil
+    req.trusted_proxy?("11.0.0.1").should.equal nil
+    req.trusted_proxy?("172.15.0.1").should.equal nil
+    req.trusted_proxy?("172.32.0.1").should.equal nil
+    req.trusted_proxy?("2001:470:1f0b:18f8::1").should.equal nil
+  end
+
   class MyRequest < Rack::Request
     def params
       {:foo => "bar"}
