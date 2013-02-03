@@ -13,7 +13,7 @@ module Rack
   # a conditional GET matches.
   #
   # Adapted from Michael Klishin's Merb implementation:
-  # http://github.com/wycats/merb-core/tree/master/lib/merb-core/rack/middleware/conditional_get.rb
+  # https://github.com/wycats/merb/blob/master/merb-core/lib/merb-core/rack/middleware/conditional_get.rb
   class ConditionalGet
     def initialize(app)
       @app = app
