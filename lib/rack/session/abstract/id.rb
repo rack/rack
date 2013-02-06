@@ -24,6 +24,14 @@ module Rack
         include Enumerable
         attr_writer :id
 
+        def self.find(env)
+          env[ENV_SESSION_KEY]
+        end
+
+        def self.set(env, session)
+          env[ENV_SESSION_KEY] = session
+        end
+
         def self.set_options(env, options)
           env[ENV_SESSION_OPTIONS_KEY] = options.dup
         end
