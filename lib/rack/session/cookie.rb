@@ -65,6 +65,19 @@ module Rack
             ::Marshal.load(super(str)) rescue nil
           end
         end
+
+        # N.B. Unlike other encoding methods, the contained objects must be a
+        # valid JSON composite type, either a Hash or an Array.
+        class JSON < Base64
+          def encode(obj)
+            super(::Rack::Utils::OkJson.encode(obj))
+          end
+
+          def decode(str)
+            return unless str
+            ::Rack::Utils::OkJson.decode(super(str)) rescue nil
+          end
+        end
       end
 
       # Use no encoding for session cookies
