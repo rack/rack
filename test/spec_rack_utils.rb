@@ -205,6 +205,11 @@ context "Rack::Utils" do
     Rack::Utils.bytesize("FOO\xE2\x82\xAC").should.equal 6
   end
 
+  specify "should perform constant time string comparison" do
+    Rack::Utils.secure_compare('a', 'a').should.equal true
+    Rack::Utils.secure_compare('a', 'b').should.equal false
+  end
+
   specify "should return status code for integer" do
     Rack::Utils.status_code(200).should.equal 200
   end
