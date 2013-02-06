@@ -3,6 +3,7 @@ Gem::Specification.new do |s|
   s.version         = "1.5.1"
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
+  s.license         = "MIT"
 
   s.description = <<-EOF
 Rack provides a minimal, modular and adaptable interface for developing
