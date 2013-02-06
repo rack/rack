@@ -298,6 +298,31 @@ module Rack
     end
     module_function :rfc2822
 
+    # Return the bytesize of String; uses String#length under Ruby 1.8 and
+    # String#bytesize under 1.9.
+    if ''.respond_to?(:bytesize)
+      def bytesize(string)
+        string.bytesize
+      end
+    else
+      def bytesize(string)
+        string.size
+      end
+    end
+    module_function :bytesize
+
+    # Constant time string comparison.
+    def secure_compare(a, b)
+      return false unless bytesize(a) == bytesize(b)
+
+      l = a.unpack("C*")
+
+      r, i = 0, -1
+      b.each_byte { |v| r |= v ^ l[i+=1] }
+      r == 0
+    end
+    module_function :secure_compare
+
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
     # #context which should take the arguments env and app. The first of which
