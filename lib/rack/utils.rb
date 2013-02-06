@@ -342,6 +342,18 @@ module Rack
     end
     module_function :byte_ranges
 
+    # Constant time string comparison.
+    def secure_compare(a, b)
+      return false unless bytesize(a) == bytesize(b)
+
+      l = a.unpack("C*")
+
+      r, i = 0, -1
+      b.each_byte { |v| r |= v ^ l[i+=1] }
+      r == 0
+    end
+    module_function :secure_compare
+
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
     # #context which should take the arguments env and app. The first of which
