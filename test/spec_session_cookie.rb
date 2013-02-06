@@ -100,6 +100,25 @@ describe Rack::Session::Cookie do
         coder.decode('lulz').should.equal nil
       end
     end
+
+    describe 'JSON' do
+      it 'marshals and base64 encodes' do
+        coder = Rack::Session::Cookie::Base64::JSON.new
+        obj   = %w[fuuuuu]
+        coder.encode(obj).should.equal [::Rack::Utils::OkJson.encode(obj)].pack('m')
+      end
+
+      it 'marshals and base64 decodes' do
+        coder = Rack::Session::Cookie::Base64::JSON.new
+        str   = [::Rack::Utils::OkJson.encode(%w[fuuuuu])].pack('m')
+        coder.decode(str).should.equal ::Rack::Utils::OkJson.decode(str.unpack('m').first)
+      end
+
+      it 'rescues failures on decode' do
+        coder = Rack::Session::Cookie::Base64::JSON.new
+        coder.decode('lulz').should.equal nil
+      end
+    end
   end
 
   it "warns if no secret is given" do

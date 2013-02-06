@@ -80,4 +80,8 @@ module Rack
     autoload :Pool, "rack/session/pool"
     autoload :Memcache, "rack/session/memcache"
   end
+
+  module Utils
+    autoload :OkJson, "rack/utils/okjson"
+  end
 end
