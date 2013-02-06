@@ -4,6 +4,18 @@ require "time"  # for Time.httpdate
 require 'rack/utils'
 
 module Rack
+  # This middleware enables compression of http responses.
+  #
+  # Currently supported compression algorithms:
+  #
+  #   * gzip
+  #   * deflate
+  #   * identity (no transformation)
+  #
+  # The middleware automatically detects when compression is supported
+  # and allowed. For example no transformation is made when a cache
+  # directive of 'no-transform' is present, or when the response status
+  # code is one that doesn't allow an entity body.
   class Deflater
     def initialize(app)
       @app = app
