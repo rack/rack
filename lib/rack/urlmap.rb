@@ -13,6 +13,7 @@ module Rack
 
   class URLMap
     NEGATIVE_INFINITY = -1.0 / 0.0
+    INFINITY = 1.0 / 0.0
 
     def initialize(map = {})
       remap(map)
@@ -35,7 +36,7 @@ module Rack
 
         [host, location, match, app]
       }.sort_by do |(host, location, _, _)|
-        [host ? -host.size : NEGATIVE_INFINITY, -location.size]
+        [host ? -host.size : INFINITY, -location.size]
       end
     end
 

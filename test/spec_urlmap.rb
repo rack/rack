@@ -110,7 +110,7 @@ describe Rack::URLMap do
 
     res = Rack::MockRequest.new(map).get("http://foo.org/")
     res.should.be.ok
-    res["X-Position"].should.equal "default.org"
+    res["X-Position"].should.equal "foo.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "example.org")
     res.should.be.ok
