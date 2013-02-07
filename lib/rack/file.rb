@@ -41,19 +41,14 @@ module Rack
       path_info = Utils.unescape(env["PATH_INFO"])
       parts = path_info.split SEPS
 
-      parts.inject(0) do |depth, part|
-        case part
-        when '', '.'
-          depth
-        when '..'
-          return fail(404, "Not Found") if depth - 1 < 0
-          depth - 1
-        else
-          depth + 1
-        end
+      clean = []
+
+      parts.each do |part|
+        next if part.empty? || part == '.'
+        part == '..' ? clean.pop : clean << part
       end
 
-      @path = F.join(@root, *parts)
+      @path = F.join(@root, *clean)
 
       available = begin
         F.file?(@path) && F.readable?(@path)
