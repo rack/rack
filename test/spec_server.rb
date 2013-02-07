@@ -110,6 +110,22 @@ describe Rack::Server do
     server.send(:pidfile_process_status).should.eql :not_owned
   end
 
+  should "not write pid file when it is created after check" do
+    pidfile = Tempfile.open('pidfile') { |f| break f }.path
+    ::File.delete(pidfile)
+    server = Rack::Server.new(:pid => pidfile)
+    ::File.open(pidfile, 'w') { |f| f.write(1) }
+    with_stderr do |err|
+      should.raise(SystemExit) do
+        server.send(:write_pid)
+      end
+      err.rewind
+      output = err.read
+      output.should.match(/already running/)
+      output.should.include? pidfile
+    end
+  end
+
   should "inform the user about existing pidfiles with running processes" do
     pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
     server = Rack::Server.new(:pid => pidfile)
