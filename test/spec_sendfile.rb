@@ -35,7 +35,7 @@ describe Rack::Sendfile do
       unless method_defined?(:to_path)
         alias :to_path :path
       end
-    end.open(path, 'w+')
+    end.open(path, 'wb+')
   end
 
   it "does nothing when no X-Sendfile-Type header present" do

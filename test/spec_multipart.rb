@@ -364,7 +364,7 @@ Content-Type: image/jpeg\r
   end
 
   it "builds complete params with the chunk size of 16384 slicing exactly on boundary" do
-    data = File.open(multipart_file("fail_16384_nofile")) { |f| f.read }.gsub(/\n/, "\r\n")
+    data = File.open(multipart_file("fail_16384_nofile"), 'rb') { |f| f.read }.gsub(/\n/, "\r\n")
     options = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryWsY0GnpbI5U7ztzo",
       "CONTENT_LENGTH" => data.length.to_s,
