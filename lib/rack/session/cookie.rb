@@ -112,7 +112,7 @@ module Rack
 
           if @secret && session_data
             session_data, digest = session_data.split("--")
-            session_data = nil  unless digest == generate_hmac(session_data)
+            session_data = nil  unless Rack::Utils.secure_compare(digest, generate_hmac(session_data))
           end
 
           coder.decode(session_data) || {}
