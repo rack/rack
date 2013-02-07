@@ -159,7 +159,7 @@ module Rack
       def digest_match?(data, digest)
         return unless data && digest
         @secrets.any? do |secret|
-          digest == generate_hmac(data, secret)
+          Rack::Utils.secure_compare(digest, generate_hmac(data, secret))
         end
       end
 
