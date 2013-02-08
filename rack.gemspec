@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.5.1"
+  s.version         = "1.6.0.alpha" # Ahead of 1.5, modify before release
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
   s.license         = "MIT"
