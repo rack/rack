@@ -3,7 +3,7 @@ require 'rack' # For Rack.release
 
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.1.5"
+  s.version         = "1.1.6"
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
 
