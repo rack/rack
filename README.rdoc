@@ -483,6 +483,23 @@ run on port 11211) and memcache-client installed.
   * [SEC] Rack::Auth::AbstractRequest no longer symbolizes arbitrary strings
   * Fixed erroneous test case in the 1.3.x series
 
+* February 7th, Thirty fifth public release 1.1.6, 1.2.8, 1.3.10
+  * Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
+
+* February 7th, Thirty fifth public release 1.4.5
+  * Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
+  * Fix CVE-2013-0262, symlink path traversal in Rack::File
+
+* February 7th, Thirty fifth public release 1.5.2
+  * Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
+  * Fix CVE-2013-0262, symlink path traversal in Rack::File
+  * Add various methods to Session for enhanced Rails compatibility
+  * Request#trusted_proxy? now only matches whole stirngs
+  * Add JSON cookie coder, to be default in Rack 1.6+ due to security concerns
+  * URLMap host matching in environments that don't set the Host header fixed
+  * Fix a race condition that could result in overwritten pidfiles
+  * Various documentation additions
+
 == Contact
 
 Please post bugs, suggestions and patches to
