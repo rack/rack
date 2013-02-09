@@ -29,21 +29,7 @@ module Rack
       v1, v2 = value.split('/', 2)
       m1, m2 = matcher.split('/', 2)
 
-      if m1 == '*'
-        if m2.nil? || m2 == '*'
-          return true
-        elsif m2 == v2
-          return true
-        else
-          return false
-        end
-      end
-
-      return false if v1 != m1
-
-      return true if m2.nil? || m2 == '*'
-
-      m2 == v2
+      (m1 == '*' || v1 == m1) && (m2.nil? || m2 == '*' || m2 == v2)
     end
     module_function :match?
 
