@@ -6,7 +6,10 @@ module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
       def self.run(app, options={})
-        options[:BindAddress] = options.delete(:Host) if options[:Host]
+        environment  = ENV['RACK_ENV'] || 'development'
+        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
+        options[:BindAddress] = options.delete(:Host) || default_host
         options[:Port] ||= 8080
         @server = ::WEBrick::HTTPServer.new(options)
         @server.mount "/", Rack::Handler::WEBrick, app
