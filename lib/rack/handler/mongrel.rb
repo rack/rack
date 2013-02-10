@@ -7,8 +7,11 @@ module Rack
   module Handler
     class Mongrel < ::Mongrel::HttpHandler
       def self.run(app, options={})
+        environment  = ENV['RACK_ENV'] || 'development'
+        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
         server = ::Mongrel::HttpServer.new(
-          options[:Host]           || '0.0.0.0',
+          options[:Host]           || default_host,
           options[:Port]           || 8080,
           options[:num_processors] || 950,
           options[:throttle]       || 0,
