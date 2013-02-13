@@ -1,4 +1,5 @@
 require 'rack/session/cookie'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Session::Cookie do
@@ -9,7 +10,7 @@ describe Rack::Session::Cookie do
     hash.delete("session_id")
     Rack::Response.new(hash.inspect).to_a
   end
-
+  
   session_id = lambda do |env|
     Rack::Response.new(env["rack.session"].to_hash.inspect).to_a
   end
@@ -45,11 +46,27 @@ describe Rack::Session::Cookie do
 
   def response_for(options={})
     request_options = options.fetch(:request, {})
-    request_options["HTTP_COOKIE"] = options[:cookie].is_a?(Rack::Response) ?
-      options[:cookie]["Set-Cookie"] : options[:cookie]
+    cookie = if options[:cookie].is_a?(Rack::Response)
+      options[:cookie]["Set-Cookie"]
+    else
+      options[:cookie]
+    end
+    request_options["HTTP_COOKIE"] = cookie || ""
 
     app_with_cookie = Rack::Session::Cookie.new(*options[:app])
+    app_with_cookie = Rack::Lint.new(app_with_cookie)
     Rack::MockRequest.new(app_with_cookie).get("/", request_options)
+  end
+
+  before do
+    @warnings = warnings = []
+    Rack::Session::Cookie.class_eval do
+      define_method(:warn) { |m| warnings << m }
+    end
+  end
+
+  after do
+    Rack::Session::Cookie.class_eval { remove_method :warn }
   end
 
   describe 'Base64' do
@@ -83,6 +100,14 @@ describe Rack::Session::Cookie do
         coder.decode('lulz').should.equal nil
       end
     end
+  end
+
+  it "warns if no secret is given" do
+    cookie = Rack::Session::Cookie.new(incrementor)
+    @warnings.first.should =~ /no secret/i
+    @warnings.clear
+    cookie = Rack::Session::Cookie.new(incrementor, :secret => 'abc')
+    @warnings.should.be.empty?
   end
 
   it 'uses a coder' do
@@ -308,6 +333,20 @@ describe Rack::Session::Cookie do
   it "allows passing in a hash with session data from middleware in front" do
     request = { 'rack.session' => { :foo => 'bar' }}
     response = response_for(:app => session_id, :request => request)
+    response.body.should.match(/foo/)
+  end
+
+  it "allows modifying session data with session data from middleware in front" do
+    request = { 'rack.session' => { :foo => 'bar' }}
+    response = response_for(:app => incrementor, :request => request)
+    response.body.should.match(/counter/)
+    response.body.should.match(/foo/)
+  end
+
+  it "allows modifying session data with session data from middleware in front" do
+    request = { 'rack.session' => { :foo => 'bar' }}
+    response = response_for(:app => incrementor, :request => request)
+    response.body.should.match(/counter/)
     response.body.should.match(/foo/)
   end
 end

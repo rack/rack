@@ -66,6 +66,14 @@ describe Rack::Auth::Basic do
     end
   end
 
+  should 'return 400 Bad Request for a malformed authorization header' do
+    request 'HTTP_AUTHORIZATION' => '' do |response|
+      response.should.be.a.client_error
+      response.status.should.equal 400
+      response.should.not.include 'WWW-Authenticate'
+    end
+  end
+
   it 'takes realm as optional constructor arg' do
     app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
     realm.should == app.realm

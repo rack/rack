@@ -1,3 +1,12 @@
+= Known issues with Rack and ECMA-262
+
+* Many users expect the escape() function defined in ECMA-262 to be compatible
+  with URI. Confusion is especially strong because the documentation for the
+  escape function includes a reference to the URI specifications. ECMA-262
+  escape is not however a URI escape function, it is a javascript escape
+  function, and is not fully compatible. Most notably, for characters outside of
+  the BMP. Users should use the more correct encodeURI functions.
+
 = Known issues with Rack and Web servers
 
 * Lighttpd sets wrong SCRIPT_NAME and PATH_INFO if you mount your

@@ -74,9 +74,10 @@ module Rack
       if [204, 205, 304].include?(status.to_i)
         header.delete "Content-Type"
         header.delete "Content-Length"
+        close
         [status.to_i, header, []]
       else
-        [status.to_i, header, self]
+        [status.to_i, header, BodyProxy.new(self){}]
       end
     end
     alias to_a finish           # For *response

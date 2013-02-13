@@ -1,20 +1,23 @@
 require 'rack/file'
+require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::File do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
 
+  def file(*args)
+    Rack::Lint.new Rack::File.new(*args)
+  end
+
   should "serve files" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/test")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test")
 
     res.should.be.ok
     res.should =~ /ruby/
   end
 
   should "set Last-Modified header" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/test")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test")
 
     path = File.join(DOCROOT, "/cgi/test")
 
@@ -24,7 +27,7 @@ describe Rack::File do
 
   should "return 304 if file isn't modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+    res = Rack::MockRequest.new(file(DOCROOT)).
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
 
     res.status.should.equal 304
@@ -33,22 +36,21 @@ describe Rack::File do
 
   should "return the file if it's modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
+    res = Rack::MockRequest.new(file(DOCROOT)).
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => (File.mtime(path) - 100).httpdate)
 
     res.should.be.ok
   end
 
   should "serve files with URL encoded filenames" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/%74%65%73%74") # "/cgi/test"
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/%74%65%73%74") # "/cgi/test"
 
     res.should.be.ok
     res.should =~ /ruby/
   end
 
   should "allow safe directory traversal" do
-    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    req = Rack::MockRequest.new(file(DOCROOT))
 
     res = req.get('/cgi/../cgi/test')
     res.should.be.successful
@@ -61,7 +63,7 @@ describe Rack::File do
   end
 
   should "not allow unsafe directory traversal" do
-    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    req = Rack::MockRequest.new(file(DOCROOT))
 
     res = req.get("/../README")
     res.should.be.client_error
@@ -76,7 +78,7 @@ describe Rack::File do
   end
 
   should "allow files with .. in their name" do
-    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+    req = Rack::MockRequest.new(file(DOCROOT))
     res = req.get("/cgi/..test")
     res.should.be.not_found
 
@@ -88,30 +90,26 @@ describe Rack::File do
   end
 
   should "not allow unsafe directory traversal with encoded periods" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/%2E%2E/README")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/%2E%2E/README")
 
     res.should.be.client_error?
     res.should.be.not_found
   end
 
   should "allow safe directory traversal with encoded periods" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/%2E%2E/cgi/test")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/%2E%2E/cgi/test")
 
     res.should.be.successful
   end
 
   should "404 if it can't find the file" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi/blubb")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/blubb")
 
     res.should.be.not_found
   end
 
   should "detect SystemCallErrors" do
-    res = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT))).
-      get("/cgi")
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi")
 
     res.should.be.not_found
   end
@@ -130,7 +128,7 @@ describe Rack::File do
   should "return correct byte range in body" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=22-33"
-    res = Rack::MockResponse.new(*Rack::File.new(DOCROOT).call(env))
+    res = Rack::MockResponse.new(*file(DOCROOT).call(env))
 
     res.status.should.equal 206
     res["Content-Length"].should.equal "12"
@@ -141,24 +139,43 @@ describe Rack::File do
   should "return error for unsatisfiable byte range" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=1234-5678"
-    res = Rack::MockResponse.new(*Rack::File.new(DOCROOT).call(env))
+    res = Rack::MockResponse.new(*file(DOCROOT).call(env))
 
     res.status.should.equal 416
     res["Content-Range"].should.equal "bytes */193"
   end
 
-  should "support cache control options" do
+  should "support legacy cache control options provided as string" do
     env = Rack::MockRequest.env_for("/cgi/test")
-    status, heads, _ = Rack::File.new(DOCROOT, 'public, max-age=38').call(env)
+    status, heads, _ = file(DOCROOT, 'public, max-age=38').call(env)
 
     status.should.equal 200
     heads['Cache-Control'].should.equal 'public, max-age=38'
   end
 
-  should "only support GET and HEAD requests" do
-    req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
+  should "support custom http headers" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = file(DOCROOT, 'Cache-Control' => 'public, max-age=38',
+     'Access-Control-Allow-Origin' => '*').call(env)
 
-    forbidden = %w[post put delete]
+    status.should.equal 200
+    heads['Cache-Control'].should.equal 'public, max-age=38'
+    heads['Access-Control-Allow-Origin'].should.equal '*'
+  end
+
+  should "support not add custom http headers if none are supplied" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = file(DOCROOT).call(env)
+
+    status.should.equal 200
+    heads['Cache-Control'].should.equal nil
+    heads['Access-Control-Allow-Origin'].should.equal nil
+  end
+
+  should "only support GET and HEAD requests" do
+    req = Rack::MockRequest.new(file(DOCROOT))
+
+    forbidden = %w[post put patch delete]
     forbidden.each do |method|
 
       res = req.send(method, "/cgi/test")

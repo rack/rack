@@ -1,6 +1,7 @@
 # -*- encoding: utf-8 -*-
 require 'rack/utils'
 require 'rack/mock'
+require 'timeout'
 
 describe Rack::Utils do
 
@@ -118,6 +119,8 @@ describe Rack::Utils do
     Rack::Utils.parse_query("&key&").should.equal "key" => nil
     Rack::Utils.parse_query(";key;", ";,").should.equal "key" => nil
     Rack::Utils.parse_query(",key,", ";,").should.equal "key" => nil
+    Rack::Utils.parse_query(";foo=bar,;", ";,").should.equal "foo" => "bar"
+    Rack::Utils.parse_query(",foo=bar;,", ";,").should.equal "foo" => "bar"
   end
 
   should "ignore incorrectly escaped query strings" do
@@ -201,7 +204,7 @@ describe Rack::Utils do
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[]=1") }.
       should.raise(TypeError).
-      message.should.match /expected Array \(got [^)]*\) for param `x'/
+      message.should.match(/expected Array \(got [^)]*\) for param `x'/)
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
       should.raise(TypeError).
@@ -335,6 +338,11 @@ describe Rack::Utils do
     Rack::Utils.bytesize("FOO\xE2\x82\xAC").should.equal 6
   end
 
+  should "should perform constant time string comparison" do
+    Rack::Utils.secure_compare('a', 'a').should.equal true
+    Rack::Utils.secure_compare('a', 'b').should.equal false
+  end
+
   should "return status code for integer" do
     Rack::Utils.status_code(200).should.equal 200
   end
@@ -367,6 +375,10 @@ describe Rack::Utils, "byte_range" do
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=-100"},500).should.equal [(400..499)]
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=0-0"},500).should.equal [(0..0)]
     Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=499-499"},500).should.equal [(499..499)]
+  end
+
+  should "parse several byte ranges" do
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=500-600,601-999"},1000).should.equal [(500..600),(601..999)]
   end
 
   should "truncate byte ranges" do

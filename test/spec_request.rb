@@ -416,6 +416,11 @@ describe Rack::Request do
     2.times { proc { req.POST }.should.raise(RuntimeError) }
   end
 
+  should "pass through non-uri escaped cookies as-is" do
+    req = Rack::Request.new Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
+    req.cookies["foo"].should == "%"
+  end
+
   should "parse cookies according to RFC 2109" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for('', 'HTTP_COOKIE' => 'foo=bar;foo=car')

@@ -1,3 +1,5 @@
+require 'enumerator'
+require 'rack/lint'
 require 'rack/lock'
 require 'rack/mock'
 
@@ -22,10 +24,26 @@ class Lock
   end
 end
 
+module LockHelpers
+  def lock_app(app, lock = Lock.new)
+    app = if lock
+      Rack::Lock.new app, lock
+    else
+      Rack::Lock.new app
+    end
+    Rack::Lint.new app
+  end
+end
+
 describe Rack::Lock do
+  ::Enumerator = ::Enumerable::Enumerator unless Object.const_defined?(:Enumerator)
+  
+  extend LockHelpers
+  
   describe 'Proxy' do
+    extend LockHelpers
+    
     should 'delegate each' do
-      lock     = Lock.new
       env      = Rack::MockRequest.env_for("/")
       response = Class.new {
         attr_accessor :close_called
@@ -33,7 +51,7 @@ describe Rack::Lock do
         def each; %w{ hi mom }.each { |x| yield x }; end
       }.new
 
-      app = Rack::Lock.new(lambda { |inner_env| [200, {}, response] }, lock)
+      app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, response] })
       response = app.call(env)[2]
       list = []
       response.each { |x| list << x }
@@ -47,7 +65,7 @@ describe Rack::Lock do
       res = ['Hello World']
       def res.to_path ; "/tmp/hello.txt" ; end
 
-      app = Rack::Lock.new(lambda { |inner_env| [200, {}, res] }, lock)
+      app = Rack::Lock.new(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, res] }, lock)
       body = app.call(env)[2]
 
       body.should.respond_to :to_path
@@ -55,12 +73,11 @@ describe Rack::Lock do
     end
 
     should 'not delegate to_path if body does not implement it' do
-      lock = Lock.new
       env  = Rack::MockRequest.env_for("/")
 
       res = ['Hello World']
 
-      app = Rack::Lock.new(lambda { |inner_env| [200, {}, res] }, lock)
+      app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, res] })
       body = app.call(env)[2]
 
       body.should.not.respond_to :to_path
@@ -68,7 +85,6 @@ describe Rack::Lock do
   end
 
   should 'call super on close' do
-    lock     = Lock.new
     env      = Rack::MockRequest.env_for("/")
     response = Class.new {
       attr_accessor :close_called
@@ -76,7 +92,7 @@ describe Rack::Lock do
       def close; @close_called = true; end
     }.new
 
-    app = Rack::Lock.new(lambda { |inner_env| [200, {}, response] }, lock)
+    app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, response] })
     app.call(env)
     response.close_called.should.equal false
     response.close
@@ -87,7 +103,7 @@ describe Rack::Lock do
     lock     = Lock.new
     env      = Rack::MockRequest.env_for("/")
     response = Object.new
-    app      = Rack::Lock.new(lambda { |inner_env| [200, {}, response] }, lock)
+    app      = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, response] }, lock)
     lock.synchronized.should.equal false
     response = app.call(env)[2]
     lock.synchronized.should.equal true
@@ -96,19 +112,20 @@ describe Rack::Lock do
   end
 
   should "return value from app" do
-    lock = Lock.new
     env  = Rack::MockRequest.env_for("/")
-    body = [200, {}, %w{ hi mom }]
-    app  = Rack::Lock.new(lambda { |inner_env| body }, lock)
-    app.call(env).should.equal body
+    body = [200, {"Content-Type" => "text/plain"}, %w{ hi mom }]
+    app  = lock_app(lambda { |inner_env| body })
+    
+    res = app.call(env)
+    res[0].should.equal body[0]
+    res[1].should.equal body[1]
+    Enumerator.new(res[2]).to_a.should.equal ["hi", "mom"]
   end
 
   should "call synchronize on lock" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
-    app = Rack::Lock.new(lambda { |inner_env|
-      [200, {}, %w{ a b c }]
-    }, lock)
+    app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, %w{ a b c }] }, lock)
     lock.synchronized.should.equal false
     app.call(env)
     lock.synchronized.should.equal true
@@ -117,16 +134,24 @@ describe Rack::Lock do
   should "unlock if the app raises" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
-    app = Rack::Lock.new(lambda { raise Exception }, lock)
+    app = lock_app(lambda { raise Exception }, lock)
     lambda { app.call(env) }.should.raise(Exception)
     lock.synchronized.should.equal false
   end
 
+  should "unlock if the app throws" do
+    lock = Lock.new
+    env = Rack::MockRequest.env_for("/")
+    app = lock_app(lambda {|_| throw :bacon }, lock)
+    lambda { app.call(env) }.should.throw(:bacon)
+    lock.synchronized.should.equal false
+  end
+
   should "set multithread flag to false" do
-    app = Rack::Lock.new(lambda { |env|
+    app = lock_app(lambda { |env|
       env['rack.multithread'].should.equal false
-      [200, {}, %w{ a b c }]
-    })
+      [200, {"Content-Type" => "text/plain"}, %w{ a b c }]
+    }, false)
     app.call(Rack::MockRequest.env_for("/"))
   end
 
@@ -136,7 +161,7 @@ describe Rack::Lock do
         env['rack.multithread'].should.equal true
         super
       end
-    }.new(lambda { |env| [200, {}, %w{ a b c }] })
-    app.call(Rack::MockRequest.env_for("/"))
+    }.new(lambda { |env| [200, {"Content-Type" => "text/plain"}, %w{ a b c }] })
+    Rack::Lint.new(app).call(Rack::MockRequest.env_for("/"))
   end
 end

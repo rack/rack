@@ -28,8 +28,11 @@ module Rack
       end
 
       unless headers['Cache-Control']
-        headers['Cache-Control'] =
-          (digest ? @cache_control : @no_cache_control) || []
+        if digest
+          headers['Cache-Control'] = @cache_control if @cache_control
+        else
+          headers['Cache-Control'] = @no_cache_control if @no_cache_control
+        end
       end
 
       [status, headers, body]
@@ -46,7 +49,7 @@ module Rack
       end
 
       def skip_caching?(headers)
-        headers['Cache-Control'] == 'no-cache' ||
+        (headers['Cache-Control'] && headers['Cache-Control'].include?('no-cache')) ||
           headers.key?('ETag') || headers.key?('Last-Modified')
       end
 

@@ -48,6 +48,59 @@ describe Rack::Multipart do
     params['profile']['bio'].should.include 'hello'
   end
 
+  should "reject insanely long boundaries" do
+    # using a pipe since a tempfile can use up too much space
+    rd, wr = IO.pipe
+
+    # we only call rewind once at start, so make sure it succeeds
+    # and doesn't hit ESPIPE
+    def rd.rewind; end
+    wr.sync = true
+
+    # mock out length to make this pipe look like a Tempfile
+    def rd.length
+      1024 * 1024 * 8
+    end
+
+    # write to a pipe in a background thread, this will write a lot
+    # unless Rack (properly) shuts down the read end
+    thr = Thread.new do
+      begin
+        wr.write("--AaB03x")
+
+        # make the initial boundary a few gigs long
+        longer = "0123456789" * 1024 * 1024
+        (1024 * 1024).times { wr.write(longer) }
+
+        wr.write("\r\n")
+        wr.write('Content-Disposition: form-data; name="a"; filename="a.txt"')
+        wr.write("\r\n")
+        wr.write("Content-Type: text/plain\r\n")
+        wr.write("\r\na")
+        wr.write("--AaB03x--\r\n")
+        wr.close
+      rescue => err # this is EPIPE if Rack shuts us down
+        err
+      end
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => rd.length.to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.should.raise(EOFError)
+    rd.close
+
+    err = thr.value
+    err.should.be.instance_of Errno::EPIPE
+    wr.close
+  end
+
   should "parse multipart upload with text file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
@@ -358,6 +411,35 @@ EOF
     params = Rack::Utils::Multipart.parse_multipart(env)
 
     params.should.equal({"description"=>"Very very blue"})
+  end
+
+  should "parse multipart upload with no content-length header" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
+    env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
+    env.delete 'CONTENT_LENGTH'
+    params = Rack::Multipart.parse_multipart(env)
+    params['profile']['bio'].should.include 'hello'
+  end
+
+  should "parse very long unquoted multipart file names" do
+    data = <<-EOF
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Disposition: attachment; name=file; filename=#{'long' * 100}\r
+\r
+contents\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+
+    params["file"][:filename].should.equal('long' * 100)
   end
 
 end

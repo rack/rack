@@ -50,4 +50,12 @@ describe Rack::Cascade do
     cascade << app3
     Rack::MockRequest.new(cascade).get('/foo').should.be.ok
   end
+
+  should "close the body on cascade" do
+    body = StringIO.new
+    closer = lambda { |env| [404, {}, body] }
+    cascade = Rack::Cascade.new([closer, app3], [404])
+    Rack::MockRequest.new(cascade).get("/foo").should.be.ok
+    body.should.be.closed
+  end
 end

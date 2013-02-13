@@ -10,6 +10,13 @@ describe Rack::Server do
     lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
   end
 
+  def with_stderr
+    old, $stderr = $stderr, StringIO.new
+    yield $stderr
+  ensure
+    $stderr = old
+  end
+
   it "overrides :config if :app is passed in" do
     server = Rack::Server.new(:app => "FOO")
     server.app.should == "FOO"
@@ -69,6 +76,46 @@ describe Rack::Server do
     Process.kill(:INT, $$)
     t.join
     open(pidfile) { |f| f.read.should.eql $$.to_s }
+  end
+
+  should "check pid file presence and running process" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write($$); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :running
+  end
+
+  should "check pid file presence and dead process" do
+    dead_pid = `echo $$`.to_i
+    pidfile = Tempfile.open('pidfile') { |f| f.write(dead_pid); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :dead
+  end
+
+  should "check pid file presence and exited process" do
+    pidfile = Tempfile.open('pidfile') { |f| break f }.path
+    ::File.delete(pidfile)
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :exited
+  end
+
+  should "check pid file presence and not owned process" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    server.send(:pidfile_process_status).should.eql :not_owned
+  end
+
+  should "inform the user about existing pidfiles with running processes" do
+    pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
+    server = Rack::Server.new(:pid => pidfile)
+    with_stderr do |err|
+      should.raise(SystemExit) do
+        server.start
+      end
+      err.rewind
+      output = err.read
+      output.should.match(/already running/)
+      output.should.include? pidfile
+    end
   end
 
 end

@@ -193,9 +193,15 @@ describe Rack::Builder do
 
     it "requires anything not ending in .ru" do
       $: << File.dirname(__FILE__)
-      app, options = Rack::Builder.parse_file 'builder/anything'
+      app, * = Rack::Builder.parse_file 'builder/anything'
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
       $:.pop
+    end
+
+    it "sets __LINE__ correctly" do
+      app, options = Rack::Builder.parse_file config_file('line.ru')
+      options = nil # ignored, prevents warning
+      Rack::MockRequest.new(app).get("/").body.to_s.should.equal '1'
     end
   end
 end

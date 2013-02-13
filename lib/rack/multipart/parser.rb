@@ -48,13 +48,15 @@ module Rack
         @buf = ""
         @params = Utils::KeySpaceConstrainedParams.new
 
-        @content_length = @env['CONTENT_LENGTH'].to_i
         @io = @env['rack.input']
         @io.rewind
 
         @boundary_size = Utils.bytesize(@boundary) + EOL.size
 
-        @content_length -= @boundary_size
+        if @content_length = @env['CONTENT_LENGTH']
+          @content_length = @content_length.to_i
+          @content_length -= @boundary_size
+        end
         true
       end
 
@@ -68,9 +70,16 @@ module Rack
 
       def fast_forward_to_first_boundary
         loop do
-          read_buffer = @io.gets
-          break if read_buffer == full_boundary
-          raise EOFError, "bad content body" if read_buffer.nil?
+          content = @io.read(BUFSIZE)
+          raise EOFError, "bad content body" unless content
+          @buf << content
+
+          while @buf.gsub!(/\A([^\n]*\n)/, '')
+            read_buffer = $1
+            return if read_buffer == full_boundary
+          end
+
+          raise EOFError, "bad content body" if Utils.bytesize(@buf) >= BUFSIZE
         end
       end
 
@@ -104,11 +113,11 @@ module Rack
             body << @buf.slice!(0, @buf.size - (@boundary_size+4))
           end
 
-          content = @io.read(BUFSIZE < @content_length ? BUFSIZE : @content_length)
+          content = @io.read(@content_length && BUFSIZE >= @content_length ? @content_length : BUFSIZE)
           raise EOFError, "bad content body"  if content.nil? || content.empty?
 
           @buf << content
-          @content_length -= content.size
+          @content_length -= content.size if @content_length
         end
 
         [head, filename, content_type, name, body]
