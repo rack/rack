@@ -59,7 +59,7 @@ module Rack
       if available
         serving(env)
       else
-        fail(404, "File not found: #{path_info}")
+        fail(404, "File not found: #{Utils.escape_html(path_info)}")
       end
     end
 
