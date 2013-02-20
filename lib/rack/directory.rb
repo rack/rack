@@ -127,7 +127,7 @@ table { width:100%%; }
     end
 
     def entity_not_found
-      body = "Entity not found: #{@path_info}\n"
+      body = "Entity not found: #{Utils.escape_html(@path_info)}\n"
       size = Rack::Utils.bytesize(body)
       return [404, {"Content-Type" => "text/plain",
         "Content-Length" => size.to_s,
