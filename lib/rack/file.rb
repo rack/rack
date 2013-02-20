@@ -51,7 +51,7 @@ module Rack
       @path = F.join(@root, *clean)
 
       available = begin
-        F.file?(@path) && F.readable?(@path)
+        F.file?(@path) && F.readable?(@path) && !F.symlink?(@path)
       rescue SystemCallError
         false
       end
