@@ -110,21 +110,30 @@ module Rack
       if after == ""
         params[k] = v
       elsif after == "[]"
-        params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
+        # Overlap un-compatibility previous
+        if params[k].nil? || !params[k].is_a?(Array)
+          params[k] = []
+        end
+
         params[k] << v
       elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
+        # Overlap un-compatibility previous
+        if params[k].nil? || !params[k].is_a?(Array)
+          params[k] = []
+        end
+
         child_key = $1
-        params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
           params[k] << normalize_params(params.class.new, child_key, v)
         end
       else
-        params[k] ||= params.class.new
-        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
+        # Overlap un-compatibility previous
+        if params[k].nil? || !params_hash_type?(params[k])
+          params[k] = KeySpaceConstrainedParams.new
+        end
+
         params[k] = normalize_params(params[k], after, v)
       end
 

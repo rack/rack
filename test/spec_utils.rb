@@ -6,7 +6,7 @@ require 'timeout'
 describe Rack::Utils do
 
   # A helper method which checks
-  # if certain query parameters 
+  # if certain query parameters
   # are equal.
   def equal_query_to(query)
     parts = query.split('&')
@@ -78,7 +78,7 @@ describe Rack::Utils do
       Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
     end
   end
-  
+
   should "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
     lambda {
       timeout(1) do
@@ -191,17 +191,50 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=a&x[y][][z]=2&x[y][][w]=3").
       should.equal "x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}
 
-    lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y]z=2") }.
-      should.raise(TypeError).
-      message.should.equal "expected Hash (got String) for param `y'"
+    # Test Hash overlap
+    Rack::Utils.parse_nested_query("x=1&x[y]=2").
+      should.equal "x" => {"y" => "2"}
 
-    lambda { Rack::Utils.parse_nested_query("x[y]=1&x[]=1") }.
-      should.raise(TypeError).
-      message.should.match(/expected Array \(got [^)]*\) for param `x'/)
+    Rack::Utils.parse_nested_query("x[]=1&x=2").
+      should.equal "x" => "2"
 
-    lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
-      should.raise(TypeError).
-      message.should.equal "expected Array (got String) for param `y'"
+    Rack::Utils.parse_nested_query("x[]=1&x[y]=2").
+      should.equal "x" => {"y" => "2"}
+
+    Rack::Utils.parse_nested_query("x[y]=1&x[y][z]=2").
+      should.equal "x" => {"y" => {"z" => "2"}}
+
+    Rack::Utils.parse_nested_query("x[y][]=1&x[y]=2").
+      should.equal "x" => {"y" => "2"}
+
+    Rack::Utils.parse_nested_query("x[y][]=1&x[y][z]=2").
+      should.equal "x" => {"y" => {"z" => "2"}}
+
+    # Test Array overlap
+    Rack::Utils.parse_nested_query("x=1&x[]=2").
+      should.equal "x" => ["2"]
+
+    Rack::Utils.parse_nested_query("x[y]=1&x[]=2").
+      should.equal "x" => ["2"]
+
+    Rack::Utils.parse_nested_query("x=1&x[][y]=2").
+      should.equal "x" => [{"y" => "2"}]
+
+    Rack::Utils.parse_nested_query("x[y]=1&x[][y]=2").
+      should.equal "x" => [{"y" => "2"}]
+
+    Rack::Utils.parse_nested_query("x[y][z]=1&x[y][]=2").
+      should.equal "x" => {"y" => ["2"]}
+
+    # Test Hash & Array mix overlap
+    Rack::Utils.parse_nested_query("x[y]=1&x[y][]=2").
+      should.equal "x" => {"y" => ["2"]}
+
+    Rack::Utils.parse_nested_query("x[y]=1&x[y][][z]=2").
+      should.equal "x" => {"y" => [{"z" => "2"}]}
+
+    Rack::Utils.parse_nested_query("x[y]=1&x[y][]=2&x[y][][z]=3").
+      should.equal "x" => {"y" => ["2", {"z" => "3"}]}
   end
 
   should "build query strings correctly" do
