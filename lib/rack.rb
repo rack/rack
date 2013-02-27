@@ -34,6 +34,7 @@ module Rack
   autoload :ContentType, "rack/content_type"
   autoload :ETag, "rack/etag"
   autoload :File, "rack/file"
+  autoload :GzFile, "rack/gz_file"
   autoload :Deflater, "rack/deflater"
   autoload :Directory, "rack/directory"
   autoload :ForwardRequest, "rack/recursive"
