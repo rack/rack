@@ -42,8 +42,11 @@ module Rack
       end
 
       def self.valid_options
+        environment  = ENV['RACK_ENV'] || 'development'
+        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
         {
-          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Host=HOST" => "Hostname to listen on (default: #{default_host})",
           "Port=PORT" => "Port to listen on (default: 8080)",
           "Processors=N" => "Number of concurrent processors to accept (default: 950)",
           "Timeout=N" => "Time before a request is dropped for inactivity (default: 60)",
