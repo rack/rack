@@ -98,7 +98,7 @@ table { width:100%%; }
         url << '/'  if stat.directory?
         basename << '/'  if stat.directory?
 
-        @files << [ url, basename, size, type, mtime ]
+        @files << [ url, Utils.escape_html(basename), size, type, mtime ]
       end
 
       return [ 200, {'Content-Type'=>'text/html; charset=utf-8'}, self ]
@@ -135,7 +135,7 @@ table { width:100%%; }
     end
 
     def each
-      show_path = @path.sub(/^#{@root}/,'')
+      show_path = Utils.escape_html(@path.sub(/^#{@root}/,''))
       files = @files.map{|f| DIR_FILE % f }*"\n"
       page  = DIR_PAGE % [ show_path, show_path , files ]
       page.each_line{|l| yield l }
