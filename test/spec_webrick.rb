@@ -139,5 +139,28 @@ describe Rack::Handler::WEBrick do
     }
   end
 
+  should "support Rack partial hijack" do
+    io_lambda = lambda{ |io|
+      5.times do
+        io.write "David\r\n"
+      end
+      io.close
+    }
+
+    @server.mount "/partial", Rack::Handler::WEBrick,
+    Rack::Lint.new(lambda{ |req|
+      [
+        200,
+        {"rack.hijack" => io_lambda},
+        [""]
+      ]
+    })
+
+    Net::HTTP.start(@host, @port){ |http|
+      res = http.get("/partial")
+      res.body.should.equal "David\r\nDavid\r\nDavid\r\nDavid\r\nDavid\r\n"
+    }
+  end
+
   @server.shutdown
 end
