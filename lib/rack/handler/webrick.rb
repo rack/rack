@@ -8,6 +8,7 @@ module Rack
       def self.run(app, options={})
         options[:BindAddress] = options.delete(:Host) if options[:Host]
         options[:Port] ||= 8080
+        options[:OutputBufferSize] = 5
         @server = ::WEBrick::HTTPServer.new(options)
         @server.mount "/", Rack::Handler::WEBrick, app
         yield @server  if block_given?
@@ -46,7 +47,11 @@ module Rack
                      "rack.multiprocess" => false,
                      "rack.run_once" => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http",
+
+                     "rack.hijack?" => true,
+                     "rack.hijack" => lambda { raise NotImplementedError, "only partial hijack is supported."},
+                     "rack.hijack_io" => nil,
                    })
 
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
@@ -61,6 +66,8 @@ module Rack
         begin
           res.status = status.to_i
           headers.each { |k, vs|
+            next if k.downcase == "rack.hijack"
+
             if k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
@@ -69,9 +76,18 @@ module Rack
               res[k] = vs.split("\n").join(", ")
             end
           }
-          body.each { |part|
-            res.body << part
-          }
+
+          io_lambda = headers["rack.hijack"]
+          if io_lambda
+            rd, wr = IO.pipe
+            res.body = rd
+            res.chunked = true
+            io_lambda.call wr
+          else
+            body.each { |part|
+              res.body << part
+            }
+          end
         ensure
           body.close  if body.respond_to? :close
         end
