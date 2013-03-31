@@ -47,7 +47,7 @@ module Rack
                      "rack.multiprocess" => false,
                      "rack.run_once" => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http",
+                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http",
 
                      "rack.hijack?" => true,
                      "rack.hijack" => lambda { raise NotImplementedError, "only partial hijack is supported."},
