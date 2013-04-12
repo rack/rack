@@ -87,7 +87,6 @@ module Rack
         head = nil
         body = ''
         filename = content_type = name = nil
-        content = nil
 
         until head && @buf =~ rx
           if !head && i = @buf.index(EOL+EOL)
