@@ -66,7 +66,7 @@ module Rack
             options[:daemonize] = d ? true : false
           }
 
-          opts.on("-P", "--pid FILE", "file to store PID (default: rack.pid)") { |f|
+          opts.on("-P", "--pid FILE", "file to store PID") { |f|
             options[:pid] = ::File.expand_path(f)
           }
 
