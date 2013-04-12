@@ -234,10 +234,8 @@ module Rack
         encoding_candidates.push("identity")
       end
 
-      expanded_accept_encoding.find_all { |m, q|
-        q == 0.0
-      }.each { |m, _|
-        encoding_candidates.delete(m)
+      expanded_accept_encoding.each { |m, q|
+        encoding_candidates.delete(m) if q == 0.0
       }
 
       return (encoding_candidates & available_encodings)[0]
