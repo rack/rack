@@ -72,20 +72,29 @@ module Rack
 
       def each(&block)
         @writer = block
-        gzip  =::Zlib::GzipWriter.new(self)
-        gzip.mtime = @mtime
+        @gzip =::Zlib::GzipWriter.new(self)
+        @gzip.mtime = @mtime
         @body.each { |part|
-          gzip.write(part)
-          gzip.flush
+          @gzip.write(part)
+          @gzip.flush
         }
       ensure
-        @body.close if @body.respond_to?(:close)
-        gzip.close
+        close
         @writer = nil
       end
 
       def write(data)
         @writer.call(data)
+      end
+
+      def close
+        begin
+          @gzip.close if @gzip && !@gzip.closed?
+        rescue Zlib::GzipFile::Error
+          # For some reason this error is still thrown despite the .closed?
+          # check on the previous line.
+        end
+        @body.close if @body.respond_to?(:close)
       end
     end
 
@@ -103,13 +112,17 @@ module Rack
       end
 
       def each
-        deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflater.deflate(part, Zlib::SYNC_FLUSH) }
-        yield deflater.finish
+        @deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
+        @body.each { |part| yield @deflater.deflate(part, Zlib::SYNC_FLUSH) }
+        yield @deflater.finish
         nil
       ensure
+        close
+      end
+
+      def close
+        @deflater.close if @deflater && !@deflater.closed?
         @body.close if @body.respond_to?(:close)
-        deflater.close
       end
     end
   end
