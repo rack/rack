@@ -207,7 +207,7 @@ but only contain keys that consist of
 letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
 The values of the header must be Strings,
 consisting of lines (for multiple header values, e.g. multiple
-<tt>Set-Cookie</tt> values) seperated by "\n".
+<tt>Set-Cookie</tt> values) separated by "\n".
 The lines must not contain characters below 037.
 === The Content-Type
 There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
