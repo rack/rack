@@ -274,7 +274,7 @@ begin
       session['counter'].should.equal 2 # meeeh
 
       tnum = rand(7).to_i+5
-      r = Array.new(tnum) do |i|
+      r = Array.new(tnum) do
         app = Rack::Utils::Context.new pool, time_delta
         req = Rack::MockRequest.new app
         Thread.new(req) do |run|
