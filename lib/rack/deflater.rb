@@ -96,9 +96,9 @@ module Rack
       end
 
       def each
-        deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflater.deflate(part, Zlib::SYNC_FLUSH) }
-        yield deflater.finish
+        deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
+        @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
+        yield deflator.finish
         nil
       ensure
         deflator.close

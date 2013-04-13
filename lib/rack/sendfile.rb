@@ -22,7 +22,7 @@ module Rack
   #
   # Nginx supports the X-Accel-Redirect header. This is similar to X-Sendfile
   # but requires parts of the filesystem to be mapped into a private URL
-  # hierarachy.
+  # hierarchy.
   #
   # The following example shows the Nginx configuration required to create
   # a private "/files/" area, enable X-Accel-Redirect, and pass the special
