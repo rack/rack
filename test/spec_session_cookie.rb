@@ -122,10 +122,10 @@ describe Rack::Session::Cookie do
   end
 
   it "warns if no secret is given" do
-    cookie = Rack::Session::Cookie.new(incrementor)
+    Rack::Session::Cookie.new(incrementor)
     @warnings.first.should =~ /no secret/i
     @warnings.clear
-    cookie = Rack::Session::Cookie.new(incrementor, :secret => 'abc')
+    Rack::Session::Cookie.new(incrementor, :secret => 'abc')
     @warnings.should.be.empty?
   end
 
