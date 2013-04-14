@@ -536,9 +536,9 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # irb -ropen-uri -rnokogiri
-    # > Nokogiri::XML(open("http://www.iana.org/assignments/http-status-codes/http-status-codes.xml")).css("record").each{|r|
-    #         puts "#{r.css('value').text} => '#{r.css('description').text}'"}
+    # ruby -ropen-uri -rnokogiri -e "Nokogiri::XML(open(
+    #   'http://www.iana.org/assignments/http-status-codes/http-status-codes.xml')).css('record').each{|r|
+    #   name = r.css('description').text; puts %Q[#{r.css('value').text} => '#{name}',] unless name == 'Unassigned' }"
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
@@ -583,12 +583,9 @@ module Rack
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
-      425 => 'Reserved for WebDAV advanced collections expired proposal',
       426 => 'Upgrade Required',
-      427 => 'Unassigned',
       428 => 'Precondition Required',
       429 => 'Too Many Requests',
-      430 => 'Unassigned',
       431 => 'Request Header Fields Too Large',
       500 => 'Internal Server Error',
       501 => 'Not Implemented',
@@ -599,7 +596,6 @@ module Rack
       506 => 'Variant Also Negotiates (Experimental)',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
-      509 => 'Unassigned',
       510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
