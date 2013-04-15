@@ -96,7 +96,7 @@ module Rack
 
         def valid_digest?(auth)
           pw = @authenticator.call(auth.username)
-          pw && digest(auth, pw) == auth.response
+          pw && Rack::Utils.secure_compare(digest(auth, pw), auth.response)
         end
 
         def md5(data)
