@@ -18,6 +18,3 @@ branches:
 notifications:
   email: false
   irc: "irc.freenode.org#rack"
-matrix:
-  allow_failures:
-    - rvm: 2.0.0
