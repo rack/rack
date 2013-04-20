@@ -166,6 +166,20 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  should "parse multipart upload with filename with invalid characters" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:invalid_character))
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.match(/invalid/)
+    head = "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"invalid\xC3.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    head = head.force_encoding("ASCII-8BIT") if head.respond_to?(:force_encoding)
+    params["files"][:head].should.equal head
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
   should "not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
