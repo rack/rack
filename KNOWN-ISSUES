@@ -28,3 +28,17 @@
 
   Since lighttpd 1.4.23, you also can use the "fix-root-scriptname" flag
   in fastcgi.server.
+
+= Known conflicts regarding parameter parsing
+
+ * Many users have differing opinions about parameter parsing. The current
+   parameter parsers in Rack are based on a combination of the HTTP and CGI
+   specs, and are intended to round-trip encoding and decoding. There are some
+   choices that may be viewed as deficiencies, specifically:
+    - Rack does not create implicit arrays for multiple instances of a parameter
+    - Rack returns nil when a value is not given
+    - Rack does not support multi-type keys in parameters
+   These issues or choices, will not be fixed before 2.0, if at all. They are
+   very major breaking changes. Users are free to write alternative parameter
+   parsrs, and their own Request and Response wrappers. Moreover, users are
+   encouraged to do so.
