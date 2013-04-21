@@ -40,5 +40,5 @@
     - Rack does not support multi-type keys in parameters
    These issues or choices, will not be fixed before 2.0, if at all. They are
    very major breaking changes. Users are free to write alternative parameter
-   parsrs, and their own Request and Response wrappers. Moreover, users are
+   parsers, and their own Request and Response wrappers. Moreover, users are
    encouraged to do so.
