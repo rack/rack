@@ -135,8 +135,8 @@ table { width:100%%; }
     end
 
     def each
-      show_path = @path.sub(/^#{@root}/,'')
-      files = @files.map{|f| DIR_FILE % f }*"\n"
+      show_path = Rack::Utils.escape_html(@path.sub(/^#{@root}/,''))
+      files = @files.map{|f| DIR_FILE % DIR_FILE_escape(*f) }*"\n"
       page  = DIR_PAGE % [ show_path, show_path , files ]
       page.each_line{|l| yield l }
     end
@@ -156,6 +156,12 @@ table { width:100%%; }
       end
 
       int.to_s + 'B'
+    end
+
+    private
+    # Assumes url is already escaped.
+    def DIR_FILE_escape url, *html
+      [url, *html.map { |e| Utils.escape_html(e) }]
     end
   end
 end
