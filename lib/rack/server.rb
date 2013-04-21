@@ -350,6 +350,8 @@ module Rack
         return :exited unless ::File.exist?(options[:pid])
 
         pid = ::File.read(options[:pid]).to_i
+        return :dead if pid == 0
+
         Process.kill(0, pid)
         :running
       rescue Errno::ESRCH
