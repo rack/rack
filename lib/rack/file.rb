@@ -51,7 +51,7 @@ module Rack
       @path = F.join(@root, *clean)
 
       available = begin
-        F.file?(@path) && F.readable?(@path)
+        F.file?(@path) && F.readable?(@path) && !F.symlink?(@path)
       rescue SystemCallError
         false
       end
@@ -59,7 +59,7 @@ module Rack
       if available
         serving(env)
       else
-        fail(404, "File not found: #{path_info}")
+        fail(404, "File not found: #{Utils.escape_html(path_info)}")
       end
     end
 

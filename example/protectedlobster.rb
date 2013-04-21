@@ -4,7 +4,7 @@ require 'rack/lobster'
 lobster = Rack::Lobster.new
 
 protected_lobster = Rack::Auth::Basic.new(lobster) do |username, password|
-  'secret' == password
+  Rack::Utils.secure_compare('secret', password)
 end
 
 protected_lobster.realm = 'Lobster 2.0'
