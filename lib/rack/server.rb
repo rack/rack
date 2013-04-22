@@ -185,11 +185,14 @@ module Rack
     end
 
     def default_options
+      environment  = ENV['RACK_ENV'] || 'development'
+      default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
       {
-        :environment => ENV['RACK_ENV'] || "development",
+        :environment => environment,
         :pid         => nil,
         :Port        => 9292,
-        :Host        => "0.0.0.0",
+        :Host        => default_host,
         :AccessLog   => [],
         :config      => "config.ru"
       }
