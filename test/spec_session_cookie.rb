@@ -49,6 +49,10 @@ describe Rack::Session::Cookie do
     res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
       get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
     res.body.should.equal '{"counter"=>1}'
+
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => "rack.session=")
+    res.body.should.equal '{"counter"=>1}'
   end
 
   bigcookie = lambda do |env|
