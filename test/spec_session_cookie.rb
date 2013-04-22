@@ -112,6 +112,16 @@ describe Rack::Session::Cookie do
     res.body.should.equal '{"counter"=>3}'
   end
 
+  it "survives broken cookies" do
+    res = Rack::MockRequest.new(Rack::Session::Cookie.new(incrementor)).
+      get("/", "HTTP_COOKIE" => "rack.session=blarghfasel")
+    res.body.should.equal '{"counter"=>1}'
+
+    app = Rack::Session::Cookie.new(incrementor, :secret => 'test')
+    res = Rack::MockRequest.new(app).get("/", "HTTP_COOKIE" => "rack.session=")
+    res.body.should.equal '{"counter"=>1}'
+  end
+
   renewer = lambda do |env|
     env["rack.session.options"][:renew] = true
     Rack::Response.new("Nothing").to_a
