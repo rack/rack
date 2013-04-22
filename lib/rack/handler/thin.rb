@@ -6,7 +6,10 @@ module Rack
   module Handler
     class Thin
       def self.run(app, options={})
-        host = options.delete(:Host) || '0.0.0.0'
+        environment  = ENV['RACK_ENV'] || 'development'
+        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
+        host = options.delete(:Host) || default_host
         port = options.delete(:Port) || 8080
         args = [host, port, app, options]
         # Thin versions below 0.8.0 do not support additional options
@@ -17,8 +20,11 @@ module Rack
       end
 
       def self.valid_options
+        environment  = ENV['RACK_ENV'] || 'development'
+        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+
         {
-          "Host=HOST" => "Hostname to listen on (default: localhost)",
+          "Host=HOST" => "Hostname to listen on (default: #{default_host})",
           "Port=PORT" => "Port to listen on (default: 8080)",
         }
       end
