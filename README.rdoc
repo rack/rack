@@ -555,11 +555,16 @@ The Rack Core Team, consisting of
 * Christian Neukirchen (chneukirchen)
 * James Tucker (raggi)
 * Josh Peek (josh)
+* José Valim (josevalim)
 * Michael Fellinger (manveru)
+* Aaron Patterson (tenderlove)
+* Santiago Pastorino (spastorino)
+* Konstantin Haase (rkh)
+
+and the Rack Alumnis
+
 * Ryan Tomayko (rtomayko)
 * Scytrin dai Kinthra (scytrin)
-* Aaron Patterson (tenderlove)
-* Konstantin Haase (rkh)
 
 would like to thank:
 
