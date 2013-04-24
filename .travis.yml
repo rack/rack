@@ -1,5 +1,5 @@
 before_install: sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
-script: rake fulltest
+script: bundle exec rake fulltest
 rvm:
   - 1.8.7
   - 1.9.2
