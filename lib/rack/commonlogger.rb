@@ -18,7 +18,7 @@ module Rack
   class CommonLogger
     # Common Log Format: http://httpd.apache.org/docs/1.3/logs.html#common
     #
-    #   lilith.local - - [07/Aug/2006 23:58:02] "GET / HTTP/1.1" 500 -
+    #   lilith.local - - [07/Aug/2006 23:58:02 -0400] "GET / HTTP/1.1" 500 -
     #
     #   %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
@@ -46,7 +46,7 @@ module Rack
       logger.write FORMAT % [
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
-        now.strftime("%d/%b/%Y %H:%M:%S"),
+        now.strftime("%d/%b/%Y %H:%M:%S %z"),
         env["REQUEST_METHOD"],
         env["PATH_INFO"],
         env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
