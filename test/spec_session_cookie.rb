@@ -119,6 +119,28 @@ describe Rack::Session::Cookie do
         coder.decode('lulz').should.equal nil
       end
     end
+
+    describe 'ZipJSON' do
+      it 'jsons, deflates, and base64 encodes' do
+        coder = Rack::Session::Cookie::Base64::ZipJSON.new
+        obj   = %w[fuuuuu]
+        json = Rack::Utils::OkJson.encode(obj)
+        coder.encode(obj).should.equal [Zlib::Deflate.deflate(json)].pack('m')
+      end
+
+      it 'base64 decodes, inflates, and decodes json' do
+        coder = Rack::Session::Cookie::Base64::ZipJSON.new
+        obj   = %w[fuuuuu]
+        json  = Rack::Utils::OkJson.encode(obj)
+        b64   = [Zlib::Deflate.deflate(json)].pack('m')
+        coder.decode(b64).should.equal obj
+      end
+
+      it 'rescues failures on decode' do
+        coder = Rack::Session::Cookie::Base64::ZipJSON.new
+        coder.decode('lulz').should.equal nil
+      end
+    end
   end
 
   it "warns if no secret is given" do

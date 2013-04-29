@@ -1,4 +1,5 @@
 require 'openssl'
+require 'zlib'
 require 'rack/request'
 require 'rack/response'
 require 'rack/session/abstract/id'
@@ -76,6 +77,19 @@ module Rack
           def decode(str)
             return unless str
             ::Rack::Utils::OkJson.decode(super(str)) rescue nil
+          end
+        end
+
+        class ZipJSON < Base64
+          def encode(obj)
+            super(Zlib::Deflate.deflate(::Rack::Utils::OkJson.encode(obj)))
+          end
+
+          def decode(str)
+            return unless str
+            ::Rack::Utils::OkJson.decode(Zlib::Inflate.inflate(super(str)))
+          rescue
+            nil
           end
         end
       end
