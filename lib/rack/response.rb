@@ -122,6 +122,7 @@ module Rack
 
       def ok?;                 status == 200;                        end
       def bad_request?;        status == 400;                        end
+      def unauthorized?;       status == 401;                        end
       def forbidden?;          status == 403;                        end
       def not_found?;          status == 404;                        end
       def method_not_allowed?; status == 405;                        end
