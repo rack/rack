@@ -57,7 +57,8 @@ module Rack
         next unless m = match.match(path.to_s)
 
         rest = m[1]
-        next unless !rest || rest.empty? || rest[0] == ?/
+        comparison_path = rest.gsub(/\.\w+\Z/, '') # strip extension
+        next unless !comparison_path || comparison_path.empty? || comparison_path[0] == ?/
 
         env['SCRIPT_NAME'] = (script_name + location)
         env['PATH_INFO'] = rest

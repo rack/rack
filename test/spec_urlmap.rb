@@ -32,6 +32,27 @@ describe Rack::URLMap do
     res["X-ScriptName"].should.equal "/foo"
     res["X-PathInfo"].should.equal "/"
 
+    res = Rack::MockRequest.new(map).get('/foo.json')
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/foo"
+    res["X-PathInfo"].should.equal ".json"
+
+    res = Rack::MockRequest.new(map).get('/foo.json/bar')
+    res.should.be.not_found
+
+    res = Rack::MockRequest.new(map).get('/foo.bar-json')
+    res.should.be.not_found
+
+    res = Rack::MockRequest.new(map).get('/foo/.json')
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/foo"
+    res["X-PathInfo"].should.equal "/.json"
+
+    res = Rack::MockRequest.new(map).get('/foo/bar.json')
+    res.should.be.ok
+    res["X-ScriptName"].should.equal "/foo/bar"
+    res["X-PathInfo"].should.equal ".json"
+
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.should.be.ok
     res["X-ScriptName"].should.equal "/foo/bar"
