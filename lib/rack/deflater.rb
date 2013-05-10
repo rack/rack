@@ -68,6 +68,7 @@ module Rack
       def initialize(body, mtime)
         @body = body
         @mtime = mtime
+        @closed = false
       end
 
       def each(&block)
