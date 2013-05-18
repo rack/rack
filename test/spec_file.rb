@@ -145,6 +145,31 @@ describe Rack::File do
     res["Content-Range"].should.equal "bytes */193"
   end
 
+  should "return correct byte ranges in body" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=96-109,137-191"
+    res = Rack::MockResponse.new(*file(DOCROOT).call(env))
+
+    res.status.should.equal 206
+    res["Content-Length"].should.equal "268"
+    res["Content-Type"].should.match(/multipart\/byteranges; boundary=(.+)/)
+    separator = res["Content-Type"].match(/multipart\/byteranges; boundary=(.+)/)[1]
+
+    expected_body =
+      "--#{separator}\r\n" +
+      "Content-Type: text/plain\r\n" +
+      "Content-Range: bytes 96-109/193\r\n" +
+      "\r\n" +
+      "require 'rack'\r\n" +
+      "--#{separator}\r\n" +
+      "Content-Type: text/plain\r\n" +
+      "Content-Range: bytes 137-191/193\r\n" +
+      "\r\n" +
+      "Rack::Handler::CGI.run(Rack::Lint.new(TestRequest.new))"
+
+    res.body.should.equal expected_body
+  end
+
   should "support custom http headers" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = file(DOCROOT, 'Cache-Control' => 'public, max-age=38',

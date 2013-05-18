@@ -68,8 +68,8 @@ module Rack
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
       headers = { "Last-Modified" => last_modified }
-      mime = Mime.mime_type(F.extname(@path), @default_mime)
-      headers["Content-Type"] = mime if mime
+      @mime = Mime.mime_type(F.extname(@path), @default_mime)
+      headers["Content-Type"] = @mime if @mime
 
       # Set custom headers
       @headers.each { |field, content| headers[field] = content } if @headers
@@ -80,42 +80,67 @@ module Rack
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory.
-      size = F.size?(@path) || Utils.bytesize(F.read(@path))
+      @size = F.size?(@path) || Utils.bytesize(F.read(@path))
 
-      ranges = Rack::Utils.byte_ranges(env, size)
-      if ranges.nil? || ranges.length > 1
-        # No ranges, or multiple ranges (which we don't support):
-        # TODO: Support multiple byte-ranges
+      @ranges = Rack::Utils.byte_ranges(env, @size)
+      if @ranges.nil?
+        # No ranges
         response[0] = 200
-        @range = 0..size-1
-      elsif ranges.empty?
+        @ranges = [0..@size-1]
+        content_size = @size
+      elsif @ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
-        response[1]["Content-Range"] = "bytes */#{size}"
+        response[1]["Content-Range"] = "bytes */#{@size}"
         return response
-      else
-        # Partial content:
-        @range = ranges[0]
+      elsif @ranges.length > 1
+        # Partial content, multiple ranges
+        # load securerandom lazily
+        require 'securerandom'
+
+        @multipart_separator = "boundary-" + SecureRandom.base64
         response[0] = 206
-        response[1]["Content-Range"] = "bytes #{@range.begin}-#{@range.end}/#{size}"
-        size = @range.end - @range.begin + 1
+        response[1]["Content-Type"] = "multipart/byteranges; boundary=#{@multipart_separator}"
+
+        content_size = @ranges.inject(0) do |sum, thisrange|
+          sum += "--#{@multipart_separator}\r\n".bytesize
+          sum += multipart_header(thisrange).bytesize
+          sum += thisrange.size
+          sum += "\r\n".bytesize unless thisrange == @ranges[-1]
+          sum
+        end
+
+      else
+        # Partial content, 1 range
+        range = @ranges[0]
+        response[0] = 206
+        response[1]["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{@size}"
+        content_size = range.size
       end
 
-      response[1]["Content-Length"] = size.to_s
+      response[1]["Content-Length"] = content_size.to_s
       response
     end
 
     def each
-      F.open(@path, "rb") do |file|
-        file.seek(@range.begin)
-        remaining_len = @range.end-@range.begin+1
-        while remaining_len > 0
-          part = file.read([8192, remaining_len].min)
-          break unless part
-          remaining_len -= part.length
+      multipart = @ranges.length > 1
 
-          yield part
+      @ranges.each do |range|
+        yield "--#{@multipart_separator}\r\n" + multipart_header(range) if multipart
+
+        F.open(@path, "rb") do |file|
+          file.seek(range.begin)
+          remaining_len = range.size
+          while remaining_len > 0
+            part = file.read([8192, remaining_len].min)
+            break unless part
+            remaining_len -= part.length
+
+            yield part
+          end
         end
+
+        yield "\r\n" unless range == @ranges[-1]
       end
     end
 
@@ -132,6 +157,13 @@ module Rack
         },
         [body]
       ]
+    end
+
+    def multipart_header range
+      header = [
+        "Content-Type: #{@mime}",
+        "Content-Range: bytes #{range.begin}-#{range.end}/#{@size}"
+      ].join("\r\n") + "\r\n\r\n"
     end
 
   end
