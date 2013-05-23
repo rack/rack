@@ -201,7 +201,6 @@ module Rack
       elsif @env["rack.request.form_input"].eql? @env["rack.input"]
         @env["rack.request.form_hash"]
       elsif form_data? || parseable_data?
-        @env["rack.request.form_input"] = @env["rack.input"]
         unless @env["rack.request.form_hash"] = parse_multipart(env)
           form_vars = @env["rack.input"].read
 
@@ -214,6 +213,7 @@ module Rack
 
           @env["rack.input"].rewind
         end
+        @env["rack.request.form_input"] = @env["rack.input"]
         @env["rack.request.form_hash"]
       else
         {}
