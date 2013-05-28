@@ -660,7 +660,7 @@ module Rack
       ##
       ## If the Body responds to +close+, it will be called after iteration. If
       ## the body is replaced by a middleware after action, the original body
-      ## must be closed first, if it repsonds to close.
+      ## must be closed first, if it responds to close.
       # XXX howto: assert("Body has not been closed") { @closed }
 
 

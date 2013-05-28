@@ -342,7 +342,7 @@ module Rack
           if not data = set_session(env, session_id, session_data, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            env["rack.errors"].puts("Defering cookie for #{session_id}") if $VERBOSE
+            env["rack.errors"].puts("Deferring cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = data
@@ -369,7 +369,7 @@ module Rack
           SessionHash
         end
 
-        # All thread safety and session retrival proceedures should occur here.
+        # All thread safety and session retrieval procedures should occur here.
         # Should return [session_id, session].
         # If nil is provided as the session id, generation of a new valid id
         # should occur within.
@@ -378,7 +378,7 @@ module Rack
           raise '#get_session not implemented.'
         end
 
-        # All thread safety and session storage proceedures should occur here.
+        # All thread safety and session storage procedures should occur here.
         # Must return the session id if the session was saved successfully, or
         # false if the session could not be saved.
 
