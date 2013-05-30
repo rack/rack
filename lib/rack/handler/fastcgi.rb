@@ -25,7 +25,11 @@ module Rack
           STDIN.reopen(TCPServer.new(options[:Host], options[:Port]))
         end
         FCGI.each { |request|
-          serve request, app
+          begin
+            serve request, app
+          rescue StandardError => e
+            STDOUT.print "#{e}\n#{e.backtrace.join("\n")}\n"
+          end
         }
       end
 
