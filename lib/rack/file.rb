@@ -132,29 +132,23 @@ module Rack
     end
 
     # The MIME type for the contents of the file located at @path
-    #
-    # This method can be overridden to specify custom MIME types for certain files,
-    # or (in addition to response_body) to modify the content of files
-    # before serving them
     def mime_type
-      @mime_type ||= Mime.mime_type(F.extname(@path), @default_mime)
+      Mime.mime_type(F.extname(@path), @default_mime)
     end
 
     def filesize
       # If response_body is present, use its size.
-      @filesize ||= Rack::Utils.bytesize(response_body) if response_body
+      return Rack::Utils.bytesize(response_body) if response_body
 
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory.
-      @filesize ||= F.size?(@path) || Utils.bytesize(F.read(@path))
+      F.size?(@path) || Utils.bytesize(F.read(@path))
     end
 
     # By default, the response body for file requests is nil.
     # In this case, the response body will be generated later
     # from the file at @path
-    #
-    # This method can be overridden to allow processing of files before serving.
     def response_body
       nil
     end
