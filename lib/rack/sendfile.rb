@@ -104,7 +104,7 @@ module Rack
       @app = app
       @variation = variation
       @mappings = mappings.map do |internal, external|
-        [/^#{internal}/i, external]
+        [Regexp.new(Regexp.escape(internal)), external]
       end
     end
 
@@ -148,7 +148,7 @@ module Rack
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
         internal, external = mapping.split('=', 2).map{ |p| p.strip }
-        path.sub(/^#{internal}/i, external)
+        path.sub(Regexp.new(Regexp.escape(internal)), external)
       end
     end
   end
