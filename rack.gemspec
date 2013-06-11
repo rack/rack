@@ -12,7 +12,7 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-Also see http://rack.github.com/.
+Also see http://rack.github.io/.
 EOF
 
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
@@ -25,7 +25,7 @@ EOF
 
   s.author          = 'Christian Neukirchen'
   s.email           = 'chneukirchen@gmail.com'
-  s.homepage        = 'http://rack.github.com/'
+  s.homepage        = 'http://rack.github.io/'
   s.rubyforge_project = 'rack'
 
   s.add_development_dependency 'bacon'
