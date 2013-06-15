@@ -128,6 +128,9 @@ module Rack
     # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
     def options?; request_method == "OPTIONS" end
 
+    # Checks the HTTP request method (or verb) to see if it was of type LINK
+    def link?;    request_method == "LINK"    end
+
     # Checks the HTTP request method (or verb) to see if it was of type PATCH
     def patch?;   request_method == "PATCH"   end
 
@@ -139,6 +142,9 @@ module Rack
 
     # Checks the HTTP request method (or verb) to see if it was of type TRACE
     def trace?;   request_method == "TRACE"   end
+    
+    # Checks the HTTP request method (or verb) to see if it was of type UNLINK
+    def unlink?;  request_method == "UNLINK"  end
 
 
     # The set of form-data media-types. Requests that do not indicate
