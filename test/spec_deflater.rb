@@ -173,6 +173,26 @@ describe Rack::Deflater do
     gz.close
   end
 
+  should "set the gzip MTIME header to 0 when no Last-Modified header is available." do
+    app = lambda { |env| [200, { "Content-Type" => "text/plain" }, ["Hello World!"]] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
+    response = deflater(app).call(request)
+
+    response[0].should.equal(200)
+    response[1].should.equal({
+      "Content-Encoding" => "gzip",
+      "Vary" => "Accept-Encoding",
+      "Content-Type" => "text/plain"
+    })
+
+    buf = ''
+    response[2].each { |part| buf << part }
+    io = StringIO.new(buf)
+    gz = Zlib::GzipReader.new(io)
+    gz.mtime.should.equal(Time.at(1))
+    gz.close
+  end
+
   should "do nothing when no-transform Cache-Control directive present" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Cache-Control' => 'no-transform'}, ['Hello World!']] }
     request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")

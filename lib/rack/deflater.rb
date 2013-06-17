@@ -49,7 +49,7 @@ module Rack
         headers['Content-Encoding'] = "gzip"
         headers.delete('Content-Length')
         mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
+          Time.httpdate(headers["Last-Modified"]) : 1
         [status, headers, GzipStream.new(body, mtime)]
       when "deflate"
         headers['Content-Encoding'] = "deflate"
