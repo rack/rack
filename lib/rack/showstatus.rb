@@ -96,7 +96,7 @@ TEMPLATE = <<'HTML'
     </table>
   </div>
   <div id="info">
-    <p><%= detail %></p>
+    <p><%=h detail %></p>
   </div>
 
   <div id="explanation">

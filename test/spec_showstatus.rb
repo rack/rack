@@ -1,6 +1,7 @@
 require 'rack/showstatus'
 require 'rack/lint'
 require 'rack/mock'
+require 'rack/utils'
 
 describe Rack::ShowStatus do
   def show_status(app)
@@ -38,6 +39,24 @@ describe Rack::ShowStatus do
     res.should =~ /404/
     res.should =~ /Not Found/
     res.should =~ /too meta/
+  end
+
+  should "escape error" do
+    detail = "<script>alert('hi \"')</script>"
+    req = Rack::MockRequest.new(
+      show_status(
+        lambda{|env|
+          env["rack.showstatus.detail"] = detail
+          [500, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
+    }))
+
+    res = req.get("/", :lint => true)
+    res.should.be.not.empty
+
+    res["Content-Type"].should.equal("text/html")
+    res.should =~ /500/
+    res.should.not.include detail
+    res.body.should.include Rack::Utils.escape_html(detail)
   end
 
   should "not replace existing messages" do
