@@ -216,6 +216,11 @@ describe Rack::Response do
     res.should.be.client_error
     res.should.be.bad_request
 
+    res.status = 401
+    res.should.not.be.successful
+    res.should.be.client_error
+    res.should.be.unauthorized
+
     res.status = 404
     res.should.not.be.successful
     res.should.be.client_error
