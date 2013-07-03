@@ -274,7 +274,7 @@ module Rack
         expires = "; expires=" +
           rfc2822(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if value[:httponly]
+        httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         value = value[:value]
       end
       value = [value] unless Array === value
