@@ -9,6 +9,8 @@ middleware) into a single method call.
 The exact details of this are described in the Rack specification,
 which all Rack applications should conform to.
 
+ExploringRackTutorial[http://net.tutsplus.com/tutorials/exploring-rack/]
+
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
