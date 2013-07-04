@@ -90,9 +90,8 @@ module Rack
       @header_rules = options[:header_rules] || []
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
       @header_rules.insert(0, [:all, {'Cache-Control' => options[:cache_control]}]) if options[:cache_control]
-      @headers = {}
 
-      @file_server = Rack::File.new(root, @headers)
+      @file_server = Rack::File.new(root)
     end
 
     def overwrite_file_path(path)
@@ -112,41 +111,42 @@ module Rack
 
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
-        @path = env["PATH_INFO"]
-        apply_header_rules
-        @file_server.call(env)
+        path = env["PATH_INFO"]
+        response = @file_server.call(env)
+        apply_header_rules(response[1], path)
+        response
       else
         @app.call(env)
       end
     end
 
     # Convert HTTP header rules to HTTP headers
-    def apply_header_rules
-      @header_rules.each do |rule, headers|
-        apply_rule(rule, headers)
+    def apply_header_rules(headers, path)
+      @header_rules.each do |rule, new_headers|
+        apply_rule(headers, path, rule, new_headers)
       end
     end
 
-    def apply_rule(rule, headers)
+    def apply_rule(headers, path, rule, new_headers)
       case rule
       when :all    # All files
-        set_headers(headers)
+        set_headers(headers, new_headers)
       when :fonts  # Fonts Shortcut
-        set_headers(headers) if @path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
+        set_headers(headers, new_headers) if path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
       when String  # Folder
-        path = ::Rack::Utils.unescape(@path)
-        set_headers(headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
+        path = ::Rack::Utils.unescape(path)
+        set_headers(headers, new_headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
       when Array   # Extension/Extensions
         extensions = rule.join('|')
-        set_headers(headers) if @path.match(/\.(#{extensions})\z/)
+        set_headers(headers, new_headers) if path.match(/\.(#{extensions})\z/)
       when Regexp  # Flexible Regexp
-        set_headers(headers) if @path.match(rule)
+        set_headers(headers, new_headers) if path.match(rule)
       else
       end
     end
 
-    def set_headers(headers)
-      headers.each { |field, content| @headers[field] = content }
+    def set_headers(headers, new_headers)
+      new_headers.each { |field, content| headers[field] = content }
     end
 
   end
