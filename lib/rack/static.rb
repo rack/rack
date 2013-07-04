@@ -113,7 +113,12 @@ module Rack
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
         path = env["PATH_INFO"]
         response = @file_server.call(env)
-        apply_header_rules(response[1], path)
+
+        headers = response[1]
+        applicable_rules(path).each do |rule, new_headers|
+          new_headers.each { |field, content| headers[field] = content }
+        end
+
         response
       else
         @app.call(env)
@@ -121,32 +126,24 @@ module Rack
     end
 
     # Convert HTTP header rules to HTTP headers
-    def apply_header_rules(headers, path)
-      @header_rules.each do |rule, new_headers|
-        apply_rule(headers, path, rule, new_headers)
+    def applicable_rules(path)
+      @header_rules.find_all do |rule, new_headers|
+        case rule
+        when :all
+          true
+        when :fonts
+          path =~ /\.(?:ttf|otf|eot|woff|svg)\z/
+        when String
+          path = ::Rack::Utils.unescape(path)
+          path.start_with?(rule) || path.start_with?('/' + rule)
+        when Array
+          path =~ /\.(#{rule.join('|')})\z/
+        when Regexp
+          path =~ rule
+        else
+          false
+        end
       end
-    end
-
-    def apply_rule(headers, path, rule, new_headers)
-      case rule
-      when :all    # All files
-        set_headers(headers, new_headers)
-      when :fonts  # Fonts Shortcut
-        set_headers(headers, new_headers) if path.match(/\.(?:ttf|otf|eot|woff|svg)\z/)
-      when String  # Folder
-        path = ::Rack::Utils.unescape(path)
-        set_headers(headers, new_headers) if (path.start_with?(rule) || path.start_with?('/' + rule))
-      when Array   # Extension/Extensions
-        extensions = rule.join('|')
-        set_headers(headers, new_headers) if path.match(/\.(#{extensions})\z/)
-      when Regexp  # Flexible Regexp
-        set_headers(headers, new_headers) if path.match(rule)
-      else
-      end
-    end
-
-    def set_headers(headers, new_headers)
-      new_headers.each { |field, content| headers[field] = content }
     end
 
   end
