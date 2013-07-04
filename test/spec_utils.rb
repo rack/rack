@@ -180,6 +180,8 @@ describe Rack::Utils do
       should.equal "x" => {"y" => [{"z" => ["1"]}]}
     Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2").
       should.equal "x" => {"y" => [{"z" => "1", "w" => "2"}]}
+    Rack::Utils.parse_nested_query("x[y][][z][w]=1&x[y][][z][w]=2").
+      should.equal "x" => {"y" => [{"z" => {"w" => "1"}}, {"z" => {"w" => "2"}}]}
 
     Rack::Utils.parse_nested_query("x[y][][v][w]=1").
       should.equal "x" => {"y" => [{"v" => {"w" => "1"}}]}
