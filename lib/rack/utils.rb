@@ -37,14 +37,10 @@ module Rack
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = defined?(::Encoding) ? Encoding::UTF_8 : nil)
+      URI.decode_www_form_component(s, encoding)
+    rescue ArgumentError => e
+      raise UnescapeError, e.message
     end
     module_function :unescape
 
@@ -619,4 +615,6 @@ module Rack
     Multipart = Rack::Multipart
 
   end
+
+  class UnescapeError < ArgumentError; end
 end

@@ -101,6 +101,14 @@ describe Rack::Utils do
       should.equal "q1!2\"'w$5&7/z8)?\\"
   end
 
+  should "raise exception on incorrect escape sequence" do
+    lambda {
+      Rack::Utils.unescape("25-04-2013%2:07:35")
+    }.should.raise(Rack::UnescapeError)
+    # Backward API compatibility check
+    Rack::UnescapeError.new.should.is_a(ArgumentError)
+  end
+
   should "parse query strings correctly" do
     Rack::Utils.parse_query("foo=bar").
       should.equal "foo" => "bar"
