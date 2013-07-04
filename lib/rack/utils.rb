@@ -117,20 +117,15 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        repeated_child_key = !params_hash_type?(params[k].last) || params[k].last.key?(child_key)
-        unless repeated_child_key
-          nested_child_keys = child_key.scan(%r(\[[^\[\]]+\])).map{ |c| c[1...-1] }
-          if nested_child_keys.length > 0
-            last_param = params[k].last
-            unfound_child_key_path = nested_child_keys.find do |nested_child_key|
-              found_key = last_param.key?(nested_child_key)
-              last_param = found_key && params_hash_type?(last_param[nested_child_key]) && last_param[nested_child_key]
-              !found_key
-            end
-            repeated_child_key = !unfound_child_key_path
+        append_child = !params_hash_type?(params[k].last) || params[k].last.key?(child_key)
+        unless append_child
+          last_child = params[k].last
+          child_key.scan(%r(\[([^\[\]]+)\])) do |nested_key|
+            append_child = last_child && last_child.key?(nested_key[0])
+            last_child = append_child && params_hash_type?(last_child[nested_key[0]]) && last_child[nested_key[0]]
           end
         end
-        if repeated_child_key
+        if append_child
           params[k] << normalize_params(params.class.new, child_key, v)
         else
           normalize_params(params[k].last, child_key, v)
