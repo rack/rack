@@ -84,7 +84,7 @@ module Rack
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
-      root = options[:root] || Dir.pwd
+      @root = options[:root] || Dir.pwd
 
       # HTTP Headers
       @header_rules = options[:header_rules] || []
@@ -92,35 +92,46 @@ module Rack
       @header_rules.insert(0, [:all, {'Cache-Control' => options[:cache_control]}]) if options[:cache_control]
       @headers = {}
 
-      @file_server = Rack::File.new(root, @headers)
+      @file_server = Rack::File.new(@root, @headers)
     end
 
-    def overwrite_file_path(path)
-      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path =~ /\/$/
-    end
-
+    # Look up `path` in urls.
+    # If urls is an Array, return `path` if there is a match, otherwise nil.
+    # If urls is a Hash, return path "overwrite" if there is a match.
+    # Otherwise return nil.
     def route_file(path)
-      @urls.kind_of?(Array) && @urls.any? { |url| path.index(url) == 0 }
-    end
-
-    def can_serve(path)
-      route_file(path) || overwrite_file_path(path)
+      case @urls
+      when Array
+        @urls.any?{ |url| path.index(url) == 0 } ? path : nil
+      when Hash
+        @urls[path]
+      else
+        nil
+      end
     end
 
     def call(env)
-      path = env["PATH_INFO"]
+      path = env["PATH_INFO"].strip
+      route = route_file(path)
 
-      if can_serve(path)
-        env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
-        @path = env["PATH_INFO"]
+      if route
+        if @index && directory?(route)
+          route = route.chomp('/') + '/' + @index
+        end
+        @path = env["PATH_INFO"] = route
+        apply_header_rules
+        @file_server.call(env)
+      elsif @index && directory?(path)
+        @path = env["PATH_INFO"] = path.chomp('/') + '/' + @index
         apply_header_rules
         @file_server.call(env)
       else
+        @path = path
         @app.call(env)
       end
     end
 
-    # Convert HTTP header rules to HTTP headers
+    # Convert HTTP header rules to HTTP headers.
     def apply_header_rules
       @header_rules.each do |rule, headers|
         apply_rule(rule, headers)
@@ -147,6 +158,12 @@ module Rack
 
     def set_headers(headers)
       headers.each { |field, content| @headers[field] = content }
+    end
+
+    # Determine if a path is a directory by looking for
+    # trailing `/` or, failing that, checking the file system.
+    def directory?(path)
+      path.end_with?('/') || ::File.directory?(::File.join(@root, path.to_s))
     end
 
   end
