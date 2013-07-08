@@ -55,7 +55,7 @@ module Rack
 
       def digest_body(body)
         parts = []
-        body.each { |part| parts << part }
+        body.each { |part| parts << part.dup }
         string_body = parts.join
         digest = Digest::MD5.hexdigest(string_body) unless string_body.empty?
         [digest, parts]
