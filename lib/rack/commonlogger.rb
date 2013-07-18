@@ -22,6 +22,7 @@ module Rack
     #
     #   %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
+    HIJACK_FORMAT = %{%s - %s [%s] "%s %s%s %s" HIJACKED -1 %0.4f\n}
 
     def initialize(app, logger=nil)
       @app = app
@@ -32,7 +33,16 @@ module Rack
       began_at = Time.now
       status, header, body = @app.call(env)
       header = Utils::HeaderHash.new(header)
-      body = BodyProxy.new(body) { log(env, status, header, began_at) }
+
+      # If we've been hijacked, then output a special line
+      if env['rack.hijack_io']
+        log_hijacking(env, 'HIJACK', header, began_at)
+      elsif ary = env['rack.after_reply']
+        ary << lambda { log(env, status, header, began_at) }
+      else
+        body = BodyProxy.new(body) { log(env, status, header, began_at) }
+      end
+
       [status, header, body]
     end
 
@@ -53,6 +63,21 @@ module Rack
         env["HTTP_VERSION"],
         status.to_s[0..3],
         length,
+        now - began_at ]
+    end
+
+    def log_hijacking(env, status, header, began_at)
+      now = Time.now
+
+      logger = @logger || env['rack.errors']
+      logger.write HIJACK_FORMAT % [
+        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
+        env["REMOTE_USER"] || "-",
+        now.strftime("%d/%b/%Y %H:%M:%S"),
+        env["REQUEST_METHOD"],
+        env["PATH_INFO"],
+        env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
+        env["HTTP_VERSION"],
         now - began_at ]
     end
 
