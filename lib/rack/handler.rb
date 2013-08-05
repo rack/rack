@@ -53,7 +53,9 @@ module Rack
         Rack::Handler::FastCGI
       elsif ENV.include?("REQUEST_METHOD")
         Rack::Handler::CGI
-      else
+     elsif ENV.include?("RACK_HANDLER")
+        self.get(ENV["RACK_HANDLER"])
+     else
         pick ['thin', 'puma', 'webrick']
       end
     end
