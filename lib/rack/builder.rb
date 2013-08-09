@@ -1,3 +1,5 @@
+require 'docile'
+
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
   # applications.
@@ -52,7 +54,7 @@ module Rack
 
     def initialize(default_app = nil,&block)
       @use, @map, @run = [], nil, default_app
-      instance_eval(&block) if block_given?
+      Docile.dsl_eval(self, &block) if block_given?
     end
 
     def self.app(default_app = nil, &block)

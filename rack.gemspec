@@ -28,6 +28,8 @@ EOF
   s.homepage        = 'http://rack.github.io/'
   s.rubyforge_project = 'rack'
 
+  s.add_dependency 'docile'
+
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'
 end

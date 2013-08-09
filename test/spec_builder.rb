@@ -168,6 +168,37 @@ describe Rack::Builder do
     end.should.raise(RuntimeError)
   end
 
+  it 'supports local and instance variables in DSL' do
+    @my_app = lambda { |env| [200, {"Content-Type" => "text/plain"}, ['instance var']] }
+    my_middleware = Rack::ShowExceptions
+
+    app = builder do
+      use my_middleware
+      run @my_app
+    end
+
+    Rack::MockRequest.new(app).get("/").status.should.equal 200
+  end
+
+  it 'supports local and instance variables in nested DSL' do
+    @app_instance_var = lambda { |env| [200, {"Content-Type" => "text/plain"}, ['instance var']] }
+    app_local_var = lambda { |env| [200, {"Content-Type" => "text/plain"}, ['local var']] }
+
+    app = builder do
+      map('/sub1') do
+        run @app_instance_var
+      end
+      map('/sub2') do
+        run app_local_var
+      end
+      run @app_instance_var
+    end
+
+    Rack::MockRequest.new(app).get("/").body.should.equal 'instance var'
+    Rack::MockRequest.new(app).get("/sub1").body.should.equal 'instance var'
+    Rack::MockRequest.new(app).get("/sub2").body.should.equal 'local var'
+  end
+
   describe "parse_file" do
     def config_file(name)
       File.join(File.dirname(__FILE__), 'builder', name)
