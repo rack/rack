@@ -17,7 +17,6 @@ module Rack
 
     def initialize(app)
       @app = app
-      @template = ERB.new(TEMPLATE)
     end
 
     def call(env)
@@ -33,14 +32,20 @@ module Rack
         body = pretty(env, e)
       else
         content_type = "text/plain"
-        body = [exception_string]
+        body = exception_string
       end
 
-      [500,
-       {"Content-Type" => content_type,
-        "Content-Length" => Rack::Utils.bytesize(body.join).to_s},
-       body]
+      [
+        500,
+        {
+          "Content-Type" => content_type,
+          "Content-Length" => Rack::Utils.bytesize(body).to_s,
+        },
+        [body],
+      ]
     end
+
+    private
 
     def accepts_html?(env)
       env["HTTP_ACCEPT"] && env["HTTP_ACCEPT"].include?("text/html")
@@ -85,7 +90,7 @@ module Rack
         end
       }.compact
 
-      [@template.result(binding)]
+      ERB.new(TEMPLATE).result(binding)
     end
 
     def h(obj)                  # :nodoc:
