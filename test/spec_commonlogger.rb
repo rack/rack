@@ -2,6 +2,8 @@ require 'rack/commonlogger'
 require 'rack/lint'
 require 'rack/mock'
 
+require 'logger'
+
 describe Rack::CommonLogger do
   obj = 'foobar'
   length = obj.size
@@ -31,6 +33,14 @@ describe Rack::CommonLogger do
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
     log.string.should =~ /"GET \/ " 200 #{length} /
+  end
+
+  should "work with standartd library logger" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
+
+    logdev.string.should =~ /"GET \/ " 200 #{length} /
   end
 
   should "log - content length if header is missing" do

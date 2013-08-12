@@ -10,7 +10,7 @@ module Rack
   # an instance of Rack::NullLogger.
   #
   # +logger+ can be any class, including the standard library Logger, and is
-  # expected to have a +write+ method, which accepts the CommonLogger::FORMAT.
+  # expected to have either +write+ or +<<+ method, which accepts the CommonLogger::FORMAT.
   # According to the SPEC, the error stream must also respond to +puts+
   # (which takes a single argument that responds to +to_s+), and +flush+
   # (which is called without arguments in order to make the error appear for
@@ -43,7 +43,10 @@ module Rack
       length = extract_content_length(header)
 
       logger = @logger || env['rack.errors']
-      logger.write FORMAT % [
+      #Standard library logger doesn't support write but it supports << which actually
+      #calls to write on the log device without formatting
+      write = logger.respond_to?(:write) ? logger.method(:write) : logger.method(:<<)
+      write.call FORMAT % [
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
         now.strftime("%d/%b/%Y:%H:%M:%S %z"),
