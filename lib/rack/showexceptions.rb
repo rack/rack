@@ -45,11 +45,14 @@ module Rack
       ]
     end
 
-    private
+    def prefers_plaintext?(env)
+      !accepts_html(env)
+    end
 
     def accepts_html?(env)
       env["HTTP_ACCEPT"] && env["HTTP_ACCEPT"].include?("text/html")
     end
+    private :accepts_html?
 
     def dump_exception(exception)
       string = "#{exception.class}: #{exception.message}\n"
