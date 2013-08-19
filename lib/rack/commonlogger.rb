@@ -42,11 +42,7 @@ module Rack
       now = Time.now
       length = extract_content_length(header)
 
-      logger = @logger || env['rack.errors']
-      #Standard library logger doesn't support write but it supports << which actually
-      #calls to write on the log device without formatting
-      write = logger.respond_to?(:write) ? logger.method(:write) : logger.method(:<<)
-      write.call FORMAT % [
+      msg = FORMAT % [
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
         now.strftime("%d/%b/%Y:%H:%M:%S %z"),
@@ -57,6 +53,15 @@ module Rack
         status.to_s[0..3],
         length,
         now - began_at ]
+
+      logger = @logger || env['rack.errors']
+      #Standard library logger doesn't support write but it supports << which actually
+      #calls to write on the log device without formatting
+      if logger.respond_to?(:write)
+        logger.write(msg)
+      else
+        logger << msg
+      end
     end
 
     def extract_content_length(headers)
