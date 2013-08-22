@@ -878,6 +878,21 @@ EOF
     lambda{ req.POST }.should.not.raise("input re-processed!")
   end
 
+  should "use form_hash when form_input is a Tempfile" do
+    input = "{foo: 'bar'}"
+
+    rack_input = Tempfile.new("rackspec")
+    rack_input.write(input)
+    rack_input.rewind
+
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "rack.request.form_hash" => {'foo' => 'bar'},
+                      "rack.request.form_input" => rack_input,
+                      :input => rack_input)
+
+    req.POST.should.equal(req.env['rack.request.form_hash'])
+  end
+
   should "conform to the Rack spec" do
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
