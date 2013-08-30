@@ -976,47 +976,47 @@ EOF
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,unknown'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,192.168.0.1'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,10.0.0.1'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1, 10.0.0.1, 3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => ' 3.4.5.6, 10.0.0.1, 10.0.0.1'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,127.0.0.1'
     res.body.should.equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,unknown'
     res.body.should.equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'other,unknown,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,unknown,other'
     res.body.should.equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,localhost,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,localhost,unknown'
     res.body.should.equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '172.31.4.4, 10.0.0.1, 3.4.5.6, 9.9.9.9'
     res.body.should.equal '3.4.5.6'
-
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '::1,2620:0:1c00:0:812c:9583:754b:ca11'
-    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
 
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '2620:0:1c00:0:812c:9583:754b:ca11,::1'
     res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'fd5b:982e:9130:247f:0000:0000:0000:0000,2620:0:1c00:0:812c:9583:754b:ca11'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '::1,2620:0:1c00:0:812c:9583:754b:ca11'
     res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
 
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '2620:0:1c00:0:812c:9583:754b:ca11,fd5b:982e:9130:247f:0000:0000:0000:0000'
     res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
 
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'fd5b:982e:9130:247f:0000:0000:0000:0000,2620:0:1c00:0:812c:9583:754b:ca11'
+    res.body.should.equal '2620:0:1c00:0:812c:9583:754b:ca11'
+
     res = mock.get '/',
-      'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 127.0.0.1',
+      'HTTP_X_FORWARDED_FOR' => '127.0.0.1,1.1.1.1',
       'HTTP_CLIENT_IP' => '1.1.1.1'
     res.body.should.equal '1.1.1.1'
 
@@ -1026,10 +1026,10 @@ EOF
       'HTTP_CLIENT_IP' => '2.2.2.2'
     res.body.should.equal '1.1.1.1'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9,8.8.8.8'
     res.body.should.equal '9.9.9.9'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, fe80::202:b3ff:fe1e:8329'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'fe80::202:b3ff:fe1e:8329,8.8.8.8'
     res.body.should.equal 'fe80::202:b3ff:fe1e:8329'
 
     # Unix Sockets
