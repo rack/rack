@@ -284,13 +284,20 @@ module Rack
 
       case header["Set-Cookie"]
       when nil, ''
-        header["Set-Cookie"] = cookie
+        cookies = []
       when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+        cookies = header["Set-Cookie"].split("\n")
       when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        cookies = header["Set-Cookie"]
       end
-
+      # do not send multiple cookies with same cookie-name domain-value and path-value
+      # see http://stackoverflow.com/questions/3806132/multiple-set-cookie-headers-in-http
+      cookies.reject! { |cookie| 
+        (!domain.nil? && cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/) &&
+        (!path.nil? && cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/)
+      }
+      header["Set-Cookie"] = cookies.join("\n")
+      
       nil
     end
     module_function :set_cookie_header!
