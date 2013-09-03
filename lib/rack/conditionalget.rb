@@ -61,7 +61,16 @@ module Rack
     end
 
     def to_rfc2822(since)
-      Time.rfc2822(since) rescue nil
+      # shortest possible valid date is the obsolete: 1 Nov 97 09:55 A
+      # anything shorter is invalid, this avoids exceptions for common cases
+      # most common being the empty string
+      if since && since.length >= 16
+        # NOTE: there is no trivial way to write this in a non execption way
+        #   _rfc2822 returns a hash but is not that usable
+        Time.rfc2822(since) rescue nil
+      else
+        nil
+      end
     end
   end
 end
