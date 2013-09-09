@@ -55,10 +55,14 @@ module Rack
 
       def digest_body(body)
         parts = []
-        body.each { |part| parts << part }
-        string_body = parts.join
-        digest = Digest::MD5.hexdigest(string_body) unless string_body.empty?
-        [digest, parts]
+        digest = nil
+
+        body.each do |part|
+          parts << part
+          (digest ||= Digest::MD5.new) << part unless part.empty?
+        end
+
+        [digest && digest.hexdigest, parts]
       end
   end
 end
