@@ -6,7 +6,6 @@ task :default => [:test]
 desc "Install gem dependencies"
 task :deps do
   require 'rubygems'
-  require 'rbconfig'
   spec = Gem::Specification.load('rack.gemspec')
   spec.dependencies.each do |dep|
     reqs = dep.requirements_list
