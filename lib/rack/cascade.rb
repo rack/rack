@@ -38,12 +38,12 @@ module Rack
       result
     end
 
-    def add app
+    def add(app)
       @has_app[app] = true
       @apps << app
     end
 
-    def include? app
+    def include?(app)
       @has_app.include? app
     end
 
