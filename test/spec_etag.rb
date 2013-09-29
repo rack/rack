@@ -7,14 +7,21 @@ describe Rack::ETag do
   def etag(app, *args)
     Rack::Lint.new Rack::ETag.new(app, *args)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   def sendfile_body
     res = ['Hello World']
     def res.to_path ; "/tmp/hello.txt" ; end
+    res
+  end
+
+  def closable_body
+    res = ['Hello World']
+    def res.close ; @closed = true ; end
+    def res.closed? ; !!@closed ; end
     res
   end
 
@@ -94,5 +101,12 @@ describe Rack::ETag do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Cache-Control' => 'no-cache, must-revalidate'}, ['Hello, World!']] }
     response = etag(app).call(request)
     response[1]['ETag'].should.be.nil
+  end
+
+  should "close the original body if it responds to close" do
+    body = closable_body
+    app  = lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
+    etag(app).call(request)
+    body.should.be.closed
   end
 end
