@@ -28,6 +28,7 @@ module Rack
           status = 304
           headers.delete('Content-Type')
           headers.delete('Content-Length')
+          body.close if body.respond_to?(:close)
           body = []
         end
         [status, headers, body]
