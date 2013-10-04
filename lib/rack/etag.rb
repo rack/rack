@@ -50,7 +50,8 @@ module Rack
 
       def skip_caching?(headers)
         (headers['Cache-Control'] && headers['Cache-Control'].include?('no-cache')) ||
-          headers.key?('ETag') || headers.key?('Last-Modified')
+          headers.key?('ETag') || headers.key?('Last-Modified') ||
+          headers['Transfer-Encoding'] == 'chunked'
       end
 
       def digest_body(body)
