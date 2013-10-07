@@ -36,9 +36,9 @@ module Rack
     module_function :escape_path
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
-    # target encoding of the string returned, and it defaults to UTF-8
+    # target encoding of the string returned, and it defaults to BINARY
     if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
+      def unescape(s, encoding = Encoding::BINARY)
         URI.decode_www_form_component(s, encoding)
       end
     else
