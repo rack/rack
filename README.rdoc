@@ -33,6 +33,7 @@ These web servers include Rack handlers in their distributions:
 * Unicorn
 * unixrack
 * uWSGI
+* yahns
 * Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
