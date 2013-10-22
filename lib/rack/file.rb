@@ -13,7 +13,8 @@ module Rack
 
   class File
     SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
-    ALLOWED_VERBS = %w[GET HEAD]
+    ALLOWED_VERBS = %w[GET HEAD OPTIONS]
+    ALLOW_HEADER = ALLOWED_VERBS.join(', ')
 
     attr_accessor :root
     attr_accessor :path
@@ -35,7 +36,7 @@ module Rack
 
     def _call(env)
       unless ALLOWED_VERBS.include? env["REQUEST_METHOD"]
-        return fail(405, "Method Not Allowed")
+        return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
       end
 
       path_info = Utils.unescape(env["PATH_INFO"])
@@ -64,6 +65,9 @@ module Rack
     end
 
     def serving(env)
+      if env["REQUEST_METHOD"] == "OPTIONS"
+      	return [200, {'Allow' => ALLOW_HEADER, 'Content-Length' => 0}, []]
+      end
       last_modified = F.mtime(@path).httpdate
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
@@ -121,7 +125,7 @@ module Rack
 
     private
 
-    def fail(status, body)
+    def fail(status, body, headers = {})
       body += "\n"
       [
         status,
@@ -129,7 +133,7 @@ module Rack
           "Content-Type" => "text/plain",
           "Content-Length" => body.size.to_s,
           "X-Cascade" => "pass"
-        },
+        }.merge!(headers),
         [body]
       ]
     end

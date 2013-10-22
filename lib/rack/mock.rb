@@ -53,12 +53,13 @@ module Rack
       @app = app
     end
 
-    def get(uri, opts={})    request("GET", uri, opts)    end
-    def post(uri, opts={})   request("POST", uri, opts)   end
-    def put(uri, opts={})    request("PUT", uri, opts)    end
-    def patch(uri, opts={})  request("PATCH", uri, opts)    end
-    def delete(uri, opts={}) request("DELETE", uri, opts) end
-    def head(uri, opts={})   request("HEAD", uri, opts)   end
+    def get(uri, opts={})     request("GET", uri, opts)     end
+    def post(uri, opts={})    request("POST", uri, opts)    end
+    def put(uri, opts={})     request("PUT", uri, opts)     end
+    def patch(uri, opts={})   request("PATCH", uri, opts)   end
+    def delete(uri, opts={})  request("DELETE", uri, opts)  end
+    def head(uri, opts={})    request("HEAD", uri, opts)    end
+    def options(uri, opts={}) request("OPTIONS", uri, opts) end
 
     def request(method="GET", uri="", opts={})
       env = self.class.env_for(uri, opts.merge(:method => method))
