@@ -66,7 +66,7 @@ module Rack
 
     def serving(env)
       if env["REQUEST_METHOD"] == "OPTIONS"
-      	return [200, {'Allow' => ALLOW_HEADER, 'Content-Length' => 0}, []]
+      	return [200, {'Allow' => ALLOW_HEADER, 'Content-Length' => '0'}, []]
       end
       last_modified = F.mtime(@path).httpdate
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
