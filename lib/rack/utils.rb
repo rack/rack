@@ -109,6 +109,8 @@ module Rack
 
       if after == ""
         params[k] = v
+      elsif after == "["
+        params[name] = v
       elsif after == "[]"
         params[k] ||= []
         raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
