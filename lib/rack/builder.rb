@@ -157,7 +157,7 @@ module Rack
 
     def generate_map(default_app, mapping)
       mapped = default_app ? {'/' => default_app} : {}
-      mapping.each { |r,b| mapped[r] = self.class.new(default_app, &b) }
+      mapping.each { |r,b| mapped[r] = self.class.new(default_app, &b).to_app }
       URLMap.new(mapped)
     end
   end
