@@ -39,11 +39,22 @@ module Rack
       @app = app
     end
 
+    # pre-HTTP/1.0 (informally "HTTP/0.9") HTTP requests did not have
+    # a version (nor response headers)
+    def chunkable_version?(ver)
+      case ver
+      when "HTTP/1.0", nil, "HTTP/0.9"
+        false
+      else
+        true
+      end
+    end
+
     def call(env)
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if env['HTTP_VERSION'] == 'HTTP/1.0' ||
+      if ! chunkable_version?(env['HTTP_VERSION']) ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers['Content-Length'] ||
          headers['Transfer-Encoding']
