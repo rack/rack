@@ -67,7 +67,7 @@ describe Rack::CommonLogger do
     md = /- - - \[([^\]]+)\] "(\w+) \/ " (\d{3}) \d+ ([\d\.]+)/.match(log.string)
     md.should.not.equal nil
     time, method, status, duration = *md.captures
-    time.should.equal Time.at(0).strftime("%d/%b/%Y %H:%M:%S %z")
+    time.should.equal Time.at(0).strftime("%d/%b/%Y:%H:%M:%S %z")
     method.should.equal "GET"
     status.should.equal "200"
     (0..1).should.include?(duration.to_f)
