@@ -21,7 +21,7 @@ module Rack
       end
 
       def scheme
-        @scheme ||= parts.first.downcase
+        @scheme ||= parts.first && parts.first.downcase
       end
 
       def params
