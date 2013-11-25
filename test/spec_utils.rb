@@ -204,6 +204,10 @@ describe Rack::Utils do
       message.should.equal "expected Array (got String) for param `y'"
   end
 
+  should "parse nested queries with invalid bytes correctly" do
+    Rack::Utils.parse_nested_query("fo\255[]=1")
+  end
+
   should "build query strings correctly" do
     Rack::Utils.build_query("foo" => "bar").should.be equal_query_to("foo=bar")
     Rack::Utils.build_query("foo" => ["bar", "quux"]).
