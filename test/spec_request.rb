@@ -938,6 +938,23 @@ EOF
     parser.call("gzip ; deflate").should.equal([["gzip", 1.0]])
   end
 
+  should "parse Accept-Language correctly" do
+    parser = lambda do |x|
+      Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_LANGUAGE" => x)).accept_language
+    end
+
+    parser.call(nil).should.equal([])
+
+    parser.call("fr, en").should.equal([["fr", 1.0], ["en", 1.0]])
+    parser.call("").should.equal([])
+    parser.call("*").should.equal([["*", 1.0]])
+    parser.call("fr;q=0.5, en;q=1.0").should.equal([["fr", 0.5], ["en", 1.0]])
+    parser.call("fr;q=1.0, en; q=0.5, *;q=0").should.equal([["fr", 1.0], ["en", 0.5], ["*", 0] ])
+
+    parser.call("fr ; q=0.9").should.equal([["fr", 0.9]])
+    parser.call("fr").should.equal([["fr", 1.0]])
+  end
+
   ip_app = lambda { |env|
     request = Rack::Request.new(env)
     response = Rack::Response.new

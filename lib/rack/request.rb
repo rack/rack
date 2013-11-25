@@ -142,7 +142,7 @@ module Rack
 
     # Checks the HTTP request method (or verb) to see if it was of type TRACE
     def trace?;   request_method == "TRACE"   end
-    
+
     # Checks the HTTP request method (or verb) to see if it was of type UNLINK
     def unlink?;  request_method == "UNLINK"  end
 
@@ -344,6 +344,17 @@ module Rack
           quality = $1.to_f
         end
         [encoding, quality]
+      end
+    end
+
+    def accept_language
+      @env["HTTP_ACCEPT_LANGUAGE"].to_s.split(/\s*,\s*/).map do |part|
+        language, parameters = part.split(/\s*;\s*/, 2)
+        quality = 1.0
+        if parameters and /\Aq=([\d.]+)/ =~ parameters
+          quality = $1.to_f
+        end
+        [language, quality]
       end
     end
 
