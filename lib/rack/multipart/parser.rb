@@ -20,14 +20,19 @@ module Rack
       end
 
       def initialize(boundary, io, content_length)
+        @buf            = ""
+        @params         = Utils::KeySpaceConstrainedParams.new
         @boundary       = "--#{boundary}"
         @io             = io
         @content_length = content_length
+        @boundary_size  = Utils.bytesize(@boundary) + EOL.size
+
+        if @content_length
+          @content_length -= @boundary_size
+        end
       end
 
       def parse
-        setup_parse
-
         fast_forward_to_first_boundary
 
         loop do
@@ -56,17 +61,6 @@ module Rack
       end
 
       private
-      def setup_parse
-        @buf = ""
-        @params = Utils::KeySpaceConstrainedParams.new
-
-        @boundary_size = Utils.bytesize(@boundary) + EOL.size
-
-        if @content_length
-          @content_length -= @boundary_size
-        end
-      end
-
       def full_boundary
         @boundary + EOL
       end
