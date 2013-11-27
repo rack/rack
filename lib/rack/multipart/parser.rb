@@ -50,9 +50,9 @@ module Rack
             @content_length = -1  if $1 == "--"
           end
 
-          data = get_data(filename, body, content_type, name, head)
-
-          Utils.normalize_params(@params, name, data) unless data.nil?
+          get_data(filename, body, content_type, name, head) do |data|
+            Utils.normalize_params(@params, name, data)
+          end
 
           # break if we're at the end of a buffer, but not if it is the end of a field
           break if (@buf.empty? && $1 != EOL) || @content_length == -1
@@ -169,7 +169,7 @@ module Rack
                   :name => name, :tempfile => body, :head => head}
         end
 
-        data
+        yield data
       end
     end
   end
