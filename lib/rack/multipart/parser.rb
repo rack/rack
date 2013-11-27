@@ -124,12 +124,11 @@ module Rack
 
       def get_filename(head)
         filename = nil
-        if head =~ RFC2183
+        case head
+        when RFC2183
           filename = Hash[head.scan(DISPPARM)]['filename']
           filename = $1 if filename and filename =~ /^"(.*)"$/
-        elsif head =~ BROKEN_QUOTED
-          filename = $1
-        elsif head =~ BROKEN_UNQUOTED
+        when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
         end
 
