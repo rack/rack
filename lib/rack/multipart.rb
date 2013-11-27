@@ -22,7 +22,7 @@ module Rack
 
     class << self
       def parse_multipart(env)
-        Parser.new(env).parse
+        Parser.create(env).parse
       end
 
       def build_multipart(params, first = true)

@@ -5,12 +5,21 @@ module Rack
     class Parser
       BUFSIZE = 16384
 
-      def initialize(env)
+      DUMMY = Struct.new(:parse).new
+
+      def self.create(env)
+        return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
+
+        new(env, $1)
+      end
+
+      def initialize(env, boundary)
         @env = env
+        @boundary = "--#{boundary}"
       end
 
       def parse
-        return nil unless setup_parse
+        setup_parse
 
         fast_forward_to_first_boundary
 
@@ -41,10 +50,6 @@ module Rack
 
       private
       def setup_parse
-        return false unless @env['CONTENT_TYPE'] =~ MULTIPART
-
-        @boundary = "--#{$1}"
-
         @buf = ""
         @params = Utils::KeySpaceConstrainedParams.new
 
