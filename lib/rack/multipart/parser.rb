@@ -32,6 +32,7 @@ module Rack
         end
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
+        @full_boundary = @boundary + EOL
       end
 
       def parse
@@ -63,9 +64,7 @@ module Rack
       end
 
       private
-      def full_boundary
-        @boundary + EOL
-      end
+      def full_boundary; @full_boundary; end
 
       def rx; @rx; end
 
