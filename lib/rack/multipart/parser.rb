@@ -146,10 +146,10 @@ module Rack
       end
 
       def get_data(filename, body, content_type, name, head)
-        data = nil
+        data = body
         if filename == ""
           # filename is blank which means no file has been selected
-          return data
+          return
         elsif filename
           body.rewind
 
@@ -167,8 +167,6 @@ module Rack
           # Generic multipart cases, not coming from a form
           data = {:type => content_type,
                   :name => name, :tempfile => body, :head => head}
-        else
-          data = body
         end
 
         data
