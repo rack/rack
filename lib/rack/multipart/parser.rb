@@ -10,12 +10,19 @@ module Rack
       def self.create(env)
         return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
 
-        new(env, $1)
+        io = env['rack.input']
+        io.rewind
+
+        content_length = env['CONTENT_LENGTH']
+        content_length = content_length.to_i if content_length
+
+        new($1, io, content_length)
       end
 
-      def initialize(env, boundary)
-        @env = env
-        @boundary = "--#{boundary}"
+      def initialize(boundary, io, content_length)
+        @boundary       = "--#{boundary}"
+        @io             = io
+        @content_length = content_length
       end
 
       def parse
@@ -53,16 +60,11 @@ module Rack
         @buf = ""
         @params = Utils::KeySpaceConstrainedParams.new
 
-        @io = @env['rack.input']
-        @io.rewind
-
         @boundary_size = Utils.bytesize(@boundary) + EOL.size
 
-        if @content_length = @env['CONTENT_LENGTH']
-          @content_length = @content_length.to_i
+        if @content_length
           @content_length -= @boundary_size
         end
-        true
       end
 
       def full_boundary
