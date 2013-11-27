@@ -137,7 +137,7 @@ module Rack
           filename = Utils.unescape(filename)
         end
         if filename.respond_to?(:valid_encoding?) && !filename.valid_encoding?
-          filename = filename.chars.select { |char| char.valid_encoding? }.join
+          filename.encode!(:invalid => :replace)
         end
         if filename && filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
