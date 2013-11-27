@@ -50,7 +50,7 @@ module Rack
             @content_length = -1  if $1 == "--"
           end
 
-          filename, data = get_data(filename, body, content_type, name, head)
+          data = get_data(filename, body, content_type, name, head)
 
           Utils.normalize_params(@params, name, data) unless data.nil?
 
@@ -171,7 +171,7 @@ module Rack
           data = body
         end
 
-        [filename, data]
+        data
       end
     end
   end
