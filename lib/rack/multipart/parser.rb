@@ -30,6 +30,8 @@ module Rack
         if @content_length
           @content_length -= @boundary_size
         end
+
+        @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
       end
 
       def parse
@@ -65,9 +67,7 @@ module Rack
         @boundary + EOL
       end
 
-      def rx
-        @rx ||= /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
-      end
+      def rx; @rx; end
 
       def fast_forward_to_first_boundary
         loop do
