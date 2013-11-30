@@ -137,13 +137,24 @@ module Rack
         if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
           filename = Utils.unescape(filename)
         end
-        if filename.respond_to?(:valid_encoding?) && !filename.valid_encoding?
-          filename.encode!(:invalid => :replace)
-        end
+
+        scrub_filename filename
+
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
         end
         filename
+      end
+
+      if "<3".respond_to? :valid_encoding?
+        def scrub_filename(filename)
+          unless filename.valid_encoding?
+            filename.encode!(:invalid => :replace)
+          end
+        end
+      else
+        def scrub_filename(filename)
+        end
       end
 
       def get_data(filename, body, content_type, name, head)
