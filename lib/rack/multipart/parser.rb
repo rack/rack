@@ -149,7 +149,10 @@ module Rack
       if "<3".respond_to? :valid_encoding?
         def scrub_filename(filename)
           unless filename.valid_encoding?
-            filename.encode!(:invalid => :replace)
+            # FIXME: this force_encoding is for Ruby 2.0 and 1.9 support.
+            # We can remove it after they are dropped
+            filename.force_encoding(Encoding::ASCII_8BIT)
+            filename.encode!(:invalid => :replace, :undef => :replace)
           end
         end
       else
