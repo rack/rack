@@ -584,7 +584,7 @@ module Rack
         assert("a header value must be a String, but the value of " +
           "'#{key}' is a #{value.class}") { value.kind_of? String }
         ## consisting of lines (for multiple header values, e.g. multiple
-        ## <tt>Set-Cookie</tt> values) separated by "\n".
+        ## <tt>Set-Cookie</tt> values) separated by "\\n".
         value.split("\n").each { |item|
           ## The lines must not contain characters below 037.
           assert("invalid header value #{key}: #{item.inspect}") {
