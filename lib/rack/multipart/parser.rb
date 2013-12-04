@@ -91,6 +91,11 @@ module Rack
       def get_current_head_and_filename_and_content_type_and_name_and_body
         head = nil
         body = ''
+
+        if body.respond_to? :force_encoding
+          body.force_encoding Encoding::ASCII_8BIT
+        end
+
         filename = content_type = name = nil
 
         until head && @buf =~ rx
