@@ -95,4 +95,10 @@ describe Rack::ETag do
     response = etag(app).call(request)
     response[1]['ETag'].should.be.nil
   end
+
+  should "not set ETag if Transfer-Encoding: chunked and Cache-Control: private are given" do
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Transfer-Encoding' => 'chunked', 'Cache-Control' => 'private; max-age=0'}, ['Hello, World!']] }
+    response = etag(app).call(request)
+    response[1]['ETag'].should.be.nil
+  end
 end
