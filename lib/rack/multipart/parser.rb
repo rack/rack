@@ -56,6 +56,8 @@ module Rack
           end
 
           get_data(filename, body, content_type, name, head) do |data|
+            tag_multipart_encoding(filename, content_type, name, data)
+
             Utils.normalize_params(@params, name, data)
           end
 
@@ -165,8 +167,39 @@ module Rack
             filename.encode!(:invalid => :replace, :undef => :replace)
           end
         end
+
+        CHARSET    = "charset"
+        TEXT_PLAIN = "text/plain"
+
+        def tag_multipart_encoding(filename, content_type, name, body)
+          name.force_encoding Encoding::UTF_8
+
+          return if filename
+
+          encoding = Encoding::UTF_8
+
+          if content_type
+            list         = content_type.split(';')
+            type_subtype = list.first
+            type_subtype.strip!
+            if TEXT_PLAIN == type_subtype
+              rest         = list.drop 1
+              rest.each do |param|
+                k,v = param.split('=', 2)
+                k.strip!
+                v.strip!
+                encoding = Encoding.find v if k == CHARSET
+              end
+            end
+          end
+
+          name.force_encoding encoding
+          body.force_encoding encoding
+        end
       else
         def scrub_filename(filename)
+        end
+        def tag_multipart_encoding(filename, content_type, name, body)
         end
       end
 

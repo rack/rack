@@ -30,6 +30,42 @@ describe Rack::Multipart do
     params["text"].should.equal "contents"
   end
 
+  should "set US_ASCII encoding based on charset" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text"].encoding.should.equal Encoding::US_ASCII
+
+    # I'm not 100% sure if making the param name encoding match the
+    # Content-Type charset is the right thing to do.  We should revisit this.
+    params.keys.each do |key|
+      key.encoding.should.equal Encoding::US_ASCII
+    end
+  end
+
+  should "set BINARY encoding on things without content type" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].encoding.should.equal Encoding::UTF_8
+  end
+
+  should "set UTF8 encoding on names of things without content type" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.each do |key|
+      key.encoding.should.equal Encoding::UTF_8
+    end
+  end
+
+  should "default text to UTF8" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    params = Rack::Multipart.parse_multipart(env)
+    params['submit-name'].encoding.should.equal Encoding::UTF_8
+    params['submit-name-with-content'].encoding.should.equal Encoding::UTF_8
+    params.keys.each do |key|
+      key.encoding.should.equal Encoding::UTF_8
+    end
+  end
+
   should "raise RangeError if the key space is exhausted" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
 
@@ -186,6 +222,14 @@ describe Rack::Multipart do
     params["submit-name"].should.equal "Larry"
     params["files"].should.equal nil
     params.keys.should.not.include "files"
+  end
+
+  should "parse multipart/mixed" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
+    params = Rack::Utils::Multipart.parse_multipart(env)
+    params["foo"].should.equal "bar"
+    params["files"].should.be.instance_of String
+    params["files"].size.should.equal 252
   end
 
   should "parse multipart/mixed" do
