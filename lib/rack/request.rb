@@ -365,7 +365,7 @@ module Rack
         return client_ip if forwarded_ips.include?(client_ip)
       end
 
-      return reject_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
+      return reject_trusted_ip_addresses(forwarded_ips).first || @env["REMOTE_ADDR"]
     end
 
     protected
