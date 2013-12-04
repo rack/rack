@@ -13,9 +13,6 @@ rvm:
   - rbx
   - jruby
   - ree
-branches:
-  # The old 1.1, 1.2, and 1.3 branches aren't correctly setup yet.
-  only: master
 notifications:
   email: false
   irc: "irc.freenode.org#rack"
