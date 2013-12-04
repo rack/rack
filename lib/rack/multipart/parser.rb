@@ -21,6 +21,11 @@ module Rack
 
       def initialize(boundary, io, content_length)
         @buf            = ""
+
+        if @buf.respond_to? :force_encoding
+          @buf.force_encoding Encoding::ASCII_8BIT
+        end
+
         @params         = Utils::KeySpaceConstrainedParams.new
         @boundary       = "--#{boundary}"
         @io             = io
