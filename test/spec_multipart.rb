@@ -30,6 +30,7 @@ describe Rack::Multipart do
     params["text"].should.equal "contents"
   end
 
+  if "<3".respond_to?(:force_encoding)
   should "set US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
@@ -64,6 +65,7 @@ describe Rack::Multipart do
     params.keys.each do |key|
       key.encoding.should.equal Encoding::UTF_8
     end
+  end
   end
 
   should "raise RangeError if the key space is exhausted" do
