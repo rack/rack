@@ -164,22 +164,30 @@ describe Rack::File do
     heads['Access-Control-Allow-Origin'].should.equal nil
   end
 
-  should "only support GET and HEAD requests" do
+  should "only support GET, HEAD, and OPTIONS requests" do
     req = Rack::MockRequest.new(file(DOCROOT))
 
     forbidden = %w[post put patch delete]
     forbidden.each do |method|
-
       res = req.send(method, "/cgi/test")
       res.should.be.client_error
       res.should.be.method_not_allowed
+      res.headers['Allow'].split(/, */).sort.should == %w(GET HEAD OPTIONS)
     end
 
-    allowed = %w[get head]
+    allowed = %w[get head options]
     allowed.each do |method|
       res = req.send(method, "/cgi/test")
       res.should.be.successful
     end
+  end
+
+  should "set Allow correctly for OPTIONS requests" do
+    req = Rack::MockRequest.new(file(DOCROOT))
+    res = req.options('/cgi/test')
+    res.should.be.successful
+    res.headers['Allow'].should.not.equal nil
+    res.headers['Allow'].split(/, */).sort.should == %w(GET HEAD OPTIONS)
   end
 
   should "set Content-Length correctly for HEAD requests" do
