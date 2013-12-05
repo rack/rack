@@ -337,25 +337,11 @@ module Rack
     end
 
     def accept_encoding
-      @env["HTTP_ACCEPT_ENCODING"].to_s.split(/\s*,\s*/).map do |part|
-        encoding, parameters = part.split(/\s*;\s*/, 2)
-        quality = 1.0
-        if parameters and /\Aq=([\d.]+)/ =~ parameters
-          quality = $1.to_f
-        end
-        [encoding, quality]
-      end
+      parse_http_accept_header(@env["HTTP_ACCEPT_ENCODING"])
     end
 
     def accept_language
-      @env["HTTP_ACCEPT_LANGUAGE"].to_s.split(/\s*,\s*/).map do |part|
-        language, parameters = part.split(/\s*;\s*/, 2)
-        quality = 1.0
-        if parameters and /\Aq=([\d.]+)/ =~ parameters
-          quality = $1.to_f
-        end
-        [language, quality]
-      end
+      parse_http_accept_header(@env["HTTP_ACCEPT_LANGUAGE"])
     end
 
     def trusted_proxy?(ip)
@@ -394,6 +380,17 @@ module Rack
 
       def parse_multipart(env)
         Rack::Multipart.parse_multipart(env)
+      end
+
+      def parse_http_accept_header(header)
+        header.to_s.split(/\s*,\s*/).map do |part|
+          attribute, parameters = part.split(/\s*;\s*/, 2)
+          quality = 1.0
+          if parameters and /\Aq=([\d.]+)/ =~ parameters
+            quality = $1.to_f
+          end
+          [attribute, quality]
+        end
       end
   end
 end
