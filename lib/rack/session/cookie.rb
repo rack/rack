@@ -135,7 +135,9 @@ module Rack
           session_data = request.cookies[@key]
 
           if @secrets.size > 0 && session_data
-            session_data, digest = session_data.split("--")
+            tmp = session_data.split("--")
+            digest = tmp.pop
+            session_data = tmp.join("--")
             session_data = nil unless digest_match?(session_data, digest)
           end
 

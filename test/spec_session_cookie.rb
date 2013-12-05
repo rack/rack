@@ -386,4 +386,25 @@ describe Rack::Session::Cookie do
     response.body.should.match(/counter/)
     response.body.should.match(/foo/)
   end
+
+  it "allows more than one '--' in the cookie when calculating digests" do
+    @counter = 0
+    app = lambda do |env|
+      env["rack.session"]["message"] ||= ""
+      env["rack.session"]["message"] << "#{(@counter += 1).to_s}--"
+      hash = env["rack.session"].dup
+      hash.delete("session_id")
+      Rack::Response.new(hash["message"]).to_a
+    end
+    # another example of an unsafe coder is Base64.urlsafe_encode64
+    unsafe_coder = Class.new {
+      def encode(hash); hash.inspect end
+      def decode(str); eval(str) if str; end
+    }.new
+    _app = [ app, { :secret => "test", :coder => unsafe_coder } ]
+    response = response_for(:app => _app)
+    response.body.should.equal "1--"
+    response = response_for(:app => _app, :cookie => response)
+    response.body.should.equal "1--2--"
+  end
 end
