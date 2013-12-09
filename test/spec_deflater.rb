@@ -16,7 +16,7 @@ describe Rack::Deflater do
     end
 
     request = Rack::MockRequest.env_for('', (options['request_headers'] || {}).merge('HTTP_ACCEPT_ENCODING' => accept_encoding))
-    deflater = Rack::Lint.new Rack::Deflater.new(app)
+    deflater = Rack::Lint.new Rack::Deflater.new(app, options['deflater_options'] || {})
 
     deflater.call(request)
   end
@@ -34,6 +34,7 @@ describe Rack::Deflater do
   #           'app_body' - what body dummy app should return (may be changed by deflater at some point)
   #           'request_headers' - extra reqest headers to be sent
   #           'response_headers' - extra response headers to be returned
+  #           'deflater_options' - options passed to deflater middleware
   # [block] useful for doing some extra verification
   def verify(expected_status, expected_body, accept_encoding, options = {}, &block)
     accept_encoding, expected_encoding = if accept_encoding.kind_of?(Hash)
@@ -254,5 +255,85 @@ describe Rack::Deflater do
       }
     }
     verify(200, 'Hello World!', 'deflate', options)
+  end
+
+  should "deflate if content-type matches :include" do
+    options = {
+      'response_headers' => {
+        'Content-Type' => 'text/plain'
+      },
+      'deflater_options' => {
+        :include => %w(text/plain)
+      }
+    }
+    verify(200, 'Hello World!', 'gzip', options)
+  end
+
+  should "deflate if content-type is included it :include" do
+    options = {
+      'response_headers' => {
+        'Content-Type' => 'text/plain; charset=us-ascii'
+      },
+      'deflater_options' => {
+        :include => %w(text/plain)
+      }
+    }
+    verify(200, 'Hello World!', 'gzip', options)
+  end
+
+  should "not deflate if content-type is not set but given in :include" do
+    options = {
+      'deflater_options' => {
+        :include => %w(text/plain)
+      }
+    }
+    verify(304, 'Hello World!', { 'gzip' => nil }, options)
+  end
+
+  should "not deflate if content-type do not match :include" do
+    options = {
+      'response_headers' => {
+        'Content-Type' => 'text/plain'
+      },
+      'deflater_options' => {
+        :include => %w(text/json)
+      }
+    }
+    verify(200, 'Hello World!', { 'gzip' => nil }, options)
+  end
+
+  should "deflate response if :if lambda evaluates to true" do
+    options = {
+      'deflater_options' => {
+        :if => lambda { |env, status, headers, body| true }
+      }
+    }
+    verify(200, 'Hello World!', 'deflate', options)
+  end
+
+  should "not deflate if :if lambda evaluates to false" do
+    options = {
+      'deflater_options' => {
+        :if => lambda { |env, status, headers, body| false }
+      }
+    }
+    verify(200, 'Hello World!', { 'gzip' => nil }, options)
+  end
+
+  should "check for Content-Length via :if" do
+    body = 'Hello World!'
+    body_len = body.length
+    options = {
+      'response_headers' => {
+        'Content-Length' => body_len.to_s
+      },
+      'deflater_options' => {
+        :if => lambda { |env, status, headers, body|
+          headers['Content-Length'].to_i >= body_len
+        }
+      }
+    }
+
+    verify(200, body, 'gzip', options)
   end
 end
