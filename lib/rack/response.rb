@@ -1,5 +1,6 @@
 require 'rack/request'
 require 'rack/utils'
+require 'rack/body_proxy'
 require 'time'
 
 module Rack
