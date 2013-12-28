@@ -66,7 +66,6 @@ module Rack
           gzip.flush
         }
       ensure
-        close
         gzip.close
         @writer = nil
       end
@@ -102,7 +101,6 @@ module Rack
         yield deflater.finish
         nil
       ensure
-        close
         deflator.close
       end
 
