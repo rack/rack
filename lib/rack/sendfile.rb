@@ -1,4 +1,5 @@
 require 'rack/file'
+require 'rack/body_proxy'
 
 module Rack
 
@@ -117,8 +118,10 @@ module Rack
           if url = map_accel_path(env, path)
             headers['Content-Length'] = '0'
             headers[type] = url
-            body.close if body.respond_to?(:close)
-            body = []
+            obody = body
+            body = Rack::BodyProxy.new([]) do
+              obody.close if obody.respond_to?(:close)
+            end
           else
             env['rack.errors'].puts "X-Accel-Mapping header missing"
           end
@@ -126,8 +129,10 @@ module Rack
           path = F.expand_path(body.to_path)
           headers['Content-Length'] = '0'
           headers[type] = path
-          body.close if body.respond_to?(:close)
-          body = []
+          obody = body
+          body = Rack::BodyProxy.new([]) do
+            obody.close if obody.respond_to?(:close)
+          end
         when '', nil
         else
           env['rack.errors'].puts "Unknown x-sendfile variation: '#{type}'.\n"
