@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'rack/body_proxy'
 
 module Rack
 
@@ -22,7 +23,10 @@ module Rack
         obody = body
         body, length = [], 0
         obody.each { |part| body << part; length += bytesize(part) }
-        obody.close if obody.respond_to?(:close)
+
+        body = BodyProxy.new(body) do
+          obody.close if obody.respond_to?(:close)
+        end
 
         headers['Content-Length'] = length.to_s
       end

@@ -62,7 +62,9 @@ describe Rack::ContentLength do
     end.new(%w[one two three])
 
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
-    content_length(app).call(request)
+    response = content_length(app).call(request)
+    body.closed.should.equal nil
+    response[2].close
     body.closed.should.equal true
   end
 
