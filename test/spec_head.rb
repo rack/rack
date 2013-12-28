@@ -38,6 +38,8 @@ describe Rack::Head do
     resp[0].should.equal(200)
     resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
     resp[2].to_enum.to_a.should.equal([])
+    body.should.not.be.closed
+    resp[2].close
     body.should.be.closed
   end
 end
