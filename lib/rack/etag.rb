@@ -62,6 +62,8 @@ module Rack
           (digest ||= Digest::MD5.new) << part unless part.empty?
         end
 
+        body.close if body.respond_to?(:close)
+
         [digest && digest.hexdigest, parts]
       end
   end

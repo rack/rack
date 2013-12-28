@@ -2,6 +2,8 @@ require 'time'
 require 'rack/conditionalget'
 require 'rack/mock'
 
+require File.expand_path('../closable_body', __FILE__)
+
 describe Rack::ConditionalGet do
   def conditional_get(app)
     Rack::Lint.new Rack::ConditionalGet.new(app)
@@ -97,6 +99,18 @@ describe Rack::ConditionalGet do
 
     response.status.should.equal 200
     response.body.should.equal 'TEST'
+  end
+
+  should "close the body when replacing it if the body responds to close" do
+    body = ClosableBody.new('test')
+
+    app = conditional_get(lambda { |env|
+      [200, {'Etag' => '1234', 'Content-Type' => 'text/plain'}, body] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => '1234')
+
+    body.should.be.closed
   end
 
 end
