@@ -23,7 +23,9 @@ module Rack
       status, headers, body = @app.call(env)
 
       if etag_status?(status) && etag_body?(body) && !skip_caching?(headers)
+        original_body = body
         digest, body = digest_body(body)
+        original_body.close if original_body.respond_to?(:close)
         headers['ETag'] = %("#{digest}") if digest
       end
 

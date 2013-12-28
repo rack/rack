@@ -95,4 +95,11 @@ describe Rack::ETag do
     response = etag(app).call(request)
     response[1]['ETag'].should.be.nil
   end
+
+  should "close the original body" do
+    body = StringIO.new
+    app = lambda { |env| [200, {}, body] }
+    etag(app).call(request)
+    body.should.be.closed
+  end
 end
