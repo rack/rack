@@ -99,7 +99,9 @@ describe Rack::ETag do
   should "close the original body" do
     body = StringIO.new
     app = lambda { |env| [200, {}, body] }
-    etag(app).call(request)
+    response = etag(app).call(request)
+    body.should.not.be.closed
+    response[2].close
     body.should.be.closed
   end
 end

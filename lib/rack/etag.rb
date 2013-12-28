@@ -24,8 +24,10 @@ module Rack
 
       if etag_status?(status) && etag_body?(body) && !skip_caching?(headers)
         original_body = body
-        digest, body = digest_body(body)
-        original_body.close if original_body.respond_to?(:close)
+        digest, new_body = digest_body(body)
+        body = Rack::BodyProxy.new(new_body) do
+          original_body.close if original_body.respond_to?(:close)
+        end
         headers['ETag'] = %("#{digest}") if digest
       end
 
