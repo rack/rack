@@ -157,6 +157,16 @@ describe Rack::Utils do
       should.equal "foo" => [""]
     Rack::Utils.parse_nested_query("foo[]=bar").
       should.equal "foo" => ["bar"]
+    Rack::Utils.parse_nested_query("foo[]=bar&foo").
+      should.equal "foo" => nil
+    Rack::Utils.parse_nested_query("foo[]=bar&foo[").
+      should.equal "foo" => ["bar"], "foo[" => nil
+    Rack::Utils.parse_nested_query("foo[]=bar&foo[=baz").
+      should.equal "foo" => ["bar"], "foo[" => "baz"
+    Rack::Utils.parse_nested_query("foo[]=bar&foo[]").
+      should.equal "foo" => ["bar", nil]
+    Rack::Utils.parse_nested_query("foo[]=bar&foo[]=").
+      should.equal "foo" => ["bar", ""]
 
     Rack::Utils.parse_nested_query("foo[]=1&foo[]=2").
       should.equal "foo" => ["1", "2"]

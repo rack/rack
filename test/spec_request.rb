@@ -1115,6 +1115,13 @@ EOF
     req2.params.should.equal "foo" => "bar"
   end
 
+  should "raise TypeError every time if request parameters are broken" do
+    broken_query = Rack::MockRequest.env_for("/?foo[]=0&foo[bar]=1")
+    req = Rack::Request.new(broken_query)
+    lambda{req.GET}.should.raise(TypeError)
+    lambda{req.params}.should.raise(TypeError)
+  end
+
   (0x20...0x7E).collect { |a|
     b = a.chr
     c = CGI.escape(b)
