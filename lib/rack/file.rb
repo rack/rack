@@ -12,7 +12,6 @@ module Rack
   # like sendfile on the +path+.
 
   class File
-    SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
     ALLOWED_VERBS = %w[GET HEAD OPTIONS]
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
 
@@ -40,16 +39,9 @@ module Rack
       end
 
       path_info = Utils.unescape(env["PATH_INFO"])
-      parts = path_info.split SEPS
+      clean_path_info = Utils.clean_path_info(path_info)
 
-      clean = []
-
-      parts.each do |part|
-        next if part.empty? || part == '.'
-        part == '..' ? clean.pop : clean << part
-      end
-
-      @path = F.join(@root, *clean)
+      @path = F.join(@root, clean_path_info)
 
       available = begin
         F.file?(@path) && F.readable?(@path)
