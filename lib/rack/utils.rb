@@ -625,5 +625,23 @@ module Rack
 
     Multipart = Rack::Multipart
 
+    PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+
+    def clean_path_info(path_info)
+      parts = path_info.split PATH_SEPS
+
+      clean = []
+
+      parts.each do |part|
+        next if part.empty? || part == '.'
+        part == '..' ? clean.pop : clean << part
+      end
+
+      clean.unshift '/' if parts.first.empty?
+
+      ::File.join(*clean)
+    end
+    module_function :clean_path_info
+
   end
 end

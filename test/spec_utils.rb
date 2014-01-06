@@ -388,6 +388,21 @@ describe Rack::Utils do
   should "return rfc2109 format from rfc2109 helper" do
     Rack::Utils.rfc2109(Time.at(0).gmtime).should == "Thu, 01-Jan-1970 00:00:00 GMT"
   end
+
+  should "clean directory traversal" do
+    Rack::Utils.clean_path_info("/cgi/../cgi/test").should.equal "/cgi/test"
+    Rack::Utils.clean_path_info(".").should.empty
+    Rack::Utils.clean_path_info("test/..").should.empty
+  end
+
+  should "clean unsafe directory traversal to safe path" do
+    Rack::Utils.clean_path_info("/../README.rdoc").should.equal "/README.rdoc"
+    Rack::Utils.clean_path_info("../test/spec_utils.rb").should.equal "test/spec_utils.rb"
+  end
+
+  should "not clean directory traversal with encoded periods" do
+    Rack::Utils.clean_path_info("/%2E%2E/README").should.equal "/%2E%2E/README"
+  end
 end
 
 describe Rack::Utils, "byte_range" do
