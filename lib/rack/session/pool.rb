@@ -42,7 +42,7 @@ module Rack
       end
 
       def get_session(env, sid)
-        with_lock(env, [nil, {}]) do
+        with_lock(env) do
           unless sid and session = @pool[sid]
             sid, session = generate_sid, {}
             @pool.store sid, session
@@ -52,7 +52,7 @@ module Rack
       end
 
       def set_session(env, session_id, new_session, options)
-        with_lock(env, false) do
+        with_lock(env) do
           @pool.store session_id, new_session
           session_id
         end
@@ -65,15 +65,12 @@ module Rack
         end
       end
 
-      def with_lock(env, default=nil)
+      def with_lock(env)
         @mutex.lock if env['rack.multithread']
         yield
-      rescue
-        default
       ensure
         @mutex.unlock if @mutex.locked?
       end
-
     end
   end
 end

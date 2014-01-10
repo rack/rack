@@ -47,7 +47,7 @@ module Rack
       end
 
       def get_session(env, sid)
-        with_lock(env, [nil, {}]) do
+        with_lock(env) do
           unless sid and session = @pool.get(sid)
             sid, session = generate_sid, {}
             unless /^STORED/ =~ @pool.add(sid, session)
@@ -62,7 +62,7 @@ module Rack
         expiry = options[:expire_after]
         expiry = expiry.nil? ? 0 : expiry + 1
 
-        with_lock(env, false) do
+        with_lock(env) do
           @pool.set session_id, new_session, expiry
           session_id
         end
@@ -75,7 +75,7 @@ module Rack
         end
       end
 
-      def with_lock(env, default=nil)
+      def with_lock(env)
         @mutex.lock if env['rack.multithread']
         yield
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
@@ -83,7 +83,7 @@ module Rack
           warn "#{self} is unable to find memcached server."
           warn $!.inspect
         end
-        default
+        raise
       ensure
         @mutex.unlock if @mutex.locked?
       end
