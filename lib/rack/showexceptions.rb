@@ -17,6 +17,7 @@ module Rack
 
     def initialize(app)
       @app = app
+      @template = ERB.new(TEMPLATE)
     end
 
     def call(env)
@@ -93,7 +94,7 @@ module Rack
         end
       }.compact
 
-      ERB.new(TEMPLATE).result(binding)
+      @template.result(binding)
     end
 
     def h(obj)                  # :nodoc:
