@@ -180,7 +180,7 @@ module Rack
     def form_data?
       type = media_type
       meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+      (meth == 'POST' && env['CONTENT_TYPE'].nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking
