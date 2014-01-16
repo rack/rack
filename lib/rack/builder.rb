@@ -73,7 +73,7 @@ module Rack
     #   end
     #
     #   use Middleware
-    #   run lambda { |env| [200, { "Content-Type => "text/plain" }, ["OK"]] }
+    #   run lambda { |env| [200, { "Content-Type" => "text/plain" }, ["OK"]] }
     #
     # All requests through to this application will first be processed by the middleware class.
     # The +call+ method in this example sets an additional environment key which then can be
