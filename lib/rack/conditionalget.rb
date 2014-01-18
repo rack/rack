@@ -25,6 +25,7 @@ module Rack
         status, headers, body = @app.call(env)
         headers = Utils::HeaderHash.new(headers)
         if status == 200 && fresh?(env, headers)
+          body.close if body.respond_to? :close
           status = 304
           headers.delete('Content-Type')
           headers.delete('Content-Length')
