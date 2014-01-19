@@ -386,9 +386,9 @@ module Rack::Utils::OkJson
 
   def nibble(c)
     case true
-    when ?0 <= c && c <= ?9 then c.ord - ?0.ord
-    when ?a <= c && c <= ?z then c.ord - ?a.ord + 10
-    when ?A <= c && c <= ?Z then c.ord - ?A.ord + 10
+    when (?0..?9).cover?(c) then c.ord - ?0.ord
+    when (?a..?z).cover?(c) then c.ord - ?a.ord + 10
+    when (?A..?Z).cover?(c) then c.ord - ?A.ord + 10
     else
       raise Error, "invalid hex code #{c}"
     end
