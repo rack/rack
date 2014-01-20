@@ -26,8 +26,10 @@ module Rack
               server.register(path, Rack::Handler::Mongrel.new(appl))
             end
           elsif app.is_a? URLMap
-            app.instance_variable_get(:@mapping).each do |(host, path, appl)|
-             next if !host.nil? && !options[:Host].nil? && options[:Host] != host
+            #TODO refactor
+            app.mapping.each do |(matcher, appl)|
+             next if !matcher.host.nil? && !options[:Host].nil? && options[:Host] != matcher.host
+             path = matcher.location
              path = '/'+path unless path[0] == ?/
              server.register(path, Rack::Handler::Mongrel.new(appl))
             end
