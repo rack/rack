@@ -12,8 +12,6 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
-    attr_reader :mapping
-
     def initialize(plain_mapping = {})
       remap(plain_mapping)
     end
@@ -47,6 +45,12 @@ module Rack
     ensure
       env['PATH_INFO'] = path
       env['SCRIPT_NAME'] = script_name
+    end
+
+    def each(&block)
+      @mapping.each do |matcher, app|
+        block.call matcher.location, app, matcher.host
+      end
     end
   end
 end

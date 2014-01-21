@@ -20,18 +20,11 @@ module Rack
         # Use is similar to #run, replacing the app argument with a hash of
         # { path=>app, ... } or an instance of Rack::URLMap.
         if options[:map]
-          if app.is_a? Hash
-            app.each do |path, appl|
-              path = '/'+path unless path[0] == ?/
-              server.register(path, Rack::Handler::Mongrel.new(appl))
-            end
-          elsif app.is_a? URLMap
-            #TODO refactor
-            app.mapping.each do |(matcher, appl)|
-             next if !matcher.host.nil? && !options[:Host].nil? && options[:Host] != matcher.host
-             path = matcher.location
-             path = '/'+path unless path[0] == ?/
-             server.register(path, Rack::Handler::Mongrel.new(appl))
+          if app.is_a?(Hash) || app.is_a?(URLMap)
+            app.each do |path, nested_app, host|
+              next if host && options[:Host] && options[:Host] != host
+              path = '/' + path unless path[0] == ?/
+              server.register(path, Rack::Handler::Mongrel.new(nested_app))
             end
           else
             raise ArgumentError, "first argument should be a Hash or URLMap"

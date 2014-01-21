@@ -60,18 +60,26 @@ module Rack
       end
 
       def wildcarded_address
-        @wildcarder_address ||= Regexp.new("^#{Regexp.quote(@location).gsub('/', '/+')}(.*)", nil, 'n')
+        @wildcarder_address ||=
+          begin
+            slashes = Regexp.quote(@location).gsub('/', '/+')
+            Regexp.new("^#{slashes}(.*)", nil, 'n')
+          end
       end
 
       def match_host(server_name, server_port, http_host)
-        http_host == @host || server_name == @host \
-          || (!@host && (http_host == server_name || http_host == server_name+':'+server_port))
+        http_host == @host ||
+        server_name == @host ||
+        !@host && valid_request_host?(server_name, server_port, http_host)
+      end
+
+      def valid_request_host?(server_name, server_port, http_host)
+        http_host == server_name || http_host == server_name + ':' + server_port
       end
 
       def match_path(path)
         memo = rest path
-        return false if memo.nil?
-        true if memo.empty? || memo[0] == ?/
+        memo && (memo.empty? || memo[0] == ?/)
       end
 
     end
