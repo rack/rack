@@ -223,6 +223,14 @@ describe Rack::Response do
     res.should.be.successful
     res.should.be.ok
 
+    res.status = 201
+    res.should.be.successful
+    res.should.be.created
+
+    res.status = 202
+    res.should.be.successful
+    res.should.be.accepted
+
     res.status = 400
     res.should.not.be.successful
     res.should.be.client_error
