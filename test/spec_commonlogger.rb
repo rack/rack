@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 require 'rack/commonlogger'
 require 'rack/lint'
 require 'rack/mock'
@@ -5,8 +6,8 @@ require 'rack/mock'
 require 'logger'
 
 describe Rack::CommonLogger do
-  obj = 'foobar'
-  length = obj.size
+  obj = 'foobarラック'
+  length = obj.bytesize
 
   app = Rack::Lint.new lambda { |env|
     [200,
