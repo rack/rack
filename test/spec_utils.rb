@@ -300,6 +300,9 @@ describe Rack::Utils do
     # Higher quality matches are preferred
     Rack::Utils.best_q_match("text/*;q=0.5,text/plain;q=1.0", %w[text/plain text/html]).should.equal "text/plain"
 
+    # Respect requested content type
+    Rack::Utils.best_q_match("application/json", %w[application/vnd.lotus-1-2-3 application/json]).should.equal "application/json"
+
     # All else equal, the available mimes are preferred in order
     Rack::Utils.best_q_match("text/*", %w[text/html text/plain]).should.equal "text/html"
     Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).should.equal "text/html"
