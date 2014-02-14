@@ -47,7 +47,7 @@ describe Rack::Lobster do
   should "be flippable" do
     res = lobster.get("/?flip=left")
     res.should.be.ok
-    res.body.should.include "(,,,(,,(,("
+    res.body.should.include "),,,),,),)"
   end
 
   should "provide crashing for testing purposes" do
