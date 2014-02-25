@@ -8,10 +8,6 @@ module Rack
   #   req = Rack::Request.new(env)
   #   req.post?
   #   req.params["data"]
-  #
-  # The environment hash passed will store a reference to the Request object
-  # instantiated so that it will only instantiate if an instance of the Request
-  # object doesn't already exist.
 
   class Request
     # The environment of the request.
