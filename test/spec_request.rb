@@ -169,6 +169,15 @@ describe Rack::Request do
     req.params.should.equal req.GET.merge(req.POST)
   end
 
+  # some clients send a multipart/form-data content type, but empty body,
+  # when a POST request is redirected to a GET request
+  should "handle empty POST data gracefully" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar", "CONTENT_TYPE" => 'multipart/form-data; boundary=----------aSbS9ipM2PXfyiJda0rAUG'))
+    lambda{req.params}.should.not.raise
+    req.params.should.equal({'foo' => 'bar'})
+  end
+
+
   should "raise if rack.input is missing" do
     req = Rack::Request.new({})
     lambda { req.POST }.should.raise(RuntimeError)

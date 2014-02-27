@@ -229,7 +229,7 @@ module Rack
     def params
       @params ||= self.GET.merge(self.POST)
     rescue EOFError
-      self.GET.dup
+      @params ||= self.GET.dup
     end
 
     # Destructively update a parameter, whether it's in GET and/or POST. Returns nil.
