@@ -6,7 +6,7 @@ require 'timeout'
 describe Rack::Utils do
 
   # A helper method which checks
-  # if certain query parameters 
+  # if certain query parameters
   # are equal.
   def equal_query_to(query)
     parts = query.split('&')
@@ -78,7 +78,7 @@ describe Rack::Utils do
       Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
     end
   end
-  
+
   should "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
     lambda {
       timeout(1) do
@@ -216,8 +216,10 @@ describe Rack::Utils do
 
   should "build query strings correctly" do
     Rack::Utils.build_query("foo" => "bar").should.be equal_query_to("foo=bar")
+    Rack::Utils.build_query("foo" => {"bar" => "quux", "baz" => "xpto"}).
+      should.be equal_query_to("foo[bar]=quux&foo[baz]=xpto")
     Rack::Utils.build_query("foo" => ["bar", "quux"]).
-      should.be equal_query_to("foo=bar&foo=quux")
+      should.be equal_query_to("foo[]=bar&foo[]=quux")
     Rack::Utils.build_query("foo" => "1", "bar" => "2").
       should.be equal_query_to("foo=1&bar=2")
     Rack::Utils.build_query("my weird field" => "q1!2\"'w$5&7/z8)?").

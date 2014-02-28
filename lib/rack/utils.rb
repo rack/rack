@@ -141,8 +141,8 @@ module Rack
 
     def build_query(params)
       params.map { |k, v|
-        if v.class == Array
-          build_query(v.map { |x| [k, x] })
+        if [Array, Hash].include? v.class
+          build_nested_query(v, k)
         else
           v.nil? ? escape(k) : "#{escape(k)}=#{escape(v)}"
         end
