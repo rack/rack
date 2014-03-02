@@ -25,6 +25,12 @@ describe Rack::File do
     res["Last-Modified"].should.equal File.mtime(path).httpdate
   end
 
+  should "set Accept-Ranges header" do
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test")
+    res.should.be.ok
+    res["Accept-Ranges"].should.equal "bytes"
+  end
+
   should "return 304 if file isn't modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
     res = Rack::MockRequest.new(file(DOCROOT)).
