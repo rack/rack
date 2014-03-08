@@ -587,6 +587,7 @@ module Rack
       415 => 'Unsupported Media Type',
       416 => 'Requested Range Not Satisfiable',
       417 => 'Expectation Failed',
+      418 => 'I\'m a teapot',
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
@@ -611,7 +612,7 @@ module Rack
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 205 << 304)
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
-      [message.downcase.gsub(/\s|-/, '_').to_sym, code]
+      [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
     }.flatten]
 
     def status_code(status)
