@@ -48,11 +48,7 @@ module Rack
       sPort = env['SERVER_PORT']
 
       @mapping.each do |host, location, match, app|
-        unless hHost == host \
-            || sName == host \
-            || (!host && (hHost == sName || hHost == sName+':'+sPort))
-          next
-        end
+        next unless hHost && hHost.casecmp(host).zero? || sName.casecmp(host).zero? if host
 
         next unless m = match.match(path.to_s)
 
@@ -73,4 +69,3 @@ module Rack
     end
   end
 end
-
