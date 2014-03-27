@@ -214,7 +214,8 @@ module Rack
         m["deployment"].concat [
           [Rack::ContentLength],
           [Rack::Chunked],
-          logging_middleware
+          logging_middleware,
+          [Rack::TempfileReaper]
         ]
         m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
         m
