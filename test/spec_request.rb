@@ -748,6 +748,31 @@ EOF
     req.POST["mean"][:tempfile].read.should.equal "--AaB03xha"
   end
 
+  should "record tempfiles from multipart form data in env[rack.tempfiles]" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="foo.jpg"\r
+Content-Type: image/jpeg\r
+Content-Transfer-Encoding: base64\r
+\r
+/9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="bar.jpg"\r
+Content-Type: image/jpeg\r
+Content-Transfer-Encoding: base64\r
+\r
+/9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
+--AaB03x--\r
+EOF
+    env = Rack::MockRequest.env_for("/",
+                          "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                          "CONTENT_LENGTH" => input.size,
+                          :input => input)
+    req = Rack::Request.new(env)
+    req.params
+    env['rack.tempfiles'].size.should.equal(2)
+  end
+
   should "detect invalid multipart form data" do
     input = <<EOF
 --AaB03x\r
