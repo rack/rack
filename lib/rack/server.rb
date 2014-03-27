@@ -217,14 +217,16 @@ module Rack
           "deployment" => [
             [Rack::ContentLength],
             [Rack::Chunked],
-            logging_middleware
+            logging_middleware,
+            [Rack::TempfileReaper]
           ],
           "development" => [
             [Rack::ContentLength],
             [Rack::Chunked],
             logging_middleware,
             [Rack::ShowExceptions],
-            [Rack::Lint]
+            [Rack::Lint],
+            [Rack::TempfileReaper]
           ],
           "none" => []
         }
