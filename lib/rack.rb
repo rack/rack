@@ -53,6 +53,7 @@ module Rack
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :ShowStatus, "rack/showstatus"
   autoload :Static, "rack/static"
+  autoload :TempfileReaper, "rack/tempfile_reaper"
   autoload :URLMap, "rack/urlmap"
   autoload :Utils, "rack/utils"
   autoload :Multipart, "rack/multipart"
