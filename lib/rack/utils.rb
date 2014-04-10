@@ -637,7 +637,7 @@ module Rack
         part == '..' ? clean.pop : clean << part
       end
 
-      clean.unshift '/' if parts.first.empty?
+      clean.unshift '/' if parts.empty? || parts.first.empty?
 
       ::File.join(*clean)
     end
