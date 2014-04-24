@@ -9,18 +9,32 @@ module Rack
 
     def initialize(app, mutex = Mutex.new)
       @app, @mutex = app, mutex
+      @sig = ConditionVariable.new
+      @count = 0
     end
 
     def call(env)
       old, env[FLAG] = env[FLAG], false
       @mutex.lock
+      @count += 1
+      @sig.wait(@mutex) if @count > 1
       response = @app.call(env)
-      body = BodyProxy.new(response[2]) { @mutex.unlock }
+      body = BodyProxy.new(response[2]) {
+        @mutex.synchronize { unlock }
+      }
       response[2] = body
       response
     ensure
-      @mutex.unlock unless body
+      unlock unless body
+      @mutex.unlock
       env[FLAG] = old
+    end
+
+    private
+
+    def unlock
+      @count -= 1
+      @sig.signal
     end
   end
 end
