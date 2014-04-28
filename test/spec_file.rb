@@ -108,6 +108,12 @@ describe Rack::File do
     res.should.be.not_found
   end
 
+  should "406 if a file exists with a different extension than that requested" do
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test.jpg")
+
+    res.should.be.not_acceptable
+  end
+
   should "detect SystemCallErrors" do
     res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi")
 

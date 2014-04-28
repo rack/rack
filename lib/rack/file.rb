@@ -52,7 +52,14 @@ module Rack
       if available
         serving(env)
       else
-        fail(404, "File not found: #{path_info}")
+        path_ext = F.extname(@path)
+        base_path = @path.chomp(path_ext)
+
+        if path_ext.size > 0 && ::Dir["#{base_path}*"].size > 0
+          fail(406, "Format not acceptable: #{path_ext}")
+        else
+          fail(404, "File not found: #{path_info}")
+        end
       end
     end
 
