@@ -86,6 +86,7 @@ module Rack
       @handlers[server.to_s] = klass.to_s
     end
 
+    autoload :Environment, "rack/handler/environment"
     autoload :CGI, "rack/handler/cgi"
     autoload :FastCGI, "rack/handler/fastcgi"
     autoload :Mongrel, "rack/handler/mongrel"
@@ -96,6 +97,7 @@ module Rack
     autoload :SCGI, "rack/handler/scgi"
     autoload :Thin, "rack/handler/thin"
 
+    register 'environment', 'Rack::Handler::Environment'
     register 'cgi', 'Rack::Handler::CGI'
     register 'fastcgi', 'Rack::Handler::FastCGI'
     register 'mongrel', 'Rack::Handler::Mongrel'
