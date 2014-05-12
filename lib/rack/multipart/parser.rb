@@ -45,6 +45,11 @@ module Rack
         fast_forward_to_first_boundary
 
         loop do
+          if limit_multiparts
+            raise EOFError, "Maximum file multiparts in content reached" if available_open_file_handles == 0
+            available_open_file_handles -= 1
+          end
+
           head, filename, content_type, name, body =
             get_current_head_and_filename_and_content_type_and_name_and_body
 
