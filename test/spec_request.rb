@@ -756,9 +756,8 @@ EOF
       :input => StringIO.new(data)
     }
 
-    request = Rack::Request.new Rack::MockRequest.env_for("/", options)
-    lambda { request.POST }.should.raise(EOFError)
-
+    lambda { Rack::Request.new Rack::MockRequest.env_for("/", options) }.should.not.raise
+    
     ENV.delete("multipart.limit")
   end
 

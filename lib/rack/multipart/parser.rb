@@ -44,6 +44,8 @@ module Rack
       def parse
         fast_forward_to_first_boundary
 
+        limit_multiparts = ENV["multipart.limit"]
+        available_open_file_handles = limit_multiparts.to_i if limit_multiparts 
         loop do
           if limit_multiparts
             raise EOFError, "Maximum file multiparts in content reached" if available_open_file_handles == 0
