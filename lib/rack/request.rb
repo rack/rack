@@ -148,7 +148,8 @@ module Rack
     # for form-data / param parsing.
     FORM_DATA_MEDIA_TYPES = [
       'application/x-www-form-urlencoded',
-      'multipart/form-data'
+      'multipart/form-data',
+      'application/json'
     ]
 
     # The set of media-types. Requests that do not indicate
@@ -372,7 +373,12 @@ module Rack
       end
 
       def parse_query(qs)
-        Utils.parse_nested_query(qs)
+        case media_type
+        when 'application/json'
+          (qs && qs != '') ? ::Rack::Utils::OkJson.decode(qs) : {}
+        else
+          Utils.parse_nested_query(qs)
+        end
       end
 
       def parse_multipart(env)

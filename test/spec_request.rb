@@ -247,6 +247,16 @@ describe Rack::Request do
     input.read.should.equal "foo=bar&quux=bla"
   end
 
+  should "accept application/json content type" do
+    input = StringIO.new('{"foo":"bar","quxx":"bla"}')
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => 'application/json',
+        :input => input)
+    req.params.should.equal "foo" => "bar", "quxx" => "bla"
+    input.read.should.equal '{"foo":"bar","quxx":"bla"}'
+  end
+
   should "clean up Safari's ajax POST body" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
