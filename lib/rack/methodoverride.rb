@@ -4,6 +4,7 @@ module Rack
 
     METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+    ALLOWED_METHODS = ["POST"]
 
     def initialize(app)
       @app = app
@@ -31,7 +32,7 @@ module Rack
     private
 
     def allowed_methods
-      ["POST"]
+      ALLOWED_METHODS
     end
 
     def method_override_param(req)
