@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require 'rack/builder'
 require 'rack/lint'
 require 'rack/mock'
-require 'rack/showexceptions'
+require 'rack/show_exceptions'
 require 'rack/urlmap'
 
 class NothingMiddleware

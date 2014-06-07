@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'rack/showstatus'
+require 'rack/show_status'
 require 'rack/lint'
 require 'rack/mock'
 require 'rack/utils'
@@ -8,7 +8,7 @@ describe Rack::ShowStatus do
   def show_status(app)
     Rack::Lint.new Rack::ShowStatus.new(app)
   end
-  
+
   it "provide a default status message" do
     req = Rack::MockRequest.new(
       show_status(lambda{|env|

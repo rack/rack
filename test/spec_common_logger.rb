@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'rack/commonlogger'
+require 'rack/common_logger'
 require 'rack/lint'
 require 'rack/mock'
 

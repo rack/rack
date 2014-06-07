@@ -1,6 +1,6 @@
 require 'minitest/autorun'
 require 'time'
-require 'rack/conditionalget'
+require 'rack/conditional_get'
 require 'rack/mock'
 
 describe Rack::ConditionalGet do

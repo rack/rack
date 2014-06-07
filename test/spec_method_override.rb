@@ -1,6 +1,6 @@
 require 'minitest/autorun'
 require 'stringio'
-require 'rack/methodoverride'
+require 'rack/method_override'
 require 'rack/mock'
 
 describe Rack::MethodOverride do
