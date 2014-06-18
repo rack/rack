@@ -17,7 +17,7 @@ module Rack
   <title>%s</title>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
   <style type='text/css'>
-table { width:100%%; }
+table { width:100%; }
 .name { text-align:left; }
 .size, .mtime { text-align:right; }
 .type { width:11em; }
