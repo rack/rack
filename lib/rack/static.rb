@@ -10,7 +10,7 @@ module Rack
   # Serve all requests beginning with /media from the "media" folder located
   # in the current directory (ie media/*):
   #
-  #     use Rack::Static, :urls => ["/media"]
+  #     use Rack::Static, :urls => "/media"
   #
   # Serve all requests beginning with /css or /images from the folder "public"
   # in the current directory (ie public/css/* and public/images/*):
@@ -99,7 +99,8 @@ module Rack
     end
 
     def route_file(path)
-      @urls.kind_of?(Array) && @urls.any? { |url| path.index(url) == 0 }
+      urls = Array(@urls) if @urls.kind_of?(String) || @urls.kind_of?(Array)
+      urls.any? { |url| path.index(url) == 0 } if urls
     end
 
     def can_serve(path)
