@@ -10,7 +10,7 @@ module Rack
   # Serve all requests beginning with /media from the "media" folder located
   # in the current directory (ie media/*):
   #
-  #     use Rack::Static, :urls => "/media"
+  #     use Rack::Static, :url => "/media"
   #
   # Serve all requests beginning with /css or /images from the folder "public"
   # in the current directory (ie public/css/* and public/images/*):
@@ -20,7 +20,7 @@ module Rack
   # Serve all requests to / with "index.html" from the folder "public" in the
   # current directory (ie public/index.html):
   #
-  #     use Rack::Static, :urls => {"/" => 'index.html'}, :root => 'public'
+  #     use Rack::Static, :url => {"/" => 'index.html'}, :root => 'public'
   #
   # Serve all requests normally from the folder "public" in the current
   # directory but uses index.html as default route for "/"
@@ -82,7 +82,7 @@ module Rack
 
     def initialize(app, options={})
       @app = app
-      @urls = options[:urls] || ["/favicon.ico"]
+      @urls = options[:urls] || options[:url] || ["/favicon.ico"]
       @index = options[:index]
       root = options[:root] || Dir.pwd
 

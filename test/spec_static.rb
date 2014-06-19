@@ -15,9 +15,9 @@ describe Rack::Static do
 
   root = File.expand_path(File.dirname(__FILE__))
 
-  OPTIONS = {:urls => "/cgi", :root => root}
+  OPTIONS = {:url => "/cgi", :root => root}
   STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
-  HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
+  HASH_OPTIONS = {:url => {"/cgi/sekret" => 'cgi/test'}, :root => root}
 
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
