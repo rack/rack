@@ -83,6 +83,7 @@ module Rack
     def initialize(app, options={})
       @app = app
       @urls = options[:urls] || options[:url] || ["/favicon.ico"]
+      @urls = Array(@urls) unless @urls.kind_of?(Hash)
       @index = options[:index]
       root = options[:root] || Dir.pwd
 
@@ -99,8 +100,7 @@ module Rack
     end
 
     def route_file(path)
-      urls = Array(@urls) if @urls.kind_of?(String) || @urls.kind_of?(Array)
-      urls.any? { |url| path.index(url) == 0 } if urls
+      @urls.kind_of?(Array) && @urls.any? { |url| path.index(url) == 0 }
     end
 
     def can_serve(path)
