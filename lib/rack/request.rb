@@ -353,12 +353,6 @@ module Rack
 
       forwarded_ips = split_ip_addresses(@env['HTTP_X_FORWARDED_FOR'])
 
-      if client_ip = @env['HTTP_CLIENT_IP']
-        # If forwarded_ips doesn't include the client_ip, it might be an
-        # ip spoofing attempt, so we ignore HTTP_CLIENT_IP
-        return client_ip if forwarded_ips.include?(client_ip)
-      end
-
       return reject_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
     end
 
