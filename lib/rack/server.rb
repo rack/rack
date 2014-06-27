@@ -1,7 +1,10 @@
 require 'optparse'
 
+
 module Rack
+
   class Server
+
     class Options
       def parse!(args)
         options = {}
@@ -364,4 +367,5 @@ module Rack
       end
 
   end
+
 end
