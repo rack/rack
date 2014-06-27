@@ -213,16 +213,21 @@ module Rack
       end
 
       def default_middleware_by_environment
-        @default_middleware_by_environment ||= begin
-          m = Hash.new {|h,k| h[k] = []}
-          m["deployment"].concat [
+        {
+          "deployment" => [
             [Rack::ContentLength],
             [Rack::Chunked],
             logging_middleware
-          ]
-          m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
-          m
-        end
+          ],
+          "development" => [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware,
+            [Rack::ShowExceptions],
+            [Rack::Lint]
+          ],
+          "none" => []
+        }
       end
 
       # Aliased for backwards-compatibility
@@ -317,6 +322,7 @@ module Rack
       def build_app(app)
         middlewares = default_middleware_by_environment[options[:environment]]
         middlewares.reverse_each do |middleware|
+          # these 2 lines specifically for Rack::Server.logging_middleware
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
           klass, *args = middleware
