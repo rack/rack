@@ -205,28 +205,36 @@ module Rack
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
 
-    def self.logging_middleware
-      lambda { |server|
-        server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
-      }
-    end
-
-    def self.middleware
-      @middleware ||= begin
-        m = Hash.new {|h,k| h[k] = []}
-        m["deployment"].concat [
-          [Rack::ContentLength],
-          [Rack::Chunked],
-          logging_middleware
-        ]
-        m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
-        m
+    class << self
+      def logging_middleware
+        lambda { |server|
+          server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
+        }
       end
+
+      def default_middleware_by_environment
+        @default_middleware_by_environment ||= begin
+          m = Hash.new {|h,k| h[k] = []}
+          m["deployment"].concat [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware
+          ]
+          m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
+          m
+        end
+      end
+
+      # Aliased for backwards-compatibility
+      alias :middleware :default_middleware_by_environment
     end
 
-    def middleware
-      self.class.middleware
+    def default_middleware_by_environment
+      self.class.default_middleware_by_environment
     end
+
+    # Aliased for backwards-compatibility
+    alias :middleware :default_middleware_by_environment
 
     def start &blk
       if options[:warn]
@@ -307,7 +315,8 @@ module Rack
       end
 
       def build_app(app)
-        middleware[options[:environment]].reverse_each do |middleware|
+        middlewares = default_middleware_by_environment[options[:environment]]
+        middlewares.reverse_each do |middleware|
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
           klass, *args = middleware
