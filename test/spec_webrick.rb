@@ -162,5 +162,22 @@ describe Rack::Handler::WEBrick do
     }
   end
 
+  should "set transfer-encoding chunked via #chunked=" do
+    @server.mount "/chunked", Rack::Handler::WEBrick,
+    Rack::Lint.new(lambda{ |req|
+      [
+        200,
+        {"Transfer-Encoding" => "chunked"},
+        ["7\r\nchunked\r\n0\r\n\r\n"]
+      ]
+    })
+
+    Net::HTTP.start(@host, @port){ |http|
+      res = http.get("/chunked")
+      res["transfer-encoding"].should.equal "chunked"
+      res["content-length"].should.equal nil
+    }
+  end
+
   @server.shutdown
 end
