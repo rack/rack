@@ -166,7 +166,7 @@ module Rack
     # * :Port
     #     the port to bind to (used by supporting Rack::Handler)
     # * :AccessLog
-    #     webrick acess log options (or supporting Rack::Handler)
+    #     webrick access log options (or supporting Rack::Handler)
     # * :debug
     #     turn on debug output ($DEBUG = true)
     # * :warn
