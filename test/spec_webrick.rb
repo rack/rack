@@ -162,5 +162,23 @@ describe Rack::Handler::WEBrick do
     }
   end
 
+  should "produce correct HTTP semantics with and without app chunking" do
+    @server.mount "/chunked", Rack::Handler::WEBrick,
+    Rack::Lint.new(lambda{ |req|
+      [
+        200,
+        {"Transfer-Encoding" => "chunked"},
+        ["7\r\nchunked\r\n0\r\n\r\n"]
+      ]
+    })
+
+    Net::HTTP.start(@host, @port){ |http|
+      res = http.get("/chunked")
+      res["Transfer-Encoding"].should.equal "chunked"
+      res["Content-Length"].should.equal nil
+      res.body.should.equal "chunked"
+    }
+  end
+
   @server.shutdown
 end
