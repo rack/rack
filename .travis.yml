@@ -5,7 +5,6 @@ install:
   - rake deps
 script: rake ci
 rvm:
-  - 1.8.7
   - 1.9.2
   - 1.9.3
   - 2.0.0
@@ -13,7 +12,6 @@ rvm:
   - ruby-head
   - rbx
   - jruby
-  - ree
 matrix:
   allow_failures:
     - rvm: rbx
