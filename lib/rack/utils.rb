@@ -185,7 +185,7 @@ module Rack
       values = q_values(q_value_header)
 
       values.map do |req_mime, quality|
-        match = available_mimes.first { |am| Rack::Mime.match?(am, req_mime) }
+        match = available_mimes.find { |am| Rack::Mime.match?(am, req_mime) }
         next unless match
         [match, quality]
       end.compact.sort_by do |match, quality|
