@@ -404,7 +404,7 @@ describe Rack::Utils do
     Rack::Utils.clean_path_info("/%2E%2E/README").should.equal "/%2E%2E/README"
   end
 
-  should "not clean slash only paths" do
+  should "clean slash only paths" do
     Rack::Utils.clean_path_info("/").should.equal "/"
   end
 end
