@@ -28,7 +28,10 @@ module Rack
           status = 304
           headers.delete('Content-Type')
           headers.delete('Content-Length')
-          body = []
+          original_body = body
+          body = Rack::BodyProxy.new([]) do
+            original_body.close if original_body.respond_to?(:close)
+          end
         end
         [status, headers, body]
       else
