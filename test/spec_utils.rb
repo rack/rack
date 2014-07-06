@@ -306,6 +306,9 @@ describe Rack::Utils do
     # All else equal, the available mimes are preferred in order
     Rack::Utils.best_q_match("text/*", %w[text/html text/plain]).should.equal "text/html"
     Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).should.equal "text/html"
+
+    # When there are no matches, return nil:
+    Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).should.equal nil
   end
 
   should "escape html entities [&><'\"/]" do

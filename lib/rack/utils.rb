@@ -184,13 +184,14 @@ module Rack
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
-      values.map do |req_mime, quality|
+      matches = values.map do |req_mime, quality|
         match = available_mimes.find { |am| Rack::Mime.match?(am, req_mime) }
         next unless match
         [match, quality]
       end.compact.sort_by do |match, quality|
         (match.split('/', 2).count('*') * -10) + quality
-      end.last.first
+      end.last
+      matches && matches.first
     end
     module_function :best_q_match
 
