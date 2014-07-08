@@ -79,7 +79,8 @@ module Rack
 
     # Return the Rack environment used for a request to +uri+.
     def self.env_for(uri="", opts={})
-      uri = URI(uri)
+      parser = URI::Parser.new
+      uri = parser.parse(uri)
       uri.path = "/#{uri.path}" unless uri.path[0] == ?/
 
       env = DEFAULT_ENV.dup
