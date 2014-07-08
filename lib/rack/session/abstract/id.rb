@@ -310,7 +310,6 @@ module Rack
         end
 
         def force_options?(options)
-return true
           options.values_at(:max_age, :renew, :drop, :defer, :expire_after).any?
         end
 
