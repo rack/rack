@@ -93,6 +93,11 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "SERVER_PORT" => "9393")
     req.port.should.equal 80
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost", "HTTP_X_FORWARDED_PROTO" => "https", "SERVER_PORT" => "80")
+
+    req.port.should.equal 443
   end
 
   should "figure out the correct host with port" do
