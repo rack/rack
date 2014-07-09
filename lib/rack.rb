@@ -50,7 +50,7 @@ module Rack
   autoload :Runtime, "rack/runtime"
   autoload :Sendfile, "rack/sendfile"
   autoload :Server, "rack/server"
-  autoload :ShowExceptions, "rack/showexceptions"
+  autoload :ShowExceptions, "rack/show_exceptions"
   autoload :ShowStatus, "rack/showstatus"
   autoload :Static, "rack/static"
   autoload :URLMap, "rack/urlmap"

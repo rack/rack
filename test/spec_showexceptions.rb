@@ -1,4 +1,4 @@
-require 'rack/showexceptions'
+require 'rack/show_exceptions'
 require 'rack/lint'
 require 'rack/mock'
 
