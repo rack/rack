@@ -16,10 +16,10 @@ module Rack
         content_length = env['CONTENT_LENGTH']
         content_length = content_length.to_i if content_length
 
-        new($1, io, content_length)
+        new($1, io, content_length, env)
       end
 
-      def initialize(boundary, io, content_length)
+      def initialize(boundary, io, content_length, env)
         @buf            = ""
 
         if @buf.respond_to? :force_encoding
@@ -31,6 +31,7 @@ module Rack
         @io             = io
         @content_length = content_length
         @boundary_size  = Utils.bytesize(@boundary) + EOL.size
+        @env = env
 
         if @content_length
           @content_length -= @boundary_size
@@ -112,7 +113,7 @@ module Rack
             filename = get_filename(head)
 
             if filename
-              body = Tempfile.new("RackMultipart")
+              (@env['rack.tempfiles'] ||= []) << body = Tempfile.new("RackMultipart")
               body.binmode  if body.respond_to?(:binmode)
             end
 

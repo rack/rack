@@ -40,6 +40,11 @@ describe Rack::Server do
     server.middleware['none'].flatten.should.not.include(Rack::ShowExceptions)
   end
 
+  should "include Rack::TempfileReaper in deployment environment" do
+    server = Rack::Server.new(:app => 'foo')
+    server.middleware['deployment'].flatten.should.include(Rack::TempfileReaper)
+  end
+
   should "support CGI" do
     begin
       o, ENV["REQUEST_METHOD"] = ENV["REQUEST_METHOD"], 'foo'
