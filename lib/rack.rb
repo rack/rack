@@ -53,7 +53,12 @@ module Rack
   autoload :ShowExceptions, "rack/showexceptions"
   autoload :ShowStatus, "rack/showstatus"
   autoload :Static, "rack/static"
+
   autoload :URLMap, "rack/urlmap"
+  class URLMap
+    autoload :StringMatcher, "rack/urlmap/string_matcher"
+  end
+
   autoload :Utils, "rack/utils"
   autoload :Multipart, "rack/multipart"
 

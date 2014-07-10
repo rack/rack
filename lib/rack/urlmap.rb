@@ -12,55 +12,30 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
-    NEGATIVE_INFINITY = -1.0 / 0.0
-    INFINITY = 1.0 / 0.0
-
-    def initialize(map = {})
-      remap(map)
+    def initialize(plain_mapping = {})
+      remap(plain_mapping)
     end
 
-    def remap(map)
-      @mapping = map.map { |location, app|
-        if location =~ %r{\Ahttps?://(.*?)(/.*)}
-          host, location = $1, $2
-        else
-          host = nil
-        end
-
-        unless location[0] == ?/
-          raise ArgumentError, "paths need to start with /"
-        end
-
-        location = location.chomp('/')
-        match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
-
-        [host, location, match, app]
-      }.sort_by do |(host, location, _, _)|
-        [host ? -host.size : INFINITY, -location.size]
+    def remap(plain_mapping)
+      @mapping = plain_mapping.map { |location, app|
+        [StringMatcher.new(location), app]
+      }.sort_by do |(matcher, _)|
+        matcher.priorities
       end
     end
 
     def call(env)
       path = env["PATH_INFO"]
       script_name = env['SCRIPT_NAME']
-      hHost = env['HTTP_HOST']
-      sName = env['SERVER_NAME']
-      sPort = env['SERVER_PORT']
+      http_host = env['HTTP_HOST']
+      server_name = env['SERVER_NAME']
+      server_port = env['SERVER_PORT']
 
-      @mapping.each do |host, location, match, app|
-        unless hHost == host \
-            || sName == host \
-            || (!host && (hHost == sName || hHost == sName+':'+sPort))
-          next
-        end
+      @mapping.each do |matcher, app|
+        next unless matcher.matches? server_name, server_port, http_host, path
 
-        next unless m = match.match(path.to_s)
-
-        rest = m[1]
-        next unless !rest || rest.empty? || rest[0] == ?/
-
-        env['SCRIPT_NAME'] = (script_name + location)
-        env['PATH_INFO'] = rest
+        env['SCRIPT_NAME'] = (script_name + matcher.location)
+        env['PATH_INFO'] = matcher.rest(path)
 
         return app.call(env)
       end
@@ -70,6 +45,12 @@ module Rack
     ensure
       env['PATH_INFO'] = path
       env['SCRIPT_NAME'] = script_name
+    end
+
+    def each(&block)
+      @mapping.each do |matcher, app|
+        block.call matcher.location, app, matcher.host
+      end
     end
   end
 end
