@@ -16,7 +16,7 @@ describe Rack::ShowExceptions do
     ))
 
     lambda{
-      res = req.get("/")
+      res = req.get("/", "HTTP_ACCEPT" => "text/html")
     }.should.not.raise
 
     res.should.be.a.server_error
@@ -24,27 +24,6 @@ describe Rack::ShowExceptions do
 
     res.should =~ /RuntimeError/
     res.should =~ /ShowExceptions/
-  end
-
-  it "responds with plain text on AJAX requests accepting anything but HTML" do
-    res = nil
-
-    req = Rack::MockRequest.new(
-      show_exceptions(
-        lambda{|env| raise RuntimeError, "It was never supposed to work" }
-    ))
-
-    lambda{
-      res = req.get("/", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest")
-    }.should.not.raise
-
-    res.should.be.a.server_error
-    res.status.should.equal 500
-
-    res.content_type.should.equal "text/plain"
-
-    res.body.should.include "RuntimeError: It was never supposed to work\n"
-    res.body.should.include __FILE__
   end
 
   it "responds with HTML on AJAX requests accepting HTML" do
@@ -79,7 +58,7 @@ describe Rack::ShowExceptions do
     )
 
     lambda{
-      res = req.get("/")
+      res = req.get("/", "HTTP_ACCEPT" => "text/html")
     }.should.not.raise
 
     res.should.be.a.server_error
@@ -88,5 +67,38 @@ describe Rack::ShowExceptions do
     res.should =~ /RuntimeError/
     res.should =~ /ShowExceptions/
     res.should =~ /unknown location/
+  end
+
+  def request
+    Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise RuntimeError, "Error from application" }
+      )
+    )
+  end
+
+
+  it "responds with plain text to ACCEPT HEADER */*" do
+    response = request.get("/", "HTTP_ACCEPT" => "text/plain")
+
+    response.content_type.should.equal "text/plain"
+  end
+
+  it "responds with html only when explicity preferred" do
+    response = request.get("/", "HTTP_ACCEPT" => "text/plain;q=0.7,text/html;q=0.8")
+
+    response.content_type.should.equal "text/html"
+  end
+
+  it "responds with plain text when there is no matching mime type" do
+    response = request.get("/", "HTTP_ACCEPT" => "appication/json")
+
+    response.content_type.should.equal "text/plain"
+  end
+
+  it "responds with HTML to a typical browser get document header" do
+    response = request.get("/", "HTTP_ACCEPT" => "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8")
+
+    response.content_type.should.equal "text/html"
   end
 end
