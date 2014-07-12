@@ -43,8 +43,16 @@ module Rack
     end
 
     def prefers_plain_text?(env)
-      env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" && (!env["HTTP_ACCEPT"] || !env["HTTP_ACCEPT"].include?("text/html"))
+      !prefers_html?(env)
     end
+
+    def prefers_html?(env)
+      Rack::Utils.best_q_match(
+        env.fetch("HTTP_ACCEPT", ""),
+        %w(text/plain text/html)
+      ) == "text/html"
+    end
+    private :prefers_html?
 
     def dump_exception(exception)
       string = "#{exception.class}: #{exception.message}\n"
