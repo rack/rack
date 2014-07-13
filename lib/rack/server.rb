@@ -322,7 +322,6 @@ module Rack
       def build_app(app)
         middlewares = default_middleware_by_environment[options[:environment]]
         middlewares.reverse_each do |middleware|
-          # these 2 lines specifically for Rack::Server.logging_middleware
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
           klass, *args = middleware
