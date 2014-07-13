@@ -372,7 +372,7 @@ module Rack
       end
 
       def parse_query(qs)
-        Utils.parse_nested_query(qs)
+        Utils.parse_nested_query(qs, '&')
       end
 
       def parse_multipart(env)

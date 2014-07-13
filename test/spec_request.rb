@@ -130,6 +130,14 @@ describe Rack::Request do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
+  should "not truncate query strings containing semi-colons #543" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=b;la"))
+    req.query_string.should.equal "foo=bar&quux=b;la"
+    req.GET.should.equal "foo" => "bar", "quux" => "b;la"
+    req.POST.should.be.empty
+    req.params.should.equal "foo" => "bar", "quux" => "b;la"
+  end
+
   should "limit the keys from the GET query string" do
     env = Rack::MockRequest.env_for("/?foo=bar")
 
