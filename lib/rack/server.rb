@@ -1,7 +1,10 @@
 require 'optparse'
 
+
 module Rack
+
   class Server
+
     class Options
       def parse!(args)
         options = {}
@@ -202,28 +205,41 @@ module Rack
       @app ||= options[:builder] ? build_app_from_string : build_app_and_options_from_config
     end
 
-    def self.logging_middleware
-      lambda { |server|
-        server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
-      }
-    end
-
-    def self.middleware
-      @middleware ||= begin
-        m = Hash.new {|h,k| h[k] = []}
-        m["deployment"].concat [
-          [Rack::ContentLength],
-          [Rack::Chunked],
-          logging_middleware
-        ]
-        m["development"].concat m["deployment"] + [[Rack::ShowExceptions], [Rack::Lint]]
-        m
+    class << self
+      def logging_middleware
+        lambda { |server|
+          server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
+        }
       end
+
+      def default_middleware_by_environment
+        {
+          "deployment" => [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware
+          ],
+          "development" => [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware,
+            [Rack::ShowExceptions],
+            [Rack::Lint]
+          ],
+          "none" => []
+        }
+      end
+
+      # Aliased for backwards-compatibility
+      alias :middleware :default_middleware_by_environment
     end
 
-    def middleware
-      self.class.middleware
+    def default_middleware_by_environment
+      self.class.default_middleware_by_environment
     end
+
+    # Aliased for backwards-compatibility
+    alias :middleware :default_middleware_by_environment
 
     def start &blk
       if options[:warn]
@@ -304,7 +320,9 @@ module Rack
       end
 
       def build_app(app)
-        middleware[options[:environment]].reverse_each do |middleware|
+        middlewares = default_middleware_by_environment[options[:environment]]
+        middlewares.reverse_each do |middleware|
+          # these 2 lines specifically for Rack::Server.logging_middleware
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
           klass, *args = middleware
@@ -364,4 +382,5 @@ module Rack
       end
 
   end
+
 end
