@@ -1045,12 +1045,6 @@ EOF
       'HTTP_CLIENT_IP' => '1.1.1.1'
     res.body.should.equal '1.1.1.1'
 
-    # Spoofing attempt
-    res = mock.get '/',
-      'HTTP_X_FORWARDED_FOR' => '1.1.1.1',
-      'HTTP_CLIENT_IP' => '2.2.2.2'
-    res.body.should.equal '1.1.1.1'
-
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
     res.body.should.equal '9.9.9.9'
 
@@ -1067,6 +1061,24 @@ EOF
       'REMOTE_ADDR' => 'unix:/tmp/foo',
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     res.body.should.equal '3.4.5.6'
+  end
+
+  should "not allow IP spoofing via Client-IP and X-Forwarded-For headers" do
+    mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
+
+    # IP Spoofing attempt:
+    # Client sends          X-Forwarded-For: 6.6.6.6
+    #                       Client-IP: 6.6.6.6
+    # Load balancer adds    X-Forwarded-For: 2.2.2.3, 192.168.0.7
+    # App receives:         X-Forwarded-For: 6.6.6.6
+    #                       X-Forwarded-For: 2.2.2.3, 192.168.0.7
+    #                       Client-IP: 6.6.6.6
+    # Rack env:             HTTP_X_FORWARDED_FOR: '6.6.6.6, 2.2.2.3, 192.168.0.7'
+    #                       HTTP_CLIENT_IP: '6.6.6.6'
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '6.6.6.6, 2.2.2.3, 192.168.0.7',
+      'HTTP_CLIENT_IP' => '6.6.6.6'
+    res.body.should.equal '2.2.2.3'
   end
 
   should "regard local addresses as proxies" do
