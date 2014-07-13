@@ -130,7 +130,7 @@ describe Rack::Utils do
     params = Rack::Utils::KeySpaceConstrainedParams.new
     params['foo'] = params
     lambda {
-      params.to_params_hash.should.equal ex
+      params.to_params_hash.to_s.should.equal ex.to_s
     }.should.not.raise
   end
 
