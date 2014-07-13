@@ -533,7 +533,11 @@ module Rack
         hash.keys.each do |key|
           value = hash[key]
           if value.kind_of?(self.class)
-            hash[key] = value.to_params_hash
+            if value.object_id == self.object_id
+              hash[key] = hash
+            else
+              hash[key] = value.to_params_hash
+            end
           elsif value.kind_of?(Array)
             value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
           end

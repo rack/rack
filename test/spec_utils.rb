@@ -123,6 +123,17 @@ describe Rack::Utils do
     Rack::Utils.parse_query(",foo=bar;,", ";,").should.equal "foo" => "bar"
   end
 
+  should "not create infinite loops with cycle structures" do
+    ex = { "foo" => nil }
+    ex["foo"] = ex
+
+    params = Rack::Utils::KeySpaceConstrainedParams.new
+    params['foo'] = params
+    lambda {
+      params.to_params_hash.should.equal ex
+    }.should.not.raise
+  end
+
   should "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       should.equal "foo" => nil
