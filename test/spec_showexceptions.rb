@@ -16,7 +16,7 @@ describe Rack::ShowExceptions do
     ))
 
     lambda{
-      res = req.get("/")
+      res = req.get("/", "HTTP_ACCEPT" => "text/html")
     }.should.not.raise
 
     res.should.be.a.server_error
@@ -26,7 +26,7 @@ describe Rack::ShowExceptions do
     res.should =~ /ShowExceptions/
   end
 
-  it "responds with plain text on AJAX requests accepting anything but HTML" do
+  it "responds with plain text to requests not specifically accepting HTML" do
     res = nil
 
     req = Rack::MockRequest.new(
@@ -35,7 +35,7 @@ describe Rack::ShowExceptions do
     ))
 
     lambda{
-      res = req.get("/", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest")
+      res = req.get( "/", "HTTP_ACCECPT" => "*/*")
     }.should.not.raise
 
     res.should.be.a.server_error
@@ -47,7 +47,7 @@ describe Rack::ShowExceptions do
     res.body.should.include __FILE__
   end
 
-  it "responds with HTML on AJAX requests accepting HTML" do
+  it "responds with HTML to requests specifically accepting HTML" do
     res = nil
 
     req = Rack::MockRequest.new(
@@ -56,7 +56,7 @@ describe Rack::ShowExceptions do
     ))
 
     lambda{
-      res = req.get("/", "HTTP_X_REQUESTED_WITH" => "XMLHttpRequest", "HTTP_ACCEPT" => "text/html")
+      res = req.get("/", "HTTP_ACCEPT" => "text/html")
     }.should.not.raise
 
     res.should.be.a.server_error
@@ -79,7 +79,7 @@ describe Rack::ShowExceptions do
     )
 
     lambda{
-      res = req.get("/")
+      res = req.get("/", "HTTP_ACCEPT" => "text/html")
     }.should.not.raise
 
     res.should.be.a.server_error

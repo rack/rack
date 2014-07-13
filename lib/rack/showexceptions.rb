@@ -28,23 +28,32 @@ module Rack
       env["rack.errors"].puts(exception_string)
       env["rack.errors"].flush
 
-      if prefers_plain_text?(env)
-        content_type = "text/plain"
-        body = [exception_string]
-      else
+      if accepts_html?(env)
         content_type = "text/html"
         body = pretty(env, e)
+      else
+        content_type = "text/plain"
+        body = exception_string
       end
 
-      [500,
-       {"Content-Type" => content_type,
-        "Content-Length" => Rack::Utils.bytesize(body.join).to_s},
-       body]
+      [
+        500,
+        {
+          "Content-Type" => content_type,
+          "Content-Length" => Rack::Utils.bytesize(body).to_s,
+        },
+        [body],
+      ]
     end
 
-    def prefers_plain_text?(env)
-      env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest" && (!env["HTTP_ACCEPT"] || !env["HTTP_ACCEPT"].include?("text/html"))
+    def prefers_plaintext?(env)
+      !accepts_html(env)
     end
+
+    def accepts_html?(env)
+      env["HTTP_ACCEPT"] && env["HTTP_ACCEPT"].include?("text/html")
+    end
+    private :accepts_html?
 
     def dump_exception(exception)
       string = "#{exception.class}: #{exception.message}\n"
@@ -85,7 +94,7 @@ module Rack
         end
       }.compact
 
-      [@template.result(binding)]
+      @template.result(binding)
     end
 
     def h(obj)                  # :nodoc:
