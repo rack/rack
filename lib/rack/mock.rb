@@ -77,10 +77,16 @@ module Rack
       body.close if body.respond_to?(:close)
     end
 
+    # For historical reasons, we're pinning to RFC 2396. It's easier for users
+    # and we get support from ruby 1.8 to 2.2 using this method.
+    def self.parse_uri_rfc2396(uri)
+      @parser ||= defined?(URI::RFC2396_Parser) ? URI::RFC2396_Parser.new : URI
+      @parser.parse(uri)
+    end
+
     # Return the Rack environment used for a request to +uri+.
     def self.env_for(uri="", opts={})
-      parser = URI::Parser.new
-      uri = parser.parse(uri)
+      uri = parse_uri_rfc2396(uri)
       uri.path = "/#{uri.path}" unless uri.path[0] == ?/
 
       env = DEFAULT_ENV.dup
