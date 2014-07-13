@@ -51,7 +51,7 @@ module Rack
     end
 
     def accepts_html?(env)
-      env["HTTP_ACCEPT"] && env["HTTP_ACCEPT"].include?("text/html")
+      Rack::Utils.best_q_match(env["HTTP_ACCEPT"], %w[text/html])
     end
     private :accepts_html?
 
