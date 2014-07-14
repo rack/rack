@@ -22,6 +22,10 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    # ParameterTypeError is the error that is raised when incoming structural
+    # parameters (parsed by parse_nested_query) contain conflicting types.
+    class ParameterTypeError < TypeError; end
+
     # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
@@ -87,6 +91,11 @@ module Rack
     end
     module_function :parse_query
 
+    # parse_nested_query expands a query string into structural types. Supported
+    # types are Arrays, Hashes and basic value types. It is possible to supply
+    # query strings with parameters of conflicting types, in this case a
+    # ParameterTypeError is raised. Users are encouraged to return a 400 in this
+    # case.
     def parse_nested_query(qs, d = nil)
       params = KeySpaceConstrainedParams.new
 
@@ -100,6 +109,9 @@ module Rack
     end
     module_function :parse_nested_query
 
+    # normalize_params recursively expands parameters into structural types. If
+    # the structural types represented by two different parameter names are in
+    # conflict, a ParameterTypeError is raised.
     def normalize_params(params, name, v = nil)
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
@@ -113,12 +125,12 @@ module Rack
         params[name] = v
       elsif after == "[]"
         params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
+        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
       elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
         child_key = $1
         params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
+        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
@@ -126,7 +138,7 @@ module Rack
         end
       else
         params[k] ||= params.class.new
-        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
+        raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
         params[k] = normalize_params(params[k], after, v)
       end
 

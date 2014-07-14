@@ -213,15 +213,15 @@ describe Rack::Utils do
       should.equal "x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y]z=2") }.
-      should.raise(TypeError).
+      should.raise(Rack::Utils::ParameterTypeError).
       message.should.equal "expected Hash (got String) for param `y'"
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[]=1") }.
-      should.raise(TypeError).
+      should.raise(Rack::Utils::ParameterTypeError).
       message.should.match(/expected Array \(got [^)]*\) for param `x'/)
 
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
-      should.raise(TypeError).
+      should.raise(Rack::Utils::ParameterTypeError).
       message.should.equal "expected Array (got String) for param `y'"
   end
 
