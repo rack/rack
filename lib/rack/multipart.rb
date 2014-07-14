@@ -13,7 +13,6 @@ module Rack
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
     VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
-    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
     BROKEN_QUOTED = /^#{CONDISP}.*;\sfilename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
     BROKEN_UNQUOTED = /^#{CONDISP}.*;\sfilename=(#{TOKEN})/i
     MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
@@ -32,6 +31,7 @@ module Rack
     EXTENDED_PARAMETER = /(#{EXTENDED_INITIAL_NAME}=#{EXTENDED_INITIAL_VALUE}|
                           #{EXTENDED_OTHER_NAME}=#{EXTENDED_OTHER_VALUE})/
     DISPPARM = /;\s*(#{REGULAR_PARAMETER}|#{EXTENDED_PARAMETER})/
+    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
 
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
