@@ -14,9 +14,6 @@ rvm:
   - rbx-2
   - jruby
   - ree
-matrix:
-  allow_failures:
-    - rvm: rbx-2
 notifications:
   email: false
   irc: "irc.freenode.org#rack"
