@@ -153,13 +153,15 @@ module Rack
         filename = nil
         case head
         when RFC2183
-          filename = Hash[head.scan(DISPPARM)]['filename']
+          params = Hash[head.scan(DISPPARM)]
+          filename = params['filename']
+          extended_filename = params['filename*']
           filename = $1 if filename and filename =~ /^"(.*)"$/
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
         end
 
-        return unless filename
+        return unless (filename || extended_filename)
 
         if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
           filename = Utils.unescape(filename)
