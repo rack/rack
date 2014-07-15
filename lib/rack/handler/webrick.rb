@@ -74,6 +74,10 @@ module Rack
           headers.each { |k, vs|
             next if k.downcase == "rack.hijack"
 
+            if k.downcase == "transfer-encoding" && vs == "chunked"
+              res.chunked = true
+            end
+
             if k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
