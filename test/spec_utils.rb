@@ -143,6 +143,8 @@ describe Rack::Utils do
       should.equal "foo" => "bar"
     Rack::Utils.parse_nested_query("foo=\"bar\"").
       should.equal "foo" => "\"bar\""
+    lambda { Rack::Utils.parse_nested_query("nonsense%81Ekey=") }.
+      should.not.raise(ArgumentError)
 
     Rack::Utils.parse_nested_query("foo=bar&foo=quux").
       should.equal "foo" => "quux"
