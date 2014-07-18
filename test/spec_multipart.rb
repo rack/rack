@@ -230,12 +230,15 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
-  should "not include file params if no file was selected" do
+  # n.b. this case used to be "do not include", but because ie11 now does this
+  # for selected files, that can no longer be done. It was decided that not
+  # losing data is better, and no browser is documented with this behavior.
+  should "include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
-    params["files"].should.equal nil
-    params.keys.should.not.include "files"
+    params["files"].should.not.equal nil
+    params.keys.should.include "files"
   end
 
   should "parse multipart/mixed" do
@@ -262,6 +265,19 @@ describe Rack::Multipart do
     params["files"][:head].should.equal "Content-Disposition: form-data; " +
       "name=\"files\"; " +
       'filename="C:\Documents and Settings\Administrator\Desktop\file1.txt"' +
+      "\r\nContent-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  should "parse IE11 multipart upload" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:ie11))
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "files"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      'filename=""' +
       "\r\nContent-Type: text/plain\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
