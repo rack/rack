@@ -502,4 +502,28 @@ contents\r
     params["file"][:filename].should.equal('long' * 100)
   end
 
+  should "support mixed case metadata" do
+    file = multipart_file(:text)
+    data = File.open(file, 'rb') { |io| io.read }
+
+    type = "Multipart/Form-Data; Boundary=AaB03x"
+    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+
+    e = { "CONTENT_TYPE" => type,
+      "CONTENT_LENGTH" => length.to_s,
+      :input => StringIO.new(data) }
+
+    env = Rack::MockRequest.env_for("/", e)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["submit-name-with-content"].should.equal "Berry"
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
 end

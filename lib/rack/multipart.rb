@@ -9,7 +9,7 @@ module Rack
 
     EOL = "\r\n"
     MULTIPART_BOUNDARY = "AaB03x"
-    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|n
+    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
     DISPPARM = /;\s*(#{TOKEN})=("(?:\\"|[^"])*"|#{TOKEN})/
