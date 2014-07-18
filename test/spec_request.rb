@@ -623,7 +623,7 @@ describe Rack::Request do
   should "handle multiple media type parameters" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
-        "CONTENT_TYPE" => 'text/plain; foo=BAR,baz=bizzle dizzle;BLING=bam')
+        "CONTENT_TYPE" => 'text/plain; foo=BAR,baz=bizzle dizzle;BLING=bam;blong="boo";zump="zoo\"o"')
       req.should.not.be.form_data
       req.media_type_params.should.include 'foo'
       req.media_type_params['foo'].should.equal 'BAR'
@@ -632,6 +632,8 @@ describe Rack::Request do
       req.media_type_params.should.not.include 'BLING'
       req.media_type_params.should.include 'bling'
       req.media_type_params['bling'].should.equal 'bam'
+      req.media_type_params['blong'].should.equal 'boo'
+      req.media_type_params['zump'].should.equal 'zoo\"o'
   end
 
   should "parse with junk before boundry" do
