@@ -29,7 +29,7 @@ module Rack
     # InvalidParameterError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain invalid format or byte
     # sequence.
-    class InvalidParameterError < TypeError; end
+    class InvalidParameterError < ArgumentError; end
 
     # URI escapes. (CGI style space to +)
     def escape(s)
