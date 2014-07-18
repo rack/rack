@@ -100,7 +100,15 @@ describe Rack::URLMap do
     res.should.be.ok
     res["X-Position"].should.equal "bar.org"
 
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "Bar.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "bar.org"
+
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "foo.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "foo.org"
+
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "Foo.org")
     res.should.be.ok
     res["X-Position"].should.equal "foo.org"
 
@@ -108,7 +116,15 @@ describe Rack::URLMap do
     res.should.be.ok
     res["X-Position"].should.equal "subdomain.foo.org"
 
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "Subdomain.foo.org", "SERVER_NAME" => "Foo.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "subdomain.foo.org"
+
     res = Rack::MockRequest.new(map).get("http://foo.org/")
+    res.should.be.ok
+    res["X-Position"].should.equal "foo.org"
+
+    res = Rack::MockRequest.new(map).get("http://Foo.org/")
     res.should.be.ok
     res["X-Position"].should.equal "foo.org"
 
@@ -116,8 +132,18 @@ describe Rack::URLMap do
     res.should.be.ok
     res["X-Position"].should.equal "default.org"
 
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "Example.org")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
+
     res = Rack::MockRequest.new(map).get("/",
                                          "HTTP_HOST" => "example.org:9292",
+                                         "SERVER_PORT" => "9292")
+    res.should.be.ok
+    res["X-Position"].should.equal "default.org"
+
+    res = Rack::MockRequest.new(map).get("/",
+                                         "HTTP_HOST" => "Example.org:9292",
                                          "SERVER_PORT" => "9292")
     res.should.be.ok
     res["X-Position"].should.equal "default.org"
