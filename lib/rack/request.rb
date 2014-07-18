@@ -52,7 +52,7 @@ module Rack
       return {} if content_type.nil?
       Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
         collect { |s| s.split('=', 2) }.
-        map { |k,v| [k.downcase, v.gsub(/\A"|"\z/, "")] }.flatten]
+        map { |k,v| [k.downcase, strip_doublequotes(v)] }.flatten]
     end
 
     # The character set of the request body if a "charset" media type
@@ -383,5 +383,14 @@ module Rack
           [attribute, quality]
         end
       end
+
+  private
+    def strip_doublequotes(s)
+      if s[0] == ?" && s[-1] == ?"
+        s[1..-2]
+      else
+        s
+      end
+    end
   end
 end
