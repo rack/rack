@@ -77,7 +77,7 @@ describe Rack::Server do
     FileUtils.rm pidfile
     server = Rack::Server.new(
       :app         => app,
-      :environment => 'production',
+      :environment => 'none',
       :pid         => pidfile,
       :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
       :Host        => '127.0.0.1',
