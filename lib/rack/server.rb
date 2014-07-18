@@ -213,23 +213,23 @@ module Rack
       end
 
       def default_middleware_by_environment
-        {
-          "deployment" => [
-            [Rack::ContentLength],
-            [Rack::Chunked],
-            logging_middleware,
-            [Rack::TempfileReaper]
-          ],
-          "development" => [
-            [Rack::ContentLength],
-            [Rack::Chunked],
-            logging_middleware,
-            [Rack::ShowExceptions],
-            [Rack::Lint],
-            [Rack::TempfileReaper]
-          ],
-          "none" => []
-        }
+        m = Hash.new {|h,k| h[k] = []}
+        m["deployment"] = [
+          [Rack::ContentLength],
+          [Rack::Chunked],
+          logging_middleware,
+          [Rack::TempfileReaper]
+        ]
+        m["development"] = [
+          [Rack::ContentLength],
+          [Rack::Chunked],
+          logging_middleware,
+          [Rack::ShowExceptions],
+          [Rack::Lint],
+          [Rack::TempfileReaper]
+        ]
+
+        m
       end
 
       # Aliased for backwards-compatibility

@@ -40,6 +40,11 @@ describe Rack::Server do
     server.default_middleware_by_environment['none'].flatten.should.not.include(Rack::ShowExceptions)
   end
 
+  should "always return an empty array for unknown environments" do
+    server = Rack::Server.new(:app => 'foo')
+    server.default_middleware_by_environment['production'].should.equal []
+  end
+
   should "include Rack::TempfileReaper in deployment environment" do
     server = Rack::Server.new(:app => 'foo')
     server.middleware['deployment'].flatten.should.include(Rack::TempfileReaper)
@@ -72,7 +77,7 @@ describe Rack::Server do
     FileUtils.rm pidfile
     server = Rack::Server.new(
       :app         => app,
-      :environment => 'none',
+      :environment => 'production',
       :pid         => pidfile,
       :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
       :Host        => '127.0.0.1',
