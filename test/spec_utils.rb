@@ -223,6 +223,12 @@ describe Rack::Utils do
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
       should.raise(Rack::Utils::ParameterTypeError).
       message.should.equal "expected Array (got String) for param `y'"
+
+    if RUBY_VERSION.to_f > 1.9
+      lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
+        should.raise(Rack::Utils::InvalidParameterError).
+        message.should.equal "invalid byte sequence in UTF-8"
+    end
   end
 
   should "build query strings correctly" do

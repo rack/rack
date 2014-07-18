@@ -26,6 +26,11 @@ module Rack
     # parameters (parsed by parse_nested_query) contain conflicting types.
     class ParameterTypeError < TypeError; end
 
+    # InvalidParameterError is the error that is raised when incoming structural
+    # parameters (parsed by parse_nested_query) contain invalid format or byte
+    # sequence.
+    class InvalidParameterError < TypeError; end
+
     # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
@@ -106,6 +111,8 @@ module Rack
       end
 
       return params.to_params_hash
+    rescue ArgumentError => e
+      raise InvalidParameterError, e.message
     end
     module_function :parse_nested_query
 
