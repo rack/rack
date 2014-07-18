@@ -52,7 +52,7 @@ module Rack
       return {} if content_type.nil?
       Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
         collect { |s| s.split('=', 2) }.
-        map { |k,v| [k.downcase, v] }.flatten]
+        map { |k,v| [k.downcase, v.gsub(/\A"|"\z/, "")] }.flatten]
     end
 
     # The character set of the request body if a "charset" media type
