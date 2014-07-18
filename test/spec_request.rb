@@ -177,6 +177,18 @@ describe Rack::Request do
     req.params.should.equal req.GET.merge(req.POST)
   end
 
+  should "raise if input params has invalid %-encoding" do
+    mr = Rack::MockRequest.env_for("/?foo=quux",
+      "REQUEST_METHOD" => 'POST',
+      :input => "a%=1"
+    )
+    req = Rack::Request.new mr
+
+    lambda { req.POST }.
+      should.raise(Rack::Utils::InvalidParameterError).
+      message.should.equal "invalid %-encoding (a%)"
+  end
+
   should "raise if rack.input is missing" do
     req = Rack::Request.new({})
     lambda { req.POST }.should.raise(RuntimeError)
