@@ -116,10 +116,6 @@ module Rack
               name = filename
             end
 
-            if filename && filename.empty?
-              filename = name
-            end
-
             if filename
               (@env['rack.tempfiles'] ||= []) << body = Tempfile.new("RackMultipart")
               body.binmode  if body.respond_to?(:binmode)
