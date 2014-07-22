@@ -150,7 +150,7 @@ describe Rack::Deflater do
   end
 
   should "handle gzip response with Last-Modified header" do
-    last_modified = Time.now.httpdate
+    last_modified = Time.utc(2013,6,17,9,00).httpdate
 
     app = lambda { |env| [200, { "Content-Type" => "text/plain", "Last-Modified" => last_modified }, ["Hello World!"]] }
     request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
@@ -168,7 +168,28 @@ describe Rack::Deflater do
     response[2].each { |part| buf << part }
     io = StringIO.new(buf)
     gz = Zlib::GzipReader.new(io)
+    gz.mtime.should.equal(Time.httpdate(last_modified))
     gz.read.should.equal("Hello World!")
+    gz.close
+  end
+
+  should "set the gzip MTIME header to 0 when no Last-Modified header is available." do
+    app = lambda { |env| [200, { "Content-Type" => "text/plain" }, ["Hello World!"]] }
+    request = Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => "gzip")
+    response = deflater(app).call(request)
+
+    response[0].should.equal(200)
+    response[1].should.equal({
+      "Content-Encoding" => "gzip",
+      "Vary" => "Accept-Encoding",
+      "Content-Type" => "text/plain"
+    })
+
+    buf = ''
+    response[2].each { |part| buf << part }
+    io = StringIO.new(buf)
+    gz = Zlib::GzipReader.new(io)
+    gz.mtime.should.equal(Time.at(1))
     gz.close
   end
 
