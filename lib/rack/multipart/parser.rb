@@ -152,10 +152,8 @@ module Rack
         return unless filename
 
         if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
-          filename = Utils.unescape(filename)
+          filename = unescape_filename(filename)
         end
-
-        scrub_filename filename
 
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
@@ -164,13 +162,8 @@ module Rack
       end
 
       if "<3".respond_to? :valid_encoding?
-        def scrub_filename(filename)
-          unless filename.valid_encoding?
-            # FIXME: this force_encoding is for Ruby 2.0 and 1.9 support.
-            # We can remove it after they are dropped
-            filename.force_encoding(Encoding::ASCII_8BIT)
-            filename.encode!(:invalid => :replace, :undef => :replace)
-          end
+        def unescape_filename(filename)
+          Utils.unescape(filename, Encoding::ASCII_8BIT)
         end
 
         CHARSET    = "charset"
@@ -202,7 +195,8 @@ module Rack
           body.force_encoding encoding
         end
       else
-        def scrub_filename(filename)
+        def unescape_filename(filename)
+          Utils.unescape(filename)
         end
         def tag_multipart_encoding(filename, content_type, name, body)
         end
