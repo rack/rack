@@ -82,4 +82,21 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].should.equal expected.join.size.to_s
     response[2].to_enum.to_a.should.equal expected
   end
+
+  should "support Rack::BodyProxy" do
+    body = Struct.new(:body) do
+      def each
+        yield body.shift until body.empty?
+      end
+      def to_ary; end
+    end.new(%w[one two three])
+
+    proxy = Rack::BodyProxy.new(body)
+
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, proxy] }
+    response = content_length(app).call(request)
+    expected = %w[one two three]
+    response[1]['Content-Length'].should.equal expected.join.size.to_s
+    response[2].to_enum.to_a.should.equal expected
+  end
 end

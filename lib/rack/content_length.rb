@@ -18,9 +18,14 @@ module Rack
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
          !headers['Content-Length'] &&
          !headers['Transfer-Encoding'] &&
-         body.respond_to?(:to_ary)
+         (body.respond_to?(:to_ary) || body.respond_to?(:body))
 
-        obody = body
+        if body.respond_to?(:to_ary)
+          obody = body
+        else
+          obody = body.body
+        end
+
         body, length = [], 0
         obody.each { |part| body << part; length += bytesize(part) }
 
