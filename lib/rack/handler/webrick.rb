@@ -2,6 +2,23 @@ require 'webrick'
 require 'stringio'
 require 'rack/content_length'
 
+# This monkey patch allows for applications to perform their own chunking
+# through WEBrick::HTTPResponse iff rack is set to true.
+class WEBrick::HTTPResponse
+  attr_accessor :rack
+
+  alias _rack_setup_header setup_header
+  def setup_header
+    app_chunking = rack && @header['transfer-encoding'] == 'chunked'
+
+    @chunked = app_chunking if app_chunking
+
+    _rack_setup_header
+
+    @chunked = false if app_chunking
+  end
+end
+
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
@@ -39,6 +56,7 @@ module Rack
       end
 
       def service(req, res)
+        res.rack = true
         env = req.meta_vars
         env.delete_if { |k, v| v.nil? }
 

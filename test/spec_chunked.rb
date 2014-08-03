@@ -64,6 +64,22 @@ describe Rack::Chunked do
     body.join.should.equal 'Hello World!'
   end
 
+  should 'not modify response when client is ancient, pre-HTTP/1.0' do
+    app = lambda { |env| [200, {"Content-Type" => "text/plain"}, ['Hello', ' ', 'World!']] }
+    check = lambda do
+      status, headers, body = chunked(app).call(@env.dup)
+      status.should.equal 200
+      headers.should.not.include 'Transfer-Encoding'
+      body.join.should.equal 'Hello World!'
+    end
+
+    @env.delete('HTTP_VERSION') # unicorn will do this on pre-HTTP/1.0 requests
+    check.call
+
+    @env['HTTP_VERSION'] = 'HTTP/0.9' # not sure if this happens in practice
+    check.call
+  end
+
   should 'not modify response when Transfer-Encoding header already present' do
     app = lambda { |env|
       [200, {"Content-Type" => "text/plain", 'Transfer-Encoding' => 'identity'}, ['Hello', ' ', 'World!']]

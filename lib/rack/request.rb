@@ -52,7 +52,7 @@ module Rack
       return {} if content_type.nil?
       Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
         collect { |s| s.split('=', 2) }.
-        map { |k,v| [k.downcase, v] }.flatten]
+        map { |k,v| [k.downcase, strip_doublequotes(v)] }.flatten]
     end
 
     # The character set of the request body if a "charset" media type
@@ -354,12 +354,6 @@ module Rack
 
       forwarded_ips = split_ip_addresses(@env['HTTP_X_FORWARDED_FOR'])
 
-      if client_ip = @env['HTTP_CLIENT_IP']
-        # If forwarded_ips doesn't include the client_ip, it might be an
-        # ip spoofing attempt, so we ignore HTTP_CLIENT_IP
-        return client_ip if forwarded_ips.include?(client_ip)
-      end
-
       return reject_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
     end
 
@@ -377,7 +371,7 @@ module Rack
         when 'application/json'
           (qs && qs != '') ? ::Rack::Utils::OkJson.decode(qs) : {}
         else
-          Utils.parse_nested_query(qs)
+          Utils.parse_nested_query(qs, '&')
         end
       end
 
@@ -395,5 +389,14 @@ module Rack
           [attribute, quality]
         end
       end
+
+  private
+    def strip_doublequotes(s)
+      if s[0] == ?" && s[-1] == ?"
+        s[1..-2]
+      else
+        s
+      end
+    end
   end
 end

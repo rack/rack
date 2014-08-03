@@ -9,14 +9,11 @@ rvm:
   - 1.9.2
   - 1.9.3
   - 2.0.0
-  - 2.1.0
+  - 2.1
   - ruby-head
-  - rbx
+  - rbx-2
   - jruby
   - ree
-matrix:
-  allow_failures:
-    - rvm: rbx
 notifications:
   email: false
   irc: "irc.freenode.org#rack"

@@ -22,6 +22,15 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    # ParameterTypeError is the error that is raised when incoming structural
+    # parameters (parsed by parse_nested_query) contain conflicting types.
+    class ParameterTypeError < TypeError; end
+
+    # InvalidParameterError is the error that is raised when incoming structural
+    # parameters (parsed by parse_nested_query) contain invalid format or byte
+    # sequence.
+    class InvalidParameterError < ArgumentError; end
+
     # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
@@ -87,6 +96,11 @@ module Rack
     end
     module_function :parse_query
 
+    # parse_nested_query expands a query string into structural types. Supported
+    # types are Arrays, Hashes and basic value types. It is possible to supply
+    # query strings with parameters of conflicting types, in this case a
+    # ParameterTypeError is raised. Users are encouraged to return a 400 in this
+    # case.
     def parse_nested_query(qs, d = nil)
       params = KeySpaceConstrainedParams.new
 
@@ -97,9 +111,14 @@ module Rack
       end
 
       return params.to_params_hash
+    rescue ArgumentError => e
+      raise InvalidParameterError, e.message
     end
     module_function :parse_nested_query
 
+    # normalize_params recursively expands parameters into structural types. If
+    # the structural types represented by two different parameter names are in
+    # conflict, a ParameterTypeError is raised.
     def normalize_params(params, name, v = nil)
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
@@ -113,12 +132,12 @@ module Rack
         params[name] = v
       elsif after == "[]"
         params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
+        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
       elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
         child_key = $1
         params[k] ||= []
-        raise TypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
+        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
@@ -126,7 +145,7 @@ module Rack
         end
       else
         params[k] ||= params.class.new
-        raise TypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
+        raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
         params[k] = normalize_params(params[k], after, v)
       end
 
@@ -159,12 +178,12 @@ module Rack
       when Hash
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.join("&")
-      when String
+        }.reject(&:empty?).join('&')
+      when nil
+        prefix
+      else
         raise ArgumentError, "value must be a Hash" if prefix.nil?
         "#{prefix}=#{escape(value)}"
-      else
-        prefix
       end
     end
     module_function :build_nested_query
@@ -184,13 +203,14 @@ module Rack
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
-      values.map do |req_mime, quality|
-        match = available_mimes.first { |am| Rack::Mime.match?(am, req_mime) }
+      matches = values.map do |req_mime, quality|
+        match = available_mimes.find { |am| Rack::Mime.match?(am, req_mime) }
         next unless match
         [match, quality]
       end.compact.sort_by do |match, quality|
         (match.split('/', 2).count('*') * -10) + quality
-      end.last.first
+      end.last
+      matches && matches.first
     end
     module_function :best_q_match
 
@@ -532,7 +552,11 @@ module Rack
         hash.keys.each do |key|
           value = hash[key]
           if value.kind_of?(self.class)
-            hash[key] = value.to_params_hash
+            if value.object_id == self.object_id
+              hash[key] = hash
+            else
+              hash[key] = value.to_params_hash
+            end
           elsif value.kind_of?(Array)
             value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
           end
@@ -587,6 +611,7 @@ module Rack
       415 => 'Unsupported Media Type',
       416 => 'Requested Range Not Satisfiable',
       417 => 'Expectation Failed',
+      418 => 'I\'m a teapot',
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
@@ -611,7 +636,7 @@ module Rack
     STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 205 << 304)
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
-      [message.downcase.gsub(/\s|-/, '_').to_sym, code]
+      [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
     }.flatten]
 
     def status_code(status)
@@ -637,7 +662,7 @@ module Rack
         part == '..' ? clean.pop : clean << part
       end
 
-      clean.unshift '/' if parts.first.empty?
+      clean.unshift '/' if parts.empty? || parts.first.empty?
 
       ::File.join(*clean)
     end

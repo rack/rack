@@ -40,7 +40,17 @@ below.
 <tt>QUERY_STRING</tt>:: The portion of the request URL that
                         follows the <tt>?</tt>, if any. May be
                         empty, but is always required!
-<tt>SERVER_NAME</tt>, <tt>SERVER_PORT</tt>:: When combined with <tt>SCRIPT_NAME</tt> and <tt>PATH_INFO</tt>, these variables can be used to complete the URL. Note, however, that <tt>HTTP_HOST</tt>, if present, should be used in preference to <tt>SERVER_NAME</tt> for reconstructing the request URL.  <tt>SERVER_NAME</tt> and <tt>SERVER_PORT</tt> can never be empty strings, and so are always required.
+<tt>SERVER_NAME</tt>, <tt>SERVER_PORT</tt>::
+                       When combined with <tt>SCRIPT_NAME</tt> and
+                       <tt>PATH_INFO</tt>, these variables can be
+                       used to complete the URL. Note, however,
+                       that <tt>HTTP_HOST</tt>, if present,
+                       should be used in preference to
+                       <tt>SERVER_NAME</tt> for reconstructing
+                       the request URL.
+                       <tt>SERVER_NAME</tt> and <tt>SERVER_PORT</tt>
+                       can never be empty strings, and so
+                       are always required.
 <tt>HTTP_</tt> Variables:: Variables corresponding to the
                            client-supplied HTTP request
                            headers (i.e., variables whose
@@ -49,24 +59,47 @@ below.
                            variables should correspond with
                            the presence or absence of the
                            appropriate HTTP header in the
-                           request. See <a href="https://tools.ietf.org/html/rfc3875#section-4.1.18">
-                           RFC3875 section 4.1.18</a> for specific behavior.
+                           request. See
+                           <a href="https://tools.ietf.org/html/rfc3875#section-4.1.18">
+                           RFC3875 section 4.1.18</a> for
+                           specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
-<tt>rack.version</tt>:: The Array representing this version of Rack. See Rack::VERSION, that corresponds to the version of this SPEC.
-<tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the request URL.
+<tt>rack.version</tt>:: The Array representing this version of Rack
+                        See Rack::VERSION, that corresponds to
+                        the version of this SPEC.
+<tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the
+                           request URL.
 <tt>rack.input</tt>:: See below, the input stream.
 <tt>rack.errors</tt>:: See below, the error stream.
-<tt>rack.multithread</tt>:: true if the application object may be simultaneously invoked by another thread in the same process, false otherwise.
-<tt>rack.multiprocess</tt>:: true if an equivalent application object may be simultaneously invoked by another process, false otherwise.
-<tt>rack.run_once</tt>:: true if the server expects (but does not guarantee!) that the application will only be invoked this one time during the life of its containing process. Normally, this will only be true for a server based on CGI (or something similar).
-<tt>rack.hijack?</tt>:: present and true if the server supports connection hijacking. See below, hijacking.
-<tt>rack.hijack</tt>:: an object responding to #call that must be called at least once before using rack.hijack_io. It is recommended #call return rack.hijack_io as well as setting it in env if necessary.
-<tt>rack.hijack_io</tt>:: if rack.hijack? is true, and rack.hijack has received #call, this will contain an object resembling an IO. See hijacking.
+<tt>rack.multithread</tt>:: true if the application object may be
+                            simultaneously invoked by another thread
+                            in the same process, false otherwise.
+<tt>rack.multiprocess</tt>:: true if an equivalent application object
+                             may be simultaneously invoked by another
+                             process, false otherwise.
+<tt>rack.run_once</tt>:: true if the server expects
+                         (but does not guarantee!) that the
+                         application will only be invoked this one
+                         time during the life of its containing
+                         process. Normally, this will only be true
+                         for a server based on CGI
+                         (or something similar).
+<tt>rack.hijack?</tt>:: present and true if the server supports
+                        connection hijacking. See below, hijacking.
+<tt>rack.hijack</tt>:: an object responding to #call that must be
+                       called at least once before using
+                       rack.hijack_io.
+                       It is recommended #call return rack.hijack_io
+                       as well as setting it in env if necessary.
+<tt>rack.hijack_io</tt>:: if rack.hijack? is true, and rack.hijack
+                          has received #call, this will contain
+                          an object resembling an IO. See hijacking.
 Additional environment specifications have approved to
 standardized middleware APIs.  None of these are required to
 be implemented by the server.
-<tt>rack.session</tt>:: A hash like interface for storing request session data.
+<tt>rack.session</tt>:: A hash like interface for storing
+                        request session data.
                         The store must implement:
                         store(key, value)         (aliased as []=);
                         fetch(key, default = nil) (aliased as []);
@@ -110,15 +143,18 @@ must be opened in binary mode, for Ruby 1.9 compatibility.
 The input stream must respond to +gets+, +each+, +read+ and +rewind+.
 * +gets+ must be called without arguments and return a string,
   or +nil+ on EOF.
-* +read+ behaves like IO#read. Its signature is <tt>read([length, [buffer]])</tt>.
-  If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must
-  be a String and may not be nil. If +length+ is given and not nil, then this method
-  reads at most +length+ bytes from the input stream. If +length+ is not given or nil,
-  then this method reads all data until EOF.
-  When EOF is reached, this method returns nil if +length+ is given and not nil, or ""
-  if +length+ is not given or is nil.
-  If +buffer+ is given, then the read data will be placed into +buffer+ instead of a
-  newly created String object.
+* +read+ behaves like IO#read.
+  Its signature is <tt>read([length, [buffer]])</tt>.
+  If given, +length+ must be a non-negative Integer (>= 0) or +nil+,
+  and +buffer+ must be a String and may not be nil.
+  If +length+ is given and not nil, then this method reads at most
+  +length+ bytes from the input stream.
+  If +length+ is not given or nil, then this method reads
+  all data until EOF.
+  When EOF is reached, this method returns nil if +length+ is given
+  and not nil, or "" if +length+ is not given or is nil.
+  If +buffer+ is given, then the read data will be placed
+  into +buffer+ instead of a newly created String object.
 * +each+ must be called without arguments and only yield Strings.
 * +rewind+ must be called without arguments. It rewinds the input
   stream back to the beginning. It must not raise Errno::ESPIPE:

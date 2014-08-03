@@ -30,14 +30,24 @@ describe Rack::Server do
 
   should "not include Rack::Lint in deployment or none environments" do
     server = Rack::Server.new(:app => 'foo')
-    server.middleware['deployment'].flatten.should.not.include(Rack::Lint)
-    server.middleware['none'].flatten.should.not.include(Rack::Lint)
+    server.default_middleware_by_environment['deployment'].flatten.should.not.include(Rack::Lint)
+    server.default_middleware_by_environment['none'].flatten.should.not.include(Rack::Lint)
   end
 
   should "not include Rack::ShowExceptions in deployment or none environments" do
     server = Rack::Server.new(:app => 'foo')
-    server.middleware['deployment'].flatten.should.not.include(Rack::ShowExceptions)
-    server.middleware['none'].flatten.should.not.include(Rack::ShowExceptions)
+    server.default_middleware_by_environment['deployment'].flatten.should.not.include(Rack::ShowExceptions)
+    server.default_middleware_by_environment['none'].flatten.should.not.include(Rack::ShowExceptions)
+  end
+
+  should "always return an empty array for unknown environments" do
+    server = Rack::Server.new(:app => 'foo')
+    server.default_middleware_by_environment['production'].should.equal []
+  end
+
+  should "include Rack::TempfileReaper in deployment environment" do
+    server = Rack::Server.new(:app => 'foo')
+    server.middleware['deployment'].flatten.should.include(Rack::TempfileReaper)
   end
 
   should "support CGI" do
@@ -53,7 +63,7 @@ describe Rack::Server do
 
   should "not force any middleware under the none configuration" do
     server = Rack::Server.new(:app => 'foo')
-    server.middleware['none'].should.be.empty
+    server.default_middleware_by_environment['none'].should.be.empty
   end
 
   should "use a full path to the pidfile" do

@@ -251,6 +251,11 @@ describe Rack::Response do
     res.should.be.client_error
     res.should.be.method_not_allowed
 
+    res.status = 418
+    res.should.not.be.successful
+    res.should.be.client_error
+    res.should.be.i_m_a_teapot
+
     res.status = 422
     res.should.not.be.successful
     res.should.be.client_error

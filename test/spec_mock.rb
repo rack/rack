@@ -30,6 +30,14 @@ describe Rack::MockRequest do
     env.should.include "rack.version"
   end
 
+  should "return an environment with a path" do
+    env = Rack::MockRequest.env_for("http://www.example.com/parse?location[]=1&location[]=2&age_group[]=2")
+    env["QUERY_STRING"].should.equal "location[]=1&location[]=2&age_group[]=2"
+    env["PATH_INFO"].should.equal "/parse"
+    env.should.be.kind_of Hash
+    env.should.include "rack.version"
+  end
+
   should "provide sensible defaults" do
     res = Rack::MockRequest.new(app).request
 

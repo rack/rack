@@ -4,13 +4,14 @@ module Rack
 
     METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+    ALLOWED_METHODS = ["POST"]
 
     def initialize(app)
       @app = app
     end
 
     def call(env)
-      if env["REQUEST_METHOD"] == "POST"
+      if allowed_methods.include?(env["REQUEST_METHOD"])
         method = method_override(env)
         if HTTP_METHODS.include?(method)
           env["rack.methodoverride.original_method"] = env["REQUEST_METHOD"]
@@ -23,9 +24,19 @@ module Rack
 
     def method_override(env)
       req = Request.new(env)
-      method = req.POST[METHOD_OVERRIDE_PARAM_KEY] ||
+      method = method_override_param(req) ||
         env[HTTP_METHOD_OVERRIDE_HEADER]
       method.to_s.upcase
+    end
+
+    private
+
+    def allowed_methods
+      ALLOWED_METHODS
+    end
+
+    def method_override_param(req)
+      req.POST[METHOD_OVERRIDE_PARAM_KEY]
     end
   end
 end

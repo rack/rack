@@ -153,6 +153,18 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  should "parse multipart upload with text file with no name field" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_and_no_name))
+    params = Rack::Multipart.parse_multipart(env)
+    params["file1.txt"][:type].should.equal "text/plain"
+    params["file1.txt"][:filename].should.equal "file1.txt"
+    params["file1.txt"][:head].should.equal "Content-Disposition: form-data; " +
+      "filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["file1.txt"][:name].should.equal "file1.txt"
+    params["file1.txt"][:tempfile].read.should.equal "contents"
+  end
+
   should "parse multipart upload with nested parameters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:nested))
     params = Rack::Multipart.parse_multipart(env)
@@ -500,6 +512,30 @@ contents\r
     params = Rack::Utils::Multipart.parse_multipart(env)
 
     params["file"][:filename].should.equal('long' * 100)
+  end
+
+  should "support mixed case metadata" do
+    file = multipart_file(:text)
+    data = File.open(file, 'rb') { |io| io.read }
+
+    type = "Multipart/Form-Data; Boundary=AaB03x"
+    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+
+    e = { "CONTENT_TYPE" => type,
+      "CONTENT_LENGTH" => length.to_s,
+      :input => StringIO.new(data) }
+
+    env = Rack::MockRequest.env_for("/", e)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["submit-name-with-content"].should.equal "Berry"
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
   end
 
 end

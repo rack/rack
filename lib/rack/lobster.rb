@@ -32,9 +32,14 @@ module Rack
     def call(env)
       req = Request.new(env)
       if req.GET["flip"] == "left"
-        lobster = LobsterString.split("\n").
-          map { |line| line.ljust(42).reverse }.
-          join("\n")
+        lobster = LobsterString.split("\n").map do |line|
+          line.ljust(42).reverse.
+            gsub('\\', 'TEMP').
+            gsub('/', '\\').
+            gsub('TEMP', '/').
+            gsub('{','}').
+            gsub('(',')')
+        end.join("\n")
         href = "?flip=right"
       elsif req.GET["flip"] == "crash"
         raise "Lobster crashed"
