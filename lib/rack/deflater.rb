@@ -58,9 +58,9 @@ module Rack
       when "identity"
         [status, headers, body]
       when nil
-        body.close if body.respond_to?(:close)
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
-        [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, [message]]
+        bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
+        [406, {"Content-Type" => "text/plain", "Content-Length" => message.length.to_s}, bp]
       end
     end
 
