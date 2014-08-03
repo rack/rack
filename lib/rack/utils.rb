@@ -179,11 +179,11 @@ module Rack
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
         }.join("&")
-      when String
+      when nil
+        prefix
+      else
         raise ArgumentError, "value must be a Hash" if prefix.nil?
         "#{prefix}=#{escape(value)}"
-      else
-        prefix
       end
     end
     module_function :build_nested_query

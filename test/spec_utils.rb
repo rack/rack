@@ -248,6 +248,8 @@ describe Rack::Utils do
 
     Rack::Utils.build_nested_query("foo" => "1", "bar" => "2").
       should.be equal_query_to("foo=1&bar=2")
+    Rack::Utils.build_nested_query("foo" => 1, "bar" => 2).
+      should.be equal_query_to("foo=1&bar=2")
     Rack::Utils.build_nested_query("my weird field" => "q1!2\"'w$5&7/z8)?").
       should.be equal_query_to("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F")
 
