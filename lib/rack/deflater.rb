@@ -17,19 +17,26 @@ module Rack
   # directive of 'no-transform' is present, or when the response status
   # code is one that doesn't allow an entity body.
   class Deflater
-    def initialize(app)
+    ##
+    # Creates Rack::Deflater middleware.
+    #
+    # [app] rack app instance
+    # [options] hash of deflater options, i.e.
+    #           'if' - a lambda enabling / disabling deflation based on returned boolean value
+    #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.length > 512 }
+    #           'include' - a list of content types that should be compressed
+    def initialize(app, options = {})
       @app = app
+
+      @condition = options[:if]
+      @compressible_types = options[:include]
     end
 
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
 
-      # Skip compressing empty entity body responses and responses with
-      # no-transform set.
-      if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
-         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+      unless should_deflate?(env, status, headers, body)
         return [status, headers, body]
       end
 
@@ -123,6 +130,26 @@ module Rack
         @closed = true
         @body.close if @body.respond_to?(:close)
       end
+    end
+
+    private
+
+    def should_deflate?(env, status, headers, body)
+      # Skip compressing empty entity body responses and responses with
+      # no-transform set.
+      if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
+          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
+         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+        return false
+      end
+
+      # Skip if @compressible_types are given and does not include request's content type
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
+
+      # Skip if @condition lambda is given and evaluates to false
+      return false if @condition && !@condition.call(env, status, headers, body)
+
+      true
     end
   end
 end
