@@ -56,4 +56,14 @@ describe Rack::Handler do
       $LOAD_PATH.delete path
     end
   end
+
+  should "returns localhost as the default environment" do
+    Rack::Handler::Environment.environment.should.equal('localhost')
+  end
+
+  should "returns 0.0.0.0 if there's a definition of environment variable" do
+    ENV['RACK_ENV'] = 'test'
+
+    Rack::Handler::Environment.environment.should.equal('0.0.0.0')
+  end
 end

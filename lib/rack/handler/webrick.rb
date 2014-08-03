@@ -1,6 +1,7 @@
 require 'webrick'
 require 'stringio'
 require 'rack/content_length'
+require 'rack/handler/environment'
 
 # This monkey patch allows for applications to perform their own chunking
 # through WEBrick::HTTPResponse iff rack is set to true.
@@ -22,11 +23,10 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
-      def self.run(app, options={})
-        environment  = ENV['RACK_ENV'] || 'development'
-        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
+      extend Environment
 
-        options[:BindAddress] = options.delete(:Host) || default_host
+      def self.run(app, options={})
+        options[:BindAddress] = options.delete(:Host) || environment
         options[:Port] ||= 8080
         options[:OutputBufferSize] = 5
         @server = ::WEBrick::HTTPServer.new(options)
@@ -36,11 +36,8 @@ module Rack
       end
 
       def self.valid_options
-        environment  = ENV['RACK_ENV'] || 'development'
-        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
-
         {
-          "Host=HOST" => "Hostname to listen on (default: #{default_host})",
+          "Host=HOST" => "Hostname to listen on (default: #{environment})",
           "Port=PORT" => "Port to listen on (default: 8080)",
         }
       end

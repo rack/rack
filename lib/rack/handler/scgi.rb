@@ -2,10 +2,13 @@ require 'scgi'
 require 'stringio'
 require 'rack/content_length'
 require 'rack/chunked'
+require 'rack/handler/environment'
 
 module Rack
   module Handler
     class SCGI < ::SCGI::Processor
+      extend Environment
+
       attr_accessor :app
 
       def self.run(app, options=nil)
@@ -17,11 +20,8 @@ module Rack
       end
 
       def self.valid_options
-        environment  = ENV['RACK_ENV'] || 'development'
-        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
-
         {
-          "Host=HOST" => "Hostname to listen on (default: #{default_host})",
+          "Host=HOST" => "Hostname to listen on (default: #{environment})",
           "Port=PORT" => "Port to listen on (default: 8080)",
         }
       end

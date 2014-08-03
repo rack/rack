@@ -2,6 +2,7 @@ require 'fcgi'
 require 'socket'
 require 'rack/content_length'
 require 'rack/rewindable_input'
+require 'rack/handler/environment'
 
 if defined? FCGI::Stream
   class FCGI::Stream
@@ -18,6 +19,8 @@ end
 module Rack
   module Handler
     class FastCGI
+      extend Environment
+
       def self.run(app, options={})
         if options[:File]
           STDIN.reopen(UNIXServer.new(options[:File]))
@@ -30,11 +33,8 @@ module Rack
       end
 
       def self.valid_options
-        environment  = ENV['RACK_ENV'] || 'development'
-        default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
-
         {
-          "Host=HOST" => "Hostname to listen on (default: #{default_host})",
+          "Host=HOST" => "Hostname to listen on (default: #{environment})",
           "Port=PORT" => "Port to listen on (default: 8080)",
           "File=PATH" => "Creates a Domain socket at PATH instead of a TCP socket. Ignores Host and Port if set.",
         }
