@@ -310,7 +310,7 @@ module Rack
         end
 
         def force_options?(options)
-          options.values_at(:renew, :drop, :defer, :expire_after).any?
+          options.values_at(:max_age, :renew, :drop, :defer, :expire_after).any?
         end
 
         def security_matches?(env, options)
@@ -347,6 +347,7 @@ module Rack
             cookie = Hash.new
             cookie[:value] = data
             cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
+            cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
             set_cookie(env, headers, cookie.merge!(options))
           end
 
