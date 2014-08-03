@@ -96,7 +96,10 @@ describe Rack::Request do
 
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost", "HTTP_X_FORWARDED_PROTO" => "https", "SERVER_PORT" => "80")
+    req.port.should.equal 443
 
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost", "HTTP_X_FORWARDED_PROTO" => "https,https", "SERVER_PORT" => "80")
     req.port.should.equal 443
   end
 
