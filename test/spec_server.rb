@@ -61,6 +61,11 @@ describe Rack::Server do
     end
   end
 
+  should "be quiet if said so" do
+    server = Rack::Server.new(:app => "FOO", :quiet => true)
+    Rack::Server.logging_middleware.call(server).should.eql(nil)
+  end
+
   should "not force any middleware under the none configuration" do
     server = Rack::Server.new(:app => 'foo')
     server.default_middleware_by_environment['none'].should.be.empty

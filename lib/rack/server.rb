@@ -30,6 +30,9 @@ module Rack
           opts.on("-w", "--warn", "turn warnings on for your script") {
             options[:warn] = true
           }
+          opts.on("-q", "--quiet", "turn off logging") {
+            options[:quiet] = true
+          }
 
           opts.on("-I", "--include PATH",
                   "specify $LOAD_PATH (may be used more than once)") { |path|
@@ -208,7 +211,7 @@ module Rack
     class << self
       def logging_middleware
         lambda { |server|
-          server.server.name =~ /CGI/ ? nil : [Rack::CommonLogger, $stderr]
+          server.server.name =~ /CGI/ || server.options[:quiet] ? nil : [Rack::CommonLogger, $stderr]
         }
       end
 
