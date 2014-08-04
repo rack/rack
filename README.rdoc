@@ -28,13 +28,11 @@ These web servers include Rack handlers in their distributions:
 * Glassfish v3
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
 * Puma
-* Rainbows!
 * Reel
 * Unicorn
 * unixrack
 * uWSGI
 * yahns
-* Zbatery
 
 Any valid Rack app will run the same on all these handlers, without
 changing anything.
