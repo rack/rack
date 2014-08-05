@@ -744,6 +744,23 @@ EOF
     f[:tempfile].size.should.equal 76
   end
 
+  should "EOFError when request has too many multipart parts if limit set" do
+    ENV["multipart.limit"] = 137.to_s
+
+    data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+    data += "--AaB03x--\r"
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+
+    lambda { Rack::Request.new Rack::MockRequest.env_for("/", options) }.should.not.raise
+    
+    ENV.delete("multipart.limit")
+  end
+
   should "parse big multipart form data" do
     input = <<EOF
 --AaB03x\r
