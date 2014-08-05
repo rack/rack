@@ -151,10 +151,6 @@ module Rack
 
         return unless filename
 
-        if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
-          filename = Utils.unescape(filename)
-        end
-
         scrub_filename filename
 
         if filename !~ /\\[^\\"]/
