@@ -61,11 +61,17 @@ module Rack
 
     class << self
       attr_accessor :key_space_limit
+      attr_accessor :multipart_part_limit
     end
 
     # The default number of bytes to allow parameter keys to take up.
     # This helps prevent a rogue client from flooding a Request.
     self.key_space_limit = 65536
+
+    # The maximum number of parts a request can contain. Accepting to many part
+    # can lead to the server running out of file handles.
+    # Set to `0` for no limit.
+    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || 128).to_i
 
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
