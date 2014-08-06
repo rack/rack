@@ -364,22 +364,29 @@ Content-Type: image/jpeg\r
   end
 
   it "builds complete params with the chunk size of 16384 slicing exactly on boundary" do
-    data = File.open(multipart_file("fail_16384_nofile")) { |f| f.read }.gsub(/\n/, "\r\n")
-    options = {
-      "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryWsY0GnpbI5U7ztzo",
-      "CONTENT_LENGTH" => data.length.to_s,
-      :input => StringIO.new(data)
-    }
-    env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
+    begin
+      previous_limit = Rack::Utils.multipart_part_limit
+      Rack::Utils.multipart_part_limit = 256
 
-    params.should.not.equal nil
-    params.keys.should.include "AAAAAAAAAAAAAAAAAAA"
-    params["AAAAAAAAAAAAAAAAAAA"].keys.should.include "PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"
-    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"].keys.should.include "new"
-    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"].keys.should.include "-2"
-    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"].keys.should.include "ba_unit_id"
-    params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"]["ba_unit_id"].should.equal "1017"
+      data = File.open(multipart_file("fail_16384_nofile"), 'rb') { |f| f.read }.gsub(/\n/, "\r\n")
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=----WebKitFormBoundaryWsY0GnpbI5U7ztzo",
+        "CONTENT_LENGTH" => data.length.to_s,
+        :input => StringIO.new(data)
+      }
+      env = Rack::MockRequest.env_for("/", options)
+      params = Rack::Multipart.parse_multipart(env)
+
+      params.should.not.equal nil
+      params.keys.should.include "AAAAAAAAAAAAAAAAAAA"
+      params["AAAAAAAAAAAAAAAAAAA"].keys.should.include "PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"
+      params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"].keys.should.include "new"
+      params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"].keys.should.include "-2"
+      params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"].keys.should.include "ba_unit_id"
+      params["AAAAAAAAAAAAAAAAAAA"]["PLAPLAPLA_MEMMEMMEMM_ATTRATTRER"]["new"]["-2"]["ba_unit_id"].should.equal "1017"
+    ensure
+      Rack::Utils.multipart_part_limit = previous_limit
+    end
   end
 
   should "return nil if no UploadedFiles were used" do

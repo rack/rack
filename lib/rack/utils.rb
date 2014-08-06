@@ -52,6 +52,7 @@ module Rack
     class << self
       attr_accessor :key_space_limit
       attr_accessor :param_depth_limit
+      attr_accessor :multipart_part_limit
     end
 
     # The default number of bytes to allow parameter keys to take up.
@@ -61,6 +62,11 @@ module Rack
     # Default depth at which the parameter parser will raise an exception for
     # being too deep.  This helps prevent SystemStackErrors
     self.param_depth_limit = 100
+    #
+    # The maximum number of parts a request can contain. Accepting to many part
+    # can lead to the server running out of file handles.
+    # Set to `0` for no limit.
+    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || 128).to_i
 
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
