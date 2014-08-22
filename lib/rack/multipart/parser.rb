@@ -117,7 +117,8 @@ module Rack
             end
 
             if filename
-              (@env['rack.tempfiles'] ||= []) << body = Tempfile.new("RackMultipart")
+              extname = ::File.extname(filename)
+              (@env['rack.tempfiles'] ||= []) << body = Tempfile.new(["RackMultipart", extname])
               body.binmode  if body.respond_to?(:binmode)
             end
 
