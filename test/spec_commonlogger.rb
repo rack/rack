@@ -35,6 +35,19 @@ describe Rack::CommonLogger do
     log.string.should =~ /"GET \/ " 200 #{length} /
   end
 
+  should "unescape the path" do
+
+    app1 = Rack::Lint.new lambda { |env|
+      env["PATH_INFO"] = ::Rack::Utils.escape(env["PATH_INFO"])
+      [200,
+        {"Content-Type" => "text/html", "Content-Length" => length.to_s},
+        [obj]]}
+
+    log = StringIO.new
+    Rack::MockRequest.new(Rack::CommonLogger.new(app1, log)).get("/favicon.ico")
+    log.string.should =~ /"GET \/favicon.ico " 200 #{length} /
+  end
+
   should "work with standartd library logger" do
     logdev = StringIO.new
     log = Logger.new(logdev)
