@@ -153,6 +153,12 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  should "preserve extension in the created tempfile" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    params = Rack::Multipart.parse_multipart(env)
+    File.extname(params["files"][:tempfile].path).should.equal ".txt"
+  end
+
   should "parse multipart upload with text file with no name field" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_and_no_name))
     params = Rack::Multipart.parse_multipart(env)
