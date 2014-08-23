@@ -277,7 +277,7 @@ describe Rack::Multipart do
   should "parse multipart form with an encoded word filename" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_encoded_words)
     params = Rack::Multipart.parse_multipart(env)
-    params["files"][:filename].should.equal "файл.png"
+    params["files"][:filename].should.equal "файл"
   end
 
   should "not include file params if no file was selected" do

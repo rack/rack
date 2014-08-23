@@ -173,7 +173,13 @@ module Rack
           filename = filename.gsub(/\\(.)/, '\1')
         end
         
-        filename
+        encoding, locale, name = filename.split("'",3)
+
+        if locale.nil? && name.nil?
+          name = encoding
+        else
+          name.force_encoding Encoding.find(encoding)
+        end
       end
 
       def scrub_filename(filename)
