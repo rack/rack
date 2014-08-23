@@ -155,13 +155,13 @@ module Rack
         when RFC2183
           params = Hash[head.scan(DISPPARM)]
           filename = params['filename']
-          extended_filename = params['filename*']
+          filename ||= params['filename*']
           filename = $1 if filename and filename =~ /^"(.*)"$/
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
         end
 
-        return unless (filename || extended_filename)
+        return unless filename
 
         if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
           filename = Utils.unescape(filename)
@@ -172,6 +172,7 @@ module Rack
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
         end
+        
         filename
       end
 
