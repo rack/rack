@@ -178,7 +178,7 @@ module Rack
         if locale.nil? && name.nil?
           name = encoding
         else
-          name.force_encoding Encoding.find(encoding)
+          name.force_encoding ::Encoding.find(encoding)
         end
       end
 
