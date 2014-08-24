@@ -29,7 +29,7 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
-    def self.parse_file(config, opts = Server::Options.new)
+    def self.parse_file(config, opts = Rack::Options.new)
       options = {}
       if config =~ /\.ru$/
         cfgfile = ::File.read(config)
