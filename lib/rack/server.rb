@@ -197,7 +197,7 @@ module Rack
       end
 
       def opt_parser
-        Rack::Options.new
+        Rack::Options
       end
 
       def build_app(app)

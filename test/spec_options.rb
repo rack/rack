@@ -31,11 +31,11 @@ describe Rack::Options do
 
   describe '#handler_opts' do
     should "return empty string when handler is without options" do
-      Rack::Options.new.handler_opts({:server => 'without_options'}).should.equal ''
+      Rack::Options.handler_opts({:server => 'without_options'}).should.equal ''
     end
 
     should "return text with handler options when handler is with options" do
-      result = Rack::Options.new.handler_opts({:server => 'with_options'})
+      result = Rack::Options.handler_opts({:server => 'with_options'})
       result.should.not.equal ''
       result.should.match(/Opt1/)
       result.should.match(/Opt2/)
@@ -43,14 +43,14 @@ describe Rack::Options do
     end
 
     should "ignore Host and Port options of handler" do
-      result = Rack::Options.new.handler_opts({:server => 'with_options'})
+      result = Rack::Options.handler_opts({:server => 'with_options'})
       result.should.not.equal ''
       result.should.not.match(/Host/)
       result.should.not.match(/Port/)
     end
 
     should "return Warning-text when handler was not found" do
-      result = Rack::Options.new.handler_opts({:server => 'non_existing'})
+      result = Rack::Options.handler_opts({:server => 'non_existing'})
       result.should.not.equal ''
       result.should.match(/Warning/)
     end
