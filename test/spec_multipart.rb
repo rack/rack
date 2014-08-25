@@ -1,3 +1,5 @@
+# coding: utf-8
+
 require 'minitest/bacon'
 require 'rack/utils'
 require 'rack/mock'
