@@ -28,21 +28,35 @@ describe Rack::Server do
     Rack::MockRequest.new(server.app).get("/").body.to_s.should.equal 'success'
   end
 
-  should "not include Rack::Lint in deployment or none environments" do
-    server = Rack::Server.new(:app => 'foo')
-    server.default_middleware_by_environment['deployment'].flatten.should.not.include(Rack::Lint)
-    server.default_middleware_by_environment['none'].flatten.should.not.include(Rack::Lint)
+  should "allow subclasses to override middleware" do
+    server = Class.new(Rack::Server).class_eval { def middleware; Hash.new [] end; self }
+    server.middleware['deployment'].should.not.equal []
+    server.new(:app => 'foo').middleware['deployment'].should.equal []
   end
 
-  should "not include Rack::ShowExceptions in deployment or none environments" do
-    server = Rack::Server.new(:app => 'foo')
-    server.default_middleware_by_environment['deployment'].flatten.should.not.include(Rack::ShowExceptions)
-    server.default_middleware_by_environment['none'].flatten.should.not.include(Rack::ShowExceptions)
+  should "allow subclasses to override default middleware" do
+    server = Class.new(Rack::Server).instance_eval { def default_middleware_by_environment; Hash.new [] end; self }
+    server.middleware['deployment'].should.equal []
+    server.new(:app => 'foo').middleware['deployment'].should.equal []
+  end
+
+  should "only provide default middleware for development and deployment environments" do
+    Rack::Server.default_middleware_by_environment.keys.sort.should.equal %w(deployment development)
   end
 
   should "always return an empty array for unknown environments" do
     server = Rack::Server.new(:app => 'foo')
-    server.default_middleware_by_environment['production'].should.equal []
+    server.middleware['production'].should.equal []
+  end
+
+  should "not include Rack::Lint in deployment environment" do
+    server = Rack::Server.new(:app => 'foo')
+    server.middleware['deployment'].flatten.should.not.include(Rack::Lint)
+  end
+
+  should "not include Rack::ShowExceptions in deployment environment" do
+    server = Rack::Server.new(:app => 'foo')
+    server.middleware['deployment'].flatten.should.not.include(Rack::ShowExceptions)
   end
 
   should "include Rack::TempfileReaper in deployment environment" do
@@ -64,11 +78,6 @@ describe Rack::Server do
   should "be quiet if said so" do
     server = Rack::Server.new(:app => "FOO", :quiet => true)
     Rack::Server.logging_middleware.call(server).should.eql(nil)
-  end
-
-  should "not force any middleware under the none configuration" do
-    server = Rack::Server.new(:app => 'foo')
-    server.default_middleware_by_environment['none'].should.be.empty
   end
 
   should "use a full path to the pidfile" do

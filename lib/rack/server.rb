@@ -235,16 +235,14 @@ module Rack
         m
       end
 
-      # Aliased for backwards-compatibility
-      alias :middleware :default_middleware_by_environment
+      def middleware
+        default_middleware_by_environment
+      end
     end
 
-    def default_middleware_by_environment
-      self.class.default_middleware_by_environment
+    def middleware
+      self.class.middleware
     end
-
-    # Aliased for backwards-compatibility
-    alias :middleware :default_middleware_by_environment
 
     def start &blk
       if options[:warn]
@@ -325,8 +323,7 @@ module Rack
       end
 
       def build_app(app)
-        middlewares = default_middleware_by_environment[options[:environment]]
-        middlewares.reverse_each do |middleware|
+        middleware[options[:environment]].reverse_each do |middleware|
           middleware = middleware.call(self) if middleware.respond_to?(:call)
           next unless middleware
           klass, *args = middleware
