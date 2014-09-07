@@ -41,7 +41,7 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"]
+      path = env['PATH_INFO']
       script_name = env['SCRIPT_NAME']
       hHost = env['HTTP_HOST']
       sName = env['SERVER_NAME']
