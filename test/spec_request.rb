@@ -26,7 +26,7 @@ describe Rack::Request do
     req.port.should.equal 8080
 
     req.content_length.should.equal "0"
-    req.content_type.should.be.nil
+    req.content_type.should.equal "application/octet-stream"
   end
 
   should "figure out the correct host" do
@@ -202,8 +202,8 @@ describe Rack::Request do
       Rack::MockRequest.env_for("/?foo=quux",
         "REQUEST_METHOD" => 'POST',
         :input => "foo=bar&quux=bla")
-    req.content_type.should.be.nil
-    req.media_type.should.be.nil
+    req.content_type.should.equal "application/octet-stream"
+    req.media_type.should.equal "application/octet-stream"
     req.query_string.should.equal "foo=quux"
     req.GET.should.equal "foo" => "quux"
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
@@ -333,19 +333,19 @@ describe Rack::Request do
   should "treat missing content type as nil" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/")
-    req.content_type.should.equal nil
+    req.content_type.should.equal "application/octet-stream"
   end
 
   should "treat empty content type as nil" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.content_type.should.equal nil
+    req.content_type.should.equal "application/octet-stream"
   end
 
   should "return nil media type for empty content type" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.media_type.should.equal nil
+    req.media_type.should.equal "application/octet-stream"
   end
 
   should "cache, but invalidates the cache" do

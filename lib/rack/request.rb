@@ -26,7 +26,9 @@ module Rack
 
     def content_type
       content_type = @env['CONTENT_TYPE']
-      content_type.nil? || content_type.empty? ? nil : content_type
+      # Set Content-Type to application/octet-stream if not specified.
+      # See http://www.w3.org/Protocols/rfc2616/rfc2616-sec7.html#sec7.2.1
+      content_type.nil? || content_type.empty? ? 'application/octet-stream' : content_type
     end
 
     def session;         @env['rack.session'] ||= {}              end
@@ -174,7 +176,7 @@ module Rack
     def form_data?
       type = media_type
       meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
-      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+      (meth == 'POST' && env['CONTENT_TYPE'].nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking
