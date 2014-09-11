@@ -149,11 +149,11 @@ module Rack
 
         def load!
           @id, session = @store.send(:load_session, @env)
-          @data = stringify_keys(session)
+          @data = convert_keys_to_strings(session)
           @loaded = true
         end
 
-        def stringify_keys(other)
+        def convert_keys_to_strings(other)
           hash = {}
           other.each do |key, value|
             hash[key.to_s] = value
