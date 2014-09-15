@@ -64,19 +64,14 @@ module Rack
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
       headers = { "Last-Modified" => last_modified }
-      mime = Mime.mime_type(F.extname(@path), @default_mime)
-      headers["Content-Type"] = mime if mime
+      headers["Content-Type"] = mime_type if mime_type
 
       # Set custom headers
       @headers.each { |field, content| headers[field] = content } if @headers
 
       response = [ 200, headers, env["REQUEST_METHOD"] == "HEAD" ? [] : self ]
 
-      # NOTE:
-      #   We check via File::size? whether this file provides size info
-      #   via stat (e.g. /proc files often don't), otherwise we have to
-      #   figure it out by reading the whole file into memory.
-      size = F.size?(@path) || Utils.bytesize(F.read(@path))
+      size = filesize
 
       ranges = Rack::Utils.byte_ranges(env, size)
       if ranges.nil? || ranges.length > 1
@@ -96,6 +91,8 @@ module Rack
         response[1]["Content-Range"] = "bytes #{@range.begin}-#{@range.end}/#{size}"
         size = @range.end - @range.begin + 1
       end
+
+      response[2] = [response_body] unless response_body.nil?
 
       response[1]["Content-Length"] = size.to_s
       response
@@ -128,6 +125,28 @@ module Rack
         }.merge!(headers),
         [body]
       ]
+    end
+
+    # The MIME type for the contents of the file located at @path
+    def mime_type
+      Mime.mime_type(F.extname(@path), @default_mime)
+    end
+
+    def filesize
+      # If response_body is present, use its size.
+      return Rack::Utils.bytesize(response_body) if response_body
+
+      #   We check via File::size? whether this file provides size info
+      #   via stat (e.g. /proc files often don't), otherwise we have to
+      #   figure it out by reading the whole file into memory.
+      F.size?(@path) || Utils.bytesize(F.read(@path))
+    end
+
+    # By default, the response body for file requests is nil.
+    # In this case, the response body will be generated later
+    # from the file at @path
+    def response_body
+      nil
     end
 
   end
