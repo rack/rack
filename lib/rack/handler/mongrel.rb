@@ -78,7 +78,7 @@ module Rack
 
                      "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http"
                    })
-        env["QUERY_STRING"] ||= ""
+        env[QUERY_STRING] ||= ""
 
         status, headers, body = @app.call(env)
 

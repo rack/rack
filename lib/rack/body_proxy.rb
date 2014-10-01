@@ -4,9 +4,14 @@ module Rack
       @body, @block, @closed = body, block, false
     end
 
-    def respond_to?(*args)
-      return false if args.first.to_s =~ /^to_ary$/
-      super or @body.respond_to?(*args)
+    def respond_to?(method_name)
+      case method_name
+      when :to_ary
+        return false
+      when String
+        return false if /^to_ary$/ =~ method_name
+      end
+      super or @body.respond_to?(method_name)
     end
 
     def close

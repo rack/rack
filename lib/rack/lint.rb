@@ -57,7 +57,7 @@ module Rack
       ## and the *body*.
       check_content_type status, headers
       check_content_length status, headers
-      @head_request = env["REQUEST_METHOD"] == "HEAD"
+      @head_request = env[REQUEST_METHOD] == "HEAD"
       [status, headers, self]
     end
 
@@ -278,7 +278,7 @@ module Rack
       check_hijack env
 
       ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-      assert("REQUEST_METHOD unknown: #{env["REQUEST_METHOD"]}") {
+      assert("REQUEST_METHOD unknown: #{env[REQUEST_METHOD]}") {
         env["REQUEST_METHOD"] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
       }
 
@@ -510,20 +510,20 @@ module Rack
           ## already present, in rack.hijack_io.
           io = original_hijack.call
           HijackWrapper.new(io)
-          ## 
+          ##
           ## rack.hijack_io must respond to:
           ## <tt>read, write, read_nonblock, write_nonblock, flush, close,
           ## close_read, close_write, closed?</tt>
-          ## 
+          ##
           ## The semantics of these IO methods must be a best effort match to
           ## those of a normal ruby IO or Socket object, using standard
           ## arguments and raising standard exceptions. Servers are encouraged
           ## to simply pass on real IO objects, although it is recognized that
           ## this approach is not directly compatible with SPDY and HTTP 2.0.
-          ## 
+          ##
           ## IO provided in rack.hijack_io should preference the
           ## IO::WaitReadable and IO::WaitWritable APIs wherever supported.
-          ## 
+          ##
           ## There is a deliberate lack of full specification around
           ## rack.hijack_io, as semantics will change from server to server.
           ## Users are encouraged to utilize this API with a knowledge of their
@@ -535,10 +535,10 @@ module Rack
           io
         end
       else
-        ## 
+        ##
         ## If rack.hijack? is false, then rack.hijack should not be set.
         assert("rack.hijack? is false, but rack.hijack is present") { env['rack.hijack'].nil? }
-        ## 
+        ##
         ## If rack.hijack? is false, then rack.hijack_io should not be set.
         assert("rack.hijack? is false, but rack.hijack_io is present") { env['rack.hijack_io'].nil? }
       end
@@ -557,7 +557,7 @@ module Rack
       ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
       ## accepting an argument that conforms to the <tt>rack.hijack_io</tt>
       ## protocol.
-      ## 
+      ##
       ## After the headers have been sent, and this hijack callback has been
       ## called, the application is now responsible for the remaining lifecycle
       ## of the IO. The application is also responsible for maintaining HTTP
@@ -566,7 +566,7 @@ module Rack
       ## HTTP/1.1, and not Connection:keep-alive, as there is no protocol for
       ## returning hijacked sockets to the web server. For that purpose, use the
       ## body streaming API instead (progressively yielding strings via each).
-      ## 
+      ##
       ## Servers must ignore the <tt>body</tt> part of the response tuple when
       ## the <tt>rack.hijack</tt> response API is in use.
 
@@ -579,7 +579,7 @@ module Rack
           original_hijack.call HijackWrapper.new(io)
         end
       else
-        ## 
+        ##
         ## The special response header <tt>rack.hijack</tt> must only be set
         ## if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
         assert('rack.hijack header must not be present if server does not support hijacking') {

@@ -34,11 +34,11 @@ module Rack
     F = ::File
 
     def _call(env)
-      unless ALLOWED_VERBS.include? env["REQUEST_METHOD"]
+      unless ALLOWED_VERBS.include? env[REQUEST_METHOD]
         return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
       end
 
-      path_info = Utils.unescape(env["PATH_INFO"])
+      path_info = Utils.unescape(env[PATH_INFO])
       clean_path_info = Utils.clean_path_info(path_info)
 
       @path = F.join(@root, clean_path_info)
@@ -58,19 +58,19 @@ module Rack
 
     def serving(env)
       if env["REQUEST_METHOD"] == "OPTIONS"
-      	return [200, {'Allow' => ALLOW_HEADER, 'Content-Length' => '0'}, []]
+      	return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
       end
       last_modified = F.mtime(@path).httpdate
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
       headers = { "Last-Modified" => last_modified }
       mime = Mime.mime_type(F.extname(@path), @default_mime)
-      headers["Content-Type"] = mime if mime
+      headers[CONTENT_TYPE] = mime if mime
 
       # Set custom headers
       @headers.each { |field, content| headers[field] = content } if @headers
 
-      response = [ 200, headers, env["REQUEST_METHOD"] == "HEAD" ? [] : self ]
+      response = [ 200, headers, env[REQUEST_METHOD] == "HEAD" ? [] : self ]
 
       # NOTE:
       #   We check via File::size? whether this file provides size info
@@ -97,7 +97,7 @@ module Rack
         size = @range.end - @range.begin + 1
       end
 
-      response[1]["Content-Length"] = size.to_s
+      response[1][CONTENT_LENGTH] = size.to_s
       response
     end
 
@@ -122,8 +122,8 @@ module Rack
       [
         status,
         {
-          "Content-Type" => "text/plain",
-          "Content-Length" => body.size.to_s,
+          CONTENT_TYPE   => "text/plain",
+          CONTENT_LENGTH => body.size.to_s,
           "X-Cascade" => "pass"
         }.merge!(headers),
         [body]

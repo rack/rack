@@ -107,7 +107,7 @@ module Rack
     end
 
     def call(env)
-      path = env["PATH_INFO"]
+      path = env[PATH_INFO]
 
       if can_serve(path)
         env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)

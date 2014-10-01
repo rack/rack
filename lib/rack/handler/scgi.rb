@@ -35,9 +35,9 @@ module Rack
         env = Hash[request]
         env.delete "HTTP_CONTENT_TYPE"
         env.delete "HTTP_CONTENT_LENGTH"
-        env["REQUEST_PATH"], env["QUERY_STRING"] = env["REQUEST_URI"].split('?', 2)
+        env["REQUEST_PATH"], env[QUERY_STRING] = env["REQUEST_URI"].split('?', 2)
         env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["PATH_INFO"] = env["REQUEST_PATH"]
+        env[PATH_INFO] = env["REQUEST_PATH"]
         env["QUERY_STRING"] ||= ""
         env["SCRIPT_NAME"] = ""
 

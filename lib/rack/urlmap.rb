@@ -41,7 +41,7 @@ module Rack
     end
 
     def call(env)
-      path = env['PATH_INFO']
+      path = env[PATH_INFO]
       script_name = env['SCRIPT_NAME']
       hHost = env['HTTP_HOST']
       sName = env['SERVER_NAME']
@@ -66,7 +66,7 @@ module Rack
         return app.call(env)
       end
 
-      [404, {"Content-Type" => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+      [404, {CONTENT_TYPE => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
 
     ensure
       env['PATH_INFO'] = path
