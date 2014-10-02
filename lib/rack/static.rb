@@ -89,7 +89,7 @@ module Rack
       # HTTP Headers
       @header_rules = options[:header_rules] || []
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
-      @header_rules.insert(0, [:all, {'Cache-Control' => options[:cache_control]}]) if options[:cache_control]
+      @header_rules.insert(0, [:all, {CACHE_CONTROL => options[:cache_control]}]) if options[:cache_control]
 
       @file_server = Rack::File.new(root)
     end
@@ -110,8 +110,8 @@ module Rack
       path = env[PATH_INFO]
 
       if can_serve(path)
-        env["PATH_INFO"] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
-        path = env["PATH_INFO"]
+        env[PATH_INFO] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
+        path = env[PATH_INFO]
         response = @file_server.call(env)
 
         headers = response[1]

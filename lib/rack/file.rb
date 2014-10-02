@@ -57,7 +57,7 @@ module Rack
     end
 
     def serving(env)
-      if env["REQUEST_METHOD"] == "OPTIONS"
+      if env[REQUEST_METHOD] == OPTIONS
       	return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
       end
       last_modified = F.mtime(@path).httpdate
@@ -70,7 +70,7 @@ module Rack
       # Set custom headers
       @headers.each { |field, content| headers[field] = content } if @headers
 
-      response = [ 200, headers, env[REQUEST_METHOD] == "HEAD" ? [] : self ]
+      response = [ 200, headers, env[REQUEST_METHOD] == HEAD ? [] : self ]
 
       # NOTE:
       #   We check via File::size? whether this file provides size info

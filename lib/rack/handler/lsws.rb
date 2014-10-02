@@ -13,7 +13,7 @@ module Rack
       def self.serve(app)
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
-        env["SCRIPT_NAME"] = "" if env["SCRIPT_NAME"] == "/"
+        env[SCRIPT_NAME] = "" if env[SCRIPT_NAME] == "/"
 
         rack_input = RewindableInput.new($stdin.read.to_s)
 
@@ -24,12 +24,12 @@ module Rack
           "rack.multithread" => false,
           "rack.multiprocess" => true,
           "rack.run_once" => false,
-          "rack.url_scheme" => ["yes", "on", "1"].include?(ENV["HTTPS"]) ? "https" : "http"
+          "rack.url_scheme" => ["yes", "on", "1"].include?(ENV[HTTPS]) ? "https" : "http"
         )
 
         env[QUERY_STRING]   ||= ""
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
-        env["REQUEST_PATH"] ||= "/"
+        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
+        env[REQUEST_PATH] ||= "/"
         status, headers, body = app.call(env)
         begin
           send_headers status, headers

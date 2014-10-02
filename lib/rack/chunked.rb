@@ -54,7 +54,7 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if ! chunkable_version?(env['HTTP_VERSION']) ||
+      if ! chunkable_version?(env[HTTP_VERSION]) ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers[CONTENT_LENGTH] ||
          headers['Transfer-Encoding']

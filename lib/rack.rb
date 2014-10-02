@@ -22,16 +22,33 @@ module Rack
   def self.release
     "1.5"
   end
-  PATH_INFO      = 'PATH_INFO'.freeze
-  REQUEST_METHOD = 'REQUEST_METHOD'.freeze
-  SCRIPT_NAME    = 'SCRIPT_NAME'.freeze
-  QUERY_STRING   = 'QUERY_STRING'.freeze
-  CACHE_CONTROL  = 'Cache-Control'.freeze
-  CONTENT_LENGTH = 'Content-Length'.freeze
-  CONTENT_TYPE   = 'Content-Type'.freeze
 
-  GET  = 'GET'.freeze
-  HEAD = 'HEAD'.freeze
+  HTTP_HOST       = 'HTTP_HOST'.freeze
+  HTTP_VERSION    = 'HTTP_VERSION'.freeze
+  HTTPS           = 'HTTPS'.freeze
+  PATH_INFO       = 'PATH_INFO'.freeze
+  REQUEST_METHOD  = 'REQUEST_METHOD'.freeze
+  REQUEST_PATH    = 'REQUEST_PATH'.freeze
+  SCRIPT_NAME     = 'SCRIPT_NAME'.freeze
+  QUERY_STRING    = 'QUERY_STRING'.freeze
+  SERVER_PROTOCOL = 'SERVER_PROTOCOL'.freeze
+  SERVER_NAME     = 'SERVER_NAME'.freeze
+  SERVER_ADDR     = 'SERVER_ADDR'.freeze
+  SERVER_PORT     = 'SERVER_PORT'.freeze
+  CACHE_CONTROL   = 'Cache-Control'.freeze
+  CONTENT_LENGTH  = 'Content-Length'.freeze
+  CONTENT_TYPE    = 'Content-Type'.freeze
+
+  GET     = 'GET'.freeze
+  POST    = 'POST'.freeze
+  PUT     = 'PUT'.freeze
+  PATCH   = 'PATCH'.freeze
+  DELETE  = 'DELETE'.freeze
+  HEAD    = 'HEAD'.freeze
+  OPTIONS = 'OPTIONS'.freeze
+  LINK    = 'LINK'.freeze
+  UNLINK  = 'UNLINK'.freeze
+  TRACE   = 'TRACE'.freeze
 
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"

@@ -63,7 +63,7 @@ module Rack
         env.delete "HTTP_CONTENT_TYPE"
         env.delete "HTTP_CONTENT_LENGTH"
 
-        env["SCRIPT_NAME"] = ""  if env["SCRIPT_NAME"] == "/"
+        env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
 
         rack_input = request.body || StringIO.new('')
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
@@ -76,7 +76,7 @@ module Rack
                      "rack.multiprocess" => false, # ???
                      "rack.run_once" => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http"
+                     "rack.url_scheme" => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http"
                    })
         env[QUERY_STRING] ||= ""
 

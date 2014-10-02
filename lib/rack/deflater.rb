@@ -144,7 +144,7 @@ module Rack
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)

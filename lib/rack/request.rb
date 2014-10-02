@@ -10,6 +10,12 @@ module Rack
   #   req.params["data"]
 
   class Request
+    HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
+    HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
+    HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
+    HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
+    HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
+
     # The environment of the request.
     attr_reader :env
 
@@ -20,7 +26,7 @@ module Rack
     def body;            @env["rack.input"]                       end
     def script_name;     @env[SCRIPT_NAME].to_s                   end
     def path_info;       @env[PATH_INFO].to_s                     end
-    def request_method;  @env["REQUEST_METHOD"]                   end
+    def request_method;  @env[REQUEST_METHOD]                     end
     def query_string;    @env[QUERY_STRING].to_s                  end
     def content_length;  @env['CONTENT_LENGTH']                   end
 
@@ -64,14 +70,14 @@ module Rack
     end
 
     def scheme
-      if @env['HTTPS'] == 'on'
+      if @env[HTTPS] == 'on'
         'https'
-      elsif @env['HTTP_X_FORWARDED_SSL'] == 'on'
+      elsif @env[HTTP_X_FORWARDED_SSL] == 'on'
         'https'
-      elsif @env['HTTP_X_FORWARDED_SCHEME']
-        @env['HTTP_X_FORWARDED_SCHEME']
-      elsif @env['HTTP_X_FORWARDED_PROTO']
-        @env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
+      elsif @env[HTTP_X_FORWARDED_SCHEME]
+        @env[HTTP_X_FORWARDED_SCHEME]
+      elsif @env[HTTP_X_FORWARDED_PROTO]
+        @env[HTTP_X_FORWARDED_PROTO].split(',')[0]
       else
         @env["rack.url_scheme"]
       end
@@ -82,24 +88,24 @@ module Rack
     end
 
     def host_with_port
-      if forwarded = @env["HTTP_X_FORWARDED_HOST"]
+      if forwarded = @env[HTTP_X_FORWARDED_HOST]
         forwarded.split(/,\s?/).last
       else
-        @env['HTTP_HOST'] || "#{@env['SERVER_NAME'] || @env['SERVER_ADDR']}:#{@env['SERVER_PORT']}"
+        @env[HTTP_HOST] || "#{@env[SERVER_NAME] || @env[SERVER_ADDR]}:#{@env[SERVER_PORT]}"
       end
     end
 
     def port
       if port = host_with_port.split(/:/)[1]
         port.to_i
-      elsif port = @env['HTTP_X_FORWARDED_PORT']
+      elsif port = @env[HTTP_X_FORWARDED_PORT]
         port.to_i
-      elsif @env.has_key?("HTTP_X_FORWARDED_HOST")
+      elsif @env.has_key?(HTTP_X_FORWARDED_HOST)
         DEFAULT_PORTS[scheme]
-      elsif @env.has_key?("HTTP_X_FORWARDED_PROTO")
-        DEFAULT_PORTS[@env['HTTP_X_FORWARDED_PROTO'].split(',')[0]]
+      elsif @env.has_key?(HTTP_X_FORWARDED_PROTO)
+        DEFAULT_PORTS[@env[HTTP_X_FORWARDED_PROTO].split(',')[0]]
       else
-        @env["SERVER_PORT"].to_i
+        @env[SERVER_PORT].to_i
       end
     end
 
@@ -108,12 +114,12 @@ module Rack
       host_with_port.to_s.sub(/:\d+\z/, '')
     end
 
-    def script_name=(s); @env["SCRIPT_NAME"] = s.to_s             end
-    def path_info=(s);   @env["PATH_INFO"] = s.to_s               end
+    def script_name=(s); @env[SCRIPT_NAME] = s.to_s             end
+    def path_info=(s);   @env[PATH_INFO] = s.to_s               end
 
 
     # Checks the HTTP request method (or verb) to see if it was of type DELETE
-    def delete?;  request_method == "DELETE"  end
+    def delete?;  request_method == DELETE  end
 
     # Checks the HTTP request method (or verb) to see if it was of type GET
     def get?;     request_method == GET       end
@@ -122,25 +128,25 @@ module Rack
     def head?;    request_method == HEAD      end
 
     # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
-    def options?; request_method == "OPTIONS" end
+    def options?; request_method == OPTIONS end
 
     # Checks the HTTP request method (or verb) to see if it was of type LINK
-    def link?;    request_method == "LINK"    end
+    def link?;    request_method == LINK    end
 
     # Checks the HTTP request method (or verb) to see if it was of type PATCH
-    def patch?;   request_method == "PATCH"   end
+    def patch?;   request_method == PATCH   end
 
     # Checks the HTTP request method (or verb) to see if it was of type POST
-    def post?;    request_method == "POST"    end
+    def post?;    request_method == POST    end
 
     # Checks the HTTP request method (or verb) to see if it was of type PUT
-    def put?;     request_method == "PUT"     end
+    def put?;     request_method == PUT     end
 
     # Checks the HTTP request method (or verb) to see if it was of type TRACE
-    def trace?;   request_method == "TRACE"   end
+    def trace?;   request_method == TRACE   end
 
     # Checks the HTTP request method (or verb) to see if it was of type UNLINK
-    def unlink?;  request_method == "UNLINK"  end
+    def unlink?;  request_method == UNLINK  end
 
 
     # The set of form-data media-types. Requests that do not indicate
@@ -174,7 +180,7 @@ module Rack
     def form_data?
       type = media_type
       meth = env["rack.methodoverride.original_method"] || env[REQUEST_METHOD]
-      (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+      (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
     # Determine whether the request body contains data by checking

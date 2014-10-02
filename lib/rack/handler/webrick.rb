@@ -71,20 +71,20 @@ module Rack
                      "rack.multiprocess" => false,
                      "rack.run_once" => false,
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env["HTTPS"]) ? "https" : "http",
+                     "rack.url_scheme" => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http",
 
                      "rack.hijack?" => true,
                      "rack.hijack" => lambda { raise NotImplementedError, "only partial hijack is supported."},
                      "rack.hijack_io" => nil,
                    })
 
-        env["HTTP_VERSION"] ||= env["SERVER_PROTOCOL"]
+        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
         env[QUERY_STRING] ||= ""
         unless env[PATH_INFO] == ""
-          path, n = req.request_uri.path, env["SCRIPT_NAME"].length
+          path, n = req.request_uri.path, env[SCRIPT_NAME].length
           env[PATH_INFO] = path[n, path.length-n]
         end
-        env["REQUEST_PATH"] ||= [env["SCRIPT_NAME"], env[PATH_INFO]].join
+        env[REQUEST_PATH] ||= [env[SCRIPT_NAME], env[PATH_INFO]].join
 
         status, headers, body = @app.call(env)
         begin
