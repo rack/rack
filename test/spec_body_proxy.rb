@@ -1,5 +1,6 @@
 require 'rack/body_proxy'
 require 'stringio'
+require 'ostruct'
 
 describe Rack::BodyProxy do
   should 'call each on the wrapped body' do
@@ -47,6 +48,21 @@ describe Rack::BodyProxy do
 
     raise "Expected exception to have been raised" unless e
     called.should.equal true
+  end
+
+  should 'allow multiple arguments in respond_to?' do
+    body  = []
+    proxy = Rack::BodyProxy.new(body) { }
+    proc { proxy.respond_to?(:foo, false) }.should.not.raise
+  end
+
+  should 'not respond to :to_ary' do
+    body = OpenStruct.new(:to_ary => true)
+    body.respond_to?(:to_ary).should.equal true
+
+    proxy = Rack::BodyProxy.new(body) { }
+    proxy.respond_to?(:to_ary).should.equal false
+    proxy.respond_to?("to_ary").should.equal false
   end
 
   should 'not close more than one time' do
