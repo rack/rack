@@ -20,7 +20,7 @@ module Rack
       headers = Utils::HeaderHash.new(headers)
 
       unless STATUS_WITH_NO_ENTITY_BODY.include?(status)
-        headers['Content-Type'] ||= @content_type
+        headers[CONTENT_TYPE] ||= @content_type
       end
 
       [status, headers, body]

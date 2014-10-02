@@ -46,9 +46,9 @@ module Rack
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
         now.strftime("%d/%b/%Y:%H:%M:%S %z"),
-        env["REQUEST_METHOD"],
-        env["PATH_INFO"],
-        env["QUERY_STRING"].empty? ? "" : "?"+env["QUERY_STRING"],
+        env[REQUEST_METHOD],
+        env[PATH_INFO],
+        env[QUERY_STRING].empty? ? "" : "?"+env[QUERY_STRING],
         env["HTTP_VERSION"],
         status.to_s[0..3],
         length,
@@ -65,7 +65,7 @@ module Rack
     end
 
     def extract_content_length(headers)
-      value = headers['Content-Length'] or return '-'
+      value = headers[CONTENT_LENGTH] or return '-'
       value.to_s == '0' ? '-' : value
     end
   end

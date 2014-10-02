@@ -20,14 +20,14 @@ module Rack
     end
 
     def call(env)
-      case env['REQUEST_METHOD']
-      when "GET", "HEAD"
+      case env[REQUEST_METHOD]
+      when GET, HEAD
         status, headers, body = @app.call(env)
         headers = Utils::HeaderHash.new(headers)
         if status == 200 && fresh?(env, headers)
           status = 304
-          headers.delete('Content-Type')
-          headers.delete('Content-Length')
+          headers.delete(CONTENT_TYPE)
+          headers.delete(CONTENT_LENGTH)
           original_body = body
           body = Rack::BodyProxy.new([]) do
             original_body.close if original_body.respond_to?(:close)

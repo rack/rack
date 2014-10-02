@@ -12,7 +12,7 @@ module Rack
     I8jyiTlhTcYXkekJAzTyYN6E08A+dk8voBkAVTJQ==".delete("\n ").unpack("m*")[0])
 
     LambdaLobster = lambda { |env|
-      if env["QUERY_STRING"].include?("flip")
+      if env[QUERY_STRING].include?("flip")
         lobster = LobsterString.split("\n").
           map { |line| line.ljust(42).reverse }.
           join("\n")
@@ -26,7 +26,7 @@ module Rack
                  "<pre>", lobster, "</pre>",
                  "<a href='#{href}'>flip!</a>"]
       length = content.inject(0) { |a,e| a+e.size }.to_s
-      [200, {"Content-Type" => "text/html", "Content-Length" => length}, content]
+      [200, {CONTENT_TYPE => "text/html", CONTENT_LENGTH => length}, content]
     }
 
     def call(env)

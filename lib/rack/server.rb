@@ -310,7 +310,7 @@ module Rack
 
         # Don't evaluate CGI ISINDEX parameters.
         # http://www.meb.uni-bonn.de/docs/cgi/cl.html
-        args.clear if ENV.include?("REQUEST_METHOD")
+        args.clear if ENV.include?(REQUEST_METHOD)
 
         options.merge! opt_parser.parse!(args)
         options[:config] = ::File.expand_path(options[:config])

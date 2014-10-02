@@ -12,13 +12,14 @@ module Rack
       @header_name << "-#{name}" if name
     end
 
+    FORMAT_STRING = "%0.6f"
     def call(env)
       start_time = Time.now
       status, headers, body = @app.call(env)
       request_time = Time.now - start_time
 
       if !headers.has_key?(@header_name)
-        headers[@header_name] = "%0.6f" % request_time
+        headers[@header_name] = FORMAT_STRING % request_time
       end
 
       [status, headers, body]

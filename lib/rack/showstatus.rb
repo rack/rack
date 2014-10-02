@@ -3,7 +3,7 @@ require 'rack/request'
 require 'rack/utils'
 
 module Rack
-  # Rack::ShowStatus catches all empty responses and replaces them 
+  # Rack::ShowStatus catches all empty responses and replaces them
   # with a site explaining the error.
   #
   # Additional details can be put into <tt>rack.showstatus.detail</tt>
@@ -19,7 +19,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      empty = headers['Content-Length'].to_i <= 0
+      empty = headers[CONTENT_LENGTH].to_i <= 0
 
       # client or server error, or explicit message
       if (status.to_i >= 400 && empty) || env["rack.showstatus.detail"]
@@ -35,7 +35,7 @@ module Rack
 
         body = @template.result(binding)
         size = Rack::Utils.bytesize(body)
-        [status, headers.merge("Content-Type" => "text/html", "Content-Length" => size.to_s), [body]]
+        [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), [body]]
       else
         [status, headers, body]
       end

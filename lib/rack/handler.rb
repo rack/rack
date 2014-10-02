@@ -51,7 +51,7 @@ module Rack
         options.delete :Port
 
         Rack::Handler::FastCGI
-      elsif ENV.include?("REQUEST_METHOD")
+      elsif ENV.include?(REQUEST_METHOD)
         Rack::Handler::CGI
       elsif ENV.include?("RACK_HANDLER")
         self.get(ENV["RACK_HANDLER"])

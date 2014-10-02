@@ -18,10 +18,10 @@ module Rack
     end
 
     def body;            @env["rack.input"]                       end
-    def script_name;     @env["SCRIPT_NAME"].to_s                 end
-    def path_info;       @env["PATH_INFO"].to_s                   end
+    def script_name;     @env[SCRIPT_NAME].to_s                   end
+    def path_info;       @env[PATH_INFO].to_s                     end
     def request_method;  @env["REQUEST_METHOD"]                   end
-    def query_string;    @env["QUERY_STRING"].to_s                end
+    def query_string;    @env[QUERY_STRING].to_s                  end
     def content_length;  @env['CONTENT_LENGTH']                   end
 
     def content_type
@@ -116,10 +116,10 @@ module Rack
     def delete?;  request_method == "DELETE"  end
 
     # Checks the HTTP request method (or verb) to see if it was of type GET
-    def get?;     request_method == "GET"     end
+    def get?;     request_method == GET       end
 
     # Checks the HTTP request method (or verb) to see if it was of type HEAD
-    def head?;    request_method == "HEAD"    end
+    def head?;    request_method == HEAD      end
 
     # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
     def options?; request_method == "OPTIONS" end
@@ -173,7 +173,7 @@ module Rack
     # Content-Type header is provided and the request_method is POST.
     def form_data?
       type = media_type
-      meth = env["rack.methodoverride.original_method"] || env['REQUEST_METHOD']
+      meth = env["rack.methodoverride.original_method"] || env[REQUEST_METHOD]
       (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
