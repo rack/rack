@@ -109,7 +109,7 @@ module Rack
             io_lambda.call wr
           else
             body.each { |part|
-              res.body << part
+              res.body << part.to_s
             }
           end
         ensure
