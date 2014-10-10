@@ -418,7 +418,7 @@ module Rack
     # Constant time string comparison.
     #
     # NOTE: the values compared should be of fixed length, such as strings
-    # that have aready been processed by HMAC.  This should not be used
+    # that have already been processed by HMAC. This should not be used
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
     def secure_compare(a, b)
