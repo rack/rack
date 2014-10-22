@@ -238,20 +238,12 @@ module Rack
     #
     # env['rack.input'] is not touched.
     def update_param(k, v)
-      found = false
-      if self.GET.has_key?(k)
-        found = true
-        self.GET[k] = v
-      end
       if self.POST.has_key?(k)
-        found = true
         self.POST[k] = v
-      end
-      unless found
+      else
         self.GET[k] = v
       end
       @params = nil
-      nil
     end
 
     # Destructively delete a parameter, whether it's in GET or POST. Returns the value of the deleted parameter.
