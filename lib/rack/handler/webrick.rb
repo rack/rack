@@ -108,13 +108,28 @@ module Rack
             res.chunked = true
             io_lambda.call wr
           else
-            body.each { |part|
-              res.body << part
-            }
+            if res['content-length'].nil?
+              body.each { |part| res.body << part }
+            else
+              res.body = proc do |socket|
+                body.each { |part| socket << part }
+              end
+            end
           end
         ensure
           body.close  if body.respond_to? :close
         end
+      end
+    end
+  end
+end
+module WEBrick
+  class HTTPResponse
+    alias :overridden_send_body :send_body
+    def send_body(socket)
+      case @body
+      when Proc then @body.call(socket)
+      else overridden_send_body(socket)
       end
     end
   end
