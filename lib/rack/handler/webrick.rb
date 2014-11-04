@@ -112,7 +112,11 @@ module Rack
               body.each { |part| res.body << part }
             else
               res.body = proc do |socket|
-                body.each { |part| socket << part }
+                begin
+                  body.each { |part| socket << part }
+                ensure
+                  body.close  if body.respond_to? :close
+                end
               end
             end
           end
