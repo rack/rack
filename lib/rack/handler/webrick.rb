@@ -19,6 +19,20 @@ class WEBrick::HTTPResponse
   end
 end
 
+# This monkey patch enables assigning a proc to WEBrick's res.body so that
+# the handler can perform rack body iteration inside of a proc, writing to
+# socket on each iteration, as opposed to being forced to buffer the whole
+# response into a string first, then having WEBrick write it to socket.
+class WEBrick::HTTPResponse
+  alias _rack_send_body send_body
+  def send_body(socket)
+    case @body
+    when Proc then @body.call(socket)
+    else _rack_send_body(socket)
+    end
+  end
+end
+
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
@@ -112,24 +126,17 @@ module Rack
               body.each { |part| res.body << part }
             else
               res.body = proc do |socket|
-                body.each { |part| socket << part }
+                begin
+                  body.each { |part| socket << part }
+                ensure
+                  body.close  if body.respond_to? :close
+                end
               end
             end
           end
         ensure
-          body.close  if body.respond_to? :close
+          body.close  if body.respond_to? :close and not res.body.is_a? Proc
         end
-      end
-    end
-  end
-end
-module WEBrick
-  class HTTPResponse
-    alias :overridden_send_body :send_body
-    def send_body(socket)
-      case @body
-      when Proc then @body.call(socket)
-      else overridden_send_body(socket)
       end
     end
   end
