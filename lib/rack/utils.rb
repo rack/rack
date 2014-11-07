@@ -567,9 +567,9 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # ruby -ropen-uri -rnokogiri -e "Nokogiri::XML(open(
-    #   'http://www.iana.org/assignments/http-status-codes/http-status-codes.xml')).css('record').each{|r|
-    #   name = r.css('description').text; puts %Q[#{r.css('value').text} => '#{name}',] unless name == 'Unassigned' }"
+    # curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
+    #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
+    #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
@@ -590,7 +590,6 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
-      306 => 'Reserved',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
@@ -606,12 +605,11 @@ module Rack
       410 => 'Gone',
       411 => 'Length Required',
       412 => 'Precondition Failed',
-      413 => 'Request Entity Too Large',
-      414 => 'Request-URI Too Long',
+      413 => 'Payload Too Large',
+      414 => 'URI Too Long',
       415 => 'Unsupported Media Type',
-      416 => 'Requested Range Not Satisfiable',
+      416 => 'Range Not Satisfiable',
       417 => 'Expectation Failed',
-      418 => 'I\'m a teapot',
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
@@ -625,7 +623,7 @@ module Rack
       503 => 'Service Unavailable',
       504 => 'Gateway Timeout',
       505 => 'HTTP Version Not Supported',
-      506 => 'Variant Also Negotiates (Experimental)',
+      506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
       510 => 'Not Extended',
