@@ -81,7 +81,7 @@ module Rack
         next if p.empty?
         k, v = p.split('=', 2).map(&unescaper)
 
-        if cur = params[k]
+        if cur == params[k]
           if cur.class == Array
             params[k] << v
           else
@@ -92,7 +92,7 @@ module Rack
         end
       end
 
-      return params.to_params_hash
+      params.to_params_hash
     end
     module_function :parse_query
 
@@ -149,7 +149,7 @@ module Rack
         params[k] = normalize_params(params[k], after, v)
       end
 
-      return params
+      params
     end
     module_function :normalize_params
 
@@ -171,19 +171,19 @@ module Rack
 
     def build_nested_query(value, prefix = nil)
       case value
-      when Array
-        value.map { |v|
-          build_nested_query(v, "#{prefix}[]")
-        }.join("&")
-      when Hash
-        value.map { |k, v|
-          build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.reject(&:empty?).join('&')
-      when nil
-        prefix
-      else
-        raise ArgumentError, "value must be a Hash" if prefix.nil?
-        "#{prefix}=#{escape(value)}"
+        when Array
+          value.map { |v|
+            build_nested_query(v, "#{prefix}[]")
+          }.join("&")
+        when Hash
+          value.map { |k, v|
+            build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
+          }.reject(&:empty?).join('&')
+        when nil
+          prefix
+        else
+          raise ArgumentError, "value must be a Hash" if prefix.nil?
+          "#{prefix}=#{escape(value)}"
       end
     end
     module_function :build_nested_query
@@ -192,7 +192,7 @@ module Rack
       q_value_header.to_s.split(/\s*,\s*/).map do |part|
         value, parameters = part.split(/\s*;\s*/, 2)
         quality = 1.0
-        if md = /\Aq=([\d.]+)/.match(parameters)
+        if md == /\Aq=([\d.]+)/.match(parameters)
           quality = md[1].to_f
         end
         [value, quality]
@@ -215,12 +215,12 @@ module Rack
     module_function :best_q_match
 
     ESCAPE_HTML = {
-      "&" => "&amp;",
-      "<" => "&lt;",
-      ">" => "&gt;",
-      "'" => "&#x27;",
-      '"' => "&quot;",
-      "/" => "&#x2F;"
+        "&" => "&amp;",
+        "<" => "&lt;",
+        ">" => "&gt;",
+        "'" => "&#x27;",
+        '"' => "&quot;",
+        "/" => "&#x2F;"
     }
     if //.respond_to?(:encoding)
       ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
@@ -240,15 +240,15 @@ module Rack
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 
       expanded_accept_encoding =
-        accept_encoding.map { |m, q|
-          if m == "*"
-            (available_encodings - accept_encoding.map { |m2, _| m2 }).map { |m2| [m2, q] }
-          else
-            [[m, q]]
-          end
-        }.inject([]) { |mem, list|
-          mem + list
-        }
+          accept_encoding.map { |m, q|
+            if m == "*"
+              (available_encodings - accept_encoding.map { |m2, _| m2 }).map { |m2| [m2, q] }
+            else
+              [[m, q]]
+            end
+          }.inject([]) { |mem, list|
+            mem + list
+          }
 
       encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
 
@@ -260,57 +260,57 @@ module Rack
         encoding_candidates.delete(m) if q == 0.0
       }
 
-      return (encoding_candidates & available_encodings)[0]
+      (encoding_candidates & available_encodings)[0]
     end
     module_function :select_best_encoding
 
     def set_cookie_header!(header, key, value)
       case value
-      when Hash
-        domain  = "; domain="  + value[:domain]       if value[:domain]
-        path    = "; path="    + value[:path]         if value[:path]
-        max_age = "; max-age=" + value[:max_age].to_s if value[:max_age]
-        # There is an RFC mess in the area of date formatting for Cookies. Not
-        # only are there contradicting RFCs and examples within RFC text, but
-        # there are also numerous conflicting names of fields and partially
-        # cross-applicable specifications.
-        #
-        # These are best described in RFC 2616 3.3.1. This RFC text also
-        # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
-        # fixed length format with space-date delimeted fields.
-        #
-        # See also RFC 1123 section 5.2.14.
-        #
-        # RFC 6265 also specifies "sane-cookie-date" as RFC 1123 date, defined
-        # in RFC 2616 3.3.1. RFC 6265 also gives examples that clearly denote
-        # the space delimited format. These formats are compliant with RFC 2822.
-        #
-        # For reference, all involved RFCs are:
-        # RFC 822
-        # RFC 1123
-        # RFC 2109
-        # RFC 2616
-        # RFC 2822
-        # RFC 2965
-        # RFC 6265
-        expires = "; expires=" +
-          rfc2822(value[:expires].clone.gmtime) if value[:expires]
-        secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
-        value = value[:value]
+        when Hash
+          domain  = "; domain="  + value[:domain]       if value[:domain]
+          path    = "; path="    + value[:path]         if value[:path]
+          max_age = "; max-age=" + value[:max_age].to_s if value[:max_age]
+          # There is an RFC mess in the area of date formatting for Cookies. Not
+          # only are there contradicting RFCs and examples within RFC text, but
+          # there are also numerous conflicting names of fields and partially
+          # cross-applicable specifications.
+          #
+          # These are best described in RFC 2616 3.3.1. This RFC text also
+          # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
+          # fixed length format with space-date delimeted fields.
+          #
+          # See also RFC 1123 section 5.2.14.
+          #
+          # RFC 6265 also specifies "sane-cookie-date" as RFC 1123 date, defined
+          # in RFC 2616 3.3.1. RFC 6265 also gives examples that clearly denote
+          # the space delimited format. These formats are compliant with RFC 2822.
+          #
+          # For reference, all involved RFCs are:
+          # RFC 822
+          # RFC 1123
+          # RFC 2109
+          # RFC 2616
+          # RFC 2822
+          # RFC 2965
+          # RFC 6265
+          expires = "; expires=" +
+              rfc2822(value[:expires].clone.gmtime) if value[:expires]
+          secure = "; secure"  if value[:secure]
+          httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
+          value = value[:value]
       end
       value = [value] unless Array === value
       cookie = escape(key) + "=" +
-        value.map { |v| escape v }.join("&") +
-        "#{domain}#{path}#{max_age}#{expires}#{secure}#{httponly}"
+          value.map { |v| escape v }.join("&") +
+          "#{domain}#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
-      when nil, ''
-        header["Set-Cookie"] = cookie
-      when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
-      when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        when nil, ''
+          header["Set-Cookie"] = cookie
+        when String
+          header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+        when Array
+          header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
       end
 
       nil
@@ -319,12 +319,12 @@ module Rack
 
     def delete_cookie_header!(header, key, value = {})
       case header["Set-Cookie"]
-      when nil, ''
-        cookies = []
-      when String
-        cookies = header["Set-Cookie"].split("\n")
-      when Array
-        cookies = header["Set-Cookie"]
+        when nil, ''
+          cookies = []
+        when String
+          cookies = header["Set-Cookie"].split("\n")
+        when Array
+          cookies = header["Set-Cookie"]
       end
 
       cookies.reject! { |cookie|
@@ -340,9 +340,9 @@ module Rack
       header["Set-Cookie"] = cookies.join("\n")
 
       set_cookie_header!(header, key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :max_age => '0',
-                   :expires => Time.at(0) }.merge(value))
+                         {:value => '', :path => nil, :domain => nil,
+                          :max_age => '0',
+                          :expires => Time.at(0) }.merge(value))
 
       nil
     end
@@ -571,63 +571,63 @@ module Rack
     #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
     #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
-      100 => 'Continue',
-      101 => 'Switching Protocols',
-      102 => 'Processing',
-      200 => 'OK',
-      201 => 'Created',
-      202 => 'Accepted',
-      203 => 'Non-Authoritative Information',
-      204 => 'No Content',
-      205 => 'Reset Content',
-      206 => 'Partial Content',
-      207 => 'Multi-Status',
-      208 => 'Already Reported',
-      226 => 'IM Used',
-      300 => 'Multiple Choices',
-      301 => 'Moved Permanently',
-      302 => 'Found',
-      303 => 'See Other',
-      304 => 'Not Modified',
-      305 => 'Use Proxy',
-      307 => 'Temporary Redirect',
-      308 => 'Permanent Redirect',
-      400 => 'Bad Request',
-      401 => 'Unauthorized',
-      402 => 'Payment Required',
-      403 => 'Forbidden',
-      404 => 'Not Found',
-      405 => 'Method Not Allowed',
-      406 => 'Not Acceptable',
-      407 => 'Proxy Authentication Required',
-      408 => 'Request Timeout',
-      409 => 'Conflict',
-      410 => 'Gone',
-      411 => 'Length Required',
-      412 => 'Precondition Failed',
-      413 => 'Payload Too Large',
-      414 => 'URI Too Long',
-      415 => 'Unsupported Media Type',
-      416 => 'Range Not Satisfiable',
-      417 => 'Expectation Failed',
-      422 => 'Unprocessable Entity',
-      423 => 'Locked',
-      424 => 'Failed Dependency',
-      426 => 'Upgrade Required',
-      428 => 'Precondition Required',
-      429 => 'Too Many Requests',
-      431 => 'Request Header Fields Too Large',
-      500 => 'Internal Server Error',
-      501 => 'Not Implemented',
-      502 => 'Bad Gateway',
-      503 => 'Service Unavailable',
-      504 => 'Gateway Timeout',
-      505 => 'HTTP Version Not Supported',
-      506 => 'Variant Also Negotiates',
-      507 => 'Insufficient Storage',
-      508 => 'Loop Detected',
-      510 => 'Not Extended',
-      511 => 'Network Authentication Required'
+        100 => 'Continue',
+        101 => 'Switching Protocols',
+        102 => 'Processing',
+        200 => 'OK',
+        201 => 'Created',
+        202 => 'Accepted',
+        203 => 'Non-Authoritative Information',
+        204 => 'No Content',
+        205 => 'Reset Content',
+        206 => 'Partial Content',
+        207 => 'Multi-Status',
+        208 => 'Already Reported',
+        226 => 'IM Used',
+        300 => 'Multiple Choices',
+        301 => 'Moved Permanently',
+        302 => 'Found',
+        303 => 'See Other',
+        304 => 'Not Modified',
+        305 => 'Use Proxy',
+        307 => 'Temporary Redirect',
+        308 => 'Permanent Redirect',
+        400 => 'Bad Request',
+        401 => 'Unauthorized',
+        402 => 'Payment Required',
+        403 => 'Forbidden',
+        404 => 'Not Found',
+        405 => 'Method Not Allowed',
+        406 => 'Not Acceptable',
+        407 => 'Proxy Authentication Required',
+        408 => 'Request Timeout',
+        409 => 'Conflict',
+        410 => 'Gone',
+        411 => 'Length Required',
+        412 => 'Precondition Failed',
+        413 => 'Payload Too Large',
+        414 => 'URI Too Long',
+        415 => 'Unsupported Media Type',
+        416 => 'Range Not Satisfiable',
+        417 => 'Expectation Failed',
+        422 => 'Unprocessable Entity',
+        423 => 'Locked',
+        424 => 'Failed Dependency',
+        426 => 'Upgrade Required',
+        428 => 'Precondition Required',
+        429 => 'Too Many Requests',
+        431 => 'Request Header Fields Too Large',
+        500 => 'Internal Server Error',
+        501 => 'Not Implemented',
+        502 => 'Bad Gateway',
+        503 => 'Service Unavailable',
+        504 => 'Gateway Timeout',
+        505 => 'HTTP Version Not Supported',
+        506 => 'Variant Also Negotiates',
+        507 => 'Insufficient Storage',
+        508 => 'Loop Detected',
+        510 => 'Not Extended',
+        511 => 'Network Authentication Required'
     }
 
     # Responses with HTTP status codes that should not have an entity body
