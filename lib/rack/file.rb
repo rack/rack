@@ -63,7 +63,7 @@ module Rack
       last_modified = F.mtime(@path).httpdate
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
-      headers = { "Last-Modified" => last_modified }
+      headers = {'Last-Modified' => last_modified, 'Accept-Ranges' => 'bytes'}
       mime = Mime.mime_type(F.extname(@path), @default_mime)
       headers[CONTENT_TYPE] = mime if mime
 
