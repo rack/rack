@@ -71,7 +71,7 @@ module Rack
     # The maximum number of parts a request can contain. Accepting to many part
     # can lead to the server running out of file handles.
     # Set to `0` for no limit.
-    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || 128).to_i
+    self.multipart_part_limit = (ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
