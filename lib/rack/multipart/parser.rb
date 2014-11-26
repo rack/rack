@@ -2,7 +2,7 @@ require 'rack/utils'
 
 module Rack
   module Multipart
-    class MultipartLimitError < Errno::EMFILE; end
+    class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
       BUFSIZE = 16384
@@ -19,7 +19,7 @@ module Rack
         opened_files = 0
         loop do
           if Utils.multipart_part_limit > 0
-            raise MultipartLimitError, 'Maximum file multiparts in content reached' if opened_files >= Utils.multipart_part_limit
+            raise MultipartPartLimitError, 'Maximum file multiparts in content reached' if opened_files >= Utils.multipart_part_limit
             opened_files += 1
           end
 

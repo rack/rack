@@ -719,7 +719,7 @@ EOF
     f[:tempfile].size.should.equal 76
   end
 
-  should "MultipartLimitError when request has too many multipart parts if limit set" do
+  should "MultipartPartLimitError when request has too many multipart parts if limit set" do
     begin
       data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
       data += "--AaB03x--\r"
@@ -731,7 +731,7 @@ EOF
       }
 
       request = Rack::Request.new Rack::MockRequest.env_for("/", options)
-      lambda { request.POST }.should.raise(Rack::Multipart::MultipartLimitError)
+      lambda { request.POST }.should.raise(Rack::Multipart::MultipartPartLimitError)
     end
   end
 
