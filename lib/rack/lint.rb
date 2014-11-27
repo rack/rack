@@ -635,12 +635,11 @@ module Rack
         assert("header key must be a string, was #{key.class}") {
           key.kind_of? String
         }
-        ## The header must not contain a +Status+ key,
+        ## The header must not contain a +Status+ key.
         assert("header must not contain Status") { key.downcase != "status" }
-        ## contain keys with <tt>:</tt> or newlines in their name,
-        assert("header names must not contain : or \\n") { key !~ /[:\n]/ }
-        ## The header must match the token rule according to RFC 2616
-        assert("invalid header name: #{key}") { key =~ /\A[\!#\$%&'\*\+-.0-9A-Z\^_`a-z\|~]+\z/ }
+        ## The header must conform to RFC7230 token specification, i.e. cannot
+        ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+        assert("invalid header name: #{key}") { key !~ /[\(\),\/:;<=>\?@\[\\\]{}[[:cntrl:]]]/ }
 
         ## The values of the header must be Strings,
         assert("a header value must be a String, but the value of " +
