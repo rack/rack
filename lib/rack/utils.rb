@@ -68,7 +68,7 @@ module Rack
     # This helps prevent a rogue client from flooding a Request.
     self.key_space_limit = 65536
 
-    # The maximum number of parts a request can contain. Accepting to many part
+    # The maximum number of parts a request can contain. Accepting too many part
     # can lead to the server running out of file handles.
     # Set to `0` for no limit.
     self.multipart_part_limit = (ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
