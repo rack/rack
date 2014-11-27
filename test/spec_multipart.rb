@@ -171,6 +171,15 @@ describe Rack::Multipart do
     params["file1.txt"][:tempfile].read.should.equal "contents"
   end
 
+  should "parse multipart upload file using custom tempfile class" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    my_tempfile = ""
+    env['rack.multipart.tempfile_factory'] = lambda { |filename, content_type| my_tempfile }
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:tempfile].object_id.should.equal my_tempfile.object_id
+    my_tempfile.should.equal "contents"
+  end
+
   should "parse multipart upload with nested parameters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:nested))
     params = Rack::Multipart.parse_multipart(env)
