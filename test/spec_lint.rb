@@ -209,17 +209,10 @@ describe Rack::Lint do
 
     lambda {
       Rack::Lint.new(lambda { |env|
-                       [200, {"Content-" => "text/plain"}, []]
+                       [200, {"([{<quark>}])?" => "text/plain"}, []]
                      }).call(env({}))
     }.should.raise(Rack::Lint::LintError).
-      message.should.match(/must not end/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"..%%quark%%.." => "text/plain"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.equal("invalid header name: ..%%quark%%..")
+      message.should.equal("invalid header name: ([{<quark>}])?")
 
     lambda {
       Rack::Lint.new(lambda { |env|
