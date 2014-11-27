@@ -18,7 +18,8 @@ module Rack
         content_length = env['CONTENT_LENGTH']
         content_length = content_length.to_i if content_length
 
-        tempfile = env['rack.multipart.tempfile_factory'] || lambda { |filename, content_type| Tempfile.new("RackMultipart") }
+        tempfile = env['rack.multipart.tempfile_factory'] ||
+          lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
         bufsize = env['rack.multipart.buffer_size'] || BUFSIZE
 
         new($1, io, content_length, env, tempfile, bufsize)
