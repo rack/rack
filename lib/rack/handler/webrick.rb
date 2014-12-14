@@ -60,7 +60,16 @@ module Rack
         env = req.meta_vars
         env.delete_if { |k, v| v.nil? }
 
-        rack_input = StringIO.new(req.body.to_s)
+        rack_input = StringIO.new
+        read_chunk = lambda do |chunk|
+          rack_input << chunk
+          if rack_input.size >= 114688
+            rack_input = Tempfile.new("RackInput", :binmode => true).tap {|f| f << rack_input.string}
+            read_chunk = lambda {|chunk| rack_input << chunk}
+          end
+        end
+        req.body {|chunk| read_chunk.call(chunk)}
+        rack_input.rewind
         rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
 
         env.update({"rack.version" => Rack::VERSION,
