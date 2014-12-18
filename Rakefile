@@ -32,7 +32,7 @@ task :officialrelease do
 end
 
 task :officialrelease_really => %w[SPEC dist gem] do
-  sh "sha1sum #{release}.tar.gz #{release}.gem"
+  sh "shasum #{release}.tar.gz #{release}.gem"
 end
 
 def release
