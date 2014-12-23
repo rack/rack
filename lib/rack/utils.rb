@@ -71,7 +71,7 @@ module Rack
     # The maximum number of parts a request can contain. Accepting too many part
     # can lead to the server running out of file handles.
     # Set to `0` for no limit.
-    # TODO: remove RACK_MULTIPART_LIMIT, it is not documented and was introduced by error.
+    # FIXME: RACK_MULTIPART_LIMIT was introduced by mistake and it will be removed in 1.7.0
     self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
     # Stolen from Mongrel, with some small modifications:
