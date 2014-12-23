@@ -639,7 +639,7 @@ module Rack
         assert("header must not contain Status") { key.downcase != "status" }
         ## The header must conform to RFC7230 token specification, i.e. cannot
         ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
-        assert("invalid header name: #{key}") { key !~ /[\(\),\/:;<=>\?@\[\\\]{}[[:cntrl:]]]/ }
+        assert("invalid header name: #{key}") { key !~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/ }
 
         ## The values of the header must be Strings,
         assert("a header value must be a String, but the value of " +
