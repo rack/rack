@@ -183,7 +183,7 @@ run on port 11211) and memcache-client installed.
 
 == Configuration
 
-Several parameters can be modified on `Rack::Utils` to configure Rack behaviour.
+Several parameters can be modified on Rack::Utils to configure Rack behaviour.
 
 e.g:
 
@@ -201,11 +201,11 @@ Default to 65536 characters (4 kiB in worst case).
 The maximum number of parts a request can contain.
 Accepting too many part can lead to the server running out of file handles.
 
-The default is `128`, which mean that a single request can't upload more than 128 files at once.
+The default is 128, which means that a single request can't upload more than 128 files at once.
 
-Set to `0` for not limit.
+Set to 0 for no limit.
 
-Can also be set via the `RACK_MULTIPART_PART_LIMIT` environment variable.
+Can also be set via the RACK_MULTIPART_PART_LIMIT environment variable.
 
 == History
 
