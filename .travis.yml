@@ -1,18 +1,19 @@
 before_install: sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
 install:
   - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
-  - gem install --conservative rake
-  - rake deps
-script: rake ci
+  - bundle
+script: bundle exec rake ci
 rvm:
   - 1.8.7
   - 1.9.2
   - 1.9.3
   - 2.0.0
   - 2.1
+  - 2.2
   - ruby-head
   - rbx-2
   - jruby
+  - jruby-head
   - ree
 notifications:
   email: false
