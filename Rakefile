@@ -90,7 +90,7 @@ task :test => 'SPEC' do
 end
 
 desc "Run all the tests we run on CI"
-task :ci => :test
+task :ci => :fulltest
 
 desc "Run all the tests"
 task :fulltest => %w[SPEC chmod] do
