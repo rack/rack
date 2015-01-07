@@ -134,14 +134,25 @@ describe Rack::Request do
     req.params.should.equal "foo" => "bar", "quux" => "bla"
   end
 
-  should "not truncate query strings containing semi-colons #543" do
-    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=b;la"))
-    req.query_string.should.equal "foo=bar&quux=b;la"
-    req.GET.should.equal "foo" => "bar", "quux" => "b;la"
-    req.POST.should.be.empty
-    req.params.should.equal "foo" => "bar", "quux" => "b;la"
+  should "not truncate query strings containing semi-colons #543 only in POST" do
+    mr = Rack::MockRequest.env_for("/",
+      "REQUEST_METHOD" => 'POST',
+      :input => "foo=bar&quux=b;la")
+    req = Rack::Request.new mr
+    req.query_string.should.equal ""
+    req.GET.should.be.empty
+    req.POST.should.equal "foo" => "bar", "quux" => "b;la"
+    req.params.should.equal req.GET.merge(req.POST)
   end
 
+  should "use semi-colons as separators for query strings in GET" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
+    req.query_string.should.equal "foo=bar&quux=b;la;wun=duh"
+    req.GET.should.equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
+    req.POST.should.be.empty
+    req.params.should.equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
+  end
+  
   should "limit the keys from the GET query string" do
     env = Rack::MockRequest.env_for("/?foo=bar")
 
