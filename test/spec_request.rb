@@ -721,6 +721,12 @@ EOF
 
   should "MultipartPartLimitError when request has too many multipart parts if limit set" do
     begin
+      old_key_space_limit = Rack::Utils.key_space_limit
+      old_multipart_part_limit = Rack::Utils.multipart_part_limit
+
+      Rack::Utils.key_space_limit = 2 ** 32
+      Rack::Utils.multipart_part_limit = 128
+
       data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
       data += "--AaB03x--\r"
 
@@ -732,6 +738,9 @@ EOF
 
       request = Rack::Request.new Rack::MockRequest.env_for("/", options)
       lambda { request.POST }.should.raise(Rack::Multipart::MultipartPartLimitError)
+    ensure
+      Rack::Utils.key_space_limit = old_key_space_limit
+      Rack::Utils.multipart_part_limit = old_multipart_part_limit
     end
   end
 
