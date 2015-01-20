@@ -123,6 +123,18 @@ describe Rack::Utils do
     Rack::Utils.parse_query(",foo=bar;,", ";,").should.equal "foo" => "bar"
   end
 
+  should "raise an exception if the params are too deep" do
+    len = Rack::Utils.param_depth_limit
+
+    lambda {
+      Rack::Utils.parse_nested_query("foo#{"[a]" * len}=bar")
+    }.should.raise(RangeError)
+
+    lambda {
+      Rack::Utils.parse_nested_query("foo#{"[a]" * (len - 1)}=bar")
+    }.should.not.raise
+  end
+
   should "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       should.equal "foo" => nil
