@@ -71,7 +71,7 @@ table { width:100%%; }
 
       body = "Forbidden\n"
       size = Rack::Utils.bytesize(body)
-      return [403, {"Content-Type" => "text/plain",
+      return [403, {CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
@@ -129,7 +129,7 @@ table { width:100%%; }
     def entity_not_found
       body = "Entity not found: #{@path_info}\n"
       size = Rack::Utils.bytesize(body)
-      return [404, {"Content-Type" => "text/plain",
+      return [404, {CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end

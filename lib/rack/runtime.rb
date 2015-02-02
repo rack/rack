@@ -12,7 +12,7 @@ module Rack
       @header_name << "-#{name}" if name
     end
 
-    FORMAT_STRING = "%0.6f"
+    FORMAT_STRING = "%0.6f".freeze
     def call(env)
       start_time = clock_time
       status, headers, body = @app.call(env)
