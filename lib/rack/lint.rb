@@ -95,7 +95,7 @@ module Rack
       ##                      empty string, if the request URL targets
       ##                      the application root and does not have a
       ##                      trailing slash. This value may be
-      ##                      percent-encoded when I originating from
+      ##                      percent-encoded when originating from
       ##                      a URL.
 
       ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
