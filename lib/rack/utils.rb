@@ -109,6 +109,7 @@ module Rack
     # ParameterTypeError is raised. Users are encouraged to return a 400 in this
     # case.
     def parse_nested_query(qs, d = nil)
+      return {} if qs.empty?
       params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
@@ -495,7 +496,7 @@ module Rack
       end
 
       def []=(k, v)
-        canonical = k.downcase
+        canonical = k.downcase.freeze
         delete k if @names[canonical] && @names[canonical] != k # .delete is expensive, don't invoke it unless necessary
         @names[k] = @names[canonical] = k
         super k, v
