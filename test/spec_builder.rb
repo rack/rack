@@ -187,6 +187,8 @@ describe Rack::Builder do
     it "parses commented options" do
       app, options = Rack::Builder.parse_file config_file('options.ru')
       options[:debug].should.be.true
+      options[:environment].should.equal 'test'
+      options[:Port].should.equal '2929'
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
     end
 

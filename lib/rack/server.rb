@@ -99,7 +99,7 @@ module Rack
           abort opt_parser.to_s
         end
 
-        options[:config] = args.last if args.last
+        options[:config] = args.last if args.last && !args.last.empty?
         options
       end
 
@@ -182,12 +182,22 @@ module Rack
     # * :require
     #     require the given libraries
     def initialize(options = nil)
-      @options = options
-      @app = options[:app] if options && options[:app]
+      @ignore_options = []
+
+      if options
+        @use_default_options = false
+        @options = options
+        @app = options[:app] if options[:app]
+      else
+        argv = defined?(SPEC_ARGV) ? SPEC_ARGV : ARGV
+        @use_default_options = true
+        @options = parse_options(argv)
+      end
     end
 
     def options
-      @options ||= parse_options(ARGV)
+      merged_options = @use_default_options ? default_options.merge(@options) : @options
+      merged_options.reject { |k, v| @ignore_options.include?(k) }
     end
 
     def default_options
@@ -287,7 +297,16 @@ module Rack
     end
 
     def server
-      @_server ||= Rack::Handler.get(options[:server]) || Rack::Handler.default(options)
+      @_server ||= Rack::Handler.get(options[:server])
+
+      unless @_server
+        @_server = Rack::Handler.default(options)
+
+        # We already speak FastCGI
+        @ignore_options = [:File, :Port] if @_server.to_s == 'Rack::Handler::FastCGI'
+      end
+
+      @_server
     end
 
     private
@@ -297,7 +316,7 @@ module Rack
         end
 
         app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        self.options.merge! options
+        @options.merge!(options) { |key, old, new| old }
         app
       end
 
@@ -306,16 +325,14 @@ module Rack
       end
 
       def parse_options(args)
-        options = default_options
-
         # Don't evaluate CGI ISINDEX parameters.
         # http://www.meb.uni-bonn.de/docs/cgi/cl.html
         args.clear if ENV.include?(REQUEST_METHOD)
 
-        options.merge! opt_parser.parse!(args)
-        options[:config] = ::File.expand_path(options[:config])
+        @options = opt_parser.parse!(args)
+        @options[:config] = ::File.expand_path(options[:config])
         ENV["RACK_ENV"] = options[:environment]
-        options
+        @options
       end
 
       def opt_parser
