@@ -6,13 +6,15 @@ module Rack
   # time, or before all the other middlewares to include time for them,
   # too.
   class Runtime
+    FORMAT_STRING = "%0.6f".freeze # :nodoc:
+    HEADER_NAME = "X-Runtime".freeze # :nodoc:
+
     def initialize(app, name = nil)
       @app = app
-      @header_name = "X-Runtime"
-      @header_name << "-#{name}" if name
+      @header_name = HEADER_NAME
+      @header_name += "-#{name}" if name
     end
 
-    FORMAT_STRING = "%0.6f".freeze
     def call(env)
       start_time = clock_time
       status, headers, body = @app.call(env)
