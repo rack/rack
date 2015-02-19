@@ -8,7 +8,7 @@ module Rack
   # response.
   #
   # It allows setting of headers and cookies, and provides useful
-  # defaults (a OK response containing HTML).
+  # defaults (an OK response with empty headers and body).
   #
   # You can use Response#write to iteratively generate your response,
   # but note that this is buffered by Rack::Response until you call
