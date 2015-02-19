@@ -95,7 +95,7 @@ module Rack
       ##                      empty string, if the request URL targets
       ##                      the application root and does not have a
       ##                      trailing slash. This value may be
-      ##                      percent-encoded when I originating from
+      ##                      percent-encoded when originating from
       ##                      a URL.
 
       ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
@@ -226,6 +226,23 @@ module Rack
         assert("logger #{logger.inspect} must respond to fatal") {
           logger.respond_to?(:fatal)
         }
+      end
+
+      ## <tt>rack.multipart.buffer_size</tt>:: An Integer hint to the multipart parser as to what chunk size to use for reads and writes.
+      if bufsize = env['rack.multipart.buffer_size']
+        assert("rack.multipart.buffer_size must be an Integer > 0 if specified") {
+          bufsize.is_a?(Integer) && bufsize > 0
+        }
+      end
+
+      ## <tt>rack.multipart.tempfile_factory</tt>:: An object responding to #call with two arguments, the filename and content_type given for the multipart form field, and returning an IO-like object that responds to #<< and optionally #rewind. This factory will be used to instantiate the tempfile for each multipart form file upload field, rather than the default class of Tempfile.
+      if tempfile_factory = env['rack.multipart.tempfile_factory']
+        assert("rack.multipart.tempfile_factory must respond to #call") { tempfile_factory.respond_to?(:call) }
+        env['rack.multipart.tempfile_factory'] = lambda do |filename, content_type|
+          io = tempfile_factory.call(filename, content_type)
+          assert("rack.multipart.tempfile_factory return value must respond to #<<") { io.respond_to?(:<<) }
+          io
+        end
       end
 
       ## The server or the application can store their own data in the
@@ -618,15 +635,11 @@ module Rack
         assert("header key must be a string, was #{key.class}") {
           key.kind_of? String
         }
-        ## The header must not contain a +Status+ key,
+        ## The header must not contain a +Status+ key.
         assert("header must not contain Status") { key.downcase != "status" }
-        ## contain keys with <tt>:</tt> or newlines in their name,
-        assert("header names must not contain : or \\n") { key !~ /[:\n]/ }
-        ## contain keys names that end in <tt>-</tt> or <tt>_</tt>,
-        assert("header names must not end in - or _") { key !~ /[-_]\z/ }
-        ## but only contain keys that consist of
-        ## letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
-        assert("invalid header name: #{key}") { key =~ /\A[a-zA-Z][a-zA-Z0-9_-]*\z/ }
+        ## The header must conform to RFC7230 token specification, i.e. cannot
+        ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+        assert("invalid header name: #{key}") { key !~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/ }
 
         ## The values of the header must be Strings,
         assert("a header value must be a String, but the value of " +

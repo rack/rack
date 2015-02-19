@@ -1,4 +1,5 @@
 require 'stringio'
+require 'tempfile'
 require 'rack/lint'
 require 'rack/mock'
 
@@ -73,6 +74,23 @@ describe Rack::Lint do
       Rack::Lint.new(nil).call(env("rack.logger" => []))
     }.should.raise(Rack::Lint::LintError).
       message.should.equal("logger [] must respond to info")
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.multipart.buffer_size" => 0))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.equal("rack.multipart.buffer_size must be an Integer > 0 if specified")
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.multipart.tempfile_factory" => Tempfile))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.equal("rack.multipart.tempfile_factory must respond to #call")
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+        env['rack.multipart.tempfile_factory'].call("testfile", "text/plain")
+      }).call(env("rack.multipart.tempfile_factory" => lambda { |filename, content_type| Object.new }))
+    }.should.raise(Rack::Lint::LintError).
+      message.should.equal("rack.multipart.tempfile_factory return value must respond to #<<")
 
     lambda {
       Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
@@ -182,26 +200,36 @@ describe Rack::Lint do
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/must not contain Status/)
 
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-Type:" => "text/plain"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/must not contain :/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"Content-" => "text/plain"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.match(/must not end/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, {"..%%quark%%.." => "text/plain"}, []]
-                     }).call(env({}))
-    }.should.raise(Rack::Lint::LintError).
-      message.should.equal("invalid header name: ..%%quark%%..")
+    # From RFC 7230:<F24><F25>
+    # Most HTTP header field values are defined using common syntax
+    # components (token, quoted-string, and comment) separated by
+    # whitespace or specific delimiting characters.  Delimiters are chosen
+    # from the set of US-ASCII visual characters not allowed in a token
+    # (DQUOTE and "(),/:;<=>?@[\]{}").
+    # 
+    #   token          = 1*tchar
+    # 
+    #   tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
+    #                 / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
+    #                 / DIGIT / ALPHA
+    #                 ; any VCHAR, except delimiters
+    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F>
+    invalid_headers.each do |invalid_header|
+      lambda {
+        Rack::Lint.new(lambda { |env|
+          [200, {invalid_header => "text/plain"}, []]
+        }).call(env({}))
+      }.should.raise(Rack::Lint::LintError, "on invalid header: #{invalid_header}").
+      message.should.equal("invalid header name: #{invalid_header}")
+    end
+    valid_headers = 0.upto(127).map(&:chr) - invalid_headers
+    valid_headers.each do |valid_header|
+      lambda {
+        Rack::Lint.new(lambda { |env|
+          [200, {valid_header => "text/plain"}, []]
+        }).call(env({}))
+      }.should.not.raise(Rack::Lint::LintError, "on valid header: #{valid_header}")
+    end
 
     lambda {
       Rack::Lint.new(lambda { |env|

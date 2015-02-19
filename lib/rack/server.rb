@@ -50,7 +50,7 @@ module Rack
             options[:server] = s
           }
 
-          opts.on("-o", "--host HOST", "listen on HOST (default: 0.0.0.0)") { |host|
+          opts.on("-o", "--host HOST", "listen on HOST (default: localhost)") { |host|
             options[:Host] = host
           }
 

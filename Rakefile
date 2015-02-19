@@ -32,7 +32,7 @@ task :officialrelease do
 end
 
 task :officialrelease_really => %w[SPEC dist gem] do
-  sh "sha1sum #{release}.tar.gz #{release}.gem"
+  sh "shasum #{release}.tar.gz #{release}.gem"
 end
 
 def release
@@ -90,7 +90,7 @@ task :test => 'SPEC' do
 end
 
 desc "Run all the tests we run on CI"
-task :ci => :test
+task :ci => :fulltest
 
 desc "Run all the tests"
 task :fulltest => %w[SPEC chmod] do

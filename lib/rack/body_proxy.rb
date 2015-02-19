@@ -4,9 +4,12 @@ module Rack
       @body, @block, @closed = body, block, false
     end
 
-    def respond_to?(*args)
-      return false if args.first.to_s =~ /^to_ary$/
-      super or @body.respond_to?(*args)
+    def respond_to?(method_name, include_all=false)
+      case method_name
+      when :to_ary, 'to_ary'
+        return false
+      end
+      super or @body.respond_to?(method_name, include_all)
     end
 
     def close
@@ -27,13 +30,13 @@ module Rack
     # We are applying this special case for #each only. Future bugs of this
     # class will be handled by requesting users to patch their ruby
     # implementation, to save adding too many methods in this class.
-    def each(*args, &block)
-      @body.each(*args, &block)
+    def each
+      @body.each { |body| yield body }
     end
 
-    def method_missing(*args, &block)
-      super if args.first.to_s =~ /^to_ary$/
-      @body.__send__(*args, &block)
+    def method_missing(method_name, *args, &block)
+      super if :to_ary == method_name
+      @body.__send__(method_name, *args, &block)
     end
   end
 end

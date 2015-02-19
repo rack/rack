@@ -61,11 +61,18 @@ module Rack
 
     class << self
       attr_accessor :key_space_limit
+      attr_accessor :multipart_part_limit
     end
 
     # The default number of bytes to allow parameter keys to take up.
     # This helps prevent a rogue client from flooding a Request.
     self.key_space_limit = 65536
+
+    # The maximum number of parts a request can contain. Accepting too many part
+    # can lead to the server running out of file handles.
+    # Set to `0` for no limit.
+    # FIXME: RACK_MULTIPART_LIMIT was introduced by mistake and it will be removed in 1.7.0
+    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
     # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'
@@ -79,7 +86,7 @@ module Rack
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         next if p.empty?
-        k, v = p.split('=', 2).map(&unescaper)
+        k, v = p.split('=', 2).map!(&unescaper)
 
         if cur = params[k]
           if cur.class == Array
@@ -102,6 +109,7 @@ module Rack
     # ParameterTypeError is raised. Users are encouraged to return a 400 in this
     # case.
     def parse_nested_query(qs, d = nil)
+      return {} if qs.nil? || qs.empty?
       params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
@@ -300,9 +308,9 @@ module Rack
         value = value[:value]
       end
       value = [value] unless Array === value
-      cookie = escape(key) + "=" +
-        value.map { |v| escape v }.join("&") +
-        "#{domain}#{path}#{max_age}#{expires}#{secure}#{httponly}"
+
+      cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
+        "#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
       case header["Set-Cookie"]
       when nil, ''
@@ -418,7 +426,7 @@ module Rack
     # Constant time string comparison.
     #
     # NOTE: the values compared should be of fixed length, such as strings
-    # that have aready been processed by HMAC.  This should not be used
+    # that have already been processed by HMAC. This should not be used
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
     def secure_compare(a, b)
@@ -488,21 +496,20 @@ module Rack
       end
 
       def []=(k, v)
-        canonical = k.downcase
+        canonical = k.downcase.freeze
         delete k if @names[canonical] && @names[canonical] != k # .delete is expensive, don't invoke it unless necessary
-        @names[k] = @names[canonical] = k
+        @names[canonical] = k
         super k, v
       end
 
       def delete(k)
         canonical = k.downcase
         result = super @names.delete(canonical)
-        @names.delete_if { |name,| name.downcase == canonical }
         result
       end
 
       def include?(k)
-        @names.include?(k) || @names.include?(k.downcase)
+        super || @names.include?(k.downcase)
       end
 
       alias_method :has_key?, :include?
@@ -567,9 +574,9 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # ruby -ropen-uri -rnokogiri -e "Nokogiri::XML(open(
-    #   'http://www.iana.org/assignments/http-status-codes/http-status-codes.xml')).css('record').each{|r|
-    #   name = r.css('description').text; puts %Q[#{r.css('value').text} => '#{name}',] unless name == 'Unassigned' }"
+    # curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
+    #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
+    #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
@@ -590,7 +597,6 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
-      306 => 'Reserved',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
@@ -606,12 +612,11 @@ module Rack
       410 => 'Gone',
       411 => 'Length Required',
       412 => 'Precondition Failed',
-      413 => 'Request Entity Too Large',
-      414 => 'Request-URI Too Long',
+      413 => 'Payload Too Large',
+      414 => 'URI Too Long',
       415 => 'Unsupported Media Type',
-      416 => 'Requested Range Not Satisfiable',
+      416 => 'Range Not Satisfiable',
       417 => 'Expectation Failed',
-      418 => 'I\'m a teapot',
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
@@ -625,7 +630,7 @@ module Rack
       503 => 'Service Unavailable',
       504 => 'Gateway Timeout',
       505 => 'HTTP Version Not Supported',
-      506 => 'Variant Also Negotiates (Experimental)',
+      506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
       510 => 'Not Extended',

@@ -107,6 +107,8 @@ module Rack
             res.body = rd
             res.chunked = true
             io_lambda.call wr
+          elsif body.respond_to?(:to_path)
+            res.body = ::File.open(body.to_path, 'rb')
           else
             body.each { |part|
               res.body << part

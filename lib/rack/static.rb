@@ -53,8 +53,8 @@ module Rack
   #  4) Regular Expressions / Regexp
   #     Provide a regular expression
   #     %r{\.(?:css|js)\z} => Matches files ending in .css or .js
-  #     /\.(?:eot|ttf|otf|woff|svg)\z/ => Matches files ending in
-  #       the most common web font formats (.eot, .ttf, .otf, .woff, .svg)
+  #     /\.(?:eot|ttf|otf|woff2|woff|svg)\z/ => Matches files ending in
+  #       the most common web font formats (.eot, .ttf, .otf, .woff2, .woff, .svg)
   #       Note: This Regexp is available as a shortcut, using the :fonts rule
   #
   #  5) Font Shortcut
@@ -132,7 +132,7 @@ module Rack
         when :all
           true
         when :fonts
-          path =~ /\.(?:ttf|otf|eot|woff|svg)\z/
+          path =~ /\.(?:ttf|otf|eot|woff2|woff|svg)\z/
         when String
           path = ::Rack::Utils.unescape(path)
           path.start_with?(rule) || path.start_with?('/' + rule)

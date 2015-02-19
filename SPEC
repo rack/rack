@@ -35,7 +35,7 @@ below.
                      empty string, if the request URL targets
                      the application root and does not have a
                      trailing slash. This value may be
-                     percent-encoded when I originating from
+                     percent-encoded when originating from
                      a URL.
 <tt>QUERY_STRING</tt>:: The portion of the request URL that
                         follows the <tt>?</tt>, if any. May be
@@ -112,6 +112,8 @@ be implemented by the server.
                         warn(message, &block)
                         error(message, &block)
                         fatal(message, &block)
+<tt>rack.multipart.buffer_size</tt>:: An Integer hint to the multipart parser as to what chunk size to use for reads and writes.
+<tt>rack.multipart.tempfile_factory</tt>:: An object responding to #call with two arguments, the filename and content_type given for the multipart form field, and returning an IO-like object that responds to #<< and optionally #rewind. This factory will be used to instantiate the tempfile for each multipart form file upload field, rather than the default class of Tempfile.
 The server or the application can store their own data in the
 environment, too.  The keys must contain at least one dot,
 and should be prefixed uniquely.  The prefix <tt>rack.</tt>
@@ -174,20 +176,16 @@ The error stream must respond to +puts+, +write+ and +flush+.
 If rack.hijack? is true then rack.hijack must respond to #call.
 rack.hijack must return the io that will also be assigned (or is
 already present, in rack.hijack_io.
-
 rack.hijack_io must respond to:
 <tt>read, write, read_nonblock, write_nonblock, flush, close,
 close_read, close_write, closed?</tt>
-
 The semantics of these IO methods must be a best effort match to
 those of a normal ruby IO or Socket object, using standard
 arguments and raising standard exceptions. Servers are encouraged
 to simply pass on real IO objects, although it is recognized that
 this approach is not directly compatible with SPDY and HTTP 2.0.
-
 IO provided in rack.hijack_io should preference the
 IO::WaitReadable and IO::WaitWritable APIs wherever supported.
-
 There is a deliberate lack of full specification around
 rack.hijack_io, as semantics will change from server to server.
 Users are encouraged to utilize this API with a knowledge of their
@@ -195,9 +193,7 @@ server choice, and servers may extend the functionality of
 hijack_io to provide additional features to users. The purpose of
 rack.hijack is for Rack to "get out of the way", as such, Rack only
 provides the minimum of specification and support.
-
 If rack.hijack? is false, then rack.hijack should not be set.
-
 If rack.hijack? is false, then rack.hijack_io should not be set.
 ==== Response (after headers)
 It is also possible to hijack a response after the status and headers
@@ -206,7 +202,6 @@ In order to do this, an application may set the special header
 <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
 accepting an argument that conforms to the <tt>rack.hijack_io</tt>
 protocol.
-
 After the headers have been sent, and this hijack callback has been
 called, the application is now responsible for the remaining lifecycle
 of the IO. The application is also responsible for maintaining HTTP
@@ -215,10 +210,8 @@ applications will have wanted to specify the header Connection:close in
 HTTP/1.1, and not Connection:keep-alive, as there is no protocol for
 returning hijacked sockets to the web server. For that purpose, use the
 body streaming API instead (progressively yielding strings via each).
-
 Servers must ignore the <tt>body</tt> part of the response tuple when
 the <tt>rack.hijack</tt> response API is in use.
-
 The special response header <tt>rack.hijack</tt> must only be set
 if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
 ==== Conventions
@@ -236,11 +229,9 @@ The header must respond to +each+, and yield values of key and value.
 Special headers starting "rack." are for communicating with the
 server, and must not be sent back to the client.
 The header keys must be Strings.
-The header must not contain a +Status+ key,
-contain keys with <tt>:</tt> or newlines in their name,
-contain keys names that end in <tt>-</tt> or <tt>_</tt>,
-but only contain keys that consist of
-letters, digits, <tt>_</tt> or <tt>-</tt> and start with a letter.
+The header must not contain a +Status+ key.
+The header must conform to RFC7230 token specification, i.e. cannot
+contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
 The values of the header must be Strings,
 consisting of lines (for multiple header values, e.g. multiple
 <tt>Set-Cookie</tt> values) separated by "\\n".
