@@ -20,7 +20,7 @@ EOF
   s.bindir          = 'bin'
   s.executables     << 'rackup'
   s.require_path    = 'lib'
-  s.extra_rdoc_files = ['README.rdoc', 'KNOWN-ISSUES']
+  s.extra_rdoc_files = ['README.rdoc', 'KNOWN-ISSUES', 'HISTORY.md']
   s.test_files      = Dir['test/spec_*.rb']
 
   s.author          = 'Christian Neukirchen'
