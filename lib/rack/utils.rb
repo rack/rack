@@ -113,7 +113,7 @@ module Rack
       params = KeySpaceConstrainedParams.new
 
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
-        k, v = p.split('='.freeze, 2).map { |s| unescape(s) }
+        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v)
       end
