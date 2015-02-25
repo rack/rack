@@ -58,6 +58,7 @@ module Rack
     module_function :unescape
 
     DEFAULT_SEP = /[&;] */n
+    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
     class << self
       attr_accessor :key_space_limit
@@ -84,7 +85,7 @@ module Rack
 
       params = KeySpaceConstrainedParams.new
 
-      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
+      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
         k, v = p.split('='.freeze, 2).map!(&unescaper)
 
@@ -112,7 +113,7 @@ module Rack
       return {} if qs.nil? || qs.empty?
       params = KeySpaceConstrainedParams.new
 
-      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
+      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v)
