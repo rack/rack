@@ -14,7 +14,7 @@ module Rack
       env['rack.tempfiles'] ||= []
       status, headers, body = @app.call(env)
       body_proxy = BodyProxy.new(body) do
-        env['rack.tempfiles'].each { |f| f.close! } unless env['rack.tempfiles'].nil?
+        env['rack.tempfiles'].each(&:close!)
       end
       [status, headers, body_proxy]
     end
