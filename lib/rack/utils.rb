@@ -58,6 +58,7 @@ module Rack
     module_function :unescape
 
     DEFAULT_SEP = /[&;] */n
+    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
     class << self
       attr_accessor :key_space_limit
@@ -84,9 +85,9 @@ module Rack
 
       params = KeySpaceConstrainedParams.new
 
-      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
+      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
-        k, v = p.split('=', 2).map!(&unescaper)
+        k, v = p.split('='.freeze, 2).map!(&unescaper)
 
         if cur = params[k]
           if cur.class == Array
@@ -112,8 +113,8 @@ module Rack
       return {} if qs.empty?
       params = KeySpaceConstrainedParams.new
 
-      (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
-        k, v = p.split('=', 2).map { |s| unescape(s) }
+      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v)
       end
@@ -275,9 +276,9 @@ module Rack
     def set_cookie_header!(header, key, value)
       case value
       when Hash
-        domain  = "; domain="  + value[:domain]       if value[:domain]
-        path    = "; path="    + value[:path]         if value[:path]
-        max_age = "; max-age=" + value[:max_age].to_s if value[:max_age]
+        domain  = "; domain=#{value[:domain]}"   if value[:domain]
+        path    = "; path=#{value[:path]}"       if value[:path]
+        max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
         # There is an RFC mess in the area of date formatting for Cookies. Not
         # only are there contradicting RFCs and examples within RFC text, but
         # there are also numerous conflicting names of fields and partially
