@@ -6,6 +6,7 @@ module Rack
 
     class Parser
       BUFSIZE = 16384
+      TEXT_PLAIN = "text/plain"
 
       DUMMY = Struct.new(:parse).new
 
@@ -126,13 +127,13 @@ module Rack
 
             filename = get_filename(head)
 
-            if name.nil? || name.empty? && filename
-              name = filename
+            if name.nil? || name.empty?
+              name = filename || "#{content_type || TEXT_PLAIN}[]"
             end
 
             if filename
               (@env['rack.tempfiles'] ||= []) << body = @tempfile.call(filename, content_type)
-              body.binmode  if body.respond_to?(:binmode)
+              body.binmode if body.respond_to?(:binmode)
             end
 
             next
@@ -188,7 +189,6 @@ module Rack
         end
 
         CHARSET    = "charset"
-        TEXT_PLAIN = "text/plain"
 
         def tag_multipart_encoding(filename, content_type, name, body)
           name.force_encoding Encoding::UTF_8
