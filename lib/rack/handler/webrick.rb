@@ -22,6 +22,8 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
+      MAX_FILE_SIZE_TO_LOAD = 4 * 1024 * 1024 # 4 MB
+
       def self.run(app, options={})
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
@@ -107,7 +109,7 @@ module Rack
             res.body = rd
             res.chunked = true
             io_lambda.call wr
-          elsif body.respond_to?(:to_path)
+          elsif body.respond_to?(:to_path) && headers[CONTENT_LENGTH].to_i > MAX_FILE_SIZE_TO_LOAD
             res.body = ::File.open(body.to_path, 'rb')
           else
             body.each { |part|
