@@ -197,6 +197,7 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:binary))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].should.equal "Larry"
+
     params["files"][:type].should.equal "image/png"
     params["files"][:filename].should.equal "rack-logo.png"
     params["files"][:head].should.equal "Content-Disposition: form-data; " +
@@ -560,4 +561,38 @@ contents\r
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  should "fallback to content-type for name" do
+    rack_logo = File.read(multipart_file("rack-logo.png"))
+
+    data = <<-EOF
+--AaB03x\r
+Content-Type: text/plain\r
+\r
+some text\r
+--AaB03x\r
+\r
+\r
+some more text (I didn't specify Content-Type)\r
+--AaB03x\r
+Content-Type: image/png\r
+\r
+#{rack_logo}\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/related; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Utils::Multipart.parse_multipart(env)
+
+    params["text/plain"].should.equal ["some text", "some more text (I didn't specify Content-Type)"]
+    params["image/png"].length.should.equal 1
+
+    f = Tempfile.new("rack-logo")
+    f.write(params["image/png"][0])
+    f.length.should.equal 26473
+  end
 end
