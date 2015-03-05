@@ -262,14 +262,6 @@ describe Rack::Multipart do
     params["files"].size.should.equal 252
   end
 
-  should "parse multipart/mixed" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
-    params = Rack::Utils::Multipart.parse_multipart(env)
-    params["foo"].should.equal "bar"
-    params["files"].should.be.instance_of String
-    params["files"].size.should.equal 252
-  end
-
   should "parse IE multipart upload and clean up filename" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:ie))
     params = Rack::Multipart.parse_multipart(env)
