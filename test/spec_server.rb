@@ -5,6 +5,9 @@ require 'socket'
 require 'open-uri'
 
 describe Rack::Server do
+  SPEC_ARGV = []
+
+  before { SPEC_ARGV[0..-1] = [] }
 
   def app
     lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
@@ -86,13 +89,33 @@ describe Rack::Server do
     opts[:pid].should.eql(::File.expand_path('testing.pid'))
   end
 
+  should "get options from ARGV" do
+    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production']
+    server = Rack::Server.new
+    server.options[:debug].should.be.true
+    server.options[:server].should.equal 'thin'
+    server.options[:environment].should.equal 'production'
+  end
+
+  should "only override non-passed options from parsed .ru file" do
+    builder_file = File.join(File.dirname(__FILE__), 'builder', 'options.ru')
+    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', builder_file]
+    server = Rack::Server.new
+    server.app # force .ru file to be parsed
+
+    server.options[:debug].should.be.true
+    server.options[:server].should.equal 'thin'
+    server.options[:environment].should.equal 'production'
+    server.options[:Port].should.equal '2929'
+  end
+
   should "run a server" do
-    pidfile = Tempfile.open('pidfile') { |f| break f }.path
-    FileUtils.rm pidfile
+    pidfile = Tempfile.open('pidfile') { |f| break f }
+    FileUtils.rm pidfile.path
     server = Rack::Server.new(
       :app         => app,
       :environment => 'none',
-      :pid         => pidfile,
+      :pid         => pidfile.path,
       :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
       :Host        => '127.0.0.1',
       :daemonize   => false,
@@ -105,7 +128,7 @@ describe Rack::Server do
 
     Process.kill(:INT, $$)
     t.join
-    open(pidfile) { |f| f.read.should.eql $$.to_s }
+    open(pidfile.path) { |f| f.read.should.eql $$.to_s }
   end
 
   should "check pid file presence and running process" do

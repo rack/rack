@@ -46,10 +46,6 @@ module Rack
     def self.default(options = {})
       # Guess.
       if ENV.include?("PHP_FCGI_CHILDREN")
-        # We already speak FastCGI
-        options.delete :File
-        options.delete :Port
-
         Rack::Handler::FastCGI
       elsif ENV.include?(REQUEST_METHOD)
         Rack::Handler::CGI
