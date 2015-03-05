@@ -134,6 +134,10 @@ describe Rack::Utils do
     }.should.not.raise
   end
 
+  should "parse nil as an empty query string" do
+    Rack::Utils.parse_nested_query(nil).should.equal({})
+  end
+
   should "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       should.equal "foo" => nil
