@@ -15,8 +15,8 @@ module Rack
 
     class LintError < RuntimeError; end
     module Assertion
-      def assert(message, &block)
-        unless block.call
+      def assert(message)
+        unless yield
           raise LintError, message
         end
       end
