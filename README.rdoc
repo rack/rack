@@ -233,19 +233,19 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 The Rack Core Team, consisting of
 
-* Christian Neukirchen (chneukirchen)
-* James Tucker (raggi)
-* Josh Peek (josh)
-* José Valim (josevalim)
-* Michael Fellinger (manveru)
-* Aaron Patterson (tenderlove)
-* Santiago Pastorino (spastorino)
-* Konstantin Haase (rkh)
+* Christian Neukirchen (chneukirchen[https://github.com/chneukirchen])
+* James Tucker (raggi[https://github.com/raggi])
+* Josh Peek (josh[https://github.com/josh])
+* José Valim (josevalim[https://github.com/josevalim])
+* Michael Fellinger (manveru[https://github.com/manveru])
+* Aaron Patterson (tenderlove[https://github.com/tenderlove])
+* Santiago Pastorino (spastorino[https://github.com/spastorino])
+* Konstantin Haase (rkh[https://github.com/rkh])
 
 and the Rack Alumnis
 
-* Ryan Tomayko (rtomayko)
-* Scytrin dai Kinthra (scytrin)
+* Ryan Tomayko (rtomayko[https://github.com/rtomayko])
+* Scytrin dai Kinthra (scytrin[https://github.com/scytrin])
 
 would like to thank:
 
