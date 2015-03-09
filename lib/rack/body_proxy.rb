@@ -1,7 +1,9 @@
 module Rack
   class BodyProxy
     def initialize(body, &block)
-      @body, @block, @closed = body, block, false
+      @body = body
+      @block = block
+      @closed = false
     end
 
     def respond_to?(method_name, include_all=false)
