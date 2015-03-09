@@ -87,9 +87,8 @@ module Rack
       end
 
       private
-      def full_boundary; @full_boundary; end
 
-      def rx; @rx; end
+      attr_reader :full_boundary, :rx
 
       def fast_forward_to_first_boundary
         loop do
