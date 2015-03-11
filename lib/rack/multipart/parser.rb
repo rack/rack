@@ -55,13 +55,14 @@ module Rack
 
         opened_files = 0
         loop do
-          if Utils.multipart_part_limit > 0
-            raise MultipartPartLimitError, 'Maximum file multiparts in content reached' if opened_files >= Utils.multipart_part_limit
-            opened_files += 1
-          end
 
           head, filename, content_type, name, body =
             get_current_head_and_filename_and_content_type_and_name_and_body
+
+          if Utils.multipart_part_limit > 0
+            opened_files += 1 if filename
+            raise MultipartPartLimitError, 'Maximum file multiparts in content reached' if opened_files >= Utils.multipart_part_limit
+          end
 
           # Save the rest.
           if i = @buf.index(rx)
