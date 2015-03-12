@@ -136,9 +136,6 @@ module Rack
 
       def redirect?;           [301, 302, 303, 307].include? status; end
 
-      # Headers
-      attr_reader :headers, :original_headers
-
       def include?(header)
         !!headers[header]
       end
