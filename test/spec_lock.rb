@@ -152,7 +152,10 @@ describe Rack::Lock do
       env['rack.multithread'].should.equal false
       [200, {"Content-Type" => "text/plain"}, %w{ a b c }]
     }, false)
-    app.call(Rack::MockRequest.env_for("/"))
+    env = Rack::MockRequest.env_for("/")
+    env['rack.multithread'].should.equal true
+    app.call(env)
+    env['rack.multithread'].should.equal true
   end
 
   should "reset original multithread flag when exiting lock" do
@@ -176,5 +179,15 @@ describe Rack::Lock do
     app = lock_app(proc { [200, {"Content-Type" => "text/plain"}, []] }, lock)
     lambda { app.call(env) }.should.raise(Exception)
     lock.unlocked?.should.equal false
+  end
+
+  should "not reset the environment while the body is proxied" do
+    proxy = Class.new do
+      attr_reader :env
+      def initialize(env) @env = env end
+    end
+    app = Rack::Lock.new lambda { |env| [200, {"Content-Type" => "text/plain"}, proxy.new(env)] }
+    response = app.call(Rack::MockRequest.env_for("/"))[2]
+    response.env['rack.multithread'].should.equal false
   end
 end

@@ -10,18 +10,15 @@ module Rack
     end
 
     def call(env)
-      old, env[FLAG] = env[FLAG], false
       @mutex.lock
       begin
-        response = @app.call(env)
+        response = @app.call(env.merge(FLAG => false))
         body = BodyProxy.new(response[2]) { @mutex.unlock }
         response[2] = body
         response
       ensure
         @mutex.unlock unless body
       end
-    ensure
-      env[FLAG] = old
     end
   end
 end
