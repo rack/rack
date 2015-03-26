@@ -233,6 +233,7 @@ module Rack
           logging_middleware,
           [Rack::TempfileReaper]
         ]
+        m["production"] = m["deployment"]
         m["development"] = [
           [Rack::ContentLength],
           [Rack::Chunked],

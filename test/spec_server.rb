@@ -43,13 +43,13 @@ describe Rack::Server do
     server.new(:app => 'foo').middleware['deployment'].should.equal []
   end
 
-  should "only provide default middleware for development and deployment environments" do
-    Rack::Server.default_middleware_by_environment.keys.sort.should.equal %w(deployment development)
+  should "only provide default middleware for development, deployment, and production environments" do
+    Rack::Server.default_middleware_by_environment.keys.sort.should.equal %w(deployment development production)
   end
 
   should "always return an empty array for unknown environments" do
     server = Rack::Server.new(:app => 'foo')
-    server.middleware['production'].should.equal []
+    server.middleware['none'].should.equal []
   end
 
   should "not include Rack::Lint in deployment environment" do
