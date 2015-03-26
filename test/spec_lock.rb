@@ -190,4 +190,12 @@ describe Rack::Lock do
     response = app.call(Rack::MockRequest.env_for("/"))[2]
     response.env['rack.multithread'].should.equal false
   end
+
+  should "unlock if an exception occurs before returning" do
+    lock = Lock.new
+    env  = Rack::MockRequest.env_for("/")
+    app  = lock_app(proc { [].freeze }, lock)
+    lambda { app.call(env) }.should.raise(Exception)
+    lock.synchronized.should.equal false
+  end
 end

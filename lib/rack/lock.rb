@@ -13,11 +13,9 @@ module Rack
       @mutex.lock
       begin
         response = @app.call(env.merge(FLAG => false))
-        body = BodyProxy.new(response[2]) { @mutex.unlock }
-        response[2] = body
-        response
+        returned = response << BodyProxy.new(response.pop) { @mutex.unlock }
       ensure
-        @mutex.unlock unless body
+        @mutex.unlock unless returned
       end
     end
   end
