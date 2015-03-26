@@ -164,4 +164,17 @@ describe Rack::Lock do
     }.new(lambda { |env| [200, {"Content-Type" => "text/plain"}, %w{ a b c }] })
     Rack::Lint.new(app).call(Rack::MockRequest.env_for("/"))
   end
+
+  should 'not unlock if an error is raised before the mutex is locked' do
+    lock = Class.new do
+      def initialize() @unlocked = false end
+      def unlocked?() @unlocked end
+      def lock() raise Exception end
+      def unlock() @unlocked = true end
+    end.new
+    env = Rack::MockRequest.env_for("/")
+    app = lock_app(proc { [200, {"Content-Type" => "text/plain"}, []] }, lock)
+    lambda { app.call(env) }.should.raise(Exception)
+    lock.unlocked?.should.equal false
+  end
 end
