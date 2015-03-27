@@ -23,6 +23,10 @@ describe Rack::Handler do
     lambda {
       Rack::Handler.get('boom')
     }.should.raise(LoadError)
+
+    lambda {
+      Rack::Handler.get('Object')
+    }.should.raise(LoadError)
   end
 
   should "get unregistered, but already required, handler by name" do
