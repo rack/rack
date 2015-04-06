@@ -365,7 +365,7 @@ module Rack
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
-      def parse_query(qs, d)
+      def parse_query(qs, d='&')
         Utils.parse_nested_query(qs, d)
       end
 
