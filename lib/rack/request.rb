@@ -188,7 +188,7 @@ module Rack
       if @env["rack.request.query_string"] == query_string
         @env["rack.request.query_hash"]
       else
-        p = parse_query(query_string)
+        p = parse_query(query_string, '&;')
         @env["rack.request.query_string"] = query_string
         @env["rack.request.query_hash"]   = p
       end
@@ -212,7 +212,7 @@ module Rack
           form_vars.slice!(-1) if form_vars[-1] == ?\0
 
           @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = parse_query(form_vars)
+          @env["rack.request.form_hash"] = parse_query(form_vars, '&')
 
           @env["rack.input"].rewind
         end
@@ -365,8 +365,8 @@ module Rack
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
-      def parse_query(qs)
-        Utils.parse_nested_query(qs, '&')
+      def parse_query(qs, d)
+        Utils.parse_nested_query(qs, d)
       end
 
       def parse_multipart(env)
