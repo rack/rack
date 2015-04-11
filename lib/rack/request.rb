@@ -290,6 +290,7 @@ module Rack
 
     # the referer of the client
     def referer
+      return nil if !@env['HTTP_REFERER'].nil? && @env['HTTP_REFERER'].match(/\Ajavascript:/i)
       @env['HTTP_REFERER']
     end
     alias referrer referer
