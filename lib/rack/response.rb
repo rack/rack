@@ -115,26 +115,29 @@ module Rack
     alias headers header
 
     module Helpers
-      def invalid?;            status < 100 || status >= 600;        end
+      def invalid?;             status < 100 || status >= 600;        end
 
-      def informational?;      status >= 100 && status < 200;        end
-      def successful?;         status >= 200 && status < 300;        end
-      def redirection?;        status >= 300 && status < 400;        end
-      def client_error?;       status >= 400 && status < 500;        end
-      def server_error?;       status >= 500 && status < 600;        end
+      def informational?;       status >= 100 && status < 200;        end
+      def successful?;          status >= 200 && status < 300;        end
+      def redirection?;         status >= 300 && status < 400;        end
+      def client_error?;        status >= 400 && status < 500;        end
+      def server_error?;        status >= 500 && status < 600;        end
 
-      def ok?;                 status == 200;                        end
-      def created?;            status == 201;                        end
-      def accepted?;           status == 202;                        end
-      def bad_request?;        status == 400;                        end
-      def unauthorized?;       status == 401;                        end
-      def forbidden?;          status == 403;                        end
-      def not_found?;          status == 404;                        end
-      def method_not_allowed?; status == 405;                        end
-      def i_m_a_teapot?;       status == 418;                        end
-      def unprocessable?;      status == 422;                        end
+      def ok?;                  status == 200;                        end
+      def created?;             status == 201;                        end
+      def accepted?;            status == 202;                        end
+      def no_content?;          status == 204;                        end
+      def moved_permanently?;   status == 301;                        end
+      def bad_request?;         status == 400;                        end
+      def unauthorized?;        status == 401;                        end
+      def forbidden?;           status == 403;                        end
+      def not_found?;           status == 404;                        end
+      def method_not_allowed?;  status == 405;                        end
+      def precondition_failed?; status == 412;                        end
+      def i_m_a_teapot?;        status == 418;                        end
+      def unprocessable?;       status == 422;                        end
 
-      def redirect?;           [301, 302, 303, 307].include? status; end
+      def redirect?;            [301, 302, 303, 307].include? status; end
 
       # Headers
       attr_reader :headers, :original_headers
