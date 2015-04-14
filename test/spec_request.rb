@@ -641,7 +641,7 @@ describe Rack::Request do
       req.media_type_params['weird'].should.equal 'lol"'
   end
 
-  should "parse with junk before boundry" do
+  should "parse with junk before boundary" do
     # Adapted from RFC 1867.
     input = <<EOF
 blah blah\r

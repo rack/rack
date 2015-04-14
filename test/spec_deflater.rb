@@ -32,7 +32,7 @@ describe Rack::Deflater do
   # [options] hash of request options, i.e.
   #           'app_status' - what status dummy app should return (may be changed by deflater at some point)
   #           'app_body' - what body dummy app should return (may be changed by deflater at some point)
-  #           'request_headers' - extra reqest headers to be sent
+  #           'request_headers' - extra request headers to be sent
   #           'response_headers' - extra response headers to be returned
   #           'deflater_options' - options passed to deflater middleware
   # [block] useful for doing some extra verification
