@@ -252,7 +252,7 @@ describe Rack::Session::Cookie do
     response.body.should.equal '{"counter"=>1}'
   end
 
-  it "loads from a cookie wih accept-only integrity hash for graceful key rotation" do
+  it "loads from a cookie with accept-only integrity hash for graceful key rotation" do
     response = response_for(:app => [incrementor, { :secret => "test" }])
 
     app = [incrementor, { :secret => "test2", :old_secret => "test" }]
