@@ -123,7 +123,7 @@ module Rack
               obody.close if obody.respond_to?(:close)
             end
           else
-            env['rack.errors'].puts "X-Accel-Mapping header missing"
+            env['rack.errors'].puts "X-Accel-Mapping header missing: #{path}"
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
           path = F.expand_path(body.to_path)
