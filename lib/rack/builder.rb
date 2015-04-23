@@ -40,7 +40,7 @@ module Rack
         app = new_from_string cfgfile, config
       else
         require config
-        app = Object.const_get(::File.basename(config, '.rb').capitalize)
+        app = Object.const_get(::File.basename(config, '.rb').split('_').map(&:capitalize).join(''))
       end
       return app, options
     end
