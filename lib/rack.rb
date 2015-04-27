@@ -7,7 +7,7 @@
 # modules and classes.
 #
 # All modules meant for use in your application are <tt>autoload</tt>ed here,
-# so it should be enough just to <tt>require rack.rb</tt> in your code.
+# so it should be enough just to <tt>require 'rack'</tt> in your code.
 
 module Rack
   # The Rack protocol version number implemented.
