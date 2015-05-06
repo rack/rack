@@ -33,7 +33,7 @@ When a release series is no longer supported, it’s your own responsibility to 
 
 ## Reporting a bug
 
-All security bugs in Rack should be reported to the core team through our private mailing list <https://groups.google.com/group/rack-core> or rack-core@googlegroups.com. Your report will be acknowledged within 24 hours, and you’ll receive a more detailed response to your email within 48 hours indicating the next steps in handling your report.
+All security bugs in Rack should be reported to the core team through our private mailing list [rack-core@googlegroups.com](https://groups.google.com/group/rack-core). Your report will be acknowledged within 24 hours, and you’ll receive a more detailed response to your email within 48 hours indicating the next steps in handling your report.
 
 After the initial reply to your report the security team will endeavor to keep you informed of the progress being made towards a fix and full announcement. These updates will be sent at least every five days, in reality this is more likely to be every 24-48 hours.
 
@@ -50,7 +50,7 @@ Rack has a 5 step disclosure policy.
 2. Problem is confirmed and, a list of all affected versions is determined. Code is audited to find any potential similar problems.
 3. Fixes are prepared for all releases which are still supported. These fixes are not committed to the public repository but rather held locally pending the announcement.
 4. A suggested embargo date for this vulnerability is chosen and distros@openwall is notified. This notification will include patches for all versions still under support and a contact address for packagers who need advice back-porting patches to older versions.
-5. On the embargo date, the rails security mailing list (yes, the Rails security mailing list) is sent a copy of the announcement. The changes are pushed to the public repository and new gems released to rubygems.
+5. On the embargo date, the [ruby security announcement mailing list](mailto:ruby-security-ann@googlegroups.com) is sent a copy of the announcement. The changes are pushed to the public repository and new gems released to rubygems.
 
 Typically the embargo date will be set 72 hours from the time vendor-sec is first notified, however this may vary depending on the severity of the bug or difficulty in applying a fix.
 
@@ -58,10 +58,10 @@ This process can take some time, especially when coordination is required with m
 
 ## Receiving Security Updates
 
-The best way to receive all the security announcements is to subscribe to the rails security mailing list. The mailing list is very low traffic, and it receives the public notifications the moment the embargo is lifted. If you produce packages of Rack and require prior notification of vulnerabilities, you should be subscribed to vendor-sec.
+The best way to receive all the security announcements is to subscribe to the [ruby security announcement mailing list](mailto:ruby-security-ann@googlegroups.com). The mailing list is very low traffic, and it receives the public notifications the moment the embargo is lifted. If you produce packages of Rack and require prior notification of vulnerabilities, you should be subscribed to vendor-sec.
 
 No one outside the core team, the initial reporter or vendor-sec will be notified prior to the lifting of the embargo. We regret that we cannot make exceptions to this policy for high traffic or important sites, as any disclosure beyond the minimum required to coordinate a fix could cause an early leak of the vulnerability.
 
 ## Comments on this Policy
 
-If you have any suggestions to improve this policy, please send an email the core teamat <https://groups.google.com/group/rack-core> or rack-core@googlegroups.com
+If you have any suggestions to improve this policy, please send an email the core teamat [rack-core@googlegroups.com](https://groups.google.com/group/rack-core).
