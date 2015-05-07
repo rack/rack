@@ -210,6 +210,13 @@ describe Rack::Builder do
       $:.pop
     end
 
+    it 'requires an_underscore_app not ending in .ru' do
+      $: << File.dirname(__FILE__)
+      app, * = Rack::Builder.parse_file 'builder/an_underscore_app'
+      Rack::MockRequest.new(app).get('/').body.to_s.should.equal 'OK'
+      $:.pop
+    end
+
     it "sets __LINE__ correctly" do
       app, _ = Rack::Builder.parse_file config_file('line.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.should.equal '1'
