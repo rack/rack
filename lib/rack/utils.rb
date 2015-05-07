@@ -9,7 +9,7 @@ major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
 
 if major == 1 && minor < 9
   require 'rack/backports/uri/common_18'
-elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL <= 320 && RUBY_ENGINE != 'jruby'
+elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL <= 328 && RUBY_ENGINE != 'jruby'
   require 'rack/backports/uri/common_192'
 elsif major == 1 && minor == 9 && patch == 3 && RUBY_PATCHLEVEL < 125
   require 'rack/backports/uri/common_193'
@@ -203,7 +203,7 @@ module Rack
     if //.respond_to?(:encoding)
       ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
     else
-      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwhise
+      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwise
       # TODO doesn't apply to jruby, so a better condition above might be preferable?
       ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
     end
@@ -350,7 +350,7 @@ module Rack
     # of '% %b %Y'.
     # It assumes that the time is in GMT to comply to the RFC 2109.
     #
-    # NOTE: I'm not sure the RFC says it requires GMT, but is ambigous enough
+    # NOTE: I'm not sure the RFC says it requires GMT, but is ambiguous enough
     # that I'm certain someone implemented only that option.
     # Do not use %a and %b from Time.strptime, it would use localized names for
     # weekday and month.

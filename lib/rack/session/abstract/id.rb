@@ -289,7 +289,7 @@ module Rack
           value && !value.empty?
         end
 
-        # Session should be commited if it was loaded, any of specific options like :renew, :drop
+        # Session should be committed if it was loaded, any of specific options like :renew, :drop
         # or :expire_after was given and the security permissions match. Skips if skip is given.
 
         def commit_session?(env, session, options)
@@ -386,7 +386,7 @@ module Rack
           raise '#set_session not implemented.'
         end
 
-        # All thread safety and session destroy proceedures should occur here.
+        # All thread safety and session destroy procedures should occur here.
         # Should return a new session id or nil if options[:drop]
 
         def destroy_session(env, sid, options)

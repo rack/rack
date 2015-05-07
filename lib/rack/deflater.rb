@@ -79,13 +79,18 @@ module Rack
           gzip.flush
         }
       ensure
-        @body.close if @body.respond_to?(:close)
         gzip.close
         @writer = nil
       end
 
       def write(data)
         @writer.call(data)
+      end
+
+      def close
+        return if @closed
+        @closed = true
+        @body.close if @body.respond_to?(:close)
       end
     end
 
@@ -100,16 +105,22 @@ module Rack
 
       def initialize(body)
         @body = body
+        @closed = false
       end
 
       def each
-        deflater = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflater.deflate(part, Zlib::SYNC_FLUSH) }
-        yield deflater.finish
+        deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
+        @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
+        yield deflator.finish
         nil
       ensure
+        deflator.close
+      end
+
+      def close
+        return if @closed
+        @closed = true
         @body.close if @body.respond_to?(:close)
-        deflater.close
       end
     end
   end
