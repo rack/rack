@@ -77,6 +77,41 @@ describe Rack::Sendfile do
     end
   end
 
+  it "sets X-Accel-Redirect response header and discards body when multiple X-Accel-Mappings are specified" do
+    begin
+      dir1 = Dir.mktmpdir
+      dir2 = Dir.mktmpdir
+
+      first_body = open_file(File.join(dir1, 'rack_sendfile'))
+      first_body.puts 'hello world'
+
+      second_body = open_file(File.join(dir2, 'rack_sendfile'))
+      second_body.puts 'goodbye world'
+
+      headers = {
+        'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
+        'HTTP_X_ACCEL_MAPPING' => "#{dir1}/=/foo/bar/;#{dir2}/=/wibble/"
+      }
+
+      request(headers, first_body) do |response|
+        response.should.be.ok
+        response.body.should.be.empty
+        response.headers['Content-Length'].should.equal '0'
+        response.headers['X-Accel-Redirect'].should.equal '/foo/bar/rack_sendfile'
+      end
+
+      request(headers, second_body) do |response|
+        response.should.be.ok
+        response.body.should.be.empty
+        response.headers['Content-Length'].should.equal '0'
+        response.headers['X-Accel-Redirect'].should.equal '/wibble/rack_sendfile'
+      end
+    ensure
+      FileUtils.remove_entry_secure dir1
+      FileUtils.remove_entry_secure dir2
+    end
+  end
+
   it 'writes to rack.error when no X-Accel-Mapping is specified' do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' do |response|
       response.should.be.ok

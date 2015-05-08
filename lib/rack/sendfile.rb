@@ -53,6 +53,15 @@ module Rack
   # that it maps to. The middleware performs a simple substitution on the
   # resulting path.
   #
+  # You may define multiple mappings in the X-Accel-Mapping header by including
+  # a semicolon between mapping definitions. Be sure to wrap the mappings with
+  # quotations when doing so, otherwise nginx will presume the instruction is
+  # complete and error:
+  #
+  #   location / {
+  #     proxy_set_header X-Accel-Mapping "/var/www/=/files/;/var/srv/=/downloads/";
+  #   }
+  #
   # See Also: http://wiki.codemongers.com/NginxXSendfile
   #
   # === lighttpd
@@ -104,9 +113,7 @@ module Rack
     def initialize(app, variation=nil, mappings=[])
       @app = app
       @variation = variation
-      @mappings = mappings.map do |internal, external|
-        [/^#{internal}/i, external]
-      end
+      @mappings = mappings.map { |mapping| normalize_mapping(*mapping) }
     end
 
     def call(env)
@@ -149,12 +156,24 @@ module Rack
     end
 
     def map_accel_path(env, path)
-      if mapping = @mappings.find { |internal,_| internal =~ path }
+      request_mappings = @mappings + mappings_from_header(env)
+      if mapping = request_mappings.find { |internal,_| internal =~ path }
         path.sub(*mapping)
-      elsif mapping = env['HTTP_X_ACCEL_MAPPING']
-        internal, external = mapping.split('=', 2).map{ |p| p.strip }
-        path.sub(/^#{internal}/i, external)
       end
+    end
+
+    def mappings_from_header(env, key = 'HTTP_X_ACCEL_MAPPING')
+      return [] unless mapping = env[key]
+
+      mapping.split(';').map { |s|
+        s.split('=', 2)
+      }.map { |mapping|
+        normalize_mapping(*mapping)
+      }
+    end
+
+    def normalize_mapping(internal, external)
+      [/^#{internal.strip}/i, external.strip]
     end
   end
 end
