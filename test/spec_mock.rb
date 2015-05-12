@@ -14,9 +14,13 @@ app = Rack::Lint.new(lambda { |env|
   end
 
   body = req.head? ? "" : env.to_yaml
-  Rack::Response.new(body,
+  response = Rack::Response.new(body,
                      req.GET["status"] || 200,
-                     "Content-Type" => "text/yaml").finish
+                     "Content-Type" => "text/yaml")
+  response.set_cookie("session_test", {:value => "session_test", :domain => ".test.com", :path=> "/"})
+  response.set_cookie("secure_test", {:value => "secure_test", :domain => ".test.com",  :path => "/", :secure => true})
+  response.set_cookie("persistent_test", {:value => "persistent_test", :max_age => 15552000, :path => "/"})
+  response.finish
 })
 
 describe Rack::MockRequest do
@@ -245,6 +249,42 @@ describe Rack::MockResponse do
     res.content_type.should.equal "text/yaml"
     res.content_length.should.not.equal 0
     res.location.should.be.nil
+  end
+
+  should "provide access to session cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    session_cookie = res.cookie("session_test")
+    session_cookie.value[0].should.equal "session_test"
+    session_cookie.domain.should.equal ".test.com"
+    session_cookie.path.should.equal "/"
+    session_cookie.secure.should.equal false
+    session_cookie.expires.should.be.nil
+  end
+
+  should "provide access to persistent cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("persistent_test")
+    persistent_cookie.value[0].should.equal "persistent_test"
+    persistent_cookie.domain.should.be.nil
+    persistent_cookie.path.should.equal "/"
+    persistent_cookie.secure.should.equal false
+    persistent_cookie.expires.should.not.be.nil
+    persistent_cookie.expires.should.be < (Time.now + 15552000)
+  end
+
+  should "provide access to secure cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    secure_cookie = res.cookie("secure_test")
+    secure_cookie.value[0].should.equal "secure_test"
+    secure_cookie.domain.should.equal ".test.com"
+    secure_cookie.path.should.equal "/"
+    secure_cookie.secure.should.equal true
+    secure_cookie.expires.should.be.nil
+  end
+
+  should "return nil if a non existent cookie is requested" do
+    res = Rack::MockRequest.new(app).get("")
+    res.cookie("i_dont_exist").should.be.nil
   end
 
   should "provide access to the HTTP body" do

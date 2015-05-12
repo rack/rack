@@ -4,6 +4,7 @@ require 'rack'
 require 'rack/lint'
 require 'rack/utils'
 require 'rack/response'
+require 'cgi/cookie'
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without
@@ -155,7 +156,7 @@ module Rack
 
   class MockResponse < Rack::Response
     # Headers
-    attr_reader :original_headers
+    attr_reader :original_headers, :cookies
 
     # Errors
     attr_accessor :errors
@@ -164,6 +165,7 @@ module Rack
       @original_headers = headers
       @errors           = errors.string if errors.respond_to?(:string)
       @body_string      = nil
+      @cookies = parse_cookies_from_header
 
       super(body, status, headers)
     end
@@ -193,5 +195,51 @@ module Rack
     def empty?
       [201, 204, 205, 304].include? status
     end
+
+    def cookie(name)
+      cookies.fetch(name, nil)
+    end
+
+    private
+
+    def parse_cookies_from_header
+      cookies = Hash.new
+      if original_headers.has_key? 'Set-Cookie'
+        set_cookie_header = original_headers.fetch('Set-Cookie')
+        set_cookie_header.split("\n").each do |cookie|
+          cookie_name, cookie_filling = cookie.split('=', 2)
+          cookie_attributes = identify_cookie_attributes cookie_filling
+          parsed_cookie = CGI::Cookie.new('name' => cookie_name.strip,
+                                          'value' => cookie_attributes.fetch('value'),
+                                          'path' => cookie_attributes.fetch('path', nil),
+                                          'domain' => cookie_attributes.fetch('domain', nil),
+                                          'expires' => cookie_attributes.fetch('expires', nil),
+                                          'secure' => cookie_attributes.fetch('secure', false)
+          )
+          cookies.store(cookie_name, parsed_cookie)
+        end
+      end
+      cookies
+    end
+
+    def identify_cookie_attributes(cookie_filling)
+      cookie_bits = cookie_filling.split(';')
+      cookie_attributes = Hash.new
+      cookie_attributes.store('value', cookie_bits[0].strip)
+      cookie_bits.each do |bit|
+        if bit.include? '='
+          cookie_attribute, attribute_value = bit.split('=')
+          cookie_attributes.store(cookie_attribute.strip, attribute_value.strip)
+          if cookie_attribute.include? 'max-age'
+            cookie_attributes.store('expires', Time.now + attribute_value.strip.to_i)
+          end
+        end
+        if bit.include? 'secure'
+          cookie_attributes.store('secure', true)
+        end
+      end
+      cookie_attributes
+    end
+
   end
 end
