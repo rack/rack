@@ -506,6 +506,19 @@ describe Rack::Utils::HeaderHash do
     h.should.not.include 'ETag'
   end
 
+  should "create deep HeaderHash copy on dup" do
+    h1 = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+    h2 = h1.dup
+
+    h1.should.include 'content-md5'
+    h2.should.include 'content-md5'
+
+    h2.delete("Content-MD5")
+
+    h2.should.not.include 'content-md5'
+    h1.should.include 'content-md5'
+  end
+
   should "merge case-insensitively" do
     h = Rack::Utils::HeaderHash.new("ETag" => 'HELLO', "content-length" => '123')
     merged = h.merge("Etag" => 'WORLD', 'Content-Length' => '321', "Foo" => 'BAR')
