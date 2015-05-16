@@ -480,6 +480,12 @@ module Rack
         hash.each { |k, v| self[k] = v }
       end
 
+      # on dup/clone, we need to duplicate @names hash
+      def initialize_copy(other)
+        super
+        @names = other.names.dup
+      end
+
       def each
         super do |k, v|
           yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
@@ -532,6 +538,11 @@ module Rack
         other.each { |k, v| self[k] = v }
         self
       end
+
+      protected
+        def names
+          @names
+        end
     end
 
     class KeySpaceConstrainedParams
