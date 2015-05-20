@@ -273,6 +273,19 @@ module Rack
     end
     module_function :select_best_encoding
 
+    def parse_cookies(env)
+      # According to RFC 2109:
+      #   If multiple cookies satisfy the criteria above, they are ordered in
+      #   the Cookie header such that those with more specific Path attributes
+      #   precede those with less specific.  Ordering with respect to other
+      #   attributes (e.g., Domain) is unspecified.
+      Hash[].tap do |hash|
+        cookies = parse_query(env[HTTP_COOKIE], ';,') { |s| unescape(s) rescue s }
+        cookies.each { |k,v| hash[k] = Array === v ? v.first : v }
+      end
+    end
+    module_function :parse_cookies
+
     def set_cookie_header!(header, key, value)
       case value
       when Hash

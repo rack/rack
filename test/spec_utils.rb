@@ -313,6 +313,23 @@ describe Rack::Utils do
     Rack::Utils.build_query(key => nil).should.equal Rack::Utils.escape(key)
   end
 
+  should "parse cookies" do
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "zoo=m")
+    Rack::Utils.parse_cookies(env).should.equal({"zoo" => "m"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
+    Rack::Utils.parse_cookies(env).should.equal({"foo" => "%"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;foo=car")
+    Rack::Utils.parse_cookies(env).should.equal({"foo" => "bar"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
+    Rack::Utils.parse_cookies(env).should.equal({"foo" => "bar", "quux" => "h&m"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar").freeze
+    Rack::Utils.parse_cookies(env).should.equal({"foo" => "bar"})
+  end
+
   should "parse q-values" do
     # XXX handle accept-extension
     Rack::Utils.q_values("foo;q=0.5,bar,baz;q=0.9").should.equal [
