@@ -300,18 +300,10 @@ module Rack
 
     def cookies
       hash   = @env["rack.request.cookie_hash"] ||= {}
-      string = @env["HTTP_COOKIE"]
+      string = @env[HTTP_COOKIE]
 
       return hash if string == @env["rack.request.cookie_string"]
-      hash.clear
-
-      # According to RFC 2109:
-      #   If multiple cookies satisfy the criteria above, they are ordered in
-      #   the Cookie header such that those with more specific Path attributes
-      #   precede those with less specific.  Ordering with respect to other
-      #   attributes (e.g., Domain) is unspecified.
-      cookies = Utils.parse_query(string, ';,') { |s| Rack::Utils.unescape(s) rescue s }
-      cookies.each { |k,v| hash[k] = Array === v ? v.first : v }
+      hash.replace Utils.parse_cookies(@env)
       @env["rack.request.cookie_string"] = string
       hash
     end
