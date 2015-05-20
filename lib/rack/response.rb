@@ -21,7 +21,7 @@ module Rack
     attr_accessor :length
 
     CHUNKED = 'chunked'.freeze
-    TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
+
     def initialize(body=[], status=200, header={})
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
