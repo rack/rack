@@ -38,6 +38,7 @@ module Rack
   CACHE_CONTROL   = 'Cache-Control'.freeze
   CONTENT_LENGTH  = 'Content-Length'.freeze
   CONTENT_TYPE    = 'Content-Type'.freeze
+  SET_COOKIE      = 'Set-Cookie'.freeze
   HTTP_COOKIE     = 'HTTP_COOKIE'.freeze
 
   GET     = 'GET'.freeze
