@@ -6,7 +6,7 @@ describe Rack::Multipart do
     file = multipart_file(name)
     data = File.open(file, 'rb') { |io| io.read }
 
-    type = "multipart/form-data; boundary=#{boundary}"
+    type = %(multipart/form-data; boundary=#{boundary})
     length = data.respond_to?(:bytesize) ? data.bytesize : data.size
 
     { "CONTENT_TYPE" => type,
@@ -227,6 +227,20 @@ describe Rack::Multipart do
     params["files"][:filename].should.equal "fi;le1.txt"
     params["files"][:head].should.equal "Content-Disposition: form-data; " +
       "name=\"files\"; filename=\"fi;le1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].should.equal "files"
+    params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  should "parse multipart upload with quoted boundary" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:quoted, %("AaB:03x")))
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].should.equal "Larry"
+    params["submit-name-with-content"].should.equal "Berry"
+    params["files"][:type].should.equal "text/plain"
+    params["files"][:filename].should.equal "file1.txt"
+    params["files"][:head].should.equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
       "Content-Type: text/plain\r\n"
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
