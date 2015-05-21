@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = "1.6.0"
+  s.version         = eval File.readlines('lib/rack.rb').grep(/RELEASE\s*=/)[0]
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
   s.license         = "MIT"
@@ -27,6 +27,7 @@ EOF
   s.email           = 'chneukirchen@gmail.com'
   s.homepage        = 'http://rack.github.io/'
   s.rubyforge_project = 'rack'
+  s.required_ruby_version = '>= 2.2.0'
 
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'

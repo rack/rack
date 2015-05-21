@@ -18,9 +18,11 @@ module Rack
     VERSION.join(".")
   end
 
+  RELEASE = "2.0.0.alpha"
+
   # Return the Rack release as a dotted string.
   def self.release
-    "1.6"
+    RELEASE
   end
 
   HTTP_HOST       = 'HTTP_HOST'.freeze

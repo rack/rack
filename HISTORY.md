@@ -1,5 +1,5 @@
 ### December 18th, Thirty sixth public release 1.6.0
-  - TODO
+  - See the [git history](https://github.com/rack/rack/compare/1.5.2...1.6.0)
 
 ### February 7th, Thirty fifth public release 1.5.2
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
