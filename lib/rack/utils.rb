@@ -36,14 +36,8 @@ module Rack
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = Encoding::UTF_8)
+      URI.decode_www_form_component(s, encoding)
     end
     module_function :unescape
 
@@ -221,13 +215,8 @@ module Rack
       '"' => "&quot;",
       "/" => "&#x2F;"
     }
-    if //.respond_to?(:encoding)
-      ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-    else
-      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwise
-      # TODO doesn't apply to jruby, so a better condition above might be preferable?
-      ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
-    end
+
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)

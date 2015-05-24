@@ -27,11 +27,7 @@ module Rack
       end
 
       def initialize(boundary, io, content_length, env, tempfile, bufsize)
-        @buf            = ""
-
-        if @buf.respond_to? :force_encoding
-          @buf.force_encoding Encoding::ASCII_8BIT
-        end
+        @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
         @params         = Utils::KeySpaceConstrainedParams.new
         @boundary       = "--#{boundary}"
@@ -110,11 +106,7 @@ module Rack
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
         head = nil
-        body = ''
-
-        if body.respond_to? :force_encoding
-          body.force_encoding Encoding::ASCII_8BIT
-        end
+        body = ''.force_encoding(Encoding::ASCII_8BIT)
 
         filename = content_type = name = nil
 
@@ -172,7 +164,7 @@ module Rack
           filename = Utils.unescape(filename)
         end
 
-        scrub_filename filename
+        scrub_filename(filename)
 
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
@@ -180,50 +172,44 @@ module Rack
         filename
       end
 
-      if "<3".respond_to? :valid_encoding?
-        def scrub_filename(filename)
-          unless filename.valid_encoding?
-            # FIXME: this force_encoding is for Ruby 2.0 and 1.9 support.
-            # We can remove it after they are dropped
-            filename.force_encoding(Encoding::ASCII_8BIT)
-            filename.encode!(:invalid => :replace, :undef => :replace)
-          end
-        end
-
-        CHARSET    = "charset"
-
-        def tag_multipart_encoding(filename, content_type, name, body)
-          name = name.to_s
-          name.force_encoding Encoding::UTF_8
-
-          return if filename
-
-          encoding = Encoding::UTF_8
-
-          if content_type
-            list         = content_type.split(';')
-            type_subtype = list.first
-            type_subtype.strip!
-            if TEXT_PLAIN == type_subtype
-              rest         = list.drop 1
-              rest.each do |param|
-                k,v = param.split('=', 2)
-                k.strip!
-                v.strip!
-                encoding = Encoding.find v if k == CHARSET
-              end
-            end
-          end
-
-          name.force_encoding encoding
-          body.force_encoding encoding
-        end
-      else
-        def scrub_filename(filename)
-        end
-        def tag_multipart_encoding(filename, content_type, name, body)
+      def scrub_filename(filename)
+        unless filename.valid_encoding?
+          # FIXME: this force_encoding is for Ruby 2.0 and 1.9 support.
+          # We can remove it after they are dropped
+          filename.force_encoding(Encoding::ASCII_8BIT)
+          filename.encode!(:invalid => :replace, :undef => :replace)
         end
       end
+
+      CHARSET   = "charset"
+
+      def tag_multipart_encoding(filename, content_type, name, body)
+        name = name.to_s
+        encoding = Encoding::UTF_8
+
+        name.force_encoding(encoding)
+
+        return if filename
+
+        if content_type
+          list         = content_type.split(';')
+          type_subtype = list.first
+          type_subtype.strip!
+          if TEXT_PLAIN == type_subtype
+            rest         = list.drop 1
+            rest.each do |param|
+              k,v = param.split('=', 2)
+              k.strip!
+              v.strip!
+              encoding = Encoding.find v if k == CHARSET
+            end
+          end
+        end
+
+        name.force_encoding(encoding)
+        body.force_encoding(encoding)
+      end
+
 
       def get_data(filename, body, content_type, name, head)
         data = body

@@ -66,7 +66,7 @@ module Rack
         env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
 
         rack_input = request.body || StringIO.new('')
-        rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+        rack_input.set_encoding(Encoding::BINARY)
 
         env.update({"rack.version" => Rack::VERSION,
                      "rack.input" => rack_input,

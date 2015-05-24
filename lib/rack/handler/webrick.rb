@@ -60,7 +60,7 @@ module Rack
         env.delete_if { |k, v| v.nil? }
 
         rack_input = StringIO.new(req.body.to_s)
-        rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+        rack_input.set_encoding(Encoding::BINARY)
 
         env.update({"rack.version" => Rack::VERSION,
                      "rack.input" => rack_input,

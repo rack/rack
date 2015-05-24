@@ -128,8 +128,7 @@ module Rack
         end
       end
 
-      empty_str = ""
-      empty_str.force_encoding("ASCII-8BIT") if empty_str.respond_to? :force_encoding
+      empty_str = ''.force_encoding(Encoding::ASCII_8BIT)
       opts[:input] ||= empty_str
       if String === opts[:input]
         rack_input = StringIO.new(opts[:input])
@@ -137,7 +136,7 @@ module Rack
         rack_input = opts[:input]
       end
 
-      rack_input.set_encoding(Encoding::BINARY) if rack_input.respond_to?(:set_encoding)
+      rack_input.set_encoding(Encoding::BINARY)
       env['rack.input'] = rack_input
 
       env["CONTENT_LENGTH"] ||= env["rack.input"].length.to_s
