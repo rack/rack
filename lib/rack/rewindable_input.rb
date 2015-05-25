@@ -57,15 +57,6 @@ module Rack
 
     private
 
-    # Ruby's Tempfile class has a bug. Subclass it and fix it.
-    class Tempfile < ::Tempfile
-      def _close
-        @tmpfile.close if @tmpfile
-        @data[1] = nil if @data
-        @tmpfile = nil
-      end
-    end
-
     def make_rewindable
       # Buffer all data into a tempfile. Since this tempfile is private to this
       # RewindableInput object, we chmod it so that nobody else can read or write
@@ -77,8 +68,6 @@ module Rack
       @rewindable_io.set_encoding(Encoding::BINARY) if @rewindable_io.respond_to?(:set_encoding)
       @rewindable_io.binmode
       if filesystem_has_posix_semantics?
-        # Use ::File.unlink as 1.9.1 Tempfile has a bug where unlink closes the file!
-        ::File.unlink @rewindable_io.path
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
