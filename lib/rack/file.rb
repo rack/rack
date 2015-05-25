@@ -139,7 +139,7 @@ module Rack
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory.
-      F.size?(@path) || Utils.bytesize(F.read(@path))
+      F.size?(@path) || F.read(@path).bytesize
     end
 
     # By default, the response body for file requests is nil.

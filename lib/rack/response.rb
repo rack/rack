@@ -97,7 +97,7 @@ module Rack
     #
     def write(str)
       s = str.to_s
-      @length += Rack::Utils.bytesize(s) unless @chunked
+      @length += s.bytesize unless @chunked
       @writer.call s
 
       header[CONTENT_LENGTH] = @length.to_s unless @chunked
