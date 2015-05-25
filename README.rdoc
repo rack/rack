@@ -12,9 +12,6 @@ which all Rack applications should conform to.
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
-* Mongrel
-* EventedMongrel
-* SwiftipliedMongrel
 * WEBrick
 * FCGI
 * CGI
@@ -101,8 +98,8 @@ Rack::Builder DSL to configure middleware and build up applications
 easily.
 
 rackup automatically figures out the environment it is run in, and
-runs your application as FastCGI, CGI, or standalone with Mongrel or
-WEBrick---all from the same configuration.
+runs your application as FastCGI, CGI, or WEBrick---all from the
+same configuration.
 
 == Quick start
 
@@ -151,7 +148,6 @@ To run the test suite completely, you need:
 
   * fcgi
   * memcache-client
-  * mongrel
   * thin
 
 The full set of tests test FCGI access with lighttpd (on port
@@ -307,4 +303,3 @@ rack-devel mailing list:: <https://groups.google.com/group/rack-devel>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
-
