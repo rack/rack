@@ -710,7 +710,7 @@ module Rack
         assert("Body yielded non-string value #{part.inspect}") {
           part.kind_of? String
         }
-        bytes += Rack::Utils.bytesize(part)
+        bytes += part.bytesize
         yield part
       }
       verify_content_length(bytes)
