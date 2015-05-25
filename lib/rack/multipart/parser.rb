@@ -37,7 +37,7 @@ module Rack
         @boundary       = "--#{boundary}"
         @io             = io
         @content_length = content_length
-        @boundary_size  = Utils.bytesize(@boundary) + EOL.size
+        @boundary_size  = @boundary.bytesize + EOL.size
         @env = env
         @tempfile       = tempfile
         @bufsize        = bufsize
@@ -104,7 +104,7 @@ module Rack
             return if read_buffer == full_boundary
           end
 
-          raise EOFError, "bad content body" if Utils.bytesize(@buf) >= @bufsize
+          raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
         end
       end
 

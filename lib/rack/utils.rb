@@ -360,19 +360,6 @@ module Rack
     end
     module_function :delete_cookie_header!
 
-    # Return the bytesize of String; uses String#size under Ruby 1.8 and
-    # String#bytesize under 1.9.
-    if ''.respond_to?(:bytesize)
-      def bytesize(string)
-        string.bytesize
-      end
-    else
-      def bytesize(string)
-        string.size
-      end
-    end
-    module_function :bytesize
-
     def rfc2822(time)
       time.rfc2822
     end
@@ -434,7 +421,7 @@ module Rack
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
     def secure_compare(a, b)
-      return false unless bytesize(a) == bytesize(b)
+      return false unless a.bytesize == b.bytesize
 
       l = a.unpack("C*")
 

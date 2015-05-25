@@ -6,7 +6,7 @@ require 'timeout'
 describe Rack::Utils do
 
   # A helper method which checks
-  # if certain query parameters 
+  # if certain query parameters
   # are equal.
   def equal_query_to(query)
     parts = query.split('&')
@@ -48,7 +48,7 @@ describe Rack::Utils do
       Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
     end
   end
-  
+
   should "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
     lambda {
       timeout(1) do
@@ -374,10 +374,6 @@ describe Rack::Utils do
 
     helper.call(%w(foo bar identity), [["foo", 0], ["bar", 0]]).should.equal("identity")
     helper.call(%w(foo bar baz identity), [["*", 0], ["identity", 0.1]]).should.equal("identity")
-  end
-
-  should "return the bytesize of String" do
-    Rack::Utils.bytesize("FOO\xE2\x82\xAC").should.equal 6
   end
 
   should "should perform constant time string comparison" do

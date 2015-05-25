@@ -88,7 +88,7 @@ module Rack
         entire_buffer_written_out = false
         while !entire_buffer_written_out
           written = @rewindable_io.write(buffer)
-          entire_buffer_written_out = written == Rack::Utils.bytesize(buffer)
+          entire_buffer_written_out = written == buffer.bytesize
           if !entire_buffer_written_out
             buffer.slice!(0 .. written - 1)
           end
