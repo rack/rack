@@ -13,14 +13,6 @@ describe Rack::Utils do
     lambda{|other| (parts & other.split('&')) == parts }
   end
 
-  def kcodeu
-    one8 = RUBY_VERSION.to_f < 1.9
-    default_kcode, $KCODE = $KCODE, 'U' if one8
-    yield
-  ensure
-    $KCODE = default_kcode if one8
-  end
-
   should "round trip binary data" do
     r = [218, 0].pack 'CC'
     if defined?(::Encoding)
@@ -47,30 +39,8 @@ describe Rack::Utils do
     Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
   end
 
-  if RUBY_VERSION[/^\d+\.\d+/] == '1.8'
-    should "escape correctly for multibyte characters if $KCODE is set to 'U'" do
-      kcodeu do
-        matz_name = "\xE3\x81\xBE\xE3\x81\xA4\xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsumoto
-        matz_name.force_encoding("UTF-8") if matz_name.respond_to? :force_encoding
-        Rack::Utils.escape(matz_name).should.equal '%E3%81%BE%E3%81%A4%E3%82%82%E3%81%A8'
-        matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
-        matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
-        Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
-      end
-    end
-
-    should "unescape multibyte characters correctly if $KCODE is set to 'U'" do
-      kcodeu do
-        Rack::Utils.unescape('%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8').should.equal(
-          "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0])
-      end
-    end
-  end
-
   should "escape objects that responds to to_s" do
-    kcodeu do
-      Rack::Utils.escape(:id).should.equal "id"
-    end
+    Rack::Utils.escape(:id).should.equal "id"
   end
 
   if "".respond_to?(:encode)
@@ -228,11 +198,9 @@ describe Rack::Utils do
       should.raise(Rack::Utils::ParameterTypeError).
       message.should.equal "expected Array (got String) for param `y'"
 
-    if RUBY_VERSION.to_f > 1.9
-      lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
-        should.raise(Rack::Utils::InvalidParameterError).
-        message.should.equal "invalid byte sequence in UTF-8"
-    end
+    lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
+      should.raise(Rack::Utils::InvalidParameterError).
+      message.should.equal "invalid byte sequence in UTF-8"
   end
 
   should "build query strings correctly" do
@@ -372,16 +340,10 @@ describe Rack::Utils do
 
   should "escape html entities even on MRI when it's bugged" do
     test_escape = lambda do
-      kcodeu do
-        Rack::Utils.escape_html("\300<").should.equal "\300&lt;"
-      end
+      Rack::Utils.escape_html("\300<").should.equal "\300&lt;"
     end
 
-    if RUBY_VERSION.to_f < 1.9
-      test_escape.call
-    else
-      test_escape.should.raise(ArgumentError)
-    end
+    test_escape.should.raise(ArgumentError)
   end
 
   if "".respond_to?(:encode)
