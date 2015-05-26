@@ -95,7 +95,8 @@ module Rack
       def fast_forward_to_first_boundary
         loop do
           content = @io.read(@bufsize)
-          raise EOFError, "bad content body" unless content
+          handle_empty_content!(content) and return ""
+
           @buf << content
 
           while @buf.gsub!(/\A([^\n]*\n)/, '')
@@ -146,7 +147,7 @@ module Rack
           end
 
           content = @io.read(@content_length && @bufsize >= @content_length ? @content_length : @bufsize)
-          raise EOFError, "bad content body"  if content.nil? || content.empty?
+          handle_empty_content!(content) and break
 
           @buf << content
           @content_length -= content.size if @content_length
@@ -192,6 +193,7 @@ module Rack
         CHARSET    = "charset"
 
         def tag_multipart_encoding(filename, content_type, name, body)
+          name = name.to_s
           name.force_encoding Encoding::UTF_8
 
           return if filename
@@ -248,6 +250,20 @@ module Rack
         end
 
         yield data
+      end
+
+      def handle_empty_content!(content)
+        if content.nil? || content.empty?
+          # Raise an error for mismatching Content-Length and actual contents
+          raise EOFError, "bad content body" if @content_length.to_i > 0
+
+          # In case we receive a POST request with empty body, reset @content_length
+          # and return empty string
+          @content_length = 0
+          @buf = ""
+
+          return true
+        end
       end
     end
   end

@@ -282,6 +282,20 @@ describe Rack::Request do
     input.read.should.equal "foo=bar&quux=bla"
   end
 
+  should "safely accepts POST requests with empty body" do
+    mr = Rack::MockRequest.env_for("/",
+      "REQUEST_METHOD" => "POST",
+      "CONTENT_TYPE"   => "multipart/form-data, boundary=AaB03x",
+      "CONTENT_LENGTH" => '0',
+      :input => nil)
+
+    req = Rack::Request.new mr
+    req.query_string.should.equal ""
+    req.GET.should.be.empty
+    req.POST.should.be.empty
+    req.params.should.equal({})
+  end
+
   should "clean up Safari's ajax POST body" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/",
