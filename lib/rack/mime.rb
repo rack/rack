@@ -45,11 +45,6 @@ module Rack
     #
     # N.B. On Ubuntu the mime.types file does not include the leading period, so
     # users may need to modify the data before merging into the hash.
-    #
-    # To add the list mongrel provides, use:
-    #
-    #     require 'mongrel/handlers'
-    #     Rack::Mime::MIME_TYPES.merge!(Mongrel::DirHandler::MIME_TYPES)
 
     MIME_TYPES = {
       ".123"       => "application/vnd.lotus-1-2-3",

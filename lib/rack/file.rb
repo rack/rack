@@ -31,8 +31,6 @@ module Rack
       dup._call(env)
     end
 
-    F = ::File
-
     def _call(env)
       unless ALLOWED_VERBS.include? env[REQUEST_METHOD]
         return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
@@ -41,10 +39,10 @@ module Rack
       path_info = Utils.unescape(env[PATH_INFO])
       clean_path_info = Utils.clean_path_info(path_info)
 
-      @path = F.join(@root, clean_path_info)
+      @path = ::File.join(@root, clean_path_info)
 
       available = begin
-        F.file?(@path) && F.readable?(@path)
+        ::File.file?(@path) && ::File.readable?(@path)
       rescue SystemCallError
         false
       end
@@ -60,7 +58,7 @@ module Rack
       if env[REQUEST_METHOD] == OPTIONS
         return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
       end
-      last_modified = F.mtime(@path).httpdate
+      last_modified = ::File.mtime(@path).httpdate
       return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
 
       headers = { "Last-Modified" => last_modified }
@@ -99,7 +97,7 @@ module Rack
     end
 
     def each
-      F.open(@path, "rb") do |file|
+      ::File.open(@path, "rb") do |file|
         file.seek(@range.begin)
         remaining_len = @range.end-@range.begin+1
         while remaining_len > 0
@@ -129,7 +127,7 @@ module Rack
 
     # The MIME type for the contents of the file located at @path
     def mime_type
-      Mime.mime_type(F.extname(@path), @default_mime)
+      Mime.mime_type(::File.extname(@path), @default_mime)
     end
 
     def filesize
@@ -139,7 +137,7 @@ module Rack
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory.
-      F.size?(@path) || Utils.bytesize(F.read(@path))
+      ::File.size?(@path) || ::File.read(@path).bytesize
     end
 
     # By default, the response body for file requests is nil.

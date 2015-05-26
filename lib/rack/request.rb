@@ -257,7 +257,6 @@ module Rack
         self.GET[k] = v
       end
       @params = nil
-      nil
     end
 
     # Destructively delete a parameter, whether it's in GET or POST. Returns the value of the deleted parameter.

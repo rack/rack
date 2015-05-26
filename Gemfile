@@ -18,6 +18,5 @@ end
 group :extra do
   gem 'fcgi', :platforms => c_platforms
   gem 'memcache-client'
-  gem 'mongrel', '>= 1.2.0.pre2', :platforms => c_platforms
   gem 'thin', :platforms => c_platforms
 end

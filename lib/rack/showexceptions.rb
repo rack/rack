@@ -40,7 +40,7 @@ module Rack
         500,
         {
           CONTENT_TYPE => content_type,
-          CONTENT_LENGTH => Rack::Utils.bytesize(body).to_s,
+          CONTENT_LENGTH => body.bytesize.to_s,
         },
         [body],
       ]

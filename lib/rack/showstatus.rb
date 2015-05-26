@@ -34,7 +34,7 @@ module Rack
         detail = detail = env["rack.showstatus.detail"] || message
 
         body = @template.result(binding)
-        size = Rack::Utils.bytesize(body)
+        size = body.bytesize
         [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), [body]]
       else
         [status, headers, body]

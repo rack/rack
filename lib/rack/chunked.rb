@@ -21,10 +21,10 @@ module Rack
       def each
         term = TERM
         @body.each do |chunk|
-          size = bytesize(chunk)
+          size = chunk.bytesize
           next if size == 0
 
-          chunk = chunk.dup.force_encoding(Encoding::BINARY) if chunk.respond_to?(:force_encoding)
+          chunk = chunk.dup.force_encoding(Encoding::BINARY)
           yield [size.to_s(16), term, chunk, term].join
         end
         yield TAIL

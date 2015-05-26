@@ -99,8 +99,6 @@ module Rack
   # will be matched with case indifference.
 
   class Sendfile
-    F = ::File
-
     def initialize(app, variation=nil, mappings=[])
       @app = app
       @variation = variation
@@ -114,7 +112,7 @@ module Rack
       if body.respond_to?(:to_path)
         case type = variation(env)
         when 'X-Accel-Redirect'
-          path = F.expand_path(body.to_path)
+          path = ::File.expand_path(body.to_path)
           if url = map_accel_path(env, path)
             headers[CONTENT_LENGTH] = '0'
             headers[type] = url
@@ -126,7 +124,7 @@ module Rack
             env['rack.errors'].puts "X-Accel-Mapping header missing"
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
-          path = F.expand_path(body.to_path)
+          path = ::File.expand_path(body.to_path)
           headers[CONTENT_LENGTH] = '0'
           headers[type] = path
           obody = body

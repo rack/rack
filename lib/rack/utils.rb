@@ -36,14 +36,8 @@ module Rack
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = Encoding::UTF_8)
+      URI.decode_www_form_component(s, encoding)
     end
     module_function :unescape
 
@@ -221,13 +215,8 @@ module Rack
       '"' => "&quot;",
       "/" => "&#x2F;"
     }
-    if //.respond_to?(:encoding)
-      ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-    else
-      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwise
-      # TODO doesn't apply to jruby, so a better condition above might be preferable?
-      ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
-    end
+
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
@@ -360,19 +349,6 @@ module Rack
     end
     module_function :delete_cookie_header!
 
-    # Return the bytesize of String; uses String#size under Ruby 1.8 and
-    # String#bytesize under 1.9.
-    if ''.respond_to?(:bytesize)
-      def bytesize(string)
-        string.bytesize
-      end
-    else
-      def bytesize(string)
-        string.size
-      end
-    end
-    module_function :bytesize
-
     def rfc2822(time)
       time.rfc2822
     end
@@ -434,7 +410,7 @@ module Rack
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
     def secure_compare(a, b)
-      return false unless bytesize(a) == bytesize(b)
+      return false unless a.bytesize == b.bytesize
 
       l = a.unpack("C*")
 

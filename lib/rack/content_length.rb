@@ -22,7 +22,7 @@ module Rack
 
         obody = body
         body, length = [], 0
-        obody.each { |part| body << part; length += bytesize(part) }
+        obody.each { |part| body << part; length += part.bytesize }
 
         body = BodyProxy.new(body) do
           obody.close if obody.respond_to?(:close)

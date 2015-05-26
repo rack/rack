@@ -43,15 +43,13 @@ table { width:100%%; }
     attr_accessor :root, :path
 
     def initialize(root, app=nil)
-      @root = F.expand_path(root)
+      @root = ::File.expand_path(root)
       @app = app || Rack::File.new(@root)
     end
 
     def call(env)
       dup._call(env)
     end
-
-    F = ::File
 
     def _call(env)
       @env = env
@@ -61,7 +59,7 @@ table { width:100%%; }
       if forbidden = check_forbidden
         forbidden
       else
-        @path = F.join(@root, @path_info)
+        @path = ::File.join(@root, @path_info)
         list_path
       end
     end
@@ -70,7 +68,7 @@ table { width:100%%; }
       return unless @path_info.include? ".."
 
       body = "Forbidden\n"
-      size = Rack::Utils.bytesize(body)
+      size = body.bytesize
       return [403, {CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
         "X-Cascade" => "pass"}, [body]]
@@ -78,7 +76,7 @@ table { width:100%%; }
 
     def list_directory
       @files = [['../','Parent Directory','','','']]
-      glob = F.join(@path, '*')
+      glob = ::File.join(@path, '*')
 
       url_head = (@script_name.split('/') + @path_info.split('/')).map do |part|
         Rack::Utils.escape part
@@ -87,10 +85,10 @@ table { width:100%%; }
       Dir[glob].sort.each do |node|
         stat = stat(node)
         next  unless stat
-        basename = F.basename(node)
-        ext = F.extname(node)
+        basename = ::File.basename(node)
+        ext = ::File.extname(node)
 
-        url = F.join(*url_head + [Rack::Utils.escape(basename)])
+        url = ::File.join(*url_head + [Rack::Utils.escape(basename)])
         size = stat.size
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
@@ -105,7 +103,7 @@ table { width:100%%; }
     end
 
     def stat(node, max = 10)
-      F.stat(node)
+      ::File.stat(node)
     rescue Errno::ENOENT, Errno::ELOOP
       return nil
     end
@@ -113,7 +111,7 @@ table { width:100%%; }
     # TODO: add correct response if not readable, not sure if 404 is the best
     #       option
     def list_path
-      @stat = F.stat(@path)
+      @stat = ::File.stat(@path)
 
       if @stat.readable?
         return @app.call(@env) if @stat.file?
@@ -128,7 +126,7 @@ table { width:100%%; }
 
     def entity_not_found
       body = "Entity not found: #{@path_info}\n"
-      size = Rack::Utils.bytesize(body)
+      size = body.bytesize
       return [404, {CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
         "X-Cascade" => "pass"}, [body]]

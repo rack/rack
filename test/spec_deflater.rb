@@ -321,19 +321,19 @@ describe Rack::Deflater do
   end
 
   should "check for Content-Length via :if" do
-    body = 'Hello World!'
-    body_len = body.length
+    response = 'Hello World!'
+    response_len = response.length
     options = {
       'response_headers' => {
-        'Content-Length' => body_len.to_s
+        'Content-Length' => response_len.to_s
       },
       'deflater_options' => {
         :if => lambda { |env, status, headers, body|
-          headers['Content-Length'].to_i >= body_len
+          headers['Content-Length'].to_i >= response_len
         }
       }
     }
 
-    verify(200, body, 'gzip', options)
+    verify(200, response, 'gzip', options)
   end
 end
