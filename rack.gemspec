@@ -27,7 +27,7 @@ EOF
   s.email           = 'chneukirchen@gmail.com'
   s.homepage        = 'http://rack.github.io/'
   s.rubyforge_project = 'rack'
-  s.required_ruby_version = '>= 2.2.0'
+  s.required_ruby_version = '>= 2.2.2'
 
   s.add_development_dependency 'bacon'
   s.add_development_dependency 'rake'
