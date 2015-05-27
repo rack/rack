@@ -155,14 +155,11 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
-    # Headers
-    attr_reader :original_headers
 
     # Errors
     attr_accessor :errors
 
     def initialize(status, headers, body, errors=StringIO.new(""))
-      @original_headers = headers
       @errors           = errors.string if errors.respond_to?(:string)
       @body_string      = nil
 

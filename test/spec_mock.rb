@@ -72,7 +72,7 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).delete("", :input => "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].should.equal "DELETE"
-    
+
     Rack::MockRequest.env_for("/", :method => "HEAD")["REQUEST_METHOD"].
       should.equal "HEAD"
 
@@ -239,7 +239,6 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("")
     res.should.include "Content-Type"
     res.headers["Content-Type"].should.equal "text/yaml"
-    res.original_headers["Content-Type"].should.equal "text/yaml"
     res["Content-Type"].should.equal "text/yaml"
     res.content_type.should.equal "text/yaml"
     res.content_length.should.not.equal 0
