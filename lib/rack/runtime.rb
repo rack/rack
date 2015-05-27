@@ -20,7 +20,7 @@ module Rack
       status, headers, body = @app.call(env)
       request_time = clock_time - start_time
 
-      if !headers.has_key?(@header_name)
+      unless headers.has_key?(@header_name)
         headers[@header_name] = FORMAT_STRING % request_time
       end
 
