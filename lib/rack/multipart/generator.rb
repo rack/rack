@@ -11,7 +11,7 @@ module Rack
 
       def dump
         return nil if @first && !multipart?
-        return flattened_params if !@first
+        return flattened_params unless @first
 
         flattened_params.map do |name, file|
           if file.respond_to?(:original_filename)
