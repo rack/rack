@@ -29,14 +29,8 @@ module Rack
 
     private
 
-    if defined?(Process::CLOCK_MONOTONIC)
-      def clock_time
-        Process.clock_gettime(Process::CLOCK_MONOTONIC)
-      end
-    else
-      def clock_time
-        Time.now.to_f
-      end
+    def clock_time
+      Process.clock_gettime(Process::CLOCK_MONOTONIC)
     end
   end
 end
