@@ -153,6 +153,18 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.should.equal "contents"
   end
 
+  should "accept the params hash class to use for multipart parsing" do
+    c = Class.new(Rack::QueryParser::Params) do
+      def initialize(*)
+        super
+        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+      end
+    end
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    params = Rack::Multipart.parse_multipart(env, c.new)
+    params[:files][:type].should.equal "text/plain"
+  end
+
   should "preserve extension in the created tempfile" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
