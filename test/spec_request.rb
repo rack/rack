@@ -145,6 +145,26 @@ describe Rack::Request do
     req.params.should.equal req.GET.merge(req.POST)
   end
 
+  should "should use the query_parser for query parsing" do
+    c = Class.new(Rack::QueryParser::Params) do
+      def initialize(*)
+        super
+        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+      end
+    end
+    parser = Rack::QueryParser.new(:params_class=>c)
+    c = Class.new(Rack::Request) do
+      define_method(:query_parser) do
+        parser
+      end
+    end
+    req = c.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req.GET[:foo].should.equal "bar"
+    req.GET[:quux].should.equal "bla"
+    req.params[:foo].should.equal "bar"
+    req.params[:quux].should.equal "bla"
+  end
+
   should "use semi-colons as separators for query strings in GET" do
     req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
     req.query_string.should.equal "foo=bar&quux=b;la;wun=duh"
@@ -190,6 +210,34 @@ describe Rack::Request do
     req.GET.should.equal "foo" => "quux"
     req.POST.should.equal "foo" => "bar", "quux" => "bla"
     req.params.should.equal req.GET.merge(req.POST)
+  end
+
+  should "use the query_parser's params_class for multipart params" do
+    c = Class.new(Rack::QueryParser::Params) do
+      def initialize(*)
+        super
+        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+      end
+    end
+    parser = Rack::QueryParser.new(:params_class=>c)
+    c = Class.new(Rack::Request) do
+      define_method(:query_parser) do
+        parser
+      end
+    end
+    mr = Rack::MockRequest.env_for("/?foo=quux",
+      "REQUEST_METHOD" => 'POST',
+      :input => "foo=bar&quux=bla"
+    )
+    req = c.new mr
+
+    req.params
+
+    req.GET[:foo].should.equal "quux"
+    req.POST[:foo].should.equal "bar"
+    req.POST[:quux].should.equal "bla"
+    req.params[:foo].should.equal "bar"
+    req.params[:quux].should.equal "bla"
   end
 
   should "raise if input params has invalid %-encoding" do

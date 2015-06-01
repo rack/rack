@@ -203,6 +203,21 @@ describe Rack::Utils do
       message.should.equal "invalid byte sequence in UTF-8"
   end
 
+  should "allow setting the params hash class to use for parsing query strings" do
+    begin
+      Rack::Utils::DEFAULT_QUERY_PARSER.params_class = Class.new(Rack::QueryParser::Params) do
+        def initialize(*)
+          super
+          @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        end
+      end
+      Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].should.equal "bar"
+      Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].should.equal "1"
+    ensure
+      Rack::Utils::DEFAULT_QUERY_PARSER.params_class = Rack::QueryParser::Params
+    end
+  end
+
   should "build query strings correctly" do
     Rack::Utils.build_query("foo" => "bar").should.be equal_query_to("foo=bar")
     Rack::Utils.build_query("foo" => ["bar", "quux"]).

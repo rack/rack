@@ -307,6 +307,10 @@ module Rack
       hash
     end
 
+    def query_parser
+      QueryParser::DEFAULT
+    end
+
     def xhr?
       @env["HTTP_X_REQUESTED_WITH"] == "XMLHttpRequest"
     end
@@ -363,11 +367,11 @@ module Rack
       end
 
       def parse_query(qs, d='&')
-        Utils.parse_nested_query(qs, d)
+        query_parser.parse_nested_query(qs, d)
       end
 
       def parse_multipart(env)
-        Rack::Multipart.parse_multipart(env)
+        Rack::Multipart.parse_multipart(env, query_parser.params_class.new)
       end
 
       def parse_http_accept_header(header)
