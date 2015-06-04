@@ -172,7 +172,7 @@ describe Rack::Request do
     req.POST.should.be.empty
     req.params.should.equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
   end
-  
+
   should "limit the keys from the GET query string" do
     env = Rack::MockRequest.env_for("/?foo=bar")
 
@@ -387,6 +387,10 @@ describe Rack::Request do
   should "extract referrer correctly" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("/", "HTTP_REFERER" => "/some/path")
+    req.referer.should.equal "/some/path"
+
+    req = Rack::Request.new \
+      Rack::MockRequest.env_for("/", "HTTP_REFERRER" => "/some/path")
     req.referer.should.equal "/some/path"
 
     req = Rack::Request.new \

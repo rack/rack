@@ -289,7 +289,7 @@ module Rack
 
     # the referer of the client
     def referer
-      @env['HTTP_REFERER']
+      @env['HTTP_REFERER'] || @env['HTTP_REFERRER']
     end
     alias referrer referer
 
