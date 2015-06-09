@@ -308,7 +308,7 @@ module Rack
     end
 
     def query_parser
-      QueryParser::DEFAULT
+      Utils.default_query_parser
     end
 
     def xhr?

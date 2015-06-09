@@ -12,10 +12,15 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    attr_reader :params_class
+    def self.make_default(key_space_limit)
+      new Params, key_space_limit
+    end
 
-    def initialize(params_class)
+    attr_reader :params_class, :key_space_limit
+
+    def initialize(params_class, key_space_limit)
       @params_class = params_class
+      @key_space_limit = key_space_limit
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -103,7 +108,11 @@ module Rack
     end
 
     def make_params
-      @params_class.new
+      @params_class.new @key_space_limit
+    end
+
+    def new(key_space_limit)
+      self.class.new @params_class, key_space_limit
     end
 
     private
@@ -117,14 +126,8 @@ module Rack
     end
 
     class Params
-      class << self
-        # The default number of bytes to allow parameter keys to take up.
-        # This helps prevent a rogue client from flooding a Request.
-        attr_accessor :limit
-      end
-
-      def initialize(limit = self.class.limit)
-        @limit  = limit || 65536
+      def initialize(limit)
+        @limit  = limit
         @size   = 0
         @params = {}
       end
@@ -160,7 +163,5 @@ module Rack
         hash
       end
     end
-
-    DEFAULT = new(Params)
   end
 end

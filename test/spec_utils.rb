@@ -97,7 +97,7 @@ describe Rack::Utils do
     ex = { "foo" => nil }
     ex["foo"] = ex
 
-    params = Rack::Utils::KeySpaceConstrainedParams.new
+    params = Rack::Utils::KeySpaceConstrainedParams.new(65536)
     params['foo'] = params
     lambda {
       params.to_params_hash.to_s.should.equal ex.to_s
@@ -212,7 +212,7 @@ describe Rack::Utils do
           @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
-      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class)
+      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536)
       Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].should.equal "bar"
       Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].should.equal "1"
     ensure

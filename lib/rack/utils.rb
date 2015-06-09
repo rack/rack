@@ -22,7 +22,9 @@ module Rack
     class << self
       attr_accessor :default_query_parser
     end
-    self.default_query_parser = QueryParser::DEFAULT
+    # The default number of bytes to allow parameter keys to take up.
+    # This helps prevent a rogue client from flooding a Request.
+    self.default_query_parser = QueryParser.make_default(65536)
 
     # URI escapes. (CGI style space to +)
     def escape(s)
@@ -55,11 +57,11 @@ module Rack
     self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
     def self.key_space_limit
-      default_query_parser.params_class.limit
+      default_query_parser.key_space_limit
     end
 
     def self.key_space_limit=(v)
-      default_query_parser.params_class.limit = v
+      self.default_query_parser = self.default_query_parser.new(v)
     end
 
     def parse_query(qs, d = nil, &unescaper)
