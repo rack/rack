@@ -106,6 +106,8 @@ module Rack
       @params_class.new
     end
 
+    private
+
     def params_hash_type?(obj)
       obj.kind_of?(params_class) || obj.kind_of?(Hash)
     end
