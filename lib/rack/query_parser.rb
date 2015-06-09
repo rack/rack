@@ -12,10 +12,10 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    attr_accessor :params_class
+    attr_reader :params_class
 
     def initialize(params_class)
-      self.params_class = params_class
+      @params_class = params_class
     end
 
     # Stolen from Mongrel, with some small modifications:
