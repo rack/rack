@@ -29,6 +29,7 @@ module Rack
       def initialize(boundary, io, content_length, env, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
+        @query_parser   = query_parser
         @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
         @io             = io
@@ -71,7 +72,7 @@ module Rack
           get_data(filename, body, content_type, name, head) do |data|
             tag_multipart_encoding(filename, content_type, name, data)
 
-            Utils.normalize_params(@params, name, data)
+            @query_parser.normalize_params(@params, name, data)
           end
 
           # break if we're at the end of a buffer, but not if it is the end of a field
