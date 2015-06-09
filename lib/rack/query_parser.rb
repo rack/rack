@@ -26,7 +26,7 @@ module Rack
     def parse_query(qs, d = nil, &unescaper)
       unescaper ||= method(:unescape)
 
-      params = params_class.new
+      params = make_params
 
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
@@ -53,7 +53,7 @@ module Rack
     # case.
     def parse_nested_query(qs, d = nil)
       return {} if qs.nil? || qs.empty?
-      params = params_class.new
+      params = make_params
 
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
@@ -100,6 +100,10 @@ module Rack
       end
 
       return params
+    end
+
+    def make_params
+      @params_class.new
     end
 
     def params_hash_type?(obj)
