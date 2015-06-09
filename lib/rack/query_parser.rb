@@ -14,8 +14,8 @@ module Rack
 
     attr_accessor :params_class
 
-    def initialize(opts={})
-      self.params_class = opts[:params_class] || Params
+    def initialize(params_class)
+      self.params_class = params_class
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -155,6 +155,6 @@ module Rack
       end
     end
 
-    DEFAULT = new
+    DEFAULT = new(Params)
   end
 end
