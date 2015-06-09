@@ -72,11 +72,6 @@ module Rack
     end
     module_function :parse_nested_query
 
-    def normalize_params(params, name, v = nil)
-      default_query_parser.normalize_params(params, name, v)
-    end
-    module_function :normalize_params
-
     def params_hash_type?(obj)
       default_query_parser.params_hash_type?(obj)
     end
