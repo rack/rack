@@ -74,7 +74,7 @@ module Rack
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
     # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v = nil)
+    def normalize_params(params, name, v)
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
