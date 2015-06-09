@@ -205,7 +205,7 @@ describe Rack::Utils do
 
   should "allow setting the params hash class to use for parsing query strings" do
     begin
-      Rack::Utils::DEFAULT_QUERY_PARSER.params_class = Class.new(Rack::QueryParser::Params) do
+      Rack::Utils::default_query_parser.params_class = Class.new(Rack::QueryParser::Params) do
         def initialize(*)
           super
           @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
@@ -214,7 +214,7 @@ describe Rack::Utils do
       Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].should.equal "bar"
       Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].should.equal "1"
     ensure
-      Rack::Utils::DEFAULT_QUERY_PARSER.params_class = Rack::QueryParser::Params
+      Rack::Utils::default_query_parser.params_class = Rack::QueryParser::Params
     end
   end
 

@@ -18,7 +18,11 @@ module Rack
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
-    DEFAULT_QUERY_PARSER = QueryParser::DEFAULT
+
+    class << self
+      attr_accessor :default_query_parser
+    end
+    self.default_query_parser = QueryParser::DEFAULT
 
     # URI escapes. (CGI style space to +)
     def escape(s)
@@ -51,30 +55,30 @@ module Rack
     self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
     def self.key_space_limit
-      DEFAULT_QUERY_PARSER.params_class.limit
+      default_query_parser.params_class.limit
     end
 
     def self.key_space_limit=(v)
-      DEFAULT_QUERY_PARSER.params_class.limit = v
+      default_query_parser.params_class.limit = v
     end
 
     def parse_query(qs, d = nil, &unescaper)
-      DEFAULT_QUERY_PARSER.parse_query(qs, d, &unescaper)
+      default_query_parser.parse_query(qs, d, &unescaper)
     end
     module_function :parse_query
 
     def parse_nested_query(qs, d = nil)
-      DEFAULT_QUERY_PARSER.parse_nested_query(qs, d)
+      default_query_parser.parse_nested_query(qs, d)
     end
     module_function :parse_nested_query
 
     def normalize_params(params, name, v = nil)
-      DEFAULT_QUERY_PARSER.normalize_params(params, name, v)
+      default_query_parser.normalize_params(params, name, v)
     end
     module_function :normalize_params
 
     def params_hash_type?(obj)
-      DEFAULT_QUERY_PARSER.params_hash_type?(obj)
+      default_query_parser.params_hash_type?(obj)
     end
     module_function :params_hash_type?
 
