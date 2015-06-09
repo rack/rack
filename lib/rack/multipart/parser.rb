@@ -10,7 +10,7 @@ module Rack
 
       DUMMY = Struct.new(:parse).new
 
-      def self.create(env, params = QueryParser::DEFAULT.params_class.new)
+      def self.create(env, params)
         return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
 
         io = env['rack.input']
@@ -26,7 +26,7 @@ module Rack
         new($1, io, content_length, env, tempfile, bufsize, params)
       end
 
-      def initialize(boundary, io, content_length, env, tempfile, bufsize, params = QueryParser::DEFAULT.params_class.new)
+      def initialize(boundary, io, content_length, env, tempfile, bufsize, params)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
         @params         = params
