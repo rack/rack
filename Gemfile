@@ -7,8 +7,7 @@ gemspec
 # ago, but I've since forgotten. Anyway, we actually need it here, and it's not
 # avaialable, so prepare yourself for a yak shave when this breaks.
 c_platforms = Bundler::Dsl::VALID_PLATFORMS.dup.delete_if do |platform|
-  # to_s because we still run 1.8
-  platform.to_s =~ /jruby/
+  platform =~ /jruby/
 end
 
 # Alternative solution that might work, but it has bad interactions with
