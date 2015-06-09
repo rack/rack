@@ -997,28 +997,6 @@ EOF
     end
   end
 
-  should "work around buggy 1.8.* Tempfile equality" do
-    input = <<EOF
---AaB03x\r
-content-disposition: form-data; name="huge"; filename="huge"\r
-\r
-foo\r
---AaB03x--
-EOF
-
-    rack_input = Tempfile.new("rackspec")
-    rack_input.write(input)
-    rack_input.rewind
-
-    req = Rack::Request.new Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                      "CONTENT_LENGTH" => input.size,
-                      :input => rack_input)
-
-    lambda{ req.POST }.should.not.raise
-    lambda{ req.POST }.should.not.raise("input re-processed!")
-  end
-
   should "use form_hash when form_input is a Tempfile" do
     input = "{foo: 'bar'}"
 
