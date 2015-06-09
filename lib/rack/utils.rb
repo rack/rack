@@ -72,11 +72,6 @@ module Rack
     end
     module_function :parse_nested_query
 
-    def params_hash_type?(obj)
-      default_query_parser.params_hash_type?(obj)
-    end
-    module_function :params_hash_type?
-
     def build_query(params)
       params.map { |k, v|
         if v.class == Array
