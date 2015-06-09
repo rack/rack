@@ -16,7 +16,7 @@ module Rack
       new Params, key_space_limit
     end
 
-    attr_reader :params_class, :key_space_limit
+    attr_reader :key_space_limit
 
     def initialize(params_class, key_space_limit)
       @params_class = params_class
@@ -118,7 +118,7 @@ module Rack
     private
 
     def params_hash_type?(obj)
-      obj.kind_of?(params_class)
+      obj.kind_of?(@params_class)
     end
 
     def unescape(s)
