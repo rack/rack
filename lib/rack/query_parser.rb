@@ -91,10 +91,10 @@ module Rack
         if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
           normalize_params(params[k].last, child_key, v)
         else
-          params[k] << normalize_params(params.class.new, child_key, v)
+          params[k] << normalize_params(make_params, child_key, v)
         end
       else
-        params[k] ||= params.class.new
+        params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
         params[k] = normalize_params(params[k], after, v)
       end
