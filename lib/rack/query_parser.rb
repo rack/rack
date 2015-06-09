@@ -109,7 +109,7 @@ module Rack
     private
 
     def params_hash_type?(obj)
-      obj.kind_of?(params_class) || obj.kind_of?(Hash)
+      obj.kind_of?(params_class)
     end
 
     def unescape(s)
