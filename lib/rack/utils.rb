@@ -189,10 +189,8 @@ module Rack
       #   the Cookie header such that those with more specific Path attributes
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
-      Hash[].tap do |hash|
-        cookies = parse_query(env[HTTP_COOKIE], ';,') { |s| unescape(s) rescue s }
-        cookies.each { |k,v| hash[k] = Array === v ? v.first : v }
-      end
+      cookies = parse_query(env[HTTP_COOKIE], ';,') { |s| unescape(s) rescue s }
+      cookies.each_with_object({}) { |(k,v), hash| hash[k] = Array === v ? v.first : v }
     end
     module_function :parse_cookies
 
