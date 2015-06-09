@@ -21,7 +21,7 @@ module Rack
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
 
     class << self
-      def parse_multipart(env, params = QueryParser::DEFAULT.params_class.new)
+      def parse_multipart(env, params = QueryParser::DEFAULT)
         Parser.create(env, params).parse
       end
 

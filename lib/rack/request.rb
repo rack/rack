@@ -371,7 +371,7 @@ module Rack
       end
 
       def parse_multipart(env)
-        Rack::Multipart.parse_multipart(env, query_parser.params_class.new)
+        Rack::Multipart.parse_multipart(env, query_parser)
       end
 
       def parse_http_accept_header(header)

@@ -10,7 +10,7 @@ module Rack
 
       DUMMY = Struct.new(:parse).new
 
-      def self.create(env, params)
+      def self.create(env, query_parser)
         return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
 
         io = env['rack.input']
@@ -23,13 +23,13 @@ module Rack
           lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
         bufsize = env['rack.multipart.buffer_size'] || BUFSIZE
 
-        new($1, io, content_length, env, tempfile, bufsize, params)
+        new($1, io, content_length, env, tempfile, bufsize, query_parser)
       end
 
-      def initialize(boundary, io, content_length, env, tempfile, bufsize, params)
+      def initialize(boundary, io, content_length, env, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
-        @params         = params
+        @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
         @io             = io
         @content_length = content_length

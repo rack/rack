@@ -160,8 +160,9 @@ describe Rack::Multipart do
         @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
+    query_parser = Rack::QueryParser.new c
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
-    params = Rack::Multipart.parse_multipart(env, c.new)
+    params = Rack::Multipart.parse_multipart(env, query_parser)
     params[:files][:type].should.equal "text/plain"
   end
 
