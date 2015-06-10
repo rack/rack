@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'stringio'
 require 'time'  # for Time#httpdate
 require 'rack/deflater'

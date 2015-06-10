@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/lint'
 require 'rack/recursive'
 require 'rack/mock'

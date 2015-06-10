@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack'
 require 'rack/cascade'
 require 'rack/file'

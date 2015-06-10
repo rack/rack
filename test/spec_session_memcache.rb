@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 begin
   require 'rack/session/memcache'
   require 'rack/lint'

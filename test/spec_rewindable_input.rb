@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'stringio'
 require 'rack/rewindable_input'
 

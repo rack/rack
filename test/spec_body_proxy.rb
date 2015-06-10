@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/body_proxy'
 require 'stringio'
 require 'ostruct'

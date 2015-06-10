@@ -84,10 +84,8 @@ desc "Run all the fast + platform agnostic tests"
 task :test => 'SPEC' do
   opts     = ENV['TEST'] || ''
   specopts = ENV['TESTOPTS']
-  # ||
-  #   "-n '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
 
-  sh "ruby -rminitest/bacon -I./lib:./test -S minitest #{opts} #{specopts} test/spec*.rb"
+  sh "ruby -I./lib:./test -S minitest #{opts} #{specopts} test/spec*.rb"
 end
 
 desc "Run all the tests we run on CI"
