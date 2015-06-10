@@ -77,9 +77,10 @@ module Rack
       body.close if body.respond_to?(:close)
     end
 
-    # For historical reasons, we're pinning to RFC 2396
+    # For historical reasons, we're pinning to RFC 2396.
+    # URI::Parser = URI::RFC2396_Parser
     def self.parse_uri_rfc2396(uri)
-      @parser ||= URI::RFC2396_Parser.new
+      @parser ||= URI::Parser.new
       @parser.parse(uri)
     end
 
