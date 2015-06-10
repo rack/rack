@@ -1,9 +1,15 @@
 require 'stringio'
 require 'rack/rewindable_input'
 
-shared "a rewindable IO object" do
-  before do
+module RewindableTest
+  extend Minitest::Spec::DSL
+
+  def setup
     @rio = Rack::RewindableInput.new(@io)
+  end
+
+  class << self # HACK to get this running w/ as few changes as possible
+    alias_method :should, :it
   end
 
   should "be able to handle to read()" do
@@ -81,38 +87,43 @@ shared "a rewindable IO object" do
     }.should.not.raise
   end
 
+  after do
   @rio.close
   @rio = nil
+  end
 end
 
 describe Rack::RewindableInput do
   describe "given an IO object that is already rewindable" do
-    before do
+    def setup
       @io = StringIO.new("hello world")
+      super
     end
 
-    behaves_like "a rewindable IO object"
+    include RewindableTest
   end
 
   describe "given an IO object that is not rewindable" do
-    before do
+    def setup
       @io = StringIO.new("hello world")
       @io.instance_eval do
         undef :rewind
       end
+      super
     end
 
-    behaves_like "a rewindable IO object"
+    include RewindableTest
   end
 
   describe "given an IO object whose rewind method raises Errno::ESPIPE" do
-    before do
+    def setup
       @io = StringIO.new("hello world")
       def @io.rewind
         raise Errno::ESPIPE, "You can't rewind this!"
       end
+      super
     end
 
-    behaves_like "a rewindable IO object"
+    include RewindableTest
   end
 end

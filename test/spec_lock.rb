@@ -30,10 +30,10 @@ module LockHelpers
 end
 
 describe Rack::Lock do
-  extend LockHelpers
+  include LockHelpers
 
   describe 'Proxy' do
-    extend LockHelpers
+    include LockHelpers
 
     should 'delegate each' do
       env      = Rack::MockRequest.env_for("/")

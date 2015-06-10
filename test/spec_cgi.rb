@@ -3,7 +3,7 @@ require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/cgi'
 
 describe Rack::Handler::CGI do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
   @host = '127.0.0.1'
   @port = 9203

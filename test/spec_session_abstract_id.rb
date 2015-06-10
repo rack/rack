@@ -3,6 +3,8 @@
 require 'rack/session/abstract/id'
 
 describe Rack::Session::Abstract::ID do
+  i_suck_and_my_tests_are_order_dependent!
+
   id = Rack::Session::Abstract::ID
 
   def silence_warning
