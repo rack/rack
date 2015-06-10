@@ -1,6 +1,6 @@
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version         = eval File.readlines('lib/rack.rb').grep(/RELEASE\s*=/)[0]
+  s.version = File.read('lib/rack.rb')[/RELEASE += +([\"\'])([\d][\w\.]+)\1/, 2]
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
   s.license         = "MIT"
