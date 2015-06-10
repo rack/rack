@@ -72,7 +72,7 @@ module Rack
           get_data(filename, body, content_type, name, head) do |data|
             tag_multipart_encoding(filename, content_type, name, data)
 
-            @query_parser.normalize_params(@params, name, data)
+            @query_parser.normalize_params(@params, name, data, @query_parser.param_depth_limit)
           end
 
           # break if we're at the end of a buffer, but not if it is the end of a field

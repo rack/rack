@@ -12,15 +12,16 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    def self.make_default(key_space_limit)
-      new Params, key_space_limit
+    def self.make_default(key_space_limit, param_depth_limit)
+      new Params, key_space_limit, param_depth_limit
     end
 
-    attr_reader :key_space_limit
+    attr_reader :key_space_limit, :param_depth_limit
 
-    def initialize(params_class, key_space_limit)
+    def initialize(params_class, key_space_limit, param_depth_limit)
       @params_class = params_class
       @key_space_limit = key_space_limit
+      @param_depth_limit = param_depth_limit
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -63,7 +64,7 @@ module Rack
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
 
-        normalize_params(params, k, v)
+        normalize_params(params, k, v, param_depth_limit)
       end
 
       return params.to_params_hash
@@ -74,7 +75,9 @@ module Rack
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
     # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v)
+    def normalize_params(params, name, v, depth)
+      raise RangeError if depth <= 0
+
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
@@ -94,14 +97,14 @@ module Rack
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
-          normalize_params(params[k].last, child_key, v)
+          normalize_params(params[k].last, child_key, v, depth - 1)
         else
-          params[k] << normalize_params(make_params, child_key, v)
+          params[k] << normalize_params(make_params, child_key, v, depth - 1)
         end
       else
         params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v)
+        params[k] = normalize_params(params[k], after, v, depth - 1)
       end
 
       return params
@@ -111,8 +114,12 @@ module Rack
       @params_class.new @key_space_limit
     end
 
-    def new(key_space_limit)
-      self.class.new @params_class, key_space_limit
+    def new_space_limit(key_space_limit)
+      self.class.new @params_class, key_space_limit, param_depth_limit
+    end
+
+    def new_depth_limit(param_depth_limit)
+      self.class.new @params_class, key_space_limit, param_depth_limit
     end
 
     private
