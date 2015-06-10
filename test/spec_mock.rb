@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'yaml'
 require 'rack/lint'
 require 'rack/mock'

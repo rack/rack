@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/content_length'
 require 'rack/lint'
 require 'rack/mock'

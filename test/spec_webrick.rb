@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/mock'
 require File.expand_path('../testrequest', __FILE__)
 

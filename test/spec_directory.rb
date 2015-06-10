@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/directory'
 require 'rack/lint'
 require 'rack/mock'

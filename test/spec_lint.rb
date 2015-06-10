@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'stringio'
 require 'tempfile'
 require 'rack/lint'

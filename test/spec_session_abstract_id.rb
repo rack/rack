@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 ### WARNING: there be hax in this file.
 
 require 'rack/session/abstract/id'

@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'time'
 require 'rack/conditionalget'
 require 'rack/mock'

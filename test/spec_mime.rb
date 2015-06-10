@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/mime'
 
 describe Rack::Mime do

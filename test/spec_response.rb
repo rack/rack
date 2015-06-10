@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack'
 require 'rack/response'
 require 'stringio'

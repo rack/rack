@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 begin
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/cgi'
