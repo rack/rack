@@ -82,11 +82,12 @@ end
 
 desc "Run all the fast + platform agnostic tests"
 task :test => 'SPEC' do
-  opts     = ENV['TEST'] || '-a'
-  specopts = ENV['TESTOPTS'] ||
-    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
+  opts     = ENV['TEST'] || ''
+  specopts = ENV['TESTOPTS']
+  # ||
+  #   "-n '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
 
-  sh "bacon -w -I./lib:./test #{opts} #{specopts}"
+  sh "ruby -rminitest/bacon -I./lib:./test -S minitest #{opts} #{specopts} test/spec*.rb"
 end
 
 desc "Run all the tests we run on CI"

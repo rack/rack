@@ -22,10 +22,13 @@ describe Rack::Static do
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
   GZIP_OPTIONS = {:urls => ["/cgi"], :root => root, :gzip=>true}
 
+  before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
   @gzip_request = Rack::MockRequest.new(static(DummyApp.new, GZIP_OPTIONS))
+  @header_request = Rack::MockRequest.new(static(DummyApp.new, HEADER_OPTIONS))
+  end
 
   it "serves files" do
     res = @request.get("/cgi/test")
@@ -114,7 +117,6 @@ describe Rack::Static do
     ['cgi/assets/javascripts', {'Cache-Control' => 'public, max-age=500'}],
     [/\.(css|erb)\z/, {'Cache-Control' => 'public, max-age=600'}]
   ]}
-  @header_request = Rack::MockRequest.new(static(DummyApp.new, HEADER_OPTIONS))
 
   it "supports header rule :all" do
     # Headers for all files via :all shortcut

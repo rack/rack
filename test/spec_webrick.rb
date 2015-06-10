@@ -4,8 +4,9 @@ require File.expand_path('../testrequest', __FILE__)
 Thread.abort_on_exception = true
 
 describe Rack::Handler::WEBrick do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @server = WEBrick::HTTPServer.new(:Host => @host='127.0.0.1',
                                     :Port => @port=9202,
                                     :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
@@ -14,6 +15,7 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(TestRequest.new)
   Thread.new { @server.start }
   trap(:INT) { @server.shutdown }
+  end
 
   should "respond" do
     lambda {
@@ -35,8 +37,8 @@ describe Rack::Handler::WEBrick do
     GET("/test")
     response["rack.version"].should.equal [1,3]
     response["rack.multithread"].should.be.true
-    response["rack.multiprocess"].should.be.false
-    response["rack.run_once"].should.be.false
+    assert_equal false, response["rack.multiprocess"]
+    assert_equal false, response["rack.run_once"]
   end
 
   should "have CGI headers on GET" do
@@ -180,5 +182,7 @@ describe Rack::Handler::WEBrick do
     }
   end
 
+  after do
   @server.shutdown
+  end
 end
