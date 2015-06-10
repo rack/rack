@@ -954,12 +954,7 @@ EOF
   end
 
   should "not try to interpret binary as utf8" do
-    if /regexp/.respond_to?(:kcode) # < 1.9
-      begin
-        original_kcode = $KCODE
-        $KCODE='UTF8'
-
-        input = <<EOF
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="junk.a"\r
 content-type: application/octet-stream\r
@@ -968,34 +963,13 @@ content-type: application/octet-stream\r
 --AaB03x--\r
 EOF
 
-        req = Rack::Request.new Rack::MockRequest.env_for("/",
-                          "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                          "CONTENT_LENGTH" => input.size,
-                          :input => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
-        lambda{req.POST}.should.not.raise(EOFError)
-        req.POST["fileupload"][:tempfile].size.should.equal 4
-      ensure
-        $KCODE = original_kcode
-      end
-    else # >= 1.9
-        input = <<EOF
---AaB03x\r
-content-disposition: form-data; name="fileupload"; filename="junk.a"\r
-content-type: application/octet-stream\r
-\r
-#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
---AaB03x--\r
-EOF
-
-      req = Rack::Request.new Rack::MockRequest.env_for("/",
-                        "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                        "CONTENT_LENGTH" => input.size,
-                        :input => input)
-
-      lambda{req.POST}.should.not.raise(EOFError)
-      req.POST["fileupload"][:tempfile].size.should.equal 4
-    end
+    lambda{req.POST}.should.not.raise(EOFError)
+    req.POST["fileupload"][:tempfile].size.should.equal 4
   end
 
   should "use form_hash when form_input is a Tempfile" do
