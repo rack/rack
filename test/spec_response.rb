@@ -1,3 +1,4 @@
+require 'rack'
 require 'rack/response'
 require 'stringio'
 
