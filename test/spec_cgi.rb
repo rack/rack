@@ -16,7 +16,7 @@ describe Rack::Handler::CGI do
   end
 
   # Keep this first.
-  $pid = fork {
+  PID = fork {
     ENV['RACK_ENV'] = 'deployment'
     ENV['RUBYLIB'] = [
       File.expand_path('../../lib', __FILE__),
@@ -27,6 +27,11 @@ describe Rack::Handler::CGI do
       exec "lighttpd -D -f lighttpd.conf"
     end
   }
+
+  Minitest.after_run do
+    Process.kill 15, PID
+    Process.wait(PID)
+  end
 
   should "respond" do
     sleep 1
@@ -89,12 +94,6 @@ describe Rack::Handler::CGI do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
-  end
-
-  # Keep this last.
-  should "shutdown" do
-    Process.kill 15, $pid
-    Process.wait($pid).should == $pid
   end
 end
 
