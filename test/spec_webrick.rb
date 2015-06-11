@@ -1,5 +1,6 @@
 require 'minitest/bacon'
 require 'rack/mock'
+require 'concurrent/atomic/count_down_latch'
 require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
@@ -107,7 +108,9 @@ describe Rack::Handler::WEBrick do
 
   should "provide a .run" do
     block_ran = false
-    catch(:done) {
+    latch = Concurrent::CountDownLatch.new 1
+
+    t = Thread.new do
       Rack::Handler::WEBrick.run(lambda {},
                                  {
                                    :Host => '127.0.0.1',
@@ -115,13 +118,15 @@ describe Rack::Handler::WEBrick do
                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                    :AccessLog => []}) { |server|
         block_ran = true
-        server.should.be.kind_of WEBrick::HTTPServer
+        assert_kind_of WEBrick::HTTPServer, server
         @s = server
-        throw :done
+        latch.count_down
       }
-    }
-    block_ran.should.be.true
+    end
+
+    latch.wait
     @s.shutdown
+    t.join
   end
 
   should "return repeated headers" do
