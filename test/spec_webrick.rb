@@ -14,7 +14,7 @@ describe Rack::Handler::WEBrick do
                                     :AccessLog => [])
   @server.mount "/test", Rack::Handler::WEBrick,
     Rack::Lint.new(TestRequest.new)
-  Thread.new { @server.start }
+  @thread = Thread.new { @server.start }
   trap(:INT) { @server.shutdown }
   end
 
@@ -185,5 +185,6 @@ describe Rack::Handler::WEBrick do
 
   after do
   @server.shutdown
+  @thread.join
   end
 end
