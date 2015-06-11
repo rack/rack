@@ -1,7 +1,30 @@
-### December 18th, Thirty sixth public release 1.6.0
-  - See the [git history](https://github.com/rack/rack/compare/1.5.2...1.6.0)
+### May 6th, 2015, Thirty seventh public release 1.6.1
+  - Fix CVE-2014-9490, denial of service attack in OkJson ([8cd610](https://github.com/rack/rack/commit/8cd61062954f70e0a03e2855704e95ff4bdd4f6e))
+  - Use a monotonic time for Rack::Runtime, if available ([d170b2](https://github.com/rack/rack/commit/d170b2363c949dce60871f9d5a6bfc83da2bedb5))
+  - RACK_MULTIPART_LIMIT changed to RACK_MULTIPART_PART_LIMIT (RACK_MULTIPART_LIMIT is deprecated and will be removed in 1.7.0) ([c096c5](https://github.com/rack/rack/commit/c096c50c00230d8eee13ad5f79ad027d9a3f3ca9))
+  - See the full [git history](https://github.com/rack/rack/compare/1.6.0...1.6.1) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.6%22)
 
-### February 7th, Thirty fifth public release 1.5.2
+### May 6th, 2015, Thirty seventh public release 1.5.3
+  - Fix CVE-2014-9490, denial of service attack in OkJson ([99f725](https://github.com/rack/rack/commit/99f725b583b357376ffbb7b3b042c5daa3106ad6))
+  - Backport bug fixes to 1.5 series ([#585](https://github.com/rack/rack/pull/585), [#711](https://github.com/rack/rack/pull/711), [#756](https://github.com/rack/rack/pull/756))
+  - See the full [git history](https://github.com/rack/rack/compare/1.5.2...1.5.3) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.5.3%22)
+
+### December 18th, 2014, Thirty sixth public release 1.6.0
+  - Response#unauthorized? helper ([#580](https://github.com/rack/rack/pull/580))
+  - Deflater now accepts an options hash to control compression on a per-request level ([#457](https://github.com/rack/rack/pull/457))
+  - Builder#warmup method for app preloading ([#617](https://github.com/rack/rack/pull/617))
+  - Request#accept_language method to extract HTTP_ACCEPT_LANGUAGE ([#623](https://github.com/rack/rack/pull/623))
+  - Add quiet mode of rack server, rackup --quiet ([#674](https://github.com/rack/rack/pull/674))
+  - Update HTTP Status Codes to RFC 7231 ([#754](https://github.com/rack/rack/pull/754))
+  - Less strict header name validation according to [RFC 2616](https://tools.ietf.org/html/rfc2616) ([#399](https://github.com/rack/rack/pull/399))
+    - SPEC updated to specify headers conform to RFC7230 specification ([6839fc](https://github.com/rack/rack/commit/6839fc203339f021cb3267fb09cba89410f086e9))
+  - Etag correctly marks etags as weak ([#681](https://github.com/rack/rack/issues/681))
+  - Request#port supports multiple x-http-forwarded-proto values ([#669](https://github.com/rack/rack/pull/669))
+  - Utils#multipart_part_limit configures the maximum number of parts a request can contain ([#684](https://github.com/rack/rack/pull/684))
+  - Default host to localhost when in development mode ([#514](https://github.com/rack/rack/pull/514))
+  - Various bugfixes and performance improvements (See the full [git history](https://github.com/rack/rack/compare/1.5.2...1.6.0) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.6%22))
+
+### February 7th, 2013, Thirty fifth public release 1.5.2
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
   - Fix CVE-2013-0262, symlink path traversal in Rack::File
   - Add various methods to Session for enhanced Rails compatibility
@@ -11,7 +34,7 @@
   - Fix a race condition that could result in overwritten pidfiles
   - Various documentation additions
 
-### February 7th, Thirty fifth public release 1.4.5
+### February 7th, 2013, Thirty fifth public release 1.4.5
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
   - Fix CVE-2013-0262, symlink path traversal in Rack::File
 
