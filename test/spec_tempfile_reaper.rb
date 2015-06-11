@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/tempfile_reaper'
 require 'rack/lint'
 require 'rack/mock'

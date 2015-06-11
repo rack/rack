@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'fileutils'
 require 'rack/lint'
 require 'rack/sendfile'

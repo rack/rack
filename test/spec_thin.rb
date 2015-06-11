@@ -1,11 +1,13 @@
+require 'minitest/bacon'
 begin
 require 'rack/handler/thin'
 require File.expand_path('../testrequest', __FILE__)
 require 'timeout'
 
 describe Rack::Handler::Thin do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @app = Rack::Lint.new(TestRequest.new)
   @server = nil
   Thin::Logging.silent = true
@@ -17,6 +19,7 @@ describe Rack::Handler::Thin do
   end
 
   Thread.pass until @server && @server.running?
+  end
 
   should "respond" do
     GET("/")
@@ -81,8 +84,10 @@ describe Rack::Handler::Thin do
     @server.tag.should.equal 'tag'
   end
 
+  after do
   @server.stop!
   @thread.kill
+  end
 
 end
 

@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/lint'
 require 'rack/lock'
 require 'rack/mock'
@@ -30,10 +31,10 @@ module LockHelpers
 end
 
 describe Rack::Lock do
-  extend LockHelpers
+  include LockHelpers
 
   describe 'Proxy' do
-    extend LockHelpers
+    include LockHelpers
 
     should 'delegate each' do
       env      = Rack::MockRequest.env_for("/")

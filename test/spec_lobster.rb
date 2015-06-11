@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/lobster'
 require 'rack/lint'
 require 'rack/mock'
@@ -13,7 +14,7 @@ module LobsterHelpers
 end
 
 describe Rack::Lobster::LambdaLobster do
-  extend LobsterHelpers
+  include LobsterHelpers
   
   should "be a single lambda" do
     Rack::Lobster::LambdaLobster.should.be.kind_of Proc
@@ -34,7 +35,7 @@ describe Rack::Lobster::LambdaLobster do
 end
 
 describe Rack::Lobster do
-  extend LobsterHelpers
+  include LobsterHelpers
   
   should "look like a lobster" do
     res = lobster.get("/")

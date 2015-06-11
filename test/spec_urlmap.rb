@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/urlmap'
 require 'rack/mock'
 

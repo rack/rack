@@ -1,19 +1,22 @@
+require 'minitest/bacon'
 begin
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/cgi'
 
 describe Rack::Handler::CGI do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @host = '127.0.0.1'
   @port = 9203
+  end
 
   if `which lighttpd` && !$?.success?
     raise "lighttpd not found"
   end
 
   # Keep this first.
-  $pid = fork {
+  PID = fork {
     ENV['RACK_ENV'] = 'deployment'
     ENV['RUBYLIB'] = [
       File.expand_path('../../lib', __FILE__),
@@ -24,6 +27,11 @@ describe Rack::Handler::CGI do
       exec "lighttpd -D -f lighttpd.conf"
     end
   }
+
+  Minitest.after_run do
+    Process.kill 15, PID
+    Process.wait(PID)
+  end
 
   should "respond" do
     sleep 1
@@ -44,9 +52,9 @@ describe Rack::Handler::CGI do
   should "have rack headers" do
     GET("/test")
     response["rack.version"].should.equal([1,3])
-    response["rack.multithread"].should.be.false
-    response["rack.multiprocess"].should.be.true
-    response["rack.run_once"].should.be.true
+    assert_equal false, response["rack.multithread"]
+    assert_equal true, response["rack.multiprocess"]
+    assert_equal true, response["rack.run_once"]
   end
 
   should "have CGI headers on GET" do
@@ -86,12 +94,6 @@ describe Rack::Handler::CGI do
     GET("/test?secret")
     status.should.equal 403
     response["rack.url_scheme"].should.equal "http"
-  end
-
-  # Keep this last.
-  should "shutdown" do
-    Process.kill 15, $pid
-    Process.wait($pid).should == $pid
   end
 end
 

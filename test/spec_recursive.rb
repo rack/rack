@@ -1,8 +1,10 @@
+require 'minitest/bacon'
 require 'rack/lint'
 require 'rack/recursive'
 require 'rack/mock'
 
 describe Rack::Recursive do
+  before do
   @app1 = lambda { |env|
     res = Rack::Response.new
     res["X-Path-Info"] = env["PATH_INFO"]
@@ -29,6 +31,7 @@ describe Rack::Recursive do
   @app4 = lambda { |env|
     raise Rack::ForwardRequest.new("http://example.org/app1/quux?meh")
   }
+  end
   
   def recursive(map)
     Rack::Lint.new Rack::Recursive.new(Rack::URLMap.new(map))

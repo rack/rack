@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/handler'
 
 class Rack::Handler::Lobster; end

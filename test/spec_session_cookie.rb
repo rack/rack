@@ -1,3 +1,4 @@
+require 'minitest/bacon'
 require 'rack/session/cookie'
 require 'rack/lint'
 require 'rack/mock'

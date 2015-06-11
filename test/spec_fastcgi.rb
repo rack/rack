@@ -1,12 +1,15 @@
+require 'minitest/bacon'
 begin
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/fastcgi'
 
 describe Rack::Handler::FastCGI do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @host = '127.0.0.1'
   @port = 9203
+  end
 
   if `which lighttpd` && !$?.success?
     raise "lighttpd not found"
@@ -49,9 +52,9 @@ describe Rack::Handler::FastCGI do
   should "have rack headers" do
     GET("/test.fcgi")
     response["rack.version"].should.equal [1,3]
-    response["rack.multithread"].should.be.false
-    response["rack.multiprocess"].should.be.true
-    response["rack.run_once"].should.be.false
+    assert_equal false, response["rack.multithread"]
+    assert_equal true, response["rack.multiprocess"]
+    assert_equal false, response["rack.run_once"]
   end
 
   should "have CGI headers on GET" do

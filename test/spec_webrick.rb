@@ -1,19 +1,23 @@
+require 'minitest/bacon'
 require 'rack/mock'
+require 'concurrent/atomic/count_down_latch'
 require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
 
 describe Rack::Handler::WEBrick do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @server = WEBrick::HTTPServer.new(:Host => @host='127.0.0.1',
                                     :Port => @port=9202,
                                     :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                     :AccessLog => [])
   @server.mount "/test", Rack::Handler::WEBrick,
     Rack::Lint.new(TestRequest.new)
-  Thread.new { @server.start }
+  @thread = Thread.new { @server.start }
   trap(:INT) { @server.shutdown }
+  end
 
   should "respond" do
     lambda {
@@ -35,8 +39,8 @@ describe Rack::Handler::WEBrick do
     GET("/test")
     response["rack.version"].should.equal [1,3]
     response["rack.multithread"].should.be.true
-    response["rack.multiprocess"].should.be.false
-    response["rack.run_once"].should.be.false
+    assert_equal false, response["rack.multiprocess"]
+    assert_equal false, response["rack.run_once"]
   end
 
   should "have CGI headers on GET" do
@@ -104,7 +108,9 @@ describe Rack::Handler::WEBrick do
 
   should "provide a .run" do
     block_ran = false
-    catch(:done) {
+    latch = Concurrent::CountDownLatch.new 1
+
+    t = Thread.new do
       Rack::Handler::WEBrick.run(lambda {},
                                  {
                                    :Host => '127.0.0.1',
@@ -112,13 +118,15 @@ describe Rack::Handler::WEBrick do
                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                    :AccessLog => []}) { |server|
         block_ran = true
-        server.should.be.kind_of WEBrick::HTTPServer
+        assert_kind_of WEBrick::HTTPServer, server
         @s = server
-        throw :done
+        latch.count_down
       }
-    }
-    block_ran.should.be.true
+    end
+
+    latch.wait
     @s.shutdown
+    t.join
   end
 
   should "return repeated headers" do
@@ -180,5 +188,8 @@ describe Rack::Handler::WEBrick do
     }
   end
 
+  after do
   @server.shutdown
+  @thread.join
+  end
 end
