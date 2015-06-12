@@ -3,6 +3,7 @@ require 'zlib'
 require 'rack/request'
 require 'rack/response'
 require 'rack/session/abstract/id'
+require 'json'
 
 module Rack
 
@@ -71,23 +72,23 @@ module Rack
         # valid JSON composite type, either a Hash or an Array.
         class JSON < Base64
           def encode(obj)
-            super(::Rack::Utils::OkJson.encode(obj))
+            super(::JSON.dump(obj))
           end
 
           def decode(str)
             return unless str
-            ::Rack::Utils::OkJson.decode(super(str)) rescue nil
+            ::JSON.parse(super(str)) rescue nil
           end
         end
 
         class ZipJSON < Base64
           def encode(obj)
-            super(Zlib::Deflate.deflate(::Rack::Utils::OkJson.encode(obj)))
+            super(Zlib::Deflate.deflate(::JSON.dump(obj)))
           end
 
           def decode(str)
             return unless str
-            ::Rack::Utils::OkJson.decode(Zlib::Inflate.inflate(super(str)))
+            ::JSON.parse(Zlib::Inflate.inflate(super(str)))
           rescue
             nil
           end
