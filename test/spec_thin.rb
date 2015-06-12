@@ -86,7 +86,7 @@ describe Rack::Handler::Thin do
 
   after do
   @server.stop!
-  @thread.kill
+  @thread.join
   end
 
 end
