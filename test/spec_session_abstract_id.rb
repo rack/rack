@@ -4,19 +4,17 @@ require 'minitest/bacon'
 require 'rack/session/abstract/id'
 
 describe Rack::Session::Abstract::ID do
-  id = Rack::Session::Abstract::ID
+  attr_reader :id
 
-  def silence_warning
-    o, $VERBOSE = $VERBOSE, nil
-    yield
-  ensure
-    $VERBOSE = o
+  def setup
+    super
+    @id = Rack::Session::Abstract::ID
   end
 
   should "use securerandom" do
-    id::DEFAULT_OPTIONS[:secure_random].should.eql(SecureRandom)
+    assert_equal ::SecureRandom, id::DEFAULT_OPTIONS[:secure_random]
 
-    id = id.new nil
+    id = @id.new nil
     assert_equal ::SecureRandom, id.sid_secure
   end
 
