@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/head'
 require 'rack/lint'
 require 'rack/mock'
@@ -16,31 +16,31 @@ describe Rack::Head do
     return response, body
   end
 
-  should "pass GET, POST, PUT, DELETE, OPTIONS, TRACE requests" do
+  it "pass GET, POST, PUT, DELETE, OPTIONS, TRACE requests" do
     %w[GET POST PUT DELETE OPTIONS TRACE].each do |type|
       resp, _ = test_response("REQUEST_METHOD" => type)
 
-      resp[0].should.equal(200)
-      resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-      resp[2].to_enum.to_a.should.equal(["foo"])
+      resp[0].must_equal 200
+      resp[1].must_equal "Content-type" => "test/plain", "Content-length" => "3"
+      resp[2].to_enum.to_a.must_equal ["foo"]
     end
   end
 
-  should "remove body from HEAD requests" do
+  it "remove body from HEAD requests" do
     resp, _ = test_response("REQUEST_METHOD" => "HEAD")
 
-    resp[0].should.equal(200)
-    resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    resp[2].to_enum.to_a.should.equal([])
+    resp[0].must_equal 200
+    resp[1].must_equal "Content-type" => "test/plain", "Content-length" => "3"
+    resp[2].to_enum.to_a.must_equal []
   end
 
-  should "close the body when it is removed" do
+  it "close the body when it is removed" do
     resp, body = test_response("REQUEST_METHOD" => "HEAD")
-    resp[0].should.equal(200)
-    resp[1].should.equal({"Content-type" => "test/plain", "Content-length" => "3"})
-    resp[2].to_enum.to_a.should.equal([])
-    body.should.not.be.closed
+    resp[0].must_equal 200
+    resp[1].must_equal "Content-type" => "test/plain", "Content-length" => "3"
+    resp[2].to_enum.to_a.must_equal []
+    body.wont_be :closed?
     resp[2].close
-    body.should.be.closed
+    body.must_be :closed?
   end
 end

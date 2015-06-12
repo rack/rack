@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/commonlogger'
 require 'rack/lint'
 require 'rack/mock'
@@ -22,40 +22,40 @@ describe Rack::CommonLogger do
      {"Content-Type" => "text/html", "Content-Length" => "0"},
      []]}
 
-  should "log to rack.errors by default" do
+  it "log to rack.errors by default" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/")
 
-    res.errors.should.not.be.empty
-    res.errors.should =~ /"GET \/ " 200 #{length} /
+    res.errors.wont_be :empty?
+    res.errors.must_match(/"GET \/ " 200 #{length} /)
   end
 
-  should "log to anything with +write+" do
+  it "log to anything with +write+" do
     log = StringIO.new
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
-    log.string.should =~ /"GET \/ " 200 #{length} /
+    log.string.must_match(/"GET \/ " 200 #{length} /)
   end
 
-  should "work with standartd library logger" do
+  it "work with standartd library logger" do
     logdev = StringIO.new
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
-    logdev.string.should =~ /"GET \/ " 200 #{length} /
+    logdev.string.must_match(/"GET \/ " 200 #{length} /)
   end
 
-  should "log - content length if header is missing" do
+  it "log - content length if header is missing" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app_without_length)).get("/")
 
-    res.errors.should.not.be.empty
-    res.errors.should =~ /"GET \/ " 200 - /
+    res.errors.wont_be :empty?
+    res.errors.must_match(/"GET \/ " 200 - /)
   end
 
-  should "log - content length if header is zero" do
+  it "log - content length if header is zero" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app_with_zero_length)).get("/")
 
-    res.errors.should.not.be.empty
-    res.errors.should =~ /"GET \/ " 200 - /
+    res.errors.wont_be :empty?
+    res.errors.must_match(/"GET \/ " 200 - /)
   end
 
   def with_mock_time(t = 0)
@@ -70,19 +70,19 @@ describe Rack::CommonLogger do
     mc.send :alias_method, :now, :old_now
   end
 
-  should "log in common log format" do
+  it "log in common log format" do
     log = StringIO.new
     with_mock_time do
       Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
     end
 
     md = /- - - \[([^\]]+)\] "(\w+) \/ " (\d{3}) \d+ ([\d\.]+)/.match(log.string)
-    md.should.not.equal nil
+    md.wont_equal nil
     time, method, status, duration = *md.captures
-    time.should.equal Time.at(0).strftime("%d/%b/%Y:%H:%M:%S %z")
-    method.should.equal "GET"
-    status.should.equal "200"
-    (0..1).should.include?(duration.to_f)
+    time.must_equal Time.at(0).strftime("%d/%b/%Y:%H:%M:%S %z")
+    method.must_equal "GET"
+    status.must_equal "200"
+    (0..1).must_include duration.to_f
   end
 
   def length

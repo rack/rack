@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/static'
 require 'rack/lint'
 require 'rack/mock'
@@ -33,81 +33,81 @@ describe Rack::Static do
 
   it "serves files" do
     res = @request.get("/cgi/test")
-    res.should.be.ok
-    res.body.should =~ /ruby/
+    res.must_be :ok?
+    res.body.must_match(/ruby/)
   end
 
   it "404s if url root is known but it can't find the file" do
     res = @request.get("/cgi/foo")
-    res.should.be.not_found
+    res.must_be :not_found?
   end
 
   it "calls down the chain if url root is not known" do
     res = @request.get("/something/else")
-    res.should.be.ok
-    res.body.should == "Hello World"
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
   end
 
   it "calls index file when requesting root in the given folder" do
     res = @static_request.get("/")
-    res.should.be.ok
-    res.body.should =~ /index!/
+    res.must_be :ok?
+    res.body.must_match(/index!/)
 
     res = @static_request.get("/other/")
-    res.should.be.not_found
+    res.must_be :not_found?
 
     res = @static_request.get("/another/")
-    res.should.be.ok
-    res.body.should =~ /another index!/
+    res.must_be :ok?
+    res.body.must_match(/another index!/)
   end
 
   it "doesn't call index file if :index option was omitted" do
     res = @request.get("/")
-    res.body.should == "Hello World"
+    res.body.must_equal "Hello World"
   end
 
   it "serves hidden files" do
     res = @hash_request.get("/cgi/sekret")
-    res.should.be.ok
-    res.body.should =~ /ruby/
+    res.must_be :ok?
+    res.body.must_match(/ruby/)
   end
 
   it "calls down the chain if the URI is not specified" do
     res = @hash_request.get("/something/else")
-    res.should.be.ok
-    res.body.should == "Hello World"
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
   end
 
   it "serves gzipped files if client accepts gzip encoding and gzip files are present" do
     res = @gzip_request.get("/cgi/test", 'HTTP_ACCEPT_ENCODING'=>'deflate, gzip')
-    res.should.be.ok
-    res.headers['Content-Encoding'].should.equal 'gzip'
-    res.headers['Content-Type'].should.equal 'text/plain'
-    Zlib::GzipReader.wrap(StringIO.new(res.body), &:read).should =~ /ruby/
+    res.must_be :ok?
+    res.headers['Content-Encoding'].must_equal 'gzip'
+    res.headers['Content-Type'].must_equal 'text/plain'
+    Zlib::GzipReader.wrap(StringIO.new(res.body), &:read).must_match(/ruby/)
   end
 
   it "serves regular files if client accepts gzip encoding and gzip files are not present" do
     res = @gzip_request.get("/cgi/rackup_stub.rb", 'HTTP_ACCEPT_ENCODING'=>'deflate, gzip')
-    res.should.be.ok
-    res.headers['Content-Encoding'].should.equal nil
-    res.headers['Content-Type'].should.equal 'text/x-script.ruby'
-    res.body.should =~ /ruby/
+    res.must_be :ok?
+    res.headers['Content-Encoding'].must_equal nil
+    res.headers['Content-Type'].must_equal 'text/x-script.ruby'
+    res.body.must_match(/ruby/)
   end
 
   it "serves regular files if client does not accept gzip encoding" do
     res = @gzip_request.get("/cgi/test")
-    res.should.be.ok
-    res.headers['Content-Encoding'].should.equal nil
-    res.headers['Content-Type'].should.equal 'text/plain'
-    res.body.should =~ /ruby/
+    res.must_be :ok?
+    res.headers['Content-Encoding'].must_equal nil
+    res.headers['Content-Type'].must_equal 'text/plain'
+    res.body.must_match(/ruby/)
   end
 
   it "supports serving fixed cache-control (legacy option)" do
     opts = OPTIONS.merge(:cache_control => 'public')
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
     res = request.get("/cgi/test")
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public'
   end
 
   HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => [
@@ -122,42 +122,42 @@ describe Rack::Static do
   it "supports header rule :all" do
     # Headers for all files via :all shortcut
     res = @header_request.get('/cgi/assets/index.html')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=100'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=100'
   end
 
   it "supports header rule :fonts" do
     # Headers for web fonts via :fonts shortcut
     res = @header_request.get('/cgi/assets/fonts/font.eot')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=200'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=200'
   end
 
   it "supports file extension header rules provided as an Array" do
     # Headers for file extensions via array
     res = @header_request.get('/cgi/assets/images/image.png')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=300'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=300'
   end
 
   it "supports folder rules provided as a String" do
     # Headers for files in folder via string
     res = @header_request.get('/cgi/assets/folder/test.js')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=400'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=400'
   end
 
   it "supports folder header rules provided as a String not starting with a slash" do
     res = @header_request.get('/cgi/assets/javascripts/app.js')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=500'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=500'
   end
 
   it "supports flexible header rules provided as Regexp" do
     # Flexible Headers via Regexp
     res = @header_request.get('/cgi/assets/stylesheets/app.css')
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=600'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=600'
   end
 
   it "prioritizes header rules over fixed cache-control setting (legacy option)" do
@@ -169,8 +169,8 @@ describe Rack::Static do
 
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
     res = request.get("/cgi/test")
-    res.should.be.ok
-    res.headers['Cache-Control'].should == 'public, max-age=42'
+    res.must_be :ok?
+    res.headers['Cache-Control'].must_equal 'public, max-age=42'
   end
 
 end

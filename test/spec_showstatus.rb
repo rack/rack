@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/showstatus'
 require 'rack/lint'
 require 'rack/mock'
@@ -9,22 +9,22 @@ describe Rack::ShowStatus do
     Rack::Lint.new Rack::ShowStatus.new(app)
   end
   
-  should "provide a default status message" do
+  it "provide a default status message" do
     req = Rack::MockRequest.new(
       show_status(lambda{|env|
         [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
     }))
 
     res = req.get("/", :lint => true)
-    res.should.be.not_found
-    res.should.be.not.empty
+    res.must_be :not_found?
+    res.wont_be_empty
 
-    res["Content-Type"].should.equal("text/html")
-    res.should =~ /404/
-    res.should =~ /Not Found/
+    res["Content-Type"].must_equal "text/html"
+    assert_match(res, /404/)
+    assert_match(res, /Not Found/)
   end
 
-  should "let the app provide additional information" do
+  it "let the app provide additional information" do
     req = Rack::MockRequest.new(
       show_status(
         lambda{|env|
@@ -33,16 +33,16 @@ describe Rack::ShowStatus do
     }))
 
     res = req.get("/", :lint => true)
-    res.should.be.not_found
-    res.should.be.not.empty
+    res.must_be :not_found?
+    res.wont_be_empty
 
-    res["Content-Type"].should.equal("text/html")
-    res.should =~ /404/
-    res.should =~ /Not Found/
-    res.should =~ /too meta/
+    res["Content-Type"].must_equal "text/html"
+    assert_match(res, /404/)
+    assert_match(res, /Not Found/)
+    assert_match(res, /too meta/)
   end
 
-  should "escape error" do
+  it "escape error" do
     detail = "<script>alert('hi \"')</script>"
     req = Rack::MockRequest.new(
       show_status(
@@ -52,15 +52,15 @@ describe Rack::ShowStatus do
     }))
 
     res = req.get("/", :lint => true)
-    res.should.be.not.empty
+    res.wont_be_empty
 
-    res["Content-Type"].should.equal("text/html")
-    res.should =~ /500/
-    res.should.not.include detail
-    res.body.should.include Rack::Utils.escape_html(detail)
+    res["Content-Type"].must_equal "text/html"
+    assert_match(res, /500/)
+    res.wont_include detail
+    res.body.must_include Rack::Utils.escape_html(detail)
   end
 
-  should "not replace existing messages" do
+  it "not replace existing messages" do
     req = Rack::MockRequest.new(
       show_status(
         lambda{|env|
@@ -68,22 +68,22 @@ describe Rack::ShowStatus do
     }))
 
     res = req.get("/", :lint => true)
-    res.should.be.not_found
+    res.must_be :not_found?
 
-    res.body.should == "foo!"
+    res.body.must_equal "foo!"
   end
 
-  should "pass on original headers" do
+  it "pass on original headers" do
     headers = {"WWW-Authenticate" => "Basic blah"}
 
     req = Rack::MockRequest.new(
       show_status(lambda{|env| [401, headers, []] }))
     res = req.get("/", :lint => true)
 
-    res["WWW-Authenticate"].should.equal("Basic blah")
+    res["WWW-Authenticate"].must_equal "Basic blah"
   end
 
-  should "replace existing messages if there is detail" do
+  it "replace existing messages if there is detail" do
     req = Rack::MockRequest.new(
       show_status(
         lambda{|env|
@@ -92,13 +92,13 @@ describe Rack::ShowStatus do
     }))
 
     res = req.get("/", :lint => true)
-    res.should.be.not_found
-    res.should.be.not.empty
+    res.must_be :not_found?
+    res.wont_be_empty
 
-    res["Content-Type"].should.equal("text/html")
-    res["Content-Length"].should.not.equal("4")
-    res.should =~ /404/
-    res.should =~ /too meta/
-    res.body.should.not =~ /foo/
+    res["Content-Type"].must_equal "text/html"
+    res["Content-Length"].wont_equal "4"
+    assert_match(res, /404/)
+    assert_match(res, /too meta/)
+    res.body.wont_match(/foo/)
   end
 end
