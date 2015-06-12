@@ -528,6 +528,8 @@ run on port 11211) and memcache-client installed.
   * Fix a race condition that could result in overwritten pidfiles
   * Various documentation additions
 
+* Prevent extremely deep parameters from being parsed. CVE-2015-3225
+
 == Contact
 
 Please post bugs, suggestions and patches to
