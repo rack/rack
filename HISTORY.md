@@ -1,5 +1,8 @@
+Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
+
 ### December 18th, Thirty sixth public release 1.6.0
-  - TODO
 
 ### February 7th, Thirty fifth public release 1.5.2
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
