@@ -119,6 +119,8 @@ describe Rack::Server do
       :pid         => pidfile.path,
       :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
       :Host        => '127.0.0.1',
+      :Logger      => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+      :AccessLog   => [],
       :daemonize   => false,
       :server      => 'webrick'
     )
