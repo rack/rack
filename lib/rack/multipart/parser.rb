@@ -13,15 +13,15 @@ module Rack
       def self.create(env, query_parser)
         return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
 
-        io = env['rack.input']
+        io = env[RACK_INPUT]
         io.rewind
 
         content_length = env['CONTENT_LENGTH']
         content_length = content_length.to_i if content_length
 
-        tempfile = env['rack.multipart.tempfile_factory'] ||
+        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] ||
           lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
-        bufsize = env['rack.multipart.buffer_size'] || BUFSIZE
+        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || BUFSIZE
 
         new($1, io, content_length, env, tempfile, bufsize, query_parser)
       end
@@ -127,7 +127,7 @@ module Rack
             end
 
             if filename
-              (@env['rack.tempfiles'] ||= []) << body = @tempfile.call(filename, content_type)
+              (@env[RACK_TEMPFILES] ||= []) << body = @tempfile.call(filename, content_type)
               body.binmode if body.respond_to?(:binmode)
             end
 

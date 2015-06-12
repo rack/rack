@@ -25,8 +25,8 @@ module Rack
     rescue StandardError, LoadError, SyntaxError => e
       exception_string = dump_exception(e)
 
-      env["rack.errors"].puts(exception_string)
-      env["rack.errors"].flush
+      env[RACK_ERRORS].puts(exception_string)
+      env[RACK_ERRORS].flush
 
       if accepts_html?(env)
         content_type = "text/html"

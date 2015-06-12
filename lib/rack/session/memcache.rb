@@ -76,7 +76,7 @@ module Rack
       end
 
       def with_lock(env)
-        @mutex.lock if env['rack.multithread']
+        @mutex.lock if env[RACK_MULTITHREAD]
         yield
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
         if $VERBOSE
