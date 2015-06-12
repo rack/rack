@@ -4,11 +4,7 @@
 require 'time'
 require 'rack/request'
 require 'rack/response'
-begin
-  require 'securerandom'
-rescue LoadError
-  # We just won't get securerandom
-end
+require 'securerandom'
 
 module Rack
 
@@ -203,10 +199,10 @@ module Rack
           :renew =>         false,
           :sidbits =>       128,
           :cookie_only =>   true,
-          :secure_random => (::SecureRandom rescue false)
+          :secure_random => ::SecureRandom
         }
 
-        attr_reader :key, :default_options
+        attr_reader :key, :default_options, :sid_secure
 
         def initialize(app, options={})
           @app = app
