@@ -1,6 +1,7 @@
 require 'rack/request'
 require 'rack/utils'
 require 'rack/body_proxy'
+require 'rack/media_type'
 require 'time'
 
 module Rack
@@ -148,6 +149,14 @@ module Rack
 
       def content_type
         headers[CONTENT_TYPE]
+      end
+
+      def media_type
+        @media_type ||= MediaType.type(content_type)
+      end
+
+      def media_type_params
+        @media_type_params ||= MediaType.params(content_type)
       end
 
       def content_length
