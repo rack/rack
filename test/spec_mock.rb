@@ -35,6 +35,7 @@ describe Rack::MockRequest do
     env = Rack::MockRequest.env_for("http://www.example.com/parse?location[]=1&location[]=2&age_group[]=2")
     env["QUERY_STRING"].should.equal "location[]=1&location[]=2&age_group[]=2"
     env["PATH_INFO"].should.equal "/parse"
+    env["REQUEST_PATH"].should.equal "/parse"
     env.should.be.kind_of Hash
     env.should.include "rack.version"
   end
@@ -48,6 +49,7 @@ describe Rack::MockRequest do
     env["SERVER_PORT"].should.equal "80"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/"
+    env["REQUEST_PATH"].should.equal "/"
     env["SCRIPT_NAME"].should.equal ""
     env["rack.url_scheme"].should.equal "http"
     env["mock.postdata"].should.be.empty
@@ -107,6 +109,7 @@ describe Rack::MockRequest do
     env["SERVER_PORT"].should.equal "9292"
     env["QUERY_STRING"].should.equal "bar"
     env["PATH_INFO"].should.equal "/meh/foo"
+    env["REQUEST_PATH"].should.equal "/meh/foo"
     env["rack.url_scheme"].should.equal "https"
   end
 
@@ -121,6 +124,7 @@ describe Rack::MockRequest do
     env["SERVER_PORT"].should.equal "443"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["rack.url_scheme"].should.equal "https"
     env["HTTPS"].should.equal "on"
   end
@@ -136,6 +140,7 @@ describe Rack::MockRequest do
     env["SERVER_PORT"].should.equal "80"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["rack.url_scheme"].should.equal "http"
   end
 
@@ -152,6 +157,7 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].should.include "baz=2"
     env["QUERY_STRING"].should.include "foo[bar]=1"
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["mock.postdata"].should.equal ""
   end
 
@@ -162,6 +168,7 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].should.include "baz=2"
     env["QUERY_STRING"].should.include "foo[bar]=1"
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["mock.postdata"].should.equal ""
   end
 
@@ -171,6 +178,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].should.equal "POST"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["CONTENT_TYPE"].should.equal "application/x-www-form-urlencoded"
     env["mock.postdata"].should.equal "foo[bar]=1"
   end
@@ -181,6 +189,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].should.equal "POST"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["CONTENT_TYPE"].should.equal "application/x-www-form-urlencoded"
     env["mock.postdata"].should.equal "foo[bar]=1"
   end
@@ -192,6 +201,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].should.equal "POST"
     env["QUERY_STRING"].should.equal ""
     env["PATH_INFO"].should.equal "/foo"
+    env["REQUEST_PATH"].should.equal "/foo"
     env["CONTENT_TYPE"].should.equal "multipart/form-data; boundary=AaB03x"
     # The gsub accounts for differences in YAMLs affect on the data.
     env["mock.postdata"].gsub("\r", "").length.should.equal 206
