@@ -37,6 +37,7 @@ module Rack
 
     def method_override_param(req)
       req.POST[METHOD_OVERRIDE_PARAM_KEY]
+    rescue Utils::InvalidParameterError, Utils::ParameterTypeError
     end
   end
 end
