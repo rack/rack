@@ -374,6 +374,20 @@ describe Rack::Response do
     output.should.equal 'baz'
   end
 
+  it "can close body from #finish after body#close is called" do
+    body = StringIO.new 'foo'
+
+    # rack-test uses this pattern
+    res = Rack::Response.new(body)
+    body.close
+
+    _, _, b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foo'
+  end
+
   it "can mix #write and direct #body access" do
     res = Rack::Response.new
     res.body = ['foo']

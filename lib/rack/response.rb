@@ -113,7 +113,8 @@ module Rack
     end
 
     def close_input
-      @body_input.close if @body_input != nil && @body_input.respond_to?(:close)
+      @body_input.close if @body_input != nil && @body_input.respond_to?(:close) &&
+          !(@body_input.respond_to?(:closed?) && @body_input.closed?) # prevent double-close IOError on streams
       @body_input = nil # remove reference to old body after closing
     end
 
