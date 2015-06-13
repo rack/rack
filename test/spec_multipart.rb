@@ -1,3 +1,5 @@
+# coding: utf-8
+
 require 'minitest/bacon'
 require 'rack/utils'
 require 'rack/mock'
@@ -272,6 +274,12 @@ describe Rack::Multipart do
     params["files"][:head].should.equal head
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
+  end
+
+  should "parse multipart form with an encoded word filename" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_encoded_words)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].should.equal "файл"
   end
 
   should "not include file params if no file was selected" do

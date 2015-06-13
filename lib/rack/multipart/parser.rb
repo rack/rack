@@ -152,11 +152,13 @@ module Rack
       def get_filename(head)
         filename = nil
         case head
-        when RFC2183
-          filename = Hash[head.scan(DISPPARM)]['filename']
-          filename = $1 if filename and filename =~ /^"(.*)"$/
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
+        when RFC2183
+          params = Hash[head.scan(DISPPARM)]
+          filename = params['filename']
+          filename ||= params['filename*']
+          filename = $1 if filename and filename =~ /^"(.*)"$/
         end
 
         return unless filename
@@ -170,7 +172,14 @@ module Rack
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
         end
-        filename
+        
+        encoding, locale, name = filename.split("'",3)
+
+        if locale.nil? && name.nil?
+          name = encoding
+        else
+          name.force_encoding ::Encoding.find(encoding)
+        end
       end
 
       def scrub_filename(filename)
@@ -234,6 +243,8 @@ module Rack
           # Generic multipart cases, not coming from a form
           data = {:type => content_type,
                   :name => name, :tempfile => body, :head => head}
+        elsif !filename && data.empty?
+          return
         end
 
         yield data
