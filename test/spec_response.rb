@@ -398,4 +398,15 @@ describe Rack::Response do
     b.close if b.respond_to? :close
     output.should.equal 'foobar'
   end
+
+  it "updates Content-Length when body is changed" do
+    res = Rack::Response.new 'foo'
+    res.content_length.should.equal 3
+    res = Rack::Response.new
+    res.write 'bar'
+    res.content_length.should.equal 3
+    res = Rack::Response.new
+    res.body = 'baz'
+    res.content_length.should.equal 3
+  end
 end
