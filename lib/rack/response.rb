@@ -11,44 +11,59 @@ module Rack
   # It allows setting of headers and cookies, and provides useful
   # defaults (an OK response with empty headers and body).
   #
-  # You can use Response#write to iteratively generate your response,
-  # but note that this is buffered by Rack::Response until you call
-  # +finish+.  +finish+ however can take a block inside which calls to
-  # +write+ are synchronous with the Rack response.
+  # You can add content to the Response body three different ways,
+  # all of which behave identically:
+  # 1. `Response.new(body)`;
+  # 2. `Response.new.write(body)`
+  # 3. `Response.new.body = body`; # Deprecated
+  #
+  # In Rack v1, all body content is buffered by default, and the Content-Length header will be updated;
+  # in Rack v2+, all body content is unbuffered by default, and the Content-Length header will not be updated.
+  #
+  # You may explicitly configure buffering body content by setting the +buffered+ constructor parameter,
+  # or by using the +Response.buffered+/+Response.unbuffered+ factory methods.
+  #
+  # You can also add unbuffered content to the Response body by passing a block
+  # to +finish+, inside which calls to +write+ are synchronous with the Rack response.
   #
   # Your application's +call+ should end returning Response#finish.
 
   class Response
-    attr_accessor :length
+    API_V2 = Rack.release.to_i > 1
 
-    CHUNKED = 'chunked'.freeze
+    attr_reader :header, :body
+    attr_accessor :status, :length
 
-    def initialize(body=[], status=200, header={})
+    def initialize(body=[], status=200, header={}, buffered=nil)
+      buffered = !API_V2 if buffered.nil?
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
-
-      @chunked = CHUNKED == @header[TRANSFER_ENCODING]
-      @writer  = lambda { |x| @body << x }
+      @writer  = lambda { |x| @body_inputs << [x]; self.content_length = (@length += x.bytesize) }
       @block   = nil
-      @length  = 0
-
-      @body = []
-
-      if body.respond_to? :to_str
-        write body.to_str
-      elsif body.respond_to?(:each)
-        body.each { |part|
-          write part.to_s
-        }
-      else
-        raise TypeError, "stringable or iterable required"
-      end
-
+      @read_body = buffered
+      self.body = body
       yield self  if block_given?
     end
 
-    attr_reader :header
-    attr_accessor :status, :body
+    # Default in <= 1.x
+    def self.buffered(body=[], status=200, header={})
+      self.new body, status, header, true
+    end
+
+    # Default in >= 2.x
+    def self.unbuffered(body=[], status=200, header={})
+      self.new body, status, header, false
+    end
+
+    # Private in >= 2.x
+    def body=(body)
+      @body = BodyProxy.new(self){}
+      @open_bodies = []
+      @body_inputs = []
+      @length = 0
+      write body
+    end
+    private :body= if API_V2
 
     def [](key)
       header[key]
@@ -80,37 +95,52 @@ module Rack
         close
         [status.to_i, header, []]
       else
-        [status.to_i, header, BodyProxy.new(self){}]
+        [status.to_i, header, body]
       end
     end
     alias to_a finish           # For *response
     alias to_ary finish         # For implicit-splat on Ruby 1.9.2
 
     def each(&callback)
-      @body.each(&callback)
+      raise "cannot iterate over closed Response" if API_V2 && @body.closed?
+      @body_inputs.each {|b| iterate_body(b, &callback)}
+      @body_inputs.clear
+      @read_body = true
       @writer = callback
       @block.call(self)  if @block
     end
 
-    # Append to body and update Content-Length.
-    #
-    # NOTE: Do not mix #write and direct #body access!
-    #
-    def write(str)
-      s = str.to_s
-      @length += s.bytesize unless @chunked
-      @writer.call s
+    def iterate_body(body, &callback)
+      if body.respond_to? :to_str
+        callback.call(body.to_str)
+      elsif body.respond_to? :each
+        body.each(&callback)
+      else
+        raise TypeError, "stringable or iterable required"
+      end
+    end
 
-      header[CONTENT_LENGTH] = @length.to_s unless @chunked
-      str
+    # Append body object to response.
+    def write(body)
+      raise "cannot write to closed Response" if API_V2 && @body.closed?
+      raise TypeError, "stringable or iterable required" unless body.respond_to?(:each) || body.respond_to?(:to_str)
+      @read_body ? iterate_body(body, &@writer) : @body_inputs << body
+      # defer closing all body objects until #close is called
+      @open_bodies << body if body.respond_to?(:close)
+      body
     end
 
     def close
-      body.close if body.respond_to?(:close)
+      @body.close
+      @open_bodies.each do |b|
+        b.close if b != nil && b.respond_to?(:close) &&
+            !(b.respond_to?(:closed?) && b.closed?) # prevent double-close IOError on streams
+      end
+      @open_bodies.clear # remove references
     end
 
     def empty?
-      @block == nil && @body.empty?
+      @block == nil && @body_inputs.all?(&:empty?)
     end
 
     alias headers header
@@ -166,6 +196,15 @@ module Rack
 
       def location
         headers["Location"]
+      end
+
+      def content_length=(length)
+        header[CONTENT_LENGTH] = length.to_s unless chunked?
+      end
+
+      CHUNKED = 'chunked'.freeze
+      def chunked?
+        header[TRANSFER_ENCODING] == CHUNKED
       end
     end
 

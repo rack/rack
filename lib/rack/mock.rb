@@ -165,7 +165,7 @@ module Rack
       @errors           = errors.string if errors.respond_to?(:string)
       @body_string      = nil
 
-      super(body, status, headers)
+      super(body, status, headers, true)
     end
 
     def =~(other)
@@ -187,7 +187,7 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      super.join
+      @body_string ||= [].tap{|str|super.each{|part|str << part}}.join
     end
 
     def empty?

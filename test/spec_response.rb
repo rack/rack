@@ -310,7 +310,7 @@ describe Rack::Response do
   end
 
   it "updates Content-Length when body appended to using #write" do
-    res = Rack::Response.new
+    res = Rack::Response.buffered
     res.status = 200
     res.headers["Content-Length"].should.be.nil
     res.write "Hi"
@@ -319,16 +319,22 @@ describe Rack::Response do
     res.headers["Content-Length"].should.equal "8"
   end
 
+  def response_with_body(body)
+    if Rack::Response::API_V2
+      Rack::Response.new body
+    else
+      Rack::Response.new.tap{|res|res.body = body}
+    end
+  end
+
   it "calls close on #body" do
-    res = Rack::Response.new
-    res.body = StringIO.new
+    res = response_with_body StringIO.new
     res.close
     res.body.should.be.closed
   end
 
   it "calls close on #body when 204, 205, or 304" do
-    res = Rack::Response.new
-    res.body = StringIO.new
+    res = response_with_body StringIO.new
     res.finish
     res.body.should.not.be.closed
 
@@ -337,13 +343,13 @@ describe Rack::Response do
     res.body.should.be.closed
     b.should.not.equal res.body
 
-    res.body = StringIO.new
+    res = response_with_body StringIO.new
     res.status = 205
     _, _, b = res.finish
     res.body.should.be.closed
     b.should.not.equal res.body
 
-    res.body = StringIO.new
+    res = response_with_body StringIO.new
     res.status = 304
     _, _, b = res.finish
     res.body.should.be.closed
@@ -354,5 +360,63 @@ describe Rack::Response do
     res = Rack::Response.new
     res.finish.last.should.not.respond_to?(:to_ary)
     lambda { res.finish.last.to_ary }.should.raise(NoMethodError)
+  end
+
+  it "closes body set via initializer" do
+    body = StringIO.new
+    res = Rack::Response.new body
+    _,_,b = res.finish
+    res.close
+    body.should.be.closed
+    b.close if b.respond_to? :close
+  end
+
+  it "can set #body multiple times" do
+    return if Rack::Response::API_V2
+    # Only the last body set should be in the response
+    res = Rack::Response.new ['foo']
+    res.body = StringIO.new 'bar'
+    res.body = ['baz']
+    _,_,b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'baz'
+  end
+
+  it "can close body from #finish after body#close is called" do
+    body = StringIO.new 'foo'
+
+    # rack-test uses this pattern
+    res = Rack::Response.buffered(body)
+    body.close
+
+    _, _, b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foo'
+  end
+
+  it "can mix #write and direct #body access" do
+    res = response_with_body ['foo']
+    res.write 'bar'
+    _,_,b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foobar'
+  end
+
+  it "updates Content-Length when body is changed" do
+    res = Rack::Response.buffered 'foo'
+    res.content_length.should.equal 3
+    res = Rack::Response.buffered
+    res.write 'bar'
+    res.content_length.should.equal 3
+    return if Rack::Response::API_V2
+    res = Rack::Response.buffered
+    res.body = 'baz'
+    res.content_length.should.equal 3
   end
 end
