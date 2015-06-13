@@ -103,9 +103,6 @@ module Rack
     end
 
     # Append to body and update Content-Length.
-    #
-    # NOTE: Do not mix #write and direct #body access!
-    #
     def write(str)
       s = str.to_s
       @length += s.bytesize unless @chunked

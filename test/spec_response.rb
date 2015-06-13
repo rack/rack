@@ -373,4 +373,15 @@ describe Rack::Response do
     b.close if b.respond_to? :close
     output.should.equal 'baz'
   end
+
+  it "can mix #write and direct #body access" do
+    res = Rack::Response.new
+    res.body = ['foo']
+    res.write 'bar'
+    _,_,b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foobar'
+  end
 end
