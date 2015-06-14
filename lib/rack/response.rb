@@ -30,9 +30,18 @@ module Rack
       @chunked = CHUNKED == @header[TRANSFER_ENCODING]
       @writer  = lambda { |x| @body << x }
       @block   = nil
-      @length  = 0
 
-      @body = []
+      @body = nil
+
+      @body_input = nil
+      self.body = body
+      yield self  if block_given?
+    end
+
+    def body=(body)
+      @length = 0
+      # provide body#close and body#closed?
+      @body = BodyProxy.new([]){}
 
       if body.respond_to? :to_str
         write body.to_str
@@ -44,11 +53,12 @@ module Rack
         raise TypeError, "stringable or iterable required"
       end
 
-      yield self  if block_given?
+      # don't close input body until #finish, because body#close may be called first
+      @body_input = body if body.respond_to?(:close)
     end
 
-    attr_reader :header
-    attr_accessor :status, :body
+    attr_reader :header, :body
+    attr_accessor :status
 
     def [](key)
       header[key]
@@ -72,6 +82,7 @@ module Rack
     end
 
     def finish(&block)
+      close_input
       @block = block
 
       if [204, 205, 304].include?(status.to_i)
@@ -93,9 +104,6 @@ module Rack
     end
 
     # Append to body and update Content-Length.
-    #
-    # NOTE: Do not mix #write and direct #body access!
-    #
     def write(str)
       s = str.to_s
       @length += s.bytesize unless @chunked
@@ -105,7 +113,14 @@ module Rack
       str
     end
 
+    def close_input
+      @body_input.close if @body_input != nil && @body_input.respond_to?(:close) &&
+          !(@body_input.respond_to?(:closed?) && @body_input.closed?) # prevent double-close IOError on streams
+      @body_input = nil # remove reference to old body after closing
+    end
+
     def close
+      close_input
       body.close if body.respond_to?(:close)
     end
 

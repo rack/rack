@@ -355,4 +355,60 @@ describe Rack::Response do
     res.finish.last.should.not.respond_to?(:to_ary)
     lambda { res.finish.last.to_ary }.should.raise(NoMethodError)
   end
+
+  it "closes body set via initializer" do
+    body = StringIO.new
+    res = Rack::Response.new body
+    _,_,b = res.finish
+    body.should.be.closed
+    b.close if b.respond_to? :close
+  end
+
+  it "can set #body multiple times" do
+    # Only the last body set should be in the response
+    res = Rack::Response.new ['foo']
+    res.body = StringIO.new 'bar'
+    res.body = ['baz']
+    _,_,b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'baz'
+  end
+
+  it "can close body from #finish after body#close is called" do
+    body = StringIO.new 'foo'
+
+    # rack-test uses this pattern
+    res = Rack::Response.new(body)
+    body.close
+
+    _, _, b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foo'
+  end
+
+  it "can mix #write and direct #body access" do
+    res = Rack::Response.new
+    res.body = ['foo']
+    res.write 'bar'
+    _,_,b = res.finish
+    output = ''
+    b.each {|part| output << part}
+    b.close if b.respond_to? :close
+    output.should.equal 'foobar'
+  end
+
+  it "updates Content-Length when body is changed" do
+    res = Rack::Response.new 'foo'
+    res.content_length.should.equal 3
+    res = Rack::Response.new
+    res.write 'bar'
+    res.content_length.should.equal 3
+    res = Rack::Response.new
+    res.body = 'baz'
+    res.content_length.should.equal 3
+  end
 end
