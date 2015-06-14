@@ -10,7 +10,7 @@ describe Rack::Multipart do
     data = File.open(file, 'rb') { |io| io.read }
 
     type = %(multipart/form-data; boundary=#{boundary})
-    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+    length = data.bytesize
 
     { "CONTENT_TYPE" => type,
       "CONTENT_LENGTH" => length.to_s,
@@ -33,7 +33,6 @@ describe Rack::Multipart do
     params["text"].should.equal "contents"
   end
 
-  if "<3".respond_to?(:force_encoding)
   should "set US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
@@ -68,7 +67,6 @@ describe Rack::Multipart do
     params.keys.each do |key|
       key.encoding.should.equal Encoding::UTF_8
     end
-  end
   end
 
   should "raise RangeError if the key space is exhausted" do
@@ -270,7 +268,7 @@ describe Rack::Multipart do
     head = "Content-Disposition: form-data; " +
       "name=\"files\"; filename=\"invalid\xC3.txt\"\r\n" +
       "Content-Type: text/plain\r\n"
-    head = head.force_encoding("ASCII-8BIT") if head.respond_to?(:force_encoding)
+    head = head.force_encoding(Encoding::ASCII_8BIT)
     params["files"][:head].should.equal head
     params["files"][:name].should.equal "files"
     params["files"][:tempfile].read.should.equal "contents"
@@ -597,7 +595,7 @@ contents\r
     data = File.open(file, 'rb') { |io| io.read }
 
     type = "Multipart/Form-Data; Boundary=AaB03x"
-    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+    length = data.bytesize
 
     e = { "CONTENT_TYPE" => type,
       "CONTENT_LENGTH" => length.to_s,

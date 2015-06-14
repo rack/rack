@@ -173,7 +173,7 @@ describe Rack::Request do
     req.POST.should.be.empty
     req.params.should.equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
   end
-  
+
   should "limit the keys from the GET query string" do
     env = Rack::MockRequest.env_for("/?foo=bar")
 
@@ -954,12 +954,7 @@ EOF
   end
 
   should "not try to interpret binary as utf8" do
-    if /regexp/.respond_to?(:kcode) # < 1.9
-      begin
-        original_kcode = $KCODE
-        $KCODE='UTF8'
-
-        input = <<EOF
+    input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="junk.a"\r
 content-type: application/octet-stream\r
@@ -968,34 +963,13 @@ content-type: application/octet-stream\r
 --AaB03x--\r
 EOF
 
-        req = Rack::Request.new Rack::MockRequest.env_for("/",
-                          "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                          "CONTENT_LENGTH" => input.size,
-                          :input => input)
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
 
-        lambda{req.POST}.should.not.raise(EOFError)
-        req.POST["fileupload"][:tempfile].size.should.equal 4
-      ensure
-        $KCODE = original_kcode
-      end
-    else # >= 1.9
-        input = <<EOF
---AaB03x\r
-content-disposition: form-data; name="fileupload"; filename="junk.a"\r
-content-type: application/octet-stream\r
-\r
-#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
---AaB03x--\r
-EOF
-
-      req = Rack::Request.new Rack::MockRequest.env_for("/",
-                        "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                        "CONTENT_LENGTH" => input.size,
-                        :input => input)
-
-      lambda{req.POST}.should.not.raise(EOFError)
-      req.POST["fileupload"][:tempfile].size.should.equal 4
-    end
+    lambda{req.POST}.should.not.raise(EOFError)
+    req.POST["fileupload"][:tempfile].size.should.equal 4
   end
 
   should "use form_hash when form_input is a Tempfile" do
@@ -1016,7 +990,7 @@ EOF
   should "conform to the Rack spec" do
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
-      size = content.respond_to?(:bytesize) ? content.bytesize : content.size
+      size = content.bytesize
       [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
     }
 
@@ -1033,7 +1007,7 @@ Content-Transfer-Encoding: base64\r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
 EOF
-    input.force_encoding("ASCII-8BIT") if input.respond_to? :force_encoding
+    input.force_encoding(Encoding::ASCII_8BIT)
     res = Rack::MockRequest.new(Rack::Lint.new(app)).get "/",
       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
       "CONTENT_LENGTH" => input.size.to_s, "rack.input" => StringIO.new(input)
