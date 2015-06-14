@@ -41,13 +41,13 @@ module Rack
     end
 
     DEFAULT_ENV = {
-      "rack.version" => Rack::VERSION,
-      "rack.input" => StringIO.new,
-      "rack.errors" => StringIO.new,
-      "rack.multithread" => true,
-      "rack.multiprocess" => true,
-      "rack.run_once" => false,
-    }
+      RACK_VERSION      => Rack::VERSION,
+      RACK_INPUT        => StringIO.new,
+      RACK_ERRORS       => StringIO.new,
+      RACK_MULTITHREAD  => true,
+      RACK_MULTIPROCESS => true,
+      RACK_RUNONCE      => false,
+    }.freeze
 
     def initialize(app)
       @app = app
@@ -70,7 +70,7 @@ module Rack
         app = @app
       end
 
-      errors = env["rack.errors"]
+      errors = env[RACK_ERRORS]
       status, headers, body  = app.call(env)
       MockResponse.new(status, headers, body, errors)
     ensure
@@ -91,20 +91,20 @@ module Rack
 
       env = DEFAULT_ENV.dup
 
-      env[REQUEST_METHOD] = opts[:method] ? opts[:method].to_s.upcase : GET
-      env[SERVER_NAME] = uri.host || "example.org"
-      env[SERVER_PORT] = uri.port ? uri.port.to_s : "80"
-      env[QUERY_STRING] = uri.query.to_s
-      env[PATH_INFO] = (!uri.path || uri.path.empty?) ? "/" : uri.path
-      env["rack.url_scheme"] = uri.scheme || "http"
-      env[HTTPS] = env["rack.url_scheme"] == "https" ? "on" : "off"
+      env[REQUEST_METHOD]  = opts[:method] ? opts[:method].to_s.upcase : GET
+      env[SERVER_NAME]     = uri.host || "example.org"
+      env[SERVER_PORT]     = uri.port ? uri.port.to_s : "80"
+      env[QUERY_STRING]    = uri.query.to_s
+      env[PATH_INFO]       = (!uri.path || uri.path.empty?) ? "/" : uri.path
+      env[RACK_URL_SCHEME] = uri.scheme || "http"
+      env[HTTPS]           = env[RACK_URL_SCHEME] == "https" ? "on" : "off"
 
       env[SCRIPT_NAME] = opts[:script_name] || ""
 
       if opts[:fatal]
-        env["rack.errors"] = FatalWarner.new
+        env[RACK_ERRORS] = FatalWarner.new
       else
-        env["rack.errors"] = StringIO.new
+        env[RACK_ERRORS] = StringIO.new
       end
 
       if params = opts[:params]
@@ -137,9 +137,9 @@ module Rack
       end
 
       rack_input.set_encoding(Encoding::BINARY)
-      env['rack.input'] = rack_input
+      env[RACK_INPUT] = rack_input
 
-      env["CONTENT_LENGTH"] ||= env["rack.input"].length.to_s
+      env["CONTENT_LENGTH"] ||= env[RACK_INPUT].length.to_s
 
       opts.each { |field, value|
         env[field] = value  if String === field

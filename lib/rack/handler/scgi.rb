@@ -43,15 +43,16 @@ module Rack
 
         rack_input = StringIO.new(input_body, encoding: Encoding::BINARY)
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => rack_input,
-                     "rack.errors" => $stderr,
-                     "rack.multithread" => true,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => false,
+        env.update(
+          RACK_VERSION      => Rack::VERSION,
+          RACK_INPUT        => rack_input,
+          RACK_ERRORS       => $stderr,
+          RACK_MULTITHREAD  => true,
+          RACK_MULTIPROCESS => true,
+          RACK_RUNONCE      => false,
+          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http"
+        )
 
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http"
-                   })
         status, headers, body = app.call(env)
         begin
           socket.write("Status: #{status}\r\n")
