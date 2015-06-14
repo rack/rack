@@ -207,9 +207,9 @@ describe Rack::Lint do
     # whitespace or specific delimiting characters.  Delimiters are chosen
     # from the set of US-ASCII visual characters not allowed in a token
     # (DQUOTE and "(),/:;<=>?@[\]{}").
-    # 
+    #
     #   token          = 1*tchar
-    # 
+    #
     #   tchar          = "!" / "#" / "$" / "%" / "&" / "'" / "*"
     #                 / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
     #                 / DIGIT / ALPHA
@@ -493,8 +493,7 @@ describe Rack::Lint do
   end
 
   should "pass valid read calls" do
-    hello_str = "hello world"
-    hello_str.force_encoding("ASCII-8BIT") if hello_str.respond_to? :force_encoding
+    hello_str = "hello world".force_encoding(Encoding::ASCII_8BIT)
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read

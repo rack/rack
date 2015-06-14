@@ -1,5 +1,4 @@
 require 'minitest/bacon'
-# -*- encoding: utf-8 -*-
 require 'rack'
 
 describe Rack do

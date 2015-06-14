@@ -1,5 +1,4 @@
 require 'minitest/bacon'
-# -*- encoding: utf-8 -*-
 require 'rack/utils'
 require 'rack/mock'
 require 'timeout'
@@ -16,11 +15,7 @@ describe Rack::Utils do
 
   should "round trip binary data" do
     r = [218, 0].pack 'CC'
-    if defined?(::Encoding)
-      z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
-    else
-      z = Rack::Utils.unescape(Rack::Utils.escape(r))
-    end
+    z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
     r.should.equal z
   end
 
@@ -33,10 +28,10 @@ describe Rack::Utils do
 
   should "escape correctly for multibyte characters" do
     matz_name = "\xE3\x81\xBE\xE3\x81\xA4\xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsumoto
-    matz_name.force_encoding("UTF-8") if matz_name.respond_to? :force_encoding
+    matz_name.force_encoding(Encoding::UTF_8)
     Rack::Utils.escape(matz_name).should.equal '%E3%81%BE%E3%81%A4%E3%82%82%E3%81%A8'
     matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
-    matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
+    matz_name_sep.force_encoding(Encoding::UTF_8)
     Rack::Utils.escape(matz_name_sep).should.equal '%E3%81%BE%E3%81%A4+%E3%82%82%E3%81%A8'
   end
 
@@ -44,10 +39,8 @@ describe Rack::Utils do
     Rack::Utils.escape(:id).should.equal "id"
   end
 
-  if "".respond_to?(:encode)
-    should "escape non-UTF8 strings" do
-      Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
-    end
+  should "escape non-UTF8 strings" do
+    Rack::Utils.escape("ø".encode("ISO-8859-1")).should.equal "%F8"
   end
 
   should "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
@@ -364,11 +357,9 @@ describe Rack::Utils do
     test_escape.should.raise(ArgumentError)
   end
 
-  if "".respond_to?(:encode)
-    should "escape html entities in unicode strings" do
-      # the following will cause warnings if the regex is poorly encoded:
-      Rack::Utils.escape_html("☃").should.equal "☃"
-    end
+  should "escape html entities in unicode strings" do
+    # the following will cause warnings if the regex is poorly encoded:
+    Rack::Utils.escape_html("☃").should.equal "☃"
   end
 
   should "figure out which encodings are acceptable" do
