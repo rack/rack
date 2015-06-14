@@ -313,6 +313,33 @@ describe Rack::Lint do
       body.each { |part| }
     }.should.raise(Rack::Lint::LintError).
       message.should.match(/yielded non-string/)
+
+    # Detecting body-not-closed errors requires a Lint before and after the Rack application being tested.
+    def stacked_lint(close_original_body)
+      lint_app = Rack::Lint.new(lambda { |env|
+        [200, {"Content-type" => "text/plain", "Content-length" => "3"}, StringIO.new('foo')]
+      })
+      app = lambda { |env|
+        status, headers, body = lint_app.call(env)
+        # If the body is replaced by a middleware after action, the original body must be closed first.
+        body.close if close_original_body
+        [status, headers, StringIO.new('bar')]
+      }
+      Rack::Lint.new(app)
+    end
+
+    lambda {
+      body = stacked_lint(true).call(env({}))[2]
+      body.each {}
+      body.close
+    }.should.not.raise(Rack::Lint::LintError)
+
+    lambda {
+      body = stacked_lint(false).call(env({}))[2]
+      body.each {}
+      body.close
+    }.should.raise(Rack::Lint::LintError).
+      message.should.match(/Body has not been closed/)
   end
 
   should "notice input handling errors" do

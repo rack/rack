@@ -41,6 +41,7 @@ module Rack
       ## It takes exactly one argument, the *environment*
       assert("No env given") { env }
       check_env env
+      @env = env
 
       env['rack.input'] = InputWrapper.new(env['rack.input'])
       env['rack.errors'] = ErrorWrapper.new(env['rack.errors'])
@@ -58,6 +59,7 @@ module Rack
       check_content_type status, headers
       check_content_length status, headers
       @head_request = env[REQUEST_METHOD] == HEAD
+      open_bodies << self
       [status, headers, self]
     end
 
@@ -719,12 +721,22 @@ module Rack
       ## The Body itself should not be an instance of String, as this will
       ## break in Ruby 1.9.
       ##
+      verify_to_path
+    end
+
+    def verify_closed
       ## If the Body responds to +close+, it will be called after iteration. If
       ## the body is replaced by a middleware after action, the original body
       ## must be closed first, if it responds to close.
-      # XXX howto: assert("Body has not been closed") { @closed }
+      open_bodies.delete self
+      assert("Body has not been closed") { !open_bodies.one? {|b| !b.closed?} }
+    end
 
+    def open_bodies
+      ((@@open_bodies ||= {})[@env] ||= [])
+    end
 
+    def verify_to_path
       ##
       ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
@@ -737,15 +749,20 @@ module Rack
           ::File.exist? @body.to_path
         }
       end
-
-      ##
-      ## The Body commonly is an Array of Strings, the application
-      ## instance itself, or a File-like object.
     end
+
+    ##
+    ## The Body commonly is an Array of Strings, the application
+    ## instance itself, or a File-like object.
 
     def close
       @closed = true
       @body.close  if @body.respond_to?(:close)
+      verify_closed
+    end
+
+    def closed?
+      @closed
     end
 
     # :startdoc:
