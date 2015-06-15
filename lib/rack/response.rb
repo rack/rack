@@ -32,7 +32,7 @@ module Rack
     def initialize(body=[], status=200, header={}, buffered=false)
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
-      @writer  = lambda { |x| @body_inputs << [x]; self.content_length = (@length += x.bytesize) }
+      @writer  = lambda { |x| @body_inputs << x; @length += x.bytesize }
       @block   = nil
       @read_body = buffered
       self.body = body
@@ -117,7 +117,13 @@ module Rack
     def write(body)
       raise "cannot write to closed Response" if @body.closed?
       raise TypeError, "stringable or iterable required" unless body.respond_to?(:each) || body.respond_to?(:to_str)
-      @read_body ? iterate_body(body, &@writer) : @body_inputs << body
+      if @read_body
+        old_length = @length
+        iterate_body(body, &@writer)
+        self.content_length = @length if @length != old_length
+      else
+        @body_inputs << body
+      end
       # defer closing all body objects until #close is called
       @open_bodies << body if body.respond_to?(:close)
       body
