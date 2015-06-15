@@ -319,22 +319,15 @@ describe Rack::Response do
     res.headers["Content-Length"].should.equal "8"
   end
 
-  def response_with_body(body)
-    if Rack::Response::API_V2
-      Rack::Response.new body
-    else
-      Rack::Response.new.tap{|res|res.body = body}
-    end
-  end
 
   it "calls close on #body" do
-    res = response_with_body StringIO.new
+    res = Rack::Response.new StringIO.new
     res.close
     res.body.should.be.closed
   end
 
   it "calls close on #body when 204, 205, or 304" do
-    res = response_with_body StringIO.new
+    res = Rack::Response.new StringIO.new
     res.finish
     res.body.should.not.be.closed
 
@@ -343,13 +336,13 @@ describe Rack::Response do
     res.body.should.be.closed
     b.should.not.equal res.body
 
-    res = response_with_body StringIO.new
+    res = Rack::Response.new StringIO.new
     res.status = 205
     _, _, b = res.finish
     res.body.should.be.closed
     b.should.not.equal res.body
 
-    res = response_with_body StringIO.new
+    res = Rack::Response.new StringIO.new
     res.status = 304
     _, _, b = res.finish
     res.body.should.be.closed
@@ -371,23 +364,11 @@ describe Rack::Response do
     b.close if b.respond_to? :close
   end
 
-  it "can set #body multiple times" do
-    return if Rack::Response::API_V2
-    # Only the last body set should be in the response
-    res = Rack::Response.new ['foo']
-    res.body = StringIO.new 'bar'
-    res.body = ['baz']
-    _,_,b = res.finish
-    output = ''
-    b.each {|part| output << part}
-    b.close if b.respond_to? :close
-    output.should.equal 'baz'
-  end
-
   it "can close body from #finish after body#close is called" do
     body = StringIO.new 'foo'
 
     # rack-test uses this pattern
+    # Note: buffered response required in order to close input stream before iterating
     res = Rack::Response.buffered(body)
     body.close
 
@@ -399,7 +380,7 @@ describe Rack::Response do
   end
 
   it "can mix #write and direct #body access" do
-    res = response_with_body ['foo']
+    res = Rack::Response.new ['foo']
     res.write 'bar'
     _,_,b = res.finish
     output = ''
@@ -413,10 +394,6 @@ describe Rack::Response do
     res.content_length.should.equal 3
     res = Rack::Response.buffered
     res.write 'bar'
-    res.content_length.should.equal 3
-    return if Rack::Response::API_V2
-    res = Rack::Response.buffered
-    res.body = 'baz'
     res.content_length.should.equal 3
   end
 end

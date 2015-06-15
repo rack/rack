@@ -11,31 +11,25 @@ module Rack
   # It allows setting of headers and cookies, and provides useful
   # defaults (an OK response with empty headers and body).
   #
-  # You can add content to the Response body three different ways,
-  # all of which behave identically:
-  # 1. `Response.new(body)`;
-  # 2. `Response.new.write(body)`
-  # 3. `Response.new.body = body`; # Deprecated
-  #
-  # In Rack v1, all body content is buffered by default, and the Content-Length header will be updated;
-  # in Rack v2+, all body content is unbuffered by default, and the Content-Length header will not be updated.
-  #
-  # You may explicitly configure buffering body content by setting the +buffered+ constructor parameter,
-  # or by using the +Response.buffered+/+Response.unbuffered+ factory methods.
+  # You can add content to the Response body through the constructor parameter,
+  # or by calling +write+.
   #
   # You can also add unbuffered content to the Response body by passing a block
   # to +finish+, inside which calls to +write+ are synchronous with the Rack response.
   #
+  # In Rack v2+, all body content is unbuffered by default, and the Content-Length header will not be updated.
+  #
+  # You may explicitly configure buffering body content by setting the +buffered+ constructor parameter,
+  # or by using the +Response.buffered+/+Response.unbuffered+ factory methods.
+  #
+  #
   # Your application's +call+ should end returning Response#finish.
 
   class Response
-    API_V2 = Rack.release.to_i > 1
-
     attr_reader :header, :body
     attr_accessor :status, :length
 
-    def initialize(body=[], status=200, header={}, buffered=nil)
-      buffered = !API_V2 if buffered.nil?
+    def initialize(body=[], status=200, header={}, buffered=false)
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
       @writer  = lambda { |x| @body_inputs << [x]; self.content_length = (@length += x.bytesize) }
@@ -55,7 +49,6 @@ module Rack
       self.new body, status, header, false
     end
 
-    # Private in >= 2.x
     def body=(body)
       @body = BodyProxy.new(self){}
       @open_bodies = []
@@ -63,7 +56,7 @@ module Rack
       @length = 0
       write body
     end
-    private :body= if API_V2
+    private :body=
 
     def [](key)
       header[key]
@@ -102,7 +95,7 @@ module Rack
     alias to_ary finish         # For implicit-splat on Ruby 1.9.2
 
     def each(&callback)
-      raise "cannot iterate over closed Response" if API_V2 && @body.closed?
+      raise "cannot iterate over closed Response" if @body.closed?
       @body_inputs.each {|b| iterate_body(b, &callback)}
       @body_inputs.clear
       @read_body = true
@@ -122,7 +115,7 @@ module Rack
 
     # Append body object to response.
     def write(body)
-      raise "cannot write to closed Response" if API_V2 && @body.closed?
+      raise "cannot write to closed Response" if @body.closed?
       raise TypeError, "stringable or iterable required" unless body.respond_to?(:each) || body.respond_to?(:to_str)
       @read_body ? iterate_body(body, &@writer) : @body_inputs << body
       # defer closing all body objects until #close is called
