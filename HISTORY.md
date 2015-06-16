@@ -1,3 +1,7 @@
+Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
+
 ### May 6th, 2015, Thirty seventh public release 1.6.1
   - Fix CVE-2014-9490, denial of service attack in OkJson ([8cd610](https://github.com/rack/rack/commit/8cd61062954f70e0a03e2855704e95ff4bdd4f6e))
   - Use a monotonic time for Rack::Runtime, if available ([d170b2](https://github.com/rack/rack/commit/d170b2363c949dce60871f9d5a6bfc83da2bedb5))

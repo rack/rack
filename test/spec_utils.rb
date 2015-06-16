@@ -102,6 +102,18 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query(nil).should.equal({})
   end
 
+  should "raise an exception if the params are too deep" do
+    len = Rack::Utils.param_depth_limit
+
+    lambda {
+      Rack::Utils.parse_nested_query("foo#{"[a]" * len}=bar")
+    }.should.raise(RangeError)
+
+    lambda {
+      Rack::Utils.parse_nested_query("foo#{"[a]" * (len - 1)}=bar")
+    }.should.not.raise
+  end
+
   should "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       should.equal "foo" => nil
@@ -206,7 +218,7 @@ describe Rack::Utils do
           @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
-      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536)
+      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536, 100)
       Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].should.equal "bar"
       Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].should.equal "1"
     ensure
