@@ -14,11 +14,11 @@ module Rack
       @url = URI(url)
       @env = env
 
-      @env[PATH_INFO] =         @url.path
-      @env[QUERY_STRING] =      @url.query  if @url.query
-      @env[HTTP_HOST] =         @url.host   if @url.host
-      @env["HTTP_PORT"] =       @url.port   if @url.port
-      @env["rack.url_scheme"] = @url.scheme if @url.scheme
+      @env[PATH_INFO] =       @url.path
+      @env[QUERY_STRING] =    @url.query  if @url.query
+      @env[HTTP_HOST] =       @url.host   if @url.host
+      @env["HTTP_PORT"] =     @url.port   if @url.port
+      @env[RACK_URL_SCHEME] = @url.scheme if @url.scheme
 
       super "forwarding to #{url}"
     end
@@ -40,7 +40,7 @@ module Rack
 
     def _call(env)
       @script_name = env[SCRIPT_NAME]
-      @app.call(env.merge('rack.recursive.include' => method(:include)))
+      @app.call(env.merge(RACK_RECURSIVE_INCLUDE => method(:include)))
     rescue ForwardRequest => req
       call(env.merge(req.env))
     end
@@ -55,7 +55,7 @@ module Rack
                       SCRIPT_NAME => @script_name,
                       REQUEST_METHOD => GET,
                       "CONTENT_LENGTH" => "0", "CONTENT_TYPE" => "",
-                      "rack.input" => StringIO.new(""))
+                      RACK_INPUT => StringIO.new(""))
       @app.call(env)
     end
   end

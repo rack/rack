@@ -1,6 +1,5 @@
-# -*- coding: utf-8 -*-
-require 'minitest/autorun'
 # -*- encoding: utf-8 -*-
+require 'minitest/autorun'
 require 'rack/utils'
 require 'rack/mock'
 require 'timeout'
@@ -24,11 +23,7 @@ describe Rack::Utils do
 
   it "round trip binary data" do
     r = [218, 0].pack 'CC'
-    if defined?(::Encoding)
       z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
-    else
-      z = Rack::Utils.unescape(Rack::Utils.escape(r))
-    end
     r.must_equal z
   end
 
@@ -41,7 +36,7 @@ describe Rack::Utils do
 
   it "escape correctly for multibyte characters" do
     matz_name = "\xE3\x81\xBE\xE3\x81\xA4\xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsumoto
-    matz_name.force_encoding("UTF-8") if matz_name.respond_to? :force_encoding
+    matz_name.force_encoding(Encoding::UTF_8)
     Rack::Utils.escape(matz_name).must_equal '%E3%81%BE%E3%81%A4%E3%82%82%E3%81%A8'
     matz_name_sep = "\xE3\x81\xBE\xE3\x81\xA4 \xE3\x82\x82\xE3\x81\xA8".unpack("a*")[0] # Matsu moto
     matz_name_sep.force_encoding("UTF-8") if matz_name_sep.respond_to? :force_encoding
@@ -52,10 +47,8 @@ describe Rack::Utils do
     Rack::Utils.escape(:id).must_equal "id"
   end
 
-  if "".respond_to?(:encode)
-    it "escape non-UTF8 strings" do
-      Rack::Utils.escape("ø".encode("ISO-8859-1")).must_equal "%F8"
-    end
+  it "escape non-UTF8 strings" do
+    Rack::Utils.escape("ø".encode("ISO-8859-1")).must_equal "%F8"
   end
 
   it "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
@@ -111,6 +104,16 @@ describe Rack::Utils do
 
   it "parse nil as an empty query string" do
     Rack::Utils.parse_nested_query(nil).must_equal({})
+  end
+
+  it "raise an exception if the params are too deep" do
+    len = Rack::Utils.param_depth_limit
+
+    lambda {
+      Rack::Utils.parse_nested_query("foo#{"[a]" * len}=bar")
+    }.must_raise(RangeError)
+
+    Rack::Utils.parse_nested_query("foo#{"[a]" * (len - 1)}=bar")
   end
 
   it "parse nested query strings correctly" do
@@ -217,7 +220,7 @@ describe Rack::Utils do
           @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
-      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536)
+      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536, 100)
       Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].must_equal "bar"
       Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].must_equal "1"
     ensure
@@ -359,11 +362,9 @@ describe Rack::Utils do
     test_escape.must_raise ArgumentError
   end
 
-  if "".respond_to?(:encode)
-    it "escape html entities in unicode strings" do
+  it "escape html entities in unicode strings" do
       # the following will cause warnings if the regex is poorly encoded:
-      Rack::Utils.escape_html("☃").must_equal "☃"
-    end
+    Rack::Utils.escape_html("☃").must_equal "☃"
   end
 
   it "figure out which encodings are acceptable" do

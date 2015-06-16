@@ -1,4 +1,5 @@
-require 'minitest/autorun'
+# coding: utf-8
+
 require 'rack/utils'
 require 'rack/mock'
 
@@ -8,7 +9,7 @@ describe Rack::Multipart do
     data = File.open(file, 'rb') { |io| io.read }
 
     type = %(multipart/form-data; boundary=#{boundary})
-    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+    length = data.bytesize
 
     { "CONTENT_TYPE" => type,
       "CONTENT_LENGTH" => length.to_s,
@@ -31,7 +32,6 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
-  if "<3".respond_to?(:force_encoding)
   it "set US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
@@ -66,7 +66,6 @@ describe Rack::Multipart do
     params.keys.each do |key|
       key.encoding.must_equal Encoding::UTF_8
     end
-  end
   end
 
   it "raise RangeError if the key space is exhausted" do
@@ -161,7 +160,7 @@ describe Rack::Multipart do
         @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    query_parser = Rack::QueryParser.new c, 65536
+    query_parser = Rack::QueryParser.new c, 65536, 100
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env, query_parser)
     params[:files][:type].must_equal "text/plain"
@@ -268,10 +267,16 @@ describe Rack::Multipart do
     head = "Content-Disposition: form-data; " +
       "name=\"files\"; filename=\"invalid\xC3.txt\"\r\n" +
       "Content-Type: text/plain\r\n"
-    head = head.force_encoding("ASCII-8BIT") if head.respond_to?(:force_encoding)
+    head = head.force_encoding(Encoding::ASCII_8BIT)
     params["files"][:head].must_equal head
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
+  end
+
+  it "parse multipart form with an encoded word filename" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_encoded_words)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "файл"
   end
 
   it "not include file params if no file was selected" do
@@ -589,7 +594,7 @@ contents\r
     data = File.open(file, 'rb') { |io| io.read }
 
     type = "Multipart/Form-Data; Boundary=AaB03x"
-    length = data.respond_to?(:bytesize) ? data.bytesize : data.size
+    length = data.bytesize
 
     e = { "CONTENT_TYPE" => type,
       "CONTENT_LENGTH" => length.to_s,

@@ -1,5 +1,5 @@
-require 'minitest/autorun'
 # -*- encoding: utf-8 -*-
+require 'minitest/autorun'
 require 'rack'
 
 describe Rack do

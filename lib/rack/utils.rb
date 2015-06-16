@@ -24,7 +24,7 @@ module Rack
     end
     # The default number of bytes to allow parameter keys to take up.
     # This helps prevent a rogue client from flooding a Request.
-    self.default_query_parser = QueryParser.make_default(65536)
+    self.default_query_parser = QueryParser.make_default(65536, 100)
 
     # URI escapes. (CGI style space to +)
     def escape(s)
@@ -56,12 +56,20 @@ module Rack
     # FIXME: RACK_MULTIPART_LIMIT was introduced by mistake and it will be removed in 1.7.0
     self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
+    def self.param_depth_limit
+      default_query_parser.param_depth_limit
+    end
+
+    def self.param_depth_limit=(v)
+      self.default_query_parser = self.default_query_parser.new_depth_limit(v)
+    end
+
     def self.key_space_limit
       default_query_parser.key_space_limit
     end
 
     def self.key_space_limit=(v)
-      self.default_query_parser = self.default_query_parser.new(v)
+      self.default_query_parser = self.default_query_parser.new_space_limit(v)
     end
 
     def parse_query(qs, d = nil, &unescaper)
@@ -186,7 +194,7 @@ module Rack
     end
     module_function :parse_cookies
 
-    def set_cookie_header!(header, key, value)
+    def make_cookie_header(header, key, value)
       case value
       when Hash
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
@@ -226,15 +234,19 @@ module Rack
       cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
-      case header[SET_COOKIE]
+      case header
       when nil, ''
-        header[SET_COOKIE] = cookie
+        cookie
       when String
-        header[SET_COOKIE] = [header[SET_COOKIE], cookie].join("\n")
+        [header, cookie].join("\n")
       when Array
-        header[SET_COOKIE] = (header[SET_COOKIE] + [cookie]).join("\n")
+        (header + [cookie]).join("\n")
       end
+    end
+    module_function :make_cookie_header
 
+    def set_cookie_header!(header, key, value)
+      header[SET_COOKIE] = make_cookie_header(header[SET_COOKIE], key, value)
       nil
     end
     module_function :set_cookie_header!

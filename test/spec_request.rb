@@ -153,7 +153,7 @@ describe Rack::Request do
         @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536)
+    parser = Rack::QueryParser.new(c, 65536, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -221,7 +221,7 @@ describe Rack::Request do
         @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536)
+    parser = Rack::QueryParser.new(c, 65536, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -954,11 +954,6 @@ EOF
   end
 
   it "not try to interpret binary as utf8" do
-    if /regexp/.respond_to?(:kcode) # < 1.9
-      begin
-        original_kcode = $KCODE
-        $KCODE='UTF8'
-
         input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="junk.a"\r
@@ -973,27 +968,7 @@ EOF
                           "CONTENT_LENGTH" => input.size,
                           :input => input)
 
-        req.POST["fileupload"][:tempfile].size.must_equal 4
-      ensure
-        $KCODE = original_kcode
-      end
-    else # >= 1.9
-        input = <<EOF
---AaB03x\r
-content-disposition: form-data; name="fileupload"; filename="junk.a"\r
-content-type: application/octet-stream\r
-\r
-#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
---AaB03x--\r
-EOF
-
-      req = Rack::Request.new Rack::MockRequest.env_for("/",
-                        "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
-                        "CONTENT_LENGTH" => input.size,
-                        :input => input)
-
-      req.POST["fileupload"][:tempfile].size.must_equal 4
-    end
+    req.POST["fileupload"][:tempfile].size.must_equal 4
   end
 
   it "use form_hash when form_input is a Tempfile" do
@@ -1014,7 +989,7 @@ EOF
   it "conform to the Rack spec" do
     app = lambda { |env|
       content = Rack::Request.new(env).POST["file"].inspect
-      size = content.respond_to?(:bytesize) ? content.bytesize : content.size
+      size = content.bytesize
       [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
     }
 
@@ -1031,7 +1006,7 @@ Content-Transfer-Encoding: base64\r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
 EOF
-    input.force_encoding("ASCII-8BIT") if input.respond_to? :force_encoding
+    input.force_encoding(Encoding::ASCII_8BIT)
     res = Rack::MockRequest.new(Rack::Lint.new(app)).get "/",
       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
       "CONTENT_LENGTH" => input.size.to_s, "rack.input" => StringIO.new(input)

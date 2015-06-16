@@ -484,7 +484,7 @@ describe Rack::Lint do
 
   def assert_lint(*args)
     hello_str = "hello world"
-    hello_str.force_encoding("ASCII-8BIT") if hello_str.respond_to? :force_encoding
+    hello_str.force_encoding(Encoding::ASCII_8BIT)
 
     Rack::Lint.new(lambda { |env|
                      env["rack.input"].send(:read, *args)

@@ -66,7 +66,7 @@ module Rack
       end
 
       def with_lock(env)
-        @mutex.lock if env['rack.multithread']
+        @mutex.lock if env[RACK_MULTITHREAD]
         yield
       ensure
         @mutex.unlock if @mutex.locked?
