@@ -20,7 +20,7 @@ module Rack
 
   # Return the Rack release as a dotted string.
   def self.release
-    "1.6.1"
+    "1.6.2"
   end
   PATH_INFO      = 'PATH_INFO'.freeze
   REQUEST_METHOD = 'REQUEST_METHOD'.freeze
