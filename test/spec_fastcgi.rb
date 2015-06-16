@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 begin
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/fastcgi'
@@ -28,78 +28,78 @@ describe Rack::Handler::FastCGI do
     end
   }
 
-  should "respond" do
+  it "respond" do
     sleep 1
     GET("/test")
-    response.should.not.be.nil
+    response.wont_be :nil?
   end
 
-  should "respond via rackup server" do
+  it "respond via rackup server" do
     GET("/sample_rackup.ru")
-    status.should.equal 200
+    status.must_equal 200
   end
 
-  should "be a lighttpd" do
+  it "be a lighttpd" do
     GET("/test.fcgi")
-    status.should.equal 200
-    response["SERVER_SOFTWARE"].should =~ /lighttpd/
-    response["HTTP_VERSION"].should.equal "HTTP/1.1"
-    response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
-    response["SERVER_PORT"].should.equal @port.to_s
-    response["SERVER_NAME"].should.equal @host
+    status.must_equal 200
+    response["SERVER_SOFTWARE"].must_match(/lighttpd/)
+    response["HTTP_VERSION"].must_equal "HTTP/1.1"
+    response["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
+    response["SERVER_PORT"].must_equal @port.to_s
+    response["SERVER_NAME"].must_equal @host
   end
 
-  should "have rack headers" do
+  it "have rack headers" do
     GET("/test.fcgi")
-    response["rack.version"].should.equal [1,3]
+    response["rack.version"].must_equal [1,3]
     assert_equal false, response["rack.multithread"]
     assert_equal true, response["rack.multiprocess"]
     assert_equal false, response["rack.run_once"]
   end
 
-  should "have CGI headers on GET" do
+  it "have CGI headers on GET" do
     GET("/test.fcgi")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["SCRIPT_NAME"].should.equal "/test.fcgi"
-    response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.equal ""
-    response["QUERY_STRING"].should.equal ""
-    response["test.postdata"].should.equal ""
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["SCRIPT_NAME"].must_equal "/test.fcgi"
+    response["REQUEST_PATH"].must_equal "/"
+    response["PATH_INFO"].must_equal ""
+    response["QUERY_STRING"].must_equal ""
+    response["test.postdata"].must_equal ""
 
     GET("/test.fcgi/foo?quux=1")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["SCRIPT_NAME"].should.equal "/test.fcgi"
-    response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.equal "/foo"
-    response["QUERY_STRING"].should.equal "quux=1"
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["SCRIPT_NAME"].must_equal "/test.fcgi"
+    response["REQUEST_PATH"].must_equal "/"
+    response["PATH_INFO"].must_equal "/foo"
+    response["QUERY_STRING"].must_equal "quux=1"
   end
 
-  should "have CGI headers on POST" do
+  it "have CGI headers on POST" do
     POST("/test.fcgi", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
-    status.should.equal 200
-    response["REQUEST_METHOD"].should.equal "POST"
-    response["SCRIPT_NAME"].should.equal "/test.fcgi"
-    response["REQUEST_PATH"].should.equal "/"
-    response["QUERY_STRING"].should.equal ""
-    response["HTTP_X_TEST_HEADER"].should.equal "42"
-    response["test.postdata"].should.equal "rack-form-data=23"
+    status.must_equal 200
+    response["REQUEST_METHOD"].must_equal "POST"
+    response["SCRIPT_NAME"].must_equal "/test.fcgi"
+    response["REQUEST_PATH"].must_equal "/"
+    response["QUERY_STRING"].must_equal ""
+    response["HTTP_X_TEST_HEADER"].must_equal "42"
+    response["test.postdata"].must_equal "rack-form-data=23"
   end
 
-  should "support HTTP auth" do
+  it "support HTTP auth" do
     GET("/test.fcgi", {:user => "ruth", :passwd => "secret"})
-    response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
+    response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  should "set status" do
+  it "set status" do
     GET("/test.fcgi?secret")
-    status.should.equal 403
-    response["rack.url_scheme"].should.equal "http"
+    status.must_equal 403
+    response["rack.url_scheme"].must_equal "http"
   end
 
   # Keep this last.
-  should "shutdown" do
+  it "shutdown" do
     Process.kill 15, $pid
-    Process.wait($pid).should.equal $pid
+    Process.wait($pid).must_equal $pid
   end
 end
 

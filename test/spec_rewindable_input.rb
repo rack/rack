@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'stringio'
 require 'rack/rewindable_input'
 
@@ -13,79 +13,77 @@ module RewindableTest
     alias_method :should, :it
   end
 
-  should "be able to handle to read()" do
-    @rio.read.should.equal "hello world"
+  it "be able to handle to read()" do
+    @rio.read.must_equal "hello world"
   end
 
-  should "be able to handle to read(nil)" do
-    @rio.read(nil).should.equal "hello world"
+  it "be able to handle to read(nil)" do
+    @rio.read(nil).must_equal "hello world"
   end
 
-  should "be able to handle to read(length)" do
-    @rio.read(1).should.equal "h"
+  it "be able to handle to read(length)" do
+    @rio.read(1).must_equal "h"
   end
 
-  should "be able to handle to read(length, buffer)" do
+  it "be able to handle to read(length, buffer)" do
     buffer = ""
     result = @rio.read(1, buffer)
-    result.should.equal "h"
-    result.object_id.should.equal buffer.object_id
+    result.must_equal "h"
+    result.object_id.must_equal buffer.object_id
   end
 
-  should "be able to handle to read(nil, buffer)" do
+  it "be able to handle to read(nil, buffer)" do
     buffer = ""
     result = @rio.read(nil, buffer)
-    result.should.equal "hello world"
-    result.object_id.should.equal buffer.object_id
+    result.must_equal "hello world"
+    result.object_id.must_equal buffer.object_id
   end
 
-  should "rewind to the beginning when #rewind is called" do
+  it "rewind to the beginning when #rewind is called" do
     @rio.read(1)
     @rio.rewind
-    @rio.read.should.equal "hello world"
+    @rio.read.must_equal "hello world"
   end
 
-  should "be able to handle gets" do
-    @rio.gets.should == "hello world"
+  it "be able to handle gets" do
+    @rio.gets.must_equal "hello world"
   end
 
-  should "be able to handle each" do
+  it "be able to handle each" do
     array = []
     @rio.each do |data|
       array << data
     end
-    array.should.equal(["hello world"])
+    array.must_equal ["hello world"]
   end
 
-  should "not buffer into a Tempfile if no data has been read yet" do
-    @rio.instance_variable_get(:@rewindable_io).should.be.nil
+  it "not buffer into a Tempfile if no data has been read yet" do
+    @rio.instance_variable_get(:@rewindable_io).must_be_nil
   end
 
-  should "buffer into a Tempfile when data has been consumed for the first time" do
+  it "buffer into a Tempfile when data has been consumed for the first time" do
     @rio.read(1)
     tempfile = @rio.instance_variable_get(:@rewindable_io)
-    tempfile.should.not.be.nil
+    tempfile.wont_be :nil?
     @rio.read(1)
     tempfile2 = @rio.instance_variable_get(:@rewindable_io)
-    tempfile2.path.should == tempfile.path
+    tempfile2.path.must_equal tempfile.path
   end
 
-  should "close the underlying tempfile upon calling #close" do
+  it "close the underlying tempfile upon calling #close" do
     @rio.read(1)
     tempfile = @rio.instance_variable_get(:@rewindable_io)
     @rio.close
-    tempfile.should.be.closed
+    tempfile.must_be :closed?
   end
 
-  should "be possible to call #close when no data has been buffered yet" do
-    lambda{ @rio.close }.should.not.raise
+  it "be possible to call #close when no data has been buffered yet" do
+    @rio.close.must_be_nil
   end
 
-  should "be possible to call #close multiple times" do
-    lambda{
-      @rio.close
-      @rio.close
-    }.should.not.raise
+  it "be possible to call #close multiple times" do
+    @rio.close.must_be_nil
+    @rio.close.must_be_nil
   end
 
   after do

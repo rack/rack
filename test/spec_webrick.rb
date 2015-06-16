@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/mock'
 require 'concurrent/atomic/count_down_latch'
 require File.expand_path('../testrequest', __FILE__)
@@ -19,78 +19,77 @@ describe Rack::Handler::WEBrick do
   trap(:INT) { @server.shutdown }
   end
 
-  should "respond" do
-    lambda {
-      GET("/test")
-    }.should.not.raise
+  it "respond" do
+    GET("/test")
+    status.must_equal 200
   end
 
-  should "be a WEBrick" do
+  it "be a WEBrick" do
     GET("/test")
-    status.should.equal 200
-    response["SERVER_SOFTWARE"].should =~ /WEBrick/
-    response["HTTP_VERSION"].should.equal "HTTP/1.1"
-    response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
-    response["SERVER_PORT"].should.equal "9202"
-    response["SERVER_NAME"].should.equal "127.0.0.1"
+    status.must_equal 200
+    response["SERVER_SOFTWARE"].must_match(/WEBrick/)
+    response["HTTP_VERSION"].must_equal "HTTP/1.1"
+    response["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
+    response["SERVER_PORT"].must_equal "9202"
+    response["SERVER_NAME"].must_equal "127.0.0.1"
   end
 
-  should "have rack headers" do
+  it "have rack headers" do
     GET("/test")
-    response["rack.version"].should.equal [1,3]
-    response["rack.multithread"].should.be.true
+    response["rack.version"].must_equal [1,3]
+    response["rack.multithread"].must_equal true
     assert_equal false, response["rack.multiprocess"]
     assert_equal false, response["rack.run_once"]
   end
 
-  should "have CGI headers on GET" do
+  it "have CGI headers on GET" do
     GET("/test")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["SCRIPT_NAME"].should.equal "/test"
-    response["REQUEST_PATH"].should.equal "/test"
-    response["PATH_INFO"].should.be.equal ""
-    response["QUERY_STRING"].should.equal ""
-    response["test.postdata"].should.equal ""
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["SCRIPT_NAME"].must_equal "/test"
+    response["REQUEST_PATH"].must_equal "/test"
+    response["PATH_INFO"].must_equal ""
+    response["QUERY_STRING"].must_equal ""
+    response["test.postdata"].must_equal ""
 
     GET("/test/foo?quux=1")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["SCRIPT_NAME"].should.equal "/test"
-    response["REQUEST_PATH"].should.equal "/test/foo"
-    response["PATH_INFO"].should.equal "/foo"
-    response["QUERY_STRING"].should.equal "quux=1"
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["SCRIPT_NAME"].must_equal "/test"
+    response["REQUEST_PATH"].must_equal "/test/foo"
+    response["PATH_INFO"].must_equal "/foo"
+    response["QUERY_STRING"].must_equal "quux=1"
 
     GET("/test/foo%25encoding?quux=1")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["SCRIPT_NAME"].should.equal "/test"
-    response["REQUEST_PATH"].should.equal "/test/foo%25encoding"
-    response["PATH_INFO"].should.equal "/foo%25encoding"
-    response["QUERY_STRING"].should.equal "quux=1"
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["SCRIPT_NAME"].must_equal "/test"
+    response["REQUEST_PATH"].must_equal "/test/foo%25encoding"
+    response["PATH_INFO"].must_equal "/foo%25encoding"
+    response["QUERY_STRING"].must_equal "quux=1"
   end
 
-  should "have CGI headers on POST" do
+  it "have CGI headers on POST" do
     POST("/test", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
-    status.should.equal 200
-    response["REQUEST_METHOD"].should.equal "POST"
-    response["SCRIPT_NAME"].should.equal "/test"
-    response["REQUEST_PATH"].should.equal "/test"
-    response["PATH_INFO"].should.equal ""
-    response["QUERY_STRING"].should.equal ""
-    response["HTTP_X_TEST_HEADER"].should.equal "42"
-    response["test.postdata"].should.equal "rack-form-data=23"
+    status.must_equal 200
+    response["REQUEST_METHOD"].must_equal "POST"
+    response["SCRIPT_NAME"].must_equal "/test"
+    response["REQUEST_PATH"].must_equal "/test"
+    response["PATH_INFO"].must_equal ""
+    response["QUERY_STRING"].must_equal ""
+    response["HTTP_X_TEST_HEADER"].must_equal "42"
+    response["test.postdata"].must_equal "rack-form-data=23"
   end
 
-  should "support HTTP auth" do
+  it "support HTTP auth" do
     GET("/test", {:user => "ruth", :passwd => "secret"})
-    response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
+    response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  should "set status" do
+  it "set status" do
     GET("/test?secret")
-    status.should.equal 403
-    response["rack.url_scheme"].should.equal "http"
+    status.must_equal 403
+    response["rack.url_scheme"].must_equal "http"
   end
 
-  should "correctly set cookies" do
+  it "correctly set cookies" do
     @server.mount "/cookie-test", Rack::Handler::WEBrick,
     Rack::Lint.new(lambda { |req|
                      res = Rack::Response.new
@@ -101,12 +100,12 @@ describe Rack::Handler::WEBrick do
 
     Net::HTTP.start(@host, @port) { |http|
       res = http.get("/cookie-test")
-      res.code.to_i.should.equal 200
-      res.get_fields("set-cookie").should.equal ["one=1", "two=2"]
+      res.code.to_i.must_equal 200
+      res.get_fields("set-cookie").must_equal ["one=1", "two=2"]
     }
   end
 
-  should "provide a .run" do
+  it "provide a .run" do
     block_ran = false
     latch = Concurrent::CountDownLatch.new 1
 
@@ -129,7 +128,7 @@ describe Rack::Handler::WEBrick do
     t.join
   end
 
-  should "return repeated headers" do
+  it "return repeated headers" do
     @server.mount "/headers", Rack::Handler::WEBrick,
     Rack::Lint.new(lambda { |req|
         [
@@ -142,12 +141,12 @@ describe Rack::Handler::WEBrick do
 
     Net::HTTP.start(@host, @port) { |http|
       res = http.get("/headers")
-      res.code.to_i.should.equal 401
-      res["www-authenticate"].should.equal "Bar realm=X, Baz realm=Y"
+      res.code.to_i.must_equal 401
+      res["www-authenticate"].must_equal "Bar realm=X, Baz realm=Y"
     }
   end
 
-  should "support Rack partial hijack" do
+  it "support Rack partial hijack" do
     io_lambda = lambda{ |io|
       5.times do
         io.write "David\r\n"
@@ -166,11 +165,11 @@ describe Rack::Handler::WEBrick do
 
     Net::HTTP.start(@host, @port){ |http|
       res = http.get("/partial")
-      res.body.should.equal "David\r\nDavid\r\nDavid\r\nDavid\r\nDavid\r\n"
+      res.body.must_equal "David\r\nDavid\r\nDavid\r\nDavid\r\nDavid\r\n"
     }
   end
 
-  should "produce correct HTTP semantics with and without app chunking" do
+  it "produce correct HTTP semantics with and without app chunking" do
     @server.mount "/chunked", Rack::Handler::WEBrick,
     Rack::Lint.new(lambda{ |req|
       [
@@ -182,9 +181,9 @@ describe Rack::Handler::WEBrick do
 
     Net::HTTP.start(@host, @port){ |http|
       res = http.get("/chunked")
-      res["Transfer-Encoding"].should.equal "chunked"
-      res["Content-Length"].should.equal nil
-      res.body.should.equal "chunked"
+      res["Transfer-Encoding"].must_equal "chunked"
+      res["Content-Length"].must_equal nil
+      res.body.must_equal "chunked"
     }
   end
 

@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'stringio'
 require 'time'  # for Time#httpdate
 require 'rack/deflater'
@@ -53,7 +53,7 @@ describe Rack::Deflater do
     )
 
     # verify status
-    status.should.equal(expected_status)
+    status.must_equal expected_status
 
     # verify body
     unless options['skip_body_verify']
@@ -74,19 +74,19 @@ describe Rack::Deflater do
         body_text
       end
 
-      deflated_body.should.equal(expected_body)
+      deflated_body.must_equal expected_body
     end
 
     # yield full response verification
     yield(status, headers, body) if block_given?
   end
 
-  should 'be able to deflate bodies that respond to each' do
+  it 'be able to deflate bodies that respond to each' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
     verify(200, 'foobar', 'deflate', { 'app_body' => app_body }) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'deflate',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
@@ -94,12 +94,12 @@ describe Rack::Deflater do
     end
   end
 
-  should 'flush deflated chunks to the client as they become ready' do
+  it 'flush deflated chunks to the client as they become ready' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
     verify(200, app_body, 'deflate', { 'skip_body_verify' => true }) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'deflate',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
@@ -110,14 +110,14 @@ describe Rack::Deflater do
       body.each { |part| buf << inflater.inflate(part) }
       buf << inflater.finish
 
-      buf.delete_if { |part| part.empty? }.join.should.equal('foobar')
+      buf.delete_if { |part| part.empty? }.join.must_equal 'foobar'
     end
   end
 
   # TODO: This is really just a special case of the above...
-  should 'be able to deflate String bodies' do
+  it 'be able to deflate String bodies' do
     verify(200, 'Hello world!', 'deflate') do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'deflate',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
@@ -125,12 +125,12 @@ describe Rack::Deflater do
     end
   end
 
-  should 'be able to gzip bodies that respond to each' do
+  it 'be able to gzip bodies that respond to each' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
     verify(200, 'foobar', 'gzip', { 'app_body' => app_body }) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
@@ -138,12 +138,12 @@ describe Rack::Deflater do
     end
   end
 
-  should 'flush gzipped chunks to the client as they become ready' do
+  it 'flush gzipped chunks to the client as they become ready' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
     verify(200, app_body, 'gzip', { 'skip_body_verify' => true }) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
@@ -154,26 +154,26 @@ describe Rack::Deflater do
       body.each { |part| buf << inflater.inflate(part) }
       buf << inflater.finish
 
-      buf.delete_if { |part| part.empty? }.join.should.equal('foobar')
+      buf.delete_if { |part| part.empty? }.join.must_equal 'foobar'
     end
   end
 
-  should 'be able to fallback to no deflation' do
+  it 'be able to fallback to no deflation' do
     verify(200, 'Hello world!', 'superzip') do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
     end
   end
 
-  should 'be able to skip when there is no response entity body' do
+  it 'be able to skip when there is no response entity body' do
     verify(304, '', { 'gzip' => nil }, { 'app_body' => [] }) do |status, headers, body|
-      headers.should.equal({})
+      headers.must_equal({})
     end
   end
 
-  should 'handle the lack of an acceptable encoding' do
+  it 'handle the lack of an acceptable encoding' do
     app_body = 'Hello world!'
     not_found_body1 = 'An acceptable encoding for the requested resource / could not be found.'
     not_found_body2 = 'An acceptable encoding for the requested resource /foo/bar could not be found.'
@@ -193,21 +193,21 @@ describe Rack::Deflater do
     }
 
     verify(406, not_found_body1, 'identity;q=0', options1) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Type' => 'text/plain',
         'Content-Length' => not_found_body1.length.to_s
       })
     end
 
     verify(406, not_found_body2, 'identity;q=0', options2) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Type' => 'text/plain',
         'Content-Length' => not_found_body2.length.to_s
       })
     end
   end
 
-  should 'handle gzip response with Last-Modified header' do
+  it 'handle gzip response with Last-Modified header' do
     last_modified = Time.now.httpdate
     options = {
       'response_headers' => {
@@ -217,7 +217,7 @@ describe Rack::Deflater do
     }
 
     verify(200, 'Hello World!', 'gzip', options) do |status, headers, body|
-      headers.should.equal({
+      headers.must_equal({
         'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Last-Modified' => last_modified,
@@ -226,7 +226,7 @@ describe Rack::Deflater do
     end
   end
 
-  should 'do nothing when no-transform Cache-Control directive present' do
+  it 'do nothing when no-transform Cache-Control directive present' do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain',
@@ -234,11 +234,11 @@ describe Rack::Deflater do
       }
     }
     verify(200, 'Hello World!', { 'gzip' => nil }, options) do |status, headers, body|
-      headers.should.not.include 'Content-Encoding'
+      headers.wont_include 'Content-Encoding'
     end
   end
 
-  should 'do nothing when Content-Encoding already present' do
+  it 'do nothing when Content-Encoding already present' do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain',
@@ -248,7 +248,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
   end
 
-  should 'deflate when Content-Encoding is identity' do
+  it 'deflate when Content-Encoding is identity' do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain',
@@ -258,7 +258,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', 'deflate', options)
   end
 
-  should "deflate if content-type matches :include" do
+  it "deflate if content-type matches :include" do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain'
@@ -270,7 +270,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', 'gzip', options)
   end
 
-  should "deflate if content-type is included it :include" do
+  it "deflate if content-type is included it :include" do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain; charset=us-ascii'
@@ -282,7 +282,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', 'gzip', options)
   end
 
-  should "not deflate if content-type is not set but given in :include" do
+  it "not deflate if content-type is not set but given in :include" do
     options = {
       'deflater_options' => {
         :include => %w(text/plain)
@@ -291,7 +291,7 @@ describe Rack::Deflater do
     verify(304, 'Hello World!', { 'gzip' => nil }, options)
   end
 
-  should "not deflate if content-type do not match :include" do
+  it "not deflate if content-type do not match :include" do
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain'
@@ -303,7 +303,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
   end
 
-  should "deflate response if :if lambda evaluates to true" do
+  it "deflate response if :if lambda evaluates to true" do
     options = {
       'deflater_options' => {
         :if => lambda { |env, status, headers, body| true }
@@ -312,7 +312,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', 'deflate', options)
   end
 
-  should "not deflate if :if lambda evaluates to false" do
+  it "not deflate if :if lambda evaluates to false" do
     options = {
       'deflater_options' => {
         :if => lambda { |env, status, headers, body| false }
@@ -321,7 +321,7 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
   end
 
-  should "check for Content-Length via :if" do
+  it "check for Content-Length via :if" do
     response = 'Hello World!'
     response_len = response.length
     options = {

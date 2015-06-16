@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/builder'
 require 'rack/lint'
 require 'rack/mock'
@@ -37,8 +37,8 @@ describe Rack::Builder do
         run lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, ['sub']] }
       end
     end
-    Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
-    Rack::MockRequest.new(app).get("/sub").body.to_s.should.equal 'sub'
+    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
+    Rack::MockRequest.new(app).get("/sub").body.to_s.must_equal 'sub'
   end
 
   it "doesn't dupe env even when mapping" do
@@ -51,8 +51,8 @@ describe Rack::Builder do
         }
       end
     end
-    Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
-    NothingMiddleware.env['new_key'].should.equal 'new_value'
+    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
+    NothingMiddleware.env['new_key'].must_equal 'new_value'
   end
 
   it "chains apps by default" do
@@ -61,9 +61,9 @@ describe Rack::Builder do
       run lambda { |env| raise "bzzzt" }
     end
 
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
   it "has implicit #to_app" do
@@ -72,9 +72,9 @@ describe Rack::Builder do
       run lambda { |env| raise "bzzzt" }
     end
 
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
   it "supports blocks on use" do
@@ -88,14 +88,14 @@ describe Rack::Builder do
     end
 
     response = Rack::MockRequest.new(app).get("/")
-    response.should.be.client_error
-    response.status.should.equal 401
+    response.must_be :client_error?
+    response.status.must_equal 401
 
     # with auth...
     response = Rack::MockRequest.new(app).get("/",
         'HTTP_AUTHORIZATION' => 'Basic ' + ["joe:secret"].pack("m*"))
-    response.status.should.equal 200
-    response.body.to_s.should.equal 'Hi Boss'
+    response.status.must_equal 200
+    response.body.to_s.must_equal 'Hi Boss'
   end
 
   it "has explicit #to_app" do
@@ -104,9 +104,9 @@ describe Rack::Builder do
       run lambda { |env| raise "bzzzt" }
     end
 
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
   it "can mix map and run for endpoints" do
@@ -117,8 +117,8 @@ describe Rack::Builder do
       run lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, ['root']] }
     end
 
-    Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'root'
-    Rack::MockRequest.new(app).get("/sub").body.to_s.should.equal 'sub'
+    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
+    Rack::MockRequest.new(app).get("/sub").body.to_s.must_equal 'sub'
   end
 
   it "accepts middleware-only map blocks" do
@@ -127,8 +127,8 @@ describe Rack::Builder do
       run lambda { |env| raise "bzzzt" }
     end
 
-    proc { Rack::MockRequest.new(app).get("/") }.should.raise(RuntimeError)
-    Rack::MockRequest.new(app).get("/foo").should.be.server_error
+    proc { Rack::MockRequest.new(app).get("/") }.must_raise(RuntimeError)
+    Rack::MockRequest.new(app).get("/foo").must_be :server_error?
   end
 
   it "yields the generated app to a block for warmup" do
@@ -139,10 +139,10 @@ describe Rack::Builder do
       run lambda { |env| [200, {}, []] }
     end.to_app
 
-    warmed_up_app.should.equal app
+    warmed_up_app.must_equal app
   end
 
-  should "initialize apps once" do
+  it "initialize apps once" do
     app = builder do
       class AppClass
         def initialize
@@ -159,8 +159,8 @@ describe Rack::Builder do
       run AppClass.new
     end
 
-    Rack::MockRequest.new(app).get("/").status.should.equal 200
-    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").status.must_equal 200
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
   it "allows use after run" do
@@ -169,15 +169,15 @@ describe Rack::Builder do
       use Rack::ShowExceptions
     end
 
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
-    Rack::MockRequest.new(app).get("/").should.be.server_error
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
+    Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
   it 'complains about a missing run' do
     proc do
       Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
-    end.should.raise(RuntimeError)
+    end.must_raise(RuntimeError)
   end
 
   describe "parse_file" do
@@ -187,47 +187,47 @@ describe Rack::Builder do
 
     it "parses commented options" do
       app, options = Rack::Builder.parse_file config_file('options.ru')
-      options[:debug].should.be.true
-      options[:environment].should.equal 'test'
-      options[:Port].should.equal '2929'
-      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+      options[:debug].must_equal true
+      options[:environment].must_equal 'test'
+      options[:Port].must_equal '2929'
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
 
     it "removes __END__ before evaluating app" do
       app, _ = Rack::Builder.parse_file config_file('end.ru')
-      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
 
     it "supports multi-line comments" do
-      lambda {
-        Rack::Builder.parse_file config_file('comment.ru')
-      }.should.not.raise(SyntaxError)
+      proc, env = Rack::Builder.parse_file(config_file('comment.ru'))
+      proc.must_be_kind_of Proc
+      env.must_equal({})
     end
 
     it "requires anything not ending in .ru" do
       $: << File.dirname(__FILE__)
       app, * = Rack::Builder.parse_file 'builder/anything'
-      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
       $:.pop
     end
 
     it 'requires an_underscore_app not ending in .ru' do
       $: << File.dirname(__FILE__)
       app, * = Rack::Builder.parse_file 'builder/an_underscore_app'
-      Rack::MockRequest.new(app).get('/').body.to_s.should.equal 'OK'
+      Rack::MockRequest.new(app).get('/').body.to_s.must_equal 'OK'
       $:.pop
     end
 
     it "sets __LINE__ correctly" do
       app, _ = Rack::Builder.parse_file config_file('line.ru')
-      Rack::MockRequest.new(app).get("/").body.to_s.should.equal '1'
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal '1'
     end
   end
 
   describe 'new_from_string' do
     it "builds a rack app from string" do
       app, = Rack::Builder.new_from_string "run lambda{|env| [200, {'Content-Type' => 'text/plane'}, ['OK']] }"
-      Rack::MockRequest.new(app).get("/").body.to_s.should.equal 'OK'
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
   end
 end

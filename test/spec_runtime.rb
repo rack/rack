@@ -1,4 +1,4 @@
-require 'minitest/bacon'
+require 'minitest/autorun'
 require 'rack/lint'
 require 'rack/mock'
 require 'rack/runtime'
@@ -15,22 +15,22 @@ describe Rack::Runtime do
   it "sets X-Runtime is none is set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
     response = runtime_app(app).call(request)
-    response[1]['X-Runtime'].should =~ /[\d\.]+/
+    response[1]['X-Runtime'].must_match(/[\d\.]+/)
   end
 
   it "doesn't set the X-Runtime if it is already set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', "X-Runtime" => "foobar"}, "Hello, World!"] }
     response = runtime_app(app).call(request)
-    response[1]['X-Runtime'].should == "foobar"
+    response[1]['X-Runtime'].must_equal "foobar"
   end
 
-  should "allow a suffix to be set" do
+  it "allow a suffix to be set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
     response = runtime_app(app, "Test").call(request)
-    response[1]['X-Runtime-Test'].should =~ /[\d\.]+/
+    response[1]['X-Runtime-Test'].must_match(/[\d\.]+/)
   end
 
-  should "allow multiple timers to be set" do
+  it "allow multiple timers to be set" do
     app = lambda { |env| sleep 0.1; [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
     runtime = runtime_app(app, "App")
 
@@ -42,9 +42,9 @@ describe Rack::Runtime do
 
     response = runtime.call(request)
 
-    response[1]['X-Runtime-App'].should =~ /[\d\.]+/
-    response[1]['X-Runtime-All'].should =~ /[\d\.]+/
+    response[1]['X-Runtime-App'].must_match(/[\d\.]+/)
+    response[1]['X-Runtime-All'].must_match(/[\d\.]+/)
 
-    Float(response[1]['X-Runtime-All']).should > Float(response[1]['X-Runtime-App'])
+    Float(response[1]['X-Runtime-All']).must_be :>, Float(response[1]['X-Runtime-App'])
   end
 end
