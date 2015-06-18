@@ -1,3 +1,9 @@
+Thu Jun 18 16:00:05 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	*  lib/rack/utils.rb: add a method for constructing "delete" cookie
+	headers.  This allows us to construct cookie headers without depending
+	on the side effects of mutating a hash.
+
 Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
@@ -373,3 +379,5 @@ Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
   - Removed Rails adapter, was too alpha.
 
 ### March 3rd, 2007: First public release 0.1.
+
+/* vim: set filetype=changelog */

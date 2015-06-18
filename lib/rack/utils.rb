@@ -251,14 +251,14 @@ module Rack
     end
     module_function :set_cookie_header!
 
-    def delete_cookie_header!(header, key, value = {})
-      case header[SET_COOKIE]
+    def make_delete_cookie_header(header, key, value)
+      case header
       when nil, ''
         cookies = []
       when String
-        cookies = header[SET_COOKIE].split("\n")
+        cookies = header.split("\n")
       when Array
-        cookies = header[SET_COOKIE]
+        cookies = header
       end
 
       cookies.reject! { |cookie|
@@ -271,9 +271,14 @@ module Rack
         end
       }
 
-      header[SET_COOKIE] = cookies.join("\n")
+      cookies.join("\n")
+    end
+    module_function :make_delete_cookie_header
 
-      set_cookie_header!(header, key,
+    def delete_cookie_header!(header, key, value = {})
+      new_header = make_delete_cookie_header(header[SET_COOKIE], key, value)
+
+      header[SET_COOKIE] = make_cookie_header(new_header, key,
                  {:value => '', :path => nil, :domain => nil,
                    :max_age => '0',
                    :expires => Time.at(0) }.merge(value))
