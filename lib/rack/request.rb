@@ -192,7 +192,7 @@ module Rack
       if @env[RACK_REQUEST_QUERY_STRING] == query_string
         @env[RACK_REQUEST_QUERY_HASH]
       else
-        query_hash = parse_query(query_string, '&;')
+        query_hash = query_parser.parse_nested_query(query_string, '&;')
         @env[RACK_REQUEST_QUERY_STRING ] = query_string
         @env[RACK_REQUEST_QUERY_HASH]   = query_hash
       end
@@ -216,7 +216,7 @@ module Rack
           form_vars.slice!(-1) if form_vars[-1] == ?\0
 
           @env[RACK_REQUEST_FORM_VARS] = form_vars
-          @env[RACK_REQUEST_FORM_HASH] = parse_query(form_vars, '&')
+          @env[RACK_REQUEST_FORM_HASH] = query_parser.parse_nested_query(form_vars, '&')
 
           @env[RACK_INPUT].rewind
         end
@@ -362,10 +362,6 @@ module Rack
 
       def reject_trusted_ip_addresses(ip_addresses)
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
-      end
-
-      def parse_query(qs, d='&')
-        query_parser.parse_nested_query(qs, d)
       end
 
       def parse_multipart(env)
