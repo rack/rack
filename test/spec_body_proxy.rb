@@ -56,13 +56,13 @@ describe Rack::BodyProxy do
     proc { proxy.respond_to?(:foo, false) }.should.not.raise
   end
 
-  should 'not respond to :to_ary' do
+  should 'respond to :to_ary' do
     body = OpenStruct.new(:to_ary => true)
     body.respond_to?(:to_ary).should.equal true
 
     proxy = Rack::BodyProxy.new(body) { }
-    proxy.respond_to?(:to_ary).should.equal false
-    proxy.respond_to?("to_ary").should.equal false
+    proxy.respond_to?(:to_ary).should.equal true
+    proxy.respond_to?("to_ary").should.equal true
   end
 
   should 'not close more than one time' do

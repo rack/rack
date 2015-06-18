@@ -83,7 +83,22 @@ module Rack
       end
     end
     alias to_a finish           # For *response
-    alias to_ary finish         # For implicit-splat on Ruby 1.9.2
+    # For implicit-splat on Ruby 1.9.2
+    def to_ary
+      ary = finish
+      # Prevent infinite loop from [response].flatten by not responding to :to_ary (#419)
+      ary[2] = NoAryBody.new ary[2]
+      ary
+    end
+
+    class NoAryBody < BodyProxy
+      def respond_to?(method_name, *args)
+        method_name != :to_ary && method_name != 'to_ary' && super
+      end
+      def method_missing(method_name, *args, &block)
+        method_name == :to_ary ? raise(NoMethodError.new('undefined method', method_name, *args)) : super
+      end
+    end
 
     def each(&callback)
       @body.each(&callback)

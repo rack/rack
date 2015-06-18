@@ -337,7 +337,15 @@ describe Rack::Response do
 
   it "wraps the body from #to_ary to prevent infinite loops" do
     res = Rack::Response.new
-    res.finish.last.should.not.respond_to?(:to_ary)
-    lambda { res.finish.last.to_ary }.should.raise(NoMethodError)
+    res.to_ary.last.should.not.respond_to?(:to_ary)
+    lambda { res.to_ary.last.to_ary }.should.raise(NoMethodError)
+  end
+
+  it "supports [response].flatten" do
+    res = Rack::Response.new ['foo']
+    _, _, b = [res].flatten
+    output = ''
+    b.each {|part| output << part}
+    output.should.equal 'foo'
   end
 end

@@ -82,4 +82,13 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].should.equal expected.join.size.to_s
     response[2].to_enum.to_a.should.equal expected
   end
+
+  should "support Array bodies wrapped by BodyProxy" do
+    require 'rack/body_proxy'
+    str = ['foo']
+    app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, Rack::BodyProxy.new(str)] }
+    response = content_length(app).call(request)
+    response[1]['Content-Length'].should.equal '3'
+    response[2].to_enum.to_a.should.equal str
+  end
 end
