@@ -1,3 +1,7 @@
+Fri Jun 19 07:14:50 2015  Matthew Draper <matthew@trebex.net>
+
+	* Work around a Rails incompatibility in our private API
+
 Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
