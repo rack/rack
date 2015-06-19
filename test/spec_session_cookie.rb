@@ -152,6 +152,21 @@ describe Rack::Session::Cookie do
     @warnings.must_be :empty?
   end
 
+  it "doesn't warn if coder is configured to handle encoding" do
+    Rack::Session::Cookie.new(
+      incrementor,
+      :coder => Object.new,
+      :let_coder_handle_secure_encoding => true)
+    @warnings.must_be :empty?
+  end
+
+  it "still warns if coder is not set" do
+    Rack::Session::Cookie.new(
+      incrementor,
+      :let_coder_handle_secure_encoding => true)
+    @warnings.first.must_match(/no secret/i)
+  end
+
   it 'uses a coder' do
     identity = Class.new {
       attr_reader :calls
