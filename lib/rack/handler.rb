@@ -19,7 +19,11 @@ module Rack
       if klass = @handlers[server]
         klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
-        const_get(server, false)
+        if const_defined?(server)
+          const_get(server, false) rescue const_get(server)
+        else
+          raise load_error
+        end
       end
 
     rescue NameError => name_error
