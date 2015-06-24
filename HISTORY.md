@@ -1,3 +1,7 @@
+Wed Jun 24 12:13:37 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Fix Ruby 1.8 backwards compatibility
+
 Fri Jun 19 07:14:50 2015  Matthew Draper <matthew@trebex.net>
 
 	* Work around a Rails incompatibility in our private API

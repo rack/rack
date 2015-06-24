@@ -19,12 +19,24 @@ module Rack
       if klass = @handlers[server]
         klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
-        const_get(server, false)
+        _const_get(server, false)
       end
 
     rescue NameError => name_error
       raise load_error || name_error
     end
+
+    begin
+      ::Object.const_get("Object", false)
+      def self._const_get(str, inherit = true)
+        const_get(str, inherit)
+      end
+    rescue
+      def self._const_get(str, inherit = true)
+        const_get(str)
+      end
+    end
+
 
     # Select first available Rack handler given an `Array` of server names.
     # Raises `LoadError` if no handler was found.
