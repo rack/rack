@@ -36,7 +36,7 @@ describe Rack::Session::Pool do
     env['rack.session.options'][:defer] = true
     incrementor.call(env)
   end)
-  
+
   incrementor = Rack::Lint.new(incrementor)
 
   it "creates a new cookie" do

@@ -7,11 +7,11 @@ describe Rack::ContentType do
   def content_type(app, *args)
     Rack::Lint.new Rack::ContentType.new(app, *args)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   it "set Content-Type to default text/html if none is set" do
     app = lambda { |env| [200, {}, "Hello, World!"] }
     headers = content_type(app).call(request)[1]

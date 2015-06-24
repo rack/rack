@@ -1,6 +1,6 @@
 require 'minitest/autorun'
 require 'stringio'
-require 'rack/methodoverride'
+require 'rack/method_override'
 require 'rack/mock'
 
 describe Rack::MethodOverride do
@@ -9,7 +9,7 @@ describe Rack::MethodOverride do
       [200, {"Content-Type" => "text/plain"}, []]
     }))
   end
-  
+
   it "not affect GET requests" do
     env = Rack::MockRequest.env_for("/?_method=delete", :method => "GET")
     app.call env

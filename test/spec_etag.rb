@@ -8,11 +8,11 @@ describe Rack::ETag do
   def etag(app, *args)
     Rack::Lint.new Rack::ETag.new(app, *args)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   def sendfile_body
     res = ['Hello World']
     def res.to_path ; "/tmp/hello.txt" ; end

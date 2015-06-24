@@ -2,7 +2,7 @@ require 'minitest/autorun'
 require 'rack/builder'
 require 'rack/lint'
 require 'rack/mock'
-require 'rack/showexceptions'
+require 'rack/show_exceptions'
 require 'rack/urlmap'
 
 class NothingMiddleware
@@ -23,11 +23,11 @@ describe Rack::Builder do
   def builder(&block)
     Rack::Lint.new Rack::Builder.new(&block)
   end
-  
+
   def builder_to_app(&block)
     Rack::Lint.new Rack::Builder.new(&block).to_app
   end
-  
+
   it "supports mapping" do
     app = builder_to_app do
       map '/' do |outer_env|

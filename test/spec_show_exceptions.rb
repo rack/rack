@@ -1,5 +1,5 @@
 require 'minitest/autorun'
-require 'rack/showexceptions'
+require 'rack/show_exceptions'
 require 'rack/lint'
 require 'rack/mock'
 
@@ -7,7 +7,7 @@ describe Rack::ShowExceptions do
   def show_exceptions(app)
     Rack::Lint.new Rack::ShowExceptions.new(app)
   end
-  
+
   it "catches exceptions" do
     res = nil
 
