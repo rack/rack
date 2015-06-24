@@ -11,7 +11,7 @@ describe Rack::Session::Cookie do
     hash.delete("session_id")
     Rack::Response.new(hash.inspect).to_a
   end
-  
+
   session_id = lambda do |env|
     Rack::Response.new(env["rack.session"].to_hash.inspect).to_a
   end

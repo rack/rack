@@ -7,11 +7,11 @@ describe Rack::Runtime do
   def runtime_app(app, *args)
     Rack::Lint.new Rack::Runtime.new(app, *args)
   end
-  
+
   def request
     Rack::MockRequest.env_for
   end
-  
+
   it "sets X-Runtime is none is set" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, "Hello, World!"] }
     response = runtime_app(app).call(request)

@@ -172,7 +172,7 @@ module Rack
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
         end
-        
+
         encoding, locale, name = filename.split("'",3)
 
         if locale.nil? && name.nil?

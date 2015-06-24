@@ -173,7 +173,7 @@ describe Rack::Request do
     req.POST.must_be :empty?
     req.params.must_equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
   end
-  
+
   it "limit the keys from the GET query string" do
     env = Rack::MockRequest.env_for("/?foo=bar")
 
