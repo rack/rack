@@ -691,6 +691,20 @@ EOF
     lambda { req.POST }.should.raise(EOFError)
   end
 
+  should "consistently raise EOFError on bad multipart form data" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+EOF
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    lambda { req.POST }.should.raise(EOFError)
+    lambda { req.POST }.should.raise(EOFError)
+  end
+
   should "correctly parse the part name from Content-Id header" do
     input = <<EOF
 --AaB03x\r
