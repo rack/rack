@@ -73,12 +73,12 @@ module Rack
     end
 
     def parse_query(qs, d = nil, &unescaper)
-      default_query_parser.parse_query(qs, d, &unescaper)
+      Rack::Utils.default_query_parser.parse_query(qs, d, &unescaper)
     end
     module_function :parse_query
 
     def parse_nested_query(qs, d = nil)
-      default_query_parser.parse_nested_query(qs, d)
+      Rack::Utils.default_query_parser.parse_nested_query(qs, d)
     end
     module_function :parse_nested_query
 

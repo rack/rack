@@ -21,6 +21,18 @@ describe Rack::Utils do
     assert_sets exp, Rack::Utils.build_nested_query(act)
   end
 
+  it 'can be mixed in and used' do
+    instance = Class.new {
+      include Rack::Utils
+
+      public :parse_nested_query
+      public :parse_query
+    }.new
+
+    assert_equal({ "foo" => "bar" }, instance.parse_nested_query("foo=bar"))
+    assert_equal({ "foo" => "bar" }, instance.parse_query("foo=bar"))
+  end
+
   it "round trip binary data" do
     r = [218, 0].pack 'CC'
       z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
