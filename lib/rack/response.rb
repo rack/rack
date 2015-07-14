@@ -144,7 +144,7 @@ module Rack
       attr_reader :headers, :original_headers
 
       def include?(header)
-        !!headers[header]
+        headers.key? header
       end
 
       def content_type
