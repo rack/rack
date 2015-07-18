@@ -152,13 +152,16 @@ module Rack
       def get_filename(head)
         filename = nil
         case head
+        when RFC2183
+          params = Hash[*head.scan(DISPPARM).flat_map(&:compact)]
+
+          if filename = params['filename']
+            filename = $1 if filename =~ /^"(.*)"$/
+          elsif filename = params['filename*']
+            encoding, locale, filename = filename.split("'", 3)
+          end
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
-        when RFC2183
-          params = Hash[head.scan(DISPPARM)]
-          filename = params['filename']
-          filename ||= params['filename*']
-          filename = $1 if filename and filename =~ /^"(.*)"$/
         end
 
         return unless filename
@@ -173,13 +176,11 @@ module Rack
           filename = filename.gsub(/\\(.)/, '\1')
         end
 
-        encoding, locale, name = filename.split("'",3)
-
-        if locale.nil? && name.nil?
-          name = encoding
-        else
-          name.force_encoding ::Encoding.find(encoding)
+        if encoding
+          filename.force_encoding ::Encoding.find(encoding)
         end
+
+        filename
       end
 
       def scrub_filename(filename)
