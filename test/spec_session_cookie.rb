@@ -408,4 +408,16 @@ describe Rack::Session::Cookie do
     response = response_for(:app => _app, :cookie => response)
     response.body.must_equal "1--2--"
   end
+
+  it "uses the cookie name set by the :key option" do
+    custom_session_key = 'rack.some.session.key'
+    app = lambda do |env|
+      env[custom_session_key]['cookie'] = "some_cookie_value"
+      Rack::Response.new("").to_a
+    end
+    app_with_cookie = Rack::Session::Cookie.new(app, key: custom_session_key)
+
+    response = Rack::MockRequest.new(app_with_cookie).get("/")
+    response["Set-Cookie"].must_include "rack.some.session.key="
+  end
 end
