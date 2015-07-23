@@ -52,7 +52,8 @@ module Rack
       elsif ENV.include?("RACK_HANDLER")
         self.get(ENV["RACK_HANDLER"])
       else
-        pick ['thin', 'puma', 'webrick']
+        @fall_back ||= ['thin', 'puma', 'webrick', 'lsws', 'cgi', 'fastcgi', 'scgi']
+        pick (@handlers.keys - @fall_back) rescue (pick @fall_back)
       end
     end
 
