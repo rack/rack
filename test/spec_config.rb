@@ -1,3 +1,4 @@
+require 'minitest/autorun'
 require 'rack/builder'
 require 'rack/config'
 require 'rack/content_length'
@@ -5,7 +6,7 @@ require 'rack/lint'
 require 'rack/mock'
 
 describe Rack::Config do
-  should "accept a block that modifies the environment" do
+  it "accept a block that modifies the environment" do
     app = Rack::Builder.new do
       use Rack::Lint
       use Rack::Config do |env|
@@ -17,6 +18,6 @@ describe Rack::Config do
     end
 
     response = Rack::MockRequest.new(app).get('/')
-    response.body.should.equal('hello')
+    response.body.must_equal 'hello'
   end
 end

@@ -1,4 +1,5 @@
 require 'rack/utils'
+require 'rack/media_type'
 
 module Rack
   # Rack::Request provides a convenient interface to a Rack
@@ -23,7 +24,7 @@ module Rack
       @env = env
     end
 
-    def body;            @env["rack.input"]                       end
+    def body;            @env[RACK_INPUT]                       end
     def script_name;     @env[SCRIPT_NAME].to_s                   end
     def path_info;       @env[PATH_INFO].to_s                     end
     def request_method;  @env[REQUEST_METHOD]                     end
@@ -35,9 +36,9 @@ module Rack
       content_type.nil? || content_type.empty? ? nil : content_type
     end
 
-    def session;         @env['rack.session'] ||= {}              end
-    def session_options; @env['rack.session.options'] ||= {}      end
-    def logger;          @env['rack.logger']                      end
+    def session;         @env[RACK_SESSION] ||= {}              end
+    def session_options; @env[RACK_SESSION_OPTIONS] ||= {}      end
+    def logger;          @env[RACK_LOGGER]                      end
 
     # The media type (type/subtype) portion of the CONTENT_TYPE header
     # without any media type parameters. e.g., when CONTENT_TYPE is
@@ -46,7 +47,7 @@ module Rack
     # For more information on the use of media types in HTTP, see:
     # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
     def media_type
-      content_type && content_type.split(/\s*[;,]\s*/, 2).first.downcase
+      @media_type ||= MediaType.type(content_type)
     end
 
     # The media type parameters provided in CONTENT_TYPE as a Hash, or
@@ -55,10 +56,7 @@ module Rack
     # this method responds with the following Hash:
     #   { 'charset' => 'utf-8' }
     def media_type_params
-      return {} if content_type.nil?
-      Hash[*content_type.split(/\s*[;,]\s*/)[1..-1].
-        collect { |s| s.split('=', 2) }.
-        map { |k,v| [k.downcase, strip_doublequotes(v)] }.flatten]
+      @media_type_params ||= MediaType.params(content_type)
     end
 
     # The character set of the request body if a "charset" media type
@@ -79,7 +77,7 @@ module Rack
       elsif @env[HTTP_X_FORWARDED_PROTO]
         @env[HTTP_X_FORWARDED_PROTO].split(',')[0]
       else
-        @env["rack.url_scheme"]
+        @env[RACK_URL_SCHEME]
       end
     end
 
@@ -179,7 +177,7 @@ module Rack
     # Content-Type header is provided and the request_method is POST.
     def form_data?
       type = media_type
-      meth = env["rack.methodoverride.original_method"] || env[REQUEST_METHOD]
+      meth = env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] || env[REQUEST_METHOD]
       (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
     end
 
@@ -191,12 +189,12 @@ module Rack
 
     # Returns the data received in the query string.
     def GET
-      if @env["rack.request.query_string"] == query_string
-        @env["rack.request.query_hash"]
+      if @env[RACK_REQUEST_QUERY_STRING] == query_string
+        @env[RACK_REQUEST_QUERY_HASH]
       else
-        p = parse_query(query_string, '&;')
-        @env["rack.request.query_string"] = query_string
-        @env["rack.request.query_hash"]   = p
+        query_hash = parse_query(query_string, '&;')
+        @env[RACK_REQUEST_QUERY_STRING ] = query_string
+        @env[RACK_REQUEST_QUERY_HASH]   = query_hash
       end
     end
 
@@ -205,25 +203,25 @@ module Rack
     # This method support both application/x-www-form-urlencoded and
     # multipart/form-data.
     def POST
-      if @env["rack.input"].nil?
+      if @env[RACK_INPUT].nil?
         raise "Missing rack.input"
-      elsif @env["rack.request.form_input"].equal? @env["rack.input"]
-        @env["rack.request.form_hash"]
+      elsif @env[RACK_REQUEST_FORM_INPUT] == @env[RACK_INPUT]
+        @env[RACK_REQUEST_FORM_HASH]
       elsif form_data? || parseable_data?
-        unless @env["rack.request.form_hash"] = parse_multipart(env)
-          form_vars = @env["rack.input"].read
+        unless @env[RACK_REQUEST_FORM_HASH] = parse_multipart(env)
+          form_vars = @env[RACK_INPUT].read
 
           # Fix for Safari Ajax postings that always append \0
           # form_vars.sub!(/\0\z/, '') # performance replacement:
           form_vars.slice!(-1) if form_vars[-1] == ?\0
 
-          @env["rack.request.form_vars"] = form_vars
-          @env["rack.request.form_hash"] = parse_query(form_vars, '&')
+          @env[RACK_REQUEST_FORM_VARS] = form_vars
+          @env[RACK_REQUEST_FORM_HASH] = parse_query(form_vars, '&')
 
-          @env["rack.input"].rewind
+          @env[RACK_INPUT].rewind
         end
-        @env["rack.request.form_input"] = @env["rack.input"]
-        @env["rack.request.form_hash"]
+        @env[RACK_REQUEST_FORM_INPUT ] = @env[RACK_INPUT]
+        @env[RACK_REQUEST_FORM_HASH]
       else
         {}
       end
@@ -257,7 +255,6 @@ module Rack
         self.GET[k] = v
       end
       @params = nil
-      nil
     end
 
     # Destructively delete a parameter, whether it's in GET or POST. Returns the value of the deleted parameter.
@@ -299,21 +296,17 @@ module Rack
     end
 
     def cookies
-      hash   = @env["rack.request.cookie_hash"] ||= {}
-      string = @env["HTTP_COOKIE"]
+      hash   = @env[RACK_REQUEST_COOKIE_HASH] ||= {}
+      string = @env[HTTP_COOKIE]
 
-      return hash if string == @env["rack.request.cookie_string"]
-      hash.clear
-
-      # According to RFC 2109:
-      #   If multiple cookies satisfy the criteria above, they are ordered in
-      #   the Cookie header such that those with more specific Path attributes
-      #   precede those with less specific.  Ordering with respect to other
-      #   attributes (e.g., Domain) is unspecified.
-      cookies = Utils.parse_query(string, ';,') { |s| Rack::Utils.unescape(s) rescue s }
-      cookies.each { |k,v| hash[k] = Array === v ? v.first : v }
-      @env["rack.request.cookie_string"] = string
+      return hash if string == @env[RACK_REQUEST_COOKIE_STRING]
+      hash.replace Utils.parse_cookies(@env)
+      @env[RACK_REQUEST_COOKIE_STRING] = string
       hash
+    end
+
+    def query_parser
+      Utils.default_query_parser
     end
 
     def xhr?
@@ -372,11 +365,11 @@ module Rack
       end
 
       def parse_query(qs, d='&')
-        Utils.parse_nested_query(qs, d)
+        query_parser.parse_nested_query(qs, d)
       end
 
       def parse_multipart(env)
-        Rack::Multipart.parse_multipart(env)
+        Rack::Multipart.parse_multipart(env, query_parser)
       end
 
       def parse_http_accept_header(header)
@@ -389,14 +382,5 @@ module Rack
           [attribute, quality]
         end
       end
-
-  private
-    def strip_doublequotes(s)
-      if s[0] == ?" && s[-1] == ?"
-        s[1..-2]
-      else
-        s
-      end
-    end
   end
 end

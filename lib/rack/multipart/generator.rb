@@ -11,12 +11,12 @@ module Rack
 
       def dump
         return nil if @first && !multipart?
-        return flattened_params if !@first
+        return flattened_params unless @first
 
         flattened_params.map do |name, file|
           if file.respond_to?(:original_filename)
-            ::File.open(file.path, "rb") do |f|
-              f.set_encoding(Encoding::BINARY) if f.respond_to?(:set_encoding)
+            ::File.open(file.path, 'rb') do |f|
+              f.set_encoding(Encoding::BINARY)
               content_for_tempfile(f, file, name)
             end
           else

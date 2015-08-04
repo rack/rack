@@ -1,11 +1,13 @@
+require 'minitest/autorun'
 begin
 require 'rack/handler/thin'
 require File.expand_path('../testrequest', __FILE__)
 require 'timeout'
 
 describe Rack::Handler::Thin do
-  extend TestRequest::Helpers
+  include TestRequest::Helpers
 
+  before do
   @app = Rack::Lint.new(TestRequest.new)
   @server = nil
   Thin::Logging.silent = true
@@ -17,72 +19,75 @@ describe Rack::Handler::Thin do
   end
 
   Thread.pass until @server && @server.running?
-
-  should "respond" do
-    GET("/")
-    response.should.not.be.nil
   end
 
-  should "be a Thin" do
+  it "respond" do
     GET("/")
-    status.should.equal 200
-    response["SERVER_SOFTWARE"].should =~ /thin/
-    response["HTTP_VERSION"].should.equal "HTTP/1.1"
-    response["SERVER_PROTOCOL"].should.equal "HTTP/1.1"
-    response["SERVER_PORT"].should.equal "9204"
-    response["SERVER_NAME"].should.equal "127.0.0.1"
+    response.wont_be :nil?
   end
 
-  should "have rack headers" do
+  it "be a Thin" do
     GET("/")
-    response["rack.version"].should.equal [1,0]
-    response["rack.multithread"].should.equal false
-    response["rack.multiprocess"].should.equal false
-    response["rack.run_once"].should.equal false
+    status.must_equal 200
+    response["SERVER_SOFTWARE"].must_match(/thin/)
+    response["HTTP_VERSION"].must_equal "HTTP/1.1"
+    response["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
+    response["SERVER_PORT"].must_equal "9204"
+    response["SERVER_NAME"].must_equal "127.0.0.1"
   end
 
-  should "have CGI headers on GET" do
+  it "have rack headers" do
     GET("/")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["REQUEST_PATH"].should.equal "/"
-    response["PATH_INFO"].should.be.equal "/"
-    response["QUERY_STRING"].should.equal ""
-    response["test.postdata"].should.equal ""
+    response["rack.version"].must_equal [1,0]
+    response["rack.multithread"].must_equal false
+    response["rack.multiprocess"].must_equal false
+    response["rack.run_once"].must_equal false
+  end
+
+  it "have CGI headers on GET" do
+    GET("/")
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["REQUEST_PATH"].must_equal "/"
+    response["PATH_INFO"].must_equal "/"
+    response["QUERY_STRING"].must_equal ""
+    response["test.postdata"].must_equal ""
 
     GET("/test/foo?quux=1")
-    response["REQUEST_METHOD"].should.equal "GET"
-    response["REQUEST_PATH"].should.equal "/test/foo"
-    response["PATH_INFO"].should.equal "/test/foo"
-    response["QUERY_STRING"].should.equal "quux=1"
+    response["REQUEST_METHOD"].must_equal "GET"
+    response["REQUEST_PATH"].must_equal "/test/foo"
+    response["PATH_INFO"].must_equal "/test/foo"
+    response["QUERY_STRING"].must_equal "quux=1"
   end
 
-  should "have CGI headers on POST" do
+  it "have CGI headers on POST" do
     POST("/", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
-    status.should.equal 200
-    response["REQUEST_METHOD"].should.equal "POST"
-    response["REQUEST_PATH"].should.equal "/"
-    response["QUERY_STRING"].should.equal ""
-    response["HTTP_X_TEST_HEADER"].should.equal "42"
-    response["test.postdata"].should.equal "rack-form-data=23"
+    status.must_equal 200
+    response["REQUEST_METHOD"].must_equal "POST"
+    response["REQUEST_PATH"].must_equal "/"
+    response["QUERY_STRING"].must_equal ""
+    response["HTTP_X_TEST_HEADER"].must_equal "42"
+    response["test.postdata"].must_equal "rack-form-data=23"
   end
 
-  should "support HTTP auth" do
+  it "support HTTP auth" do
     GET("/test", {:user => "ruth", :passwd => "secret"})
-    response["HTTP_AUTHORIZATION"].should.equal "Basic cnV0aDpzZWNyZXQ="
+    response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 
-  should "set status" do
+  it "set status" do
     GET("/test?secret")
-    status.should.equal 403
-    response["rack.url_scheme"].should.equal "http"
+    status.must_equal 403
+    response["rack.url_scheme"].must_equal "http"
   end
 
-  should "set tag for server" do
-    @server.tag.should.equal 'tag'
+  it "set tag for server" do
+    @server.tag.must_equal 'tag'
   end
 
+  after do
   @server.stop!
-  @thread.kill
+  @thread.join
+  end
 
 end
 

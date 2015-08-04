@@ -24,8 +24,8 @@ module Rack
     rescue StandardError, LoadError, SyntaxError => e
       exception_string = dump_exception(e)
 
-      env["rack.errors"].puts(exception_string)
-      env["rack.errors"].flush
+      env[RACK_ERRORS].puts(exception_string)
+      env[RACK_ERRORS].flush
 
       if accepts_html?(env)
         content_type = "text/html"
@@ -39,7 +39,7 @@ module Rack
         500,
         {
           CONTENT_TYPE => content_type,
-          CONTENT_LENGTH => Rack::Utils.bytesize(body).to_s,
+          CONTENT_LENGTH => body.bytesize.to_s,
         },
         [body],
       ]

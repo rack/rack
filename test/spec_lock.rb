@@ -1,3 +1,4 @@
+require 'minitest/autorun'
 require 'rack/lint'
 require 'rack/lock'
 require 'rack/mock'
@@ -7,11 +8,6 @@ class Lock
 
   def initialize
     @synchronized = false
-  end
-
-  def synchronize
-    @synchronized = true
-    yield
   end
 
   def lock
@@ -35,12 +31,12 @@ module LockHelpers
 end
 
 describe Rack::Lock do
-  extend LockHelpers
+  include LockHelpers
 
   describe 'Proxy' do
-    extend LockHelpers
+    include LockHelpers
 
-    should 'delegate each' do
+    it 'delegate each' do
       env      = Rack::MockRequest.env_for("/")
       response = Class.new {
         attr_accessor :close_called
@@ -52,10 +48,10 @@ describe Rack::Lock do
       response = app.call(env)[2]
       list = []
       response.each { |x| list << x }
-      list.should.equal %w{ hi mom }
+      list.must_equal %w{ hi mom }
     end
 
-    should 'delegate to_path' do
+    it 'delegate to_path' do
       lock = Lock.new
       env  = Rack::MockRequest.env_for("/")
 
@@ -65,11 +61,11 @@ describe Rack::Lock do
       app = Rack::Lock.new(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, res] }, lock)
       body = app.call(env)[2]
 
-      body.should.respond_to :to_path
-      body.to_path.should.equal "/tmp/hello.txt"
+      body.must_respond_to :to_path
+      body.to_path.must_equal "/tmp/hello.txt"
     end
 
-    should 'not delegate to_path if body does not implement it' do
+    it 'not delegate to_path if body does not implement it' do
       env  = Rack::MockRequest.env_for("/")
 
       res = ['Hello World']
@@ -77,11 +73,11 @@ describe Rack::Lock do
       app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, res] })
       body = app.call(env)[2]
 
-      body.should.not.respond_to :to_path
+      body.wont_respond_to :to_path
     end
   end
 
-  should 'call super on close' do
+  it 'call super on close' do
     env      = Rack::MockRequest.env_for("/")
     response = Class.new {
       attr_accessor :close_called
@@ -91,74 +87,108 @@ describe Rack::Lock do
 
     app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, response] })
     app.call(env)
-    response.close_called.should.equal false
+    response.close_called.must_equal false
     response.close
-    response.close_called.should.equal true
+    response.close_called.must_equal true
   end
 
-  should "not unlock until body is closed" do
+  it "not unlock until body is closed" do
     lock     = Lock.new
     env      = Rack::MockRequest.env_for("/")
     response = Object.new
     app      = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, response] }, lock)
-    lock.synchronized.should.equal false
+    lock.synchronized.must_equal false
     response = app.call(env)[2]
-    lock.synchronized.should.equal true
+    lock.synchronized.must_equal true
     response.close
-    lock.synchronized.should.equal false
+    lock.synchronized.must_equal false
   end
 
-  should "return value from app" do
+  it "return value from app" do
     env  = Rack::MockRequest.env_for("/")
     body = [200, {"Content-Type" => "text/plain"}, %w{ hi mom }]
     app  = lock_app(lambda { |inner_env| body })
 
     res = app.call(env)
-    res[0].should.equal body[0]
-    res[1].should.equal body[1]
-    res[2].to_enum.to_a.should.equal ["hi", "mom"]
+    res[0].must_equal body[0]
+    res[1].must_equal body[1]
+    res[2].to_enum.to_a.must_equal ["hi", "mom"]
   end
 
-  should "call synchronize on lock" do
+  it "call synchronize on lock" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
     app = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, %w{ a b c }] }, lock)
-    lock.synchronized.should.equal false
+    lock.synchronized.must_equal false
     app.call(env)
-    lock.synchronized.should.equal true
+    lock.synchronized.must_equal true
   end
 
-  should "unlock if the app raises" do
+  it "unlock if the app raises" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
     app = lock_app(lambda { raise Exception }, lock)
-    lambda { app.call(env) }.should.raise(Exception)
-    lock.synchronized.should.equal false
+    lambda { app.call(env) }.must_raise Exception
+    lock.synchronized.must_equal false
   end
 
-  should "unlock if the app throws" do
+  it "unlock if the app throws" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
     app = lock_app(lambda {|_| throw :bacon }, lock)
-    lambda { app.call(env) }.should.throw(:bacon)
-    lock.synchronized.should.equal false
+    lambda { app.call(env) }.must_throw :bacon
+    lock.synchronized.must_equal false
   end
 
-  should "set multithread flag to false" do
+  it "set multithread flag to false" do
     app = lock_app(lambda { |env|
-      env['rack.multithread'].should.equal false
+      env['rack.multithread'].must_equal false
       [200, {"Content-Type" => "text/plain"}, %w{ a b c }]
     }, false)
-    app.call(Rack::MockRequest.env_for("/"))
+    env = Rack::MockRequest.env_for("/")
+    env['rack.multithread'].must_equal true
+    app.call(env)
+    env['rack.multithread'].must_equal true
   end
 
-  should "reset original multithread flag when exiting lock" do
+  it "reset original multithread flag when exiting lock" do
     app = Class.new(Rack::Lock) {
       def call(env)
-        env['rack.multithread'].should.equal true
+        env['rack.multithread'].must_equal true
         super
       end
     }.new(lambda { |env| [200, {"Content-Type" => "text/plain"}, %w{ a b c }] })
     Rack::Lint.new(app).call(Rack::MockRequest.env_for("/"))
+  end
+
+  it 'not unlock if an error is raised before the mutex is locked' do
+    lock = Class.new do
+      def initialize() @unlocked = false end
+      def unlocked?() @unlocked end
+      def lock() raise Exception end
+      def unlock() @unlocked = true end
+    end.new
+    env = Rack::MockRequest.env_for("/")
+    app = lock_app(proc { [200, {"Content-Type" => "text/plain"}, []] }, lock)
+    lambda { app.call(env) }.must_raise Exception
+    lock.unlocked?.must_equal false
+  end
+
+  it "not reset the environment while the body is proxied" do
+    proxy = Class.new do
+      attr_reader :env
+      def initialize(env) @env = env end
+    end
+    app = Rack::Lock.new lambda { |env| [200, {"Content-Type" => "text/plain"}, proxy.new(env)] }
+    response = app.call(Rack::MockRequest.env_for("/"))[2]
+    response.env['rack.multithread'].must_equal false
+  end
+
+  it "unlock if an exception occurs before returning" do
+    lock = Lock.new
+    env  = Rack::MockRequest.env_for("/")
+    app  = lock_app(proc { [].freeze }, lock)
+    lambda { app.call(env) }.must_raise Exception
+    lock.synchronized.must_equal false
   end
 end

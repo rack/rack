@@ -7,7 +7,7 @@
 # modules and classes.
 #
 # All modules meant for use in your application are <tt>autoload</tt>ed here,
-# so it should be enough just to <tt>require rack.rb</tt> in your code.
+# so it should be enough just to <tt>require 'rack'</tt> in your code.
 
 module Rack
   # The Rack protocol version number implemented.
@@ -18,27 +18,33 @@ module Rack
     VERSION.join(".")
   end
 
+  RELEASE = "2.0.0.alpha"
+
   # Return the Rack release as a dotted string.
   def self.release
-    "1.6"
+    RELEASE
   end
 
-  HTTP_HOST       = 'HTTP_HOST'.freeze
-  HTTP_VERSION    = 'HTTP_VERSION'.freeze
-  HTTPS           = 'HTTPS'.freeze
-  PATH_INFO       = 'PATH_INFO'.freeze
-  REQUEST_METHOD  = 'REQUEST_METHOD'.freeze
-  REQUEST_PATH    = 'REQUEST_PATH'.freeze
-  SCRIPT_NAME     = 'SCRIPT_NAME'.freeze
-  QUERY_STRING    = 'QUERY_STRING'.freeze
-  SERVER_PROTOCOL = 'SERVER_PROTOCOL'.freeze
-  SERVER_NAME     = 'SERVER_NAME'.freeze
-  SERVER_ADDR     = 'SERVER_ADDR'.freeze
-  SERVER_PORT     = 'SERVER_PORT'.freeze
-  CACHE_CONTROL   = 'Cache-Control'.freeze
-  CONTENT_LENGTH  = 'Content-Length'.freeze
-  CONTENT_TYPE    = 'Content-Type'.freeze
+  HTTP_HOST         = 'HTTP_HOST'.freeze
+  HTTP_VERSION      = 'HTTP_VERSION'.freeze
+  HTTPS             = 'HTTPS'.freeze
+  PATH_INFO         = 'PATH_INFO'.freeze
+  REQUEST_METHOD    = 'REQUEST_METHOD'.freeze
+  REQUEST_PATH      = 'REQUEST_PATH'.freeze
+  SCRIPT_NAME       = 'SCRIPT_NAME'.freeze
+  QUERY_STRING      = 'QUERY_STRING'.freeze
+  SERVER_PROTOCOL   = 'SERVER_PROTOCOL'.freeze
+  SERVER_NAME       = 'SERVER_NAME'.freeze
+  SERVER_ADDR       = 'SERVER_ADDR'.freeze
+  SERVER_PORT       = 'SERVER_PORT'.freeze
+  CACHE_CONTROL     = 'Cache-Control'.freeze
+  CONTENT_LENGTH    = 'Content-Length'.freeze
+  CONTENT_TYPE      = 'Content-Type'.freeze
+  SET_COOKIE        = 'Set-Cookie'.freeze
+  TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
+  HTTP_COOKIE       = 'HTTP_COOKIE'.freeze
 
+  # HTTP method verbs
   GET     = 'GET'.freeze
   POST    = 'POST'.freeze
   PUT     = 'PUT'.freeze
@@ -50,12 +56,41 @@ module Rack
   UNLINK  = 'UNLINK'.freeze
   TRACE   = 'TRACE'.freeze
 
+  # Rack environment variables
+  RACK_VERSION                        = 'rack.version'.freeze
+  RACK_TEMPFILES                      = 'rack.tempfiles'.freeze
+  RACK_ERRORS                         = 'rack.errors'.freeze
+  RACK_LOGGER                         = 'rack.logger'.freeze
+  RACK_INPUT                          = 'rack.input'.freeze
+  RACK_SESSION                        = 'rack.session'.freeze
+  RACK_SESSION_OPTIONS                = 'rack.session.options'.freeze
+  RACK_SHOWSTATUS_DETAIL              = 'rack.showstatus.detail'.freeze
+  RACK_MULTITHREAD                    = 'rack.multithread'.freeze
+  RACK_MULTIPROCESS                   = 'rack.multiprocess'.freeze
+  RACK_RUNONCE                        = 'rack.run_once'.freeze
+  RACK_URL_SCHEME                     = 'rack.url_scheme'.freeze
+  RACK_HIJACK                         = 'rack.hijack'.freeze
+  RACK_IS_HIJACK                      = 'rack.hijack?'.freeze
+  RACK_HIJACK_IO                      = 'rack.hijack_io'.freeze
+  RACK_RECURSIVE_INCLUDE              = 'rack.recursive.include'.freeze
+  RACK_MULTIPART_BUFFER_SIZE          = 'rack.multipart.buffer_size'.freeze
+  RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'.freeze
+  RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'.freeze
+  RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'.freeze
+  RACK_REQUEST_FORM_VARS              = 'rack.request.form_vars'.freeze
+  RACK_REQUEST_COOKIE_HASH            = 'rack.request.cookie_hash'.freeze
+  RACK_REQUEST_COOKIE_STRING          = 'rack.request.cookie_string'.freeze
+  RACK_REQUEST_QUERY_HASH             = 'rack.request.query_hash'.freeze
+  RACK_REQUEST_QUERY_STRING           = 'rack.request.query_string'.freeze
+  RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'.freeze
+  RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'.freeze
+
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
   autoload :Chunked, "rack/chunked"
-  autoload :CommonLogger, "rack/commonlogger"
-  autoload :ConditionalGet, "rack/conditionalget"
+  autoload :CommonLogger, "rack/common_logger"
+  autoload :ConditionalGet, "rack/conditional_get"
   autoload :Config, "rack/config"
   autoload :ContentLength, "rack/content_length"
   autoload :ContentType, "rack/content_type"
@@ -69,16 +104,16 @@ module Rack
   autoload :Lint, "rack/lint"
   autoload :Lock, "rack/lock"
   autoload :Logger, "rack/logger"
-  autoload :MethodOverride, "rack/methodoverride"
+  autoload :MethodOverride, "rack/method_override"
   autoload :Mime, "rack/mime"
-  autoload :NullLogger, "rack/nulllogger"
+  autoload :NullLogger, "rack/null_logger"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :Runtime, "rack/runtime"
   autoload :Sendfile, "rack/sendfile"
   autoload :Server, "rack/server"
-  autoload :ShowExceptions, "rack/showexceptions"
-  autoload :ShowStatus, "rack/showstatus"
+  autoload :ShowExceptions, "rack/show_exceptions"
+  autoload :ShowStatus, "rack/show_status"
   autoload :Static, "rack/static"
   autoload :TempfileReaper, "rack/tempfile_reaper"
   autoload :URLMap, "rack/urlmap"
@@ -107,9 +142,5 @@ module Rack
     autoload :Cookie, "rack/session/cookie"
     autoload :Pool, "rack/session/pool"
     autoload :Memcache, "rack/session/memcache"
-  end
-
-  module Utils
-    autoload :OkJson, "rack/utils/okjson"
   end
 end

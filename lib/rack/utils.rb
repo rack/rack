@@ -3,33 +3,28 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'rack/multipart'
+require 'rack/query_parser'
 require 'time'
 
-major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
-
-if major == 1 && minor < 9
-  require 'rack/backports/uri/common_18'
-elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL <= 328 && RUBY_ENGINE != 'jruby'
-  require 'rack/backports/uri/common_192'
-elsif major == 1 && minor == 9 && patch == 3 && RUBY_PATCHLEVEL < 125
-  require 'rack/backports/uri/common_193'
-else
-  require 'uri/common'
-end
+require 'uri/common'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    # ParameterTypeError is the error that is raised when incoming structural
-    # parameters (parsed by parse_nested_query) contain conflicting types.
-    class ParameterTypeError < TypeError; end
+    ParameterTypeError = QueryParser::ParameterTypeError
+    InvalidParameterError = QueryParser::InvalidParameterError
+    DEFAULT_SEP = QueryParser::DEFAULT_SEP
+    COMMON_SEP = QueryParser::COMMON_SEP
+    KeySpaceConstrainedParams = QueryParser::Params
 
-    # InvalidParameterError is the error that is raised when incoming structural
-    # parameters (parsed by parse_nested_query) contain invalid format or byte
-    # sequence.
-    class InvalidParameterError < ArgumentError; end
+    class << self
+      attr_accessor :default_query_parser
+    end
+    # The default number of bytes to allow parameter keys to take up.
+    # This helps prevent a rogue client from flooding a Request.
+    self.default_query_parser = QueryParser.make_default(65536, 100)
 
     # URI escapes. (CGI style space to +)
     def escape(s)
@@ -46,28 +41,14 @@ module Rack
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = Encoding::UTF_8)
+      URI.decode_www_form_component(s, encoding)
     end
     module_function :unescape
 
-    DEFAULT_SEP = /[&;] */n
-    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
-
     class << self
-      attr_accessor :key_space_limit
       attr_accessor :multipart_part_limit
     end
-
-    # The default number of bytes to allow parameter keys to take up.
-    # This helps prevent a rogue client from flooding a Request.
-    self.key_space_limit = 65536
 
     # The maximum number of parts a request can contain. Accepting too many part
     # can lead to the server running out of file handles.
@@ -75,97 +56,31 @@ module Rack
     # FIXME: RACK_MULTIPART_LIMIT was introduced by mistake and it will be removed in 1.7.0
     self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
 
-    # Stolen from Mongrel, with some small modifications:
-    # Parses a query string by breaking it up at the '&'
-    # and ';' characters.  You can also use this to parse
-    # cookies by changing the characters used in the second
-    # parameter (which defaults to '&;').
+    def self.param_depth_limit
+      default_query_parser.param_depth_limit
+    end
+
+    def self.param_depth_limit=(v)
+      self.default_query_parser = self.default_query_parser.new_depth_limit(v)
+    end
+
+    def self.key_space_limit
+      default_query_parser.key_space_limit
+    end
+
+    def self.key_space_limit=(v)
+      self.default_query_parser = self.default_query_parser.new_space_limit(v)
+    end
+
     def parse_query(qs, d = nil, &unescaper)
-      unescaper ||= method(:unescape)
-
-      params = KeySpaceConstrainedParams.new
-
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        next if p.empty?
-        k, v = p.split('='.freeze, 2).map!(&unescaper)
-
-        if cur = params[k]
-          if cur.class == Array
-            params[k] << v
-          else
-            params[k] = [cur, v]
-          end
-        else
-          params[k] = v
-        end
-      end
-
-      return params.to_params_hash
+      Rack::Utils.default_query_parser.parse_query(qs, d, &unescaper)
     end
     module_function :parse_query
 
-    # parse_nested_query expands a query string into structural types. Supported
-    # types are Arrays, Hashes and basic value types. It is possible to supply
-    # query strings with parameters of conflicting types, in this case a
-    # ParameterTypeError is raised. Users are encouraged to return a 400 in this
-    # case.
     def parse_nested_query(qs, d = nil)
-      return {} if qs.nil? || qs.empty?
-      params = KeySpaceConstrainedParams.new
-
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
-
-        normalize_params(params, k, v)
-      end
-
-      return params.to_params_hash
-    rescue ArgumentError => e
-      raise InvalidParameterError, e.message
+      Rack::Utils.default_query_parser.parse_nested_query(qs, d)
     end
     module_function :parse_nested_query
-
-    # normalize_params recursively expands parameters into structural types. If
-    # the structural types represented by two different parameter names are in
-    # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v = nil)
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
-
-      return if k.empty?
-
-      if after == ""
-        params[k] = v
-      elsif after == "["
-        params[name] = v
-      elsif after == "[]"
-        params[k] ||= []
-        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
-        child_key = $1
-        params[k] ||= []
-        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
-          normalize_params(params[k].last, child_key, v)
-        else
-          params[k] << normalize_params(params.class.new, child_key, v)
-        end
-      else
-        params[k] ||= params.class.new
-        raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v)
-      end
-
-      return params
-    end
-    module_function :normalize_params
-
-    def params_hash_type?(obj)
-      obj.kind_of?(KeySpaceConstrainedParams) || obj.kind_of?(Hash)
-    end
-    module_function :params_hash_type?
 
     def build_query(params)
       params.map { |k, v|
@@ -231,13 +146,8 @@ module Rack
       '"' => "&quot;",
       "/" => "&#x2F;"
     }
-    if //.respond_to?(:encoding)
-      ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-    else
-      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwise
-      # TODO doesn't apply to jruby, so a better condition above might be preferable?
-      ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
-    end
+
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
@@ -273,7 +183,18 @@ module Rack
     end
     module_function :select_best_encoding
 
-    def set_cookie_header!(header, key, value)
+    def parse_cookies(env)
+      # According to RFC 2109:
+      #   If multiple cookies satisfy the criteria above, they are ordered in
+      #   the Cookie header such that those with more specific Path attributes
+      #   precede those with less specific.  Ordering with respect to other
+      #   attributes (e.g., Domain) is unspecified.
+      cookies = parse_query(env[HTTP_COOKIE], ';,') { |s| unescape(s) rescue s }
+      cookies.each_with_object({}) { |(k,v), hash| hash[k] = Array === v ? v.first : v }
+    end
+    module_function :parse_cookies
+
+    def make_cookie_header(header, key, value)
       case value
       when Hash
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
@@ -313,27 +234,31 @@ module Rack
       cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}"
 
-      case header["Set-Cookie"]
+      case header
       when nil, ''
-        header["Set-Cookie"] = cookie
+        cookie
       when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+        [header, cookie].join("\n")
       when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        (header + [cookie]).join("\n")
       end
+    end
+    module_function :make_cookie_header
 
+    def set_cookie_header!(header, key, value)
+      header[SET_COOKIE] = make_cookie_header(header[SET_COOKIE], key, value)
       nil
     end
     module_function :set_cookie_header!
 
-    def delete_cookie_header!(header, key, value = {})
-      case header["Set-Cookie"]
+    def make_delete_cookie_header(header, key, value)
+      case header
       when nil, ''
         cookies = []
       when String
-        cookies = header["Set-Cookie"].split("\n")
+        cookies = header.split("\n")
       when Array
-        cookies = header["Set-Cookie"]
+        cookies = header
       end
 
       cookies.reject! { |cookie|
@@ -346,9 +271,14 @@ module Rack
         end
       }
 
-      header["Set-Cookie"] = cookies.join("\n")
+      cookies.join("\n")
+    end
+    module_function :make_delete_cookie_header
 
-      set_cookie_header!(header, key,
+    def delete_cookie_header!(header, key, value = {})
+      new_header = make_delete_cookie_header(header[SET_COOKIE], key, value)
+
+      header[SET_COOKIE] = make_cookie_header(new_header, key,
                  {:value => '', :path => nil, :domain => nil,
                    :max_age => '0',
                    :expires => Time.at(0) }.merge(value))
@@ -356,19 +286,6 @@ module Rack
       nil
     end
     module_function :delete_cookie_header!
-
-    # Return the bytesize of String; uses String#size under Ruby 1.8 and
-    # String#bytesize under 1.9.
-    if ''.respond_to?(:bytesize)
-      def bytesize(string)
-        string.bytesize
-      end
-    else
-      def bytesize(string)
-        string.size
-      end
-    end
-    module_function :bytesize
 
     def rfc2822(time)
       time.rfc2822
@@ -431,7 +348,7 @@ module Rack
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
     def secure_compare(a, b)
-      return false unless bytesize(a) == bytesize(b)
+      return false unless a.bytesize == b.bytesize
 
       l = a.unpack("C*")
 
@@ -478,6 +395,12 @@ module Rack
         super()
         @names = {}
         hash.each { |k, v| self[k] = v }
+      end
+
+      # on dup/clone, we need to duplicate @names hash
+      def initialize_copy(other)
+        super
+        @names = other.names.dup
       end
 
       def each
@@ -532,45 +455,11 @@ module Rack
         other.each { |k, v| self[k] = v }
         self
       end
-    end
 
-    class KeySpaceConstrainedParams
-      def initialize(limit = Utils.key_space_limit)
-        @limit  = limit
-        @size   = 0
-        @params = {}
-      end
-
-      def [](key)
-        @params[key]
-      end
-
-      def []=(key, value)
-        @size += key.size if key && !@params.key?(key)
-        raise RangeError, 'exceeded available parameter key space' if @size > @limit
-        @params[key] = value
-      end
-
-      def key?(key)
-        @params.key?(key)
-      end
-
-      def to_params_hash
-        hash = @params
-        hash.keys.each do |key|
-          value = hash[key]
-          if value.kind_of?(self.class)
-            if value.object_id == self.object_id
-              hash[key] = hash
-            else
-              hash[key] = value.to_params_hash
-            end
-          elsif value.kind_of?(Array)
-            value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
-          end
+      protected
+        def names
+          @names
         end
-        hash
-      end
     end
 
     # Every standard HTTP code mapped to the appropriate message.

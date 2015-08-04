@@ -4,20 +4,13 @@
 require 'time'
 require 'rack/request'
 require 'rack/response'
-begin
-  require 'securerandom'
-rescue LoadError
-  # We just won't get securerandom
-end
+require 'securerandom'
 
 module Rack
 
   module Session
 
     module Abstract
-      ENV_SESSION_KEY = 'rack.session'.freeze
-      ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
-
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash
@@ -25,15 +18,15 @@ module Rack
         attr_writer :id
 
         def self.find(env)
-          env[ENV_SESSION_KEY]
+          env[RACK_SESSION]
         end
 
         def self.set(env, session)
-          env[ENV_SESSION_KEY] = session
+          env[RACK_SESSION] = session
         end
 
         def self.set_options(env, options)
-          env[ENV_SESSION_OPTIONS_KEY] = options.dup
+          env[RACK_SESSION_OPTIONS] = options.dup
         end
 
         def initialize(store, env)
@@ -48,7 +41,7 @@ module Rack
         end
 
         def options
-          @env[ENV_SESSION_OPTIONS_KEY]
+          @env[RACK_SESSION_OPTIONS]
         end
 
         def each(&block)
@@ -193,7 +186,7 @@ module Rack
 
       class ID
         DEFAULT_OPTIONS = {
-          :key =>           'rack.session',
+          :key =>           RACK_SESSION,
           :path =>          '/',
           :domain =>        nil,
           :expire_after =>  nil,
@@ -203,10 +196,10 @@ module Rack
           :renew =>         false,
           :sidbits =>       128,
           :cookie_only =>   true,
-          :secure_random => (::SecureRandom rescue false)
+          :secure_random => ::SecureRandom
         }
 
-        attr_reader :key, :default_options
+        attr_reader :key, :default_options, :sid_secure
 
         def initialize(app, options={})
           @app = app
@@ -252,10 +245,10 @@ module Rack
         # metadata into 'rack.session.options'.
 
         def prepare_session(env)
-          session_was                  = env[ENV_SESSION_KEY]
-          env[ENV_SESSION_KEY]         = session_class.new(self, env)
-          env[ENV_SESSION_OPTIONS_KEY] = @default_options.dup
-          env[ENV_SESSION_KEY].merge! session_was if session_was
+          session_was               = env[RACK_SESSION]
+          env[RACK_SESSION]         = session_class.new(self, env)
+          env[RACK_SESSION_OPTIONS] = @default_options.dup
+          env[RACK_SESSION].merge! session_was if session_was
         end
 
         # Extracts the session id from provided cookies and passes it and the
@@ -279,7 +272,7 @@ module Rack
         # Returns the current session id from the SessionHash.
 
         def current_session_id(env)
-          env[ENV_SESSION_KEY].id
+          env[RACK_SESSION].id
         end
 
         # Check if the session exists or not.
@@ -325,7 +318,7 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env[ENV_SESSION_KEY]
+          session = env[RACK_SESSION]
           options = session.options
 
           if options[:drop] || options[:renew]
@@ -340,9 +333,9 @@ module Rack
           session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
           if not data = set_session(env, session_id, session_data, options)
-            env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            env[RACK_ERRORS].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            env["rack.errors"].puts("Deferring cookie for #{session_id}") if $VERBOSE
+            env[RACK_ERRORS].puts("Deferring cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = data

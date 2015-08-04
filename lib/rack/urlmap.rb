@@ -41,17 +41,17 @@ module Rack
     end
 
     def call(env)
-      path = env[PATH_INFO]
+      path        = env[PATH_INFO]
       script_name = env[SCRIPT_NAME]
-      hHost = env[HTTP_HOST]
-      sName = env[SERVER_NAME]
-      sPort = env[SERVER_PORT]
+      http_host   = env[HTTP_HOST]
+      server_name = env[SERVER_NAME]
+      server_port = env[SERVER_PORT]
 
       @mapping.each do |host, location, match, app|
-        unless casecmp?(hHost, host) \
-            || casecmp?(sName, host) \
-            || (!host && (casecmp?(hHost, sName) ||
-                          casecmp?(hHost, sName+':'+sPort)))
+        unless casecmp?(http_host, host) \
+            || casecmp?(server_name, host) \
+            || (!host && (casecmp?(http_host, server_name) ||
+                          casecmp?(http_host, "#{server_name}:#{server_port}")))
           next
         end
 
@@ -69,7 +69,7 @@ module Rack
       [404, {CONTENT_TYPE => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
 
     ensure
-      env[PATH_INFO] = path
+      env[PATH_INFO]   = path
       env[SCRIPT_NAME] = script_name
     end
 
@@ -87,4 +87,3 @@ module Rack
     end
   end
 end
-

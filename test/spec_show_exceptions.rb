@@ -1,4 +1,5 @@
-require 'rack/showexceptions'
+require 'minitest/autorun'
+require 'rack/show_exceptions'
 require 'rack/lint'
 require 'rack/mock'
 
@@ -6,7 +7,7 @@ describe Rack::ShowExceptions do
   def show_exceptions(app)
     Rack::Lint.new Rack::ShowExceptions.new(app)
   end
-  
+
   it "catches exceptions" do
     res = nil
 
@@ -15,15 +16,13 @@ describe Rack::ShowExceptions do
         lambda{|env| raise RuntimeError }
     ))
 
-    lambda{
-      res = req.get("/", "HTTP_ACCEPT" => "text/html")
-    }.should.not.raise
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
 
-    res.should.be.a.server_error
-    res.status.should.equal 500
+    res.must_be :server_error?
+    res.status.must_equal 500
 
-    res.should =~ /RuntimeError/
-    res.should =~ /ShowExceptions/
+    assert_match(res, /RuntimeError/)
+    assert_match(res, /ShowExceptions/)
   end
 
   it "responds with HTML only to requests accepting HTML" do
@@ -42,22 +41,20 @@ describe Rack::ShowExceptions do
       ["text/plain", ["/"]],
       ["text/plain", ["/", {"HTTP_ACCEPT" => "application/json"}]]
     ].each do |exmime, rargs|
-      lambda{
-        res = req.get(*rargs)
-      }.should.not.raise
+      res = req.get(*rargs)
 
-      res.should.be.a.server_error
-      res.status.should.equal 500
+      res.must_be :server_error?
+      res.status.must_equal 500
 
-      res.content_type.should.equal exmime
+      res.content_type.must_equal exmime
 
-      res.body.should.include "RuntimeError"
-      res.body.should.include "It was never supposed to work"
+      res.body.must_include "RuntimeError"
+      res.body.must_include "It was never supposed to work"
 
       if exmime == "text/html"
-        res.body.should.include '</html>'
+        res.body.must_include '</html>'
       else
-        res.body.should.not.include '</html>'
+        res.body.wont_include '</html>'
       end
     end
   end
@@ -71,15 +68,13 @@ describe Rack::ShowExceptions do
       )
     )
 
-    lambda{
-      res = req.get("/", "HTTP_ACCEPT" => "text/html")
-    }.should.not.raise
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
 
-    res.should.be.a.server_error
-    res.status.should.equal 500
+    res.must_be :server_error?
+    res.status.must_equal 500
 
-    res.should =~ /RuntimeError/
-    res.should =~ /ShowExceptions/
-    res.should =~ /unknown location/
+    assert_match(res, /RuntimeError/)
+    assert_match(res, /ShowExceptions/)
+    assert_match(res, /unknown location/)
   end
 end
