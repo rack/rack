@@ -14,13 +14,13 @@ module Rack
 
   class ShowExceptions
     CONTEXT = 7
-    
+
     class << self
       def template
         @template ||= ERB.new(TEMPLATE)
       end
     end
-    
+
     def template
       self.class.template
     end
