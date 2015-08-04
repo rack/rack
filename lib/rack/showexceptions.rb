@@ -15,16 +15,6 @@ module Rack
   class ShowExceptions
     CONTEXT = 7
 
-    class << self
-      def template
-        @template ||= ERB.new(TEMPLATE)
-      end
-    end
-
-    def template
-      self.class.template
-    end
-
     def initialize(app)
       @app = app
     end
@@ -103,7 +93,7 @@ module Rack
         end
       }.compact
 
-      template.result(binding)
+      TEMPLATE.result(binding)
     end
 
     def h(obj)                  # :nodoc:
@@ -121,7 +111,7 @@ module Rack
     # Copyright (c) 2005, the Lawrence Journal-World
     # Used under the modified BSD license:
     # http://www.xfree86.org/3.3.6/COPYRIGHT2.html#5
-    TEMPLATE = <<-'HTML'.gsub(/^      /, '')
+    TEMPLATE = ERB.new(<<-'HTML'.gsub(/^      /, ''))
       <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
       <html lang="en">
       <head>
