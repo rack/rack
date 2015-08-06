@@ -245,10 +245,10 @@ module Rack
         # metadata into 'rack.session.options'.
 
         def prepare_session(env)
-          session_was               = env[RACK_SESSION]
-          env[RACK_SESSION]         = session_class.new(self, env)
+          session_was               = env[@key]
+          env[@key]         = session_class.new(self, env)
           env[RACK_SESSION_OPTIONS] = @default_options.dup
-          env[RACK_SESSION].merge! session_was if session_was
+          env[@key].merge! session_was if session_was
         end
 
         # Extracts the session id from provided cookies and passes it and the
@@ -272,7 +272,7 @@ module Rack
         # Returns the current session id from the SessionHash.
 
         def current_session_id(env)
-          env[RACK_SESSION].id
+          env[@key].id
         end
 
         # Check if the session exists or not.
@@ -318,7 +318,7 @@ module Rack
         # response with the session's id.
 
         def commit_session(env, status, headers, body)
-          session = env[RACK_SESSION]
+          session = env[@key]
           options = session.options
 
           if options[:drop] || options[:renew]
