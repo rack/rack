@@ -3,6 +3,7 @@ require 'stringio'
 require 'cgi'
 require 'rack/request'
 require 'rack/mock'
+require 'rack/multipart'
 require 'securerandom'
 
 describe Rack::Request do
