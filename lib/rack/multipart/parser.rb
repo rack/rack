@@ -158,7 +158,7 @@ module Rack
           if filename = params['filename']
             filename = $1 if filename =~ /^"(.*)"$/
           elsif filename = params['filename*']
-            encoding, locale, filename = filename.split("'", 3)
+            encoding, _, filename = filename.split("'", 3)
           end
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
