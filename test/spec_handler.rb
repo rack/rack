@@ -29,9 +29,17 @@ describe Rack::Handler do
     Rack::Handler.get('Lobster').must_equal Rack::Handler::Lobster
   end
 
+  it "returned the webrick handler as default" do
+    Rack::Handler.default.must_equal Rack::Handler::WEBrick
+  end
+
   it "register custom handler" do
     Rack::Handler.register('rock_lobster', 'RockLobster')
     Rack::Handler.get('rock_lobster').must_equal RockLobster
+  end
+  
+  it "returned the newly registered handler as default" do
+    Rack::Handler.default.must_equal RockLobster
   end
 
   it "not need registration for properly coded handlers even if not already required" do
