@@ -95,8 +95,12 @@ module Rack
       @file_server = Rack::File.new(root)
     end
 
+    def add_index_root?(path)
+      @index && path =~ /\/$/
+    end
+
     def overwrite_file_path(path)
-      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path =~ /\/$/
+      @urls.kind_of?(Hash) && @urls.key?(path) || add_index_root?(path)
     end
 
     def route_file(path)
@@ -112,7 +116,7 @@ module Rack
 
       if can_serve(path)
         if overwrite_file_path(path)
-          env[PATH_INFO] = (path =~ /\/$/ ? path + @index : @urls[path])
+          env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
         elsif @gzip && env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
           path = env[PATH_INFO]
           env[PATH_INFO] += '.gz'

@@ -21,12 +21,14 @@ describe Rack::Static do
   OPTIONS = {:urls => ["/cgi"], :root => root}
   STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
   HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
+  HASH_ROOT_OPTIONS = {:urls => {"/" => "static/foo.html"}, :root => root}
   GZIP_OPTIONS = {:urls => ["/cgi"], :root => root, :gzip=>true}
 
   before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
+  @hash_root_request = Rack::MockRequest.new(static(DummyApp.new, HASH_ROOT_OPTIONS))
   @gzip_request = Rack::MockRequest.new(static(DummyApp.new, GZIP_OPTIONS))
   @header_request = Rack::MockRequest.new(static(DummyApp.new, HEADER_OPTIONS))
   end
@@ -76,6 +78,12 @@ describe Rack::Static do
     res = @hash_request.get("/something/else")
     res.must_be :ok?
     res.body.must_equal "Hello World"
+  end
+
+  it "allows the root URI to be configured via hash options" do
+    res = @hash_root_request.get("/")
+    res.must_be :ok?
+    res.body.must_match(/foo.html!/)
   end
 
   it "serves gzipped files if client accepts gzip encoding and gzip files are present" do
