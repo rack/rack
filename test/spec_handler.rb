@@ -5,6 +5,10 @@ class Rack::Handler::Lobster; end
 class RockLobster; end
 
 describe Rack::Handler do
+  it "returned the webrick handler as default" do
+    Rack::Handler.default.must_equal Rack::Handler::WEBrick
+  end
+
   it "has registered default handlers" do
     Rack::Handler.get('cgi').must_equal Rack::Handler::CGI
     Rack::Handler.get('webrick').must_equal Rack::Handler::WEBrick
@@ -27,10 +31,6 @@ describe Rack::Handler do
 
   it "get unregistered, but already required, handler by name" do
     Rack::Handler.get('Lobster').must_equal Rack::Handler::Lobster
-  end
-
-  it "returned the webrick handler as default" do
-    Rack::Handler.default.must_equal Rack::Handler::WEBrick
   end
 
   it "register custom handler" do
