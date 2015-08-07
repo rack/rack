@@ -46,10 +46,6 @@ describe Rack::Handler do
     end
   end
 
-  it "returned the newly registered RegisteringMyself handler as default" do
-      Rack::Handler.default.must_equal Rack::Handler::RegisteringMyself
-  end
-
   it "allow autoloaded handlers to be registered properly while being loaded" do
     path = File.expand_path('../registering_handler', __FILE__)
     begin
@@ -57,14 +53,6 @@ describe Rack::Handler do
       Rack::Handler.get('registering_myself').must_equal Rack::Handler::RegisteringMyself
     ensure
       $LOAD_PATH.delete path
-    end
-  end
-
-  it "returned the webrick handler as default" do
-    begin
-      Rack::Handler.default.name.must_match /webrick|thin|puma/i
-    rescue => e
-      puts e.message
     end
   end
 end
