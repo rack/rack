@@ -5,9 +5,6 @@ class Rack::Handler::Lobster; end
 class RockLobster; end
 
 describe Rack::Handler do
-  # it "returned the webrick handler as default" do
-  #   Rack::Handler.default.must_equal Rack::Handler::WEBrick
-  # end
 
   it "has registered default handlers" do
     Rack::Handler.get('cgi').must_equal Rack::Handler::CGI
@@ -38,10 +35,6 @@ describe Rack::Handler do
     Rack::Handler.get('rock_lobster').must_equal RockLobster
   end
   
-  it "returned the newly registered RockLobster handler as default" do
-    Rack::Handler.default.must_equal RockLobster
-  end
-
   it "not need registration for properly coded handlers even if not already required" do
     begin
       $LOAD_PATH.push File.expand_path('../unregistered_handler', __FILE__)
@@ -50,6 +43,14 @@ describe Rack::Handler do
       Rack::Handler.get('UnregisteredLongOne').must_equal Rack::Handler::UnregisteredLongOne
     ensure
       $LOAD_PATH.delete File.expand_path('../unregistered_handler', __FILE__)
+    end
+  end
+  
+  it "returned the newly registered RegisteringMyself handler as default" do
+    begin
+      Rack::Handler.default.must_equal Rack::Handler::RegisteringMyself
+    rescue => e
+      
     end
   end
 
@@ -61,5 +62,9 @@ describe Rack::Handler do
     ensure
       $LOAD_PATH.delete path
     end
+  end
+
+  it "returned the webrick handler as default" do
+    Rack::Handler.default.must_equal Rack::Handler::WEBrick
   end
 end
