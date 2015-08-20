@@ -7,6 +7,52 @@ require 'rack/multipart'
 require 'securerandom'
 
 describe Rack::Request do
+  it "can get a key from the env" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    assert_equal "example.com", req.get_header("SERVER_NAME")
+  end
+
+  it 'yields to the block if no value has been set' do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    yielded = false
+    req.get_header("FOO") do
+      yielded = true
+      req.set_header "FOO", 'bar'
+    end
+
+    assert yielded
+    assert_equal "bar", req.get_header("FOO")
+  end
+
+  it 'can set values in the env' do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header("FOO", "BAR")
+    assert_equal "BAR", req.get_header("FOO")
+  end
+
+  it 'can check if something has been set' do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    refute req.has_header?("FOO")
+  end
+
+  it 'can iterate over values' do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header 'foo', 'bar'
+    hash = {}
+    req.each_header do |k,v|
+      hash[k] = v
+    end
+    assert_equal 'bar', hash['foo']
+  end
+
+  it 'can delete env values' do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header 'foo', 'bar'
+    assert req.has_header? 'foo'
+    req.delete_header 'foo'
+    refute req.has_header? 'foo'
+  end
+
   it "wrap the rack variables" do
     req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
 

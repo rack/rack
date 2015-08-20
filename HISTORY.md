@@ -1,3 +1,14 @@
+Thu Aug 20 16:20:58 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Added methods for manipulating request specific data.  This includes
+	data set as CGI parameters, and just any arbitrary data the user wants
+	to associate with a particular request.  New methods:
+
+	  * Rack::Request#get_header
+	  * Rack::Request#set_header
+	  * Rack::Request#has_header?
+	  * Rack::Request#each_header
+
 Thu Jun 18 16:00:05 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	*  lib/rack/utils.rb: add a method for constructing "delete" cookie
