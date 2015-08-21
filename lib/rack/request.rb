@@ -386,6 +386,10 @@ module Rack
       return reject_trusted_ip_addresses(forwarded_ips).last || @env["REMOTE_ADDR"]
     end
 
+    def initialize_copy(other)
+      @env = other.env.dup
+    end
+
     protected
       def split_ip_addresses(ip_addresses)
         ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []

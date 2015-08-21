@@ -1,3 +1,8 @@
+Fri Aug 21 16:30:51 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Request#initialize_copy` so that the env is duped when
+	the request gets duped.
+
 Thu Aug 20 16:20:58 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Added methods for manipulating request specific data.  This includes

@@ -7,6 +7,11 @@ require 'rack/multipart'
 require 'securerandom'
 
 describe Rack::Request do
+  it "copies the env when duping" do
+    req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
+    refute_same req.env, req.dup.env
+  end
+
   it "can get a key from the env" do
     req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
     assert_equal "example.com", req.get_header("SERVER_NAME")
