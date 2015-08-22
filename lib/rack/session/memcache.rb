@@ -34,7 +34,7 @@ module Rack
         mopts = @default_options.reject{|k,v| !MemCache::DEFAULT_OPTIONS.include? k }
 
         @pool = options[:cache] || MemCache.new(mserv, mopts)
-        unless @pool.active? and @pool.servers.any?{|c| c.alive? }
+        unless @pool.active? and @pool.servers.any?(&:alive?)
           raise 'No memcache servers'
         end
       end
