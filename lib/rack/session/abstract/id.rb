@@ -246,9 +246,10 @@ module Rack
 
         def prepare_session(env)
           session_was               = env[RACK_SESSION]
-          env[RACK_SESSION]         = session_class.new(self, env)
+          session                   = session_class.new(self, env)
+          env[RACK_SESSION]         = session
           env[RACK_SESSION_OPTIONS] = @default_options.dup
-          env[RACK_SESSION].merge! session_was if session_was
+          session.merge! session_was if session_was
         end
 
         # Extracts the session id from provided cookies and passes it and the
