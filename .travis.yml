@@ -4,10 +4,11 @@ install:
   - bundle install --jobs=3 --retry=3
 script: bundle exec rake ci
 rvm:
-  - 2.2.2
+  - 2.2.3
   - ruby-head
   - rbx-2
   - jruby
+  - jruby-9000
   - jruby-head
 
 notifications:
