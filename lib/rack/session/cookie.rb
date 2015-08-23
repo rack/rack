@@ -120,19 +120,18 @@ module Rack
 
       private
 
-      def get_session(env, sid)
-        data = unpacked_cookie_data(env)
+      def get_session(req, sid)
+        data = unpacked_cookie_data(req)
         data = persistent_session_id!(data)
         [data["session_id"], data]
       end
 
-      def extract_session_id(env)
-        unpacked_cookie_data(env)["session_id"]
+      def extract_session_id(request)
+        unpacked_cookie_data(request)["session_id"]
       end
 
-      def unpacked_cookie_data(env)
-        env[RACK_SESSION_UNPACKED_COOKIE_DATA] ||= begin
-          request = Rack::Request.new(env)
+      def unpacked_cookie_data(request)
+        request.get_header(RACK_SESSION_UNPACKED_COOKIE_DATA) do |k|
           session_data = request.cookies[@key]
 
           if @secrets.size > 0 && session_data
@@ -142,7 +141,7 @@ module Rack
             session_data = nil unless digest_match?(session_data, digest)
           end
 
-          coder.decode(session_data) || {}
+          request.set_header(k, coder.decode(session_data) || {})
         end
       end
 
@@ -152,7 +151,7 @@ module Rack
         data
       end
 
-      def set_session(env, session_id, session, options)
+      def set_session(req, session_id, session, options)
         session = session.merge("session_id" => session_id)
         session_data = coder.encode(session)
 
@@ -161,14 +160,14 @@ module Rack
         end
 
         if session_data.size > (4096 - @key.size)
-          env[RACK_ERRORS].puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
+          req.get_header(RACK_ERRORS).puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
           nil
         else
           session_data
         end
       end
 
-      def destroy_session(env, session_id, options)
+      def destroy_session(req, session_id, options)
         # Nothing to do here, data is in the client
         generate_sid unless options[:drop]
       end
