@@ -16,8 +16,7 @@ module Rack
     ALLOWED_VERBS = %w[GET HEAD OPTIONS]
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
 
-    attr_accessor :root
-    attr_accessor :cache_control
+    attr_reader :root
 
     def initialize(root, headers={}, default_mime = 'text/plain')
       @root = root
