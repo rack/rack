@@ -1,6 +1,7 @@
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
+require 'rack/request'
 
 module Rack
   # Rack::File serves files below the +root+ directory given, according to the
@@ -25,11 +26,12 @@ module Rack
     end
 
     def call(env)
-      unless ALLOWED_VERBS.include? env[REQUEST_METHOD]
+      request = Rack::Request.new env
+      unless ALLOWED_VERBS.include? request.request_method
         return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
       end
 
-      path_info = Utils.unescape(env[PATH_INFO])
+      path_info = Utils.unescape request.path_info
       clean_path_info = Utils.clean_path_info(path_info)
 
       path = ::File.join(@root, clean_path_info)
@@ -41,18 +43,18 @@ module Rack
       end
 
       if available
-        serving(env, path)
+        serving(request, path)
       else
         fail(404, "File not found: #{path_info}")
       end
     end
 
-    def serving(env, path)
-      if env[REQUEST_METHOD] == OPTIONS
+    def serving(request, path)
+      if request.options?
         return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
       end
       last_modified = ::File.mtime(path).httpdate
-      return [304, {}, []] if env['HTTP_IF_MODIFIED_SINCE'] == last_modified
+      return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
 
       headers = { "Last-Modified" => last_modified }
       mime_type = mime_type path, @default_mime
@@ -66,7 +68,7 @@ module Rack
       size = filesize path
 
       range = nil
-      ranges = Rack::Utils.byte_ranges(env, size)
+      ranges = Rack::Utils.get_byte_ranges(request.get_header('HTTP_RANGE'), size)
       if ranges.nil? || ranges.length > 1
         # No ranges, or multiple ranges (which we don't support):
         # TODO: Support multiple byte-ranges
@@ -88,7 +90,7 @@ module Rack
       response[2] = [response_body] unless response_body.nil?
 
       response[1][CONTENT_LENGTH] = size.to_s
-      response[2] = make_body env, path, range
+      response[2] = make_body request, path, range
       response
     end
 
@@ -120,8 +122,8 @@ module Rack
 
     private
 
-    def make_body env, path, range
-      if env[REQUEST_METHOD] == HEAD
+    def make_body request, path, range
+      if request.head?
         []
       else
         Iterator.new path, range
