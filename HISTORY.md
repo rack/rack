@@ -1,3 +1,9 @@
+Mon Aug 24 18:05:23 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Introduce Util.get_byte_ranges that will parse the value of the
+	HTTP_RANGE string passed to it without depending on the `env` hash.
+	`byte_ranges` is deprecated in favor of this method.
+
 Sat Aug 22 17:49:49 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Change Session internals to use Request objects for looking up
