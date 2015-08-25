@@ -5,12 +5,6 @@ require 'rack/sendfile'
 require 'rack/mock'
 require 'tmpdir'
 
-describe Rack::File do
-  it "respond to #to_path" do
-    Rack::File.new(Dir.pwd).must_respond_to :to_path
-  end
-end
-
 describe Rack::Sendfile do
   def sendfile_body
     FileUtils.touch File.join(Dir.tmpdir,  "rack_sendfile")
