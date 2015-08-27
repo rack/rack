@@ -141,11 +141,11 @@ module Rack
       end
 
       def media_type
-        @media_type ||= MediaType.type(content_type)
+        MediaType.type(content_type)
       end
 
       def media_type_params
-        @media_type_params ||= MediaType.params(content_type)
+        MediaType.params(content_type)
       end
 
       def content_length
