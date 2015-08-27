@@ -1,3 +1,8 @@
+Thu Aug 27 15:43:48 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Tempfiles are automatically closed in the case that there were too
+	many posted.
+
 Mon Aug 24 18:05:23 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Introduce Util.get_byte_ranges that will parse the value of the

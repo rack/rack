@@ -62,6 +62,7 @@ module Rack
           if Utils.multipart_part_limit > 0
             opened_files += 1 if filename
             if opened_files >= Utils.multipart_part_limit
+              files.each(&:close)
               raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
             end
           end

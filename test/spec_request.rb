@@ -887,6 +887,32 @@ EOF
     end
   end
 
+  it 'closes tempfiles it created in the case of too many created' do
+    begin
+      data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+      data += "--AaB03x--\r"
+
+      files = []
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.length.to_s,
+        Rack::RACK_MULTIPART_TEMPFILE_FACTORY => lambda { |filename, content_type|
+          file = Tempfile.new(["RackMultipart", ::File.extname(filename)])
+          files << file
+          file
+        },
+        :input => StringIO.new(data)
+      }
+
+      request = Rack::Request.new Rack::MockRequest.env_for("/", options)
+      assert_raises(Rack::Multipart::MultipartPartLimitError) do
+        request.POST
+      end
+      refute_predicate files, :empty?
+      files.each { |f| assert_predicate f, :closed? }
+    end
+  end
+
   it "parse big multipart form data" do
     input = <<EOF
 --AaB03x\r
