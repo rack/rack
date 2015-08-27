@@ -19,7 +19,9 @@ module Rack
   # Your application's +call+ should end returning Response#finish.
 
   class Response
-    attr_accessor :length
+    attr_accessor :length, :status, :body
+    attr_reader :header
+    alias headers header
 
     CHUNKED = 'chunked'.freeze
 
@@ -27,7 +29,6 @@ module Rack
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
 
-      @chunked = CHUNKED == @header[TRANSFER_ENCODING]
       @writer  = lambda { |x| @body << x }
       @block   = nil
       @length  = 0
@@ -47,36 +48,21 @@ module Rack
       yield self  if block_given?
     end
 
-    attr_reader :header
-    attr_accessor :status, :body
-
-    def [](key)
-      header[key]
-    end
-
-    def []=(key, value)
-      header[key] = value
-    end
-
-    def set_cookie(key, value)
-      Utils.set_cookie_header!(header, key, value)
-    end
-
-    def delete_cookie(key, value={})
-      Utils.delete_cookie_header!(header, key, value)
-    end
-
     def redirect(target, status=302)
       self.status = status
-      self["Location"] = target
+      self.location = target
+    end
+
+    def chunked?
+      CHUNKED == get_header(TRANSFER_ENCODING)
     end
 
     def finish(&block)
       @block = block
 
       if [204, 205, 304].include?(status.to_i)
-        header.delete CONTENT_TYPE
-        header.delete CONTENT_LENGTH
+        delete_header CONTENT_TYPE
+        delete_header CONTENT_LENGTH
         close
         [status.to_i, header, []]
       else
@@ -98,10 +84,10 @@ module Rack
     #
     def write(str)
       s = str.to_s
-      @length += s.bytesize unless @chunked
+      @length += s.bytesize unless chunked?
       @writer.call s
 
-      header[CONTENT_LENGTH] = @length.to_s unless @chunked
+      set_header(CONTENT_LENGTH, @length.to_s) unless chunked?
       str
     end
 
@@ -113,7 +99,13 @@ module Rack
       @block == nil && @body.empty?
     end
 
-    alias headers header
+    def have_header?(key);  headers.key? key;   end
+    def get_header(key);    headers[key];       end
+    def set_header(key, v); headers[key] = v;   end
+    def delete_header(key); headers.delete key; end
+
+    alias :[] :get_header
+    alias :[]= :set_header
 
     module Helpers
       def invalid?;             status < 100 || status >= 600;        end
@@ -140,15 +132,12 @@ module Rack
 
       def redirect?;            [301, 302, 303, 307].include? status; end
 
-      # Headers
-      attr_reader :headers, :original_headers
-
       def include?(header)
-        headers.key? header
+        have_header? header
       end
 
       def content_type
-        headers[CONTENT_TYPE]
+        get_header CONTENT_TYPE
       end
 
       def media_type
@@ -160,12 +149,25 @@ module Rack
       end
 
       def content_length
-        cl = headers[CONTENT_LENGTH]
+        cl = get_header CONTENT_LENGTH
         cl ? cl.to_i : cl
       end
 
       def location
-        headers["Location"]
+        get_header "Location"
+      end
+
+      def location=(location)
+        set_header "Location", location
+      end
+
+      def set_cookie(key, value)
+        cookie_header = get_header SET_COOKIE
+        set_header SET_COOKIE, ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
+      end
+
+      def delete_cookie(key, value={})
+        set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
       end
     end
 
