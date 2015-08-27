@@ -50,15 +50,20 @@ module Rack
       def parse
         fast_forward_to_first_boundary
 
+        files = []
         opened_files = 0
         loop do
 
-          head, filename, content_type, name, body =
+          head, filename, content_type, name, body, file =
             get_current_head_and_filename_and_content_type_and_name_and_body
+
+          files << file if file
 
           if Utils.multipart_part_limit > 0
             opened_files += 1 if filename
-            raise MultipartPartLimitError, 'Maximum file multiparts in content reached' if opened_files >= Utils.multipart_part_limit
+            if opened_files >= Utils.multipart_part_limit
+              raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
+            end
           end
 
           # Save the rest.
@@ -78,6 +83,8 @@ module Rack
           # break if we're at the end of a buffer, but not if it is the end of a field
           break if (@buf.empty? && $1 != EOL) || @content_length == -1
         end
+
+        @env[RACK_TEMPFILES] = files
 
         @io.rewind
 
@@ -108,6 +115,7 @@ module Rack
       def get_current_head_and_filename_and_content_type_and_name_and_body
         head = nil
         body = ''.force_encoding(Encoding::ASCII_8BIT)
+        file = nil
 
         filename = content_type = name = nil
 
@@ -127,7 +135,8 @@ module Rack
             end
 
             if filename
-              (@env[RACK_TEMPFILES] ||= []) << body = @tempfile.call(filename, content_type)
+              body = @tempfile.call(filename, content_type)
+              file = body
               body.binmode if body.respond_to?(:binmode)
             end
 
@@ -146,7 +155,7 @@ module Rack
           @content_length -= content.size if @content_length
         end
 
-        [head, filename, content_type, name, body]
+        [head, filename, content_type, name, body, file]
       end
 
       def get_filename(head)
