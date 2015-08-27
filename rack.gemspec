@@ -26,7 +26,6 @@ EOF
   s.author          = 'Christian Neukirchen'
   s.email           = 'chneukirchen@gmail.com'
   s.homepage        = 'http://rack.github.io/'
-  s.rubyforge_project = 'rack'
   s.required_ruby_version = '>= 2.2.2'
 
   s.add_dependency 'json'
