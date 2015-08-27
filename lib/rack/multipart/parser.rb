@@ -65,12 +65,13 @@ module Rack
             end
           end
 
+          should_break = false
           # Save the rest.
           if i = @buf.index(rx)
             body << @buf.slice!(0, i)
             @buf.slice!(0, @boundary_size+2)
 
-            @content_length = -1  if $1 == "--"
+            should_break = true if $1 == "--"
           end
 
           get_data(filename, body, content_type, name, head) do |data|
@@ -80,7 +81,7 @@ module Rack
           end
 
           # break if we're at the end of a buffer, but not if it is the end of a field
-          break if (@buf.empty? && $1 != EOL) || @content_length == -1
+          break if (@buf.empty? && $1 != EOL) || should_break
         end
 
         @env[RACK_TEMPFILES] = opened_files
