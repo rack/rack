@@ -45,7 +45,7 @@ module Rack
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["Vary"].to_s.split(",").map { |v| v.strip }
+      vary = headers["Vary"].to_s.split(",").map(&:strip)
       unless vary.include?("*") || vary.include?("Accept-Encoding")
         headers["Vary"] = vary.push("Accept-Encoding").join(",")
       end

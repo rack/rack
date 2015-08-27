@@ -150,7 +150,7 @@ module Rack
       if mapping = @mappings.find { |internal,_| internal =~ path }
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
-        internal, external = mapping.split('=', 2).map{ |p| p.strip }
+        internal, external = mapping.split('=', 2).map(&:strip)
         path.sub(/^#{internal}/i, external)
       end
     end
