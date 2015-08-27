@@ -193,7 +193,7 @@ module Rack
     end
     module_function :parse_cookies
 
-    def make_cookie_header(header, key, value)
+    def add_cookie_to_header(header, key, value)
       case value
       when Hash
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
@@ -242,10 +242,10 @@ module Rack
         (header + [cookie]).join("\n")
       end
     end
-    module_function :make_cookie_header
+    module_function :add_cookie_to_header
 
     def set_cookie_header!(header, key, value)
-      header[SET_COOKIE] = make_cookie_header(header[SET_COOKIE], key, value)
+      header[SET_COOKIE] = add_cookie_to_header(header[SET_COOKIE], key, value)
       nil
     end
     module_function :set_cookie_header!
@@ -275,16 +275,23 @@ module Rack
     module_function :make_delete_cookie_header
 
     def delete_cookie_header!(header, key, value = {})
-      new_header = make_delete_cookie_header(header[SET_COOKIE], key, value)
+      header[SET_COOKIE] = add_remove_cookie_to_header(header[SET_COOKIE], key, value)
+      nil
+    end
+    module_function :delete_cookie_header!
 
-      header[SET_COOKIE] = make_cookie_header(new_header, key,
+    # Adds a cookie that will *remove* a cookie from the client.  Hence the
+    # strange method name.
+    def add_remove_cookie_to_header(header, key, value = {})
+      new_header = make_delete_cookie_header(header, key, value)
+
+      add_cookie_to_header(new_header, key,
                  {:value => '', :path => nil, :domain => nil,
                    :max_age => '0',
                    :expires => Time.at(0) }.merge(value))
 
-      nil
     end
-    module_function :delete_cookie_header!
+    module_function :add_remove_cookie_to_header
 
     def rfc2822(time)
       time.rfc2822
