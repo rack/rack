@@ -1,5 +1,8 @@
 # coding: utf-8
 
+require 'minitest/autorun'
+require 'rack'
+require 'rack/multipart/parser'
 require 'rack/utils'
 require 'rack/mock'
 
@@ -640,7 +643,7 @@ Content-Type: image/png\r
 
     options = {
       "CONTENT_TYPE" => "multipart/related; boundary=AaB03x",
-      "CONTENT_LENGTH" => data.length.to_s,
+      "CONTENT_LENGTH" => data.bytesize.to_s,
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
