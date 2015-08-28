@@ -221,7 +221,7 @@ module Rack
 
       def fast_forward_to_first_boundary
         content = @io.read(@bufsize)
-        handle_empty_content!(content) and return ""
+        handle_empty_content!(content)
 
         @buf << content
 
