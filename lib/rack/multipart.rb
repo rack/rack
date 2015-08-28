@@ -36,6 +36,7 @@ module Rack
 
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
+        return if env['CONTENT_LENGTH'] == '0'
         Parser.create(env, params).parse
       end
 

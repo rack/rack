@@ -10,6 +10,41 @@ module Rack
 
       DUMMY = Struct.new(:parse).new
 
+      class BoundedIO # :nodoc:
+        def initialize(io, content_length)
+          @io             = io
+          @content_length = content_length
+          @cursor = 0
+        end
+
+        def read(size)
+          return if @cursor >= @content_length
+
+          left = @content_length - @cursor
+
+          str = if left < size
+                  @io.read left
+                else
+                 @io.read size
+                end
+
+          if str
+            @cursor += str.bytesize
+          else
+            # Raise an error for mismatching Content-Length and actual contents
+            raise EOFError, "bad content body"
+          end
+
+          str
+        end
+
+        def eof?; @content_length == @cursor; end
+
+        def rewind
+          @io.rewind
+        end
+      end
+
       def self.create(env, query_parser)
         return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
 
@@ -22,26 +57,22 @@ module Rack
         tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] ||
           lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
         bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || BUFSIZE
+        io = BoundedIO.new(io, content_length) if content_length
 
-        new($1, io, content_length, env, tempfile, bufsize, query_parser)
+        new($1, io, env, tempfile, bufsize, query_parser)
       end
 
-      def initialize(boundary, io, content_length, env, tempfile, bufsize, query_parser)
+      def initialize(boundary, io, env, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
         @io             = io
-        @content_length = content_length
         @boundary_size  = @boundary.bytesize + EOL.size
         @env = env
         @tempfile       = tempfile
         @bufsize        = bufsize
-
-        if @content_length
-          @content_length -= @boundary_size
-        end
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
         @full_boundary = @boundary + EOL
@@ -148,11 +179,10 @@ module Rack
             body << @buf.slice!(0, @buf.size - (@boundary_size+4))
           end
 
-          content = @io.read(@content_length && @bufsize >= @content_length ? @content_length : @bufsize)
+          content = @io.read(@bufsize)
           handle_empty_content!(content) and break
 
           @buf << content
-          @content_length -= content.size if @content_length
         end
 
         [head, filename, content_type, name, body, file]
@@ -262,14 +292,7 @@ module Rack
 
       def handle_empty_content!(content)
         if content.nil? || content.empty?
-          # Raise an error for mismatching Content-Length and actual contents
-          raise EOFError, "bad content body" if @content_length.to_i > 0
-
-          # In case we receive a POST request with empty body, reset @content_length
-          # and return empty string
-          @content_length = 0
-          @buf = ""
-
+          raise EOFError if @io.eof?
           return true
         end
       end
