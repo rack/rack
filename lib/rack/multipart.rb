@@ -37,7 +37,19 @@ module Rack
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
         return if env['CONTENT_LENGTH'] == '0'
-        Parser.create(env, params).parse
+
+        io = env[RACK_INPUT]
+        io.rewind
+        content_length = env['CONTENT_LENGTH']
+        content_length = content_length.to_i if content_length
+
+        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] ||
+          lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
+        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || Parser::BUFSIZE
+
+        info = Parser.parse io, content_length, env['CONTENT_TYPE'], tempfile, bufsize, params
+        env[RACK_TEMPFILES] = info.tmp_files
+        info.params
       end
 
       def build_multipart(params, first = true)

@@ -8,8 +8,6 @@ module Rack
       BUFSIZE = 16384
       TEXT_PLAIN = "text/plain"
 
-      DUMMY = Struct.new(:parse).new
-
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -45,24 +43,28 @@ module Rack
         end
       end
 
-      def self.create(env, query_parser)
-        return DUMMY unless env['CONTENT_TYPE'] =~ MULTIPART
+      MultipartInfo = Struct.new :params, :tmp_files
+      EMPTY         = MultipartInfo.new(nil, [])
 
-        io = env[RACK_INPUT]
-        io.rewind
-
-        content_length = env['CONTENT_LENGTH']
-        content_length = content_length.to_i if content_length
-
-        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] ||
-          lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
-        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || BUFSIZE
-        io = BoundedIO.new(io, content_length) if content_length
-
-        new($1, io, env, tempfile, bufsize, query_parser)
+      def self.parse_boundary(content_type)
+        return unless content_type
+        data = content_type.match(MULTIPART)
+        return unless data
+        data[1]
       end
 
-      def initialize(boundary, io, env, tempfile, bufsize, query_parser)
+      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
+        return EMPTY if 0 == content_length
+
+        boundary = parse_boundary content_type
+        return EMPTY unless boundary
+
+        io = BoundedIO.new(io, content_length) if content_length
+
+        new(boundary, io, tmpfile, bufsize, qp).parse
+      end
+
+      def initialize(boundary, io, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
         @query_parser   = query_parser
@@ -70,7 +72,6 @@ module Rack
         @boundary       = "--#{boundary}"
         @io             = io
         @boundary_size  = @boundary.bytesize + EOL.size
-        @env = env
         @tempfile       = tempfile
         @bufsize        = bufsize
 
@@ -115,11 +116,9 @@ module Rack
           break if (@buf.empty? && $1 != EOL) || should_break
         end
 
-        @env[RACK_TEMPFILES] = opened_files
-
         @io.rewind
 
-        @params.to_params_hash
+        MultipartInfo.new @params.to_params_hash, opened_files
       end
 
       private
