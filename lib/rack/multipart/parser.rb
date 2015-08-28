@@ -110,12 +110,6 @@ module Rack
               end
             end
 
-            # Save the rest.
-            if i = @buf.index(rx)
-              body << @buf.slice!(0, i)
-              @buf.slice!(0, 2) # Remove \r\n after the content
-            end
-
             get_data(filename, body, content_type, name, head) do |data|
               tag_multipart_encoding(filename, content_type, name, data)
 
@@ -192,7 +186,14 @@ module Rack
             state = :BODY
           end
 
-          break if state == :BODY && @buf =~ rx
+          if state == :BODY && @buf =~ rx
+            # Save the rest.
+            if i = @buf.index(rx)
+              body << @buf.slice!(0, i)
+              @buf.slice!(0, 2) # Remove \r\n after the content
+            end
+            break
+          end
 
           content = @io.read(@bufsize)
           handle_empty_content!(content)
