@@ -179,15 +179,15 @@ module Rack
           if @state == :FAST_FORWARD
             tok = fast_forward_to_first_boundary
             @state = :MIME_HEAD if tok
-          else
+          elsif @state == :CONSUME_TOKEN
+            tok = consume_boundary
             break if tok == :END_BOUNDARY
-
             # break if we're at the end of a buffer, but not if it is the end of a field
             break if (@buf.empty? && tok != :BOUNDARY)
 
+            @state = :MIME_HEAD
+          else
             get_current_head_and_filename_and_content_type_and_name_and_body
-
-            tok = consume_boundary
           end
         end
 
@@ -207,6 +207,29 @@ module Rack
       def full_boundary; @full_boundary; end
 
       def rx; @rx; end
+
+      def handle_mime_head
+        if @buf.index(EOL + EOL)
+          i = @buf.index(EOL+EOL)
+          head = @buf.slice!(0, i+2) # First \r\n
+          @buf.slice!(0, 2)          # Second \r\n
+
+          content_type = head[MULTIPART_CONTENT_TYPE, 1]
+          name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
+
+          filename = get_filename(head)
+
+          if name.nil? || name.empty?
+            name = filename || "#{content_type || TEXT_PLAIN}[]"
+          end
+
+          @collector.on_mime_head @mime_index, head, filename, content_type, name
+          @state = :MIME_BODY
+        end
+      end
+
+      def handle_mime_body
+      end
 
       def consume_boundary
         while @buf.gsub!(/\A([^\n]*(?:\n|\Z))/, '')
@@ -235,33 +258,21 @@ module Rack
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
         loop do # read until we have a header and separator in the buffer
-          if @state == :MIME_HEAD && @buf.index(EOL + EOL)
-            i = @buf.index(EOL+EOL)
-            head = @buf.slice!(0, i+2) # First \r\n
-            @buf.slice!(0, 2)          # Second \r\n
-
-            content_type = head[MULTIPART_CONTENT_TYPE, 1]
-            name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
-
-            filename = get_filename(head)
-
-            if name.nil? || name.empty?
-              name = filename || "#{content_type || TEXT_PLAIN}[]"
-            end
-
-            @collector.on_mime_head @mime_index, head, filename, content_type, name
-            @state = :MIME_BODY
+          if @state == :MIME_HEAD
+            handle_mime_head
           end
 
-          if @state == :MIME_BODY && @buf =~ rx
-            # Save the rest.
-            if i = @buf.index(rx)
-              @collector.on_mime_body @mime_index, @buf.slice!(0, i)
-              @buf.slice!(0, 2) # Remove \r\n after the content
+          if @state == :MIME_BODY
+            if @buf =~ rx
+              # Save the rest.
+              if i = @buf.index(rx)
+                @collector.on_mime_body @mime_index, @buf.slice!(0, i)
+                @buf.slice!(0, 2) # Remove \r\n after the content
+              end
+              @state = :CONSUME_TOKEN
+              @mime_index += 1
+              break
             end
-            @state = :MIME_HEAD
-            @mime_index += 1
-            break
           end
 
           content = @io.read(@bufsize)
