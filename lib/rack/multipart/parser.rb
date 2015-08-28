@@ -168,10 +168,11 @@ module Rack
 
         filename = content_type = name = nil
 
-        until head && @buf =~ rx
-          if !head && i = @buf.index(EOL+EOL)
+        state = :HEAD
+        loop do # read until we have a header and separator in the buffer
+          if state == :HEAD && @buf.index(EOL + EOL)
+            i = @buf.index(EOL+EOL)
             head = @buf.slice!(0, i+2) # First \r\n
-
             @buf.slice!(0, 2)          # Second \r\n
 
             content_type = head[MULTIPART_CONTENT_TYPE, 1]
@@ -188,20 +189,17 @@ module Rack
               file = body
               body.binmode if body.respond_to?(:binmode)
             end
-
-            next
+            state = :BODY
           end
 
-          # Save the read body part.
-          if head && (@boundary_size+4 < @buf.size)
-            body << @buf.slice!(0, @buf.size - (@boundary_size+4))
-          end
+          break if state == :BODY && @buf =~ rx
 
           content = @io.read(@bufsize)
-          handle_empty_content!(content) and break
+          handle_empty_content!(content)
 
           @buf << content
         end
+
 
         [head, filename, content_type, name, body, file]
       end
