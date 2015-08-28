@@ -173,12 +173,25 @@ module Rack
         @collector = Collector.new tempfile
       end
 
+      def read_data
+        content = @io.read(@bufsize)
+        handle_empty_content!(content)
+        @buf << content
+      end
+
       def parse
         tok = nil
+
+        read_data
+
         loop do
           if @state == :FAST_FORWARD
-            tok = fast_forward_to_first_boundary
-            @state = :MIME_HEAD if tok
+            if consume_boundary
+              @state = :MIME_HEAD
+              next
+            else
+              raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
+            end
           elsif @state == :CONSUME_TOKEN
             tok = consume_boundary
             break if tok == :END_BOUNDARY
@@ -186,9 +199,40 @@ module Rack
             break if (@buf.empty? && tok != :BOUNDARY)
 
             @state = :MIME_HEAD
-          else
-            get_current_head_and_filename_and_content_type_and_name_and_body
+            next
+          elsif @state == :MIME_HEAD
+            if @buf.index(EOL + EOL)
+              i = @buf.index(EOL+EOL)
+              head = @buf.slice!(0, i+2) # First \r\n
+              @buf.slice!(0, 2)          # Second \r\n
+
+              content_type = head[MULTIPART_CONTENT_TYPE, 1]
+              name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
+
+              filename = get_filename(head)
+
+              if name.nil? || name.empty?
+                name = filename || "#{content_type || TEXT_PLAIN}[]"
+              end
+
+              @collector.on_mime_head @mime_index, head, filename, content_type, name
+              @state = :MIME_BODY
+              next
+            end
+          elsif @state == :MIME_BODY
+            if @buf =~ rx
+              # Save the rest.
+              if i = @buf.index(rx)
+                @collector.on_mime_body @mime_index, @buf.slice!(0, i)
+                @buf.slice!(0, 2) # Remove \r\n after the content
+              end
+              @state = :CONSUME_TOKEN
+              @mime_index += 1
+              next
+            end
           end
+
+          read_data
         end
 
         @collector.each do |part|
@@ -208,29 +252,6 @@ module Rack
 
       def rx; @rx; end
 
-      def handle_mime_head
-        if @buf.index(EOL + EOL)
-          i = @buf.index(EOL+EOL)
-          head = @buf.slice!(0, i+2) # First \r\n
-          @buf.slice!(0, 2)          # Second \r\n
-
-          content_type = head[MULTIPART_CONTENT_TYPE, 1]
-          name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
-
-          filename = get_filename(head)
-
-          if name.nil? || name.empty?
-            name = filename || "#{content_type || TEXT_PLAIN}[]"
-          end
-
-          @collector.on_mime_head @mime_index, head, filename, content_type, name
-          @state = :MIME_BODY
-        end
-      end
-
-      def handle_mime_body
-      end
-
       def consume_boundary
         while @buf.gsub!(/\A([^\n]*(?:\n|\Z))/, '')
           read_buffer = $1
@@ -243,43 +264,9 @@ module Rack
       end
 
       def fast_forward_to_first_boundary
-        content = @io.read(@bufsize)
-        handle_empty_content!(content)
-
-        @buf << content
-
-        tok = consume_boundary
-        return tok if tok
-
-        raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
-
-        nil
       end
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
-        loop do # read until we have a header and separator in the buffer
-          if @state == :MIME_HEAD
-            handle_mime_head
-          end
-
-          if @state == :MIME_BODY
-            if @buf =~ rx
-              # Save the rest.
-              if i = @buf.index(rx)
-                @collector.on_mime_body @mime_index, @buf.slice!(0, i)
-                @buf.slice!(0, 2) # Remove \r\n after the content
-              end
-              @state = :CONSUME_TOKEN
-              @mime_index += 1
-              break
-            end
-          end
-
-          content = @io.read(@bufsize)
-          handle_empty_content!(content)
-
-          @buf << content
-        end
       end
 
       def get_filename(head)
