@@ -67,6 +67,94 @@ module Rack
         new(boundary, io, tmpfile, bufsize, qp).parse
       end
 
+      class Collector
+        class MimePart < Struct.new(:body, :head, :filename, :content_type, :name)
+          def get_data
+            data = body
+            if filename == ""
+              # filename is blank which means no file has been selected
+              return
+            elsif filename
+              body.rewind if body.respond_to?(:rewind)
+
+              # Take the basename of the upload's original filename.
+              # This handles the full Windows paths given by Internet Explorer
+              # (and perhaps other broken user agents) without affecting
+              # those which give the lone filename.
+              fn = filename.split(/[\/\\]/).last
+
+              data = {:filename => fn, :type => content_type,
+                      :name => name, :tempfile => body, :head => head}
+            elsif !filename && content_type && body.is_a?(IO)
+              body.rewind
+
+              # Generic multipart cases, not coming from a form
+              data = {:type => content_type,
+                      :name => name, :tempfile => body, :head => head}
+            elsif !filename && data.empty?
+              return
+            end
+
+            yield data
+          end
+        end
+
+        class BufferPart < MimePart
+          def file?; false; end
+          def close; end
+        end
+
+        class TempfilePart < MimePart
+          def file?; true; end
+          def close; body.close; end
+        end
+
+        include Enumerable
+
+        def initialize tempfile
+          @tempfile = tempfile
+          @mime_parts = []
+          @open_files = 0
+        end
+
+        def each
+          @mime_parts.each { |part| yield part }
+        end
+
+        def on_mime_head mime_index, head, filename, content_type, name
+          if filename
+            body = @tempfile.call(filename, content_type)
+            body.binmode if body.respond_to?(:binmode)
+            klass = TempfilePart
+            @open_files += 1
+          else
+            body = ''.force_encoding(Encoding::ASCII_8BIT)
+            klass = BufferPart
+          end
+
+          @mime_parts[mime_index] = klass.new(body, head, filename, content_type, name)
+          check_open_files
+        end
+
+        def on_mime_body mime_index, content
+          @mime_parts[mime_index].body << content
+        end
+
+        def on_mime_finish mime_index
+        end
+
+        private
+
+        def check_open_files
+          if Utils.multipart_part_limit > 0
+            if @open_files >= Utils.multipart_part_limit
+              @mime_parts.each(&:close)
+              raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
+            end
+          end
+        end
+      end
+
       def initialize(boundary, io, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
@@ -75,54 +163,44 @@ module Rack
         @boundary       = "--#{boundary}"
         @io             = io
         @boundary_size  = @boundary.bytesize + EOL.size
-        @tempfile       = tempfile
         @bufsize        = bufsize
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
         @full_boundary = @boundary
         @end_boundary = @boundary + '--'
+        @state = :FAST_FORWARD
+        @mime_index = 0
+        @collector = Collector.new tempfile
       end
 
       def parse
-        state = :ff
-
-        opened_files = []
         tok = nil
         loop do
-          if state == :ff
+          if @state == :FAST_FORWARD
             tok = fast_forward_to_first_boundary
-            state = :not_ff if tok
+            @state = :MIME_HEAD if tok
           else
             break if tok == :END_BOUNDARY
 
             # break if we're at the end of a buffer, but not if it is the end of a field
             break if (@buf.empty? && tok != :BOUNDARY)
 
-            head, filename, content_type, name, body, file =
-              get_current_head_and_filename_and_content_type_and_name_and_body
-
-            opened_files << file if file
-
-            if Utils.multipart_part_limit > 0
-              if opened_files.length >= Utils.multipart_part_limit
-                opened_files.each(&:close)
-                raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
-              end
-            end
-
-            get_data(filename, body, content_type, name, head) do |data|
-              tag_multipart_encoding(filename, content_type, name, data)
-
-              @query_parser.normalize_params(@params, name, data, @query_parser.param_depth_limit)
-            end
+            get_current_head_and_filename_and_content_type_and_name_and_body
 
             tok = consume_boundary
           end
         end
 
+        @collector.each do |part|
+          part.get_data do |data|
+            tag_multipart_encoding(part.filename, part.content_type, part.name, data)
+            @query_parser.normalize_params(@params, part.name, data, @query_parser.param_depth_limit)
+          end
+        end
+
         @io.rewind
 
-        MultipartInfo.new @params.to_params_hash, opened_files
+        MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
       end
 
       private
@@ -157,14 +235,12 @@ module Rack
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
         head = nil
-        body = ''.force_encoding(Encoding::ASCII_8BIT)
         file = nil
 
         filename = content_type = name = nil
 
-        state = :HEAD
         loop do # read until we have a header and separator in the buffer
-          if state == :HEAD && @buf.index(EOL + EOL)
+          if @state == :MIME_HEAD && @buf.index(EOL + EOL)
             i = @buf.index(EOL+EOL)
             head = @buf.slice!(0, i+2) # First \r\n
             @buf.slice!(0, 2)          # Second \r\n
@@ -178,20 +254,18 @@ module Rack
               name = filename || "#{content_type || TEXT_PLAIN}[]"
             end
 
-            if filename
-              body = @tempfile.call(filename, content_type)
-              file = body
-              body.binmode if body.respond_to?(:binmode)
-            end
-            state = :BODY
+            @collector.on_mime_head @mime_index, head, filename, content_type, name
+            @state = :MIME_BODY
           end
 
-          if state == :BODY && @buf =~ rx
+          if @state == :MIME_BODY && @buf =~ rx
             # Save the rest.
             if i = @buf.index(rx)
-              body << @buf.slice!(0, i)
+              @collector.on_mime_body @mime_index, @buf.slice!(0, i)
               @buf.slice!(0, 2) # Remove \r\n after the content
             end
+            @state = :MIME_HEAD
+            @mime_index += 1
             break
           end
 
@@ -200,9 +274,6 @@ module Rack
 
           @buf << content
         end
-
-
-        [head, filename, content_type, name, body, file]
       end
 
       def get_filename(head)
@@ -277,35 +348,6 @@ module Rack
         body.force_encoding(encoding)
       end
 
-
-      def get_data(filename, body, content_type, name, head)
-        data = body
-        if filename == ""
-          # filename is blank which means no file has been selected
-          return
-        elsif filename
-          body.rewind if body.respond_to?(:rewind)
-
-          # Take the basename of the upload's original filename.
-          # This handles the full Windows paths given by Internet Explorer
-          # (and perhaps other broken user agents) without affecting
-          # those which give the lone filename.
-          filename = filename.split(/[\/\\]/).last
-
-          data = {:filename => filename, :type => content_type,
-                  :name => name, :tempfile => body, :head => head}
-        elsif !filename && content_type && body.is_a?(IO)
-          body.rewind
-
-          # Generic multipart cases, not coming from a form
-          data = {:type => content_type,
-                  :name => name, :tempfile => body, :head => head}
-        elsif !filename && data.empty?
-          return
-        end
-
-        yield data
-      end
 
       def handle_empty_content!(content)
         if content.nil? || content.empty?
