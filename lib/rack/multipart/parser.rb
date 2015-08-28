@@ -7,6 +7,9 @@ module Rack
     class Parser
       BUFSIZE = 16384
       TEXT_PLAIN = "text/plain"
+      TEMPFILE_FACTORY = lambda { |filename, content_type|
+        Tempfile.new(["RackMultipart", ::File.extname(filename)])
+      }
 
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
