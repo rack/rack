@@ -142,6 +142,14 @@ describe Rack::Multipart do
     wr.close
   end
 
+  it 'raises an EOF error on content-length mistmatch' do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
+    env['rack.input'] = StringIO.new
+    assert_raises(EOFError) do
+      Rack::Multipart.parse_multipart(env)
+    end
+  end
+
   it "parse multipart upload with text file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
