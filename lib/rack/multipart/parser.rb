@@ -79,44 +79,51 @@ module Rack
         @bufsize        = bufsize
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
-        @full_boundary = @boundary + EOL
+        @full_boundary = @boundary
+        @end_boundary = @boundary + '--'
       end
 
       def parse
-        fast_forward_to_first_boundary
+        state = :ff
 
         opened_files = []
+        tok = nil
         loop do
+          if state == :ff
+            tok = fast_forward_to_first_boundary
+            state = :not_ff if tok
+          else
+            break if tok == :END_BOUNDARY
 
-          head, filename, content_type, name, body, file =
-            get_current_head_and_filename_and_content_type_and_name_and_body
+            # break if we're at the end of a buffer, but not if it is the end of a field
+            break if (@buf.empty? && tok != :BOUNDARY)
 
-          opened_files << file if file
+            head, filename, content_type, name, body, file =
+              get_current_head_and_filename_and_content_type_and_name_and_body
 
-          if Utils.multipart_part_limit > 0
-            if opened_files.length >= Utils.multipart_part_limit
-              opened_files.each(&:close)
-              raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
+            opened_files << file if file
+
+            if Utils.multipart_part_limit > 0
+              if opened_files.length >= Utils.multipart_part_limit
+                opened_files.each(&:close)
+                raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
+              end
             end
+
+            # Save the rest.
+            if i = @buf.index(rx)
+              body << @buf.slice!(0, i)
+              @buf.slice!(0, 2) # Remove \r\n after the content
+            end
+
+            get_data(filename, body, content_type, name, head) do |data|
+              tag_multipart_encoding(filename, content_type, name, data)
+
+              @query_parser.normalize_params(@params, name, data, @query_parser.param_depth_limit)
+            end
+
+            tok = consume_boundary
           end
-
-          should_break = false
-          # Save the rest.
-          if i = @buf.index(rx)
-            body << @buf.slice!(0, i)
-            @buf.slice!(0, @boundary_size+2)
-
-            should_break = true if $1 == "--"
-          end
-
-          get_data(filename, body, content_type, name, head) do |data|
-            tag_multipart_encoding(filename, content_type, name, data)
-
-            @query_parser.normalize_params(@params, name, data, @query_parser.param_depth_limit)
-          end
-
-          # break if we're at the end of a buffer, but not if it is the end of a field
-          break if (@buf.empty? && $1 != EOL) || should_break
         end
 
         @io.rewind
@@ -129,20 +136,29 @@ module Rack
 
       def rx; @rx; end
 
-      def fast_forward_to_first_boundary
-        loop do
-          content = @io.read(@bufsize)
-          handle_empty_content!(content) and return ""
-
-          @buf << content
-
-          while @buf.gsub!(/\A([^\n]*\n)/, '')
-            read_buffer = $1
-            return if read_buffer == full_boundary
+      def consume_boundary
+        while @buf.gsub!(/\A([^\n]*(?:\n|\Z))/, '')
+          read_buffer = $1
+          case read_buffer.strip
+          when full_boundary then return :BOUNDARY
+          when @end_boundary then return :END_BOUNDARY
           end
-
-          raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
+          return if @buf.empty?
         end
+      end
+
+      def fast_forward_to_first_boundary
+        content = @io.read(@bufsize)
+        handle_empty_content!(content) and return ""
+
+        @buf << content
+
+        tok = consume_boundary
+        return tok if tok
+
+        raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
+
+        nil
       end
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
