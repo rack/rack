@@ -234,11 +234,6 @@ module Rack
       end
 
       def get_current_head_and_filename_and_content_type_and_name_and_body
-        head = nil
-        file = nil
-
-        filename = content_type = name = nil
-
         loop do # read until we have a header and separator in the buffer
           if @state == :MIME_HEAD && @buf.index(EOL + EOL)
             i = @buf.index(EOL+EOL)
