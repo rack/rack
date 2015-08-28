@@ -36,8 +36,6 @@ module Rack
 
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
-        return if env['CONTENT_LENGTH'] == '0'
-
         io = env[RACK_INPUT]
         io.rewind
         content_length = env['CONTENT_LENGTH']
