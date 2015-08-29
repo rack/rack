@@ -64,7 +64,9 @@ module Rack
 
         io = BoundedIO.new(io, content_length) if content_length
 
-        new(boundary, io, tmpfile, bufsize, qp).parse
+        parser = new(boundary, io, tmpfile, bufsize, qp)
+        parser.parse
+        parser.result
       end
 
       class Collector
@@ -155,6 +157,8 @@ module Rack
         end
       end
 
+      attr_reader :state
+
       def initialize(boundary, io, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
@@ -173,29 +177,31 @@ module Rack
         @collector = Collector.new tempfile
       end
 
-      def on_read content
-        handle_empty_content!(content)
+      def on_read content, eof
+        handle_empty_content!(content, eof)
         @buf << content
 
         run_parser
       end
 
       def parse
-        on_read @io.read(@bufsize)
+        on_read @io.read(@bufsize), @io.eof?
         loop do
           break if @state == :DONE
 
-          on_read @io.read(@bufsize)
+          on_read @io.read(@bufsize), @io.eof?
         end
 
+        @io.rewind
+      end
+
+      def result
         @collector.each do |part|
           part.get_data do |data|
             tag_multipart_encoding(part.filename, part.content_type, part.name, data)
             @query_parser.normalize_params(@params, part.name, data, @query_parser.param_depth_limit)
           end
         end
-
-        @io.rewind
 
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
       end
@@ -368,9 +374,9 @@ module Rack
       end
 
 
-      def handle_empty_content!(content)
+      def handle_empty_content!(content, eof)
         if content.nil? || content.empty?
-          raise EOFError if @io.eof?
+          raise EOFError if eof
           return true
         end
       end
