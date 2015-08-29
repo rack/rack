@@ -173,30 +173,19 @@ module Rack
         @collector = Collector.new tempfile
       end
 
-      def read_data
-        content = @io.read(@bufsize)
+      def on_read content
         handle_empty_content!(content)
         @buf << content
+
+        run_parser
       end
 
       def parse
-        read_data
-
+        on_read @io.read(@bufsize)
         loop do
-          case @state
-          when :FAST_FORWARD
-            next unless handle_fast_forward == :want_read
-          when :CONSUME_TOKEN
-            next unless handle_consume_token == :want_read
-          when :MIME_HEAD
-            next unless handle_mime_head == :want_read
-          when :MIME_BODY
-            next unless handle_mime_body == :want_read
-          when :DONE
-            break
-          end
+          break if @state == :DONE
 
-          read_data
+          on_read @io.read(@bufsize)
         end
 
         @collector.each do |part|
@@ -212,6 +201,23 @@ module Rack
       end
 
       private
+
+      def run_parser
+        loop do
+          case @state
+          when :FAST_FORWARD
+            break if handle_fast_forward == :want_read
+          when :CONSUME_TOKEN
+            break if handle_consume_token == :want_read
+          when :MIME_HEAD
+            break if handle_mime_head == :want_read
+          when :MIME_BODY
+            break if handle_mime_body == :want_read
+          when :DONE
+            break
+          end
+        end
+      end
 
       def handle_fast_forward
         if consume_boundary
