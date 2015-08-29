@@ -64,8 +64,15 @@ module Rack
 
         io = BoundedIO.new(io, content_length) if content_length
 
-        parser = new(boundary, io, tmpfile, bufsize, qp)
-        parser.parse
+        parser = new(boundary, tmpfile, bufsize, qp)
+        parser.on_read io.read(bufsize), io.eof?
+
+        loop do
+          break if parser.state == :DONE
+          parser.on_read io.read(bufsize), io.eof?
+        end
+
+        io.rewind
         parser.result
       end
 
@@ -159,13 +166,12 @@ module Rack
 
       attr_reader :state
 
-      def initialize(boundary, io, tempfile, bufsize, query_parser)
+      def initialize(boundary, tempfile, bufsize, query_parser)
         @buf            = "".force_encoding(Encoding::ASCII_8BIT)
 
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
-        @io             = io
         @boundary_size  = @boundary.bytesize + EOL.size
         @bufsize        = bufsize
 
@@ -180,19 +186,7 @@ module Rack
       def on_read content, eof
         handle_empty_content!(content, eof)
         @buf << content
-
         run_parser
-      end
-
-      def parse
-        on_read @io.read(@bufsize), @io.eof?
-        loop do
-          break if @state == :DONE
-
-          on_read @io.read(@bufsize), @io.eof?
-        end
-
-        @io.rewind
       end
 
       def result
@@ -293,12 +287,6 @@ module Rack
           end
           return if @buf.empty?
         end
-      end
-
-      def fast_forward_to_first_boundary
-      end
-
-      def get_current_head_and_filename_and_content_type_and_name_and_body
       end
 
       def get_filename(head)
