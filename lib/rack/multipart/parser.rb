@@ -180,56 +180,20 @@ module Rack
       end
 
       def parse
-        tok = nil
-
         read_data
 
         loop do
-          if @state == :FAST_FORWARD
-            if consume_boundary
-              @state = :MIME_HEAD
-              next
-            else
-              raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
-            end
-          elsif @state == :CONSUME_TOKEN
-            tok = consume_boundary
-            break if tok == :END_BOUNDARY
-            # break if we're at the end of a buffer, but not if it is the end of a field
-            break if (@buf.empty? && tok != :BOUNDARY)
-
-            @state = :MIME_HEAD
-            next
-          elsif @state == :MIME_HEAD
-            if @buf.index(EOL + EOL)
-              i = @buf.index(EOL+EOL)
-              head = @buf.slice!(0, i+2) # First \r\n
-              @buf.slice!(0, 2)          # Second \r\n
-
-              content_type = head[MULTIPART_CONTENT_TYPE, 1]
-              name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
-
-              filename = get_filename(head)
-
-              if name.nil? || name.empty?
-                name = filename || "#{content_type || TEXT_PLAIN}[]"
-              end
-
-              @collector.on_mime_head @mime_index, head, filename, content_type, name
-              @state = :MIME_BODY
-              next
-            end
-          elsif @state == :MIME_BODY
-            if @buf =~ rx
-              # Save the rest.
-              if i = @buf.index(rx)
-                @collector.on_mime_body @mime_index, @buf.slice!(0, i)
-                @buf.slice!(0, 2) # Remove \r\n after the content
-              end
-              @state = :CONSUME_TOKEN
-              @mime_index += 1
-              next
-            end
+          case @state
+          when :FAST_FORWARD
+            next unless handle_fast_forward == :want_read
+          when :CONSUME_TOKEN
+            next unless handle_consume_token == :want_read
+          when :MIME_HEAD
+            next unless handle_mime_head == :want_read
+          when :MIME_BODY
+            next unless handle_mime_body == :want_read
+          when :DONE
+            break
           end
 
           read_data
@@ -248,6 +212,62 @@ module Rack
       end
 
       private
+
+      def handle_fast_forward
+        if consume_boundary
+          @state = :MIME_HEAD
+        else
+          raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
+          :want_read
+        end
+      end
+
+      def handle_consume_token
+        tok = consume_boundary
+        # break if we're at the end of a buffer, but not if it is the end of a field
+        if tok == :END_BOUNDARY || (@buf.empty? && tok != :BOUNDARY)
+          @state = :DONE
+        else
+          @state = :MIME_HEAD
+        end
+      end
+
+      def handle_mime_head
+        if @buf.index(EOL + EOL)
+          i = @buf.index(EOL+EOL)
+          head = @buf.slice!(0, i+2) # First \r\n
+          @buf.slice!(0, 2)          # Second \r\n
+
+          content_type = head[MULTIPART_CONTENT_TYPE, 1]
+          name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
+
+          filename = get_filename(head)
+
+          if name.nil? || name.empty?
+            name = filename || "#{content_type || TEXT_PLAIN}[]"
+          end
+
+          @collector.on_mime_head @mime_index, head, filename, content_type, name
+          @state = :MIME_BODY
+        else
+          :want_read
+        end
+      end
+
+      def handle_mime_body
+        if @buf =~ rx
+          # Save the rest.
+          if i = @buf.index(rx)
+            @collector.on_mime_body @mime_index, @buf.slice!(0, i)
+            @buf.slice!(0, 2) # Remove \r\n after the content
+          end
+          @state = :CONSUME_TOKEN
+          @mime_index += 1
+        else
+          :want_read
+        end
+      end
+
       def full_boundary; @full_boundary; end
 
       def rx; @rx; end
