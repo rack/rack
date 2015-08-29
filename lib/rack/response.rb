@@ -127,7 +127,6 @@ module Rack
       def not_found?;           status == 404;                        end
       def method_not_allowed?;  status == 405;                        end
       def precondition_failed?; status == 412;                        end
-      def i_m_a_teapot?;        status == 418;                        end
       def unprocessable?;       status == 422;                        end
 
       def redirect?;            [301, 302, 303, 307].include? status; end

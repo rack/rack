@@ -266,11 +266,6 @@ describe Rack::Response do
     res.must_be :client_error?
     res.must_be :precondition_failed?
 
-    res.status = 418
-    res.wont_be :successful?
-    res.must_be :client_error?
-    res.must_be :i_m_a_teapot?
-
     res.status = 422
     res.wont_be :successful?
     res.must_be :client_error?
