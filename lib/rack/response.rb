@@ -129,7 +129,7 @@ module Rack
       def precondition_failed?; status == 412;                        end
       def unprocessable?;       status == 422;                        end
 
-      def redirect?;            [301, 302, 303, 307].include? status; end
+      def redirect?;            [301, 302, 303, 307, 308].include? status; end
 
       def include?(header)
         have_header? header
