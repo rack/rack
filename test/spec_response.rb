@@ -241,6 +241,18 @@ describe Rack::Response do
     res.must_be :redirect?
     res.must_be :moved_permanently?
 
+    res.status = 302
+    res.must_be :redirect?
+
+    res.status = 303
+    res.must_be :redirect?
+
+    res.status = 307
+    res.must_be :redirect?
+
+    res.status = 308
+    res.must_be :redirect?
+
     res.status = 400
     res.wont_be :successful?
     res.must_be :client_error?
@@ -274,9 +286,6 @@ describe Rack::Response do
     res.status = 501
     res.wont_be :successful?
     res.must_be :server_error?
-
-    res.status = 307
-    res.must_be :redirect?
   end
 
   it "provide access to the HTTP headers" do
