@@ -544,7 +544,6 @@ describe Rack::Request do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
     req.cookies.must_equal "foo" => "bar", "quux" => "h&m"
-    req.cookies.must_equal "foo" => "bar", "quux" => "h&m"
     req.env.delete("HTTP_COOKIE")
     req.cookies.must_equal({})
   end
