@@ -105,7 +105,7 @@ module Rack
 
       def initialize(app, options={})
         @secrets = options.values_at(:secret, :old_secret).compact
-        warn <<-MSG unless @secrets.size >= 1
+        warn <<-MSG unless secure?(options)
         SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
         This poses a security threat. It is strongly recommended that you
         provide a secret to prevent exploits that may be possible from crafted
@@ -181,6 +181,11 @@ module Rack
 
       def generate_hmac(data, secret)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, secret, data)
+      end
+
+      def secure?(options)
+        @secrets.size >= 1 ||
+        (options[:coder] && options[:let_coder_handle_secure_encoding])
       end
 
     end
