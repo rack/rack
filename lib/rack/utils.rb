@@ -414,6 +414,12 @@ module Rack
         @names = other.names.dup
       end
 
+      # on clear, we need to clear @names hash
+      def clear
+        super
+        @names = {}
+      end
+
       def each
         super do |k, v|
           yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
