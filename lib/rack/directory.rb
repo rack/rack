@@ -52,7 +52,6 @@ table { width:100%%; }
     end
 
     def _call(env)
-      @env = env
       @script_name = env[SCRIPT_NAME]
       path_info = Utils.unescape(env[PATH_INFO])
 
@@ -60,7 +59,7 @@ table { width:100%%; }
         forbidden
       else
         @path = ::File.join(@root, path_info)
-        list_path(path_info)
+        list_path(env, path_info)
       end
     end
 
@@ -110,11 +109,11 @@ table { width:100%%; }
 
     # TODO: add correct response if not readable, not sure if 404 is the best
     #       option
-    def list_path(path_info)
+    def list_path(env, path_info)
       @stat = ::File.stat(@path)
 
       if @stat.readable?
-        return @app.call(@env) if @stat.file?
+        return @app.call(env) if @stat.file?
         return list_directory(path_info) if @stat.directory?
       else
         raise Errno::ENOENT, 'No such file or directory'
