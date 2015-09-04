@@ -54,18 +54,18 @@ table { width:100%%; }
     def _call(env)
       @env = env
       @script_name = env[SCRIPT_NAME]
-      @path_info = Utils.unescape(env[PATH_INFO])
+      path_info = Utils.unescape(env[PATH_INFO])
 
-      if forbidden = check_forbidden
+      if forbidden = check_forbidden(path_info)
         forbidden
       else
-        @path = ::File.join(@root, @path_info)
-        list_path
+        @path = ::File.join(@root, path_info)
+        list_path(path_info)
       end
     end
 
-    def check_forbidden
-      return unless @path_info.include? ".."
+    def check_forbidden(path_info)
+      return unless path_info.include? ".."
 
       body = "Forbidden\n"
       size = body.bytesize
@@ -74,11 +74,11 @@ table { width:100%%; }
         "X-Cascade" => "pass"}, [body]]
     end
 
-    def list_directory
+    def list_directory(path_info)
       @files = [['../','Parent Directory','','','']]
       glob = ::File.join(@path, '*')
 
-      url_head = (@script_name.split('/') + @path_info.split('/')).map do |part|
+      url_head = (@script_name.split('/') + path_info.split('/')).map do |part|
         Rack::Utils.escape part
       end
 
@@ -110,22 +110,22 @@ table { width:100%%; }
 
     # TODO: add correct response if not readable, not sure if 404 is the best
     #       option
-    def list_path
+    def list_path(path_info)
       @stat = ::File.stat(@path)
 
       if @stat.readable?
         return @app.call(@env) if @stat.file?
-        return list_directory if @stat.directory?
+        return list_directory(path_info) if @stat.directory?
       else
         raise Errno::ENOENT, 'No such file or directory'
       end
 
     rescue Errno::ENOENT, Errno::ELOOP
-      return entity_not_found
+      return entity_not_found(path_info)
     end
 
-    def entity_not_found
-      body = "Entity not found: #{@path_info}\n"
+    def entity_not_found(path_info)
+      body = "Entity not found: #{path_info}\n"
       size = body.bytesize
       return [404, {CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
