@@ -54,8 +54,7 @@ table { width:100%%; }
       end
     end
 
-    attr_reader :files
-    attr_accessor :root, :path
+    attr_reader :root, :path
 
     def initialize(root, app=nil)
       @root = ::File.expand_path(root)
@@ -63,10 +62,6 @@ table { width:100%%; }
     end
 
     def call(env)
-      dup._call(env)
-    end
-
-    def _call(env)
       script_name = env[SCRIPT_NAME]
       path_info = Utils.unescape(env[PATH_INFO])
 
