@@ -6,7 +6,7 @@ require 'rack/multipart'
 require 'rack/query_parser'
 require 'time'
 
-require 'uri/common'
+require 'uri'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
