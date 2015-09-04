@@ -19,6 +19,8 @@ module Rack
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
 
+    DEFAULT_PARSER = URI::Parser.new
+
     class << self
       attr_accessor :default_query_parser
     end
@@ -35,9 +37,17 @@ module Rack
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
     # true URI escaping.
     def escape_path(s)
-      escape(s).gsub('+', '%20')
+      DEFAULT_PARSER.escape s
     end
     module_function :escape_path
+
+    # Unescapes the **path** component of a URI.  See Rack::Utils.unescape for
+    # unescaping query parameters or form components.
+    def unescape_path(s)
+      DEFAULT_PARSER.unescape s
+    end
+    module_function :unescape_path
+
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8

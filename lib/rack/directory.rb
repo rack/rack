@@ -63,7 +63,7 @@ table { width:100%%; }
 
     def call(env)
       script_name = env[SCRIPT_NAME]
-      path_info = Utils.unescape(env[PATH_INFO])
+      path_info = Utils.unescape_path(env[PATH_INFO])
 
       if forbidden = check_forbidden(path_info)
         forbidden
@@ -88,16 +88,16 @@ table { width:100%%; }
       glob = ::File.join(path, '*')
 
       url_head = (script_name.split('/') + path_info.split('/')).map do |part|
-        Rack::Utils.escape part
+        Rack::Utils.escape_path part
       end
 
       Dir[glob].sort.each do |node|
         stat = stat(node)
-        next  unless stat
+        next unless stat
         basename = ::File.basename(node)
         ext = ::File.extname(node)
 
-        url = ::File.join(*url_head + [Rack::Utils.escape(basename)])
+        url = ::File.join(*url_head + [Rack::Utils.escape_path(basename)])
         size = stat.size
         type = stat.directory? ? 'directory' : Mime.mime_type(ext)
         size = stat.directory? ? '-' : filesize_format(size)
@@ -111,7 +111,7 @@ table { width:100%%; }
       return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, DirectoryBody.new(@root, path, files) ]
     end
 
-    def stat(node, max = 10)
+    def stat(node)
       ::File.stat(node)
     rescue Errno::ENOENT, Errno::ELOOP
       return nil
