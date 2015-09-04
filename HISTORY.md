@@ -1,3 +1,12 @@
+Fri Sep  4 16:09:11 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Move most methods on the `Rack::Request` to a module
+	`Rack::Request::Helpers` and use public API to get values from the
+	request object.  This enables users to mix `Rack::Request::Helpers` in
+	to their own objects so they can implement
+	`(get|set|fetch|each)_header` as they see fit (for example a proxy
+	object).
+
 Fri Sep  4 14:15:32 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Files and directories with + in the name are served correctly.

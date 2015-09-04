@@ -131,7 +131,7 @@ module Rack
       end
 
       def unpacked_cookie_data(request)
-        request.get_header(RACK_SESSION_UNPACKED_COOKIE_DATA) do |k|
+        request.fetch_header(RACK_SESSION_UNPACKED_COOKIE_DATA) do |k|
           session_data = request.cookies[@key]
 
           if @secrets.size > 0 && session_data

@@ -20,7 +20,7 @@ describe Rack::Request do
   it 'yields to the block if no value has been set' do
     req = Rack::Request.new(Rack::MockRequest.env_for("http://example.com:8080/"))
     yielded = false
-    req.get_header("FOO") do
+    req.fetch_header("FOO") do
       yielded = true
       req.set_header "FOO", 'bar'
     end
