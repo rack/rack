@@ -52,14 +52,14 @@ table { width:100%%; }
     end
 
     def _call(env)
-      @script_name = env[SCRIPT_NAME]
+      script_name = env[SCRIPT_NAME]
       path_info = Utils.unescape(env[PATH_INFO])
 
       if forbidden = check_forbidden(path_info)
         forbidden
       else
         @path = ::File.join(@root, path_info)
-        list_path(env, @path, path_info)
+        list_path(env, @path, path_info, script_name)
       end
     end
 
@@ -73,11 +73,11 @@ table { width:100%%; }
         "X-Cascade" => "pass"}, [body]]
     end
 
-    def list_directory(path_info, path)
+    def list_directory(path_info, path, script_name)
       @files = [['../','Parent Directory','','','']]
       glob = ::File.join(path, '*')
 
-      url_head = (@script_name.split('/') + path_info.split('/')).map do |part|
+      url_head = (script_name.split('/') + path_info.split('/')).map do |part|
         Rack::Utils.escape part
       end
 
@@ -109,12 +109,12 @@ table { width:100%%; }
 
     # TODO: add correct response if not readable, not sure if 404 is the best
     #       option
-    def list_path(env, path, path_info)
+    def list_path(env, path, path_info, script_name)
       stat = ::File.stat(path)
 
       if stat.readable?
         return @app.call(env) if stat.file?
-        return list_directory(path_info, path) if stat.directory?
+        return list_directory(path_info, path, script_name) if stat.directory?
       else
         raise Errno::ENOENT, 'No such file or directory'
       end
