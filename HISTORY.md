@@ -1,3 +1,9 @@
+Fri Sep  4 14:15:32 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Files and directories with + in the name are served correctly.
+	Rather than unescaping paths like a form, we unescape with a URI
+	parser using `Rack::Utils.unescape_path`. Fixes #265
+
 Thu Aug 27 15:43:48 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Tempfiles are automatically closed in the case that there were too

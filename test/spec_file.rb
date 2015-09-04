@@ -10,6 +10,21 @@ describe Rack::File do
     Rack::Lint.new Rack::File.new(*args)
   end
 
+  it 'serves files with + in the file name' do
+    Dir.mktmpdir do |dir|
+      File.write File.join(dir, "you+me.txt"), "hello world"
+      app = file(dir)
+      env = Rack::MockRequest.env_for("/you+me.txt")
+      status,_,body = app.call env
+
+      assert_equal 200, status
+
+      str = ''
+      body.each { |x| str << x }
+      assert_match "hello world", str
+    end
+  end
+
   it "serve files" do
     res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test")
 

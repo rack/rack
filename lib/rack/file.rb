@@ -30,7 +30,7 @@ module Rack
         return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
       end
 
-      path_info = Utils.unescape request.path_info
+      path_info = Utils.unescape_path request.path_info
       clean_path_info = Utils.clean_path_info(path_info)
 
       path = ::File.join(@root, clean_path_info)
