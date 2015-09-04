@@ -39,6 +39,21 @@ table { width:100%%; }
 </body></html>
     PAGE
 
+    class DirectoryBody < Struct.new(:root, :path, :files)
+      def each
+        show_path = Rack::Utils.escape_html(path.sub(/^#{root}/,''))
+        listings = files.map{|f| DIR_FILE % DIR_FILE_escape(*f) }*"\n"
+        page  = DIR_PAGE % [ show_path, show_path , listings ]
+        page.each_line{|l| yield l }
+      end
+
+      private
+      # Assumes url is already escaped.
+      def DIR_FILE_escape url, *html
+        [url, *html.map { |e| Utils.escape_html(e) }]
+      end
+    end
+
     attr_reader :files
     attr_accessor :root, :path
 
@@ -58,8 +73,8 @@ table { width:100%%; }
       if forbidden = check_forbidden(path_info)
         forbidden
       else
-        @path = ::File.join(@root, path_info)
-        list_path(env, @path, path_info, script_name)
+        path = ::File.join(@root, path_info)
+        list_path(env, path, path_info, script_name)
       end
     end
 
@@ -74,7 +89,7 @@ table { width:100%%; }
     end
 
     def list_directory(path_info, path, script_name)
-      @files = [['../','Parent Directory','','','']]
+      files = [['../','Parent Directory','','','']]
       glob = ::File.join(path, '*')
 
       url_head = (script_name.split('/') + path_info.split('/')).map do |part|
@@ -95,10 +110,10 @@ table { width:100%%; }
         url << '/'  if stat.directory?
         basename << '/'  if stat.directory?
 
-        @files << [ url, basename, size, type, mtime ]
+        files << [ url, basename, size, type, mtime ]
       end
 
-      return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, self ]
+      return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, DirectoryBody.new(@root, path, files) ]
     end
 
     def stat(node, max = 10)
@@ -131,13 +146,6 @@ table { width:100%%; }
         "X-Cascade" => "pass"}, [body]]
     end
 
-    def each
-      show_path = Rack::Utils.escape_html(@path.sub(/^#{@root}/,''))
-      files = @files.map{|f| DIR_FILE % DIR_FILE_escape(*f) }*"\n"
-      page  = DIR_PAGE % [ show_path, show_path , files ]
-      page.each_line{|l| yield l }
-    end
-
     # Stolen from Ramaze
 
     FILESIZE_FORMAT = [
@@ -153,12 +161,6 @@ table { width:100%%; }
       end
 
       int.to_s + 'B'
-    end
-
-    private
-    # Assumes url is already escaped.
-    def DIR_FILE_escape url, *html
-      [url, *html.map { |e| Utils.escape_html(e) }]
     end
   end
 end
