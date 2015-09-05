@@ -1,4 +1,9 @@
 # -*- encoding: binary -*-
+puts "#" * 90
+p $LOAD_PATH
+puts "#" * 90
+p $LOADED_FEATURES
+puts "#" * 90
 require 'uri'
 require 'fileutils'
 require 'set'
