@@ -43,7 +43,7 @@ module Rack
       raise LoadError, "Couldn't find handler for: #{server_names.join(', ')}."
     end
 
-    def self.default(options = {})
+    def self.default
       # Guess.
       if ENV.include?("PHP_FCGI_CHILDREN")
         Rack::Handler::FastCGI
