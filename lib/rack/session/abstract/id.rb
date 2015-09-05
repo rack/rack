@@ -394,7 +394,7 @@ module Rack
 
       class ID < Persisted
         def self.inherited(klass)
-          k = klass.ancestors.find { |k| k.superclass == ID }
+          k = klass.ancestors.find { |kl| kl.superclass == ID }
           unless k.instance_variable_defined?(:"@_rack_warned")
             warn "#{klass} is inheriting from #{ID}.  Inheriting from #{ID} is deprecated, please inherit from #{Persisted} instead" if $VERBOSE
             k.instance_variable_set(:"@_rack_warned", true)
