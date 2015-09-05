@@ -1,3 +1,10 @@
+Fri Sep  4 18:34:53 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* `Rack::Session::Abstract::ID` IS DEPRECATED.  Please switch to
+	`Rack::Session::Abstract::Persisted`.
+	`Rack::Session::Abstract::Persisted` uses a request object rather than
+	the `env` hash.
+
 Fri Sep  4 17:32:12 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Pull `ENV` access inside the request object in to a module.  This

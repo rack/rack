@@ -45,7 +45,7 @@ module Rack
     #   })
     #
 
-    class Cookie < Abstract::ID
+    class Cookie < Abstract::Persisted
       # Encode session cookies as Base64
       class Base64
         def encode(str)
@@ -120,7 +120,7 @@ module Rack
 
       private
 
-      def get_session(req, sid)
+      def find_session(req, sid)
         data = unpacked_cookie_data(req)
         data = persistent_session_id!(data)
         [data["session_id"], data]
@@ -151,7 +151,7 @@ module Rack
         data
       end
 
-      def set_session(req, session_id, session, options)
+      def write_session(req, session_id, session, options)
         session = session.merge("session_id" => session_id)
         session_data = coder.encode(session)
 
@@ -167,7 +167,7 @@ module Rack
         end
       end
 
-      def destroy_session(req, session_id, options)
+      def delete_session(req, session_id, options)
         # Nothing to do here, data is in the client
         generate_sid unless options[:drop]
       end

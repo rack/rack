@@ -76,7 +76,7 @@ module Rack
 
         def destroy
           clear
-          @id = @store.send(:destroy_session, @req, id, options)
+          @id = @store.send(:delete_session, @req, id, options)
         end
 
         def to_hash
@@ -158,7 +158,7 @@ module Rack
 
       # ID sets up a basic framework for implementing an id based sessioning
       # service. Cookies sent to the client for maintaining sessions will only
-      # contain an id reference. Only #get_session and #set_session are
+      # contain an id reference. Only #find_session and #write_session are
       # required to be overwritten.
       #
       # All parameters are optional.
@@ -185,7 +185,7 @@ module Rack
       # Not included by default; you must require 'rack/session/abstract/id'
       # to use.
 
-      class ID
+      class Persisted
         DEFAULT_OPTIONS = {
           :key =>           RACK_SESSION,
           :path =>          '/',
@@ -259,11 +259,11 @@ module Rack
         end
 
         # Extracts the session id from provided cookies and passes it and the
-        # environment to #get_session.
+        # environment to #find_session.
 
         def load_session(req)
           sid = current_session_id(req)
-          sid, session = get_session(req, sid)
+          sid, session = find_session(req, sid)
           [sid, session || {}]
         end
 
@@ -318,7 +318,7 @@ module Rack
         end
 
         # Acquires the session from the environment and the session id from
-        # the session options and passes them to #set_session. If successful
+        # the session options and passes them to #write_session. If successful
         # and the :defer option is not true, a cookie will be added to the
         # response with the session's id.
 
@@ -327,7 +327,7 @@ module Rack
           options = session.options
 
           if options[:drop] || options[:renew]
-            session_id = destroy_session(req, session.id || generate_sid, options)
+            session_id = delete_session(req, session.id || generate_sid, options)
             return [status, headers, body] unless session_id
           end
 
@@ -337,7 +337,7 @@ module Rack
           session_id ||= session.id
           session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
-          if not data = set_session(req, session_id, session_data, options)
+          if not data = write_session(req, session_id, session_data, options)
             req.get_header(RACK_ERRORS).puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
             req.get_header(RACK_ERRORS).puts("Deferring cookie for #{session_id}") if $VERBOSE
@@ -372,23 +372,58 @@ module Rack
         # If nil is provided as the session id, generation of a new valid id
         # should occur within.
 
-        def get_session(env, sid)
-          raise '#get_session not implemented.'
+        def find_session(env, sid)
+          raise '#find_session not implemented.'
         end
 
         # All thread safety and session storage procedures should occur here.
         # Must return the session id if the session was saved successfully, or
         # false if the session could not be saved.
 
-        def set_session(req, sid, session, options)
-          raise '#set_session not implemented.'
+        def write_session(req, sid, session, options)
+          raise '#write_session not implemented.'
         end
 
         # All thread safety and session destroy procedures should occur here.
         # Should return a new session id or nil if options[:drop]
 
-        def destroy_session(req, sid, options)
-          raise '#destroy_session not implemented'
+        def delete_session(req, sid, options)
+          raise '#delete_session not implemented'
+        end
+      end
+
+      class ID < Persisted
+        def self.inherited(klass)
+          k = klass.ancestors.find { |k| k.superclass == ID }
+          unless k.instance_variable_defined?(:"@_rack_warned")
+            warn "#{klass} is inheriting from #{ID}.  Inheriting from #{ID} is deprecated, please inherit from #{Persisted} instead" if $VERBOSE
+            k.instance_variable_set(:"@_rack_warned", true)
+          end
+          super
+        end
+
+        # All thread safety and session retrieval procedures should occur here.
+        # Should return [session_id, session].
+        # If nil is provided as the session id, generation of a new valid id
+        # should occur within.
+
+        def find_session(req, sid)
+          get_session req.env, sid
+        end
+
+        # All thread safety and session storage procedures should occur here.
+        # Must return the session id if the session was saved successfully, or
+        # false if the session could not be saved.
+
+        def write_session(req, sid, session, options)
+          set_session req.env, sid, session, options
+        end
+
+        # All thread safety and session destroy procedures should occur here.
+        # Should return a new session id or nil if options[:drop]
+
+        def delete_session(req, sid, options)
+          destroy_session req.env, sid, options
         end
       end
     end
