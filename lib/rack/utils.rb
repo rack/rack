@@ -18,7 +18,7 @@ module Rack
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
 
-    DEFAULT_PARSER = URI::Parser.new
+    DEFAULT_PARSER = ::URI::Parser.new
 
     class << self
       attr_accessor :default_query_parser
