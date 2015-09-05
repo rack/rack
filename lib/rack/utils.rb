@@ -220,7 +220,7 @@ module Rack
         #
         # These are best described in RFC 2616 3.3.1. This RFC text also
         # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
-        # fixed length format with space-date delimeted fields.
+        # fixed length format with space-date delimited fields.
         #
         # See also RFC 1123 section 5.2.14.
         #
