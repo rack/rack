@@ -1,6 +1,7 @@
 #!/usr/bin/env ruby
 # -*- ruby -*-
 
+require 'uri'
 $:.unshift '../../lib'
 require 'rack'
 require '../testrequest'
