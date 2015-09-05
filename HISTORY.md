@@ -1,3 +1,9 @@
+Fri Sep  4 17:32:12 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Pull `ENV` access inside the request object in to a module.  This
+	will help with legacy Request objects that are ENV based but don't
+	want to inherit from Rack::Request
+
 Fri Sep  4 16:09:11 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Move most methods on the `Rack::Request` to a module

@@ -2,7 +2,6 @@
 require 'fileutils'
 require 'set'
 require 'tempfile'
-require 'rack/multipart'
 require 'rack/query_parser'
 require 'time'
 
@@ -569,8 +568,6 @@ module Rack
       end
     end
     module_function :status_code
-
-    Multipart = Rack::Multipart
 
     PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
 

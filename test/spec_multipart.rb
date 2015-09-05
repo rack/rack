@@ -306,7 +306,7 @@ describe Rack::Multipart do
 
   it "parse multipart/mixed" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
-    params = Rack::Utils::Multipart.parse_multipart(env)
+    params = Rack::Multipart.parse_multipart(env)
     params["foo"].must_equal "bar"
     params["files"].must_be_instance_of String
     params["files"].size.must_equal 252
@@ -572,7 +572,7 @@ EOF
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Utils::Multipart.parse_multipart(env)
+    params = Rack::Multipart.parse_multipart(env)
 
     params.must_equal "description"=>"Very very blue"
   end
@@ -601,7 +601,7 @@ contents\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Utils::Multipart.parse_multipart(env)
+    params = Rack::Multipart.parse_multipart(env)
 
     params["file"][:filename].must_equal 'long' * 100
   end
@@ -655,7 +655,7 @@ Content-Type: image/png\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Utils::Multipart.parse_multipart(env)
+    params = Rack::Multipart.parse_multipart(env)
 
     params["text/plain"].must_equal ["some text", "some more text (I didn't specify Content-Type)"]
     params["image/png"].length.must_equal 1

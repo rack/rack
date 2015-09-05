@@ -115,10 +115,10 @@ module Rack
         elsif !opts.has_key?(:input)
           opts["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
           if params.is_a?(Hash)
-            if data = Utils::Multipart.build_multipart(params)
+            if data = Rack::Multipart.build_multipart(params)
               opts[:input] = data
               opts["CONTENT_LENGTH"] ||= data.length.to_s
-              opts["CONTENT_TYPE"] = "multipart/form-data; boundary=#{Utils::Multipart::MULTIPART_BOUNDARY}"
+              opts["CONTENT_TYPE"] = "multipart/form-data; boundary=#{Rack::Multipart::MULTIPART_BOUNDARY}"
             else
               opts[:input] = Utils.build_nested_query(params)
             end

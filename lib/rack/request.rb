@@ -11,71 +11,10 @@ module Rack
   #   req.params["data"]
 
   class Request
-    HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
-    HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
-    HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
-    HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
-    HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
-
-    # The environment of the request.
-    attr_reader :env
-
     def initialize(env)
-      @env = env
-      super()
+      @params = nil
+      super(env)
     end
-
-    # Get a request specific value for `name`.
-    def get_header(name)
-      @env[name]
-    end
-
-    # If a block is given, it yields to the block if the value hasn't been set
-    # on the request.
-    def fetch_header(name, &block)
-      @env.fetch(name, &block)
-    end
-
-    # Delete a request specific value for `name`.
-    def delete_header(name)
-      @env.delete name
-    end
-
-    # Set a request specific value for `name` to `v`
-    def set_header(name, v)
-      @env[name] = v
-    end
-
-    # Predicate method to test to see if `name` has been set as request
-    # specific data
-    def has_header?(name)
-      @env.key? name
-    end
-
-    # Loops through each key / value pair in the request specific data.
-    def each_header(&block)
-      @env.each(&block)
-    end
-
-    # The set of form-data media-types. Requests that do not indicate
-    # one of the media types presents in this list will not be eligible
-    # for form-data / param parsing.
-    FORM_DATA_MEDIA_TYPES = [
-      'application/x-www-form-urlencoded',
-      'multipart/form-data'
-    ]
-
-    # The set of media-types. Requests that do not indicate
-    # one of the media types presents in this list will not be eligible
-    # for param parsing like soap attachments or generic multiparts
-    PARSEABLE_DATA_MEDIA_TYPES = [
-      'multipart/related',
-      'multipart/mixed'
-    ]
-
-    # Default ports depending on scheme. Used to decide whether or not
-    # to include the port in a generated URI.
-    DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
     # shortcut for request.params[key]
     def [](key)
@@ -94,14 +33,93 @@ module Rack
       keys.map{|key| params[key] }
     end
 
-    def initialize_copy(other)
-      @env = other.env.dup
+    def params
+      @params ||= super
+    end
+
+    def update_param(k, v)
+      super
+      @params = nil
+    end
+
+    def delete_param(k)
+      v = super
+      @params = nil
+      v
+    end
+
+    module Env
+      # The environment of the request.
+      attr_reader :env
+
+      def initialize(env)
+        @env = env
+        super()
+      end
+
+      # Get a request specific value for `name`.
+      def get_header(name)
+        @env[name]
+      end
+
+      # If a block is given, it yields to the block if the value hasn't been set
+      # on the request.
+      def fetch_header(name, &block)
+        @env.fetch(name, &block)
+      end
+
+      # Delete a request specific value for `name`.
+      def delete_header(name)
+        @env.delete name
+      end
+
+      # Set a request specific value for `name` to `v`
+      def set_header(name, v)
+        @env[name] = v
+      end
+
+      # Predicate method to test to see if `name` has been set as request
+      # specific data
+      def has_header?(name)
+        @env.key? name
+      end
+
+      # Loops through each key / value pair in the request specific data.
+      def each_header(&block)
+        @env.each(&block)
+      end
+
+      def initialize_copy(other)
+        @env = other.env.dup
+      end
     end
 
     module Helpers
-      def initialize
-        @params = nil
-      end
+      # The set of form-data media-types. Requests that do not indicate
+      # one of the media types presents in this list will not be eligible
+      # for form-data / param parsing.
+      FORM_DATA_MEDIA_TYPES = [
+        'application/x-www-form-urlencoded',
+        'multipart/form-data'
+      ]
+
+      # The set of media-types. Requests that do not indicate
+      # one of the media types presents in this list will not be eligible
+      # for param parsing like soap attachments or generic multiparts
+      PARSEABLE_DATA_MEDIA_TYPES = [
+        'multipart/related',
+        'multipart/mixed'
+      ]
+
+      # Default ports depending on scheme. Used to decide whether or not
+      # to include the port in a generated URI.
+      DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
+
+      HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
+      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
+      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
+      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
+      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
 
       def body;            get_header(RACK_INPUT)                         end
       def script_name;     get_header(SCRIPT_NAME).to_s                   end
@@ -319,7 +337,7 @@ module Rack
 
             get_header(RACK_INPUT).rewind
           end
-          set_header RACK_REQUEST_FORM_INPUT, @env[RACK_INPUT]
+          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
           get_header RACK_REQUEST_FORM_HASH
         else
           {}
@@ -330,7 +348,7 @@ module Rack
       #
       # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
       def params
-        @params ||= self.GET.merge(self.POST)
+        self.GET.merge(self.POST)
       rescue EOFError
         self.GET.dup
       end
@@ -353,7 +371,6 @@ module Rack
         unless found
           self.GET[k] = v
         end
-        @params = nil
       end
 
       # Destructively delete a parameter, whether it's in GET or POST. Returns the value of the deleted parameter.
@@ -362,9 +379,7 @@ module Rack
       #
       # env['rack.input'] is not touched.
       def delete_param(k)
-        v = [ self.POST.delete(k), self.GET.delete(k) ].compact.first
-        @params = nil
-        v
+        [ self.POST.delete(k), self.GET.delete(k) ].compact.first
       end
 
       def base_url
@@ -432,6 +447,7 @@ module Rack
       end
     end
 
+    include Env
     include Helpers
   end
 end

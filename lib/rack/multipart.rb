@@ -1,10 +1,11 @@
+require 'rack/multipart/parser'
+
 module Rack
   # A multipart form data parser, adapted from IOWA.
   #
   # Usually, Rack::Request#POST takes care of calling this.
   module Multipart
     autoload :UploadedFile, 'rack/multipart/uploaded_file'
-    autoload :Parser, 'rack/multipart/parser'
     autoload :Generator, 'rack/multipart/generator'
 
     EOL = "\r\n"
