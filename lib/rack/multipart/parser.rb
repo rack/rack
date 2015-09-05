@@ -310,7 +310,7 @@ module Rack
           filename = Utils.unescape(filename)
         end
 
-        scrub_filename(filename)
+        filename.scrub!
 
         if filename !~ /\\[^\\"]/
           filename = filename.gsub(/\\(.)/, '\1')
@@ -321,15 +321,6 @@ module Rack
         end
 
         filename
-      end
-
-      def scrub_filename(filename)
-        unless filename.valid_encoding?
-          # FIXME: this force_encoding is for Ruby 2.0 and 1.9 support.
-          # We can remove it after they are dropped
-          filename.force_encoding(Encoding::ASCII_8BIT)
-          filename.encode!(:invalid => :replace, :undef => :replace)
-        end
       end
 
       CHARSET   = "charset"
