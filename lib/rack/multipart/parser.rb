@@ -246,6 +246,7 @@ module Rack
 
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
+          name.gsub!(/\A"|"\Z/, '') if name
 
           filename = get_filename(head)
 
