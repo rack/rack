@@ -136,12 +136,11 @@ Or:
 
     bundle install # this assumes that you have installed native extensions!
 
-There are two rake-based test tasks:
+There is a rake-based test task:
 
-    rake test       tests all the fast tests (no Handlers or Adapters)
-    rake fulltest   runs all the tests
+    rake test       tests all the tests
 
-The fast testsuite has no dependencies outside of the core Ruby
+The testsuite has no dependencies outside of the core Ruby
 installation and bacon.
 
 To run the test suite completely, you need:
