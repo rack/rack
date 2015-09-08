@@ -27,6 +27,7 @@ module Rack
   SERVER_ADDR       = 'SERVER_ADDR'
   SERVER_PORT       = 'SERVER_PORT'
   CACHE_CONTROL     = 'Cache-Control'
+  EXPIRES           = 'Expires'
   CONTENT_LENGTH    = 'Content-Length'
   CONTENT_TYPE      = 'Content-Type'
   SET_COOKIE        = 'Set-Cookie'
