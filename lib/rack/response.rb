@@ -211,6 +211,25 @@ module Rack
       def etag= v
         set_header ETAG, v
       end
+
+      # Specifies that the content shouldn't be cached. Overrides `cache!` if already called.
+      def do_not_cache!
+        set_header CACHE_CONTROL, "no-cache, must-revalidate"
+        set_header EXPIRES, Time.now.httpdate
+      end
+
+      # Specify that the content should be cached.
+      def cache!(duration = 3600, access = "public")
+        unless headers[CACHE_CONTROL] =~ /no-cache/
+          set_header CACHE_CONTROL, "#{access}, max-age=#{duration}"
+          set_header EXPIRES, (Time.now + duration).httpdate
+        end
+      end
+
+      # Specify the content type of the response data.
+      def content_type!(value)
+        set_header CONTENT_TYPE, value.to_s
+      end
     end
 
     include Helpers

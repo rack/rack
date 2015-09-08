@@ -38,6 +38,7 @@ module Rack
   SERVER_ADDR       = 'SERVER_ADDR'.freeze
   SERVER_PORT       = 'SERVER_PORT'.freeze
   CACHE_CONTROL     = 'Cache-Control'.freeze
+  EXPIRES           = 'Expires'.freeze
   CONTENT_LENGTH    = 'Content-Length'.freeze
   CONTENT_TYPE      = 'Content-Type'.freeze
   SET_COOKIE        = 'Set-Cookie'.freeze
