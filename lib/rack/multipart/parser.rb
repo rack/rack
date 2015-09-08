@@ -245,8 +245,11 @@ module Rack
           @buf.slice!(0, 2)          # Second \r\n
 
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
-          name = head[MULTIPART_CONTENT_DISPOSITION, 1] || head[MULTIPART_CONTENT_ID, 1]
-          name.gsub!(/\A"|"\Z/, '') if name
+          if name = head[MULTIPART_CONTENT_DISPOSITION, 1]
+            name = Rack::Auth::Digest::Params::dequote(name)
+          else
+            name = head[MULTIPART_CONTENT_ID, 1]
+          end
 
           filename = get_filename(head)
 
