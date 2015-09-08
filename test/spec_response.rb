@@ -30,6 +30,14 @@ describe Rack::Response do
     assert_equal etag, response.to_a[1]['ETag']
   end
 
+  it 'has a content-type method' do
+    response = Rack::Response.new
+    content_type = 'foo'
+    response.content_type = content_type
+    assert_equal content_type, response.content_type
+    assert_equal content_type, response.to_a[1]['Content-Type']
+  end
+
   it "have sensible default values" do
     response = Rack::Response.new
     status, header, body = response.finish
@@ -608,6 +616,31 @@ describe Rack::Response do
     res = Rack::Response.new("Hello World")
 
     res.finish.flatten.must_be_kind_of(Array)
+  end
+
+  it "should specify not to cache content" do
+    response = Rack::Response.new
+
+    response.cache!(1000)
+    response.do_not_cache!
+
+    expect(response['Cache-Control']).must_equal "no-cache, must-revalidate"
+
+    expires_header = Time.parse(response['Expires'])
+    expect(expires_header).must_be :<=, Time.now
+  end
+
+  it "should specify to cache content" do
+    response = Rack::Response.new
+
+    duration = 120
+    expires = Time.now + 100 # At least this far into the future
+    response.cache!(duration)
+
+    expect(response['Cache-Control']).must_equal "public, max-age=120"
+
+    expires_header = Time.parse(response['Expires'])
+    expect(expires_header).must_be :>=, expires
   end
 end
 

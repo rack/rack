@@ -178,8 +178,14 @@ module Rack
         end
       end
 
+      # Get the content type of the response.
       def content_type
         get_header CONTENT_TYPE
+      end
+
+      # Set the content type of the response.
+      def content_type=(content_type)
+        set_header CONTENT_TYPE, content_type
       end
 
       def media_type
@@ -226,6 +232,22 @@ module Rack
 
       def cache_control=(v)
         set_header CACHE_CONTROL, v
+      end
+
+      # Specifies that the content shouldn't be cached. Overrides `cache!` if already called.
+      def do_not_cache!
+        set_header CACHE_CONTROL, "no-cache, must-revalidate"
+        set_header EXPIRES, Time.now.httpdate
+      end
+
+      # Specify that the content should be cached.
+      # @param duration [Integer] The number of seconds until the cache expires.
+      # @option directive [String] The cache control directive, one of "public", "private", "no-cache" or "no-store".
+      def cache!(duration = 3600, directive: "public")
+        unless headers[CACHE_CONTROL] =~ /no-cache/
+          set_header CACHE_CONTROL, "#{directive}, max-age=#{duration}"
+          set_header EXPIRES, (Time.now + duration).httpdate
+        end
       end
 
       def etag
