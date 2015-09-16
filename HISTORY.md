@@ -1,74 +1,74 @@
 Fri Sep  4 18:34:53 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* `Rack::Session::Abstract::ID` IS DEPRECATED.  Please switch to
-	`Rack::Session::Abstract::Persisted`.
-	`Rack::Session::Abstract::Persisted` uses a request object rather than
-	the `env` hash.
+  * `Rack::Session::Abstract::ID` IS DEPRECATED.  Please switch to
+  `Rack::Session::Abstract::Persisted`.
+  `Rack::Session::Abstract::Persisted` uses a request object rather than
+  the `env` hash.
 
 Fri Sep  4 17:32:12 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Pull `ENV` access inside the request object in to a module.  This
-	will help with legacy Request objects that are ENV based but don't
-	want to inherit from Rack::Request
+  * Pull `ENV` access inside the request object in to a module.  This
+  will help with legacy Request objects that are ENV based but don't
+  want to inherit from Rack::Request
 
 Fri Sep  4 16:09:11 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Move most methods on the `Rack::Request` to a module
-	`Rack::Request::Helpers` and use public API to get values from the
-	request object.  This enables users to mix `Rack::Request::Helpers` in
-	to their own objects so they can implement
-	`(get|set|fetch|each)_header` as they see fit (for example a proxy
-	object).
+  * Move most methods on the `Rack::Request` to a module
+  `Rack::Request::Helpers` and use public API to get values from the
+  request object.  This enables users to mix `Rack::Request::Helpers` in
+  to their own objects so they can implement
+  `(get|set|fetch|each)_header` as they see fit (for example a proxy
+  object).
 
 Fri Sep  4 14:15:32 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Files and directories with + in the name are served correctly.
-	Rather than unescaping paths like a form, we unescape with a URI
-	parser using `Rack::Utils.unescape_path`. Fixes #265
+  * Files and directories with + in the name are served correctly.
+  Rather than unescaping paths like a form, we unescape with a URI
+  parser using `Rack::Utils.unescape_path`. Fixes #265
 
 Thu Aug 27 15:43:48 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Tempfiles are automatically closed in the case that there were too
-	many posted.
+  * Tempfiles are automatically closed in the case that there were too
+  many posted.
 
 Mon Aug 24 18:05:23 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Introduce Util.get_byte_ranges that will parse the value of the
-	HTTP_RANGE string passed to it without depending on the `env` hash.
-	`byte_ranges` is deprecated in favor of this method.
+  * Introduce Util.get_byte_ranges that will parse the value of the
+  HTTP_RANGE string passed to it without depending on the `env` hash.
+  `byte_ranges` is deprecated in favor of this method.
 
 Sat Aug 22 17:49:49 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Change Session internals to use Request objects for looking up
-	session information. This allows us to only allocate one request
-	object when dealing with session objects (rather than doing it every
-	time we need to manipulate cookies, etc).
+  * Change Session internals to use Request objects for looking up
+  session information. This allows us to only allocate one request
+  object when dealing with session objects (rather than doing it every
+  time we need to manipulate cookies, etc).
 
 Fri Aug 21 16:30:51 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Add `Rack::Request#initialize_copy` so that the env is duped when
-	the request gets duped.
+  * Add `Rack::Request#initialize_copy` so that the env is duped when
+  the request gets duped.
 
 Thu Aug 20 16:20:58 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Added methods for manipulating request specific data.  This includes
-	data set as CGI parameters, and just any arbitrary data the user wants
-	to associate with a particular request.  New methods:
+  * Added methods for manipulating request specific data.  This includes
+  data set as CGI parameters, and just any arbitrary data the user wants
+  to associate with a particular request.  New methods:
 
-	  * Rack::Request#get_header
-	  * Rack::Request#set_header
-	  * Rack::Request#has_header?
-	  * Rack::Request#each_header
+    * Rack::Request#get_header
+    * Rack::Request#set_header
+    * Rack::Request#has_header?
+    * Rack::Request#each_header
 
 Thu Jun 18 16:00:05 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	*  lib/rack/utils.rb: add a method for constructing "delete" cookie
-	headers.  This allows us to construct cookie headers without depending
-	on the side effects of mutating a hash.
+  *  lib/rack/utils.rb: add a method for constructing "delete" cookie
+  headers.  This allows us to construct cookie headers without depending
+  on the side effects of mutating a hash.
 
 Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
+  * Prevent extremely deep parameters from being parsed. CVE-2015-3225
 
 ### May 6th, 2015, Thirty seventh public release 1.6.1
   - Fix CVE-2014-9490, denial of service attack in OkJson ([8cd610](https://github.com/rack/rack/commit/8cd61062954f70e0a03e2855704e95ff4bdd4f6e))
