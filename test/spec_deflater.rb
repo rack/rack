@@ -114,6 +114,31 @@ describe Rack::Deflater do
     end
   end
 
+  it 'does not raise when a client aborts reading' do
+    app_body = Object.new
+    class << app_body; def each; yield('foo'); yield('bar'); end; end
+    opts = { 'skip_body_verify' => true }
+    verify(200, app_body, 'deflate', opts) do |status, headers, body|
+      headers.must_equal({
+        'Content-Encoding' => 'deflate',
+        'Vary' => 'Accept-Encoding',
+        'Content-Type' => 'text/plain'
+      })
+
+      buf = []
+      inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      FakeDisconnect = Class.new(RuntimeError)
+      assert_raises(FakeDisconnect, "not Zlib::DataError not raised") do
+        body.each do |part|
+          buf << inflater.inflate(part)
+          raise FakeDisconnect
+        end
+      end
+      assert_raises(Zlib::BufError) { inflater.finish }
+      buf.must_equal(%w(foo))
+    end
+  end
+
   # TODO: This is really just a special case of the above...
   it 'be able to deflate String bodies' do
     verify(200, 'Hello world!', 'deflate') do |status, headers, body|

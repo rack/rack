@@ -118,8 +118,9 @@ module Rack
       def each
         deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
         @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
-        yield deflator.finish
+        yield fin = deflator.finish
       ensure
+        deflator.finish unless fin
         deflator.close
       end
 
