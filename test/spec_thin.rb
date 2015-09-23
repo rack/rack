@@ -8,18 +8,24 @@ describe Rack::Handler::Thin do
   include TestRequest::Helpers
 
   before do
-  @app = Rack::Lint.new(TestRequest.new)
-  @server = nil
-  Thin::Logging.silent = true
+    @app = Rack::Lint.new(TestRequest.new)
+    @server = nil
+    Thin::Logging.silent = true
 
-  @thread = Thread.new do
-    Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204, :tag => "tag") do |server|
-      @server = server
+    @thread = Thread.new do
+      Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204, :tag => "tag") do |server|
+        @server = server
+      end
     end
+
+    Thread.pass until @server && @server.running?
   end
 
-  Thread.pass until @server && @server.running?
+  after do
+    @server.stop!
+    @thread.join
   end
+
 
   it "respond" do
     GET("/")
@@ -83,12 +89,6 @@ describe Rack::Handler::Thin do
   it "set tag for server" do
     @server.tag.must_equal 'tag'
   end
-
-  after do
-  @server.stop!
-  @thread.join
-  end
-
 end
 
 rescue LoadError
