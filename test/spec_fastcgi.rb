@@ -82,12 +82,6 @@ describe Rack::Handler::FastCGI do
     status.must_equal 403
     response["rack.url_scheme"].must_equal "http"
   end
-
-  # Keep this last.
-  it "shutdown" do
-    Process.kill 15, $pid
-    Process.wait($pid).must_equal $pid
-  end
 end
 
 rescue RuntimeError
