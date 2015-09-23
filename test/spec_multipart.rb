@@ -2,6 +2,7 @@
 
 require 'minitest/autorun'
 require 'rack'
+require 'rack/multipart'
 require 'rack/multipart/parser'
 require 'rack/utils'
 require 'rack/mock'
