@@ -218,7 +218,8 @@ module Rack
           req = make_request env
           prepare_session(req)
           status, headers, body = app.call(req.env)
-          commit_session(req, status, headers)
+          res = Rack::Response::Raw.new status, headers
+          commit_session(req, res)
           [status, headers, body]
         end
 
@@ -323,7 +324,7 @@ module Rack
         # and the :defer option is not true, a cookie will be added to the
         # response with the session's id.
 
-        def commit_session(req, status, headers)
+        def commit_session(req, res)
           session = req.get_header RACK_SESSION
           options = session.options
 
@@ -347,16 +348,17 @@ module Rack
             cookie[:value] = data
             cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
             cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
-            set_cookie(req, headers, cookie.merge!(options))
+            set_cookie(req, res, cookie.merge!(options))
           end
         end
 
         # Sets the cookie back to the client with session id. We skip the cookie
         # setting if the value didn't change (sid is the same) or expires was given.
 
-        def set_cookie(request, headers, cookie)
+        def set_cookie(request, res, cookie)
           if request.cookies[@key] != cookie[:value] || cookie[:expires]
-            Utils.set_cookie_header!(headers, @key, cookie)
+            res.set_cookie_header =
+              Utils.add_cookie_to_header(res.set_cookie_header, @key, cookie)
           end
         end
 

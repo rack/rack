@@ -168,8 +168,32 @@ module Rack
       def delete_cookie(key, value={})
         set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
       end
+
+      def set_cookie_header
+        get_header SET_COOKIE
+      end
+
+      def set_cookie_header= v
+        set_header SET_COOKIE, v
+      end
     end
 
     include Helpers
+
+    class Raw
+      include Helpers
+
+      attr_reader :status, :headers
+
+      def initialize status, headers
+        @status = status
+        @headers = headers
+      end
+
+      def have_header?(key);  headers.key? key;   end
+      def get_header(key);    headers[key];       end
+      def set_header(key, v); headers[key] = v;   end
+      def delete_header(key); headers.delete key; end
+    end
   end
 end
