@@ -176,9 +176,9 @@ module Rack
       #   id will be.
       #
       # These options can be set on a per request basis, at the location of
-      # env['rack.session.options']. Additionally the id of the session can be
-      # found within the options hash at the key :id. It is highly not
-      # recommended to change its value.
+      # <tt>env['rack.session.options']</tt>. Additionally the id of the
+      # session can be found within the options hash at the key :id. It is
+      # highly not recommended to change its value.
       #
       # Is Rack::Utils::Context compatible.
       #

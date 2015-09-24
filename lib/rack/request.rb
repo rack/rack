@@ -16,12 +16,12 @@ module Rack
       super(env)
     end
 
-    # shortcut for request.params[key]
+    # shortcut for <tt>request.params[key]</tt>
     def [](key)
       params[key.to_s]
     end
 
-    # shortcut for request.params[key] = value
+    # shortcut for <tt>request.params[key] = value</tt>
     #
     # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
     def []=(key, value)
@@ -358,7 +358,7 @@ module Rack
       #
       # The parameter is updated wherever it was previous defined, so GET, POST, or both. If it wasn't previously defined, it's inserted into GET.
       #
-      # env['rack.input'] is not touched.
+      # <tt>env['rack.input']</tt> is not touched.
       def update_param(k, v)
         found = false
         if self.GET.has_key?(k)
@@ -378,7 +378,7 @@ module Rack
       #
       # If the parameter is in both GET and POST, the POST value takes precedence since that's how #params works.
       #
-      # env['rack.input'] is not touched.
+      # <tt>env['rack.input']</tt> is not touched.
       def delete_param(k)
         [ self.POST.delete(k), self.GET.delete(k) ].compact.first
       end
