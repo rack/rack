@@ -218,7 +218,8 @@ module Rack
           req = make_request env
           prepare_session(req)
           status, headers, body = app.call(req.env)
-          commit_session(req, status, headers, body)
+          commit_session(req, status, headers)
+          [status, headers, body]
         end
 
         private
@@ -322,16 +323,16 @@ module Rack
         # and the :defer option is not true, a cookie will be added to the
         # response with the session's id.
 
-        def commit_session(req, status, headers, body)
+        def commit_session(req, status, headers)
           session = req.get_header RACK_SESSION
           options = session.options
 
           if options[:drop] || options[:renew]
             session_id = delete_session(req, session.id || generate_sid, options)
-            return [status, headers, body] unless session_id
+            return unless session_id
           end
 
-          return [status, headers, body] unless commit_session?(req, session, options)
+          return unless commit_session?(req, session, options)
 
           session.send(:load!) unless loaded_session?(session)
           session_id ||= session.id
@@ -348,8 +349,6 @@ module Rack
             cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
             set_cookie(req, headers, cookie.merge!(options))
           end
-
-          [status, headers, body]
         end
 
         # Sets the cookie back to the client with session id. We skip the cookie
