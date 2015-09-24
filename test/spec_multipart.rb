@@ -607,6 +607,46 @@ contents\r
     params["file"][:filename].must_equal 'long' * 100
   end
 
+  it "parse unquoted parameter values at end of line" do
+    data = <<-EOF
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Disposition: attachment; name=inline\r
+\r
+true\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["inline"].must_equal 'true'
+  end
+
+  it "parse quoted chars in name parameter" do
+    data = <<-EOF
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
+\r
+true\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["quoted\\chars\"in\rname"].must_equal 'true'
+  end
+
   it "support mixed case metadata" do
     file = multipart_file(:text)
     data = File.open(file, 'rb') { |io| io.read }
