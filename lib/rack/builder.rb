@@ -50,7 +50,7 @@ module Rack
         TOPLEVEL_BINDING, file, 0
     end
 
-    def initialize(default_app = nil,&block)
+    def initialize(default_app = nil, &block)
       @use, @map, @run, @warmup = [], nil, default_app, nil
       instance_eval(&block) if block_given?
     end
