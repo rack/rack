@@ -72,14 +72,7 @@ describe Rack::MockRequest do
 
     res = Rack::MockRequest.new(app).delete("", :input => "foo")
     env = YAML.load(res.body)
-<<<<<<< HEAD
-    env["REQUEST_METHOD"].should.equal "DELETE"
-
-    Rack::MockRequest.env_for("/", :method => "HEAD")["REQUEST_METHOD"].
-      should.equal "HEAD"
-=======
     env["REQUEST_METHOD"].must_equal "DELETE"
->>>>>>> master
 
     Rack::MockRequest.env_for("/", :method => "HEAD")["REQUEST_METHOD"]
      .must_equal "HEAD"
