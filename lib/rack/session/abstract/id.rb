@@ -351,6 +351,7 @@ module Rack
             set_cookie(req, res, cookie.merge!(options))
           end
         end
+        public :commit_session
 
         # Sets the cookie back to the client with session id. We skip the cookie
         # setting if the value didn't change (sid is the same) or expires was given.
