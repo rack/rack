@@ -19,7 +19,7 @@ module Rack
       if klass = @handlers[server]
         klass.split("::").inject(Object) { |o, x| o.const_get(x) }
       else
-        const_get(server)
+        const_get(server, false)
       end
 
     rescue NameError => name_error
@@ -43,7 +43,7 @@ module Rack
       raise LoadError, "Couldn't find handler for: #{server_names.join(', ')}."
     end
 
-    def self.default(options = {})
+    def self.default
       # Guess.
       if ENV.include?("PHP_FCGI_CHILDREN")
         Rack::Handler::FastCGI
@@ -84,9 +84,6 @@ module Rack
 
     autoload :CGI, "rack/handler/cgi"
     autoload :FastCGI, "rack/handler/fastcgi"
-    autoload :Mongrel, "rack/handler/mongrel"
-    autoload :EventedMongrel, "rack/handler/evented_mongrel"
-    autoload :SwiftipliedMongrel, "rack/handler/swiftiplied_mongrel"
     autoload :WEBrick, "rack/handler/webrick"
     autoload :LSWS, "rack/handler/lsws"
     autoload :SCGI, "rack/handler/scgi"
@@ -94,9 +91,6 @@ module Rack
 
     register 'cgi', 'Rack::Handler::CGI'
     register 'fastcgi', 'Rack::Handler::FastCGI'
-    register 'mongrel', 'Rack::Handler::Mongrel'
-    register 'emongrel', 'Rack::Handler::EventedMongrel'
-    register 'smongrel', 'Rack::Handler::SwiftipliedMongrel'
     register 'webrick', 'Rack::Handler::WEBrick'
     register 'lsws', 'Rack::Handler::LSWS'
     register 'scgi', 'Rack::Handler::SCGI'

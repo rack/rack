@@ -1,3 +1,4 @@
+require 'minitest/autorun'
 require 'rack/auth/basic'
 require 'rack/lint'
 require 'rack/mock'
@@ -32,50 +33,50 @@ describe Rack::Auth::Basic do
   end
 
   def assert_basic_auth_challenge(response)
-    response.should.be.a.client_error
-    response.status.should.equal 401
-    response.should.include 'WWW-Authenticate'
-    response.headers['WWW-Authenticate'].should =~ /Basic realm="#{Regexp.escape(realm)}"/
-    response.body.should.be.empty
+    response.must_be :client_error?
+    response.status.must_equal 401
+    response.must_include 'WWW-Authenticate'
+    response.headers['WWW-Authenticate'].must_match(/Basic realm="#{Regexp.escape(realm)}"/)
+    response.body.must_be :empty?
   end
 
-  should 'challenge correctly when no credentials are specified' do
+  it 'challenge correctly when no credentials are specified' do
     request do |response|
       assert_basic_auth_challenge response
     end
   end
 
-  should 'rechallenge if incorrect credentials are specified' do
+  it 'rechallenge if incorrect credentials are specified' do
     request_with_basic_auth 'joe', 'password' do |response|
       assert_basic_auth_challenge response
     end
   end
 
-  should 'return application output if correct credentials are specified' do
+  it 'return application output if correct credentials are specified' do
     request_with_basic_auth 'Boss', 'password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Boss'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Boss'
     end
   end
 
-  should 'return 400 Bad Request if different auth scheme used' do
+  it 'return 400 Bad Request if different auth scheme used' do
     request 'HTTP_AUTHORIZATION' => 'Digest params' do |response|
-      response.should.be.a.client_error
-      response.status.should.equal 400
-      response.should.not.include 'WWW-Authenticate'
+      response.must_be :client_error?
+      response.status.must_equal 400
+      response.wont_include 'WWW-Authenticate'
     end
   end
 
-  should 'return 400 Bad Request for a malformed authorization header' do
+  it 'return 400 Bad Request for a malformed authorization header' do
     request 'HTTP_AUTHORIZATION' => '' do |response|
-      response.should.be.a.client_error
-      response.status.should.equal 400
-      response.should.not.include 'WWW-Authenticate'
+      response.must_be :client_error?
+      response.status.must_equal 400
+      response.wont_include 'WWW-Authenticate'
     end
   end
 
   it 'takes realm as optional constructor arg' do
     app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
-    realm.should == app.realm
+    realm.must_equal app.realm
   end
 end

@@ -1,3 +1,4 @@
+require 'minitest/autorun'
 require 'rack/lobster'
 require 'rack/lint'
 require 'rack/mock'
@@ -13,46 +14,46 @@ module LobsterHelpers
 end
 
 describe Rack::Lobster::LambdaLobster do
-  extend LobsterHelpers
-  
-  should "be a single lambda" do
-    Rack::Lobster::LambdaLobster.should.be.kind_of Proc
+  include LobsterHelpers
+
+  it "be a single lambda" do
+    Rack::Lobster::LambdaLobster.must_be_kind_of Proc
   end
 
-  should "look like a lobster" do
+  it "look like a lobster" do
     res = lambda_lobster.get("/")
-    res.should.be.ok
-    res.body.should.include "(,(,,(,,,("
-    res.body.should.include "?flip"
+    res.must_be :ok?
+    res.body.must_include "(,(,,(,,,("
+    res.body.must_include "?flip"
   end
 
-  should "be flippable" do
+  it "be flippable" do
     res = lambda_lobster.get("/?flip")
-    res.should.be.ok
-    res.body.should.include "(,,,(,,(,("
+    res.must_be :ok?
+    res.body.must_include "(,,,(,,(,("
   end
 end
 
 describe Rack::Lobster do
-  extend LobsterHelpers
-  
-  should "look like a lobster" do
+  include LobsterHelpers
+
+  it "look like a lobster" do
     res = lobster.get("/")
-    res.should.be.ok
-    res.body.should.include "(,(,,(,,,("
-    res.body.should.include "?flip"
-    res.body.should.include "crash"
+    res.must_be :ok?
+    res.body.must_include "(,(,,(,,,("
+    res.body.must_include "?flip"
+    res.body.must_include "crash"
   end
 
-  should "be flippable" do
+  it "be flippable" do
     res = lobster.get("/?flip=left")
-    res.should.be.ok
-    res.body.should.include "),,,),,),)"
+    res.must_be :ok?
+    res.body.must_include "),,,),,),)"
   end
 
-  should "provide crashing for testing purposes" do
+  it "provide crashing for testing purposes" do
     lambda {
       lobster.get("/?flip=crash")
-    }.should.raise
+    }.must_raise RuntimeError
   end
 end

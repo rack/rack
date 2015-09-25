@@ -21,10 +21,10 @@ module Rack
       def each
         term = TERM
         @body.each do |chunk|
-          size = bytesize(chunk)
+          size = chunk.bytesize
           next if size == 0
 
-          chunk = chunk.dup.force_encoding(Encoding::BINARY) if chunk.respond_to?(:force_encoding)
+          chunk = chunk.dup.force_encoding(Encoding::BINARY)
           yield [size.to_s(16), term, chunk, term].join
         end
         yield TAIL
@@ -57,11 +57,11 @@ module Rack
       if ! chunkable_version?(env[HTTP_VERSION]) ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers[CONTENT_LENGTH] ||
-         headers['Transfer-Encoding']
+         headers[TRANSFER_ENCODING]
         [status, headers, body]
       else
         headers.delete(CONTENT_LENGTH)
-        headers['Transfer-Encoding'] = 'chunked'
+        headers[TRANSFER_ENCODING] = 'chunked'
         [status, headers, Body.new(body)]
       end
     end

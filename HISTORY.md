@@ -1,7 +1,102 @@
-### December 18th, Thirty sixth public release 1.6.0
-  - TODO
+Fri Sep  4 18:34:53 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
-### February 7th, Thirty fifth public release 1.5.2
+	* `Rack::Session::Abstract::ID` IS DEPRECATED.  Please switch to
+	`Rack::Session::Abstract::Persisted`.
+	`Rack::Session::Abstract::Persisted` uses a request object rather than
+	the `env` hash.
+
+Fri Sep  4 17:32:12 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Pull `ENV` access inside the request object in to a module.  This
+	will help with legacy Request objects that are ENV based but don't
+	want to inherit from Rack::Request
+
+Fri Sep  4 16:09:11 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Move most methods on the `Rack::Request` to a module
+	`Rack::Request::Helpers` and use public API to get values from the
+	request object.  This enables users to mix `Rack::Request::Helpers` in
+	to their own objects so they can implement
+	`(get|set|fetch|each)_header` as they see fit (for example a proxy
+	object).
+
+Fri Sep  4 14:15:32 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Files and directories with + in the name are served correctly.
+	Rather than unescaping paths like a form, we unescape with a URI
+	parser using `Rack::Utils.unescape_path`. Fixes #265
+
+Thu Aug 27 15:43:48 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Tempfiles are automatically closed in the case that there were too
+	many posted.
+
+Mon Aug 24 18:05:23 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Introduce Util.get_byte_ranges that will parse the value of the
+	HTTP_RANGE string passed to it without depending on the `env` hash.
+	`byte_ranges` is deprecated in favor of this method.
+
+Sat Aug 22 17:49:49 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Change Session internals to use Request objects for looking up
+	session information. This allows us to only allocate one request
+	object when dealing with session objects (rather than doing it every
+	time we need to manipulate cookies, etc).
+
+Fri Aug 21 16:30:51 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Request#initialize_copy` so that the env is duped when
+	the request gets duped.
+
+Thu Aug 20 16:20:58 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Added methods for manipulating request specific data.  This includes
+	data set as CGI parameters, and just any arbitrary data the user wants
+	to associate with a particular request.  New methods:
+
+	  * Rack::Request#get_header
+	  * Rack::Request#set_header
+	  * Rack::Request#has_header?
+	  * Rack::Request#each_header
+
+Thu Jun 18 16:00:05 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	*  lib/rack/utils.rb: add a method for constructing "delete" cookie
+	headers.  This allows us to construct cookie headers without depending
+	on the side effects of mutating a hash.
+
+Fri Jun 12 11:37:41 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Prevent extremely deep parameters from being parsed. CVE-2015-3225
+
+### May 6th, 2015, Thirty seventh public release 1.6.1
+  - Fix CVE-2014-9490, denial of service attack in OkJson ([8cd610](https://github.com/rack/rack/commit/8cd61062954f70e0a03e2855704e95ff4bdd4f6e))
+  - Use a monotonic time for Rack::Runtime, if available ([d170b2](https://github.com/rack/rack/commit/d170b2363c949dce60871f9d5a6bfc83da2bedb5))
+  - RACK_MULTIPART_LIMIT changed to RACK_MULTIPART_PART_LIMIT (RACK_MULTIPART_LIMIT is deprecated and will be removed in 1.7.0) ([c096c5](https://github.com/rack/rack/commit/c096c50c00230d8eee13ad5f79ad027d9a3f3ca9))
+  - See the full [git history](https://github.com/rack/rack/compare/1.6.0...1.6.1) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.6%22)
+
+### May 6th, 2015, Thirty seventh public release 1.5.3
+  - Fix CVE-2014-9490, denial of service attack in OkJson ([99f725](https://github.com/rack/rack/commit/99f725b583b357376ffbb7b3b042c5daa3106ad6))
+  - Backport bug fixes to 1.5 series ([#585](https://github.com/rack/rack/pull/585), [#711](https://github.com/rack/rack/pull/711), [#756](https://github.com/rack/rack/pull/756))
+  - See the full [git history](https://github.com/rack/rack/compare/1.5.2...1.5.3) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.5.3%22)
+
+### December 18th, 2014, Thirty sixth public release 1.6.0
+  - Response#unauthorized? helper ([#580](https://github.com/rack/rack/pull/580))
+  - Deflater now accepts an options hash to control compression on a per-request level ([#457](https://github.com/rack/rack/pull/457))
+  - Builder#warmup method for app preloading ([#617](https://github.com/rack/rack/pull/617))
+  - Request#accept_language method to extract HTTP_ACCEPT_LANGUAGE ([#623](https://github.com/rack/rack/pull/623))
+  - Add quiet mode of rack server, rackup --quiet ([#674](https://github.com/rack/rack/pull/674))
+  - Update HTTP Status Codes to RFC 7231 ([#754](https://github.com/rack/rack/pull/754))
+  - Less strict header name validation according to [RFC 2616](https://tools.ietf.org/html/rfc2616) ([#399](https://github.com/rack/rack/pull/399))
+    - SPEC updated to specify headers conform to RFC7230 specification ([6839fc](https://github.com/rack/rack/commit/6839fc203339f021cb3267fb09cba89410f086e9))
+  - Etag correctly marks etags as weak ([#681](https://github.com/rack/rack/issues/681))
+  - Request#port supports multiple x-http-forwarded-proto values ([#669](https://github.com/rack/rack/pull/669))
+  - Utils#multipart_part_limit configures the maximum number of parts a request can contain ([#684](https://github.com/rack/rack/pull/684))
+  - Default host to localhost when in development mode ([#514](https://github.com/rack/rack/pull/514))
+  - Various bugfixes and performance improvements (See the full [git history](https://github.com/rack/rack/compare/1.5.2...1.6.0) and [milestone tag](https://github.com/rack/rack/issues?utf8=%E2%9C%93&q=milestone%3A%22Rack+1.6%22))
+
+### February 7th, 2013, Thirty fifth public release 1.5.2
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
   - Fix CVE-2013-0262, symlink path traversal in Rack::File
   - Add various methods to Session for enhanced Rails compatibility
@@ -11,7 +106,7 @@
   - Fix a race condition that could result in overwritten pidfiles
   - Various documentation additions
 
-### February 7th, Thirty fifth public release 1.4.5
+### February 7th, 2013, Thirty fifth public release 1.4.5
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
   - Fix CVE-2013-0262, symlink path traversal in Rack::File
 
@@ -346,3 +441,5 @@
   - Removed Rails adapter, was too alpha.
 
 ### March 3rd, 2007: First public release 0.1.
+
+/* vim: set filetype=changelog */

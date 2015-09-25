@@ -1,3 +1,4 @@
+require 'minitest/autorun'
 require 'stringio'
 require 'rack/lint'
 require 'rack/logger'
@@ -13,11 +14,11 @@ describe Rack::Logger do
     [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]]
   }
 
-  should "conform to Rack::Lint" do
+  it "conform to Rack::Lint" do
     errors = StringIO.new
     a = Rack::Lint.new(Rack::Logger.new(app))
     Rack::MockRequest.new(a).get('/', 'rack.errors' => errors)
-    errors.string.should.match(/INFO -- : Program started/)
-    errors.string.should.match(/WARN -- : Nothing to do/)
+    errors.string.must_match(/INFO -- : Program started/)
+    errors.string.must_match(/WARN -- : Nothing to do/)
   end
 end

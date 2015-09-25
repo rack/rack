@@ -106,7 +106,7 @@ module Rack
       def handler_opts(options)
         begin
           info = []
-          server = Rack::Handler.get(options[:server]) || Rack::Handler.default(options)
+          server = Rack::Handler.get(options[:server]) || Rack::Handler.default
           if server && server.respond_to?(:valid_options)
             info << ""
             info << "Server-specific options for #{server.name}:"
@@ -300,7 +300,7 @@ module Rack
       @_server ||= Rack::Handler.get(options[:server])
 
       unless @_server
-        @_server = Rack::Handler.default(options)
+        @_server = Rack::Handler.default
 
         # We already speak FastCGI
         @ignore_options = [:File, :Port] if @_server.to_s == 'Rack::Handler::FastCGI'
@@ -354,17 +354,7 @@ module Rack
       end
 
       def daemonize_app
-        if RUBY_VERSION < "1.9"
-          exit if fork
-          Process.setsid
-          exit if fork
-          Dir.chdir "/"
-          STDIN.reopen "/dev/null"
-          STDOUT.reopen "/dev/null", "a"
-          STDERR.reopen "/dev/null", "a"
-        else
-          Process.daemon
-        end
+        Process.daemon
       end
 
       def write_pid

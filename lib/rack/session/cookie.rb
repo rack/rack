@@ -3,6 +3,7 @@ require 'zlib'
 require 'rack/request'
 require 'rack/response'
 require 'rack/session/abstract/id'
+require 'json'
 
 module Rack
 
@@ -44,7 +45,7 @@ module Rack
     #   })
     #
 
-    class Cookie < Abstract::ID
+    class Cookie < Abstract::Persisted
       # Encode session cookies as Base64
       class Base64
         def encode(str)
@@ -71,23 +72,23 @@ module Rack
         # valid JSON composite type, either a Hash or an Array.
         class JSON < Base64
           def encode(obj)
-            super(::Rack::Utils::OkJson.encode(obj))
+            super(::JSON.dump(obj))
           end
 
           def decode(str)
             return unless str
-            ::Rack::Utils::OkJson.decode(super(str)) rescue nil
+            ::JSON.parse(super(str)) rescue nil
           end
         end
 
         class ZipJSON < Base64
           def encode(obj)
-            super(Zlib::Deflate.deflate(::Rack::Utils::OkJson.encode(obj)))
+            super(Zlib::Deflate.deflate(::JSON.dump(obj)))
           end
 
           def decode(str)
             return unless str
-            ::Rack::Utils::OkJson.decode(Zlib::Inflate.inflate(super(str)))
+            ::JSON.parse(Zlib::Inflate.inflate(super(str)))
           rescue
             nil
           end
@@ -104,7 +105,7 @@ module Rack
 
       def initialize(app, options={})
         @secrets = options.values_at(:secret, :old_secret).compact
-        warn <<-MSG unless @secrets.size >= 1
+        warn <<-MSG unless secure?(options)
         SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
         This poses a security threat. It is strongly recommended that you
         provide a secret to prevent exploits that may be possible from crafted
@@ -119,19 +120,18 @@ module Rack
 
       private
 
-      def get_session(env, sid)
-        data = unpacked_cookie_data(env)
+      def find_session(req, sid)
+        data = unpacked_cookie_data(req)
         data = persistent_session_id!(data)
         [data["session_id"], data]
       end
 
-      def extract_session_id(env)
-        unpacked_cookie_data(env)["session_id"]
+      def extract_session_id(request)
+        unpacked_cookie_data(request)["session_id"]
       end
 
-      def unpacked_cookie_data(env)
-        env["rack.session.unpacked_cookie_data"] ||= begin
-          request = Rack::Request.new(env)
+      def unpacked_cookie_data(request)
+        request.fetch_header(RACK_SESSION_UNPACKED_COOKIE_DATA) do |k|
           session_data = request.cookies[@key]
 
           if @secrets.size > 0 && session_data
@@ -141,7 +141,7 @@ module Rack
             session_data = nil unless digest_match?(session_data, digest)
           end
 
-          coder.decode(session_data) || {}
+          request.set_header(k, coder.decode(session_data) || {})
         end
       end
 
@@ -151,7 +151,7 @@ module Rack
         data
       end
 
-      def set_session(env, session_id, session, options)
+      def write_session(req, session_id, session, options)
         session = session.merge("session_id" => session_id)
         session_data = coder.encode(session)
 
@@ -160,14 +160,14 @@ module Rack
         end
 
         if session_data.size > (4096 - @key.size)
-          env["rack.errors"].puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
+          req.get_header(RACK_ERRORS).puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
           nil
         else
           session_data
         end
       end
 
-      def destroy_session(env, session_id, options)
+      def delete_session(req, session_id, options)
         # Nothing to do here, data is in the client
         generate_sid unless options[:drop]
       end
@@ -181,6 +181,11 @@ module Rack
 
       def generate_hmac(data, secret)
         OpenSSL::HMAC.hexdigest(OpenSSL::Digest::SHA1.new, secret, data)
+      end
+
+      def secure?(options)
+        @secrets.size >= 1 ||
+        (options[:coder] && options[:let_coder_handle_secure_encoding])
       end
 
     end

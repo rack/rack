@@ -52,7 +52,7 @@ file '.git/index'
 file "ChangeLog" => '.git/index' do
   File.open("ChangeLog", "w") { |out|
     log = `git log -z`
-    log.force_encoding(Encoding::BINARY) if log.respond_to?(:force_encoding)
+    log.force_encoding(Encoding::BINARY)
     log.split("\0").map { |chunk|
       author = chunk[/Author: (.*)/, 1].strip
       date = chunk[/Date: (.*)/, 1].strip
@@ -82,22 +82,14 @@ end
 
 desc "Run all the fast + platform agnostic tests"
 task :test => 'SPEC' do
-  opts     = ENV['TEST'] || '-a'
-  specopts = ENV['TESTOPTS'] ||
-    "-q -t '^(?!Rack::Adapter|Rack::Session::Memcache|Rack::Server|Rack::Handler)'"
+  opts     = ENV['TEST'] || ''
+  specopts = ENV['TESTOPTS']
 
-  sh "bacon -w -I./lib:./test #{opts} #{specopts}"
+  sh "ruby -I./lib:./test -S minitest #{opts} #{specopts} test/gemloader.rb test/spec*.rb"
 end
 
 desc "Run all the tests we run on CI"
-task :ci => :fulltest
-
-desc "Run all the tests"
-task :fulltest => %w[SPEC chmod] do
-  opts     = ENV['TEST'] || '-a'
-  specopts = ENV['TESTOPTS'] || '-q'
-  sh "bacon -r./test/gemloader -I./lib:./test -w #{opts} #{specopts}"
-end
+task :ci => :test
 
 task :gem => ["SPEC"] do
   sh "gem build rack.gemspec"

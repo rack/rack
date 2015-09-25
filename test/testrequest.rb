@@ -12,7 +12,7 @@ class TestRequest
     # This may in the future want to replace with a dummy value instead.
     minienv.delete_if { |k,v| NOSERIALIZE.any? { |c| v.kind_of?(c) } }
     body = minienv.to_yaml
-    size = body.respond_to?(:bytesize) ? body.bytesize : body.size
+    size = body.bytesize
     [status, {"Content-Type" => "text/yaml", "Content-Length" => size.to_s}, [body]]
   end
 

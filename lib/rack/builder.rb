@@ -40,7 +40,7 @@ module Rack
         app = new_from_string cfgfile, config
       else
         require config
-        app = Object.const_get(::File.basename(config, '.rb').capitalize)
+        app = Object.const_get(::File.basename(config, '.rb').split('_').map(&:capitalize).join(''))
       end
       return app, options
     end
@@ -50,7 +50,7 @@ module Rack
         TOPLEVEL_BINDING, file, 0
     end
 
-    def initialize(default_app = nil,&block)
+    def initialize(default_app = nil, &block)
       @use, @map, @run, @warmup = [], nil, default_app, nil
       instance_eval(&block) if block_given?
     end
@@ -96,7 +96,7 @@ module Rack
     #   class Heartbeat
     #     def self.call(env)
     #      [200, { "Content-Type" => "text/plain" }, ["OK"]]
-    #    end
+    #     end
     #   end
     #
     #   run Heartbeat

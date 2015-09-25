@@ -1,3 +1,6 @@
+require "rack/file"
+require "rack/utils"
+
 module Rack
 
   # The Rack::Static middleware intercepts requests for static files
@@ -84,6 +87,7 @@ module Rack
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
+      @gzip = options[:gzip]
       root = options[:root] || Dir.pwd
 
       # HTTP Headers
@@ -94,8 +98,12 @@ module Rack
       @file_server = Rack::File.new(root)
     end
 
+    def add_index_root?(path)
+      @index && path =~ /\/$/
+    end
+
     def overwrite_file_path(path)
-      @urls.kind_of?(Hash) && @urls.key?(path) || @index && path =~ /\/$/
+      @urls.kind_of?(Hash) && @urls.key?(path) || add_index_root?(path)
     end
 
     def route_file(path)
@@ -110,9 +118,26 @@ module Rack
       path = env[PATH_INFO]
 
       if can_serve(path)
-        env[PATH_INFO] = (path =~ /\/$/ ? path + @index : @urls[path]) if overwrite_file_path(path)
+        if overwrite_file_path(path)
+          env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
+        elsif @gzip && env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
+          path = env[PATH_INFO]
+          env[PATH_INFO] += '.gz'
+          response = @file_server.call(env)
+          env[PATH_INFO] = path
+
+          if response[0] == 404
+            response = nil
+          else
+            if mime_type = Mime.mime_type(::File.extname(path), 'text/plain')
+              response[1][CONTENT_TYPE] = mime_type
+            end
+            response[1]['Content-Encoding'] = 'gzip'
+          end
+        end
+
         path = env[PATH_INFO]
-        response = @file_server.call(env)
+        response ||= @file_server.call(env)
 
         headers = response[1]
         applicable_rules(path).each do |rule, new_headers|

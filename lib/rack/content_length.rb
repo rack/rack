@@ -17,12 +17,12 @@ module Rack
 
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
          !headers[CONTENT_LENGTH] &&
-         !headers['Transfer-Encoding'] &&
+         !headers[TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)
 
         obody = body
         body, length = [], 0
-        obody.each { |part| body << part; length += bytesize(part) }
+        obody.each { |part| body << part; length += part.bytesize }
 
         body = BodyProxy.new(body) do
           obody.close if obody.respond_to?(:close)

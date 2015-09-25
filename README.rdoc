@@ -1,6 +1,6 @@
 = Rack, a modular Ruby webserver interface {<img src="https://secure.travis-ci.org/rack/rack.svg" alt="Build Status" />}[http://travis-ci.org/rack/rack] {<img src="https://gemnasium.com/rack/rack.svg" alt="Dependency Status" />}[https://gemnasium.com/rack/rack]
 
-Rack provides a minimal, modular and adaptable interface for developing
+Rack provides a minimal, modular, and adaptable interface for developing
 web applications in Ruby.  By wrapping HTTP requests and responses in
 the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
@@ -12,9 +12,6 @@ which all Rack applications should conform to.
 == Supported web servers
 
 The included *handlers* connect all kinds of web servers to Rack:
-* Mongrel
-* EventedMongrel
-* SwiftipliedMongrel
 * WEBrick
 * FCGI
 * CGI
@@ -101,8 +98,8 @@ Rack::Builder DSL to configure middleware and build up applications
 easily.
 
 rackup automatically figures out the environment it is run in, and
-runs your application as FastCGI, CGI, or standalone with Mongrel or
-WEBrick---all from the same configuration.
+runs your application as FastCGI, CGI, or WEBrick---all from the
+same configuration.
 
 == Quick start
 
@@ -139,19 +136,17 @@ Or:
 
     bundle install # this assumes that you have installed native extensions!
 
-There are two rake-based test tasks:
+There is a rake-based test task:
 
-    rake test       tests all the fast tests (no Handlers or Adapters)
-    rake fulltest   runs all the tests
+    rake test       tests all the tests
 
-The fast testsuite has no dependencies outside of the core Ruby
+The testsuite has no dependencies outside of the core Ruby
 installation and bacon.
 
 To run the test suite completely, you need:
 
   * fcgi
   * memcache-client
-  * mongrel
   * thin
 
 The full set of tests test FCGI access with lighttpd (on port
@@ -207,7 +202,7 @@ Can also be set via the RACK_MULTIPART_PART_LIMIT environment variable.
 
 == History
 
-See <https://github.com/rack/HISTORY.md>.
+See <https://github.com/rack/rack/blob/master/HISTORY.md>.
 
 == Contact
 
@@ -307,4 +302,3 @@ rack-devel mailing list:: <https://groups.google.com/group/rack-devel>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
-

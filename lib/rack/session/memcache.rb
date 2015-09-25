@@ -34,7 +34,7 @@ module Rack
         mopts = @default_options.reject{|k,v| !MemCache::DEFAULT_OPTIONS.include? k }
 
         @pool = options[:cache] || MemCache.new(mserv, mopts)
-        unless @pool.active? and @pool.servers.any?{|c| c.alive? }
+        unless @pool.active? and @pool.servers.any?(&:alive?)
           raise 'No memcache servers'
         end
       end
@@ -76,7 +76,7 @@ module Rack
       end
 
       def with_lock(env)
-        @mutex.lock if env['rack.multithread']
+        @mutex.lock if env[RACK_MULTITHREAD]
         yield
       rescue MemCache::MemCacheError, Errno::ECONNREFUSED
         if $VERBOSE
