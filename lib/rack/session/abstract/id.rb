@@ -42,7 +42,7 @@ module Rack
         end
 
         def options
-          @req.get_header RACK_SESSION_OPTIONS
+          @req.session_options
         end
 
         def each(&block)
