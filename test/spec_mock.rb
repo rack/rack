@@ -239,7 +239,6 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("")
     res.must_include "Content-Type"
     res.headers["Content-Type"].must_equal "text/yaml"
-    res.original_headers["Content-Type"].must_equal "text/yaml"
     res["Content-Type"].must_equal "text/yaml"
     res.content_type.must_equal "text/yaml"
     res.content_length.wont_equal 0
