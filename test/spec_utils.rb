@@ -345,23 +345,6 @@ describe Rack::Utils do
     Rack::Utils.build_query(key => nil).must_equal Rack::Utils.escape(key)
   end
 
-  it "parse cookies" do
-    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "zoo=m")
-    Rack::Utils.parse_cookies(env).must_equal({"zoo" => "m"})
-
-    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
-    Rack::Utils.parse_cookies(env).must_equal({"foo" => "%"})
-
-    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;foo=car")
-    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar"})
-
-    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
-    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar", "quux" => "h&m"})
-
-    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar").freeze
-    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar"})
-  end
-
   it "parse q-values" do
     # XXX handle accept-extension
     Rack::Utils.q_values("foo;q=0.5,bar,baz;q=0.9").must_equal [
@@ -480,6 +463,53 @@ describe Rack::Utils do
 
   it "clean slash only paths" do
     Rack::Utils.clean_path_info("/").must_equal "/"
+  end
+end
+
+describe Rack::Utils, "cookies" do
+  it "parses cookies" do
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "zoo=m")
+    Rack::Utils.parse_cookies(env).must_equal({"zoo" => "m"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
+    Rack::Utils.parse_cookies(env).must_equal({"foo" => "%"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;foo=car")
+    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
+    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar", "quux" => "h&m"})
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar").freeze
+    Rack::Utils.parse_cookies(env).must_equal({"foo" => "bar"})
+  end
+
+  it "adds new cookies to nil header" do
+    Rack::Utils.add_cookie_to_header(nil, 'name', 'value').must_equal 'name=value'
+  end
+
+  it "adds new cookies to blank header" do
+    header = ''
+    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal 'name=value'
+    header.must_equal ''
+  end
+
+  it "adds new cookies to string header" do
+    header = 'existing-cookie'
+    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal "existing-cookie\nname=value"
+    header.must_equal 'existing-cookie'
+  end
+
+  it "adds new cookies to array header" do
+    header = %w[ existing-cookie ]
+    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal "existing-cookie\nname=value"
+    header.must_equal %w[ existing-cookie ]
+  end
+
+  it "adds new cookies to an unrecognized header" do
+    lambda {
+      Rack::Utils.add_cookie_to_header(Object.new, 'name', 'value')
+    }.must_raise ArgumentError
   end
 end
 

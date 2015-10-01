@@ -251,6 +251,8 @@ module Rack
         [header, cookie].join("\n")
       when Array
         (header + [cookie]).join("\n")
+      else
+        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
       end
     end
     module_function :add_cookie_to_header
