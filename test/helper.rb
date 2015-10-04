@@ -5,7 +5,7 @@ module Rack
     if `which lighttpd` && !$?.success?
       begin
         # Keep this first.
-        PID = fork {
+        LIGHTTPD_PID = fork {
           ENV['RACK_ENV'] = 'deployment'
           ENV['RUBYLIB'] = [
             ::File.expand_path('../../lib', __FILE__),
@@ -17,13 +17,15 @@ module Rack
           end
         }
       rescue NotImplementedError
-        warn "Kernel#fork unsupported. Skipping CGI and FastCGI tests."
+        warn "Your Ruby doesn't support Kernel#fork. Skipping Rack::Handler::CGI and ::FastCGI tests."
       else
         Minitest.after_run do
-          Process.kill 15, PID
-          Process.wait(PID)
+          Process.kill 15, LIGHTTPD_PID
+          Process.wait LIGHTTPD_PID
         end
       end
+    else
+      warn "Lighttpd isn't installed. Skipping Rack::Handler::CGI and FastCGI tests. Install lighttpd to run them."
     end
   end
 end

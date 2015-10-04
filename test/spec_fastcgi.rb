@@ -1,5 +1,7 @@
 require 'helper'
-begin
+
+if defined? LIGHTTPD_PID
+
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/fastcgi'
 
@@ -9,10 +11,6 @@ describe Rack::Handler::FastCGI do
   before do
     @host = '127.0.0.1'
     @port = 9203
-  end
-
-  if `which lighttpd` && !$?.success?
-    raise "lighttpd not found"
   end
 
   it "respond" do
@@ -84,8 +82,4 @@ describe Rack::Handler::FastCGI do
   end
 end
 
-rescue RuntimeError
-  $stderr.puts "Skipping Rack::Handler::FastCGI tests (lighttpd is required). Install lighttpd and try again."
-rescue LoadError
-  $stderr.puts "Skipping Rack::Handler::FastCGI tests (FCGI is required). `gem install fcgi` and try again."
-end
+end # if defined? LIGHTTPD_PID

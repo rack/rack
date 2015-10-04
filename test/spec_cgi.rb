@@ -1,5 +1,7 @@
 require 'helper'
-begin
+
+if defined? LIGHTTPD_PID
+
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/cgi'
 
@@ -79,8 +81,4 @@ describe Rack::Handler::CGI do
   end
 end
 
-rescue RuntimeError
-  $stderr.puts "Skipping Rack::Handler::CGI tests (lighttpd is required). Install lighttpd and try again."
-rescue NotImplementedError
-  $stderr.puts "Your Ruby implemenation or platform does not support fork. Skipping Rack::Handler::CGI tests."
-end
+end # if defined? LIGHTTPD_PID
