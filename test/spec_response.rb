@@ -360,3 +360,71 @@ describe Rack::Response do
     lambda { res.finish.last.to_ary }.must_raise NoMethodError
   end
 end
+
+describe Rack::Response, 'headers' do
+  before do
+    @response = Rack::Response.new([], 200, { 'Foo' => '1' })
+  end
+
+  it 'has_header?' do
+    lambda { @response.has_header? nil }.must_raise NoMethodError
+
+    @response.has_header?('Foo').must_equal true
+    @response.has_header?('foo').must_equal true
+  end
+
+  it 'get_header' do
+    lambda { @response.get_header nil }.must_raise NoMethodError
+
+    @response.get_header('Foo').must_equal '1'
+    @response.get_header('foo').must_equal '1'
+  end
+
+  it 'set_header' do
+    lambda { @response.set_header nil, '1' }.must_raise NoMethodError
+
+    @response.set_header('Foo', '2').must_equal '2'
+    @response.has_header?('Foo').must_equal true
+    @response.get_header('Foo').must_equal('2')
+
+    @response.set_header('Foo', nil).must_be_nil
+    @response.has_header?('Foo').must_equal true
+    @response.get_header('Foo').must_be_nil
+  end
+
+  it 'add_header' do
+    lambda { @response.add_header nil, '1' }.must_raise NoMethodError
+
+    # Add a value to an existing header
+    @response.add_header('Foo', '2').must_equal '1,2'
+    @response.get_header('Foo').must_equal '1,2'
+
+    # Add nil to an existing header
+    @response.add_header('Foo', nil).must_equal '1,2'
+    @response.get_header('Foo').must_equal '1,2'
+
+    # Add nil to a nonexistent header
+    @response.add_header('Bar', nil).must_be_nil
+    @response.has_header?('Bar').must_equal false
+    @response.get_header('Bar').must_be_nil
+
+    # Add a value to a nonexistent header
+    @response.add_header('Bar', '1').must_equal '1'
+    @response.has_header?('Bar').must_equal true
+    @response.get_header('Bar').must_equal '1'
+  end
+
+  it 'delete_header' do
+    lambda { @response.delete_header nil }.must_raise NoMethodError
+
+    @response.delete_header('Foo').must_equal '1'
+    (!!@response.has_header?('Foo')).must_equal false
+
+    @response.delete_header('Foo').must_be_nil
+    @response.has_header?('Foo').must_equal false
+
+    @response.set_header('Foo', 1)
+    @response.delete_header('foo').must_equal 1
+    @response.has_header?('Foo').must_equal false
+  end
+end

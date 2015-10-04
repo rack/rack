@@ -1,3 +1,12 @@
+Sun Oct 3 18:25:03 2015  Jeremy Daer <jeremydaer@gmail.com>
+
+	* Introduce `Rack::Response::Helpers#add_header` to add a value to a
+	multi-valued response header. Implemented in terms of other
+	`Response#*_header` methods, so it's available to any response-like
+	class that includes the `Helpers` module.
+
+	* Add `Rack::Request#add_header` to match.
+
 Fri Sep  4 18:34:53 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* `Rack::Session::Abstract::ID` IS DEPRECATED.  Please switch to
@@ -31,6 +40,17 @@ Thu Aug 27 15:43:48 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 	* Tempfiles are automatically closed in the case that there were too
 	many posted.
 
+Thu Aug 27 11:00:03 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Added methods for manipulating response headers that don't assume
+	they're stored as a Hash. Response-like classes may include the
+	Rack::Response::Helpers module if they define these methods:
+
+	  * Rack::Response#has_header?
+	  * Rack::Response#get_header
+	  * Rack::Response#set_header
+	  * Rack::Response#delete_header
+
 Mon Aug 24 18:05:23 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Introduce Util.get_byte_ranges that will parse the value of the
@@ -55,10 +75,12 @@ Thu Aug 20 16:20:58 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 	data set as CGI parameters, and just any arbitrary data the user wants
 	to associate with a particular request.  New methods:
 
-	  * Rack::Request#get_header
-	  * Rack::Request#set_header
 	  * Rack::Request#has_header?
+	  * Rack::Request#get_header
+	  * Rack::Request#fetch_header
 	  * Rack::Request#each_header
+	  * Rack::Request#set_header
+	  * Rack::Request#delete_header
 
 Thu Jun 18 16:00:05 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 

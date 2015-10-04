@@ -273,3 +273,70 @@ describe Rack::MockResponse do
     }.must_raise Rack::MockRequest::FatalWarning
   end
 end
+
+describe Rack::MockResponse, 'headers' do
+  before do
+    @res = Rack::MockRequest.new(app).get('')
+    @res.set_header 'FOO', '1'
+  end
+
+  it 'has_header?' do
+    lambda { @res.has_header? nil }.must_raise NoMethodError
+
+    @res.has_header?('FOO').must_equal true
+    @res.has_header?('Foo').must_equal true
+  end
+
+  it 'get_header' do
+    lambda { @res.get_header nil }.must_raise NoMethodError
+
+    @res.get_header('FOO').must_equal '1'
+    @res.get_header('Foo').must_equal '1'
+  end
+
+  it 'set_header' do
+    lambda { @res.set_header nil, '1' }.must_raise NoMethodError
+
+    @res.set_header('FOO', '2').must_equal '2'
+    @res.get_header('FOO').must_equal '2'
+
+    @res.set_header('Foo', '3').must_equal '3'
+    @res.get_header('Foo').must_equal '3'
+    @res.get_header('FOO').must_equal '3'
+
+    @res.set_header('FOO', nil).must_be_nil
+    @res.get_header('FOO').must_be_nil
+    @res.has_header?('FOO').must_equal true
+  end
+
+  it 'add_header' do
+    lambda { @res.add_header nil, '1' }.must_raise NoMethodError
+
+    # Sets header on first addition
+    @res.add_header('FOO', '1').must_equal '1,1'
+    @res.get_header('FOO').must_equal '1,1'
+
+    # Ignores nil additions
+    @res.add_header('FOO', nil).must_equal '1,1'
+    @res.get_header('FOO').must_equal '1,1'
+
+    # Converts additions to strings
+    @res.add_header('FOO', 2).must_equal '1,1,2'
+    @res.get_header('FOO').must_equal '1,1,2'
+
+    # Respects underlying case-sensitivity
+    @res.add_header('Foo', 'yep').must_equal '1,1,2,yep'
+    @res.get_header('Foo').must_equal '1,1,2,yep'
+    @res.get_header('FOO').must_equal '1,1,2,yep'
+  end
+
+  it 'delete_header' do
+    lambda { @res.delete_header nil }.must_raise NoMethodError
+
+    @res.delete_header('FOO').must_equal '1'
+    @res.has_header?('FOO').must_equal false
+
+    @res.has_header?('Foo').must_equal false
+    @res.delete_header('Foo').must_be_nil
+  end
+end
