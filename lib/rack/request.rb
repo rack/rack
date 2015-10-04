@@ -57,6 +57,12 @@ module Rack
         super()
       end
 
+      # Predicate method to test to see if `name` has been set as request
+      # specific data
+      def has_header?(name)
+        @env.key? name
+      end
+
       # Get a request specific value for `name`.
       def get_header(name)
         @env[name]
@@ -68,9 +74,9 @@ module Rack
         @env.fetch(name, &block)
       end
 
-      # Delete a request specific value for `name`.
-      def delete_header(name)
-        @env.delete name
+      # Loops through each key / value pair in the request specific data.
+      def each_header(&block)
+        @env.each(&block)
       end
 
       # Set a request specific value for `name` to `v`
@@ -78,15 +84,28 @@ module Rack
         @env[name] = v
       end
 
-      # Predicate method to test to see if `name` has been set as request
-      # specific data
-      def has_header?(name)
-        @env.key? name
+      # Add a header that may have multiple values.
+      #
+      # Example:
+      #   request.add_header 'Accept', 'image/png'
+      #   request.add_header 'Accept', '*/*'
+      #
+      #   assert_equal 'image/png,*/*', request.get_header('Accept')
+      #
+      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+      def add_header key, v
+        if v.nil?
+          get_header key
+        elsif has_header? key
+          set_header key, "#{get_header key},#{v}"
+        else
+          set_header key, v
+        end
       end
 
-      # Loops through each key / value pair in the request specific data.
-      def each_header(&block)
-        @env.each(&block)
+      # Delete a request specific value for `name`.
+      def delete_header(name)
+        @env.delete name
       end
 
       def initialize_copy(other)

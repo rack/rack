@@ -12,6 +12,11 @@ class RackRequestTest < Minitest::Spec
     refute_same req.env, req.dup.env
   end
 
+  it 'can check if something has been set' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    refute req.has_header?("FOO")
+  end
+
   it "can get a key from the env" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     assert_equal "example.com", req.get_header("SERVER_NAME")
@@ -29,17 +34,6 @@ class RackRequestTest < Minitest::Spec
     assert_equal "bar", req.get_header("FOO")
   end
 
-  it 'can set values in the env' do
-    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
-    req.set_header("FOO", "BAR")
-    assert_equal "BAR", req.get_header("FOO")
-  end
-
-  it 'can check if something has been set' do
-    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
-    refute req.has_header?("FOO")
-  end
-
   it 'can iterate over values' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'
@@ -48,6 +42,25 @@ class RackRequestTest < Minitest::Spec
       hash[k] = v
     end
     assert_equal 'bar', hash['foo']
+  end
+
+  it 'can set values in the env' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header("FOO", "BAR")
+    assert_equal "BAR", req.get_header("FOO")
+  end
+
+  it 'can add to multivalued headers in the env' do
+    req = make_request(Rack::MockRequest.env_for('http://example.com:8080/'))
+
+    assert_equal '1', req.add_header('FOO', '1')
+    assert_equal '1', req.get_header('FOO')
+
+    assert_equal '1,2', req.add_header('FOO', '2')
+    assert_equal '1,2', req.get_header('FOO')
+
+    assert_equal '1,2', req.add_header('FOO', nil)
+    assert_equal '1,2', req.get_header('FOO')
   end
 
   it 'can delete env values' do
@@ -1339,8 +1352,8 @@ EOF
       include Rack::Request::Helpers
       extend Forwardable
 
-      def_delegators :@req, :get_header, :fetch_header, :delete_header,
-        :set_header, :has_header?, :each_header
+      def_delegators :@req, :has_header?, :get_header, :fetch_header,
+        :each_header, :set_header, :add_header, :delete_header
 
       def_delegators :@req, :[], :[]=, :values_at
 
