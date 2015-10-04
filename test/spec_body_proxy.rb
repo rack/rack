@@ -1,7 +1,6 @@
 require 'minitest/autorun'
 require 'rack/body_proxy'
 require 'stringio'
-require 'ostruct'
 
 describe Rack::BodyProxy do
   it 'call each on the wrapped body' do
@@ -58,7 +57,7 @@ describe Rack::BodyProxy do
   end
 
   it 'not respond to :to_ary' do
-    body = OpenStruct.new(:to_ary => true)
+    body = Object.new.tap { |o| def o.to_ary() end }
     body.respond_to?(:to_ary).must_equal true
 
     proxy = Rack::BodyProxy.new(body) { }
