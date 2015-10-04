@@ -35,9 +35,9 @@ begin
     Rack::Session::Memcache.new(incrementor)
 
     it "faults on no connection" do
-      lambda{
+      lambda {
         Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
-      }.should.raise
+      }.must_raise(RuntimeError).message.must_equal 'No memcache servers'
     end
 
     it "connects to existing server" do
