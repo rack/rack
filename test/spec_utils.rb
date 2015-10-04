@@ -64,7 +64,7 @@ describe Rack::Utils do
   end
 
   it "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
-    timeout(1) do
+    Timeout.timeout(1) do
       lambda {
         URI.decode_www_form_component "A string that causes catastrophic backtracking as it gets longer %"
       }.must_raise ArgumentError
