@@ -196,6 +196,14 @@ module Rack
         set_header SET_COOKIE, v
       end
 
+      def cache_control
+        get_header CACHE_CONTROL
+      end
+
+      def cache_control= v
+        set_header CACHE_CONTROL, v
+      end
+
       def etag
         get_header ETAG
       end

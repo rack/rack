@@ -4,11 +4,20 @@ require 'rack/response'
 require 'stringio'
 
 describe Rack::Response do
+  it 'has cache-control methods' do
+    response = Rack::Response.new
+    cc = 'foo'
+    response.cache_control = cc
+    assert_equal cc, response.cache_control
+    assert_equal cc, response.to_a[2]['Cache-Control']
+  end
+
   it 'has an etag method' do
     response = Rack::Response.new
     etag = 'foo'
     response.etag = etag
     assert_equal etag, response.etag
+    assert_equal etag, response.to_a[2]['ETag']
   end
 
   it "have sensible default values" do

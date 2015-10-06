@@ -1,3 +1,8 @@
+Tue Oct  6 13:19:04 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Response::Helpers#cache_control` and `cache_control=`.
+	Use this for setting cache control headers on your response objects.
+
 Tue Oct  6 13:12:21 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Add `Rack::Response::Helpers#etag` and `etag=`.  Use this for
