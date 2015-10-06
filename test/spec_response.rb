@@ -4,6 +4,13 @@ require 'rack/response'
 require 'stringio'
 
 describe Rack::Response do
+  it 'has an etag method' do
+    response = Rack::Response.new
+    etag = 'foo'
+    response.etag = etag
+    assert_equal etag, response.etag
+  end
+
   it "have sensible default values" do
     response = Rack::Response.new
     status, header, body = response.finish

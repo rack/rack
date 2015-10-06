@@ -1,3 +1,4 @@
+require 'rack'
 require 'digest/md5'
 
 module Rack
@@ -11,7 +12,7 @@ module Rack
   # used when Etag is absent and a directive when it is present. The first
   # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
   class ETag
-    ETAG_STRING = 'ETag'.freeze
+    ETAG_STRING = Rack::ETAG
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
 
     def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)

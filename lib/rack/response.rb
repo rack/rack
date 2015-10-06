@@ -195,6 +195,14 @@ module Rack
       def set_cookie_header= v
         set_header SET_COOKIE, v
       end
+
+      def etag
+        get_header ETAG
+      end
+
+      def etag= v
+        set_header ETAG, v
+      end
     end
 
     include Helpers
@@ -202,7 +210,8 @@ module Rack
     class Raw
       include Helpers
 
-      attr_reader :status, :headers
+      attr_reader :headers
+      attr_accessor :status
 
       def initialize status, headers
         @status = status

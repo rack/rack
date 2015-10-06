@@ -33,7 +33,7 @@ describe Rack::ConditionalGet do
 
   it "set a 304 status and truncate body when If-None-Match hits" do
     app = conditional_get(lambda { |env|
-      [200, {'Etag'=>'1234'}, ['TEST']] })
+      [200, {'ETag'=>'1234'}, ['TEST']] })
 
     response = Rack::MockRequest.new(app).
       get("/", 'HTTP_IF_NONE_MATCH' => '1234')
@@ -57,7 +57,7 @@ describe Rack::ConditionalGet do
   it "set a 304 status and truncate body when both If-None-Match and If-Modified-Since hits" do
     timestamp = Time.now.httpdate
     app = conditional_get(lambda { |env|
-      [200, {'Last-Modified'=>timestamp, 'Etag'=>'1234'}, ['TEST']] })
+      [200, {'Last-Modified'=>timestamp, 'ETag'=>'1234'}, ['TEST']] })
 
     response = Rack::MockRequest.new(app).
       get("/", 'HTTP_IF_MODIFIED_SINCE' => timestamp, 'HTTP_IF_NONE_MATCH' => '1234')

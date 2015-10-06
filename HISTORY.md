@@ -1,3 +1,8 @@
+Tue Oct  6 13:12:21 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Response::Helpers#etag` and `etag=`.  Use this for
+	setting etag values on the response.
+
 Sun Oct 3 18:25:03 2015  Jeremy Daer <jeremydaer@gmail.com>
 
 	* Introduce `Rack::Response::Helpers#add_header` to add a value to a
