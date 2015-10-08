@@ -22,6 +22,21 @@ class RackRequestTest < Minitest::Spec
     assert_equal "example.com", req.get_header("SERVER_NAME")
   end
 
+  it 'can calculate the authority' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    assert_equal "example.com:8080", req.authority
+  end
+
+  it 'can calculate the authority without a port' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com/"))
+    assert_equal "example.com:80", req.authority
+  end
+
+  it 'can calculate the authority without a port on ssl' do
+    req = make_request(Rack::MockRequest.env_for("https://example.com/"))
+    assert_equal "example.com:443", req.authority
+  end
+
   it 'yields to the block if no value has been set' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     yielded = false

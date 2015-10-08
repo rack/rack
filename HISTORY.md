@@ -1,3 +1,8 @@
+Thu Oct  8 14:58:46 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Request#authority` to calculate the authority under which
+	the response is being made (this will be handy for h2 pushes).
+
 Tue Oct  6 13:19:04 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Add `Rack::Response::Helpers#cache_control` and `cache_control=`.

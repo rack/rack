@@ -214,6 +214,10 @@ module Rack
         end
       end
 
+      def authority
+        get_header(SERVER_NAME) + ':' + get_header(SERVER_PORT)
+      end
+
       def cookies
         hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |k|
           set_header(k, {})
