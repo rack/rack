@@ -64,4 +64,4 @@ No one outside the core team, the initial reporter or vendor-sec will be notifie
 
 ## Comments on this Policy
 
-If you have any suggestions to improve this policy, please send an email the core teamat [rack-core@googlegroups.com](https://groups.google.com/group/rack-core).
+If you have any suggestions to improve this policy, please send an email the core team at [rack-core@googlegroups.com](https://groups.google.com/group/rack-core).
