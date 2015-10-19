@@ -96,7 +96,8 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
+        first_key = child_key.gsub(/[\[\]]/, ' ').split.first
+        if params_hash_type?(params[k].last) && !params[k].last.key?(first_key)
           normalize_params(params[k].last, child_key, v, depth - 1)
         else
           params[k] << normalize_params(make_params, child_key, v, depth - 1)

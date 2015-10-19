@@ -311,7 +311,7 @@ describe Rack::Utils do
       message.must_equal "value must be a Hash"
   end
 
-  should 'perform the inverse function of #parse_nested_query' do
+  it 'perform the inverse function of #parse_nested_query' do
     [{"foo" => nil, "bar" => ""},
       {"foo" => "bar", "baz" => ""},
       {"foo" => ["1", "2"]},
