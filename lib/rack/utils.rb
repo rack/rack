@@ -554,7 +554,7 @@ module Rack
       429 => 'Too Many Requests',
       431 => 'Request Header Fields Too Large',
       444 => 'No Response',
-      498 => 'Token Expired/Invalid',
+      498 => 'Token Expired or Invalid',
       499 => 'Token Required',
       500 => 'Internal Server Error',
       501 => 'Not Implemented',
