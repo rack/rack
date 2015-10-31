@@ -70,7 +70,6 @@ module Rack
       end
     end
     alias to_a finish           # For *response
-    alias to_ary finish         # For implicit-splat on Ruby 1.9.2
 
     def each(&callback)
       @body.each(&callback)
