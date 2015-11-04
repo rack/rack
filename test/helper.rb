@@ -1,7 +1,7 @@
 require 'minitest/autorun'
 
 module Rack
-  class TestCase
+  class TestCase < Minitest::Test
     if `which lighttpd` && !$?.success?
       begin
         # Keep this first.

@@ -1,3 +1,10 @@
+Tue Nov  3 16:17:26 2015  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* Add `Rack::Events` middleware for adding event based middleware:
+	middleware that does not care about the response body, but only cares
+	about doing work at particular points in the request / response
+	lifecycle.
+
 Thu Oct  8 14:58:46 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Add `Rack::Request#authority` to calculate the authority under which
