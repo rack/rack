@@ -139,6 +139,12 @@ module Rack
       HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
       HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
       HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
+      HTTP_X_REQUESTED_WITH   = 'HTTP_X_REQUESTED_WITH'.freeze
+      HTTP_X_FORWARDED_FOR    = 'HTTP_X_FORWARDED_FOR'.freeze
+      HTTP_USER_AGENT         = 'HTTP_USER_AGENT'.freeze
+      HTTP_REFERER            = 'HTTP_REFERER'.freeze
+      HTTP_ACCEPT_ENCODING    = 'HTTP_ACCEPT_ENCODING'.freeze
+      HTTP_ACCEPT_LANGUAGE    = 'HTTP_ACCEPT_LANGUAGE'.freeze
 
       def body;            get_header(RACK_INPUT)                         end
       def script_name;     get_header(SCRIPT_NAME).to_s                   end
@@ -151,11 +157,11 @@ module Rack
       def query_string;    get_header(QUERY_STRING).to_s                  end
       def content_length;  get_header('CONTENT_LENGTH')                   end
       def logger;          get_header(RACK_LOGGER)                        end
-      def user_agent;      get_header('HTTP_USER_AGENT')                  end
+      def user_agent;      get_header(HTTP_USER_AGENT)                    end
       def multithread?;    get_header(RACK_MULTITHREAD)                   end
 
       # the referer of the client
-      def referer;         get_header('HTTP_REFERER')                     end
+      def referer;         get_header(HTTP_REFERER)                       end
       alias referrer referer
 
       def session
@@ -174,10 +180,10 @@ module Rack
       def delete?;  request_method == DELETE  end
 
       # Checks the HTTP request method (or verb) to see if it was of type GET
-      def get?;     request_method == GET       end
+      def get?;     request_method == GET     end
 
       # Checks the HTTP request method (or verb) to see if it was of type HEAD
-      def head?;    request_method == HEAD      end
+      def head?;    request_method == HEAD    end
 
       # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
       def options?; request_method == OPTIONS end
@@ -236,7 +242,7 @@ module Rack
       end
 
       def xhr?
-        get_header("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
+        get_header(HTTP_X_REQUESTED_WITH) == 'XMLHttpRequest'
       end
 
       def host_with_port
@@ -271,14 +277,14 @@ module Rack
       end
 
       def ip
-        remote_addrs = split_ip_addresses(get_header('REMOTE_ADDR'))
+        remote_addrs = split_ip_addresses(get_header(REMOTE_ADDR))
         remote_addrs = reject_trusted_ip_addresses(remote_addrs)
 
         return remote_addrs.first if remote_addrs.any?
 
-        forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
+        forwarded_ips = split_ip_addresses(get_header(HTTP_X_FORWARDED_FOR))
 
-        return reject_trusted_ip_addresses(forwarded_ips).last || get_header("REMOTE_ADDR")
+        return reject_trusted_ip_addresses(forwarded_ips).last || get_header(REMOTE_ADDR)
       end
 
       # The media type (type/subtype) portion of the CONTENT_TYPE header
@@ -345,7 +351,7 @@ module Rack
       # multipart/form-data.
       def POST
         if get_header(RACK_INPUT).nil?
-          raise "Missing rack.input"
+          raise 'Missing rack.input'
         elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
           get_header(RACK_REQUEST_FORM_HASH)
         elsif form_data? || parseable_data?
@@ -426,11 +432,11 @@ module Rack
       end
 
       def accept_encoding
-        parse_http_accept_header(get_header("HTTP_ACCEPT_ENCODING"))
+        parse_http_accept_header(get_header(HTTP_ACCEPT_ENCODING))
       end
 
       def accept_language
-        parse_http_accept_header(get_header("HTTP_ACCEPT_LANGUAGE"))
+        parse_http_accept_header(get_header(HTTP_ACCEPT_LANGUAGE))
       end
 
       def trusted_proxy?(ip)

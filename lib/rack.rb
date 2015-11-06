@@ -44,6 +44,9 @@ module Rack
   TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
   HTTP_COOKIE       = 'HTTP_COOKIE'.freeze
   ETAG              = 'ETag'.freeze
+  REMOTE_USER       = 'REMOTE_USER'.freeze
+  REMOTE_ADDR       = 'REMOTE_ADDR'.freeze
+
 
   # HTTP method verbs
   GET     = 'GET'.freeze

@@ -22,6 +22,8 @@ module Rack
     #
     #   %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
+    TIME_FORMAT = %{%d/%b/%Y:%H:%M:%S %z}
+    HTTP_X_FORWARDED_FOR = 'HTTP_X_FORWARDED_FOR'.freeze
 
     def initialize(app, logger=nil)
       @app = app
@@ -43,12 +45,12 @@ module Rack
       length = extract_content_length(header)
 
       msg = FORMAT % [
-        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
-        env["REMOTE_USER"] || "-",
-        now.strftime("%d/%b/%Y:%H:%M:%S %z"),
+        env[HTTP_X_FORWARDED_FOR] || env[REMOTE_ADDR] || '-',
+        env[REMOTE_USER] || '-',
+        now.strftime(TIME_FORMAT),
         env[REQUEST_METHOD],
         env[PATH_INFO],
-        env[QUERY_STRING].empty? ? "" : "?"+env[QUERY_STRING],
+        env[QUERY_STRING].empty? ? '' : '?'+env[QUERY_STRING],
         env[HTTP_VERSION],
         status.to_s[0..3],
         length,
