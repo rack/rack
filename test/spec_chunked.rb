@@ -16,7 +16,7 @@ describe Rack::Chunked do
 
   before do
     @env = Rack::MockRequest.
-      env_for('/', 'HTTP_VERSION' => '1.1', 'REQUEST_METHOD' => 'GET')
+      env_for('/', 'SERVER_PROTOCOL' => 'HTTP/1.1', 'REQUEST_METHOD' => 'GET')
   end
 
   it 'chunk responses with no Content-Length' do
@@ -59,7 +59,7 @@ describe Rack::Chunked do
 
   it 'not modify response when client is HTTP/1.0' do
     app = lambda { |env| [200, {"Content-Type" => "text/plain"}, ['Hello', ' ', 'World!']] }
-    @env['HTTP_VERSION'] = 'HTTP/1.0'
+    @env['SERVER_PROTOCOL'] = 'HTTP/1.0'
     status, headers, body = chunked(app).call(@env)
     status.must_equal 200
     headers.wont_include 'Transfer-Encoding'
@@ -75,10 +75,10 @@ describe Rack::Chunked do
       body.join.must_equal 'Hello World!'
     end
 
-    @env.delete('HTTP_VERSION') # unicorn will do this on pre-HTTP/1.0 requests
+    @env.delete('SERVER_PROTOCOL') # unicorn will do this on pre-HTTP/1.0 requests
     check.call
 
-    @env['HTTP_VERSION'] = 'HTTP/0.9' # not sure if this happens in practice
+    @env['SERVER_PROTOCOL'] = 'HTTP/0.9' # not sure if this happens in practice
     check.call
   end
 

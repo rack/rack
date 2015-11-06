@@ -43,7 +43,7 @@ module Rack
     # a version (nor response headers)
     def chunkable_version?(ver)
       case ver
-      when "HTTP/1.0", nil, "HTTP/0.9"
+      when 'HTTP/1.0', nil, 'HTTP/0.9'
         false
       else
         true
@@ -54,7 +54,7 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if ! chunkable_version?(env[HTTP_VERSION]) ||
+      if ! chunkable_version?(env[SERVER_PROTOCOL]) ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers[CONTENT_LENGTH] ||
          headers[TRANSFER_ENCODING]
