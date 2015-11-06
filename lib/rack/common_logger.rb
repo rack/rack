@@ -50,7 +50,7 @@ module Rack
         env[REQUEST_METHOD],
         env[PATH_INFO],
         env[QUERY_STRING].empty? ? "" : "?#{env[QUERY_STRING]}",
-        env[HTTP_VERSION],
+        env[SERVER_PROTOCOL],
         status.to_s[0..3],
         length,
         Utils.clock_time - began_at ]
