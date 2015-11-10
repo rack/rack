@@ -22,7 +22,7 @@ module Rack
     # [app] rack app instance
     # [options] hash of deflater options, i.e.
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
-    #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.length > 512 }
+    #                  e.g use Rack::Deflater, :if => lambda { |*, body| body.map(&:bytesize).reduce(0, :+) > 512 }
     #           'include' - a list of content types that should be compressed
     def initialize(app, options = {})
       @app = app
