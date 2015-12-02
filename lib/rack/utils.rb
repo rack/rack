@@ -609,5 +609,12 @@ module Rack
     end
     module_function :clean_path_info
 
+    NULL_BYTE = "\0"
+
+    def valid_path?(path)
+      path.valid_encoding? && !path.include?(NULL_BYTE)
+    end
+    module_function :valid_path?
+
   end
 end

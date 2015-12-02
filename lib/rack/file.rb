@@ -38,8 +38,9 @@ module Rack
       end
 
       path_info = Utils.unescape_path request.path_info
-      clean_path_info = Utils.clean_path_info(path_info)
+      return fail(400, "Bad Request") unless Utils.valid_path?(path_info)
 
+      clean_path_info = Utils.clean_path_info(path_info)
       path = ::File.join(@root, clean_path_info)
 
       available = begin

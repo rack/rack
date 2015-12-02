@@ -68,6 +68,11 @@ describe Rack::File do
     assert_match(res, /ruby/)
   end
 
+  it "serve uri with URL encoded NUL byte (%00) in filenames" do
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/test%00")
+    res.must_be :bad_request?
+  end
+
   it "allow safe directory traversal" do
     req = Rack::MockRequest.new(file(DOCROOT))
 
