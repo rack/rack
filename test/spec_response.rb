@@ -115,6 +115,20 @@ describe Rack::Response do
     response["Set-Cookie"].must_equal "foo=bar"
   end
 
+  it "can set First-Party cookies" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :first_party => true}
+    response["Set-Cookie"].must_equal "foo=bar; First-Party"
+  end
+
+  [ nil, false ].each do |non_truthy|
+    it "omits First-Party attribute given a #{non_truthy.inspect} value" do
+      response = Rack::Response.new
+      response.set_cookie "foo", {:value => "bar", :first_party => non_truthy}
+      response["Set-Cookie"].must_equal "foo=bar"
+    end
+  end
+
   it "can delete cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", "bar"
