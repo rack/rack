@@ -20,6 +20,14 @@ describe Rack::Response do
     assert_equal etag, response.to_a[2]['ETag']
   end
 
+  it 'has a content-type method' do
+    response = Rack::Response.new
+    content_type = 'foo'
+    response.content_type = content_type
+    assert_equal content_type, response.content_type
+    assert_equal content_type, response.to_a[2]['Content-Type']
+  end
+
   it "have sensible default values" do
     response = Rack::Response.new
     status, header, body = response.finish

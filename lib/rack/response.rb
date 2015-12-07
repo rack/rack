@@ -212,6 +212,14 @@ module Rack
         set_header ETAG, v
       end
 
+      def content_type
+        get_header CONTENT_TYPE
+      end
+
+      def content_type= v
+        set_header CONTENT_TYPE, v
+      end
+
       # Specifies that the content shouldn't be cached. Overrides `cache!` if already called.
       def do_not_cache!
         set_header CACHE_CONTROL, "no-cache, must-revalidate"
