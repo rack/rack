@@ -389,6 +389,39 @@ describe Rack::Response do
     res.finish.last.wont_respond_to(:to_ary)
     lambda { res.finish.last.to_ary }.must_raise NoMethodError
   end
+  
+  it "should specify not to cache content" do
+    response = Rack::Response.new
+    
+    response.cache!(1000)
+    response.do_not_cache!
+    
+    expect(response['Cache-Control']).must_be_equal "no-cache, must-revalidate"
+    
+    expires_header = Time.parse(response['Expires'])
+    expect(expires_header).must_be :<=, Time.now
+  end
+
+  it "should specify to cache content" do
+    response = Rack::Response.new
+    
+    duration = 120
+    expires = Time.now + 100 # At least this far into the future
+    response.cache!(duration)
+    
+    expect(response['Cache-Control']).must_be_equal "public, max-age=120"
+    
+    expires_header = Time.parse(response['Expires'])
+    expect(expires_header).must_be :>=, expires
+  end
+
+  it "should set content type" do
+    response = Rack::Response.new
+    
+    response.content_type! "text/html"
+    
+    expect(response['Content-Type']).must_be_equal "text/html"
+  end
 end
 
 describe Rack::Response, 'headers' do
