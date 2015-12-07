@@ -414,14 +414,6 @@ describe Rack::Response do
     expires_header = Time.parse(response['Expires'])
     expect(expires_header).must_be :>=, expires
   end
-
-  it "should set content type" do
-    response = Rack::Response.new
-    
-    response.content_type! "text/html"
-    
-    expect(response['Content-Type']).must_be_equal "text/html"
-  end
 end
 
 describe Rack::Response, 'headers' do

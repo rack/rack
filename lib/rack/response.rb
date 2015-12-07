@@ -225,11 +225,6 @@ module Rack
           set_header EXPIRES, (Time.now + duration).httpdate
         end
       end
-
-      # Specify the content type of the response data.
-      def content_type!(value)
-        set_header CONTENT_TYPE, value.to_s
-      end
     end
 
     include Helpers
