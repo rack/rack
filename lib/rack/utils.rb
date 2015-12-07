@@ -248,12 +248,13 @@ module Rack
           rfc2822(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
+        first_party = "; First-Party" if value[:first_party]
         value = value[:value]
       end
       value = [value] unless Array === value
 
       cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
-        "#{path}#{max_age}#{expires}#{secure}#{httponly}"
+        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{first_party}"
 
       case header
       when nil, ''

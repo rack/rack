@@ -1,3 +1,10 @@
+Sun Dec 4 18:48:03 2015  Jeremy Daer <jeremydaer@gmail.com>
+
+	* "First-Party" cookies. Browsers omit First-Party cookies from
+	third-party requests, closing the door on many common CSRF attacks.
+	Pass `first_party: true` to enable:
+	    response.set_cookie 'foo', value: 'bar', first_party: true
+
 Tue Nov  3 16:17:26 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Add `Rack::Events` middleware for adding event based middleware:
