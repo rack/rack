@@ -337,7 +337,7 @@ module Rack
       ## When applicable, its external encoding must be "ASCII-8BIT" and it
       ## must be opened in binary mode, for Ruby 1.9 compatibility.
       assert("rack.input #{input} does not have ASCII-8BIT as its external encoding") {
-        input.external_encoding.name == "ASCII-8BIT"
+        input.external_encoding == Encoding::ASCII_8BIT
       } if input.respond_to?(:external_encoding)
       assert("rack.input #{input} is not opened in binary mode") {
         input.binmode?
