@@ -36,7 +36,7 @@ task :officialrelease_really => %w[SPEC dist gem] do
 end
 
 def release
-  "rack-#{File.read("rack.gemspec")[/s.version *= *"(.*?)"/, 1]}"
+  File.read('lib/rack.rb')[/RELEASE += +([\"\'])([\d][\w\.]+)\1/, 2]
 end
 
 desc "Make binaries executable"
