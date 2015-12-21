@@ -24,6 +24,7 @@ module Rack
     alias headers header
 
     CHUNKED = 'chunked'.freeze
+    REDIRECT_CODES = Set.new([301, 302, 303, 307, 308]).freeze
 
     def initialize(body=[], status=200, header={})
       @status = status.to_i
@@ -129,7 +130,7 @@ module Rack
       def precondition_failed?; status == 412;                        end
       def unprocessable?;       status == 422;                        end
 
-      def redirect?;            [301, 302, 303, 307, 308].include? status; end
+      def redirect?;            REDIRECT_CODES.include? status; end
 
       def include?(header)
         has_header? header
