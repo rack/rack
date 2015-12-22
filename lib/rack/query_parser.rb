@@ -79,16 +79,16 @@ module Rack
       raise RangeError if depth <= 0
 
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
+      k = $1 || ''.freeze
+      after = $' || ''.freeze
 
       return if k.empty?
 
-      if after == ""
+      if after == ''.freeze
         params[k] = v
-      elsif after == "["
+      elsif after == "[".freeze
         params[name] = v
-      elsif after == "[]"
+      elsif after == "[]".freeze
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
@@ -107,7 +107,7 @@ module Rack
         params[k] = normalize_params(params[k], after, v, depth - 1)
       end
 
-      return params
+      params
     end
 
     def make_params
