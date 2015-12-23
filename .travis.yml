@@ -1,4 +1,6 @@
-before_install: sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
+before_install:
+  - sudo apt-get update > /dev/null
+  - sudo apt-get -y install lighttpd libfcgi-dev libmemcache-dev memcached
 install:
   - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
   - bundle install --jobs=3 --retry=3
