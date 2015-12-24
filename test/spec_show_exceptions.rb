@@ -59,6 +59,23 @@ describe Rack::ShowExceptions do
     end
   end
 
+
+  it "responces with html when params contain conflicting types" do
+    res = nil
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise RuntimeError, "It was never supposed to work" }
+      )
+    )
+
+    res = req.get("/?query=&query[]", "HTTP_ACCEPT" => "text/html")
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_match(res, /RuntimeError/)
+    assert_match(res, /query=&amp;query\[\]/)
+  end
+
   it "handles exceptions without a backtrace" do
     res = nil
 
