@@ -7,10 +7,11 @@ install:
 script: bundle exec rake ci
 rvm:
   - 2.2.3
+  - 2.3.0
   - ruby-head
   - rbx-2
   - jruby
-  - jruby-9000
+  - jruby-9.0.4.0
   - jruby-head
 
 notifications:
