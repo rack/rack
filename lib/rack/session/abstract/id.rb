@@ -124,10 +124,12 @@ module Rack
         end
 
         def keys
+          load_for_read!
           @data.keys
         end
 
         def values
+          load_for_read!
           @data.values
         end
 
