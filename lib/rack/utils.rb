@@ -609,7 +609,7 @@ module Rack
     end
     module_function :clean_path_info
 
-    NULL_BYTE = "\0"
+    NULL_BYTE = "\0".freeze
 
     def valid_path?(path)
       path.valid_encoding? && !path.include?(NULL_BYTE)
