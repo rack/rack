@@ -1305,6 +1305,11 @@ EOF
     req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal nil
   end
 
+  it "sets the default session to an empty hash" do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    assert_equal Hash.new, req.session
+  end
+
   class MyRequest < Rack::Request
     def params
       {:foo => "bar"}

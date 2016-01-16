@@ -160,7 +160,7 @@ module Rack
 
       def session
         fetch_header(RACK_SESSION) do |k|
-          set_header RACK_SESSION, {}
+          set_header RACK_SESSION, default_session
         end
       end
 
@@ -438,6 +438,8 @@ module Rack
       end
 
       private
+
+      def default_session; {}; end
 
       def parse_http_accept_header(header)
         header.to_s.split(/\s*,\s*/).map do |part|
