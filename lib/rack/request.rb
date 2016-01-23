@@ -342,7 +342,7 @@ module Rack
     end
 
     def trusted_proxy?(ip)
-      ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+      Utils.trusted_proxy?(ip)
     end
 
     def ip
