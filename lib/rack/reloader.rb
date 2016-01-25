@@ -26,6 +26,7 @@ module Rack
       @last = (Time.now - cooldown)
       @cache = {}
       @mtimes = {}
+      @reload_mutex = Mutex.new
 
       extend backend
     end
@@ -33,7 +34,7 @@ module Rack
     def call(env)
       if @cooldown and Time.now > @last + @cooldown
         if Thread.list.size > 1
-          Thread.exclusive{ reload! }
+          @reload_mutex.synchronize{ reload! }
         else
           reload!
         end
