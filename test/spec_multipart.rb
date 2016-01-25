@@ -72,6 +72,13 @@ describe Rack::Multipart do
     end
   end
 
+  it "handles quoted encodings" do
+    # See #905
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:unity3d_wwwform))
+    params = Rack::Multipart.parse_multipart(env)
+    params['user_sid'].encoding.must_equal Encoding::UTF_8
+  end
+
   it "raise RangeError if the key space is exhausted" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
 
