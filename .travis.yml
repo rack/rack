@@ -10,7 +10,6 @@ rvm:
   - 2.3.0
   - ruby-head
   - rbx-2
-  - jruby
   - jruby-9.0.4.0
   - jruby-head
 
@@ -20,5 +19,4 @@ notifications:
 
 matrix:
   allow_failures:
-    - rvm: jruby
     - rvm: rbx-2
