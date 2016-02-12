@@ -305,13 +305,15 @@ describe Rack::Utils do
       must_equal 'x[y][][z]=1&x[y][][z]=2'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1', 'w' => 'a' }, { 'z' => '2', 'w' => '3' }] }).
       must_equal 'x[y][][z]=1&x[y][][w]=a&x[y][][z]=2&x[y][][w]=3'
+    Rack::Utils.build_nested_query({"foo" => ["1", ["2"]]}).
+      must_equal 'foo[]=1&foo[][]=2'
 
     lambda { Rack::Utils.build_nested_query("foo=bar") }.
       must_raise(ArgumentError).
       message.must_equal "value must be a Hash"
   end
 
-  it 'perform the inverse function of #parse_nested_query' do
+  it 'performs the inverse function of #parse_nested_query' do
     [{"foo" => nil, "bar" => ""},
       {"foo" => "bar", "baz" => ""},
       {"foo" => ["1", "2"]},
@@ -328,7 +330,8 @@ describe Rack::Utils do
       {"x" => {"y" => [{"v" => {"w" => "1"}}]}},
       {"x" => {"y" => [{"z" => "1", "v" => {"w" => "2"}}]}},
       {"x" => {"y" => [{"z" => "1"}, {"z" => "2"}]}},
-      {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}}
+      {"x" => {"y" => [{"z" => "1", "w" => "a"}, {"z" => "2", "w" => "3"}]}},
+      {"foo" => ["1", ["2"]]},
     ].each { |params|
       qs = Rack::Utils.build_nested_query(params)
       Rack::Utils.parse_nested_query(qs).must_equal params
