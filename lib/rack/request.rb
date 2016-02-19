@@ -134,6 +134,7 @@ module Rack
       # to include the port in a generated URI.
       DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
+      HTTP_FORWARDED          = 'HTTP_FORWARDED'.freeze
       HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
       HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
       HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
@@ -203,6 +204,10 @@ module Rack
       def scheme
         if get_header(HTTPS) == 'on'
           'https'
+        elsif get_header(HTTP_FORWARDED)
+          # Use first proto field set as it's most likely to be represent the
+          # original client: https://tools.ietf.org/html/rfc7239#section-4
+          get_http_forwarder(:proto)[0]
         elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
           'https'
         elsif get_header(HTTP_X_FORWARDED_SCHEME)
@@ -450,6 +455,21 @@ module Rack
           end
           [attribute, quality]
         end
+      end
+
+      # Get an array of values set in the RFC 7239 `Forwarder` request header.
+      def get_http_forwarder(token)
+        values = []
+        get_header(HTTP_FORWARDED).to_s.split(/\s*,\s*/).each do |field|
+          field.split(/\s*;\s*/).each do |pair|
+            # Parse URI scheme according to https://tools.ietf.org/html/rfc3986#section-3.1
+            if pair and /\A#{token.to_s.downcase}\s*=\s*['"]?([\[A-Za-z0-9\+-\.]+)['"]?\s*\Z/ =~ pair.downcase
+              values << $1
+            end
+          end
+        end
+
+        values
       end
 
       def query_parser
