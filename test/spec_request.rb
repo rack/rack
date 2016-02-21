@@ -121,6 +121,23 @@ class RackRequestTest < Minitest::Spec
     req.host.must_equal "example.org"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=example.org:9292")
+    req.host.must_equal "example.org"
+
+    # Test obfuscated identifier: https://tools.ietf.org/html/rfc7239#section-6.3
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=ObFuScaTeD")
+    req.host.must_equal "ObFuScaTeD"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=example.com; host=example.org:9292")
+    req.host.must_equal "example.org"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292", "HTTP_FORWARDED" => "host=example.com")
+    req.host.must_equal "example.com"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host.must_equal "example.org"
 
@@ -536,6 +553,18 @@ class RackRequestTest < Minitest::Spec
 
   it "ssl detection" do
     request = make_request(Rack::MockRequest.env_for("/"))
+    request.scheme.must_equal "http"
+    request.wont_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=https'))
+    request.scheme.must_equal "https"
+    request.must_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=https, proto=http'))
+    request.scheme.must_equal "https"
+    request.must_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=http, proto=https'))
     request.scheme.must_equal "http"
     request.wont_be :ssl?
 
@@ -1185,6 +1214,21 @@ EOF
 
   it 'deals with proxies' do
     mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
+
+    res = mock.get '/',
+      'REMOTE_ADDR' => '1.2.3.4',
+      'HTTP_FORWARDED' => 'for=3.4.5.6'
+    res.body.must_equal '1.2.3.4'
+
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6',
+      'HTTP_FORWARDED' => 'for=5.6.7.8'
+    res.body.must_equal '5.6.7.8'
+
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6',
+      'HTTP_FORWARDED' => 'for=5.6.7.8, for=7.8.9.0'
+    res.body.must_equal '7.8.9.0'
 
     res = mock.get '/',
       'REMOTE_ADDR' => '1.2.3.4',

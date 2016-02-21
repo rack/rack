@@ -354,6 +354,43 @@ describe Rack::Utils do
     ]
   end
 
+  it "parses RFC 7239 Forwarded header" do
+    Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
+      :for => [ '3.4.5.6' ],
+    })
+
+    Rack::Utils.forwarded_values(';;;for=3.4.5.6,,').must_equal({
+      :for => [ '3.4.5.6' ],
+    })
+
+    Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
+      :for => [ '3.4.5.6' ],
+    })
+
+    Rack::Utils.forwarded_values('for =  3.4.5.6').must_equal({
+      :for => [ '3.4.5.6' ],
+    })
+
+    Rack::Utils.forwarded_values('for="3.4.5.6"').must_equal({
+      :for => [ '3.4.5.6' ],
+    })
+
+    Rack::Utils.forwarded_values('for=3.4.5.6;proto=https').must_equal({
+      :for   => [ '3.4.5.6' ],
+      :proto => [ 'https' ]
+    })
+
+    Rack::Utils.forwarded_values('for=3.4.5.6; proto=http, proto=https').must_equal({
+      :for   => [ '3.4.5.6' ],
+      :proto => [ 'http', 'https' ]
+    })
+
+    Rack::Utils.forwarded_values('for=3.4.5.6; proto=http, proto=https; for=1.2.3.4').must_equal({
+      :for   => [ '3.4.5.6', '1.2.3.4' ],
+      :proto => [ 'http', 'https' ]
+    })
+  end
+
   it "select best quality match" do
     Rack::Utils.best_q_match("text/html", %w[text/html]).must_equal "text/html"
 

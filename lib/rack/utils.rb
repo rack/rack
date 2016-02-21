@@ -140,6 +140,19 @@ module Rack
     end
     module_function :q_values
 
+    def forwarded_values(forwarded_header)
+      values = Hash.new{ |k,v| k[v] = [] }
+      forwarded_header.to_s.split(/\s*,\s*/).each do |field|
+        field.split(/\s*;\s*/).each do |pair|
+          if /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i =~ pair
+            values[$1.downcase.to_sym] << $2
+          end
+        end
+      end
+      values
+    end
+    module_function :forwarded_values
+
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 

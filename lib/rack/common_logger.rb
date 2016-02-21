@@ -41,9 +41,10 @@ module Rack
     def log(env, status, header, began_at)
       now = Time.now
       length = extract_content_length(header)
+      forwarded_for = Utils::forwarded_values(env['HTTP_FORWARDED'])[:for].last
 
       msg = FORMAT % [
-        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
+        forwarded_for || env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
         now.strftime("%d/%b/%Y:%H:%M:%S %z"),
         env[REQUEST_METHOD],

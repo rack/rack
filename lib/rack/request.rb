@@ -134,6 +134,7 @@ module Rack
       # to include the port in a generated URI.
       DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
+      HTTP_FORWARDED          = 'HTTP_FORWARDED'.freeze
       HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
       HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
       HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
@@ -203,6 +204,10 @@ module Rack
       def scheme
         if get_header(HTTPS) == 'on'
           'https'
+        elsif get_header(HTTP_FORWARDED)
+          # Use first proto field set as it's most likely to be represent the
+          # original client: https://tools.ietf.org/html/rfc7239#section-4
+          get_http_forwarder(:proto)[0]
         elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
           'https'
         elsif get_header(HTTP_X_FORWARDED_SCHEME)
@@ -240,7 +245,9 @@ module Rack
       end
 
       def host_with_port
-        if forwarded = get_header(HTTP_X_FORWARDED_HOST)
+        if forwarded = get_http_forwarder(:host).last
+          forwarded
+        elsif forwarded = get_header(HTTP_X_FORWARDED_HOST)
           forwarded.split(/,\s?/).last
         else
           get_header(HTTP_HOST) || "#{get_header(SERVER_NAME) || get_header(SERVER_ADDR)}:#{get_header(SERVER_PORT)}"
@@ -257,6 +264,8 @@ module Rack
           port.to_i
         elsif port = get_header(HTTP_X_FORWARDED_PORT)
           port.to_i
+        elsif get_http_forwarder(:proto)
+          DEFAULT_PORTS[scheme]
         elsif has_header?(HTTP_X_FORWARDED_HOST)
           DEFAULT_PORTS[scheme]
         elsif has_header?(HTTP_X_FORWARDED_PROTO)
@@ -276,7 +285,9 @@ module Rack
 
         return remote_addrs.first if remote_addrs.any?
 
-        forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
+        rfc7239_forwarded_ips = get_http_forwarder(:for)
+        x_forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
+        forwarded_ips = x_forwarded_ips.concat(rfc7239_forwarded_ips)
 
         return reject_trusted_ip_addresses(forwarded_ips).last || get_header("REMOTE_ADDR")
       end
@@ -450,6 +461,11 @@ module Rack
           end
           [attribute, quality]
         end
+      end
+
+      # Get an array of values set in the RFC 7239 `Forwarded` request header.
+      def get_http_forwarder(token)
+        Utils::forwarded_values(get_header(HTTP_FORWARDED))[token]
       end
 
       def query_parser
