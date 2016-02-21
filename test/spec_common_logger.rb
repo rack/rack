@@ -36,7 +36,7 @@ describe Rack::CommonLogger do
     log.string.must_match(/"GET \/ " 200 #{length} /)
   end
 
-  it "work with standartd library logger" do
+  it "work with standard library logger" do
     logdev = StringIO.new
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
