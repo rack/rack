@@ -6,6 +6,8 @@ require 'rack/server'
 require 'tempfile'
 require 'socket'
 require 'open-uri'
+require 'net/http'
+require 'net/https'
 
 module Minitest::Spec::DSL
   alias :should :it
@@ -138,6 +140,43 @@ describe Rack::Server do
              open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
            end
     body.must_equal 'success'
+
+    Process.kill(:INT, $$)
+    t.join
+    open(pidfile.path) { |f| f.read.must_equal $$.to_s }
+  end
+
+  it "run an ssl server" do
+    pidfile = Tempfile.open('pidfile') { |f| break f }
+    FileUtils.rm pidfile.path
+    server = Rack::Server.new(
+      :app         => app,
+      :environment => 'none',
+      :pid         => pidfile.path,
+      :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
+      :Host        => '127.0.0.1',
+      :Logger      => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+      :AccessLog   => [],
+      :daemonize   => false,
+      :server      => 'webrick',
+      :SSLEnable   => true,
+      :SSLCertName => [['CN', 'nobody'], ['DC', 'example']]
+    )
+    t = Thread.new { server.start { |s| Thread.current[:server] = s } }
+    t.join(0.01) until t[:server] && t[:server].status != :Stop
+
+    uri = URI.parse("https://127.0.0.1:#{server.options[:Port]}/")
+
+    Net::HTTP.start("127.0.0.1", uri.port,
+                    :use_ssl => true,
+                    :verify_mode => OpenSSL::SSL::VERIFY_NONE,
+                    :ssl_version => :SSLv3) do |http|
+
+      request = Net::HTTP::Get.new uri
+
+      body = http.request(request).body
+      body.must_equal 'success'
+    end
 
     Process.kill(:INT, $$)
     t.join
