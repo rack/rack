@@ -74,10 +74,24 @@ EOF
     env["REQUEST_METHOD"].must_equal "POST"
   end
 
-  it "not modify REQUEST_METHOD for POST requests when the params are unparseable" do
-    env = Rack::MockRequest.env_for("/", :method => "POST", :input => "(%bad-params%)")
-    app.call env
+  describe "with patched warnings" do
+    it "not modify REQUEST_METHOD for POST requests when the params are unparseable" do
+      env = Rack::MockRequest.env_for("/", :method => "POST", :input => "(%bad-params%)")
+      app.call env
 
-    env["REQUEST_METHOD"].must_equal "POST"
+      env["REQUEST_METHOD"].must_equal "POST"
+      @warnings.wont_be_empty
+    end
+
+    before do
+      @warnings = warnings = []
+      Rack::MethodOverride.class_eval do
+        define_method(:warn) { |m| warnings << m }
+      end
+    end
+
+    after do
+      Rack::MethodOverride.class_eval { remove_method :warn }
+    end
   end
 end

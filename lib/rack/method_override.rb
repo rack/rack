@@ -37,7 +37,10 @@ module Rack
 
     def method_override_param(req)
       req.POST[METHOD_OVERRIDE_PARAM_KEY]
-    rescue Utils::InvalidParameterError, Utils::ParameterTypeError
+    rescue Utils::InvalidParameterError => e
+      warn "Invalid Parameter: #{e.message}"
+    rescue Utils::ParameterTypeError => e
+      warn "Invalid Parameter Type: #{e.message}"
     end
   end
 end
