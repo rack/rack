@@ -163,8 +163,7 @@ describe Rack::Server do
 
     Net::HTTP.start("127.0.0.1", uri.port,
                     :use_ssl => true,
-                    :verify_mode => OpenSSL::SSL::VERIFY_NONE,
-                    :ssl_version => :SSLv3) do |http|
+                    :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
 
       request = Net::HTTP::Get.new uri
 
