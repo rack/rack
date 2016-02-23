@@ -95,6 +95,7 @@ describe Rack::Multipart do
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
     params = Rack::Multipart.parse_multipart(env)
     params['profile']['bio'].must_include 'hello'
+    params['profile'].keys.must_include 'public_email'
   end
 
   it "reject insanely long boundaries" do

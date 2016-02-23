@@ -100,8 +100,6 @@ module Rack
               # Generic multipart cases, not coming from a form
               data = {:type => content_type,
                       :name => name, :tempfile => body, :head => head}
-            elsif !filename && data.empty?
-              return
             end
 
             yield data
