@@ -206,7 +206,7 @@ describe Rack::Multipart do
 
   it "parse multipart upload file using custom tempfile class" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
-    my_tempfile = ""
+    my_tempfile = String.new
     env['rack.multipart.tempfile_factory'] = lambda { |filename, content_type| my_tempfile }
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:tempfile].object_id.must_equal my_tempfile.object_id

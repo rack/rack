@@ -423,7 +423,7 @@ describe Rack::Session::Cookie do
     @counter = 0
     app = lambda do |env|
       env["rack.session"]["message"] ||= ""
-      env["rack.session"]["message"] << "#{(@counter += 1).to_s}--"
+      env["rack.session"]["message"] += "#{(@counter += 1).to_s}--"
       hash = env["rack.session"].dup
       hash.delete("session_id")
       Rack::Response.new(hash["message"]).to_a

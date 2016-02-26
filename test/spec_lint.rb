@@ -483,7 +483,7 @@ describe Rack::Lint do
   end
 
   def assert_lint(*args)
-    hello_str = "hello world"
+    hello_str = String.new("hello world")
     hello_str.force_encoding(Encoding::ASCII_8BIT)
 
     Rack::Lint.new(lambda { |env|
@@ -498,8 +498,8 @@ describe Rack::Lint do
     assert_lint 0
     assert_lint 1
     assert_lint nil
-    assert_lint nil, ''
-    assert_lint 1, ''
+    assert_lint nil, String.new
+    assert_lint 1, String.new
   end
 end
 

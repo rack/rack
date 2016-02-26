@@ -26,14 +26,14 @@ module RewindableTest
   end
 
   it "be able to handle to read(length, buffer)" do
-    buffer = ""
+    buffer = String.new
     result = @rio.read(1, buffer)
     result.must_equal "h"
     result.object_id.must_equal buffer.object_id
   end
 
   it "be able to handle to read(nil, buffer)" do
-    buffer = ""
+    buffer = String.new
     result = @rio.read(nil, buffer)
     result.must_equal "hello world"
     result.object_id.must_equal buffer.object_id

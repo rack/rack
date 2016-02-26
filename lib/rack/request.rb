@@ -407,7 +407,7 @@ module Rack
       end
 
       def base_url
-        url = "#{scheme}://#{host}"
+        url = String.new("#{scheme}://#{host}")
         url << ":#{port}" if port != DEFAULT_PORTS[scheme]
         url
       end

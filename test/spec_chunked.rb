@@ -42,8 +42,8 @@ describe Rack::Chunked do
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
     response.body.encoding.to_s.must_equal "ASCII-8BIT"
-    response.body.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".force_encoding("BINARY")
-    response.body.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".force_encoding(Encoding::BINARY)
+    response.body.must_equal String.new("c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n").force_encoding("BINARY")
+    response.body.must_equal String.new("c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n").force_encoding(Encoding::BINARY)
   end
 
   it 'not modify response when Content-Length header present' do

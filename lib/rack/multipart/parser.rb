@@ -135,7 +135,7 @@ module Rack
             klass = TempfilePart
             @open_files += 1
           else
-            body = ''.force_encoding(Encoding::ASCII_8BIT)
+            body = String.new.force_encoding(Encoding::ASCII_8BIT)
             klass = BufferPart
           end
 
@@ -165,7 +165,7 @@ module Rack
       attr_reader :state
 
       def initialize(boundary, tempfile, bufsize, query_parser)
-        @buf            = "".force_encoding(Encoding::ASCII_8BIT)
+        @buf            = String.new.force_encoding(Encoding::ASCII_8BIT)
 
         @query_parser   = query_parser
         @params         = query_parser.make_params
@@ -252,7 +252,7 @@ module Rack
           filename = get_filename(head)
 
           if name.nil? || name.empty?
-            name = filename || "#{content_type || TEXT_PLAIN}[]"
+            name = filename || String.new("#{content_type || TEXT_PLAIN}[]")
           end
 
           @collector.on_mime_head @mime_index, head, filename, content_type, name

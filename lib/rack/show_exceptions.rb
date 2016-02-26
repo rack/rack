@@ -55,7 +55,8 @@ module Rack
     private :accepts_html?
 
     def dump_exception(exception)
-      string = "#{exception.class}: #{exception.message}\n"
+      string = String.new
+      string << "#{exception.class}: #{exception.message}\n"
       string << exception.backtrace.map { |l| "\t#{l}" }.join("\n")
       string
     end
