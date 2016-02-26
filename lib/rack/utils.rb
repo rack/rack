@@ -210,12 +210,11 @@ module Rack
     module_function :parse_cookies
 
     def parse_cookies_header(header)
-      # According to RFC 2109:
-      #   If multiple cookies satisfy the criteria above, they are ordered in
-      #   the Cookie header such that those with more specific Path attributes
-      #   precede those with less specific.  Ordering with respect to other
-      #   attributes (e.g., Domain) is unspecified.
-      cookies = parse_query(header, ';,') { |s| unescape(s) rescue s }
+      # According to RFC 6265:
+      # The syntax for cookie headers only supports semicolons
+      # User Agent -> Server ==
+      # Cookie: SID=31d4d96e407aad42; lang=en-US
+      cookies = parse_query(header, ';') { |s| unescape(s) rescue s }
       cookies.each_with_object({}) { |(k, v), hash| hash[k] = Array === v ? v.first : v }
     end
     module_function :parse_cookies_header
