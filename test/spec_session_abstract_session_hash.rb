@@ -25,4 +25,15 @@ describe Rack::Session::Abstract::SessionHash do
     assert_equal [:bar, :qux], hash.values
   end
 
+  it "returns the correct value" do
+    assert_equal :bar, hash.fetch(:foo)
+  end
+
+  it "returns the correct value using a default" do
+    assert_equal :default, hash.fetch(:missing, :default)
+  end
+
+  it "returns the correct value using a block" do
+    assert_equal 'missing', hash.fetch(:missing) { |el| el.to_s }
+  end
 end
