@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'rack/auth/abstract/request'
 require 'rack/auth/digest/params'
 require 'rack/auth/digest/nonce'

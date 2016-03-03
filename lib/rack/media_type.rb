@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Rack
   # Rack::MediaType parse media type and parameters out of content_type string
 

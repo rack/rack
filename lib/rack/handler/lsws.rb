@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'lsapi'
 require 'rack/content_length'
 require 'rack/rewindable_input'

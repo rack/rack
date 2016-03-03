@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Rack
   module Mime
     # Returns String with mime type if found, otherwise use +fallback+.

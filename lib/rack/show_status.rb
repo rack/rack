@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'erb'
 require 'rack/request'
 require 'rack/utils'

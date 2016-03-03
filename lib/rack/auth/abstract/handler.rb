@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 module Rack
   module Auth
     # Rack::Auth::AbstractHandler implements common authentication functionality.

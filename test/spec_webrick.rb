@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'minitest/autorun'
 require 'rack/mock'
 require 'concurrent/atomic/count_down_latch'

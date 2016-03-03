@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require 'minitest/autorun'
 require 'rack/auth/digest/md5'
 require 'rack/lint'
