@@ -82,7 +82,13 @@ module Rack
       k = $1 || ''.freeze
       after = $' || ''.freeze
 
-      return if k.empty?
+      if k.empty?
+        if !v.nil? && name == "[]".freeze
+          return Array(v)
+        else
+          return
+        end
+      end
 
       if after == ''.freeze
         params[k] = v

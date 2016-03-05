@@ -211,6 +211,9 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("x[][z][w]=a&x[][y]=1&x[][z][w]=b&x[][y]=2").
       must_equal "x" => [{"y" => "1", "z" => {"w" => "a"}}, {"y" => "2", "z" => {"w" => "b"}}]
 
+    Rack::Utils.parse_nested_query("data[books][][data][page]=1&data[books][][data][page]=2").
+      must_equal "data" => { "books" => [{ "data" => { "page" => "1"}}, { "data" => { "page" => "2"}}] }
+
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y]z=2") }.
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_equal "expected Hash (got String) for param `y'"
