@@ -75,11 +75,10 @@ describe Rack::Auth::Basic do
     end
   end
 
-  it 'return 400 Bad Request for a nil authorization header' do
+  it 'return 401 Bad Request for a nil authorization header' do
     request 'HTTP_AUTHORIZATION' => nil do |response|
       response.must_be :client_error?
-      response.status.must_equal 400
-      response.wont_include 'WWW-Authenticate'
+      response.status.must_equal 401
     end
   end
 
