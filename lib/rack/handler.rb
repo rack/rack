@@ -52,7 +52,9 @@ module Rack
       elsif ENV.include?("RACK_HANDLER")
         self.get(ENV["RACK_HANDLER"])
       else
-        pick ['thin', 'puma', 'webrick']
+        ordered_defaults = @handlers.keys - ['thin', 'puma', 'webrick', 'lsws', 'cgi', 'fastcgi', 'scgi']
+        ordered_defaults.insert -1, *['thin', 'puma', 'webrick']
+        pick ordered_defaults
       end
     end
 

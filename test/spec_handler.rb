@@ -5,6 +5,7 @@ class Rack::Handler::Lobster; end
 class RockLobster; end
 
 describe Rack::Handler do
+
   it "has registered default handlers" do
     Rack::Handler.get('cgi').must_equal Rack::Handler::CGI
     Rack::Handler.get('webrick').must_equal Rack::Handler::WEBrick
@@ -33,7 +34,7 @@ describe Rack::Handler do
     Rack::Handler.register('rock_lobster', 'RockLobster')
     Rack::Handler.get('rock_lobster').must_equal RockLobster
   end
-
+  
   it "not need registration for properly coded handlers even if not already required" do
     begin
       $LOAD_PATH.push File.expand_path('../unregistered_handler', __FILE__)
