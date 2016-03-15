@@ -97,17 +97,29 @@ describe Rack::Response do
     response["Set-Cookie"].should.equal "foo=bar"
   end
 
-  it "can set First-Party cookies" do
+  it "can set SameSite cookies with any truthy value" do
     response = Rack::Response.new
-    response.set_cookie "foo", {:value => "bar", :first_party => true}
-    response["Set-Cookie"].must_equal "foo=bar; First-Party"
+    response.set_cookie "foo", {:value => "bar", :same_site => Object.new}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite"
+  end
+
+  it "can set SameSite cookies with string value" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => "Lax"}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Lax"
+  end
+
+  it "can set SameSite cookies with symbol value" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => :Strict}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
   end
 
   [ nil, false ].each do |non_truthy|
-    it "omits First-Party attribute given a #{non_truthy.inspect} value" do
+    it "omits SameSite attribute given a #{non_truthy.inspect} value" do
       response = Rack::Response.new
-      response.set_cookie "foo", {:value => "bar", :first_party => non_truthy}
-      response["Set-Cookie"].must_equal "foo=bar"
+      response.set_cookie "foo", {:value => "bar", :same_site => non_truthy}
+      response["Set-Cookie"].should.equal "foo=bar"
     end
   end
 
