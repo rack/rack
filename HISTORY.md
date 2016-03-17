@@ -1,3 +1,7 @@
+Tue Mar 15 15:18:44 2016 Ben Toews <mastahyeti@users.noreply.github.com>
+
+	* Backport support for the `SameSite` cookie attribute.
+
 Wed Jun 24 12:13:37 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* Fix Ruby 1.8 backwards compatibility
