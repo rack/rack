@@ -92,6 +92,7 @@ module Rack
       (qs || '').split(d ? /[#{d}] */n : DEFAULT_SEP).each do |p|
         next if p.empty?
         k, v = p.split('=', 2).map(&unescaper)
+        k = k.strip
 
         if cur = params[k]
           if cur.class == Array
