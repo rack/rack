@@ -99,7 +99,7 @@ module Rack
     end
 
     def add_index_root?(path)
-      @index && path =~ /\/$/
+      @index && path.end_with?('/'.freeze)
     end
 
     def overwrite_file_path(path)
