@@ -55,7 +55,7 @@ module Rack
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
 
-      headers = { "Last-Modified" => last_modified }
+      headers = { LAST_MODIFIED => last_modified }
       mime_type = mime_type path, @default_mime
       headers[CONTENT_TYPE] = mime_type if mime_type
 
