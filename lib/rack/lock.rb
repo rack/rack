@@ -12,7 +12,7 @@ module Rack
     def call(env)
       @mutex.lock
       begin
-        response = @app.call(env.merge(RACK_MULTITHREAD => false))
+        response = @app.call(env.merge!(RACK_MULTITHREAD => false))
         returned = response << BodyProxy.new(response.pop) { @mutex.unlock }
       ensure
         @mutex.unlock unless returned
