@@ -26,7 +26,7 @@ module Rack
           str = if left < size
                   @io.read left
                 else
-                 @io.read size
+                  @io.read size
                 end
 
           if str

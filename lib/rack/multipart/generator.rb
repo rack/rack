@@ -22,7 +22,7 @@ module Rack
           else
             content_for_other(file, name)
           end
-        end.join + "--#{MULTIPART_BOUNDARY}--\r"
+        end.join << "--#{MULTIPART_BOUNDARY}--\r"
       end
 
       private
