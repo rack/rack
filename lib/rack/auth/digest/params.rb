@@ -17,7 +17,7 @@ module Rack
         end
 
         def self.split_header_value(str)
-          str.scan( /(\w+\=(?:"[^\"]+"|[^,]+))/n ).collect{ |v| v[0] }
+          str.scan(/\w+\=(?:"[^\"]+"|[^,]+)/n)
         end
 
         def initialize
