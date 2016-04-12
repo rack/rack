@@ -47,11 +47,13 @@ module Rack
       server_name = env[SERVER_NAME]
       server_port = env[SERVER_PORT]
 
+      is_same_server = casecmp?(http_host, server_name) ||
+                       casecmp?(http_host, "#{server_name}:#{server_port}")
+
       @mapping.each do |host, location, match, app|
         unless casecmp?(http_host, host) \
             || casecmp?(server_name, host) \
-            || (!host && (casecmp?(http_host, server_name) ||
-                          casecmp?(http_host, "#{server_name}:#{server_port}")))
+            || (!host && is_same_server)
           next
         end
 
