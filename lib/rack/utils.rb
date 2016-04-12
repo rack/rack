@@ -606,5 +606,16 @@ module Rack
     end
     module_function :clean_path_info
 
+    class << self
+      attr_accessor :trusted_proxies
+    end
+
+    # The default regex to match trusted proxy addresses.
+    self.trusted_proxies = /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+
+    def self.trusted_proxy?(ip)
+      Array(trusted_proxies).any? { |proxy| proxy === ip }
+    end
+
   end
 end
