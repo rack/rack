@@ -1,6 +1,18 @@
-Tue Mar 15 15:18:44 2016 Ben Toews <mastahyeti@users.noreply.github.com>
+Sun Dec 4 18:48:03 2015  Jeremy Daer <jeremydaer@gmail.com>
 
-	* Backport support for the `SameSite` cookie attribute.
+	* First-party "SameSite" cookies. Browsers omit SameSite cookies
+	from third-party requests, closing the door on many CSRF attacks.
+
+	Pass `same_site: true` (or `:strict`) to enable:
+	    response.set_cookie 'foo', value: 'bar', same_site: true
+	or `same_site: :lax` to use Lax enforcement:
+	    response.set_cookie 'foo', value: 'bar', same_site: :lax
+
+	Based on version 7 of the Same-site Cookies internet draft:
+	https://tools.ietf.org/html/draft-west-first-party-cookies-07
+
+	Thanks to Ben Toews (@mastahyeti) and Bob Long (@bobjflong) for
+	updating to drafts 5 and 7.
 
 Wed Jun 24 12:13:37 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
