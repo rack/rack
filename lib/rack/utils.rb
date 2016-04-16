@@ -251,7 +251,11 @@ module Rack
         same_site = if value[:same_site]
           case value[:same_site]
           when Symbol, String
-            "; SameSite=#{value[:same_site]}"
+            same_site_rule = value[:same_site].to_s
+            unless ["Lax", "Strict"].include?(same_site_rule)
+              raise ArgumentError, "Unrecognized cookie header value for SameSite option: #{same_site_rule}"
+            end
+            "; SameSite=#{same_site_rule}"
           else
             "; SameSite"
           end

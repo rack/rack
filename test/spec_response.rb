@@ -127,6 +127,14 @@ describe Rack::Response do
     response["Set-Cookie"].must_equal "foo=bar; SameSite=Lax"
   end
 
+  it "validates the SameSite option value" do
+    response = Rack::Response.new
+    lambda {
+      response.set_cookie "foo", {:value => "bar", :same_site => "Foo"}
+    }.must_raise(ArgumentError).
+      message.must_match(/Unrecognized cookie header value for SameSite option: Foo/)
+  end
+
   it "can set SameSite cookies with symbol value" do
     response = Rack::Response.new
     response.set_cookie "foo", {:value => "bar", :same_site => :Strict}
