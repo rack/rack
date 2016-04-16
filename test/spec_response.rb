@@ -85,10 +85,16 @@ describe Rack::Response do
     response["Set-Cookie"].should.equal "foo=bar; HttpOnly"
   end
 
-  it "can set SameSite cookies with any truthy value" do
+  it "can set SameSite cookies with symbol value :lax" do
     response = Rack::Response.new
-    response.set_cookie "foo", {:value => "bar", :same_site => Object.new}
-    response["Set-Cookie"].should.equal "foo=bar; SameSite"
+    response.set_cookie "foo", {:value => "bar", :same_site => :lax}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Lax"
+  end
+
+  it "can set SameSite cookies with symbol value :Lax" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => :lax}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Lax"
   end
 
   it "can set SameSite cookies with string value 'Lax'" do
@@ -97,13 +103,39 @@ describe Rack::Response do
     response["Set-Cookie"].should.equal "foo=bar; SameSite=Lax"
   end
 
+  it "can set SameSite cookies with boolean value true" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => true}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
+  end
+
   it "can set SameSite cookies with symbol value :strict" do
     response = Rack::Response.new
     response.set_cookie "foo", {:value => "bar", :same_site => :strict}
-    response["Set-Cookie"].should.equal "foo=bar; SameSite=strict"
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
   end
 
   it "can set SameSite cookies with symbol value :Strict" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => :Strict}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
+  end
+
+  it "can set SameSite cookies with string value 'Strict'" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => "Strict"}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
+  end
+
+  it "validates the SameSite option value" do
+    response = Rack::Response.new
+    lambda {
+      response.set_cookie "foo", {:value => "bar", :same_site => "Foo"}
+    }.should.raise(ArgumentError).
+      message.should.match(/Invalid SameSite value: "Foo"/)
+  end
+
+  it "can set SameSite cookies with symbol value" do
     response = Rack::Response.new
     response.set_cookie "foo", {:value => "bar", :same_site => :Strict}
     response["Set-Cookie"].should.equal "foo=bar; SameSite=Strict"
