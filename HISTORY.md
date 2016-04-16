@@ -1,9 +1,18 @@
 Sun Dec 4 18:48:03 2015  Jeremy Daer <jeremydaer@gmail.com>
 
-	* "First-Party" cookies. Browsers omit First-Party cookies from
-	third-party requests, closing the door on many common CSRF attacks.
-	Pass `first_party: true` to enable:
-	    response.set_cookie 'foo', value: 'bar', first_party: true
+	* First-party "SameSite" cookies. Browsers omit SameSite cookies
+	from third-party requests, closing the door on many CSRF attacks.
+
+	Pass `same_site: true` (or `:strict`) to enable:
+	    response.set_cookie 'foo', value: 'bar', same_site: true
+	or `same_site: :lax` to use Lax enforcement:
+	    response.set_cookie 'foo', value: 'bar', same_site: :lax
+
+	Based on version 7 of the Same-site Cookies internet draft:
+	https://tools.ietf.org/html/draft-west-first-party-cookies-07
+
+	Thanks to Ben Toews (@mastahyeti) and Bob Long (@bobjflong) for
+	updating to drafts 5 and 7.
 
 Tue Nov  3 16:17:26 2015  Aaron Patterson <tenderlove@ruby-lang.org>
 
