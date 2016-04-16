@@ -8,17 +8,20 @@ module Rack
   # a sendfile body (body.responds_to :to_path) is given (since such cases
   # should be handled by apache/nginx).
   #
-  # On initialization, you can pass two parameters: a Cache-Control directive
-  # used when Etag is absent and a directive when it is present. The first
-  # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
+  # On initialization, you can pass three parameters: a Cache-Control directive
+  # used when Etag is absent, a directive when it is present, and the digest class to be used. The first
+  # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate", and finally the
+  # third defaults to Digest::MD5
   class ETag
+    attr_accessor :digest_class
+
     ETAG_STRING = Rack::ETAG
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
-
-    def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)
+    def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL, digest_class = Digest::MD5)
       @app = app
       @cache_control = cache_control
       @no_cache_control = no_cache_control
+      @digest_class = digest_class.new
     end
 
     def call(env)
@@ -62,10 +65,9 @@ module Rack
       def digest_body(body)
         parts = []
         digest = nil
-
         body.each do |part|
           parts << part
-          (digest ||= Digest::MD5.new) << part unless part.empty?
+          (digest ||= @digest_class) << part unless part.empty?
         end
 
         [digest && digest.hexdigest, parts]
