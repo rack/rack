@@ -248,18 +248,17 @@ module Rack
           rfc2822(value[:expires].clone.gmtime) if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
-        same_site = if value[:same_site]
+        same_site =
           case value[:same_site]
-          when Symbol, String
-            same_site_rule = value[:same_site].to_s
-            unless ["Lax", "Strict"].include?(same_site_rule)
-              raise ArgumentError, "Unrecognized cookie header value for SameSite option: #{same_site_rule}"
-            end
-            "; SameSite=#{same_site_rule}"
+          when false, nil
+            nil
+          when :lax, 'Lax', :Lax
+            '; SameSite=Lax'.freeze
+          when true, :strict, 'Strict', :Strict
+            '; SameSite=Strict'.freeze
           else
-            "; SameSite"
+            raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
           end
-        end
         value = value[:value]
       end
       value = [value] unless Array === value
