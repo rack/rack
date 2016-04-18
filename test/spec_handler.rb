@@ -23,10 +23,19 @@ describe Rack::Handler do
     lambda {
       Rack::Handler.get('boom')
     }.should.raise(LoadError)
+  end
 
-    lambda {
-      Rack::Handler.get('Object')
-    }.should.raise(LoadError)
+  should "raise LoadError if handler isn't nested under Rack::Handler" do
+    # Feature-detect whether Ruby can do non-inherited const lookups.
+    # If it can't, then Rack::Handler may lookup non-handler toplevel
+    # constants, so the best we can do is no-op here and not test it.
+    begin
+      Rack::Handler._const_get('Object', false)
+    rescue NameError
+      lambda {
+        Rack::Handler.get('Object')
+      }.should.raise(LoadError)
+    end
   end
 
   should "get unregistered, but already required, handler by name" do
