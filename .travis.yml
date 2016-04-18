@@ -1,10 +1,23 @@
+language: ruby
+sudo: false
+cache:
+  - bundler
+  - apt
+
+services:
+  - memcached
+
+addons:
+  apt:
+    packages:
+      - lighttpd
+      - libfcgi-dev
+
 before_install:
-  - sudo apt-get update > /dev/null
-  - sudo apt-get -y install lighttpd libfcgi-dev libmemcache-dev memcached
-install:
   - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
-  - bundle install --jobs=3 --retry=3
+
 script: bundle exec rake ci
+
 rvm:
   - 2.2.4
   - 2.3.0
