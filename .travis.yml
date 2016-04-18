@@ -1,21 +1,45 @@
-before_install: sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
-install:
+language: ruby
+sudo: false
+cache:
+  - bundler
+  - apt
+
+services:
+  - memcached
+
+addons:
+  apt:
+    packages:
+      - lighttpd
+      - libfcgi-dev
+
+before_install:
   - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
-  - gem install --conservative rake
-  - rake deps
-script: rake ci
+
+script: bundle exec rake ci
+
 rvm:
   - 1.8.7
   - 1.9.2
   - 1.9.3
   - 2.0.0
-  - 2.1.0-preview2
+  - 2.1
+  - 2.2.4
+  - 2.3.0
+  - ruby-head
   - rbx
+  - rbx-2
   - jruby
+  - jruby-9.0.4.0
+  - jruby-head
   - ree
+
 notifications:
   email: false
   irc: "irc.freenode.org#rack"
+
 matrix:
   allow_failures:
     - rvm: 2.0.0
+    - rvm: rbx-2
+    - rvm: jruby-head
