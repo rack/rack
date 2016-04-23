@@ -237,6 +237,11 @@ describe Rack::File do
     res['Content-Type'].must_equal nil
   end
 
+  it "return error when URL contains null character" do
+    res = Rack::MockRequest.new(file(DOCROOT)).get("/cgi/te%00st")
+    res.must_be :bad_request?
+  end
+
   it "return error when file not found for head request" do
     res = Rack::MockRequest.new(file(DOCROOT)).head("/cgi/missing")
     res.must_be :not_found?

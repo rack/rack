@@ -31,7 +31,12 @@ module Rack
       end
 
       path_info = Utils.unescape_path request.path_info
-      clean_path_info = Utils.clean_path_info(path_info)
+
+      begin
+        clean_path_info = Utils.clean_path_info(path_info)
+      rescue ArgumentError
+        return fail(400, request.request_method, "Bad Request")
+      end
 
       path = ::File.join(@root, clean_path_info)
 
