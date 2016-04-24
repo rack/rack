@@ -17,6 +17,19 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(TestRequest.new)
   @thread = Thread.new { @server.start }
   trap(:INT) { @server.shutdown }
+  @status_thread = Thread.new do
+    seconds = 10
+    wait_time = 0.1
+    until is_running? || seconds <= 0
+      seconds -= wait_time
+      sleep wait_time
+    end
+    raise "Server never reached status 'Running'" unless is_running?
+  end
+  end
+
+  def is_running?
+    @server.status == :Running
   end
 
   it "respond" do
@@ -188,6 +201,7 @@ describe Rack::Handler::WEBrick do
   end
 
   after do
+  @status_thread.join
   @server.shutdown
   @thread.join
   end
