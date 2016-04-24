@@ -27,7 +27,7 @@ module Rack
     def call(env)
       request = Rack::Request.new env
       unless ALLOWED_VERBS.include? request.request_method
-        return fail(405, request.request_method, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
+        return fail_handler(405, request.request_method, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
       end
 
       path_info = Utils.unescape_path request.path_info
@@ -44,7 +44,7 @@ module Rack
       if available
         serving(request, path)
       else
-        fail(404, request.request_method, "File not found: #{path_info}")
+        fail_handler(404, request.request_method, "File not found: #{path_info}")
       end
     end
 
@@ -75,7 +75,7 @@ module Rack
         range = 0..size-1
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
-        response = fail(416, request.request_method, "Byte range unsatisfiable")
+        response = fail_handler(416, request.request_method, "Byte range unsatisfiable")
         response[1]["Content-Range"] = "bytes */#{size}"
         return response
       else
@@ -129,10 +129,12 @@ module Rack
       end
     end
 
-    def fail(status, request_method, body, headers = {})
+    def fail_handler(status, request_method, body, headers = {})
+      request_method == "HEAD" ? [status, headers, []] : fail(status, body, headers)
+    end
+
+    def fail(status, body, headers = {})
       body += "\n"
-      
-      return [status, headers, []] if request_method == "HEAD"
 
       [
         status,
