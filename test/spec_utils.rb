@@ -317,34 +317,7 @@ describe Rack::Utils do
   end
 
   it 'builds and parses nested complex query correctly' do
-    complex_data = {
-        data: {
-            type: "thing",
-            attributes: {
-                type: "subthing",
-                id: "6f8a6546-5822-4ed5-a5c5-25420dbae498",
-                cards: [
-                    {
-                        default: true,
-                        layers: [
-                            {
-                                type: "title",
-                                attributes: {
-                                    text: "You've Got Mail!"
-                                }
-                            },
-                            {
-                                type: "topic-subject",
-                                attributes: {
-                                    url: "test"
-                                }
-                            }
-                        ]
-                    }
-                ]
-            }
-        }
-    }
+    complex_data = { "w" => [{ "x" => [{ "y" => "1" }, { "y" => "2" }] }] }
     Rack::Utils.parse_nested_query(Rack::Utils.build_nested_query(complex_data)).must_equal complex_data
   end
 
