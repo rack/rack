@@ -2,7 +2,8 @@ require 'minitest/autorun'
 
 module Rack
   class TestCase < Minitest::Test
-    if `which lighttpd` && $?.success?
+    `which lighttpd`
+    if $?.success?
       begin
         # Keep this first.
         LIGHTTPD_PID = fork {
