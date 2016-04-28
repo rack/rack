@@ -22,9 +22,15 @@ module Rack
       @root = root
       @headers = headers
       @default_mime = default_mime
+      @head = Rack::Head.new(lambda { |env| get env })
     end
 
     def call(env)
+      # strip body if this is a HEAD call
+      @head.call env
+    end
+
+    def get(env)
       request = Rack::Request.new env
       unless ALLOWED_VERBS.include? request.request_method
         return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
@@ -131,6 +137,7 @@ module Rack
 
     def fail(status, body, headers = {})
       body += "\n"
+
       [
         status,
         {
