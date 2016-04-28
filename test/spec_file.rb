@@ -240,6 +240,7 @@ describe Rack::File do
   it "return error when file not found for head request" do
     res = Rack::MockRequest.new(file(DOCROOT)).head("/cgi/missing")
     res.must_be :not_found?
+    res.body.must_be :empty?
   end
 
 end
