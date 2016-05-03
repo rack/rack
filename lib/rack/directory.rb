@@ -65,12 +65,24 @@ table { width:100%%; }
       script_name = env[SCRIPT_NAME]
       path_info = Utils.unescape_path(env[PATH_INFO])
 
-      if forbidden = check_forbidden(path_info)
+      if bad_request = check_bad_request(path_info)
+        bad_request
+      elsif forbidden = check_forbidden(path_info)
         forbidden
       else
         path = ::File.join(@root, path_info)
         list_path(env, path, path_info, script_name)
       end
+    end
+
+    def check_bad_request(path_info)
+      return if Utils.valid_path?(path_info)
+
+      body = "Bad Request\n"
+      size = body.bytesize
+      return [400, {CONTENT_TYPE => "text/plain",
+        CONTENT_LENGTH => size.to_s,
+        "X-Cascade" => "pass"}, [body]]
     end
 
     def check_forbidden(path_info)
