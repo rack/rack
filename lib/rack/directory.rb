@@ -59,9 +59,15 @@ table { width:100%%; }
     def initialize(root, app=nil)
       @root = ::File.expand_path(root)
       @app = app || Rack::File.new(@root)
+      @head = Rack::Head.new(lambda { |env| get env })
     end
 
     def call(env)
+      # strip body if this is a HEAD call
+      @head.call env
+    end
+
+    def get(env)
       script_name = env[SCRIPT_NAME]
       path_info = Utils.unescape_path(env[PATH_INFO])
 
