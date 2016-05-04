@@ -63,6 +63,13 @@ describe Rack::Directory do
     assert_match(res, /passed!/)
   end
 
+  it "serve uri with URL encoded null byte (%00) in filenames" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app))
+      .get("/cgi/test%00")
+
+    res.must_be :bad_request?
+  end
+
   it "not allow directory traversal" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
       get("/cgi/../test")
