@@ -1,6 +1,9 @@
+$LOAD_PATH << '.'
+require 'lib/rack'
+
 Gem::Specification.new do |s|
   s.name            = "rack"
-  s.version = File.read('lib/rack.rb')[/RELEASE += +([\"\'])([\d][\w\.]+)\1/, 2]
+  s.version         = Rack.release
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
   s.license         = "MIT"
