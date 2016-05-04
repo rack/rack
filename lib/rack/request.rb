@@ -16,11 +16,6 @@ module Rack
       super(env)
     end
 
-    # like Hash#values_at
-    def values_at(*keys)
-      keys.map{|key| params[key] }
-    end
-
     def params
       @params ||= super
     end
@@ -443,6 +438,11 @@ module Rack
         end
 
         params[key.to_s] = value
+      end
+
+      # like Hash#values_at
+      def values_at(*keys)
+        keys.map { |key| params[key] }
       end
 
       private
