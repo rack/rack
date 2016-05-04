@@ -130,4 +130,12 @@ describe Rack::Directory do
     res = mr.get("/script-path/cgi/test+directory/test+file")
     res.must_be :ok?
   end
+
+  it "return error when file not found for head request" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      head("/cgi/missing")
+
+    res.must_be :not_found?
+    res.body.must_be :empty?
+  end
 end
