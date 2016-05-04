@@ -16,18 +16,6 @@ module Rack
       super(env)
     end
 
-    # shortcut for <tt>request.params[key]</tt>
-    def [](key)
-      params[key.to_s]
-    end
-
-    # shortcut for <tt>request.params[key] = value</tt>
-    #
-    # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
-    def []=(key, value)
-      params[key.to_s] = value
-    end
-
     # like Hash#values_at
     def values_at(*keys)
       keys.map{|key| params[key] }
@@ -435,6 +423,26 @@ module Rack
 
       def trusted_proxy?(ip)
         ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+      end
+
+      # shortcut for <tt>request.params[key]</tt>
+      def [](key)
+        if $verbose
+          warn("Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead")
+        end
+
+        params[key.to_s]
+      end
+
+      # shortcut for <tt>request.params[key] = value</tt>
+      #
+      # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
+      def []=(key, value)
+        if $verbose
+          warn("Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead")
+        end
+
+        params[key.to_s] = value
       end
 
       private
