@@ -22,13 +22,13 @@ describe Rack::ETag do
   it "set ETag if none is set if status is 200" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"65a8e27d8879283831b664bd8b7f0ad4\""
+    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
   it "set ETag if none is set if status is 201" do
     app = lambda { |env| [201, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"65a8e27d8879283831b664bd8b7f0ad4\""
+    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
   it "set Cache-Control to 'max-age=0, private, must-revalidate' (default) if none is set" do

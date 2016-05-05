@@ -65,10 +65,10 @@ module Rack
 
         body.each do |part|
           parts << part
-          (digest ||= Digest::MD5.new) << part unless part.empty?
+          (digest ||= Digest::SHA256.new) << part unless part.empty?
         end
 
-        [digest && digest.hexdigest, parts]
+        [digest && digest.hexdigest.byteslice(0, 32), parts]
       end
   end
 end
