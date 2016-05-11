@@ -48,7 +48,7 @@ module Rack
         env["REMOTE_USER"] || "-",
         Time.now.strftime("%d/%b/%Y:%H:%M:%S %z"),
         env[REQUEST_METHOD],
-        env[PATH_INFO],
+        path(env),
         env[QUERY_STRING].empty? ? "" : "?#{env[QUERY_STRING]}",
         env[SERVER_PROTOCOL],
         status.to_s[0..3],
@@ -63,6 +63,10 @@ module Rack
       else
         logger << msg
       end
+    end
+
+    def path(env)
+      env[SCRIPT_NAME] + env[PATH_INFO]
     end
 
     def extract_content_length(headers)
