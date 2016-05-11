@@ -87,6 +87,22 @@ describe Rack::CommonLogger do
     (0..1).must_include duration.to_f
   end
 
+  it "log path with PATH_INFO" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/hello")
+
+    logdev.string.must_match(/"GET \/hello " 200 #{length} /)
+  end
+
+  it "log path with SCRIPT_NAME" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/path", script_name: "/script")
+
+    logdev.string.must_match(/"GET \/script\/path " 200 #{length} /)
+  end
+
   def length
     123
   end
