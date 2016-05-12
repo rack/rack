@@ -86,10 +86,11 @@ module Rack
         status, headers, body = @app.call(env)
         begin
           res.status = status.to_i
+          io_lambda = nil
           headers.each { |k, vs|
-            next if k.downcase == RACK_HIJACK
-
-            if k.downcase == "set-cookie"
+            if k == RACK_HIJACK
+              io_lambda = vs
+            elsif k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
               # Since WEBrick won't accept repeated headers,
@@ -98,7 +99,6 @@ module Rack
             end
           }
 
-          io_lambda = headers[RACK_HIJACK]
           if io_lambda
             rd, wr = IO.pipe
             res.body = rd
