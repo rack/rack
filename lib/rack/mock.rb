@@ -163,7 +163,6 @@ module Rack
     def initialize(status, headers, body, errors=StringIO.new(""))
       @original_headers = headers
       @errors           = errors.string if errors.respond_to?(:string)
-      @body_string      = nil
 
       super(body, status, headers)
     end
