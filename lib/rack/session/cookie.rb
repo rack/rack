@@ -44,6 +44,14 @@ module Rack
     #     }.new
     #   })
     #
+    # By default, the contents of the cookie are signed with SHA1.
+    # You can change the default algorithm with the <tt>:digest</tt>
+    # option.
+    #
+    #   use Rack::Session::Cookie, secret: "__change_me__"
+    #                              digest: OpenSSL::Digest::SHA256
+    #
+    #
 
     class Cookie < Abstract::Persisted
       # Encode session cookies as Base64
