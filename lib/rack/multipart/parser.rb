@@ -345,7 +345,7 @@ module Rack
               k,v = param.split('=', 2)
               k.strip!
               v.strip!
-              v = v[1..-2] if v[0] == '"' && v[-1] == '"'
+              v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
               encoding = Encoding.find v if k == CHARSET
             end
           end

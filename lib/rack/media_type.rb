@@ -31,7 +31,7 @@ module Rack
       private
 
         def strip_doublequotes(str)
-          (str[0] == ?" && str[-1] == ?") ? str[1..-2] : str
+          (str.start_with?('"') && str.end_with?('"')) ? str[1..-2] : str
         end
     end
   end
