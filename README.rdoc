@@ -159,6 +159,12 @@ Download and install lighttpd:
 
 Installing the FCGI libraries:
 
+If you use Homebrew on Mac:
+
+    brew install fcgi
+
+Or using curl:
+
     curl -O http://www.fastcgi.com/dist/fcgi-2.4.0.tar.gz
     tar xzvf fcgi-2.4.0.tar.gz
     cd fcgi-2.4.0
