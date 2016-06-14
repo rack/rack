@@ -1,4 +1,5 @@
 require 'optparse'
+require 'fileutils'
 
 
 module Rack
