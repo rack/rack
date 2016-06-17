@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_MULTITHREAD                    = 'rack.multithread'.freeze
   RACK_MULTIPROCESS                   = 'rack.multiprocess'.freeze
   RACK_RUNONCE                        = 'rack.run_once'.freeze
   RACK_URL_SCHEME                     = 'rack.url_scheme'.freeze

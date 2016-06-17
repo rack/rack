@@ -44,9 +44,9 @@ module Rack
       'rack.version'      => Rack::VERSION,
       'rack.input'        => StringIO.new,
       'rack.errors'       => StringIO.new,
-      RACK_MULTITHREAD  => true,
-      RACK_MULTIPROCESS => true,
-      RACK_RUNONCE      => false,
+      'rack.multithread'  => true,
+      'rack.multiprocess' => true,
+      'rack.run_once'     => false,
     }.freeze
 
     def initialize(app)

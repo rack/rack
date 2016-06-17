@@ -63,16 +63,16 @@ module Rack
         rack_input.set_encoding(Encoding::BINARY)
 
         env.update(
-          'rack.version'      => Rack::VERSION,
-          'rack.input'        => rack_input,
-          'rack.errors'       => $stderr,
-          RACK_MULTITHREAD  => true,
-          RACK_MULTIPROCESS => false,
-          RACK_RUNONCE      => false,
-          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http",
-          RACK_IS_HIJACK    => true,
-          RACK_HIJACK       => lambda { raise NotImplementedError, "only partial hijack is supported."},
-          RACK_HIJACK_IO    => nil
+          'rack.version'        => Rack::VERSION,
+          'rack.input'          => rack_input,
+          'rack.errors'         => $stderr,
+          'rack.multithread'    => true,
+          'rack.multiprocess'   => false,
+          'rack.run_once'       => false,
+          'rack.url_scheme'     => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http",
+          'rack.hijack?'        => true,
+          'rack.hijack'         => lambda { raise NotImplementedError, "only partial hijack is supported."},
+          'rack.RACK_HIJACK_IO' => nil
         )
 
         env['HTTP_VERSION'] ||= env['SERVER_PROTOCOL']
