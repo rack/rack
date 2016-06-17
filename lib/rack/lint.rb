@@ -201,7 +201,7 @@ module Rack
 
       ## <tt>rack.logger</tt>:: A common object interface for logging messages.
       ##                        The object must implement:
-      if logger = env[RACK_LOGGER]
+      if logger = env['rack.logger']
         ##                         info(message, &block)
         assert("logger #{logger.inspect} must respond to info") {
           logger.respond_to?(:info)

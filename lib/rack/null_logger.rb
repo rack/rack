@@ -5,7 +5,7 @@ module Rack
     end
 
     def call(env)
-      env[RACK_LOGGER] = self
+      env['rack.logger'] = self
       @app.call(env)
     end
 

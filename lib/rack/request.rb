@@ -133,7 +133,7 @@ module Rack
       def request_method;  get_header('REQUEST_METHOD')                     end
       def query_string;    get_header('QUERY_STRING').to_s                  end
       def content_length;  get_header('CONTENT_LENGTH')                   end
-      def logger;          get_header(RACK_LOGGER)                        end
+      def logger;          get_header('rack.logger')                        end
       def user_agent;      get_header('HTTP_USER_AGENT')                  end
       def multithread?;    get_header(RACK_MULTITHREAD)                   end
 

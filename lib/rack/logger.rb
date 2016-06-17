@@ -11,7 +11,7 @@ module Rack
       logger = ::Logger.new(env['rack.errors'])
       logger.level = @level
 
-      env[RACK_LOGGER] = logger
+      env['rack.logger'] = logger
       @app.call(env)
     end
   end
