@@ -193,7 +193,7 @@ module Rack
         elsif get_header(HTTP_X_FORWARDED_PROTO)
           get_header(HTTP_X_FORWARDED_PROTO).split(',')[0]
         else
-          get_header(RACK_URL_SCHEME)
+          get_header('rack.url_scheme')
         end
       end
 

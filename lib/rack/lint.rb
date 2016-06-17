@@ -283,8 +283,8 @@ module Rack
         env['rack.version'].kind_of? Array
       }
       ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-      assert("rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}") {
-        %w[http https].include?(env[RACK_URL_SCHEME])
+      assert("rack.url_scheme unknown: #{env['rack.url_scheme'].inspect}") {
+        %w[http https].include?(env['rack.url_scheme'])
       }
 
       ## * There must be a valid input stream in <tt>rack.input</tt>.

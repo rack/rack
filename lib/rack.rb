@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_URL_SCHEME                     = 'rack.url_scheme'.freeze
   RACK_HIJACK                         = 'rack.hijack'.freeze
   RACK_IS_HIJACK                      = 'rack.hijack?'.freeze
   RACK_HIJACK_IO                      = 'rack.hijack_io'.freeze

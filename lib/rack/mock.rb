@@ -96,8 +96,8 @@ module Rack
       env['SERVER_PORT']     = uri.port ? uri.port.to_s : "80"
       env['QUERY_STRING']    = uri.query.to_s
       env['PATH_INFO']       = (!uri.path || uri.path.empty?) ? "/" : uri.path
-      env[RACK_URL_SCHEME] = uri.scheme || "http"
-      env['HTTPS']           = env[RACK_URL_SCHEME] == "https" ? "on" : "off"
+      env['rack.url_scheme'] = uri.scheme || "http"
+      env['HTTPS']           = env['rack.url_scheme'] == "https" ? "on" : "off"
 
       env['SCRIPT_NAME'] = opts[:script_name] || ""
 

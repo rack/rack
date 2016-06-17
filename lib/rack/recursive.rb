@@ -18,7 +18,7 @@ module Rack
       @env['QUERY_STRING'] =    @url.query  if @url.query
       @env['HTTP_HOST'] =       @url.host   if @url.host
       @env["HTTP_PORT"] =     @url.port   if @url.port
-      @env[RACK_URL_SCHEME] = @url.scheme if @url.scheme
+      @env['rack.url_scheme'] = @url.scheme if @url.scheme
 
       super "forwarding to #{url}"
     end
