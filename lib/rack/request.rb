@@ -127,7 +127,7 @@ module Rack
       def script_name;     get_header(SCRIPT_NAME).to_s                   end
       def script_name=(s); set_header(SCRIPT_NAME, s.to_s)                end
 
-      def path_info;       get_header(PATH_INFO).to_s                     end
+      def path_info;       get_header('PATH_INFO').to_s                     end
       def path_info=(s);   set_header(PATH_INFO, s.to_s)                  end
 
       def request_method;  get_header(REQUEST_METHOD)                     end

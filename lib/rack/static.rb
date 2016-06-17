@@ -115,16 +115,16 @@ module Rack
     end
 
     def call(env)
-      path = env[PATH_INFO]
+      path = env['PATH_INFO']
 
       if can_serve(path)
         if overwrite_file_path(path)
-          env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
+          env['PATH_INFO'] = (add_index_root?(path) ? path + @index : @urls[path])
         elsif @gzip && env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
-          path = env[PATH_INFO]
-          env[PATH_INFO] += '.gz'
+          path = env['PATH_INFO']
+          env['PATH_INFO'] += '.gz'
           response = @file_server.call(env)
-          env[PATH_INFO] = path
+          env['PATH_INFO'] = path
 
           if response[0] == 404
             response = nil
@@ -136,7 +136,7 @@ module Rack
           end
         end
 
-        path = env[PATH_INFO]
+        path = env['PATH_INFO']
         response ||= @file_server.call(env)
 
         headers = response[1]

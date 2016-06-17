@@ -3,7 +3,7 @@ module Rack
   # dispatches accordingly.  Support for HTTP/1.1 host names exists if
   # the URLs start with <tt>http://</tt> or <tt>https://</tt>.
   #
-  # URLMap modifies the SCRIPT_NAME and PATH_INFO such that the part
+  # URLMap modifies the SCRIPT_NAME and 'PATH_INFO' such that the part
   # relevant for dispatch is in the SCRIPT_NAME, and the rest in the
   # PATH_INFO.  This should be taken care of when you need to
   # reconstruct the URL in order to create links.
@@ -41,7 +41,7 @@ module Rack
     end
 
     def call(env)
-      path        = env[PATH_INFO]
+      path        = env['PATH_INFO']
       script_name = env[SCRIPT_NAME]
       http_host   = env['HTTP_HOST']
       server_name = env[SERVER_NAME]
@@ -63,7 +63,7 @@ module Rack
         next unless !rest || rest.empty? || rest[0] == ?/
 
         env[SCRIPT_NAME] = (script_name + location)
-        env[PATH_INFO] = rest
+        env['PATH_INFO'] = rest
 
         return app.call(env)
       end
@@ -71,7 +71,7 @@ module Rack
       [404, {CONTENT_TYPE => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
 
     ensure
-      env[PATH_INFO]   = path
+      env['PATH_INFO']   = path
       env[SCRIPT_NAME] = script_name
     end
 

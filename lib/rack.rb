@@ -25,7 +25,6 @@ module Rack
     RELEASE
   end
 
-  PATH_INFO         = 'PATH_INFO'.freeze
   REQUEST_METHOD    = 'REQUEST_METHOD'.freeze
   REQUEST_PATH      = 'REQUEST_PATH'.freeze
   SCRIPT_NAME       = 'SCRIPT_NAME'.freeze

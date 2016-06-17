@@ -307,9 +307,9 @@ module Rack
       }
       ## * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
       assert("PATH_INFO must start with /") {
-        !env.include?(PATH_INFO) ||
-        env[PATH_INFO] == "" ||
-        env[PATH_INFO] =~ /\A\//
+        !env.include?('PATH_INFO') ||
+        env['PATH_INFO'] == "" ||
+        env['PATH_INFO'] =~ /\A\//
       }
       ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
       assert("Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}") {
@@ -319,11 +319,11 @@ module Rack
       ## * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
       ##   set.  <tt>PATH_INFO</tt> should be <tt>/</tt> if
       ##   <tt>SCRIPT_NAME</tt> is empty.
-      assert("One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)") {
-        env[SCRIPT_NAME] || env[PATH_INFO]
+      assert("One of SCRIPT_NAME or 'PATH_INFO' must be set (make 'PATH_INFO' '/' if SCRIPT_NAME is empty)") {
+        env[SCRIPT_NAME] || env['PATH_INFO']
       }
       ##   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
-      assert("SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'") {
+      assert("SCRIPT_NAME cannot be '/', make it '' and 'PATH_INFO' '/'") {
         env[SCRIPT_NAME] != "/"
       }
     end

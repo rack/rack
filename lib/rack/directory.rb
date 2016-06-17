@@ -69,7 +69,7 @@ table { width:100%%; }
 
     def get(env)
       script_name = env[SCRIPT_NAME]
-      path_info = Utils.unescape_path(env[PATH_INFO])
+      path_info = Utils.unescape_path(env['PATH_INFO'])
 
       if bad_request = check_bad_request(path_info)
         bad_request
