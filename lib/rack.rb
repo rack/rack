@@ -25,7 +25,6 @@ module Rack
     RELEASE
   end
 
-  SERVER_PORT       = 'SERVER_PORT'.freeze
   CONTENT_LENGTH    = 'Content-Length'.freeze
   CONTENT_TYPE      = 'Content-Type'.freeze
   SET_COOKIE        = 'Set-Cookie'.freeze

@@ -45,7 +45,7 @@ module Rack
       script_name = env['SCRIPT_NAME']
       http_host   = env['HTTP_HOST']
       server_name = env['SERVER_NAME']
-      server_port = env[SERVER_PORT]
+      server_port = env['SERVER_PORT']
 
       is_same_server = casecmp?(http_host, server_name) ||
                        casecmp?(http_host, "#{server_name}:#{server_port}")

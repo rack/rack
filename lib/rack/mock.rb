@@ -93,7 +93,7 @@ module Rack
 
       env['REQUEST_METHOD']  = opts[:method] ? opts[:method].to_s.upcase : GET
       env['SERVER_NAME']     = uri.host || "example.org"
-      env[SERVER_PORT]     = uri.port ? uri.port.to_s : "80"
+      env['SERVER_PORT']     = uri.port ? uri.port.to_s : "80"
       env['QUERY_STRING']    = uri.query.to_s
       env['PATH_INFO']       = (!uri.path || uri.path.empty?) ? "/" : uri.path
       env[RACK_URL_SCHEME] = uri.scheme || "http"
