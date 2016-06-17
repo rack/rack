@@ -54,7 +54,7 @@ module Rack
     end
 
     def chunked?
-      CHUNKED == get_header(TRANSFER_ENCODING)
+      CHUNKED == get_header('Transfer-Encoding')
     end
 
     def finish(&block)

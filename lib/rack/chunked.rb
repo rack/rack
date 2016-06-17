@@ -57,11 +57,11 @@ module Rack
       if ! chunkable_version?(env['HTTP_VERSION']) ||
          STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
          headers['Content-Length'] ||
-         headers[TRANSFER_ENCODING]
+         headers['Transfer-Encoding']
         [status, headers, body]
       else
         headers.delete('Content-Length')
-        headers[TRANSFER_ENCODING] = 'chunked'
+        headers['Transfer-Encoding'] = 'chunked'
         [status, headers, Body.new(body)]
       end
     end
