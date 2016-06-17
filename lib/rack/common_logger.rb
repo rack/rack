@@ -65,7 +65,7 @@ module Rack
     end
 
     def extract_content_length(headers)
-      value = headers[CONTENT_LENGTH] or return '-'
+      value = headers['Content-Length'] or return '-'
       value.to_s == '0' ? '-' : value
     end
   end

@@ -27,7 +27,7 @@ module Rack
         if status == 200 && fresh?(env, headers)
           status = 304
           headers.delete(CONTENT_TYPE)
-          headers.delete(CONTENT_LENGTH)
+          headers.delete('Content-Length')
           original_body = body
           body = Rack::BodyProxy.new([]) do
             original_body.close if original_body.respond_to?(:close)

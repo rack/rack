@@ -19,7 +19,7 @@ module Rack
     def call(env)
       status, headers, body = @app.call(env)
       headers = Utils::HeaderHash.new(headers)
-      empty = headers[CONTENT_LENGTH].to_i <= 0
+      empty = headers['Content-Length'].to_i <= 0
 
       # client or server error, or explicit message
       if (status.to_i >= 400 && empty) || env[RACK_SHOWSTATUS_DETAIL]
@@ -35,7 +35,7 @@ module Rack
 
         body = @template.result(binding)
         size = body.bytesize
-        [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), [body]]
+        [status, headers.merge(CONTENT_TYPE => "text/html", 'Content-Length' => size.to_s), [body]]
       else
         [status, headers, body]
       end

@@ -114,7 +114,7 @@ module Rack
         when 'X-Accel-Redirect'
           path = ::File.expand_path(body.to_path)
           if url = map_accel_path(env, path)
-            headers[CONTENT_LENGTH] = '0'
+            headers['Content-Length'] = '0'
             headers[type] = url
             obody = body
             body = Rack::BodyProxy.new([]) do
@@ -125,7 +125,7 @@ module Rack
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
           path = ::File.expand_path(body.to_path)
-          headers[CONTENT_LENGTH] = '0'
+          headers['Content-Length'] = '0'
           headers[type] = path
           obody = body
           body = Rack::BodyProxy.new([]) do

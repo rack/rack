@@ -87,7 +87,7 @@ table { width:100%%; }
       body = "Bad Request\n"
       size = body.bytesize
       return [400, {CONTENT_TYPE => "text/plain",
-        CONTENT_LENGTH => size.to_s,
+        'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
 
@@ -97,7 +97,7 @@ table { width:100%%; }
       body = "Forbidden\n"
       size = body.bytesize
       return [403, {CONTENT_TYPE => "text/plain",
-        CONTENT_LENGTH => size.to_s,
+        'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
 
@@ -155,7 +155,7 @@ table { width:100%%; }
       body = "Entity not found: #{path_info}\n"
       size = body.bytesize
       return [404, {CONTENT_TYPE => "text/plain",
-        CONTENT_LENGTH => size.to_s,
+        'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
 

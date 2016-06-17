@@ -16,7 +16,7 @@ module Rack
       headers = HeaderHash.new(headers)
 
       if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
-         !headers[CONTENT_LENGTH] &&
+         !headers['Content-Length'] &&
          !headers[TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)
 
@@ -28,7 +28,7 @@ module Rack
           obody.close if obody.respond_to?(:close)
         end
 
-        headers[CONTENT_LENGTH] = length.to_s
+        headers['Content-Length'] = length.to_s
       end
 
       [status, headers, body]

@@ -25,7 +25,7 @@ module Rack
     RELEASE
   end
 
-  CONTENT_LENGTH    = 'Content-Length'.freeze
+
   CONTENT_TYPE      = 'Content-Type'.freeze
   SET_COOKIE        = 'Set-Cookie'.freeze
   TRANSFER_ENCODING = 'Transfer-Encoding'.freeze

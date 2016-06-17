@@ -58,7 +58,7 @@ module Rack
 
     def serving(request, path)
       if request.options?
-        return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
+        return [200, {'Allow' => ALLOW_HEADER, 'Content-Length' => '0'}, []]
       end
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
@@ -96,7 +96,7 @@ module Rack
 
       response[2] = [response_body] unless response_body.nil?
 
-      response[1][CONTENT_LENGTH] = size.to_s
+      response[1]['Content-Length'] = size.to_s
       response[2] = make_body request, path, range
       response
     end
@@ -144,7 +144,7 @@ module Rack
         status,
         {
           CONTENT_TYPE   => "text/plain",
-          CONTENT_LENGTH => body.size.to_s,
+          'Content-Length' => body.size.to_s,
           "X-Cascade" => "pass"
         }.merge!(headers),
         [body]

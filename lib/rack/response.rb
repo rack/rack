@@ -62,7 +62,7 @@ module Rack
 
       if [204, 205, 304].include?(status.to_i)
         delete_header CONTENT_TYPE
-        delete_header CONTENT_LENGTH
+        delete_header 'Content-Length'
         close
         [status.to_i, header, []]
       else
@@ -87,7 +87,7 @@ module Rack
       @length += s.bytesize unless chunked?
       @writer.call s
 
-      set_header(CONTENT_LENGTH, @length.to_s) unless chunked?
+      set_header('Content-Length', @length.to_s) unless chunked?
       str
     end
 
@@ -167,7 +167,7 @@ module Rack
       end
 
       def content_length
-        cl = get_header CONTENT_LENGTH
+        cl = get_header 'Content-Length'
         cl ? cl.to_i : cl
       end
 

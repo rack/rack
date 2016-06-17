@@ -18,7 +18,7 @@ module Rack
       def unauthorized(www_authenticate = challenge)
         return [ 401,
           { CONTENT_TYPE => 'text/plain',
-            CONTENT_LENGTH => '0',
+            'Content-Length' => '0',
             'WWW-Authenticate' => www_authenticate.to_s },
           []
         ]
@@ -27,7 +27,7 @@ module Rack
       def bad_request
         return [ 400,
           { CONTENT_TYPE => 'text/plain',
-            CONTENT_LENGTH => '0' },
+            'Content-Length' => '0' },
           []
         ]
       end
