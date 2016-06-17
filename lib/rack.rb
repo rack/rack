@@ -25,7 +25,6 @@ module Rack
     RELEASE
   end
 
-  SERVER_NAME       = 'SERVER_NAME'.freeze
   SERVER_ADDR       = 'SERVER_ADDR'.freeze
   SERVER_PORT       = 'SERVER_PORT'.freeze
   CACHE_CONTROL     = 'Cache-Control'.freeze
