@@ -197,11 +197,11 @@ module Rack
       end
 
       def cache_control
-        get_header CACHE_CONTROL
+        get_header 'Cache-Control'
       end
 
       def cache_control= v
-        set_header CACHE_CONTROL, v
+        set_header 'Cache-Control', v
       end
 
       def etag

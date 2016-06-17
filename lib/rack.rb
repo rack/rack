@@ -26,7 +26,6 @@ module Rack
   end
 
   SERVER_PORT       = 'SERVER_PORT'.freeze
-  CACHE_CONTROL     = 'Cache-Control'.freeze
   CONTENT_LENGTH    = 'Content-Length'.freeze
   CONTENT_TYPE      = 'Content-Type'.freeze
   SET_COOKIE        = 'Set-Cookie'.freeze

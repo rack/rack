@@ -33,11 +33,11 @@ module Rack
         headers[ETAG_STRING] = %(W/"#{digest}") if digest
       end
 
-      unless headers[CACHE_CONTROL]
+      unless headers['Cache-Control']
         if digest
-          headers[CACHE_CONTROL] = @cache_control if @cache_control
+          headers['Cache-Control'] = @cache_control if @cache_control
         else
-          headers[CACHE_CONTROL] = @no_cache_control if @no_cache_control
+          headers['Cache-Control'] = @no_cache_control if @no_cache_control
         end
       end
 
@@ -55,7 +55,7 @@ module Rack
       end
 
       def skip_caching?(headers)
-        (headers[CACHE_CONTROL] && headers[CACHE_CONTROL].include?('no-cache')) ||
+        (headers['Cache-Control'] && headers['Cache-Control'].include?('no-cache')) ||
           headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
       end
 
