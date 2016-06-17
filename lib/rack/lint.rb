@@ -57,7 +57,7 @@ module Rack
       ## and the *body*.
       check_content_type status, headers
       check_content_length status, headers
-      @head_request = env['REQUEST_METHOD'] == HEAD
+      @head_request = env['REQUEST_METHOD'] == 'HEAD'
       [status, headers, self]
     end
 

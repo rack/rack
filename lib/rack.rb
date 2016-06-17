@@ -25,15 +25,6 @@ module Rack
     RELEASE
   end
 
-  # HTTP method verbs
-  PATCH   = 'PATCH'.freeze
-  DELETE  = 'DELETE'.freeze
-  HEAD    = 'HEAD'.freeze
-  OPTIONS = 'OPTIONS'.freeze
-  LINK    = 'LINK'.freeze
-  UNLINK  = 'UNLINK'.freeze
-  TRACE   = 'TRACE'.freeze
-
   # Rack environment variables
   RACK_VERSION                        = 'rack.version'.freeze
   RACK_TEMPFILES                      = 'rack.tempfiles'.freeze
