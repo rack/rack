@@ -177,7 +177,7 @@ module Rack
       ## <tt>rack.session</tt>:: A hash like interface for storing
       ##                         request session data.
       ##                         The store must implement:
-      if session = env[RACK_SESSION]
+      if session = env['rack.session']
         ##                         store(key, value)         (aliased as []=);
         assert("session #{session.inspect} must respond to store and []=") {
           session.respond_to?(:store) && session.respond_to?(:[]=)

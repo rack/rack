@@ -19,11 +19,11 @@ module Rack
         attr_writer :id
 
         def self.find(req)
-          req.get_header RACK_SESSION
+          req.get_header 'rack.session'
         end
 
         def self.set(req, session)
-          req.set_header RACK_SESSION, session
+          req.set_header 'rack.session', session
         end
 
         def self.set_options(req, options)
@@ -189,7 +189,7 @@ module Rack
 
       class Persisted
         DEFAULT_OPTIONS = {
-          :key =>           RACK_SESSION,
+          :key =>           'rack.session',
           :path =>          '/',
           :domain =>        nil,
           :expire_after =>  nil,
@@ -255,9 +255,9 @@ module Rack
         # metadata into 'rack.session.options'.
 
         def prepare_session(req)
-          session_was               = req.get_header RACK_SESSION
+          session_was               = req.get_header 'rack.session'
           session                   = session_class.new(self, req)
-          req.set_header RACK_SESSION, session
+          req.set_header 'rack.session', session
           req.set_header RACK_SESSION_OPTIONS, @default_options.dup
           session.merge! session_was if session_was
         end
@@ -282,7 +282,7 @@ module Rack
         # Returns the current session id from the SessionHash.
 
         def current_session_id(req)
-          req.get_header(RACK_SESSION).id
+          req.get_header('rack.session').id
         end
 
         # Check if the session exists or not.
@@ -327,7 +327,7 @@ module Rack
         # response with the session's id.
 
         def commit_session(req, res)
-          session = req.get_header RACK_SESSION
+          session = req.get_header 'rack.session'
           options = session.options
 
           if options[:drop] || options[:renew]

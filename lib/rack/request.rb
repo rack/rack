@@ -142,8 +142,8 @@ module Rack
       alias referrer referer
 
       def session
-        fetch_header(RACK_SESSION) do |k|
-          set_header RACK_SESSION, default_session
+        fetch_header('rack.session') do |k|
+          set_header 'rack.session', default_session
         end
       end
 
