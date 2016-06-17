@@ -279,8 +279,8 @@ module Rack
       ## There are the following restrictions:
 
       ## * <tt>rack.version</tt> must be an array of Integers.
-      assert("rack.version must be an Array, was #{env[RACK_VERSION].class}") {
-        env[RACK_VERSION].kind_of? Array
+      assert("rack.version must be an Array, was #{env['rack.version'].class}") {
+        env['rack.version'].kind_of? Array
       }
       ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
       assert("rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}") {

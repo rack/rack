@@ -41,7 +41,7 @@ module Rack
     end
 
     DEFAULT_ENV = {
-      RACK_VERSION      => Rack::VERSION,
+      'rack.version'      => Rack::VERSION,
       RACK_INPUT        => StringIO.new,
       RACK_ERRORS       => StringIO.new,
       RACK_MULTITHREAD  => true,

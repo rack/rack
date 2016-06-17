@@ -16,7 +16,7 @@ module Rack
         env['SCRIPT_NAME'] = ""  if env['SCRIPT_NAME'] == "/"
 
         env.update(
-          RACK_VERSION      => Rack::VERSION,
+          'rack.version'      => Rack::VERSION,
           RACK_INPUT        => Rack::RewindableInput.new($stdin),
           RACK_ERRORS       => $stderr,
           RACK_MULTITHREAD  => false,

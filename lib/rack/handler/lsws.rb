@@ -18,7 +18,7 @@ module Rack
         rack_input = RewindableInput.new($stdin.read.to_s)
 
         env.update(
-          RACK_VERSION      => Rack::VERSION,
+          'rack.version'      => Rack::VERSION,
           RACK_INPUT        => rack_input,
           RACK_ERRORS       => $stderr,
           RACK_MULTITHREAD  => false,

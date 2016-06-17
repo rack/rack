@@ -63,7 +63,7 @@ module Rack
         rack_input.set_encoding(Encoding::BINARY)
 
         env.update(
-          RACK_VERSION      => Rack::VERSION,
+          'rack.version'      => Rack::VERSION,
           RACK_INPUT        => rack_input,
           RACK_ERRORS       => $stderr,
           RACK_MULTITHREAD  => true,
