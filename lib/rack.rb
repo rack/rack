@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_REQUEST_QUERY_STRING           = 'rack.request.query_string'.freeze
   RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'.freeze
   RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'.freeze
 
