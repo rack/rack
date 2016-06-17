@@ -236,9 +236,9 @@ module Rack
       end
 
       ## <tt>rack.multipart.tempfile_factory</tt>:: An object responding to #call with two arguments, the filename and content_type given for the multipart form field, and returning an IO-like object that responds to #<< and optionally #rewind. This factory will be used to instantiate the tempfile for each multipart form file upload field, rather than the default class of Tempfile.
-      if tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
+      if tempfile_factory = env['rack.multipart.tempfile_factory']
         assert("rack.multipart.tempfile_factory must respond to #call") { tempfile_factory.respond_to?(:call) }
-        env[RACK_MULTIPART_TEMPFILE_FACTORY] = lambda do |filename, content_type|
+        env['rack.multipart.tempfile_factory'] = lambda do |filename, content_type|
           io = tempfile_factory.call(filename, content_type)
           assert("rack.multipart.tempfile_factory return value must respond to #<<") { io.respond_to?(:<<) }
           io

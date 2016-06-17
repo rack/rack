@@ -931,7 +931,7 @@ EOF
       options = {
         "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
         "CONTENT_LENGTH" => data.length.to_s,
-        Rack::RACK_MULTIPART_TEMPFILE_FACTORY => lambda { |filename, content_type|
+        'rack.multipart.tempfile_factory' => lambda { |filename, content_type|
           file = Tempfile.new(["RackMultipart", ::File.extname(filename)])
           files << file
           file

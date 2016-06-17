@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'.freeze
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'.freeze
   RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'.freeze
   RACK_REQUEST_FORM_VARS              = 'rack.request.form_vars'.freeze
