@@ -162,7 +162,7 @@ module Rack
         end
 
         if session_data.size > (4096 - @key.size)
-          req.get_header(RACK_ERRORS).puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
+          req.get_header('rack.errors').puts("Warning! Rack::Session::Cookie data size exceeds 4K.")
           nil
         else
           session_data

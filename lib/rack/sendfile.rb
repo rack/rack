@@ -121,7 +121,7 @@ module Rack
               obody.close if obody.respond_to?(:close)
             end
           else
-            env[RACK_ERRORS].puts "X-Accel-Mapping header missing"
+            env['rack.errors'].puts "X-Accel-Mapping header missing"
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
           path = ::File.expand_path(body.to_path)
@@ -133,7 +133,7 @@ module Rack
           end
         when '', nil
         else
-          env[RACK_ERRORS].puts "Unknown x-sendfile variation: '#{type}'.\n"
+          env['rack.errors'].puts "Unknown x-sendfile variation: '#{type}'.\n"
         end
       end
       [status, headers, body]

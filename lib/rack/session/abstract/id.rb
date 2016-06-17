@@ -342,9 +342,9 @@ module Rack
           session_data = session.to_hash.delete_if { |k,v| v.nil? }
 
           if not data = write_session(req, session_id, session_data, options)
-            req.get_header(RACK_ERRORS).puts("Warning! #{self.class.name} failed to save session. Content dropped.")
+            req.get_header('rack.errors').puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            req.get_header(RACK_ERRORS).puts("Deferring cookie for #{session_id}") if $VERBOSE
+            req.get_header('rack.errors').puts("Deferring cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = data

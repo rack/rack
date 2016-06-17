@@ -43,7 +43,7 @@ module Rack
       check_env env
 
       env[RACK_INPUT] = InputWrapper.new(env[RACK_INPUT])
-      env[RACK_ERRORS] = ErrorWrapper.new(env[RACK_ERRORS])
+      env['rack.errors'] = ErrorWrapper.new(env['rack.errors'])
 
       ## and returns an Array of exactly three values:
       status, headers, @body = @app.call(env)
@@ -290,7 +290,7 @@ module Rack
       ## * There must be a valid input stream in <tt>rack.input</tt>.
       check_input env[RACK_INPUT]
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
-      check_error env[RACK_ERRORS]
+      check_error env['rack.errors']
       ## * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
       check_hijack env
 

@@ -43,7 +43,7 @@ module Rack
     DEFAULT_ENV = {
       'rack.version'      => Rack::VERSION,
       RACK_INPUT        => StringIO.new,
-      RACK_ERRORS       => StringIO.new,
+      'rack.errors'       => StringIO.new,
       RACK_MULTITHREAD  => true,
       RACK_MULTIPROCESS => true,
       RACK_RUNONCE      => false,
@@ -70,7 +70,7 @@ module Rack
         app = @app
       end
 
-      errors = env[RACK_ERRORS]
+      errors = env['rack.errors']
       status, headers, body  = app.call(env)
       MockResponse.new(status, headers, body, errors)
     ensure
@@ -102,9 +102,9 @@ module Rack
       env['SCRIPT_NAME'] = opts[:script_name] || ""
 
       if opts[:fatal]
-        env[RACK_ERRORS] = FatalWarner.new
+        env['rack.errors'] = FatalWarner.new
       else
-        env[RACK_ERRORS] = StringIO.new
+        env['rack.errors'] = StringIO.new
       end
 
       if params = opts[:params]

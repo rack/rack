@@ -8,7 +8,7 @@ module Rack
     end
 
     def call(env)
-      logger = ::Logger.new(env[RACK_ERRORS])
+      logger = ::Logger.new(env['rack.errors'])
       logger.level = @level
 
       env[RACK_LOGGER] = logger
