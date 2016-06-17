@@ -148,8 +148,8 @@ module Rack
       end
 
       def session_options
-        fetch_header(RACK_SESSION_OPTIONS) do |k|
-          set_header RACK_SESSION_OPTIONS, {}
+        fetch_header('rack.session.options') do |k|
+          set_header 'rack.session.options', {}
         end
       end
 

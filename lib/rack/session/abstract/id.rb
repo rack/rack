@@ -27,7 +27,7 @@ module Rack
         end
 
         def self.set_options(req, options)
-          req.set_header RACK_SESSION_OPTIONS, options.dup
+          req.set_header 'rack.session.options', options.dup
         end
 
         def initialize(store, req)
@@ -258,7 +258,7 @@ module Rack
           session_was               = req.get_header 'rack.session'
           session                   = session_class.new(self, req)
           req.set_header 'rack.session', session
-          req.set_header RACK_SESSION_OPTIONS, @default_options.dup
+          req.set_header 'rack.session.options', @default_options.dup
           session.merge! session_was if session_was
         end
 
