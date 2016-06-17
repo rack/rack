@@ -50,7 +50,7 @@ module Rack
         bufsize = req.get_header(RACK_MULTIPART_BUFFER_SIZE) || Parser::BUFSIZE
 
         info = Parser.parse io, content_length, req.get_header('CONTENT_TYPE'), tempfile, bufsize, params
-        req.set_header(RACK_TEMPFILES, info.tmp_files)
+        req.set_header('rack.tempfiles', info.tmp_files)
         info.params
       end
 

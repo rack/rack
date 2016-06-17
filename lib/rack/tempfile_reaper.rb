@@ -11,10 +11,10 @@ module Rack
     end
 
     def call(env)
-      env[RACK_TEMPFILES] ||= []
+      env['rack.tempfiles'] ||= []
       status, headers, body = @app.call(env)
       body_proxy = BodyProxy.new(body) do
-        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        env['rack.tempfiles'].each(&:close!) unless env['rack.tempfiles'].nil?
       end
       [status, headers, body_proxy]
     end

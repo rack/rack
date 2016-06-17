@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_TEMPFILES                      = 'rack.tempfiles'.freeze
   RACK_ERRORS                         = 'rack.errors'.freeze
   RACK_LOGGER                         = 'rack.logger'.freeze
   RACK_INPUT                          = 'rack.input'.freeze
