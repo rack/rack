@@ -301,7 +301,7 @@ module Rack
       # Content-Type header is provided and the request_method is POST.
       def form_data?
         type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header('REQUEST_METHOD')
+        meth = get_header('rack.methodoverride.original_method') || get_header('REQUEST_METHOD')
         (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 
