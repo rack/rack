@@ -26,7 +26,6 @@ module Rack
   end
 
   # HTTP method verbs
-  PUT     = 'PUT'.freeze
   PATCH   = 'PATCH'.freeze
   DELETE  = 'DELETE'.freeze
   HEAD    = 'HEAD'.freeze
