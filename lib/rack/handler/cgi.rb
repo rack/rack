@@ -17,7 +17,7 @@ module Rack
 
         env.update(
           'rack.version'      => Rack::VERSION,
-          RACK_INPUT        => Rack::RewindableInput.new($stdin),
+          'rack.input'        => Rack::RewindableInput.new($stdin),
           'rack.errors'       => $stderr,
           RACK_MULTITHREAD  => false,
           RACK_MULTIPROCESS => true,

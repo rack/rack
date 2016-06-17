@@ -123,7 +123,7 @@ module Rack
       HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
       HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
 
-      def body;            get_header(RACK_INPUT)                         end
+      def body;            get_header('rack.input')                         end
       def script_name;     get_header('SCRIPT_NAME').to_s                   end
       def script_name=(s); set_header('SCRIPT_NAME', s.to_s)                end
 
@@ -327,13 +327,13 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if get_header(RACK_INPUT).nil?
+        if get_header('rack.input').nil?
           raise "Missing rack.input"
-        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
+        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header('rack.input')
           get_header(RACK_REQUEST_FORM_HASH)
         elsif form_data? || parseable_data?
           unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
-            form_vars = get_header(RACK_INPUT).read
+            form_vars = get_header('rack.input').read
 
             # Fix for Safari Ajax postings that always append \0
             # form_vars.sub!(/\0\z/, '') # performance replacement:
@@ -342,9 +342,9 @@ module Rack
             set_header RACK_REQUEST_FORM_VARS, form_vars
             set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
 
-            get_header(RACK_INPUT).rewind
+            get_header('rack.input').rewind
           end
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
+          set_header RACK_REQUEST_FORM_INPUT, get_header('rack.input')
           get_header RACK_REQUEST_FORM_HASH
         else
           {}

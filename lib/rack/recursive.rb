@@ -55,7 +55,7 @@ module Rack
                       'SCRIPT_NAME' => @script_name,
                       'REQUEST_METHOD' => 'GET',
                       "CONTENT_LENGTH" => "0", "CONTENT_TYPE" => "",
-                      RACK_INPUT => StringIO.new(""))
+                      'rack.input' => StringIO.new(""))
       @app.call(env)
     end
   end

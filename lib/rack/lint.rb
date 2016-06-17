@@ -42,7 +42,7 @@ module Rack
       assert("No env given") { env }
       check_env env
 
-      env[RACK_INPUT] = InputWrapper.new(env[RACK_INPUT])
+      env['rack.input'] = InputWrapper.new(env['rack.input'])
       env['rack.errors'] = ErrorWrapper.new(env['rack.errors'])
 
       ## and returns an Array of exactly three values:
@@ -288,7 +288,7 @@ module Rack
       }
 
       ## * There must be a valid input stream in <tt>rack.input</tt>.
-      check_input env[RACK_INPUT]
+      check_input env['rack.input']
       ## * There must be a valid error stream in <tt>rack.errors</tt>.
       check_error env['rack.errors']
       ## * There may be a valid hijack stream in <tt>rack.hijack_io</tt>

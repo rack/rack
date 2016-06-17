@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_INPUT                          = 'rack.input'.freeze
   RACK_SESSION                        = 'rack.session'.freeze
   RACK_SESSION_OPTIONS                = 'rack.session.options'.freeze
   RACK_SHOWSTATUS_DETAIL              = 'rack.showstatus.detail'.freeze

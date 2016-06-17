@@ -50,7 +50,7 @@ module Rack
 
         env.update(
           'rack.version'      => Rack::VERSION,
-          RACK_INPUT        => rack_input,
+          'rack.input'        => rack_input,
           'rack.errors'       => request.err,
           RACK_MULTITHREAD  => false,
           RACK_MULTIPROCESS => true,

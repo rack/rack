@@ -19,7 +19,7 @@ module Rack
 
         env.update(
           'rack.version'      => Rack::VERSION,
-          RACK_INPUT        => rack_input,
+          'rack.input'        => rack_input,
           'rack.errors'       => $stderr,
           RACK_MULTITHREAD  => false,
           RACK_MULTIPROCESS => true,

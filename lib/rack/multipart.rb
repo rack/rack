@@ -41,7 +41,7 @@ module Rack
       end
 
       def extract_multipart(req, params = Rack::Utils.default_query_parser)
-        io = req.get_header(RACK_INPUT)
+        io = req.get_header('rack.input')
         io.rewind
         content_length = req.content_length
         content_length = content_length.to_i if content_length

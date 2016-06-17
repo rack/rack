@@ -42,7 +42,7 @@ module Rack
 
     DEFAULT_ENV = {
       'rack.version'      => Rack::VERSION,
-      RACK_INPUT        => StringIO.new,
+      'rack.input'        => StringIO.new,
       'rack.errors'       => StringIO.new,
       RACK_MULTITHREAD  => true,
       RACK_MULTIPROCESS => true,
@@ -137,9 +137,9 @@ module Rack
       end
 
       rack_input.set_encoding(Encoding::BINARY)
-      env[RACK_INPUT] = rack_input
+      env['rack.input'] = rack_input
 
-      env["CONTENT_LENGTH"] ||= env[RACK_INPUT].length.to_s
+      env["CONTENT_LENGTH"] ||= env['rack.input'].length.to_s
 
       opts.each { |field, value|
         env[field] = value  if String === field
