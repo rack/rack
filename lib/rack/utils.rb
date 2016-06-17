@@ -280,7 +280,7 @@ module Rack
     module_function :add_cookie_to_header
 
     def set_cookie_header!(header, key, value)
-      header[SET_COOKIE] = add_cookie_to_header(header[SET_COOKIE], key, value)
+      header['Set-Cookie'] = add_cookie_to_header(header['Set-Cookie'], key, value)
       nil
     end
     module_function :set_cookie_header!
@@ -310,7 +310,7 @@ module Rack
     module_function :make_delete_cookie_header
 
     def delete_cookie_header!(header, key, value = {})
-      header[SET_COOKIE] = add_remove_cookie_to_header(header[SET_COOKIE], key, value)
+      header['Set-Cookie'] = add_remove_cookie_to_header(header['Set-Cookie'], key, value)
       nil
     end
     module_function :delete_cookie_header!

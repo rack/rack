@@ -180,20 +180,20 @@ module Rack
       end
 
       def set_cookie(key, value)
-        cookie_header = get_header SET_COOKIE
-        set_header SET_COOKIE, ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
+        cookie_header = get_header 'Set-Cookie'
+        set_header 'Set-Cookie', ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
       end
 
       def delete_cookie(key, value={})
-        set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
+        set_header 'Set-Cookie', ::Rack::Utils.add_remove_cookie_to_header(get_header('Set-Cookie'), key, value)
       end
 
       def set_cookie_header
-        get_header SET_COOKIE
+        get_header 'Set-Cookie'
       end
 
       def set_cookie_header= v
-        set_header SET_COOKIE, v
+        set_header 'Set-Cookie', v
       end
 
       def cache_control

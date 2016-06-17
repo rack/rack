@@ -26,7 +26,6 @@ module Rack
   end
 
 
-  SET_COOKIE        = 'Set-Cookie'.freeze
   TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
   HTTP_COOKIE       = 'HTTP_COOKIE'.freeze
   ETAG              = 'ETag'.freeze
