@@ -202,7 +202,7 @@ module Rack
       end
 
       def cookies
-        hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |k|
+        hash = fetch_header('rack.request.cookie_hash') do |k|
           set_header(k, {})
         end
         string = get_header 'HTTP_COOKIE'
