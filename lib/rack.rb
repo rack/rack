@@ -26,7 +26,6 @@ module Rack
   end
 
 
-  HTTP_COOKIE       = 'HTTP_COOKIE'.freeze
   ETAG              = 'ETag'.freeze
 
   # HTTP method verbs

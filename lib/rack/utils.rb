@@ -200,7 +200,7 @@ module Rack
     module_function :select_best_encoding
 
     def parse_cookies(env)
-      parse_cookies_header env[HTTP_COOKIE]
+      parse_cookies_header env['HTTP_COOKIE']
     end
     module_function :parse_cookies
 

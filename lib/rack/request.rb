@@ -205,10 +205,10 @@ module Rack
         hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |k|
           set_header(k, {})
         end
-        string = get_header HTTP_COOKIE
+        string = get_header 'HTTP_COOKIE'
 
         return hash if string == get_header(RACK_REQUEST_COOKIE_STRING)
-        hash.replace Utils.parse_cookies_header get_header HTTP_COOKIE
+        hash.replace Utils.parse_cookies_header get_header 'HTTP_COOKIE'
         set_header(RACK_REQUEST_COOKIE_STRING, string)
         hash
       end
