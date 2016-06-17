@@ -226,7 +226,7 @@ module Rack
         if forwarded = get_header(HTTP_X_FORWARDED_HOST)
           forwarded.split(/,\s?/).last
         else
-          get_header('HTTP_HOST') || "#{get_header('SERVER_NAME') || get_header(SERVER_ADDR)}:#{get_header(SERVER_PORT)}"
+          get_header('HTTP_HOST') || "#{get_header('SERVER_NAME') || get_header('SERVER_ADDR')}:#{get_header(SERVER_PORT)}"
         end
       end
 
