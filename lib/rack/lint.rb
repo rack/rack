@@ -520,9 +520,9 @@ module Rack
     def check_hijack(env)
       if env[RACK_IS_HIJACK]
         ## If rack.hijack? is true then rack.hijack must respond to #call.
-        original_hijack = env[RACK_HIJACK]
+        original_hijack = env['rack.hijack']
         assert("rack.hijack must respond to call") { original_hijack.respond_to?(:call) }
-        env[RACK_HIJACK] = proc do
+        env['rack.hijack'] = proc do
           ## rack.hijack must return the io that will also be assigned (or is
           ## already present, in rack.hijack_io.
           io = original_hijack.call
@@ -554,7 +554,7 @@ module Rack
       else
         ##
         ## If rack.hijack? is false, then rack.hijack should not be set.
-        assert("rack.hijack? is false, but rack.hijack is present") { env[RACK_HIJACK].nil? }
+        assert("rack.hijack? is false, but rack.hijack is present") { env['rack.hijack'].nil? }
         ##
         ## If rack.hijack? is false, then rack.hijack_io should not be set.
         assert("rack.hijack? is false, but rack.hijack_io is present") { env[RACK_HIJACK_IO].nil? }
@@ -587,12 +587,12 @@ module Rack
       ## Servers must ignore the <tt>body</tt> part of the response tuple when
       ## the <tt>rack.hijack</tt> response API is in use.
 
-      if env[RACK_IS_HIJACK] && headers[RACK_HIJACK]
+      if env[RACK_IS_HIJACK] && headers['rack.hijack']
         assert('rack.hijack header must respond to #call') {
-          headers[RACK_HIJACK].respond_to? :call
+          headers['rack.hijack'].respond_to? :call
         }
-        original_hijack = headers[RACK_HIJACK]
-        headers[RACK_HIJACK] = proc do |io|
+        original_hijack = headers['rack.hijack']
+        headers['rack.hijack'] = proc do |io|
           original_hijack.call HijackWrapper.new(io)
         end
       else
@@ -600,7 +600,7 @@ module Rack
         ## The special response header <tt>rack.hijack</tt> must only be set
         ## if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
         assert('rack.hijack header must not be present if server does not support hijacking') {
-          headers[RACK_HIJACK].nil?
+          headers['rack.hijack'].nil?
         }
       end
     end

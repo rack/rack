@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_HIJACK                         = 'rack.hijack'.freeze
   RACK_IS_HIJACK                      = 'rack.hijack?'.freeze
   RACK_HIJACK_IO                      = 'rack.hijack_io'.freeze
   RACK_RECURSIVE_INCLUDE              = 'rack.recursive.include'.freeze

@@ -87,7 +87,7 @@ module Rack
         begin
           res.status = status.to_i
           headers.each { |k, vs|
-            next if k.downcase == RACK_HIJACK
+            next if k.downcase == 'rack.hijack'
 
             if k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
@@ -98,7 +98,7 @@ module Rack
             end
           }
 
-          io_lambda = headers[RACK_HIJACK]
+          io_lambda = headers['rack.hijack']
           if io_lambda
             rd, wr = IO.pipe
             res.body = rd
