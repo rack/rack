@@ -25,9 +25,6 @@ module Rack
     RELEASE
   end
 
-  # Rack environment variables
-  RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'.freeze
-
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
