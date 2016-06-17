@@ -26,7 +26,6 @@ module Rack
   end
 
   # Rack environment variables
-  RACK_RECURSIVE_INCLUDE              = 'rack.recursive.include'.freeze
   RACK_MULTIPART_BUFFER_SIZE          = 'rack.multipart.buffer_size'.freeze
   RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'.freeze
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'.freeze
