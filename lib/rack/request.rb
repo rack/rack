@@ -330,9 +330,9 @@ module Rack
         if get_header('rack.input').nil?
           raise "Missing rack.input"
         elsif get_header('rack.request.form_input') == get_header('rack.input')
-          get_header(RACK_REQUEST_FORM_HASH)
+          get_header('rack.request.form_hash')
         elsif form_data? || parseable_data?
-          unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
+          unless set_header('rack.request.form_hash', parse_multipart)
             form_vars = get_header('rack.input').read
 
             # Fix for Safari Ajax postings that always append \0
@@ -340,12 +340,12 @@ module Rack
             form_vars.slice!(-1) if form_vars[-1] == ?\0
 
             set_header RACK_REQUEST_FORM_VARS, form_vars
-            set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+            set_header 'rack.request.form_hash', parse_query(form_vars, '&')
 
             get_header('rack.input').rewind
           end
           set_header 'rack.request.form_input', get_header('rack.input')
-          get_header RACK_REQUEST_FORM_HASH
+          get_header 'rack.request.form_hash'
         else
           {}
         end
