@@ -47,7 +47,7 @@ module Rack
         content_length = content_length.to_i if content_length
 
         tempfile = req.get_header(RACK_MULTIPART_TEMPFILE_FACTORY) || Parser::TEMPFILE_FACTORY
-        bufsize = req.get_header(RACK_MULTIPART_BUFFER_SIZE) || Parser::BUFSIZE
+        bufsize = req.get_header('rack.multipart.buffer_size') || Parser::BUFSIZE
 
         info = Parser.parse io, content_length, req.get_header('CONTENT_TYPE'), tempfile, bufsize, params
         req.set_header('rack.tempfiles', info.tmp_files)

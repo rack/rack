@@ -229,7 +229,7 @@ module Rack
       end
 
       ## <tt>rack.multipart.buffer_size</tt>:: An Integer hint to the multipart parser as to what chunk size to use for reads and writes.
-      if bufsize = env[RACK_MULTIPART_BUFFER_SIZE]
+      if bufsize = env['rack.multipart.buffer_size']
         assert("rack.multipart.buffer_size must be an Integer > 0 if specified") {
           bufsize.is_a?(Integer) && bufsize > 0
         }
