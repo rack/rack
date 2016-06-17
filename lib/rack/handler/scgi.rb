@@ -39,7 +39,7 @@ module Rack
         env['HTTP_VERSION'] ||= env[SERVER_PROTOCOL]
         env['PATH_INFO'] = env['REQUEST_PATH']
         env[QUERY_STRING] ||= ""
-        env[SCRIPT_NAME] = ""
+        env['SCRIPT_NAME'] = ""
 
         rack_input = StringIO.new(input_body, encoding: Encoding::BINARY)
 

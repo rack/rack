@@ -44,7 +44,7 @@ module Rack
         env = request.env
         env.delete "HTTP_CONTENT_LENGTH"
 
-        env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
+        env['SCRIPT_NAME'] = ""  if env['SCRIPT_NAME'] == "/"
 
         rack_input = RewindableInput.new(request.in)
 

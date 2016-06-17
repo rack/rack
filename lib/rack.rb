@@ -25,7 +25,6 @@ module Rack
     RELEASE
   end
 
-  SCRIPT_NAME       = 'SCRIPT_NAME'.freeze
   QUERY_STRING      = 'QUERY_STRING'.freeze
   SERVER_PROTOCOL   = 'SERVER_PROTOCOL'.freeze
   SERVER_NAME       = 'SERVER_NAME'.freeze

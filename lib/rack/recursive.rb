@@ -39,7 +39,7 @@ module Rack
     end
 
     def _call(env)
-      @script_name = env[SCRIPT_NAME]
+      @script_name = env['SCRIPT_NAME']
       @app.call(env.merge(RACK_RECURSIVE_INCLUDE => method(:include)))
     rescue ForwardRequest => req
       call(env.merge(req.env))
@@ -52,7 +52,7 @@ module Rack
       end
 
       env = env.merge('PATH_INFO' => path,
-                      SCRIPT_NAME => @script_name,
+                      'SCRIPT_NAME' => @script_name,
                       'REQUEST_METHOD' => GET,
                       "CONTENT_LENGTH" => "0", "CONTENT_TYPE" => "",
                       RACK_INPUT => StringIO.new(""))

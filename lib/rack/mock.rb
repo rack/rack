@@ -99,7 +99,7 @@ module Rack
       env[RACK_URL_SCHEME] = uri.scheme || "http"
       env['HTTPS']           = env[RACK_URL_SCHEME] == "https" ? "on" : "off"
 
-      env[SCRIPT_NAME] = opts[:script_name] || ""
+      env['SCRIPT_NAME'] = opts[:script_name] || ""
 
       if opts[:fatal]
         env[RACK_ERRORS] = FatalWarner.new

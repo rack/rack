@@ -13,7 +13,7 @@ module Rack
         env = ENV.to_hash
         env.delete "HTTP_CONTENT_LENGTH"
 
-        env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
+        env['SCRIPT_NAME'] = ""  if env['SCRIPT_NAME'] == "/"
 
         env.update(
           RACK_VERSION      => Rack::VERSION,
