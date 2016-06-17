@@ -26,7 +26,6 @@ module Rack
   end
 
   # HTTP method verbs
-  GET     = 'GET'.freeze
   POST    = 'POST'.freeze
   PUT     = 'PUT'.freeze
   PATCH   = 'PATCH'.freeze

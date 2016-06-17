@@ -154,34 +154,34 @@ module Rack
       end
 
       # Checks the HTTP request method (or verb) to see if it was of type DELETE
-      def delete?;  request_method == DELETE  end
+      def delete?;  request_method == 'DELETE'  end
 
       # Checks the HTTP request method (or verb) to see if it was of type GET
-      def get?;     request_method == GET       end
+      def get?;     request_method == 'GET'       end
 
       # Checks the HTTP request method (or verb) to see if it was of type HEAD
-      def head?;    request_method == HEAD      end
+      def head?;    request_method == 'HEAD'      end
 
       # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
-      def options?; request_method == OPTIONS end
+      def options?; request_method == 'OPTIONS' end
 
       # Checks the HTTP request method (or verb) to see if it was of type LINK
-      def link?;    request_method == LINK    end
+      def link?;    request_method == 'LINK'    end
 
       # Checks the HTTP request method (or verb) to see if it was of type PATCH
-      def patch?;   request_method == PATCH   end
+      def patch?;   request_method == 'PATCH'   end
 
       # Checks the HTTP request method (or verb) to see if it was of type POST
-      def post?;    request_method == POST    end
+      def post?;    request_method == 'POST'    end
 
       # Checks the HTTP request method (or verb) to see if it was of type PUT
-      def put?;     request_method == PUT     end
+      def put?;     request_method == 'PUT'     end
 
       # Checks the HTTP request method (or verb) to see if it was of type TRACE
-      def trace?;   request_method == TRACE   end
+      def trace?;   request_method == 'TRACE'   end
 
       # Checks the HTTP request method (or verb) to see if it was of type UNLINK
-      def unlink?;  request_method == UNLINK  end
+      def unlink?;  request_method == 'UNLINK'  end
 
       def scheme
         if get_header('HTTPS') == 'on'
