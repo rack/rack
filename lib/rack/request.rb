@@ -314,11 +314,11 @@ module Rack
       # Returns the data received in the query string.
       def GET
         if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          get_header(RACK_REQUEST_QUERY_HASH)
+          get_header('rack.request.query_hash')
         else
           query_hash = parse_query(query_string, '&;')
           set_header(RACK_REQUEST_QUERY_STRING, query_string)
-          set_header(RACK_REQUEST_QUERY_HASH, query_hash)
+          set_header('rack.request.query_hash', query_hash)
         end
       end
 
