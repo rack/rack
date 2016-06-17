@@ -548,7 +548,7 @@ module Rack
           ## hijack_io to provide additional features to users. The purpose of
           ## rack.hijack is for Rack to "get out of the way", as such, Rack only
           ## provides the minimum of specification and support.
-          env[RACK_HIJACK_IO] = HijackWrapper.new(env[RACK_HIJACK_IO])
+          env['rack.hijack_io'] = HijackWrapper.new(env['rack.hijack_io'])
           io
         end
       else
@@ -557,7 +557,7 @@ module Rack
         assert("rack.hijack? is false, but rack.hijack is present") { env['rack.hijack'].nil? }
         ##
         ## If rack.hijack? is false, then rack.hijack_io should not be set.
-        assert("rack.hijack? is false, but rack.hijack_io is present") { env[RACK_HIJACK_IO].nil? }
+        assert("rack.hijack? is false, but rack.hijack_io is present") { env['rack.hijack_io'].nil? }
       end
     end
 
