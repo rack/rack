@@ -26,7 +26,6 @@ module Rack
   end
 
   # HTTP method verbs
-  POST    = 'POST'.freeze
   PUT     = 'PUT'.freeze
   PATCH   = 'PATCH'.freeze
   DELETE  = 'DELETE'.freeze

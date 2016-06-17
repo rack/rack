@@ -302,7 +302,7 @@ module Rack
       def form_data?
         type = media_type
         meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header('REQUEST_METHOD')
-        (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+        (meth == 'POST' && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 
       # Determine whether the request body contains data by checking
