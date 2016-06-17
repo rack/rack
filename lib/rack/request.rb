@@ -329,7 +329,7 @@ module Rack
       def POST
         if get_header('rack.input').nil?
           raise "Missing rack.input"
-        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header('rack.input')
+        elsif get_header('rack.request.form_input') == get_header('rack.input')
           get_header(RACK_REQUEST_FORM_HASH)
         elsif form_data? || parseable_data?
           unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
@@ -344,7 +344,7 @@ module Rack
 
             get_header('rack.input').rewind
           end
-          set_header RACK_REQUEST_FORM_INPUT, get_header('rack.input')
+          set_header 'rack.request.form_input', get_header('rack.input')
           get_header RACK_REQUEST_FORM_HASH
         else
           {}
