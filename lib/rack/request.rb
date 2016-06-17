@@ -207,9 +207,9 @@ module Rack
         end
         string = get_header 'HTTP_COOKIE'
 
-        return hash if string == get_header(RACK_REQUEST_COOKIE_STRING)
+        return hash if string == get_header('rack.request.cookie_string')
         hash.replace Utils.parse_cookies_header get_header 'HTTP_COOKIE'
-        set_header(RACK_REQUEST_COOKIE_STRING, string)
+        set_header('rack.request.cookie_string', string)
         hash
       end
 
