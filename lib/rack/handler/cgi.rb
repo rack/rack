@@ -26,7 +26,7 @@ module Rack
         )
 
         env[QUERY_STRING] ||= ""
-        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
+        env['HTTP_VERSION'] ||= env[SERVER_PROTOCOL]
         env[REQUEST_PATH] ||= "/"
 
         status, headers, body = app.call(env)

@@ -25,7 +25,6 @@ module Rack
     RELEASE
   end
 
-  HTTP_VERSION      = 'HTTP_VERSION'.freeze
   HTTPS             = 'HTTPS'.freeze
   PATH_INFO         = 'PATH_INFO'.freeze
   REQUEST_METHOD    = 'REQUEST_METHOD'.freeze

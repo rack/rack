@@ -59,7 +59,7 @@ module Rack
         )
 
         env[QUERY_STRING] ||= ""
-        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
+        env['HTTP_VERSION'] ||= env[SERVER_PROTOCOL]
         env[REQUEST_PATH] ||= "/"
         env.delete "CONTENT_TYPE"  if env["CONTENT_TYPE"] == ""
         env.delete "CONTENT_LENGTH"  if env["CONTENT_LENGTH"] == ""
