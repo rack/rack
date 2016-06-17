@@ -518,7 +518,7 @@ module Rack
     #
     ## ==== Request (before status)
     def check_hijack(env)
-      if env[RACK_IS_HIJACK]
+      if env['rack.hijack?']
         ## If rack.hijack? is true then rack.hijack must respond to #call.
         original_hijack = env['rack.hijack']
         assert("rack.hijack must respond to call") { original_hijack.respond_to?(:call) }
@@ -587,7 +587,7 @@ module Rack
       ## Servers must ignore the <tt>body</tt> part of the response tuple when
       ## the <tt>rack.hijack</tt> response API is in use.
 
-      if env[RACK_IS_HIJACK] && headers['rack.hijack']
+      if env['rack.hijack?'] && headers['rack.hijack']
         assert('rack.hijack header must respond to #call') {
           headers['rack.hijack'].respond_to? :call
         }
