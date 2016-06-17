@@ -339,7 +339,7 @@ module Rack
             # form_vars.sub!(/\0\z/, '') # performance replacement:
             form_vars.slice!(-1) if form_vars[-1] == ?\0
 
-            set_header RACK_REQUEST_FORM_VARS, form_vars
+            set_header 'rack.request.form_vars', form_vars
             set_header 'rack.request.form_hash', parse_query(form_vars, '&')
 
             get_header('rack.input').rewind
