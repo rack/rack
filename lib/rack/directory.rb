@@ -86,7 +86,7 @@ table { width:100%%; }
 
       body = "Bad Request\n"
       size = body.bytesize
-      return [400, {CONTENT_TYPE => "text/plain",
+      return [400, {'Content-Type' => "text/plain",
         'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
@@ -96,7 +96,7 @@ table { width:100%%; }
 
       body = "Forbidden\n"
       size = body.bytesize
-      return [403, {CONTENT_TYPE => "text/plain",
+      return [403, {'Content-Type' => "text/plain",
         'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end
@@ -126,7 +126,7 @@ table { width:100%%; }
         files << [ url, basename, size, type, mtime ]
       end
 
-      return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, DirectoryBody.new(@root, path, files) ]
+      return [ 200, { 'Content-Type' =>'text/html; charset=utf-8'}, DirectoryBody.new(@root, path, files) ]
     end
 
     def stat(node)
@@ -154,7 +154,7 @@ table { width:100%%; }
     def entity_not_found(path_info)
       body = "Entity not found: #{path_info}\n"
       size = body.bytesize
-      return [404, {CONTENT_TYPE => "text/plain",
+      return [404, {'Content-Type' => "text/plain",
         'Content-Length' => size.to_s,
         "X-Cascade" => "pass"}, [body]]
     end

@@ -35,7 +35,7 @@ module Rack
 
         body = @template.result(binding)
         size = body.bytesize
-        [status, headers.merge(CONTENT_TYPE => "text/html", 'Content-Length' => size.to_s), [body]]
+        [status, headers.merge('Content-Type' => "text/html", 'Content-Length' => size.to_s), [body]]
       else
         [status, headers, body]
       end

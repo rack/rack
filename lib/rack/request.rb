@@ -264,8 +264,8 @@ module Rack
         return reject_trusted_ip_addresses(forwarded_ips).last || get_header("REMOTE_ADDR")
       end
 
-      # The media type (type/subtype) portion of the CONTENT_TYPE header
-      # without any media type parameters. e.g., when CONTENT_TYPE is
+      # The media type (type/subtype) portion of the 'Content-Type' header
+      # without any media type parameters. e.g., when 'Content-Type' is
       # "text/plain;charset=utf-8", the media-type is "text/plain".
       #
       # For more information on the use of media types in HTTP, see:
@@ -274,9 +274,9 @@ module Rack
         MediaType.type(content_type)
       end
 
-      # The media type parameters provided in CONTENT_TYPE as a Hash, or
-      # an empty Hash if no CONTENT_TYPE or media-type parameters were
-      # provided.  e.g., when the CONTENT_TYPE is "text/plain;charset=utf-8",
+      # The media type parameters provided in 'Content-Type' as a Hash, or
+      # an empty Hash if no 'Content-Type' or media-type parameters were
+      # provided.  e.g., when the 'Content-Type' is "text/plain;charset=utf-8",
       # this method responds with the following Hash:
       #   { 'charset' => 'utf-8' }
       def media_type_params

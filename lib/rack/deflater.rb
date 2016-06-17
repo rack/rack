@@ -66,7 +66,7 @@ module Rack
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {CONTENT_TYPE => "text/plain", 'Content-Length' => message.length.to_s}, bp]
+        [406, {'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s}, bp]
       end
     end
 
@@ -143,7 +143,7 @@ module Rack
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)

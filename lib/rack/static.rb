@@ -130,7 +130,7 @@ module Rack
             response = nil
           else
             if mime_type = Mime.mime_type(::File.extname(path), 'text/plain')
-              response[1][CONTENT_TYPE] = mime_type
+              response[1]['Content-Type'] = mime_type
             end
             response[1]['Content-Encoding'] = 'gzip'
           end

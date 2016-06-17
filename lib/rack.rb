@@ -26,7 +26,6 @@ module Rack
   end
 
 
-  CONTENT_TYPE      = 'Content-Type'.freeze
   SET_COOKIE        = 'Set-Cookie'.freeze
   TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
   HTTP_COOKIE       = 'HTTP_COOKIE'.freeze

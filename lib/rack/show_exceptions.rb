@@ -38,7 +38,7 @@ module Rack
       [
         500,
         {
-          CONTENT_TYPE => content_type,
+          'Content-Type' => content_type,
           'Content-Length' => body.bytesize.to_s,
         },
         [body],

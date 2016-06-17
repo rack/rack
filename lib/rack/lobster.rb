@@ -26,7 +26,7 @@ module Rack
                  "<pre>", lobster, "</pre>",
                  "<a href='#{href}'>flip!</a>"]
       length = content.inject(0) { |a,e| a+e.size }.to_s
-      [200, {CONTENT_TYPE => "text/html", 'Content-Length' => length}, content]
+      [200, {'Content-Type' => "text/html", 'Content-Length' => length}, content]
     }
 
     def call(env)

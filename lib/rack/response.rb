@@ -61,7 +61,7 @@ module Rack
       @block = block
 
       if [204, 205, 304].include?(status.to_i)
-        delete_header CONTENT_TYPE
+        delete_header 'Content-Type'
         delete_header 'Content-Length'
         close
         [status.to_i, header, []]
@@ -155,7 +155,7 @@ module Rack
       end
 
       def content_type
-        get_header CONTENT_TYPE
+        get_header 'Content-Type'
       end
 
       def media_type

@@ -65,7 +65,7 @@ module Rack
 
       headers = { "Last-Modified" => last_modified }
       mime_type = mime_type path, @default_mime
-      headers[CONTENT_TYPE] = mime_type if mime_type
+      headers['Content-Type'] = mime_type if mime_type
 
       # Set custom headers
       @headers.each { |field, content| headers[field] = content } if @headers
@@ -143,7 +143,7 @@ module Rack
       [
         status,
         {
-          CONTENT_TYPE   => "text/plain",
+          'Content-Type'   => "text/plain",
           'Content-Length' => body.size.to_s,
           "X-Cascade" => "pass"
         }.merge!(headers),
