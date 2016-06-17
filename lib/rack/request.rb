@@ -184,7 +184,7 @@ module Rack
       def unlink?;  request_method == UNLINK  end
 
       def scheme
-        if get_header(HTTPS) == 'on'
+        if get_header('HTTPS') == 'on'
           'https'
         elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
           'https'

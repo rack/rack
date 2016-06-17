@@ -50,7 +50,7 @@ module Rack
           RACK_MULTITHREAD  => true,
           RACK_MULTIPROCESS => true,
           RACK_RUNONCE      => false,
-          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http"
+          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http"
         )
 
         status, headers, body = app.call(env)

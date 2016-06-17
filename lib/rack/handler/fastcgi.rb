@@ -55,7 +55,7 @@ module Rack
           RACK_MULTITHREAD  => false,
           RACK_MULTIPROCESS => true,
           RACK_RUNONCE      => false,
-          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http"
+          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http"
         )
 
         env[QUERY_STRING] ||= ""
