@@ -25,9 +25,6 @@ module Rack
     RELEASE
   end
 
-
-  ETAG              = 'ETag'.freeze
-
   # HTTP method verbs
   GET     = 'GET'.freeze
   POST    = 'POST'.freeze

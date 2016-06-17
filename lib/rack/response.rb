@@ -205,11 +205,11 @@ module Rack
       end
 
       def etag
-        get_header ETAG
+        get_header 'ETag'
       end
 
       def etag= v
-        set_header ETAG, v
+        set_header 'ETag', v
       end
     end
 
