@@ -57,7 +57,7 @@ module Rack
       ## and the *body*.
       check_content_type status, headers
       check_content_length status, headers
-      @head_request = env[REQUEST_METHOD] == HEAD
+      @head_request = env['REQUEST_METHOD'] == HEAD
       [status, headers, self]
     end
 
@@ -295,8 +295,8 @@ module Rack
       check_hijack env
 
       ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-      assert("REQUEST_METHOD unknown: #{env[REQUEST_METHOD]}") {
-        env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
+      assert("REQUEST_METHOD unknown: #{env['REQUEST_METHOD']}") {
+        env['REQUEST_METHOD'] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
       }
 
       ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>

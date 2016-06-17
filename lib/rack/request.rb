@@ -128,9 +128,9 @@ module Rack
       def script_name=(s); set_header(SCRIPT_NAME, s.to_s)                end
 
       def path_info;       get_header('PATH_INFO').to_s                     end
-      def path_info=(s);   set_header(PATH_INFO, s.to_s)                  end
+      def path_info=(s);   set_header('PATH_INFO', s.to_s)                  end
 
-      def request_method;  get_header(REQUEST_METHOD)                     end
+      def request_method;  get_header('REQUEST_METHOD')                     end
       def query_string;    get_header(QUERY_STRING).to_s                  end
       def content_length;  get_header('CONTENT_LENGTH')                   end
       def logger;          get_header(RACK_LOGGER)                        end
@@ -301,7 +301,7 @@ module Rack
       # Content-Type header is provided and the request_method is POST.
       def form_data?
         type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header('REQUEST_METHOD')
         (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 

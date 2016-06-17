@@ -20,7 +20,7 @@ module Rack
     end
 
     def call(env)
-      case env[REQUEST_METHOD]
+      case env['REQUEST_METHOD']
       when "GET", "HEAD"
         status, headers, body = @app.call(env)
         headers = Utils::HeaderHash.new(headers)

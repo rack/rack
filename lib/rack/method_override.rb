@@ -11,11 +11,11 @@ module Rack
     end
 
     def call(env)
-      if allowed_methods.include?(env[REQUEST_METHOD])
+      if allowed_methods.include?(env['REQUEST_METHOD'])
         method = method_override(env)
         if HTTP_METHODS.include?(method)
-          env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] = env[REQUEST_METHOD]
-          env[REQUEST_METHOD] = method
+          env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] = env['REQUEST_METHOD']
+          env['REQUEST_METHOD'] = method
         end
       end
 

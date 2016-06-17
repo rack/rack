@@ -91,7 +91,7 @@ module Rack
 
       env = DEFAULT_ENV.dup
 
-      env[REQUEST_METHOD]  = opts[:method] ? opts[:method].to_s.upcase : GET
+      env['REQUEST_METHOD']  = opts[:method] ? opts[:method].to_s.upcase : GET
       env[SERVER_NAME]     = uri.host || "example.org"
       env[SERVER_PORT]     = uri.port ? uri.port.to_s : "80"
       env[QUERY_STRING]    = uri.query.to_s
@@ -108,7 +108,7 @@ module Rack
       end
 
       if params = opts[:params]
-        if env[REQUEST_METHOD] == GET
+        if env['REQUEST_METHOD'] == GET
           params = Utils.parse_nested_query(params) if params.is_a?(String)
           params.update(Utils.parse_nested_query(env[QUERY_STRING]))
           env[QUERY_STRING] = Utils.build_nested_query(params)

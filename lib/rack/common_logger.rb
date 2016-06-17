@@ -46,7 +46,7 @@ module Rack
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
         env["REMOTE_USER"] || "-",
         now.strftime("%d/%b/%Y:%H:%M:%S %z"),
-        env[REQUEST_METHOD],
+        env['REQUEST_METHOD'],
         env['PATH_INFO'],
         env[QUERY_STRING].empty? ? "" : "?#{env[QUERY_STRING]}",
         env['HTTP_VERSION'],
