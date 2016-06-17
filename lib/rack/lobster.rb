@@ -12,7 +12,7 @@ module Rack
     I8jyiTlhTcYXkekJAzTyYN6E08A+dk8voBkAVTJQ==".delete("\n ").unpack("m*")[0])
 
     LambdaLobster = lambda { |env|
-      if env[QUERY_STRING].include?("flip")
+      if env['QUERY_STRING'].include?("flip")
         lobster = LobsterString.split("\n").
           map { |line| line.ljust(42).reverse }.
           join("\n")

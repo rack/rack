@@ -60,8 +60,8 @@ below.
                            the presence or absence of the
                            appropriate HTTP header in the
                            request. See
-                           {https://tools.ietf.org/html/rfc3875#section-4.1.18
-                           RFC3875 section 4.1.18} for
+                           <a href="https://tools.ietf.org/html/rfc3875#section-4.1.18">
+                           RFC3875 section 4.1.18</a> for
                            specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
@@ -98,12 +98,13 @@ Rack-specific variables:
 Additional environment specifications have approved to
 standardized middleware APIs.  None of these are required to
 be implemented by the server.
-<tt>rack.session</tt>:: A hash like interface for storing request session data.
+<tt>rack.session</tt>:: A hash like interface for storing
+                        request session data.
                         The store must implement:
-                         store(key, value)         (aliased as []=);
-                         fetch(key, default = nil) (aliased as []);
-                         delete(key);
-                         clear;
+                        store(key, value)         (aliased as []=);
+                        fetch(key, default = nil) (aliased as []);
+                        delete(key);
+                        clear;
 <tt>rack.logger</tt>:: A common object interface for logging messages.
                        The object must implement:
                         info(message, &block)

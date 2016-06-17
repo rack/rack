@@ -94,7 +94,7 @@ module Rack
       env['REQUEST_METHOD']  = opts[:method] ? opts[:method].to_s.upcase : GET
       env[SERVER_NAME]     = uri.host || "example.org"
       env[SERVER_PORT]     = uri.port ? uri.port.to_s : "80"
-      env[QUERY_STRING]    = uri.query.to_s
+      env['QUERY_STRING']    = uri.query.to_s
       env['PATH_INFO']       = (!uri.path || uri.path.empty?) ? "/" : uri.path
       env[RACK_URL_SCHEME] = uri.scheme || "http"
       env['HTTPS']           = env[RACK_URL_SCHEME] == "https" ? "on" : "off"
@@ -110,8 +110,8 @@ module Rack
       if params = opts[:params]
         if env['REQUEST_METHOD'] == GET
           params = Utils.parse_nested_query(params) if params.is_a?(String)
-          params.update(Utils.parse_nested_query(env[QUERY_STRING]))
-          env[QUERY_STRING] = Utils.build_nested_query(params)
+          params.update(Utils.parse_nested_query(env['QUERY_STRING']))
+          env['QUERY_STRING'] = Utils.build_nested_query(params)
         elsif !opts.has_key?(:input)
           opts["CONTENT_TYPE"] = "application/x-www-form-urlencoded"
           if params.is_a?(Hash)
