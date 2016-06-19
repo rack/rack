@@ -31,11 +31,13 @@ module Rack
     # parameter (which defaults to '&;').
     def parse_query(qs, d = nil, &unescaper)
       return {} if qs.nil? || qs.empty?
+
+      delimiter = d ? COMMON_SEP.fetch(d) { %r{[#{d}] *}n } : DEFAULT_SEP
       unescaper ||= method(:unescape)
 
       params = make_params
 
-      qs.split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+      qs.split(delimiter).each do |p|
         next if p.empty?
         k, v = p.split('='.freeze, 2).map!(&unescaper)
 
@@ -60,9 +62,12 @@ module Rack
     # case.
     def parse_nested_query(qs, d = nil)
       return {} if qs.nil? || qs.empty?
+
+      delimiter = d ? COMMON_SEP.fetch(d) { %r{[#{d}] *}n } : DEFAULT_SEP
+
       params = make_params
 
-      qs.split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+      qs.split(delimiter).each do |p|
         k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v, param_depth_limit)
