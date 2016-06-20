@@ -72,7 +72,7 @@ module Rack
           'rack.url_scheme'     => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http",
           'rack.hijack?'        => true,
           'rack.hijack'         => lambda { raise NotImplementedError, "only partial hijack is supported."},
-          'rack.RACK_HIJACK_IO' => nil
+          'rack.hijack_io'      => nil
         )
 
         env['HTTP_VERSION'] ||= env['SERVER_PROTOCOL']

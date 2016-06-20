@@ -47,10 +47,10 @@ module Rack
           'rack.version'      => Rack::VERSION,
           'rack.input'        => rack_input,
           'rack.errors'       => $stderr,
-          RACK_MULTITHREAD  => true,
-          RACK_MULTIPROCESS => true,
-          RACK_RUNONCE      => false,
-          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http"
+          'rack.multithread'  => true,
+          'rack.multiprocess' => true,
+          'rack.run_once'      => false,
+          'rack.url_scheme'   => ["yes", "on", "1"].include?(env['HTTPS']) ? "https" : "http"
         )
 
         status, headers, body = app.call(env)
