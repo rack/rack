@@ -102,8 +102,7 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        first_key = child_key.gsub(/[\[\]]/, ' ').split.first
-        if params_hash_type?(params[k].last) && !params[k].last.key?(first_key)
+        if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
           normalize_params(params[k].last, child_key, v, depth - 1)
         else
           params[k] << normalize_params(make_params, child_key, v, depth - 1)
@@ -133,6 +132,18 @@ module Rack
 
     def params_hash_type?(obj)
       obj.kind_of?(@params_class)
+    end
+
+    def params_hash_has_key?(hash, key)
+      return false if key =~ /\[\]/
+
+      key.split(/[\[\]]+/).inject(hash) do |h, part|
+        next h if part == ''
+        return false unless params_hash_type?(h) && h.key?(part)
+        h[part]
+      end
+
+      true
     end
 
     def unescape(s)
