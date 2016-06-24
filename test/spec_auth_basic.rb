@@ -75,6 +75,13 @@ describe Rack::Auth::Basic do
     end
   end
 
+  it 'return 401 Bad Request for a nil authorization header' do
+    request 'HTTP_AUTHORIZATION' => nil do |response|
+      response.must_be :client_error?
+      response.status.must_equal 401
+    end
+  end
+
   it 'takes realm as optional constructor arg' do
     app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
     realm.must_equal app.realm
