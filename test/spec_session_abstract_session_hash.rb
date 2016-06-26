@@ -8,7 +8,7 @@ describe Rack::Session::Abstract::SessionHash do
     super
     store = Class.new do
       def load_session(req)
-        ["id", {foo: :bar, baz: :qux}]
+        ['id', {foo: :bar, baz: :qux}]
       end
       def session_exists?(req)
         true
@@ -17,11 +17,11 @@ describe Rack::Session::Abstract::SessionHash do
     @hash = Rack::Session::Abstract::SessionHash.new(store.new, nil)
   end
 
-  it "returns keys" do
-    assert_equal ["foo", "baz"], hash.keys
+  it 'returns keys' do
+    assert_equal ['foo', 'baz'], hash.keys
   end
 
-  it "returns values" do
+  it 'returns values' do
     assert_equal [:bar, :qux], hash.values
   end
 
