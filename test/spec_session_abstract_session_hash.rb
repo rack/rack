@@ -43,5 +43,9 @@ describe Rack::Session::Abstract::SessionHash do
     it 'returns nil if no key is present' do
       assert_nil hash.fetch(:foobar)
     end
+
+    it 'returns the default value if no key is present' do
+      assert_equal :value, hash.fetch(:foobar, :value)
+    end
   end
 end
