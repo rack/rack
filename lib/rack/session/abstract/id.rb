@@ -54,7 +54,10 @@ module Rack
           load_for_read!
           @data[key.to_s]
         end
-        alias :fetch :[]
+
+        def fetch(key, default=nil)
+          has_key?(key) ? self[key] : default
+        end
 
         def has_key?(key)
           load_for_read!
