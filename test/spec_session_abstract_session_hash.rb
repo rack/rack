@@ -25,4 +25,13 @@ describe Rack::Session::Abstract::SessionHash do
     assert_equal [:bar, :qux], hash.values
   end
 
+  describe '#[]' do
+    it 'returns the specific key' do
+      assert_equal :bar, hash[:foo]
+    end
+
+    it 'returns nil if no key is present' do
+      assert_nil hash[:foobar]
+    end
+  end
 end
