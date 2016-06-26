@@ -34,4 +34,14 @@ describe Rack::Session::Abstract::SessionHash do
       assert_nil hash[:foobar]
     end
   end
+
+  describe '#fetch' do
+    it 'returns the speficic key' do
+      assert_equal :bar, hash.fetch(:foo)
+    end
+
+    it 'returns nil if no key is present' do
+      assert_nil hash.fetch(:foobar)
+    end
+  end
 end
