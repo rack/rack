@@ -1,10 +1,10 @@
 module Rack
   class MethodOverride
-    HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
+    HTTP_METHODS = [GET, HEAD, PUT, POST, DELETE, OPTIONS, PATCH, LINK, UNLINK]
 
     METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
-    ALLOWED_METHODS = %w[POST]
+    ALLOWED_METHODS = [POST]
 
     def initialize(app)
       @app = app

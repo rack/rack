@@ -12,8 +12,8 @@ module Rack
   # used when Etag is absent and a directive when it is present. The first
   # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
   class ETag
-    ETAG_STRING = Rack::ETAG
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
+    NO_CACHE = "no-cache".freeze
 
     def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)
       @app = app
@@ -30,7 +30,7 @@ module Rack
         body = Rack::BodyProxy.new(new_body) do
           original_body.close if original_body.respond_to?(:close)
         end
-        headers[ETAG_STRING] = %(W/"#{digest}") if digest
+        headers[ETAG] = %(W/"#{digest}") if digest
       end
 
       unless headers[CACHE_CONTROL]
@@ -55,8 +55,8 @@ module Rack
       end
 
       def skip_caching?(headers)
-        (headers[CACHE_CONTROL] && headers[CACHE_CONTROL].include?('no-cache')) ||
-          headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
+        (headers[CACHE_CONTROL] && headers[CACHE_CONTROL].include?(NO_CACHE)) ||
+          headers.key?(ETAG) || headers.key?(LAST_MODIFIED)
       end
 
       def digest_body(body)

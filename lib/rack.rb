@@ -44,6 +44,7 @@ module Rack
   TRANSFER_ENCODING = 'Transfer-Encoding'.freeze
   HTTP_COOKIE       = 'HTTP_COOKIE'.freeze
   ETAG              = 'ETag'.freeze
+  LAST_MODIFIED     = 'Last-Modified'.freeze
 
   # HTTP method verbs
   GET     = 'GET'.freeze

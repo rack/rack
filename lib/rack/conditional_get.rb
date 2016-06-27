@@ -15,13 +15,16 @@ module Rack
   # Adapted from Michael Klishin's Merb implementation:
   # https://github.com/wycats/merb/blob/master/merb-core/lib/merb-core/rack/middleware/conditional_get.rb
   class ConditionalGet
+    HTTP_IF_MODIFIED_SINCE = 'HTTP_IF_MODIFIED_SINCE'.freeze
+    HTTP_IF_NONE_MATCH = 'HTTP_IF_NONE_MATCH'.freeze
+
     def initialize(app)
       @app = app
     end
 
     def call(env)
       case env[REQUEST_METHOD]
-      when "GET", "HEAD"
+      when GET, HEAD
         status, headers, body = @app.call(env)
         headers = Utils::HeaderHash.new(headers)
         if status == 200 && fresh?(env, headers)
@@ -42,8 +45,8 @@ module Rack
   private
 
     def fresh?(env, headers)
-      modified_since = env['HTTP_IF_MODIFIED_SINCE']
-      none_match     = env['HTTP_IF_NONE_MATCH']
+      modified_since = env[HTTP_IF_MODIFIED_SINCE]
+      none_match     = env[HTTP_IF_NONE_MATCH]
 
       return false unless modified_since || none_match
 
@@ -54,11 +57,11 @@ module Rack
     end
 
     def etag_matches?(none_match, headers)
-      etag = headers['ETag'] and etag == none_match
+      etag = headers[ETAG] and etag == none_match
     end
 
     def modified_since?(modified_since, headers)
-      last_modified = to_rfc2822(headers['Last-Modified']) and
+      last_modified = to_rfc2822(headers[LAST_MODIFIED]) and
         modified_since and
         modified_since >= last_modified
     end
