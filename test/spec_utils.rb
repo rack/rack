@@ -231,6 +231,18 @@ describe Rack::Utils do
       message.must_equal "invalid byte sequence in UTF-8"
   end
 
+  it "only moves to a new array when the full key has been seen" do
+    Rack::Utils.parse_nested_query("x[][y][][z]=1&x[][y][][w]=2").
+      must_equal "x" => [{"y" => [{"z" => "1", "w" => "2"}]}]
+
+    Rack::Utils.parse_nested_query(
+      "x[][id]=1&x[][y][a]=5&x[][y][b]=7&x[][z][id]=3&x[][z][w]=0&x[][id]=2&x[][y][a]=6&x[][y][b]=8&x[][z][id]=4&x[][z][w]=0"
+    ).must_equal "x" => [
+        {"id" => "1", "y" => {"a" => "5", "b" => "7"}, "z" => {"id" => "3", "w" => "0"}},
+        {"id" => "2", "y" => {"a" => "6", "b" => "8"}, "z" => {"id" => "4", "w" => "0"}},
+      ]
+  end
+
   it "allow setting the params hash class to use for parsing query strings" do
     begin
       default_parser = Rack::Utils.default_query_parser
