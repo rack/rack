@@ -2,6 +2,7 @@ require 'stringio'
 require 'cgi'
 require 'rack/request'
 require 'rack/mock'
+require 'securerandom'
 
 describe Rack::Request do
   should "wrap the rack variables" do
@@ -716,6 +717,31 @@ EOF
     f[:filename].should.equal "dj.jpg"
     f.should.include :tempfile
     f[:tempfile].size.should.equal 76
+  end
+
+  should "MultipartPartLimitError when request has too many multipart parts if limit set" do
+    begin
+      old_key_space_limit = Rack::Utils.key_space_limit
+      old_multipart_part_limit = Rack::Utils.multipart_part_limit
+
+      Rack::Utils.key_space_limit = 2 ** 32
+      Rack::Utils.multipart_part_limit = 128
+
+      data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+      data += "--AaB03x--\r"
+
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.length.to_s,
+        :input => StringIO.new(data)
+      }
+
+      request = Rack::Request.new Rack::MockRequest.env_for("/", options)
+      lambda { request.POST }.should.raise(Rack::Multipart::MultipartPartLimitError)
+    ensure
+      Rack::Utils.key_space_limit = old_key_space_limit
+      Rack::Utils.multipart_part_limit = old_multipart_part_limit
+    end
   end
 
   should "parse big multipart form data" do
