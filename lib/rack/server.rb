@@ -6,9 +6,8 @@ module Rack
   class Server
 
     class Options
-      def parse!(args)
-        options = {}
-        opt_parser = OptionParser.new("", 24, '  ') do |opts|
+      def opt_parser(options={})
+        @opt_parser ||= OptionParser.new("", 24, '  ') do |opts|
           opts.banner = "Usage: rackup [ruby options] [rack options] [rackup config]"
 
           opts.separator ""
@@ -91,9 +90,13 @@ module Rack
             exit
           end
         end
+      end
+
+      def parse!(args)
+        options = {}
 
         begin
-          opt_parser.parse! args
+          opt_parser(options).parse! args
         rescue OptionParser::InvalidOption => e
           warn e.message
           abort opt_parser.to_s
