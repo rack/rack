@@ -1,3 +1,4 @@
+# -*- encoding: utf-8 -*-
 require 'stringio'
 require 'cgi'
 require 'rack/request'
@@ -393,6 +394,14 @@ describe Rack::Request do
     req.cookies.should.equal "foo" => "bar", "quux" => "h&m"
     req.env.delete("HTTP_COOKIE")
     req.cookies.should.equal({})
+  end
+
+  if defined?(::Encoding)
+    should "parse cookies which use %uXXXX encoding" do
+      req = Rack::Request.new \
+        Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;great=%u30AD%u30E3")
+      req.cookies.should.equal "foo" => "bar", "great" => "キャ"
+    end
   end
 
   should "always return the same hash object" do
