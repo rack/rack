@@ -90,7 +90,7 @@ module Rack
             next if k.downcase == RACK_HIJACK
 
             if k.downcase == "set-cookie"
-              res.cookies.concat vs.split("\n")
+              res.cookies.concat vs.split("\n") unless vs.nil?
             else
               # Since WEBrick won't accept repeated headers,
               # merge the values per RFC 1945 section 4.2.
