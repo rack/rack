@@ -18,8 +18,15 @@ module Rack
          !headers['Transfer-Encoding'] &&
          (body.respond_to?(:to_ary) || body.respond_to?(:to_str))
 
-        body = [body] if body.respond_to?(:to_str) # rack 0.4 compat
-        length = body.to_ary.inject(0) { |len, part| len + bytesize(part) }
+        length = 0
+        if body.respond_to?(:to_ary)
+          obody = body
+          body = []
+          obody.each { |part| body << part; length += bytesize(part) }
+          obody.close if obody.respond_to?(:close)
+        elsif body.respond_to?(:to_str)
+          length = body.to_str.size
+        end
         headers['Content-Length'] = length.to_s
       end
 
