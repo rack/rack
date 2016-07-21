@@ -237,7 +237,7 @@ The Rack Core Team, consisting of
 * Santiago Pastorino (spastorino[https://github.com/spastorino])
 * Konstantin Haase (rkh[https://github.com/rkh])
 
-and the Rack Alumnis
+and the Rack Alumni
 
 * Ryan Tomayko (rtomayko[https://github.com/rtomayko])
 * Scytrin dai Kinthra (scytrin[https://github.com/scytrin])
