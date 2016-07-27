@@ -315,6 +315,12 @@ module Rack
     end
     module_function :delete_cookie_header!
 
+    def bytesize(string)
+      warn 'Rack::Utils.bytesize is deprecated in Rack 2.0 and will be removed in Rack 3. Use String#bytesize instead.'
+      string.bytesize
+    end
+    module_function :bytesize
+
     # Adds a cookie that will *remove* a cookie from the client.  Hence the
     # strange method name.
     def add_remove_cookie_to_header(header, key, value = {})

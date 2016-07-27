@@ -1,3 +1,7 @@
+Wed Jul 27 11:29:05 2016 Glauco Custódio [glaucocustodio](https://github.com/glaucocustodio)
+
+	* Mark `Rack::Utils.bytesize` as deprecated. Use `String#bytesize` instead.
+
 Sun Dec 4 18:48:03 2015  Jeremy Daer <jeremydaer@gmail.com>
 
 	* First-party "SameSite" cookies. Browsers omit SameSite cookies

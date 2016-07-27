@@ -444,6 +444,10 @@ describe Rack::Utils do
     helper.call(%w(foo bar baz identity), [["*", 0], ["identity", 0.1]]).must_equal "identity"
   end
 
+  it "return the bytesize of String" do
+    Rack::Utils.bytesize("FOO\xE2\x82\xAC").must_equal 6
+  end
+
   it "should perform constant time string comparison" do
     Rack::Utils.secure_compare('a', 'a').must_equal true
     Rack::Utils.secure_compare('a', 'b').must_equal false
