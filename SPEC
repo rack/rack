@@ -190,8 +190,8 @@ The Websocket Callback Object should be a class (or an instance of such class) w
 The following method names are reserved for the network implementation: +write+, +close+ and +has_pending?+.
 The server **must** extend the Websocket Callback Object's class using +extend+, so that the  Websocket Callback Object inherits the following methods:
 * +write(data)+ will attempt to send the data through the websocket connection. +data+ **must** be a String. If +data+ is UTF-8 encoded, the data will be sent as text. If +data+ is binary encoded it will be sent as non-text (as specified by the Websocket Protocol).
-  +write+ only promises to schedule an attempt at sending the data. A successful +write+ does **not** mean any of the data actually reached the other side.
-  +write+ shall return +true+ if the data was scheduled to be sent and +false+ if the websocket is closed. +true+ does not mean that any of the data was actually sent.
+  +write+ has the same delivery promise as +Socket#write+ (a successful +write+ does **not** mean any of the data actually reached the other side).
+  +write+ shall return +true+ on success and +false+ if the websocket is closed.
 * +close+ closes the connection once all the data in the outgoing queue was sent. If +close+ is called while there is still data to be sent, +close+ will only take effect once the data was sent.
   +close+ shall always return +nil+.
 * +has_pending?+ queries the state of the server's buffer for the specific connection (i.e., if the server has any data it is waiting to send through the socket).
