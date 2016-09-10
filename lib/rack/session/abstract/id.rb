@@ -200,7 +200,7 @@ module Rack
           :sidbits =>       128,
           :cookie_only =>   true,
           :secure_random => ::SecureRandom
-        }
+        }.freeze
 
         attr_reader :key, :default_options, :sid_secure
 
