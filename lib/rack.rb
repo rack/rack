@@ -87,6 +87,7 @@ module Rack
   RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'.freeze
 
   autoload :Builder, "rack/builder"
+  autoload :MiddlewareStack, "rack/middleware_stack"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
   autoload :Chunked, "rack/chunked"

@@ -51,7 +51,7 @@ module Rack
     end
 
     def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup = [], nil, default_app, nil
+      @use, @map, @run, @warmup = MiddlewareStack.new, nil, default_app, nil
       instance_eval(&block) if block_given?
     end
 
@@ -82,8 +82,13 @@ module Rack
       if @map
         mapping, @map = @map, nil
         @use << proc { |app| generate_map app, mapping }
+      elsif middleware.respond_to?(:<<) &&
+         middleware.respond_to?(:to_app)
+        # assume this is a custom middleware chain
+        @use = middleware
+      else
+        @use.use(middleware, *args, &block)
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
     end
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
@@ -144,7 +149,7 @@ module Rack
     def to_app
       app = @map ? generate_map(@run, @map) : @run
       fail "missing run or map statement" unless app
-      app = @use.reverse.inject(app) { |a,e| e[a] }
+      app = @use.to_app(app)
       @warmup.call(app) if @warmup
       app
     end
