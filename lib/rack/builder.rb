@@ -82,7 +82,7 @@ module Rack
       if @map
         mapping, @map = @map, nil
         @use << proc { |app| generate_map app, mapping }
-      elsif middleware.respond_to?(:<<) &&
+      elsif middleware.respond_to?(:use) &&
          middleware.respond_to?(:to_app)
         # assume this is a custom middleware chain
         @use = middleware
