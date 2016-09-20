@@ -64,13 +64,14 @@ module Rack
     # ParameterTypeError is raised. Users are encouraged to return a 400 in this
     # case.
     def parse_nested_query(qs, d = nil)
-      return {} if qs.nil? || qs.empty?
       params = make_params
 
-      qs.split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        k, v = p.split('=', 2).map! { |s| unescape(s) }
+      unless qs.nil? || qs.empty?
+        (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+          k, v = p.split('=', 2).map! { |s| unescape(s) }
 
-        normalize_params(params, k, v, param_depth_limit)
+          normalize_params(params, k, v, param_depth_limit)
+        end
       end
 
       return params.to_h
