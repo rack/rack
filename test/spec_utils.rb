@@ -254,8 +254,12 @@ describe Rack::Utils do
         end
       end
       Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536, 100)
-      Rack::Utils.parse_query(",foo=bar;,", ";,")[:foo].must_equal "bar"
-      Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")[:x][:y][0][:z].must_equal "1"
+      h1 = Rack::Utils.parse_query(",foo=bar;,", ";,")
+      h1[:foo].must_equal "bar"
+      h2 = Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")
+      h2[:x][:y][0][:z].must_equal "1"
+      h3 = Rack::Utils.parse_nested_query("")
+      h3.merge(h1)[:foo].must_equal "bar"
     ensure
       Rack::Utils.default_query_parser = default_parser
     end
