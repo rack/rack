@@ -23,8 +23,8 @@ EOF
   s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
   s.test_files      = Dir['test/spec_*.rb']
 
-  s.author          = 'Christian Neukirchen'
-  s.email           = 'chneukirchen@gmail.com'
+  s.author          = 'Aaron Patterson'
+  s.email           = 'tenderlove@ruby-lang.org'
   s.homepage        = 'http://rack.github.io/'
   s.required_ruby_version = '>= 2.2.2'
 
