@@ -6,7 +6,6 @@ module Rack
 
     class Parser
       BUFSIZE = 16384
-
       DUMMY = Struct.new(:parse).new
 
       def self.create(env)
@@ -19,7 +18,7 @@ module Rack
         content_length = content_length.to_i if content_length
 
         tempfile = env['rack.multipart.tempfile_factory'] ||
-          lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename)]) }
+          lambda { |filename, content_type| Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0".freeze, '%00'.freeze))]) }
         bufsize = env['rack.multipart.buffer_size'] || BUFSIZE
 
         new($1, io, content_length, env, tempfile, bufsize)

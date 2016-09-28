@@ -261,6 +261,12 @@ describe Rack::Multipart do
     params["files"].size.should.equal 252
   end
 
+  should "parse multipart form with a null byte in the filename" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_null_byte)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].should.equal "flowers.exe\u0000.jpg"
+  end
+
   should "parse multipart/mixed" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
     params = Rack::Utils::Multipart.parse_multipart(env)
