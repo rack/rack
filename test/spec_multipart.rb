@@ -305,6 +305,12 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "bob's flowers.jpg"
   end
 
+  it "parse multipart form with a null byte in the filename" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_null_byte)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "flowers.exe\u0000.jpg"
+  end
+
   it "not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
