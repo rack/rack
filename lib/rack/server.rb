@@ -295,7 +295,13 @@ module Rack
       end
 
       if library = options[:require]
-        require library
+        if library.is_a?(Array)
+          library.each do |library|
+            require library
+          end
+        else
+          require library
+        end
       end
 
       if options[:debug]
