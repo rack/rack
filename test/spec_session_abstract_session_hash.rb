@@ -25,4 +25,17 @@ describe Rack::Session::Abstract::SessionHash do
     assert_equal [:bar, :qux], hash.values
   end
 
+  describe "#fetch" do
+    it "returns value for a matching key" do
+      assert_equal :bar, hash.fetch(:foo)
+    end
+
+    it "works with a default value" do
+      assert_equal :default, hash.fetch(:unknown, :default)
+    end
+
+    it "works with a block" do
+      assert_equal :default, hash.fetch(:unkown) { :default }
+    end
+  end
 end
