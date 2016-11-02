@@ -37,5 +37,9 @@ describe Rack::Session::Abstract::SessionHash do
     it "works with a block" do
       assert_equal :default, hash.fetch(:unkown) { :default }
     end
+
+    it "it raises when fetching unknown keys without defaults" do
+      lambda { hash.fetch(:unknown) }.must_raise KeyError
+    end
   end
 end
