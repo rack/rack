@@ -18,6 +18,8 @@ module Rack
         include Enumerable
         attr_writer :id
 
+        Unspecified = Object.new
+
         def self.find(req)
           req.get_header RACK_SESSION
         end
@@ -54,7 +56,15 @@ module Rack
           load_for_read!
           @data[key.to_s]
         end
-        alias :fetch :[]
+
+        def fetch(key, default=Unspecified, &block)
+          load_for_read!
+          if default == Unspecified
+            @data.fetch(key.to_s, &block)
+          else
+            @data.fetch(key.to_s, default, &block)
+          end
+        end
 
         def has_key?(key)
           load_for_read!
