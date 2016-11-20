@@ -381,6 +381,7 @@ module Rack
 
         pid = ::File.read(options[:pid]).to_i
         return :dead if pid == 0
+        return :this_process if pid == Process.pid
 
         Process.kill(0, pid)
         :running

@@ -4,6 +4,7 @@ require 'rack/server'
 require 'tempfile'
 require 'socket'
 require 'open-uri'
+require 'rbconfig'
 
 module Minitest::Spec::DSL
   alias :should :it
@@ -16,6 +17,10 @@ describe Rack::Server do
 
   def app
     lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
+  end
+
+  def ruby_exe
+    File.join(RbConfig::CONFIG["bindir"], RbConfig::CONFIG["RUBY_INSTALL_NAME"] + RbConfig::CONFIG["EXEEXT"])
   end
 
   def with_stderr
@@ -141,7 +146,10 @@ describe Rack::Server do
   it "check pid file presence and running process" do
     pidfile = Tempfile.open('pidfile') { |f| f.write($$); break f }.path
     server = Rack::Server.new(:pid => pidfile)
-    server.send(:pidfile_process_status).must_equal :running
+    server.send(:pidfile_process_status).must_equal :this_process
+
+    script = "print Rack::Server.new(:pid => \"#{pidfile}\").send(:pidfile_process_status).inspect"
+    `'#{ruby_exe}' -I./lib -rrack/server -e '#{script}'`.must_equal ":running"
   end
 
   it "check pid file presence and dead process" do
