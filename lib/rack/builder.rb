@@ -142,11 +142,13 @@ module Rack
     end
 
     def to_app
-      app = @map ? generate_map(@run, @map) : @run
-      fail "missing run or map statement" unless app
-      app = @use.reverse.inject(app) { |a,e| e[a] }
-      @warmup.call(app) if @warmup
-      app
+      @app ||= begin
+                 app = @map ? generate_map(@run, @map) : @run
+                 fail "missing run or map statement" unless app
+                 app = @use.reverse.inject(app) { |a,e| e[a] }
+                 @warmup.call(app) if @warmup
+                 app
+               end
     end
 
     def call(env)
