@@ -476,7 +476,7 @@ class RackRequestTest < Minitest::Spec
 
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.referer.must_equal nil
+    req.referer.must_be_nil
   end
 
   it "extract user agent correctly" do
@@ -486,25 +486,25 @@ class RackRequestTest < Minitest::Spec
 
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.user_agent.must_equal nil
+    req.user_agent.must_be_nil
   end
 
   it "treat missing content type as nil" do
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.content_type.must_equal nil
+    req.content_type.must_be_nil
   end
 
   it "treat empty content type as nil" do
     req = make_request \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.content_type.must_equal nil
+    req.content_type.must_be_nil
   end
 
   it "return nil media type for empty content type" do
     req = make_request \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.media_type.must_equal nil
+    req.media_type.must_be_nil
   end
 
   it "cache, but invalidates the cache" do
@@ -1296,13 +1296,13 @@ EOF
     req.trusted_proxy?('unix').must_equal 0
     req.trusted_proxy?('unix:/tmp/sock').must_equal 0
 
-    req.trusted_proxy?("unix.example.org").must_equal nil
-    req.trusted_proxy?("example.org\n127.0.0.1").must_equal nil
-    req.trusted_proxy?("127.0.0.1\nexample.org").must_equal nil
-    req.trusted_proxy?("11.0.0.1").must_equal nil
-    req.trusted_proxy?("172.15.0.1").must_equal nil
-    req.trusted_proxy?("172.32.0.1").must_equal nil
-    req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal nil
+    req.trusted_proxy?("unix.example.org").must_be_nil
+    req.trusted_proxy?("example.org\n127.0.0.1").must_be_nil
+    req.trusted_proxy?("127.0.0.1\nexample.org").must_be_nil
+    req.trusted_proxy?("11.0.0.1").must_be_nil
+    req.trusted_proxy?("172.15.0.1").must_be_nil
+    req.trusted_proxy?("172.32.0.1").must_be_nil
+    req.trusted_proxy?("2001:470:1f0b:18f8::1").must_be_nil
   end
 
   it "sets the default session to an empty hash" do

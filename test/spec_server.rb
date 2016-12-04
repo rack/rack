@@ -77,7 +77,7 @@ describe Rack::Server do
       o, ENV["REQUEST_METHOD"] = ENV["REQUEST_METHOD"], 'foo'
       server = Rack::Server.new(:app => 'foo')
       server.server.name =~ /CGI/
-      Rack::Server.logging_middleware.call(server).must_equal nil
+      Rack::Server.logging_middleware.call(server).must_be_nil
     ensure
       ENV['REQUEST_METHOD'] = o
     end
@@ -85,7 +85,7 @@ describe Rack::Server do
 
   it "be quiet if said so" do
     server = Rack::Server.new(:app => "FOO", :quiet => true)
-    Rack::Server.logging_middleware.call(server).must_equal nil
+    Rack::Server.logging_middleware.call(server).must_be_nil
   end
 
   it "use a full path to the pidfile" do

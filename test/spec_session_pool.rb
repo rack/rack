@@ -138,7 +138,7 @@ describe Rack::Session::Pool do
     dreq = Rack::MockRequest.new(defer)
 
     res1 = dreq.get("/")
-    res1["Set-Cookie"].must_equal nil
+    res1["Set-Cookie"].must_be_nil
     res1.body.must_equal '{"counter"=>1}'
     pool.pool.size.must_equal 1
   end

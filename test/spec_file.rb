@@ -184,8 +184,8 @@ describe Rack::File do
     status, heads, _ = file(DOCROOT).call(env)
 
     status.must_equal 200
-    heads['Cache-Control'].must_equal nil
-    heads['Access-Control-Allow-Origin'].must_equal nil
+    heads['Cache-Control'].must_be_nil
+    heads['Access-Control-Allow-Origin'].must_be_nil
   end
 
   it "only support GET, HEAD, and OPTIONS requests" do
@@ -239,7 +239,7 @@ describe Rack::File do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT, nil, nil)))
     res = req.get "/cgi/test"
     res.must_be :successful?
-    res['Content-Type'].must_equal nil
+    res['Content-Type'].must_be_nil
   end
 
   it "return error when file not found for head request" do

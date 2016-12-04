@@ -195,7 +195,7 @@ describe Rack::Handler::WEBrick do
     Net::HTTP.start(@host, @port){ |http|
       res = http.get("/chunked")
       res["Transfer-Encoding"].must_equal "chunked"
-      res["Content-Length"].must_equal nil
+      res["Content-Length"].must_be_nil
       res.body.must_equal "chunked"
     }
   end

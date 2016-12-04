@@ -36,13 +36,13 @@ describe Rack::ContentLength do
   it "not set Content-Length on 304 responses" do
     app = lambda { |env| [304, {}, []] }
     response = content_length(app).call(request)
-    response[1]['Content-Length'].must_equal nil
+    response[1]['Content-Length'].must_be_nil
   end
 
   it "not set Content-Length when Transfer-Encoding is chunked" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain', 'Transfer-Encoding' => 'chunked'}, []] }
     response = content_length(app).call(request)
-    response[1]['Content-Length'].must_equal nil
+    response[1]['Content-Length'].must_be_nil
   end
 
   # Using "Connection: close" for this is fairly contended. It might be useful
@@ -51,7 +51,7 @@ describe Rack::ContentLength do
   # should "not force a Content-Length when Connection:close" do
   #   app = lambda { |env| [200, {'Connection' => 'close'}, []] }
   #   response = content_length(app).call({})
-  #   response[1]['Content-Length'].must_equal nil
+  #   response[1]['Content-Length'].must_be_nil
   # end
 
   it "close bodies that need to be closed" do
@@ -64,7 +64,7 @@ describe Rack::ContentLength do
 
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
     response = content_length(app).call(request)
-    body.closed.must_equal nil
+    body.closed.must_be_nil
     response[2].close
     body.closed.must_equal true
   end

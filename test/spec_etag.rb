@@ -58,7 +58,7 @@ describe Rack::ETag do
   it "not set Cache-Control if directive isn't present" do
     app = lambda { |env| [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]] }
     response = etag(app, nil, nil).call(request)
-    response[1]['Cache-Control'].must_equal nil
+    response[1]['Cache-Control'].must_be_nil
   end
 
   it "not change ETag if it is already set" do

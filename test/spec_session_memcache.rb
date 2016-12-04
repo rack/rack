@@ -143,7 +143,7 @@ begin
       res1.body.must_equal '{"counter"=>1}'
 
       res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
-      res2["Set-Cookie"].must_equal nil
+      res2["Set-Cookie"].must_be_nil
       res2.body.must_equal '{"counter"=>2}'
 
       res3 = req.get("/", "HTTP_COOKIE" => cookie)
@@ -183,7 +183,7 @@ begin
       creq = Rack::MockRequest.new(count)
 
       res0 = dreq.get("/")
-      res0["Set-Cookie"].must_equal nil
+      res0["Set-Cookie"].must_be_nil
       res0.body.must_equal '{"counter"=>1}'
 
       res0 = creq.get("/")
@@ -201,7 +201,7 @@ begin
       creq = Rack::MockRequest.new(count)
 
       res0 = sreq.get("/")
-      res0["Set-Cookie"].must_equal nil
+      res0["Set-Cookie"].must_be_nil
       res0.body.must_equal '{"counter"=>1}'
 
       res0 = creq.get("/")
