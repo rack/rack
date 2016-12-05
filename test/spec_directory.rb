@@ -97,7 +97,8 @@ describe Rack::Directory do
     res = mr.get("/cgi/test%2bdirectory")
 
     res.must_be :ok?
-    res.body.must_match(%r[/cgi/test\+directory/test\+file])
+    res.body.must_match(Regexp.new(Rack::Utils.escape_html(
+      "/cgi/test\\+directory/test\\+file")))
 
     res = mr.get("/cgi/test%2bdirectory/test%2bfile")
     res.must_be :ok?
@@ -117,7 +118,25 @@ describe Rack::Directory do
 
       str = ''.dup
       body.each { |x| str << x }
-      assert_match "/foo%20bar/omg%20omg.txt", str
+      assert_match Rack::Utils.escape_html("/foo%20bar/omg%20omg.txt"), str
+    end
+  end
+
+  it "correctly escape script name with '" do
+    Dir.mktmpdir do |dir|
+      quote_dir = "foo'bar"
+      full_dir = File.join(dir, quote_dir)
+      FileUtils.mkdir full_dir
+      FileUtils.touch File.join(full_dir, "omg'omg.txt")
+      app = Rack::Directory.new(dir, FILE_CATCH)
+      env = Rack::MockRequest.env_for(Rack::Utils.escape("/#{quote_dir}/"))
+      status, _, body = app.call env
+
+      assert_equal 200, status
+
+      str = ''.dup
+      body.each { |x| str << x }
+      assert_match Rack::Utils.escape_html("/foo'bar/omg'omg.txt"), str
     end
   end
 
@@ -134,7 +153,8 @@ describe Rack::Directory do
     res = mr.get("/script-path/cgi/test%2bdirectory")
 
     res.must_be :ok?
-    res.body.must_match(%r[/script-path/cgi/test\+directory/test\+file])
+    res.body.must_match(Regexp.new(Rack::Utils.escape_html(
+      "/script-path/cgi/test\\+directory/test\\+file")))
 
     res = mr.get("/script-path/cgi/test+directory/test+file")
     res.must_be :ok?
