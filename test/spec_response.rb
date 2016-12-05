@@ -55,7 +55,7 @@ describe Rack::Response do
 
   it "can set and read headers" do
     response = Rack::Response.new
-    response["Content-Type"].must_equal nil
+    response["Content-Type"].must_be_nil
     response["Content-Type"] = "text/plain"
     response["Content-Type"].must_equal "text/plain"
   end
@@ -273,8 +273,8 @@ describe Rack::Response do
     _, header, body = r.finish
     str = ""; body.each { |part| str << part }
     str.must_be :empty?
-    header["Content-Type"].must_equal nil
-    header['Content-Length'].must_equal nil
+    header["Content-Type"].must_be_nil
+    header['Content-Length'].must_be_nil
 
     lambda {
       Rack::Response.new(Object.new)

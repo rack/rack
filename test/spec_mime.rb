@@ -19,7 +19,7 @@ describe Rack::Mime do
   end
 
   it "should support null fallbacks" do
-    Rack::Mime.mime_type('.nothing', nil).must_equal nil
+    Rack::Mime.mime_type('.nothing', nil).must_be_nil
   end
 
   it "should match exact mimes" do

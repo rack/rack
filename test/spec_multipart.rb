@@ -27,7 +27,7 @@ describe Rack::Multipart do
   it "return nil if content type is not multipart" do
     env = Rack::MockRequest.env_for("/",
             "CONTENT_TYPE" => 'application/x-www-form-urlencoded')
-    Rack::Multipart.parse_multipart(env).must_equal nil
+    Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
   it "parse multipart content when content type present but filename is not" do
@@ -315,7 +315,7 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
-    params["files"].must_equal nil
+    params["files"].must_be_nil
     params.keys.wont_include "files"
   end
 
@@ -563,7 +563,7 @@ Content-Type: image/jpeg\r
 
   it "return nil if no UploadedFiles were used" do
     data = Rack::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => "contents"}])
-    data.must_equal nil
+    data.must_be_nil
   end
 
   it "raise ArgumentError if params is not a Hash" do

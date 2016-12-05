@@ -394,7 +394,7 @@ describe Rack::Utils do
     Rack::Utils.best_q_match("text/plain,text/html", %w[text/html text/plain]).must_equal "text/html"
 
     # When there are no matches, return nil:
-    Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).must_equal nil
+    Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).must_be_nil
   end
 
   it "escape html entities [&><'\"/]" do
@@ -427,9 +427,9 @@ describe Rack::Utils do
       Rack::Utils.select_best_encoding(a, b)
     end
 
-    helper.call(%w(), [["x", 1]]).must_equal nil
-    helper.call(%w(identity), [["identity", 0.0]]).must_equal nil
-    helper.call(%w(identity), [["*", 0.0]]).must_equal nil
+    helper.call(%w(), [["x", 1]]).must_be_nil
+    helper.call(%w(identity), [["identity", 0.0]]).must_be_nil
+    helper.call(%w(identity), [["*", 0.0]]).must_be_nil
 
     helper.call(%w(identity), [["compress", 1.0], ["gzip", 1.0]]).must_equal "identity"
 
@@ -538,15 +538,15 @@ end
 
 describe Rack::Utils, "byte_range" do
   it "ignore missing or syntactically invalid byte ranges" do
-    Rack::Utils.byte_ranges({},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "foobar"},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "furlongs=123-456"},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes="},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=-"},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=123,456"},500).must_equal nil
+    Rack::Utils.byte_ranges({},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "foobar"},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "furlongs=123-456"},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes="},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=-"},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=123,456"},500).must_be_nil
     # A range of non-positive length is syntactically invalid and ignored:
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=456-123"},500).must_equal nil
-    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=456-455"},500).must_equal nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=456-123"},500).must_be_nil
+    Rack::Utils.byte_ranges({"HTTP_RANGE" => "bytes=456-455"},500).must_be_nil
   end
 
   it "parse simple byte ranges" do

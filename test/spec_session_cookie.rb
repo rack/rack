@@ -98,7 +98,7 @@ describe Rack::Session::Cookie do
 
       it 'rescues failures on decode' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
-        coder.decode('lulz').must_equal nil
+        coder.decode('lulz').must_be_nil
       end
     end
 
@@ -117,7 +117,7 @@ describe Rack::Session::Cookie do
 
       it 'rescues failures on decode' do
         coder = Rack::Session::Cookie::Base64::JSON.new
-        coder.decode('lulz').must_equal nil
+        coder.decode('lulz').must_be_nil
       end
     end
 
@@ -139,7 +139,7 @@ describe Rack::Session::Cookie do
 
       it 'rescues failures on decode' do
         coder = Rack::Session::Cookie::Base64::ZipJSON.new
-        coder.decode('lulz').must_equal nil
+        coder.decode('lulz').must_be_nil
       end
     end
   end
