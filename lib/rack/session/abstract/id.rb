@@ -177,7 +177,7 @@ module Rack
       # * :key determines the name of the cookie, by default it is
       #   'rack.session'
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
-      #   cookie options as by Rack::Response#add_cookie
+      #   cookie options as by Rack::Response#set_cookie
       # * :skip will not a set a cookie in the response nor update the session state
       # * :defer will not set a cookie in the response but still update the session
       #   state if it is used with a backend
