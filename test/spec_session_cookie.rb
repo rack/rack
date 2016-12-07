@@ -103,13 +103,13 @@ describe Rack::Session::Cookie do
     end
 
     describe 'JSON' do
-      it 'marshals and base64 encodes' do
+      it 'JSON and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
         obj   = %w[fuuuuu]
         coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m')
       end
 
-      it 'marshals and base64 decodes' do
+      it 'JSON and base64 decodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
         str   = [::JSON.dump(%w[fuuuuu])].pack('m')
         coder.decode(str).must_equal ::JSON.parse(str.unpack('m').first)
