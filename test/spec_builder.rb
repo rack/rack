@@ -77,6 +77,21 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
+  it "supports proc on use" do
+    upcase_middleware = proc do |app,env|
+      code, header, body = app.call(env)
+      [code, header, body.map(&:upcase)]
+    end
+
+    app = builder do
+      use upcase_middleware
+      run lambda { |env| [200, {"Content-Type" => "text/plain"}, ['Hi Boss']] }
+    end
+
+    response = Rack::MockRequest.new(app).get("/")
+    response.body.to_s.must_equal 'HI BOSS'
+  end
+
   it "supports blocks on use" do
     app = builder do
       use Rack::ShowExceptions
