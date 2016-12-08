@@ -19,3 +19,7 @@ group :extra do
   gem 'memcache-client'
   gem 'thin', :platforms => c_platforms
 end
+
+group :doc do
+  gem 'rdoc'
+end
