@@ -66,10 +66,7 @@ EOF
                       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size.to_s,
                       :method => "POST", :input => input)
-    begin
-      app.call env
-    rescue EOFError
-    end
+    app.call env
 
     env["REQUEST_METHOD"].must_equal "POST"
   end
