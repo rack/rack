@@ -1,5 +1,6 @@
 require 'minitest/autorun'
 require 'rack/mock'
+require 'concurrent/utility/native_integer'
 require 'concurrent/atomic/count_down_latch'
 require File.expand_path('../testrequest', __FILE__)
 
