@@ -37,7 +37,10 @@ module Rack
 
     def method_override_param(req)
       req.POST[METHOD_OVERRIDE_PARAM_KEY]
-    rescue Utils::InvalidParameterError, Utils::ParameterTypeError, EOFError
+    rescue Utils::InvalidParameterError, Utils::ParameterTypeError
+      req.get_header(RACK_ERRORS).puts "Invalid or incomplete POST params"
+    rescue EOFError
+      req.get_header(RACK_ERRORS).puts "Bad request content body"
     end
   end
 end
