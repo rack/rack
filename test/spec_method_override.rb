@@ -66,12 +66,25 @@ EOF
                       "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size.to_s,
                       :method => "POST", :input => input)
-    begin
-      app.call env
-    rescue EOFError
-    end
+    app.call env
 
     env["REQUEST_METHOD"].must_equal "POST"
+  end
+
+  it "writes error to RACK_ERRORS when given invalid multipart form data" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="huge"; filename="huge"\r
+EOF
+    env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size.to_s,
+                      Rack::RACK_ERRORS => StringIO.new,
+                      :method => "POST", :input => input)
+    Rack::MethodOverride.new(proc { [200, {"Content-Type" => "text/plain"}, []] }).call env
+
+    env[Rack::RACK_ERRORS].rewind
+    env[Rack::RACK_ERRORS].read.must_match /Bad request content body/
   end
 
   it "not modify REQUEST_METHOD for POST requests when the params are unparseable" do
