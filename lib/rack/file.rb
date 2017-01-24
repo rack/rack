@@ -158,7 +158,7 @@ module Rack
 
     def filesize path
       # If response_body is present, use its size.
-      return Rack::Utils.bytesize(response_body) if response_body
+      return response_body.bytesize if response_body
 
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
