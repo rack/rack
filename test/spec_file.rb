@@ -248,4 +248,17 @@ describe Rack::File do
     res.body.must_be :empty?
   end
 
+  class MyFile < Rack::File
+    def response_body
+      "hello world"
+    end
+  end
+
+  it "behaves gracefully if response_body is present" do
+    file = Rack::Lint.new MyFile.new(DOCROOT)
+    res  = Rack::MockRequest.new(file).get("/cgi/test")
+
+    res.must_be :ok?
+  end
+
 end
