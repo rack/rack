@@ -60,13 +60,14 @@ module Rack
     def finish(&block)
       @block = block
 
-      if [204, 205, 304].include?(status.to_i)
+      status_code = status.to_i
+      if status_code == 204 || status_code == 205 || status_code == 304
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
-        [status.to_i, header, []]
+        [status_code, header, []]
       else
-        [status.to_i, header, BodyProxy.new(self){}]
+        [status_code, header, BodyProxy.new(self){}]
       end
     end
     alias to_a finish           # For *response
