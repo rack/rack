@@ -81,13 +81,22 @@ describe Rack::Deflater do
     yield(status, headers, body) if block_given?
   end
 
+  # automatic gzip detection (streamable)
+  def auto_inflater
+    Zlib::Inflate.new(32 + Zlib::MAX_WBITS)
+  end
+
+  def deflate_or_gzip
+    {'deflate, gzip' => 'gzip'}
+  end
+
   it 'be able to deflate bodies that respond to each' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
-    verify(200, 'foobar', 'deflate', { 'app_body' => app_body }) do |status, headers, body|
+    verify(200, 'foobar', deflate_or_gzip, { 'app_body' => app_body }) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
@@ -98,15 +107,15 @@ describe Rack::Deflater do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
-    verify(200, app_body, 'deflate', { 'skip_body_verify' => true }) do |status, headers, body|
+    verify(200, app_body, deflate_or_gzip, { 'skip_body_verify' => true }) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
 
       buf = []
-      inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflater = auto_inflater
       body.each { |part| buf << inflater.inflate(part) }
       buf << inflater.finish
 
@@ -118,32 +127,33 @@ describe Rack::Deflater do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
     opts = { 'skip_body_verify' => true }
-    verify(200, app_body, 'deflate', opts) do |status, headers, body|
+    verify(200, app_body, 'gzip', opts) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
 
       buf = []
-      inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflater = auto_inflater
       FakeDisconnect = Class.new(RuntimeError)
       assert_raises(FakeDisconnect, "not Zlib::DataError not raised") do
         body.each do |part|
-          buf << inflater.inflate(part)
+          tmp = inflater.inflate(part)
+          buf << tmp if tmp.bytesize > 0
           raise FakeDisconnect
         end
       end
-      assert_raises(Zlib::BufError) { inflater.finish }
+      inflater.finish
       buf.must_equal(%w(foo))
     end
   end
 
   # TODO: This is really just a special case of the above...
   it 'be able to deflate String bodies' do
-    verify(200, 'Hello world!', 'deflate') do |status, headers, body|
+    verify(200, 'Hello world!', deflate_or_gzip) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
@@ -280,7 +290,7 @@ describe Rack::Deflater do
         'Content-Encoding' => 'identity'
       }
     }
-    verify(200, 'Hello World!', 'deflate', options)
+    verify(200, 'Hello World!', deflate_or_gzip, options)
   end
 
   it "deflate if content-type matches :include" do
@@ -334,7 +344,7 @@ describe Rack::Deflater do
         :if => lambda { |env, status, headers, body| true }
       }
     }
-    verify(200, 'Hello World!', 'deflate', options)
+    verify(200, 'Hello World!', deflate_or_gzip, options)
   end
 
   it "not deflate if :if lambda evaluates to false" do

@@ -8,7 +8,6 @@ module Rack
   # Currently supported compression algorithms:
   #
   #   * gzip
-  #   * deflate
   #   * identity (no transformation)
   #
   # The middleware automatically detects when compression is supported
@@ -41,7 +40,7 @@ module Rack
 
       request = Request.new(env)
 
-      encoding = Utils.select_best_encoding(%w(gzip deflate identity),
+      encoding = Utils.select_best_encoding(%w(gzip identity),
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
@@ -57,10 +56,6 @@ module Rack
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
         [status, headers, GzipStream.new(body, mtime)]
-      when "deflate"
-        headers['Content-Encoding'] = "deflate"
-        headers.delete(CONTENT_LENGTH)
-        [status, headers, DeflateStream.new(body)]
       when "identity"
         [status, headers, body]
       when nil
@@ -92,36 +87,6 @@ module Rack
 
       def write(data)
         @writer.call(data)
-      end
-
-      def close
-        return if @closed
-        @closed = true
-        @body.close if @body.respond_to?(:close)
-      end
-    end
-
-    class DeflateStream
-      DEFLATE_ARGS = [
-        Zlib::DEFAULT_COMPRESSION,
-        # drop the zlib header which causes both Safari and IE to choke
-        -Zlib::MAX_WBITS,
-        Zlib::DEF_MEM_LEVEL,
-        Zlib::DEFAULT_STRATEGY
-      ]
-
-      def initialize(body)
-        @body = body
-        @closed = false
-      end
-
-      def each
-        deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
-        yield fin = deflator.finish
-      ensure
-        deflator.finish unless fin
-        deflator.close
       end
 
       def close
