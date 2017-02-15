@@ -60,7 +60,7 @@ module Rack
     def finish(&block)
       @block = block
 
-      if [204, 205, 304].include?(status.to_i)
+      if [204, 304].include?(status.to_i)
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close

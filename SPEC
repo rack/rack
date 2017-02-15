@@ -237,10 +237,10 @@ consisting of lines (for multiple header values, e.g. multiple
 The lines must not contain characters below 037.
 === The Content-Type
 There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
-204, 205 or 304.
+204 or 304.
 === The Content-Length
 There must not be a <tt>Content-Length</tt> header when the
-+Status+ is 1xx, 204, 205 or 304.
++Status+ is 1xx, 204 or 304.
 === The Body
 The Body must respond to +each+
 and must only yield String values.

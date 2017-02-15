@@ -410,7 +410,7 @@ describe Rack::Response do
     res.body.must_be :closed?
   end
 
-  it "calls close on #body when 204, 205, or 304" do
+  it "calls close on #body when 204 or 304" do
     res = Rack::Response.new
     res.body = StringIO.new
     res.finish
@@ -424,7 +424,7 @@ describe Rack::Response do
     res.body = StringIO.new
     res.status = 205
     _, _, b = res.finish
-    res.body.must_be :closed?
+    res.body.wont_be :closed?
     b.wont_equal res.body
 
     res.body = StringIO.new
