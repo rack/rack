@@ -186,7 +186,7 @@ describe Rack::Response do
     response.delete_cookie "foo"
     response["Set-Cookie"].must_equal [
       "foo2=bar2",
-      "foo=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"
+      "foo=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     ].join("\n")
   end
 
@@ -196,10 +196,10 @@ describe Rack::Response do
     response.set_cookie "foo", {:value => "bar", :domain => ".example.com"}
     response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
     response.delete_cookie "foo", :domain => ".example.com"
-    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
     response.delete_cookie "foo", :domain => "sample.example.com"
-    response["Set-Cookie"].must_equal ["foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000",
-                                         "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
+                                         "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
   end
 
   it "can delete cookies with the same name with different paths" do
@@ -211,7 +211,7 @@ describe Rack::Response do
 
     response.delete_cookie "foo", :path => "/path"
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
-                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 -0000"].join("\n")
+                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
   end
 
   it "can do redirects" do

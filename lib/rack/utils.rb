@@ -221,31 +221,7 @@ module Rack
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
-        # There is an RFC mess in the area of date formatting for Cookies. Not
-        # only are there contradicting RFCs and examples within RFC text, but
-        # there are also numerous conflicting names of fields and partially
-        # cross-applicable specifications.
-        #
-        # These are best described in RFC 2616 3.3.1. This RFC text also
-        # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
-        # fixed length format with space-date delimited fields.
-        #
-        # See also RFC 1123 section 5.2.14.
-        #
-        # RFC 6265 also specifies "sane-cookie-date" as RFC 1123 date, defined
-        # in RFC 2616 3.3.1. RFC 6265 also gives examples that clearly denote
-        # the space delimited format. These formats are compliant with RFC 2822.
-        #
-        # For reference, all involved RFCs are:
-        # RFC 822
-        # RFC 1123
-        # RFC 2109
-        # RFC 2616
-        # RFC 2822
-        # RFC 2965
-        # RFC 6265
-        expires = "; expires=" +
-          rfc2822(value[:expires].clone.gmtime) if value[:expires]
+        expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
