@@ -52,6 +52,7 @@ module Rack
 
     def initialize(default_app = nil, &block)
       @use, @map, @run, @warmup = [], nil, default_app, nil
+      @use_reverse = @use.reverse_each
       instance_eval(&block) if block_given?
     end
 
@@ -144,7 +145,7 @@ module Rack
     def to_app
       app = @map ? generate_map(@run, @map) : @run
       fail "missing run or map statement" unless app
-      app = @use.reverse.inject(app) { |a,e| e[a] }
+      app = @use_reverse.inject(app) { |a,e| e[a] }
       @warmup.call(app) if @warmup
       app
     end
