@@ -174,6 +174,27 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").must_be :server_error?
   end
 
+  it "supports #freeze_app for freezing app and middleware" do
+    app = builder do
+      freeze_app
+      use Rack::ShowExceptions
+      use(Class.new do
+        def initialize(app) @app = app end
+        def call(env) @a = 1 if env['PATH_INFO'] == '/a'; @app.call(env) end
+      end)
+      o = Object.new
+      def o.call(env)
+        @a = 1 if env['PATH_INFO'] == '/b'; 
+        [200, {}, []]
+      end
+      run o
+    end
+
+    Rack::MockRequest.new(app).get("/a").must_be :server_error?
+    Rack::MockRequest.new(app).get("/b").must_be :server_error?
+    Rack::MockRequest.new(app).get("/c").status.must_equal 200
+  end
+
   it 'complains about a missing run' do
     proc do
       Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
