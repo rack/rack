@@ -51,7 +51,7 @@ module Rack
     end
 
     def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup = [], nil, default_app, nil
+      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
       instance_eval(&block) if block_given?
     end
 
@@ -141,10 +141,17 @@ module Rack
       @map[path] = block
     end
 
+    # Freeze the app (set using run) and all middleware instances when building the application
+    # in to_app.
+    def freeze_app
+      @freeze_app = true
+    end
+
     def to_app
       app = @map ? generate_map(@run, @map) : @run
       fail "missing run or map statement" unless app
-      app = @use.reverse.inject(app) { |a,e| e[a] }
+      app.freeze if @freeze_app
+      app = @use.reverse.inject(app) { |a,e| e[a].tap { |x| x.freeze if @freeze_app } }
       @warmup.call(app) if @warmup
       app
     end
