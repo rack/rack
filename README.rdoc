@@ -44,6 +44,7 @@ These frameworks include Rack adapters in their distributions:
 * Mack
 * Maveric
 * Merb
+* Padrino
 * Racktools::SimpleApplication
 * Ramaze
 * Ruby on Rails
