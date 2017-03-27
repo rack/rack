@@ -24,7 +24,7 @@ module Rack
           size = chunk.bytesize
           next if size == 0
 
-          chunk = chunk.dup.force_encoding(Encoding::BINARY)
+          chunk = chunk.b
           yield [size.to_s(16), term, chunk, term].join
         end
         yield TAIL
