@@ -128,7 +128,7 @@ module Rack
         end
       end
 
-      empty_str = String.new.force_encoding(Encoding::ASCII_8BIT)
+      empty_str = String.new
       opts[:input] ||= empty_str
       if String === opts[:input]
         rack_input = StringIO.new(opts[:input])
