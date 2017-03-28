@@ -3,7 +3,8 @@ module Rack
     HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
 
     METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
-    HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+    HTTP_METHOD_OVERRIDE_HEADER_DEPRECATED = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+    HTTP_METHOD_OVERRIDE_HEADER = "X-HTTP-Method-Override".freeze
     ALLOWED_METHODS = %w[POST]
 
     def initialize(app)
@@ -25,7 +26,7 @@ module Rack
     def method_override(env)
       req = Request.new(env)
       method = method_override_param(req) ||
-        env[HTTP_METHOD_OVERRIDE_HEADER]
+        method_override_header(env)
       method.to_s.upcase
     end
 
@@ -33,6 +34,17 @@ module Rack
 
     def allowed_methods
       ALLOWED_METHODS
+    end
+
+    def method_override_header(env)
+      if env[HTTP_METHOD_OVERRIDE_HEADER_DEPRECATED]
+        if logger = env[RACK_LOGGER]
+          logger.warn "Deprecation notice: #{HTTP_METHOD_OVERRIDE_HEADER_DEPRECATED} header is deprecated and will be removed. Please use #{HTTP_METHOD_OVERRIDE_HEADER} for HTTP method override."
+        end
+        env[HTTP_METHOD_OVERRIDE_HEADER_DEPRECATED]
+      else
+        env[HTTP_METHOD_OVERRIDE_HEADER]
+      end
     end
 
     def method_override_param(req)
