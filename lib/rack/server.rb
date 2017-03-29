@@ -133,16 +133,6 @@ module Rack
     # Providing an options hash will prevent ARGV parsing and will not include
     # any default options.
     #
-    # This method can be used to very easily launch a CGI application, for
-    # example:
-    #
-    #  Rack::Server.start(
-    #    :app => lambda do |e|
-    #      [200, {'Content-Type' => 'text/html'}, ['hello world']]
-    #    end,
-    #    :server => 'cgi'
-    #  )
-    #
     # Further options available here are documented on Rack::Server#initialize
     def self.start(options = nil)
       new(options).start
@@ -151,8 +141,6 @@ module Rack
     attr_writer :options
 
     # Options may include:
-    # * :app
-    #     a rack application to run (overrides :config)
     # * :config
     #     a rackup configuration file path to load (.ru)
     # * :environment
