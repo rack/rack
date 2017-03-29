@@ -227,23 +227,21 @@ module Rack
       end
 
       def default_middleware_by_environment
-        m = Hash.new {|h,k| h[k] = []}
-        m["deployment"] = [
-          [Rack::ContentLength],
-          [Rack::Chunked],
-          logging_middleware,
-          [Rack::TempfileReaper]
-        ]
-        m["development"] = [
-          [Rack::ContentLength],
-          [Rack::Chunked],
-          logging_middleware,
-          [Rack::ShowExceptions],
-          [Rack::Lint],
-          [Rack::TempfileReaper]
-        ]
-
-        m
+        { "deployment"  => [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware,
+            [Rack::TempfileReaper],
+          ],
+          "development" => [
+            [Rack::ContentLength],
+            [Rack::Chunked],
+            logging_middleware,
+            [Rack::ShowExceptions],
+            [Rack::Lint],
+            [Rack::TempfileReaper],
+          ],
+        }
       end
 
       def middleware
@@ -346,7 +344,7 @@ module Rack
           next unless middleware
           klass, *args = middleware
           app = klass.new(app, *args)
-        end
+        end if middleware.has_key?(options[:environment])
         app
       end
 
