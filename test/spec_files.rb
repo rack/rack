@@ -261,6 +261,7 @@ describe Rack::Files do
     res  = Rack::MockRequest.new(file).get("/cgi/test")
 
     res.must_be :ok?
+    res.body.must_equal "hello world"
   end
 
 end

@@ -99,7 +99,7 @@ module Rack
       response[2] = [response_body] unless response_body.nil?
 
       response[1][CONTENT_LENGTH] = size.to_s
-      response[2] = make_body request, path, range
+      response[2] = make_body request, path, range unless response[2]
       response
     end
 
