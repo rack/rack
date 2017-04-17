@@ -284,8 +284,9 @@ module Rack
         # Extract session id from request object.
 
         def extract_session_id(request)
-          sid = request.cookies[@key]
-          sid ||= request.params[@key] unless @cookie_only
+          cookie_key = key
+          sid = request.cookies[cookie_key]
+          sid ||= request.params[cookie_key] unless @cookie_only
           sid
         end
 
@@ -369,9 +370,10 @@ module Rack
         # setting if the value didn't change (sid is the same) or expires was given.
 
         def set_cookie(request, res, cookie)
-          if request.cookies[@key] != cookie[:value] || cookie[:expires]
+          cookie_key = key
+          if request.cookies[cookie_key] != cookie[:value] || cookie[:expires]
             res.set_cookie_header =
-              Utils.add_cookie_to_header(res.set_cookie_header, @key, cookie)
+              Utils.add_cookie_to_header(res.set_cookie_header, cookie_key, cookie)
           end
         end
 
