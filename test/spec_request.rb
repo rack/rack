@@ -1251,6 +1251,16 @@ EOF
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, fe80::202:b3ff:fe1e:8329'
     res.body.must_equal 'fe80::202:b3ff:fe1e:8329'
 
+    res = mock.get '/',
+      'REMOTE_ADDR' => '10.1.0.1',
+      'HTTP_X_FORWARDED_FOR' => '10.1.0.2'
+    res.body.must_equal '10.1.0.2'
+
+    res = mock.get '/',
+      'REMOTE_ADDR' => '10.1.0.1',
+      'HTTP_X_FORWARDED_FOR' => '10.1.0.2,10.1.0.3'
+    res.body.must_equal '10.1.0.2'
+
     # Unix Sockets
     res = mock.get '/',
       'REMOTE_ADDR' => 'unix',

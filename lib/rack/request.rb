@@ -261,7 +261,9 @@ module Rack
 
         forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
 
-        return reject_trusted_ip_addresses(forwarded_ips).last || get_header("REMOTE_ADDR")
+        return get_header("REMOTE_ADDR") if forwarded_ips.empty?
+
+        ([ forwarded_ips.first ] + reject_trusted_ip_addresses(forwarded_ips[1..-1])).last
       end
 
       # The media type (type/subtype) portion of the CONTENT_TYPE header
