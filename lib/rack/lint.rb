@@ -497,7 +497,7 @@ module Rack
 
       REQUIRED_METHODS = [
         :read, :write, :read_nonblock, :write_nonblock, :flush, :close,
-        :close_read, :close_write, :closed?
+        :close_read, :close_write, :closed?, :to_io
       ]
 
       def_delegators :@io, *REQUIRED_METHODS
