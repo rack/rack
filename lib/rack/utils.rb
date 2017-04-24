@@ -509,6 +509,7 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
+      306 => '(Unused)',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
