@@ -107,8 +107,8 @@ describe Rack::Multipart do
     def rd.rewind; end
     wr.sync = true
 
-    # mock out length to make this pipe look like a Tempfile
-    def rd.length
+    # mock out size to make this pipe look like a Tempfile
+    def rd.size
       1024 * 1024 * 8
     end
 
@@ -136,7 +136,7 @@ describe Rack::Multipart do
 
     fixture = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
-      "CONTENT_LENGTH" => rd.length.to_s,
+      "CONTENT_LENGTH" => rd.size.to_s,
       :input => rd,
     }
 
