@@ -90,6 +90,9 @@ describe Rack::MockRequest do
 
     env = Rack::MockRequest.env_for("/", :input => Tempfile.new("name").tap { |t| t << "foo" })
     env["CONTENT_LENGTH"].must_equal "3"
+
+    env = Rack::MockRequest.env_for("/", :input => IO.pipe.first)
+    env["CONTENT_LENGTH"].must_be_nil
   end
 
   it "allow posting" do
