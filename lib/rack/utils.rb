@@ -581,7 +581,7 @@ module Rack
 
       clean.unshift '/' if parts.empty? || parts.first.empty?
 
-      ::File.join(*clean)
+      ::File.join clean
     end
     module_function :clean_path_info
 
