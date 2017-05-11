@@ -12,6 +12,11 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
+    # MissingParameterError is the error that is raised when incoming structural
+    # parameters (parsed by parse_nested_query) contain missing elements, such
+    # as skipping an array index.
+    class MissingParameterError < IndexError; end
+
     def self.make_default(key_space_limit, param_depth_limit)
       new Params, key_space_limit, param_depth_limit
     end
@@ -98,7 +103,11 @@ module Rack
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
+      elsif params[k].is_a?(Array) && after =~ %r(^\[(\d+)\]$)
+        index = $1.to_i
+        raise MissingParameterError, "skipped Array index (got #{index} while current length is #{params[k].length}) for param `#{k}'" if index > params[k].length
+        params[k][index] = v
+      elsif after =~ %r(^\[\](.+)$)
         child_key = $1
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
@@ -107,6 +116,12 @@ module Rack
         else
           params[k] << normalize_params(make_params, child_key, v, depth - 1)
         end
+      elsif params[k].is_a?(Array) && after =~ %r(^\[(\d)+\](.+)$)
+        index = $1.to_i
+        raise MissingParameterError, "skipped Array index (got #{index} while current length is #{params[k].length}) for param `#{k}'" if index > params[k].length
+        child_key = $2
+        params[k][index] ||= make_params
+        normalize_params(params[k][index], child_key, v, depth - 1)
       else
         params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])

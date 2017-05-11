@@ -210,6 +210,28 @@ describe Rack::Utils do
       must_equal "x" => [{"y" => "1", "z" => {"w" => "a"}}, {"y" => "2", "z" => {"w" => "b"}}]
     Rack::Utils.parse_nested_query("x[][z][w]=a&x[][y]=1&x[][z][w]=b&x[][y]=2").
       must_equal "x" => [{"y" => "1", "z" => {"w" => "a"}}, {"y" => "2", "z" => {"w" => "b"}}]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[1][b]=2").
+      must_equal "x" => [{"a" => "1"}, {"b" => "2"}]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[0][b]=2").
+      must_equal "x" => [{"a" => "1", "b" => "2"}]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[1][b]=2&x[1][a]=3").
+      must_equal "x" => [{"a" => "1"}, {"a" => "3", "b" => "2"}]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[1][b]=2&x[][a]=3").
+      must_equal "x" => [{"a" => "1"}, {"b" => "2", "a" => "3"}]
+    Rack::Utils.parse_nested_query("x[]=1&x[][b]=2").
+      must_equal "x" => ["1", {"b" => "2"}]
+    Rack::Utils.parse_nested_query("x[]=1&x[1][b]=2").
+      must_equal "x" => ["1", {"b" => "2"}]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[1]=2").
+      must_equal "x" => [{"a" => "1"}, "2"]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[]=2").
+      must_equal "x" => [{"a" => "1"}, "2"]
+    Rack::Utils.parse_nested_query("x[][a]=1&x[1][b]=2&x[]=3").
+      must_equal "x" => [{"a" => "1"}, { "b" => "2" }, "3"]
+    Rack::Utils.parse_nested_query("x[0][a]=1&x[1][b]=2").
+      must_equal "x" => {"0" => {"a" => "1"}, "1" => {"b" => "2"}}
+    Rack::Utils.parse_nested_query("x[2]=1").
+      must_equal "x" => {"2" => "1"} # doesn't fail for invalid index
 
     Rack::Utils.parse_nested_query("data[books][][data][page]=1&data[books][][data][page]=2").
       must_equal "data" => { "books" => [{ "data" => { "page" => "1"}}, { "data" => { "page" => "2"}}] }
@@ -222,6 +244,10 @@ describe Rack::Utils do
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_match(/expected Array \(got [^)]*\) for param `x'/)
 
+    lambda { Rack::Utils.parse_nested_query("x[0]=1&x[]=1") }.
+      must_raise(Rack::Utils::ParameterTypeError).
+      message.must_match(/expected Array \(got [^)]*\) for param `x'/)
+
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_equal "expected Array (got String) for param `y'"
@@ -229,6 +255,14 @@ describe Rack::Utils do
     lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
       must_raise(Rack::Utils::InvalidParameterError).
       message.must_equal "invalid byte sequence in UTF-8"
+
+    lambda { Rack::Utils.parse_nested_query("x[]=1&x[2]=2") }.
+      must_raise(Rack::Utils::MissingParameterError).
+      message.must_equal "skipped Array index (got 2 while current length is 1) for param `x'"
+
+    lambda { Rack::Utils.parse_nested_query("x[][a]=1&x[2][a]=2") }.
+      must_raise(Rack::Utils::MissingParameterError).
+      message.must_equal "skipped Array index (got 2 while current length is 1) for param `x'"
   end
 
   it "only moves to a new array when the full key has been seen" do

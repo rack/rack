@@ -13,6 +13,7 @@ module Rack
   module Utils
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
+    MissingParameterError = QueryParser::MissingParameterError
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
