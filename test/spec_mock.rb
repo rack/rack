@@ -211,6 +211,23 @@ describe Rack::MockRequest do
     Rack::MockRequest.new(capp).get('/', :lint => true)
     called.must_equal true
   end
+
+  it "defaults encoding to ASCII 8BIT" do
+    req = Rack::MockRequest.env_for("/foo")
+
+    keys = [
+        Rack::REQUEST_METHOD,
+        Rack::SERVER_NAME,
+        Rack::SERVER_PORT,
+        Rack::QUERY_STRING,
+        Rack::PATH_INFO,
+        Rack::HTTPS,
+        Rack::RACK_URL_SCHEME
+    ]
+    keys.each do |k|
+      assert_equal Encoding::ASCII_8BIT, req[k].encoding
+    end
+  end
 end
 
 describe Rack::MockResponse do
