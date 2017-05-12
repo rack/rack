@@ -91,13 +91,7 @@ module Rack
 
       env = DEFAULT_ENV.dup
 
-      env[REQUEST_METHOD] = opts[:method] ? opts[:method].to_s.upcase : "GET"
-      env["SERVER_NAME"] = uri.host || "example.org"
-      env["SERVER_PORT"] = uri.port ? uri.port.to_s : "80"
-      env[QUERY_STRING] = uri.query.to_s
-      env[PATH_INFO] = (!uri.path || uri.path.empty?) ? "/" : uri.path
-      env["rack.url_scheme"] = uri.scheme || "http"
-      env["HTTPS"] = env["rack.url_scheme"] == "https" ? "on" : "off"
+      env_with_encoding(env, opts, uri)
 
       env[SCRIPT_NAME] = opts[:script_name] || ""
 
@@ -147,6 +141,28 @@ module Rack
       }
 
       env
+    end
+
+    if "<3".respond_to? :encoding
+      def self.env_with_encoding(env, opts, uri)
+        env[REQUEST_METHOD] = (opts[:method] ? opts[:method].to_s.upcase : "GET").b
+        env["SERVER_NAME"] = (uri.host || "example.org").b
+        env["SERVER_PORT"] = (uri.port ? uri.port.to_s : "80").b
+        env[QUERY_STRING] = (uri.query.to_s).b
+        env[PATH_INFO] = ((!uri.path || uri.path.empty?) ? "/" : uri.path).b
+        env["rack.url_scheme"] = (uri.scheme || "http").b
+        env["HTTPS"] = (env["rack.url_scheme"] == "https" ? "on" : "off").b
+      end
+    else
+      def self.env_with_encoding(env, opts, uri)
+        env[REQUEST_METHOD] = opts[:method] ? opts[:method].to_s.upcase : "GET"
+        env["SERVER_NAME"] = uri.host || "example.org"
+        env["SERVER_PORT"] = uri.port ? uri.port.to_s : "80"
+        env[QUERY_STRING] = uri.query.to_s
+        env[PATH_INFO] = (!uri.path || uri.path.empty?) ? "/" : uri.path
+        env["rack.url_scheme"] = uri.scheme || "http"
+        env["HTTPS"] = env["rack.url_scheme"] == "https" ? "on" : "off"
+      end
     end
   end
 
