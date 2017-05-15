@@ -107,11 +107,6 @@ describe Rack::Multipart do
     def rd.rewind; end
     wr.sync = true
 
-    # mock out length to make this pipe look like a Tempfile
-    def rd.length
-      1024 * 1024 * 8
-    end
-
     # write to a pipe in a background thread, this will write a lot
     # unless Rack (properly) shuts down the read end
     thr = Thread.new do
@@ -136,7 +131,7 @@ describe Rack::Multipart do
 
     fixture = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
-      "CONTENT_LENGTH" => rd.length.to_s,
+      "CONTENT_LENGTH" => (1024 * 1024 * 8).to_s,
       :input => rd,
     }
 
