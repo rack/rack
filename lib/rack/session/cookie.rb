@@ -6,9 +6,7 @@ require 'rack/session/abstract/id'
 require 'json'
 
 module Rack
-
   module Session
-
     # Rack::Session::Cookie provides simple cookie based session management.
     # By default, the session is a Ruby Hash stored as base64 encoded marshalled
     # data set to :key (default: rack.session).  The object that encodes the
@@ -28,6 +26,45 @@ module Rack
     #                                :old_secret => 'also_change_me'
     #
     #     All parameters are optional.
+    #
+    # Optional encryption of the session cookie is supported. This can be
+    # done either with a password-based key, or with a key which you
+    # generate using something like:
+    #
+    #     SecureRandom.random_bytes(key_size_in_bytes_here)
+    #
+    # For using a password-based key, specify the following options:
+    #
+    #     :cipher     => 'aes-256-cbc', # The cipher algorithm to use
+    #     :salt       => 'salthere',    # Salt to use for key generation
+    #     :rounds     => 2000,          # Number of iterations for key generation
+    #     :crypto_key => 'yoursecret',  # A password from which to generate the key
+    #
+    # :crypto_key and :salt must be specified in order to enable encryption.
+    # All other options have defaults available.
+    #
+    # Example:
+    #
+    #     use Rack::Session::Cookie, :key        => 'rack.session',
+    #                                :domain     => 'foo.com',
+    #                                :path       => '/',
+    #                                :salt       => 'salthere',
+    #                                :crypto_key => 'my_secret'
+    #
+    # For using a pre-generated key, specify the following options:
+    #
+    #     :cipher     => 'aes-256-cbc', # The cipher algorithm to use
+    #     :crypto_key => your_key_here, # Your pre-generated key
+    #
+    # Example:
+    #
+    #     use Rack::Session::Cookie, :key        => 'rack.session',
+    #                                :domain     => 'foo.com',
+    #                                :path       => '/',
+    #                                :crypto_key => your_key
+    #
+    # Note: If you specify a custom coder, and :crypto_key, then your coder will
+    # be automatically wrapped to deal with encryption.
     #
     # Example of a cookie with no encoding:
     #
@@ -95,6 +132,76 @@ module Rack
         end
       end
 
+      # Encrypted cookie
+      class Encrypted
+        attr_accessor :coder
+
+        def initialize(coder=nil,options={})
+          @coder   = coder                 || Base64::Marshal.new
+          @cipher  = options[:cipher]      || 'aes-256-cbc'
+          @salt    = options[:salt]        || nil
+          @rounds  = options[:rounds].to_i || 2000
+          @key     = options[:crypto_key]  || nil
+          @crypto  = @key.nil? ? false : true
+        end
+
+        def encode(str)
+          return [cipher(:encrypt,@coder.encode(str))].pack('m')
+        end
+
+        def decode(str)
+          return unless str
+          return @coder.decode(cipher(:decrypt,str.unpack('m').first))
+        end
+
+        def cipher(mode,str)
+            return str unless @crypto && !str.nil?
+            begin
+              cipher = OpenSSL::Cipher::Cipher.new(@cipher)
+              cipher.send(mode)
+            rescue
+              warn <<-XXX
+              SECURITY WARNING: Cookie encryption has been disabled because: #{$!.message}
+              XXX
+              @crypto = false
+              return str
+            end
+
+            cipher.key = @salt.nil? ? @key : OpenSSL::PKCS5.pbkdf2_hmac_sha1(@key,@salt,@rounds,cipher.key_len)
+            iv         = cipher.random_iv
+            xstr       = str
+
+            if mode == :decrypt
+              # Extract the IV
+              iv_len    = iv.length
+              str_b,iv  = Array[str[0...iv_len<<1].unpack('C*')].transpose.partition.with_index { |x,i| (i&1).zero? }
+              iv.flatten! ; str_b.flatten!
+
+              # Set the IV and buffer
+              iv   = iv.pack('C*')
+              xstr = str_b.pack('C*') + str[iv_len<<1...str.length]
+            end
+
+            # Otherwise, use the random IV
+            cipher.iv = iv
+
+            # Get the result
+            result = nil
+            begin
+              result = cipher.update(xstr) + cipher.final
+              result = result.bytes.to_a.zip(iv.bytes.to_a).flatten.compact.pack('C*') if mode == :encrypt
+            rescue OpenSSL::Cipher::CipherError
+              warn <<-XXX
+              SECURITY WARNING: Cookie encryption has been disabled because: #{$!.message}
+              XXX
+              @crypto = false
+              return str
+            end
+
+            return result
+        end
+      end
+
       # Use no encoding for session cookies
       class Identity
         def encode(str); str; end
@@ -116,7 +223,8 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder  = options[:coder] ||= Base64::Marshal.new
+        @coder = options[:coder] ||= Base64::Marshal.new
+        @coder = Encrypted.new(@coder,options) if options[:cipher_key]
         super(app, options.merge!(:cookie_only => true))
       end
 
@@ -189,7 +297,6 @@ module Rack
         @secrets.size >= 1 ||
         (options[:coder] && options[:let_coder_handle_secure_encoding])
       end
-
     end
   end
 end
