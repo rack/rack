@@ -143,7 +143,7 @@ module Rack
       env
     end
 
-    if "<3".respond_to? :encoding
+    if "<3".respond_to? :b
       def self.env_with_encoding(env, opts, uri)
         env[REQUEST_METHOD] = (opts[:method] ? opts[:method].to_s.upcase : "GET").b
         env["SERVER_NAME"] = (uri.host || "example.org").b
