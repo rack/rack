@@ -212,7 +212,7 @@ describe Rack::MockRequest do
     called.should.equal true
   end
 
-  unless "<3".respond_to? :encoding
+  if "<3".respond_to? :b
     should "defaults encoding to ASCII 8BIT" do
       req = Rack::MockRequest.env_for("/foo")
 
