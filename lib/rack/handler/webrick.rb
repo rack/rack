@@ -108,7 +108,7 @@ module Rack
             res.body = ::File.open(body.to_path, 'rb')
           else
             body.each { |part|
-              res.body << part
+              res.body << part.to_s
             }
           end
         ensure
