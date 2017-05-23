@@ -22,6 +22,42 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
+      class RackBody < IO
+        def initialize(body)
+          @body = body
+        end
+        def each(*a, &p)
+          @body.each(*a, &p)
+        end
+        def close
+          @body.close
+        end
+      end
+
+      class ::WEBrick::HTTPResponse
+        unless self.class.respond_to?(:rack_chunk_support)
+          alias send_body_io_prerack send_body_io
+        end
+
+        def send_body_io(socket)
+          unless body.is_a?(RackBody)
+            send_body_io_prerack(socket)
+            return
+          end
+
+          unless chunked?
+            @body.each { |c| _write_data(socket, c) }
+            return
+          end
+
+          @body.each do |chunk|
+            _write_data(socket, "#{"%x" % chunk.bytesize}#{CRLF}#{chunk}")
+            @sent_size += chunk.bytesize
+          end
+          _write_data(socket, "0#{CRLF}#{CRLF}")
+        end
+      end
+
       def self.run(app, options={})
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : nil
@@ -107,9 +143,7 @@ module Rack
           elsif body.respond_to?(:to_path)
             res.body = ::File.open(body.to_path, 'rb')
           else
-            body.each { |part|
-              res.body << part
-            }
+            res.body = RackBody.new(body)
           end
         ensure
           body.close  if body.respond_to? :close
