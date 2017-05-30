@@ -83,7 +83,13 @@ module Rack
         mapping, @map = @map, nil
         @use << proc { |app| generate_map app, mapping }
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
+      @use << proc do |app|
+        if middleware.class == Proc
+          middleware.curry[app]
+        else
+          middleware.new(app, *args, &block)
+        end
+      end
     end
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
