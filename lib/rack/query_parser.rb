@@ -187,6 +187,10 @@ module Rack
         end
         hash
       end
+
+      def inspect
+        "#<#{self.class}: #{@params.inspect} >"
+      end
     end
   end
 end
