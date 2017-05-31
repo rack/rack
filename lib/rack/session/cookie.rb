@@ -44,6 +44,14 @@ module Rack
     #     }.new
     #   })
     #
+    # By default, the contents of the cookie are signed with SHA1.
+    # You can change the default algorithm with the <tt>:digest</tt>
+    # option.
+    #
+    #   use Rack::Session::Cookie, secret: "__change_me__"
+    #                              digest: OpenSSL::Digest::SHA256
+    #
+    #
 
     class Cookie < Abstract::Persisted
       # Encode session cookies as Base64
@@ -105,7 +113,7 @@ module Rack
 
       def initialize(app, options={})
         @secrets = options.values_at(:secret, :old_secret).compact
-        @hmac = options.fetch(:hmac, OpenSSL::Digest::SHA1)
+        @digest_class = options.fetch(:digest, OpenSSL::Digest::SHA1)
 
         warn <<-MSG unless secure?(options)
         SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
@@ -182,7 +190,7 @@ module Rack
       end
 
       def generate_hmac(data, secret)
-        OpenSSL::HMAC.hexdigest(@hmac.new, secret, data)
+        OpenSSL::HMAC.hexdigest(@digest_class.new, secret, data)
       end
 
       def secure?(options)

@@ -312,7 +312,7 @@ describe Rack::Session::Cookie do
   end
 
   it "supports custom digest class" do
-    app = [incrementor, { :secret => "test", hmac: OpenSSL::Digest::SHA256 }]
+    app = [incrementor, { :secret => "test", digest: OpenSSL::Digest::SHA256 }]
 
     response = response_for(:app => app)
     response = response_for(:app => app, :cookie => response)
