@@ -207,6 +207,13 @@ Set to 0 for no limit.
 
 Can also be set via the RACK_MULTIPART_PART_LIMIT environment variable.
 
+=== trusted_proxies
+
+The trusted proxies to be used when determining the IP address of the remote client making a request.
+Client addresses which match the specified proxy addresses are discarded from the X-Forwarded-For addresses.
+
+The value provided may be a string, IPAddr or Regexp object, or an Array including any of those types of objects.
+
 == History
 
 See <https://github.com/rack/HISTORY.md>.
@@ -309,4 +316,3 @@ rack-devel mailing list:: <https://groups.google.com/group/rack-devel>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
 
 Christian Neukirchen:: <http://chneukirchen.org/>
-
