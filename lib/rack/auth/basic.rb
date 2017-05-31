@@ -9,39 +9,33 @@ module Rack
     # and a block that checks if a username and password pair are valid.
     #
     # See also: <tt>example/protectedlobster.rb</tt>
-
     class Basic < AbstractHandler
-
       def call(env)
         auth = Basic::Request.new(env)
 
         return unauthorized unless auth.provided?
+        return bad_request  unless auth.basic?
+        return unauthorized unless valid?(auth)
 
-        return bad_request unless auth.basic?
-
-        if valid?(auth)
-          env['REMOTE_USER'] = auth.username
-
-          return @app.call(env)
-        end
-
-        unauthorized
+        env['REMOTE_USER'] = auth.username
+        @app.call(env)
       end
-
 
       private
 
       def challenge
-        'Basic realm="%s"' % realm
+        %{Basic realm="#{realm}"}
       end
 
       def valid?(auth)
         @authenticator.call(*auth.credentials)
       end
 
-      class Request < Auth::AbstractRequest
+      class Request < Auth::AbstractRequest # :nodoc:
+        BASIC = "basic".freeze
+
         def basic?
-          "basic" == scheme
+          scheme == BASIC
         end
 
         def credentials
@@ -52,7 +46,6 @@ module Rack
           credentials.first
         end
       end
-
     end
   end
 end
