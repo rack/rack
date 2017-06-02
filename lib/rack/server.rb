@@ -206,12 +206,12 @@ module Rack
       default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
 
       {
-        :environment => environment,
-        :pid         => nil,
-        :Port        => 9292,
-        :Host        => default_host,
-        :AccessLog   => [],
-        :config      => "config.ru"
+        environment: environment,
+        pid:         nil,
+        Port:        9292,
+        Host:        default_host,
+        AccessLog:   [],
+        config:      "config.ru"
       }
     end
 
