@@ -107,6 +107,11 @@ module Rack
         @secrets = options.values_at(:secret, :old_secret).compact
         @hmac = options.fetch(:hmac, OpenSSL::Digest::SHA1)
 
+        # Multiply the :digest_length: by 2 because this value is the length of
+        # the digest in bytes but session digest strings are encoded as hex
+        # strings
+        @hmac_length = @hmac.new.digest_length * 2
+
         warn <<-MSG unless secure?(options)
         SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
         This poses a security threat. It is strongly recommended that you
@@ -137,9 +142,8 @@ module Rack
           session_data = request.cookies[@key]
 
           if @secrets.size > 0 && session_data
-            digest, session_data = session_data.reverse.split("--", 2)
-            digest.reverse! if digest
-            session_data.reverse! if session_data
+            digest = session_data.slice!(-@hmac_length..-1)
+            session_data.slice!(-2..-1) # remove double dash
             session_data = nil unless digest_match?(session_data, digest)
           end
 
