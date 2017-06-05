@@ -74,26 +74,32 @@ describe Rack::Session::Cookie do
     it 'uses base64 to encode' do
       coder = Rack::Session::Cookie::Base64.new
       str   = 'fuuuuu'
-      coder.encode(str).must_equal [str].pack('m')
+      coder.encode(str).must_equal [str].pack('m0')
     end
 
     it 'uses base64 to decode' do
       coder = Rack::Session::Cookie::Base64.new
-      str   = ['fuuuuu'].pack('m')
-      coder.decode(str).must_equal str.unpack('m').first
+      str   = ['fuuuuu'].pack('m0')
+      coder.decode(str).must_equal str.unpack('m0').first
+    end
+
+    it 'handles non-strict base64 encoding' do
+      coder = Rack::Session::Cookie::Base64.new
+      str   = ['A' * 256].pack('m')
+      coder.decode(str).must_equal 'A' * 256
     end
 
     describe 'Marshal' do
       it 'marshals and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
         str   = 'fuuuuu'
-        coder.encode(str).must_equal [::Marshal.dump(str)].pack('m')
+        coder.encode(str).must_equal [::Marshal.dump(str)].pack('m0')
       end
 
       it 'marshals and base64 decodes' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
-        str   = [::Marshal.dump('fuuuuu')].pack('m')
-        coder.decode(str).must_equal ::Marshal.load(str.unpack('m').first)
+        str   = [::Marshal.dump('fuuuuu')].pack('m0')
+        coder.decode(str).must_equal ::Marshal.load(str.unpack('m0').first)
       end
 
       it 'rescues failures on decode' do
@@ -106,13 +112,13 @@ describe Rack::Session::Cookie do
       it 'JSON and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
         obj   = %w[fuuuuu]
-        coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m')
+        coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m0')
       end
 
       it 'JSON and base64 decodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
-        str   = [::JSON.dump(%w[fuuuuu])].pack('m')
-        coder.decode(str).must_equal ::JSON.parse(str.unpack('m').first)
+        str   = [::JSON.dump(%w[fuuuuu])].pack('m0')
+        coder.decode(str).must_equal ::JSON.parse(str.unpack('m0').first)
       end
 
       it 'rescues failures on decode' do
@@ -126,14 +132,14 @@ describe Rack::Session::Cookie do
         coder = Rack::Session::Cookie::Base64::ZipJSON.new
         obj   = %w[fuuuuu]
         json = JSON.dump(obj)
-        coder.encode(obj).must_equal [Zlib::Deflate.deflate(json)].pack('m')
+        coder.encode(obj).must_equal [Zlib::Deflate.deflate(json)].pack('m0')
       end
 
       it 'base64 decodes, inflates, and decodes json' do
         coder = Rack::Session::Cookie::Base64::ZipJSON.new
         obj   = %w[fuuuuu]
         json  = JSON.dump(obj)
-        b64   = [Zlib::Deflate.deflate(json)].pack('m')
+        b64   = [Zlib::Deflate.deflate(json)].pack('m0')
         coder.decode(b64).must_equal obj
       end
 
@@ -438,5 +444,39 @@ describe Rack::Session::Cookie do
     response.body.must_equal "1--"
     response = response_for(:app => _app, :cookie => response)
     response.body.must_equal "1--2--"
+  end
+
+  it 'allows for non-strict encoded cookie' do
+    long_session_app = lambda do |env|
+      env['rack.session']['value'] = 'A' * 256
+      env['rack.session']['counter'] = 1
+      hash = env["rack.session"].dup
+      hash.delete("session_id")
+      Rack::Response.new(hash.inspect).to_a
+    end
+
+    non_strict_coder = Class.new {
+      def encode(str)
+        [Marshal.dump(str)].pack('m')
+      end
+
+      def decode(str)
+        return unless str
+
+        Marshal.load(str.unpack('m').first)
+      end
+    }.new
+
+    non_strict_response = response_for(:app => [
+      long_session_app, { :coder => non_strict_coder }
+    ])
+
+    response = response_for(:app => [
+      incrementor
+    ], :cookie => non_strict_response)
+
+    response.body.must_match %Q["value"=>"#{'A' * 256}"]
+    response.body.must_match '"counter"=>2'
+    response.body.must_match(/\A{[^}]+}\z/)
   end
 end
