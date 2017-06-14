@@ -9,11 +9,6 @@ class Lock
     @synchronized = false
   end
 
-  def synchronize
-    @synchronized = true
-    yield
-  end
-
   def lock
     @synchronized = true
   end
