@@ -57,7 +57,7 @@ describe Rack::Deflater do
 
     # verify body
     unless options['skip_body_verify']
-      body_text = ''
+      body_text = ''.dup
       body.each { |part| body_text << part }
 
       deflated_body = case expected_encoding

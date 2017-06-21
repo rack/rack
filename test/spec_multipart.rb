@@ -201,7 +201,7 @@ describe Rack::Multipart do
 
   it "parse multipart upload file using custom tempfile class" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
-    my_tempfile = ""
+    my_tempfile = "".dup
     env['rack.multipart.tempfile_factory'] = lambda { |filename, content_type| my_tempfile }
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:tempfile].object_id.must_equal my_tempfile.object_id
@@ -683,7 +683,7 @@ true\r
   it "fallback to content-type for name" do
     rack_logo = File.read(multipart_file("rack-logo.png"))
 
-    data = <<-EOF
+    data = <<-EOF.dup
 --AaB03x\r
 Content-Type: text/plain\r
 \r
@@ -702,7 +702,7 @@ Content-Type: image/png\r
     options = {
       "CONTENT_TYPE" => "multipart/related; boundary=AaB03x",
       "CONTENT_LENGTH" => data.bytesize.to_s,
-      :input => StringIO.new(data)
+      :input => StringIO.new(data.dup)
     }
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)

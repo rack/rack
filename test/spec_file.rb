@@ -19,7 +19,7 @@ describe Rack::File do
 
       assert_equal 200, status
 
-      str = ''
+      str = ''.dup
       body.each { |x| str << x }
       assert_match "hello world", str
     end
