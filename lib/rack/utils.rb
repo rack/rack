@@ -185,7 +185,9 @@ module Rack
           mem + list
         }
 
-      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
+      encoding_candidates = expanded_accept_encoding.sort_by do |m, q|
+        [-q, available_encodings.index(m) || available_encodings.length]
+      end.map { |m, _| m }
 
       unless encoding_candidates.include?("identity")
         encoding_candidates.push("identity")
