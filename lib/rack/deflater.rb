@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "zlib"
 require "time"  # for Time.httpdate
 require 'rack/utils'
@@ -52,7 +53,7 @@ module Rack
       case encoding
       when "gzip"
         headers['Content-Encoding'] = "gzip"
-        headers.delete(CONTENT_LENGTH)
+        headers.delete('Content-Length')
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
         [status, headers, GzipStream.new(body, mtime)]
@@ -61,7 +62,7 @@ module Rack
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s}, bp]
+        [406, {'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s}, bp]
       end
     end
 
@@ -102,13 +103,13 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers[CACHE_CONTROL].to_s =~ /\bno-transform\b/ ||
+          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
          (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
         return false
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)
