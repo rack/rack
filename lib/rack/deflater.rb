@@ -70,7 +70,6 @@ module Rack
       def initialize(body, mtime)
         @body = body
         @mtime = mtime
-        @closed = false
       end
 
       def each(&block)
@@ -91,9 +90,8 @@ module Rack
       end
 
       def close
-        return if @closed
-        @closed = true
         @body.close if @body.respond_to?(:close)
+        @body = nil
       end
     end
 
