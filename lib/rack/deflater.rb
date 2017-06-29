@@ -24,11 +24,15 @@ module Rack
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
     #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.map(&:bytesize).reduce(0, :+) > 512 }
     #           'include' - a list of content types that should be compressed
+    #           'sync' - Flushing after every chunk reduces latency for
+    #                    time-sensitive streaming applications, but hurts
+    #                    compression and throughput.  Defaults to `true'.
     def initialize(app, options = {})
       @app = app
 
       @condition = options[:if]
       @compressible_types = options[:include]
+      @sync = options[:sync] == false ? false : true
     end
 
     def call(env)
@@ -56,7 +60,7 @@ module Rack
         headers.delete('Content-Length')
         mtime = headers.key?("Last-Modified") ?
           Time.httpdate(headers["Last-Modified"]) : Time.now
-        [status, headers, GzipStream.new(body, mtime)]
+        [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
       when nil
@@ -67,7 +71,8 @@ module Rack
     end
 
     class GzipStream
-      def initialize(body, mtime)
+      def initialize(body, mtime, sync)
+        @sync = sync
         @body = body
         @mtime = mtime
       end
@@ -78,7 +83,7 @@ module Rack
         gzip.mtime = @mtime
         @body.each { |part|
           gzip.write(part)
-          gzip.flush
+          gzip.flush if @sync
         }
       ensure
         gzip.close
