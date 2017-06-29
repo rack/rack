@@ -44,6 +44,8 @@ describe Rack::Deflater do
       [accept_encoding, accept_encoding.dup]
     end
 
+    start = Time.now.to_i
+
     # build response
     status, headers, body = build_response(
       options['app_status'] || expected_status,
@@ -67,6 +69,13 @@ describe Rack::Deflater do
       when 'gzip'
         io = StringIO.new(body_text)
         gz = Zlib::GzipReader.new(io)
+        mtime = gz.mtime.to_i
+        if last_mod = headers['Last-Modified']
+          Time.httpdate(last_mod).to_i.must_equal mtime
+        else
+          mtime.must_be(:<=, Time.now.to_i)
+          mtime.must_be(:>=, start.to_i)
+        end
         tmp = gz.read
         gz.close
         tmp
@@ -243,7 +252,7 @@ describe Rack::Deflater do
   end
 
   it 'handle gzip response with Last-Modified header' do
-    last_modified = Time.now.httpdate
+    last_modified = Time.at(123).httpdate
     options = {
       'response_headers' => {
         'Content-Type' => 'text/plain',
