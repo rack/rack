@@ -58,8 +58,8 @@ module Rack
       when "gzip"
         headers['Content-Encoding'] = "gzip"
         headers.delete('Content-Length')
-        mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
+        mtime = headers["Last-Modified"]
+        mtime = Time.httpdate(mtime).to_i if mtime
         [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
@@ -80,7 +80,7 @@ module Rack
       def each(&block)
         @writer = block
         gzip  =::Zlib::GzipWriter.new(self)
-        gzip.mtime = @mtime
+        gzip.mtime = @mtime if @mtime
         @body.each { |part|
           gzip.write(part)
           gzip.flush if @sync
