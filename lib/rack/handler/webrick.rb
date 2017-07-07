@@ -45,8 +45,10 @@ module Rack
       end
 
       def self.shutdown
-        @server.shutdown
-        @server = nil
+        if @server
+          @server.shutdown
+          @server = nil
+        end
       end
 
       def initialize(server, app)
