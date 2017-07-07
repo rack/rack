@@ -11,12 +11,21 @@ module Rack
 
     def call(env)
       @mutex.lock
+      @env = env
+      @old_rack_multithread = env[RACK_MULTITHREAD]
       begin
-        response = @app.call(env.merge(RACK_MULTITHREAD => false))
-        returned = response << BodyProxy.new(response.pop) { @mutex.unlock }
+        response = @app.call(env.merge!(RACK_MULTITHREAD => false))
+        returned = response << BodyProxy.new(response.pop) { unlock }
       ensure
-        @mutex.unlock unless returned
+        unlock unless returned
       end
+    end
+
+    private
+
+    def unlock
+      @mutex.unlock
+      @env[RACK_MULTITHREAD] = @old_rack_multithread
     end
   end
 end
