@@ -147,7 +147,8 @@ describe Rack::Lock do
     }, false)
     env = Rack::MockRequest.env_for("/")
     env['rack.multithread'].must_equal true
-    app.call(env)
+    _, _, body = app.call(env)
+    body.close
     env['rack.multithread'].must_equal true
   end
 
@@ -190,5 +191,14 @@ describe Rack::Lock do
     app  = lock_app(proc { [].freeze }, lock)
     lambda { app.call(env) }.must_raise Exception
     lock.synchronized.must_equal false
+  end
+
+  it "not replace the environment" do
+    env  = Rack::MockRequest.env_for("/")
+    app  = lock_app(lambda { |inner_env| [200, {"Content-Type" => "text/plain"}, [inner_env.object_id.to_s]] })
+
+    _, _, body = app.call(env)
+
+    body.to_enum.to_a.must_equal [env.object_id.to_s]
   end
 end
