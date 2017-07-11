@@ -295,7 +295,7 @@ CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 
 == Links
 
-Rack:: <http://rack.github.io/>
+Rack:: <https://rack.github.io/>
 Official Rack repositories:: <https://github.com/rack>
 Rack Bug Tracking:: <https://github.com/rack/rack/issues>
 rack-devel mailing list:: <https://groups.google.com/group/rack-devel>
