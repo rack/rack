@@ -166,6 +166,7 @@ module Rack
 
       def initialize(boundary, tempfile, bufsize, query_parser)
         @buf            = String.new
+        @buf_rx_start   = 0
 
         @query_parser   = query_parser
         @params         = query_parser.make_params
@@ -174,6 +175,7 @@ module Rack
         @bufsize        = bufsize
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
+        @rx_max_size = EOL.size + @boundary.size + [EOL.size, '--'.size].max
         @full_boundary = @boundary
         @end_boundary = @boundary + '--'
         @state = :FAST_FORWARD
@@ -263,15 +265,15 @@ module Rack
       end
 
       def handle_mime_body
-        if @buf =~ rx
+        if i = @buf.index(rx, @buf_rx_start)
           # Save the rest.
-          if i = @buf.index(rx)
-            @collector.on_mime_body @mime_index, @buf.slice!(0, i)
-            @buf.slice!(0, 2) # Remove \r\n after the content
-          end
+          @collector.on_mime_body @mime_index, @buf.slice!(0, i)
+          @buf.slice!(0, 2) # Remove \r\n after the content
+          @buf_rx_start = 0 # Reset rx search position
           @state = :CONSUME_TOKEN
           @mime_index += 1
         else
+          @buf_rx_start = [@buf_rx_start, @buf.size - @rx_max_size].max
           :want_read
         end
       end
