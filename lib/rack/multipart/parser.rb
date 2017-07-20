@@ -5,7 +5,7 @@ module Rack
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
-      BUFSIZE = 16384
+      BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
         Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0".freeze, '%00'.freeze))])
