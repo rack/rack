@@ -41,6 +41,7 @@ These frameworks include Rack adapters in their distributions:
 * Coset
 * Espresso
 * Halcyon
+* Hanami
 * Mack
 * Maveric
 * Merb
