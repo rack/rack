@@ -1,3 +1,4 @@
+# frozen_string_literal: true
 require "zlib"
 require "time"  # for Time.httpdate
 require 'rack/utils'
@@ -23,11 +24,15 @@ module Rack
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
     #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.map(&:bytesize).reduce(0, :+) > 512 }
     #           'include' - a list of content types that should be compressed
+    #           'sync' - Flushing after every chunk reduces latency for
+    #                    time-sensitive streaming applications, but hurts
+    #                    compression and throughput.  Defaults to `true'.
     def initialize(app, options = {})
       @app = app
 
       @condition = options[:if]
       @compressible_types = options[:include]
+      @sync = options[:sync] == false ? false : true
     end
 
     def call(env)
@@ -52,33 +57,33 @@ module Rack
       case encoding
       when "gzip"
         headers['Content-Encoding'] = "gzip"
-        headers.delete(CONTENT_LENGTH)
-        mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
-        [status, headers, GzipStream.new(body, mtime)]
+        headers.delete('Content-Length')
+        mtime = headers["Last-Modified"]
+        mtime = Time.httpdate(mtime).to_i if mtime
+        [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s}, bp]
+        [406, {'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s}, bp]
       end
     end
 
     class GzipStream
-      def initialize(body, mtime)
+      def initialize(body, mtime, sync)
+        @sync = sync
         @body = body
         @mtime = mtime
-        @closed = false
       end
 
       def each(&block)
         @writer = block
         gzip  =::Zlib::GzipWriter.new(self)
-        gzip.mtime = @mtime
+        gzip.mtime = @mtime if @mtime
         @body.each { |part|
           gzip.write(part)
-          gzip.flush
+          gzip.flush if @sync
         }
       ensure
         gzip.close
@@ -90,9 +95,8 @@ module Rack
       end
 
       def close
-        return if @closed
-        @closed = true
         @body.close if @body.respond_to?(:close)
+        @body = nil
       end
     end
 
@@ -102,13 +106,13 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers[CACHE_CONTROL].to_s =~ /\bno-transform\b/ ||
+          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
          (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
         return false
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)
