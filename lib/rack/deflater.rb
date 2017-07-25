@@ -24,9 +24,10 @@ module Rack
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
     #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.map(&:bytesize).reduce(0, :+) > 512 }
     #           'include' - a list of content types that should be compressed
-    #           'sync' - Flushing after every chunk reduces latency for
+    #           'sync' - determines if the stream is going to be flused after every chunk.
+    #                    Flushing after every chunk reduces latency for
     #                    time-sensitive streaming applications, but hurts
-    #                    compression and throughput.  Defaults to `true'.
+    #                    compression and throughput. Defaults to `true'.
     def initialize(app, options = {})
       @app = app
 
