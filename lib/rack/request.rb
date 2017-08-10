@@ -98,7 +98,7 @@ module Rack
 
     module Helpers
       # The set of form-data media-types. Requests that do not indicate
-      # one of the media types presented in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for form-data / param parsing.
       FORM_DATA_MEDIA_TYPES = [
         'application/x-www-form-urlencoded',
@@ -106,7 +106,7 @@ module Rack
       ]
 
       # The set of media-types. Requests that do not indicate
-      # one of the media types presented in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for param parsing like soap attachments or generic multiparts
       PARSEABLE_DATA_MEDIA_TYPES = [
         'multipart/related',
