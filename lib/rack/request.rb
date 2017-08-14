@@ -98,7 +98,7 @@ module Rack
 
     module Helpers
       # The set of form-data media-types. Requests that do not indicate
-      # one of the media types presents in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for form-data / param parsing.
       FORM_DATA_MEDIA_TYPES = [
         'application/x-www-form-urlencoded',
@@ -106,7 +106,7 @@ module Rack
       ]
 
       # The set of media-types. Requests that do not indicate
-      # one of the media types presents in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for param parsing like soap attachments or generic multiparts
       PARSEABLE_DATA_MEDIA_TYPES = [
         'multipart/related',
@@ -157,10 +157,10 @@ module Rack
       def delete?;  request_method == DELETE  end
 
       # Checks the HTTP request method (or verb) to see if it was of type GET
-      def get?;     request_method == GET       end
+      def get?;     request_method == GET     end
 
       # Checks the HTTP request method (or verb) to see if it was of type HEAD
-      def head?;    request_method == HEAD      end
+      def head?;    request_method == HEAD    end
 
       # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
       def options?; request_method == OPTIONS end
