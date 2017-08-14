@@ -30,6 +30,6 @@ EOF
 
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-sprint'
-  s.add_development_dependency 'concurrent-ruby'
+  s.add_development_dependency 'concurrent-ruby', ">= 1.0.3"
   s.add_development_dependency 'rake'
 end
