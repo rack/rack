@@ -63,6 +63,11 @@ module Rack
     def pretty(env, exception)
       req = Rack::Request.new(env)
 
+      query_params = query_params = {
+        get:  pretty_params(env['QUERY_STRING']),
+        post: pretty_params(env['rack.request.form_vars'])
+      }
+
       # This double assignment is to prevent an "unused variable" warning on
       # Ruby 1.9.3.  Yes, it is dumb, but I don't like Ruby yelling at me.
       path = path = (req.script_name + req.path_info).squeeze("/")
@@ -103,6 +108,10 @@ module Rack
       else
         Utils.escape_html(obj.inspect)
       end
+    end
+
+    def pretty_params(params)
+      params.respond_to?(:each) ? params : { 'query_params' => params.to_s }
     end
 
     # :stopdoc:
@@ -285,7 +294,7 @@ module Rack
         <h2>Request information</h2>
 
         <h3 id="get-info">GET</h3>
-        <% if req.GET and not req.GET.empty? %>
+        <% if req.get? %>
           <table class="req">
             <thead>
               <tr>
@@ -294,7 +303,7 @@ module Rack
               </tr>
             </thead>
             <tbody>
-                <% req.GET.sort_by { |k, v| k.to_s }.each { |key, val| %>
+                <% query_params[:get].sort_by { |k, v| k.to_s }.each { |key, val| %>
                 <tr>
                   <td><%=h key %></td>
                   <td class="code"><div><%=h val.inspect %></div></td>
@@ -307,7 +316,7 @@ module Rack
         <% end %>
 
         <h3 id="post-info">POST</h3>
-        <% if req.POST and not req.POST.empty? %>
+        <% if req.post? %>
           <table class="req">
             <thead>
               <tr>
@@ -316,7 +325,7 @@ module Rack
               </tr>
             </thead>
             <tbody>
-                <% req.POST.sort_by { |k, v| k.to_s }.each { |key, val| %>
+                <% query_params[:post].sort_by { |k, v| k.to_s }.each { |key, val| %>
                 <tr>
                   <td><%=h key %></td>
                   <td class="code"><div><%=h val.inspect %></div></td>
