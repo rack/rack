@@ -20,15 +20,15 @@ module Rack
           @cursor = 0
         end
 
-        def read(size)
+        def read(size, outbuf = nil)
           return if @cursor >= @content_length
 
           left = @content_length - @cursor
 
           str = if left < size
-                  @io.read left
+                  @io.read left, outbuf
                 else
-                  @io.read size
+                  @io.read size, outbuf
                 end
 
           if str
@@ -63,13 +63,14 @@ module Rack
         return EMPTY unless boundary
 
         io = BoundedIO.new(io, content_length) if content_length
+        outbuf = String.new
 
         parser = new(boundary, tmpfile, bufsize, qp)
-        parser.on_read io.read(bufsize)
+        parser.on_read io.read(bufsize, outbuf)
 
         loop do
           break if parser.state == :DONE
-          parser.on_read io.read(bufsize)
+          parser.on_read io.read(bufsize, outbuf)
         end
 
         io.rewind
