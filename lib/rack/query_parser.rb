@@ -74,7 +74,7 @@ module Rack
 
       return params.to_h
     rescue ArgumentError => e
-      raise InvalidParameterError, e.message
+      raise InvalidParameterError, e.message, e.backtrace
     end
 
     # normalize_params recursively expands parameters into structural types. If
