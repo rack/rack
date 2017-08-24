@@ -1,4 +1,5 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
 require 'uri'
 require 'fileutils'
 require 'set'
