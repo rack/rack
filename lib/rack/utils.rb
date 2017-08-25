@@ -410,7 +410,11 @@ module Rack
     # header when set.
     class HeaderHash < Hash
       def self.new(hash={})
-        HeaderHash === hash ? hash : super(hash)
+        if ENV["RACK_DISABLE_HEADER_HASH"]
+          return hash
+        else
+          HeaderHash === hash ? hash : super(hash)
+        end
       end
 
       def initialize(hash={})
