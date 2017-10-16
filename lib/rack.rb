@@ -143,5 +143,6 @@ module Rack
     autoload :Cookie, "rack/session/cookie"
     autoload :Pool, "rack/session/pool"
     autoload :Memcache, "rack/session/memcache"
+    autoload :File, "rack/session/file"
   end
 end
