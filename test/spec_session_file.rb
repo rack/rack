@@ -301,4 +301,11 @@ describe Rack::Session::File do
     response.body.must_match(/foo/)
   end
 
+  it "clears old files" do
+    app = [ incrementor, { gc_probability: 1, gc_maxlife: 0 }]
+    request = { 'rack.session' => { :foo => 'bar' }}
+    response = response_for(:app => app, :request => request)
+    assert_equal Dir.entries(File.join(Dir.tmpdir(), 'file-rack')).size, 2
+  end
+
 end
