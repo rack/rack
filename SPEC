@@ -174,7 +174,7 @@ The error stream must respond to +puts+, +write+ and +flush+.
 ==== Request (before status)
 If rack.hijack? is true then rack.hijack must respond to #call.
 rack.hijack must return the io that will also be assigned (or is
-already present, in rack.hijack_io.
+already present, in rack.hijack_io).
 rack.hijack_io must respond to:
 <tt>read, write, read_nonblock, write_nonblock, flush, close,
 close_read, close_write, closed?</tt>
