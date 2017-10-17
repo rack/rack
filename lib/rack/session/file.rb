@@ -137,9 +137,11 @@ module Rack
       end
       def persistent_session_id(data, sid = nil)
         data ||= {}
-        data[SESSION_ID] ||= sid || generate_sid
-        while ::File.exist? path_for_sid(data[SESSION_ID])
-          data[SESSION_ID] = generate_sid
+        data[SESSION_ID] ||= sid
+        unless data[SESSION_ID]
+          begin
+            data[SESSION_ID] = generate_sid
+          end while ::File.exist? path_for_sid(data[SESSION_ID])
         end
         data
       end
