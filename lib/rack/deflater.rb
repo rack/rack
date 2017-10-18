@@ -22,7 +22,7 @@ module Rack
     # [app] rack app instance
     # [options] hash of deflater options, i.e.
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
-    #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.map(&:bytesize).reduce(0, :+) > 512 }
+    #                  e.g use Rack::Deflater, :if => lambda { |*, body| sum=0; body.each { |i| sum += i.length }; sum > 512 }
     #           'include' - a list of content types that should be compressed
     #           'sync' - determines if the stream is going to be flused after every chunk.
     #                    Flushing after every chunk reduces latency for
