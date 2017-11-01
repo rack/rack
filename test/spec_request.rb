@@ -124,6 +124,14 @@ class RackRequestTest < Minitest::Spec
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host.must_equal "example.org"
 
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "192.168.1.1")
+    req.host.must_equal "192.168.1.1"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "1:2:3:4:5:6:7:8")
+    req.host.must_equal "[1:2:3:4:5:6:7:8]"
+
     env = Rack::MockRequest.env_for("/", "SERVER_ADDR" => "192.168.1.1", "SERVER_PORT" => "9292")
     env.delete("SERVER_NAME")
     req = make_request(env)
