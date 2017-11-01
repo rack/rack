@@ -1,5 +1,6 @@
 require 'rack/utils'
 require 'rack/media_type'
+require 'resolv'
 
 module Rack
   # Rack::Request provides a convenient interface to a Rack
@@ -224,7 +225,12 @@ module Rack
 
       def host_with_port
         if forwarded = get_header(HTTP_X_FORWARDED_HOST)
-          forwarded.split(/,\s?/).last
+          host = forwarded.split(/,\s?/).last
+
+          # If the reverse proxy sends an IPv6 address without brackets,
+          # prevent the last hextet from being stripped off by host() by
+          # enclosing the address in brackets.
+          host =~ Resolv::IPv6::Regex ? "[#{host}]" : host
         else
           get_header(HTTP_HOST) || "#{get_header(SERVER_NAME) || get_header(SERVER_ADDR)}:#{get_header(SERVER_PORT)}"
         end
