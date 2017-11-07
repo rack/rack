@@ -157,7 +157,7 @@ module Rack
     end
 
     def call(env)
-      (@_app ||= to_app).call(env)
+      to_app.call(env)
     end
 
     private

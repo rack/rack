@@ -201,19 +201,6 @@ describe Rack::Builder do
     end.must_raise(RuntimeError)
   end
 
-  it "doesn't dupe #to_app when mapping" do
-    app = builder do
-      map '/' do |outer_env|
-        run lambda { |env|  [200, {"Content-Type" => "text/plain"}, [object_id.to_s]] }
-      end
-    end
-
-    builder_app1_id = Rack::MockRequest.new(app).get("/").body.to_s
-    builder_app2_id = Rack::MockRequest.new(app).get("/").body.to_s
-
-    assert_equal builder_app2_id, builder_app1_id
-  end
-
   describe "parse_file" do
     def config_file(name)
       File.join(File.dirname(__FILE__), 'builder', name)
