@@ -55,6 +55,19 @@ describe Rack::Builder do
     NothingMiddleware.env['new_key'].must_equal 'new_value'
   end
 
+  it "dupe #to_app when mapping so Rack::Reloader can reload the application on each request" do
+    app = builder do
+      map '/' do |outer_env|
+        run lambda { |env|  [200, {"Content-Type" => "text/plain"}, [object_id.to_s]] }
+      end
+    end
+
+    builder_app1_id = Rack::MockRequest.new(app).get("/").body.to_s
+    builder_app2_id = Rack::MockRequest.new(app).get("/").body.to_s
+
+    builder_app2_id.wont_equal builder_app1_id
+  end
+
   it "chains apps by default" do
     app = builder_to_app do
       use Rack::ShowExceptions
