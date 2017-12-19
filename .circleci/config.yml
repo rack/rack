@@ -1,0 +1,93 @@
+workflows:
+  version: 2
+
+  test:
+    jobs:
+      - test-ruby-2.2
+      - test-ruby-2.3
+      - test-ruby-2.4
+
+version: 2
+jobs:
+  test-ruby-2.2:
+    docker:
+      - image: circleci/ruby:2.2
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps:
+      - checkout
+      - run: sudo apt-get install lighttpd libfcgi-dev libmemcached-dev
+
+      # Restore bundle cache
+      - type: cache-restore
+        key: rack-{{ checksum "rack.gemspec" }}
+
+      # Bundle install dependencies
+      - run: bundle install --path vendor/bundle
+
+      # Store bundle cache
+      - type: cache-save
+        key: rack-{{ checksum "rack.gemspec" }}
+        paths:
+          - vendor/bundle
+
+      - run: bundle exec rake ci
+
+  test-ruby-2.3:
+    docker:
+      - image: circleci/ruby:2.3
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps:
+      - checkout
+      - run: sudo apt-get install lighttpd libfcgi-dev libmemcached-dev
+
+      # Restore bundle cache
+      - type: cache-restore
+        key: rack-{{ checksum "rack.gemspec" }}
+
+      # Bundle install dependencies
+      - run: bundle install --path vendor/bundle
+
+      # Store bundle cache
+      - type: cache-save
+        key: rack-{{ checksum "rack.gemspec" }}
+        paths:
+          - vendor/bundle
+
+      - run: bundle exec rake ci
+
+  test-ruby-2.4:
+    docker:
+      - image: circleci/ruby:2.4
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps:
+      - checkout
+      - run: sudo apt-get install lighttpd libfcgi-dev libmemcached-dev
+
+      # Restore bundle cache
+      - type: cache-restore
+        key: rack-{{ checksum "rack.gemspec" }}
+
+      # Bundle install dependencies
+      - run: bundle install --path vendor/bundle
+
+      # Store bundle cache
+      - type: cache-save
+        key: rack-{{ checksum "rack.gemspec" }}
+        paths:
+          - vendor/bundle
+
+      - run: bundle exec rake ci
+
+
