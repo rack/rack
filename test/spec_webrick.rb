@@ -1,6 +1,6 @@
 require 'minitest/autorun'
 require 'rack/mock'
-require 'concurrent/atomic/event'
+require 'thread'
 require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
@@ -119,7 +119,7 @@ describe Rack::Handler::WEBrick do
   end
 
   it "provide a .run" do
-    latch = Concurrent::Event.new
+    queue = Queue.new
 
     t = Thread.new do
       Rack::Handler::WEBrick.run(lambda {},
@@ -129,13 +129,12 @@ describe Rack::Handler::WEBrick do
                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                    :AccessLog => []}) { |server|
         assert_kind_of WEBrick::HTTPServer, server
-        @s = server
-        latch.set
+        queue.push(server)
       }
     end
 
-    latch.wait
-    @s.shutdown
+    server = queue.pop
+    server.shutdown
     t.join
   end
 
