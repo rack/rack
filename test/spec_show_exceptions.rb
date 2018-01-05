@@ -77,4 +77,22 @@ describe Rack::ShowExceptions do
     assert_match(res, /ShowExceptions/)
     assert_match(res, /unknown location/)
   end
+
+  it "allows subclasses to override template" do
+    c = Class.new(Rack::ShowExceptions) do
+      self::TEMPLATE = ERB.new("foo")
+    end
+
+    app = lambda { |env| raise RuntimeError, "", [] }
+
+    req = Rack::MockRequest.new(
+      Rack::Lint.new c.new(app)
+    )
+
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+    res.body.must_equal "foo"
+  end
 end
