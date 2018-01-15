@@ -97,7 +97,7 @@ module Rack
     end
 
     def template
-      self.class::TEMPLATE
+      TEMPLATE
     end
 
     def h(obj)                  # :nodoc:

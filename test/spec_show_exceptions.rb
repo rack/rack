@@ -80,7 +80,11 @@ describe Rack::ShowExceptions do
 
   it "allows subclasses to override template" do
     c = Class.new(Rack::ShowExceptions) do
-      self::TEMPLATE = ERB.new("foo")
+      TEMPLATE = ERB.new("foo")
+
+      def template
+        TEMPLATE
+      end
     end
 
     app = lambda { |env| raise RuntimeError, "", [] }
