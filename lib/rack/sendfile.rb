@@ -53,7 +53,7 @@ module Rack
   # that it maps to. The middleware performs a simple substitution on the
   # resulting path.
   #
-  # See Also: http://wiki.codemongers.com/NginxXSendfile
+  # See Also: https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile/?highlight=sendfile
   #
   # === lighttpd
   #
