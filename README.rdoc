@@ -20,6 +20,7 @@ The included *handlers* connect all kinds of web servers to Rack:
 * Thin
 
 These web servers include Rack handlers in their distributions:
+* Agoo
 * Ebb
 * Fuzed
 * Glassfish v3
