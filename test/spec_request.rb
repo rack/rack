@@ -1201,31 +1201,31 @@ EOF
       'HTTP_X_FORWARDED_FOR' => '3.4.5.6'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,unknown'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,192.168.0.1'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1,3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6,10.0.0.1'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '10.0.0.1, 10.0.0.1, 3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 10.0.0.1, 10.0.0.1'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 3.4.5.6'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '3.4.5.6, 127.0.0.1'
     res.body.must_equal '3.4.5.6'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,unknown'
     res.body.must_equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'other,unknown,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,unknown,other'
     res.body.must_equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,localhost,192.168.0.1'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.168.0.1,localhost,unknown'
     res.body.must_equal 'unknown'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 3.4.5.6, 10.0.0.1, 172.31.4.4'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '172.31.4.4, 10.0.0.1, 3.4.5.6, 9.9.9.9'
     res.body.must_equal '3.4.5.6'
 
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '::1,2620:0:1c00:0:812c:9583:754b:ca11'
@@ -1241,14 +1241,14 @@ EOF
     res.body.must_equal '2620:0:1c00:0:812c:9583:754b:ca11'
 
     res = mock.get '/',
-      'HTTP_X_FORWARDED_FOR' => '1.1.1.1, 127.0.0.1',
+      'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 1.1.1.1',
       'HTTP_CLIENT_IP' => '1.1.1.1'
     res.body.must_equal '1.1.1.1'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, 9.9.9.9'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '9.9.9.9, 8.8.8.8'
     res.body.must_equal '9.9.9.9'
 
-    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '8.8.8.8, fe80::202:b3ff:fe1e:8329'
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'fe80::202:b3ff:fe1e:8329, 8.8.8.8'
     res.body.must_equal 'fe80::202:b3ff:fe1e:8329'
 
     # Unix Sockets
@@ -1273,10 +1273,10 @@ EOF
     # App receives:         X-Forwarded-For: 6.6.6.6
     #                       X-Forwarded-For: 2.2.2.3, 192.168.0.7
     #                       Client-IP: 6.6.6.6
-    # Rack env:             HTTP_X_FORWARDED_FOR: '6.6.6.6, 2.2.2.3, 192.168.0.7'
+    # Rack env:             HTTP_X_FORWARDED_FOR: '2.2.2.3, 192.168.0.7, 6.6.6.6'
     #                       HTTP_CLIENT_IP: '6.6.6.6'
     res = mock.get '/',
-      'HTTP_X_FORWARDED_FOR' => '6.6.6.6, 2.2.2.3, 192.168.0.7',
+      'HTTP_X_FORWARDED_FOR' => '2.2.2.3, 192.168.0.7, 6.6.6.6',
       'HTTP_CLIENT_IP' => '6.6.6.6'
     res.body.must_equal '2.2.2.3'
   end
