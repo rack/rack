@@ -88,6 +88,7 @@ module Rack
           res.status = status.to_i
           io_lambda = nil
           headers.each { |k, vs|
+            next if k.nil? || vs.nil?
             if k == RACK_HIJACK
               io_lambda = vs
             elsif k.downcase == "set-cookie"
