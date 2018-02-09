@@ -116,7 +116,7 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder  = options[:coder] ||= Base64::Marshal.new
+        @coder = options[:coder] ||= Base64::Marshal.new
         super(app, options.merge!(:cookie_only => true))
       end
 
