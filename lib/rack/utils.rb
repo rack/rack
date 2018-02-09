@@ -409,6 +409,9 @@ module Rack
 
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
+    # It does not support nil as key on any operation: instantiation,
+    # access, assigment, key checking (#include?, #has_key?, #member?)
+    # neither merging/replacing with another hash
     class HeaderHash < Hash
       def self.new(hash={})
         HeaderHash === hash ? hash : super(hash)

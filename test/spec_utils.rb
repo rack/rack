@@ -685,6 +685,50 @@ describe Rack::Utils::HeaderHash do
     h['foo'].must_be_nil
     h.wont_include 'foo'
   end
+
+  it "nil keys are not supported on instantiation" do
+    -> { Rack::Utils::HeaderHash.new(nil => 'not allowed') }.
+      must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "[]= do not support nil keys" do
+    h = Rack::Utils::HeaderHash.new
+    -> { h[nil] = 'not supported' }.
+      must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "access to a nil key is not supported" do
+    h = Rack::Utils::HeaderHash.new
+    -> { h[nil] }.must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "delete does not support nil keys" do
+    h = Rack::Utils::HeaderHash.new
+    -> { h.delete(nil) }.must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "include? can't handle nil keys" do
+    # same case for #has_key, #member?, #key?
+    h = Rack::Utils::HeaderHash.new
+    -> { h.include? nil }.must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "if merged hash has nil keys, an exception is raised" do
+    h = Rack::Utils::HeaderHash.new
+    -> { h.merge(nil => 'raise exception') }.must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
+
+  it "if replaced hash has nil keys, an exception is raised" do
+    h = Rack::Utils::HeaderHash.new
+    -> { h.replace(nil => 'raise exception') }.must_raise(NoMethodError).
+      message.must_match(/undefined method `downcase' for nil:NilClass/)
+  end
 end
 
 describe Rack::Utils::Context do
