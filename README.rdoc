@@ -54,6 +54,7 @@ These frameworks include Rack adapters in their distributions:
 * Sinatra
 * Sin
 * Vintage
+* WABuR
 * Waves
 * Wee
 * ... and many others.
