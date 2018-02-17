@@ -205,13 +205,16 @@ describe Rack::Response do
   it "can delete cookies with the same name with different paths" do
     response = Rack::Response.new
     response.set_cookie "foo", {:value => "bar", :path => "/"}
-    response.set_cookie "foo", {:value => "bar", :path => "/path"}
+    response.set_cookie "foo", {:value => "bar", :path => "/a"}
+    response.set_cookie "foo", {:value => "bar", :path => "/a/b"}
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
-                                         "foo=bar; path=/path"].join("\n")
+                                       "foo=bar; path=/a",
+                                       "foo=bar; path=/a/b"].join("\n")
 
-    response.delete_cookie "foo", :path => "/path"
+    response.delete_cookie "foo", :path => "/a"
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
-                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+                                       "foo=bar; path=/a/b",
+                                       "foo=; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
   end
 
   it "can do redirects" do
