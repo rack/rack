@@ -20,9 +20,10 @@ before_install:
 script: bundle exec rake ci
 
 rvm:
-  - 2.2.7
-  - 2.3.4
+  - 2.2.9
+  - 2.3.6
   - 2.4.3
+  - 2.5.0
   - ruby-head
   - rbx-2
   - jruby-9.1.15.0
