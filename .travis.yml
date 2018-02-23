@@ -14,7 +14,7 @@ addons:
       - libfcgi-dev
 
 before_install:
-  - gem env version | grep '^\(2\|1.\(8\|9\|[0-9][0-9]\)\)' || gem update --system
+  - gem update --system 2.7.4
   - gem list -i bundler || gem install bundler
 
 script: bundle exec rake ci
