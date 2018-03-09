@@ -144,4 +144,16 @@ module Rack
     autoload :Pool, "rack/session/pool"
     autoload :Memcache, "rack/session/memcache"
   end
+
+  module Coders
+    autoload :Base64, 'rack/coders/base64'
+    autoload :Cipher, 'rack/coders/cipher'
+    autoload :Coder, 'rack/coders/coder'
+    autoload :HMAC, 'rack/coders/hmac'
+    autoload :Identity, 'rack/coders/identity'
+    autoload :JSON, 'rack/coders/json'
+    autoload :Marshal, 'rack/coders/marshal'
+    autoload :Rescue, 'rack/coders/rescue'
+    autoload :Zip, 'rack/coders/zip'
+  end
 end
