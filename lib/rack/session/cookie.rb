@@ -32,7 +32,7 @@ module Rack
     # Example of a cookie with no encoding:
     #
     #   Rack::Session::Cookie.new(application, {
-    #     :coder => Rack::Session::Cookie::Identity.new
+    #     :coder => Rack::Coders::Identity.new
     #   })
     #
     # Example of a cookie with custom encoding:
@@ -44,62 +44,45 @@ module Rack
     #     }.new
     #   })
     #
-
     class Cookie < Abstract::Persisted
-      # Encode session cookies as Base64
+      # This class is deprecated, use Rack::Coders instead.
       class Base64
-        def encode(str)
-          [str].pack('m')
+        def self.new
+          deprecation_warning
+          Coders::Rescue.new(Coders::Base64.new(strict: false))
         end
 
-        def decode(str)
-          str.unpack('m').first
+        def self.deprecation_warning
+          return unless $VERBOSE
+          warn "#{self} is deprecated, use Rack::Coders} instead"
         end
 
         # Encode session cookies as Marshaled Base64 data
         class Marshal < Base64
-          def encode(str)
-            super(::Marshal.dump(str))
-          end
-
-          def decode(str)
-            return unless str
-            ::Marshal.load(super(str)) rescue nil
+          def self.new
+            deprecation_warning
+            Coders::Rescue.new(Coders::Base64.new(Coders::Marshal.new, strict: false))
           end
         end
 
-        # N.B. Unlike other encoding methods, the contained objects must be a
-        # valid JSON composite type, either a Hash or an Array.
+        # Encode session cookies as JSON Base64 data
         class JSON < Base64
-          def encode(obj)
-            super(::JSON.dump(obj))
-          end
-
-          def decode(str)
-            return unless str
-            ::JSON.parse(super(str)) rescue nil
+          def self.new
+            deprecation_warning
+            Coders::Rescue.new(Coders::Base64.new(Coders::JSON.new, strict: false))
           end
         end
 
         class ZipJSON < Base64
-          def encode(obj)
-            super(Zlib::Deflate.deflate(::JSON.dump(obj)))
-          end
-
-          def decode(str)
-            return unless str
-            ::JSON.parse(Zlib::Inflate.inflate(super(str)))
-          rescue
-            nil
+          def self.new
+            deprecation_warning
+            Coders::Rescue.new(Coders::Base64.new(Coders::Zip.new(Coders::JSON.new), strict: false))
           end
         end
       end
 
       # Use no encoding for session cookies
-      class Identity
-        def encode(str); str; end
-        def decode(str); str; end
-      end
+      Identity = Coders::Identity
 
       attr_reader :coder
 
@@ -116,7 +99,7 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder  = options[:coder] ||= Base64::Marshal.new
+        @coder  = options[:coder] ||= Coders::Rescue.new(Coders::Base64.new(Coders::Marshal.new))
         super(app, options.merge!(:cookie_only => true))
       end
 

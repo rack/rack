@@ -83,6 +83,16 @@ describe Rack::Session::Cookie do
       coder.decode(str).must_equal str.unpack('m').first
     end
 
+    it 'outputs warning in verbose mode' do
+      verbose = $VERBOSE
+      $VERBOSE = true
+      ->{ Rack::Session::Cookie::Base64.new }.must_output nil, /deprecated/
+      ->{ Rack::Session::Cookie::Base64::JSON.new }.must_output nil, /deprecated/
+      ->{ Rack::Session::Cookie::Base64::ZipJSON.new }.must_output nil, /deprecated/
+      ->{ Rack::Session::Cookie::Base64::Marshal.new }.must_output nil, /deprecated/
+      $VERBOSE = verbose
+    end
+
     describe 'Marshal' do
       it 'marshals and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
@@ -403,7 +413,7 @@ describe Rack::Session::Cookie do
 
   it "exposes :coder in env['rack.session.option']" do
     response = response_for(:app => session_option[:coder])
-    response.body.must_match(/Base64::Marshal/)
+    response.body.must_match(/Rack::Coders::Base64.*Rack::Coders::Marshal/)
   end
 
   it "allows passing in a hash with session data from middleware in front" do
