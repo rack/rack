@@ -228,7 +228,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 The Rack Core Team, consisting of
 
-* Christian Neukirchen (chneukirchen[https://github.com/chneukirchen])
+* Leah Neukirchen (chneukirchen[https://github.com/chneukirchen])
 * James Tucker (raggi[https://github.com/raggi])
 * Josh Peek (josh[https://github.com/josh])
 * José Valim (josevalim[https://github.com/josevalim])
@@ -300,5 +300,3 @@ Official Rack repositories:: <https://github.com/rack>
 Rack Bug Tracking:: <https://github.com/rack/rack/issues>
 rack-devel mailing list:: <https://groups.google.com/group/rack-devel>
 Rack's Rubyforge project:: <http://rubyforge.org/projects/rack>
-
-Christian Neukirchen:: <http://chneukirchen.org/>
