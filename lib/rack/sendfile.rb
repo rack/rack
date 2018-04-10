@@ -53,7 +53,7 @@ module Rack
   # that it maps to. The middleware performs a simple substitution on the
   # resulting path.
   #
-  # See Also: http://wiki.codemongers.com/NginxXSendfile
+  # See Also: https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile
   #
   # === lighttpd
   #
@@ -150,8 +150,12 @@ module Rack
       if mapping = @mappings.find { |internal,_| internal =~ path }
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
-        internal, external = mapping.split('=', 2).map(&:strip)
-        path.sub(/^#{internal}/i, external)
+        mapping.split(',').map(&:strip).each do |m|
+          internal, external = m.split('=', 2).map(&:strip)
+          new_path = path.sub(/^#{internal}/i, external)
+          return new_path unless path == new_path
+        end
+        path
       end
     end
   end

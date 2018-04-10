@@ -5,7 +5,7 @@ module Rack
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
-      BUFSIZE = 16384
+      BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
         Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0".freeze, '%00'.freeze))])
@@ -170,10 +170,10 @@ module Rack
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
-        @boundary_size  = @boundary.bytesize + EOL.size
         @bufsize        = bufsize
 
         @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
+        @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
         @full_boundary = @boundary
         @end_boundary = @boundary + '--'
         @state = :FAST_FORWARD
@@ -263,15 +263,17 @@ module Rack
       end
 
       def handle_mime_body
-        if @buf =~ rx
+        if i = @buf.index(rx)
           # Save the rest.
-          if i = @buf.index(rx)
-            @collector.on_mime_body @mime_index, @buf.slice!(0, i)
-            @buf.slice!(0, 2) # Remove \r\n after the content
-          end
+          @collector.on_mime_body @mime_index, @buf.slice!(0, i)
+          @buf.slice!(0, 2) # Remove \r\n after the content
           @state = :CONSUME_TOKEN
           @mime_index += 1
         else
+          # Save the read body part.
+          if @rx_max_size < @buf.size
+            @collector.on_mime_body @mime_index, @buf.slice!(0, @buf.size - @rx_max_size)
+          end
           :want_read
         end
       end

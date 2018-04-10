@@ -12,7 +12,7 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-Also see http://rack.github.io/.
+Also see https://rack.github.io/.
 EOF
 
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
@@ -23,13 +23,12 @@ EOF
   s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
   s.test_files      = Dir['test/spec_*.rb']
 
-  s.author          = 'Christian Neukirchen'
-  s.email           = 'chneukirchen@gmail.com'
-  s.homepage        = 'http://rack.github.io/'
+  s.author          = 'Leah Neukirchen'
+  s.email           = 'leah@vuxu.org'
+  s.homepage        = 'https://rack.github.io/'
   s.required_ruby_version = '>= 2.2.2'
 
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-sprint'
-  s.add_development_dependency 'concurrent-ruby'
   s.add_development_dependency 'rake'
 end

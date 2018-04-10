@@ -44,6 +44,8 @@ describe Rack::Deflater do
       [accept_encoding, accept_encoding.dup]
     end
 
+    start = Time.now.to_i
+
     # build response
     status, headers, body = build_response(
       options['app_status'] || expected_status,
@@ -67,6 +69,13 @@ describe Rack::Deflater do
       when 'gzip'
         io = StringIO.new(body_text)
         gz = Zlib::GzipReader.new(io)
+        mtime = gz.mtime.to_i
+        if last_mod = headers['Last-Modified']
+          Time.httpdate(last_mod).to_i.must_equal mtime
+        else
+          mtime.must_be(:<=, Time.now.to_i)
+          mtime.must_be(:>=, start.to_i)
+        end
         tmp = gz.read
         gz.close
         tmp
@@ -371,5 +380,39 @@ describe Rack::Deflater do
     }
 
     verify(200, response, 'gzip', options)
+  end
+
+  it 'will honor sync: false to avoid unnecessary flushing' do
+    app_body = Object.new
+    class << app_body
+      def each
+        (0..20).each { |i| yield "hello\n".freeze }
+      end
+    end
+
+    options = {
+      'deflater_options' => { :sync => false },
+      'app_body' => app_body,
+      'skip_body_verify' => true,
+    }
+    verify(200, app_body, deflate_or_gzip, options) do |status, headers, body|
+      headers.must_equal({
+        'Content-Encoding' => 'gzip',
+        'Vary' => 'Accept-Encoding',
+        'Content-Type' => 'text/plain'
+      })
+
+      buf = ''
+      raw_bytes = 0
+      inflater = auto_inflater
+      body.each do |part|
+        raw_bytes += part.bytesize
+        buf << inflater.inflate(part)
+      end
+      buf << inflater.finish
+      expect = "hello\n" * 21
+      buf.must_equal expect
+      raw_bytes.must_be(:<, expect.bytesize)
+    end
   end
 end

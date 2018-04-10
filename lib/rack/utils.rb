@@ -1,4 +1,5 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
 require 'uri'
 require 'fileutils'
 require 'set'
@@ -486,9 +487,9 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
-    #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
-    #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
+    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
+    #     ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
+    #               puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',

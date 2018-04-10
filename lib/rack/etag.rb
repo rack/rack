@@ -1,5 +1,5 @@
 require 'rack'
-require 'digest/md5'
+require 'digest/sha2'
 
 module Rack
   # Automatically sets the ETag header on all String bodies.
