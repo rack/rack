@@ -78,6 +78,24 @@ module Rack
           }
 
           opts.separator ""
+          opts.separator "Profiling options:"
+
+          opts.on("--heap HEAPFILE", "Build the application, then dump the heap to HEAPFILE") do |e|
+            options[:heapfile] = e
+          end
+
+          opts.on("--profile PROFILE", "Dump CPU or Memory profile to PROFILE (defaults to a tempfile)") do |e|
+            options[:profile_file] = e
+          end
+
+          opts.on("--profile-mode MODE", "Profile mode (cpu|wall|object)") do |e|
+            { cpu: true, wall: true, object: true }.fetch(e.to_sym) do
+              raise OptionParser::InvalidOption, "unknown profile mode: #{e}"
+            end
+            options[:profile_mode] = e.to_sym
+          end
+
+          opts.separator ""
           opts.separator "Common options:"
 
           opts.on_tail("-h", "-?", "--help", "Show this message") do
@@ -280,7 +298,9 @@ module Rack
 
       # Touch the wrapped app, so that the config.ru is loaded before
       # daemonization (i.e. before chdir, etc).
-      wrapped_app
+      handle_profiling(options[:heapfile], options[:profile_mode], options[:profile_file]) do
+        wrapped_app
+      end
 
       daemonize_app if options[:daemonize]
 
@@ -319,6 +339,44 @@ module Rack
         app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
         @options.merge!(options) { |key, old, new| old }
         app
+      end
+
+      def handle_profiling(heapfile, profile_mode, filename)
+        if heapfile
+          require "objspace"
+          ObjectSpace.trace_object_allocations_start
+          yield
+          GC.start
+          ::File.open(heapfile, "w") { |f| ObjectSpace.dump_all(output: f) }
+          exit
+        end
+
+        if profile_mode
+          require "stackprof"
+          require "tempfile"
+
+          make_profile_name(filename) do |filename|
+            ::File.open(filename, "w") do |f|
+              StackProf.run(mode: profile_mode, out: f) do
+                yield
+              end
+              puts "Profile written to: #{filename}"
+            end
+          end
+          exit
+        end
+
+        yield
+      end
+
+      def make_profile_name(filename)
+        if filename
+          yield filename
+        else
+          ::Dir::Tmpname.create("profile.dump") do |tmpname, _, _|
+            yield tmpname
+          end
+        end
       end
 
       def build_app_from_string
