@@ -117,6 +117,14 @@ describe Rack::URLMap do
     res.must_be :ok?
     res["X-Position"].must_equal "default.org"
 
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org")
+    res.must_be :ok?
+    res["X-Position"].must_equal "default.org"
+
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org", "HTTP_X_FORWARDED_HOST" => "any-host.org")
+    res.must_be :ok?
+    res["X-Position"].must_equal "default.org"
+
     res = Rack::MockRequest.new(map).get("/",
                                          "HTTP_HOST" => "example.org:9292",
                                          "SERVER_PORT" => "9292")
