@@ -80,6 +80,7 @@ module Rack
       env[SCRIPT_NAME] = script_name
     end
 
+    private
     def casecmp?(v1, v2)
       # if both nil, or they're the same string
       return true if v1 == v2
