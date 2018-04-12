@@ -8,7 +8,7 @@ describe Rack::MethodOverride do
       [200, {"Content-Type" => "text/plain"}, []]
     }))
   end
-  
+
   should "not affect GET requests" do
     env = Rack::MockRequest.env_for("/?_method=delete", :method => "GET")
     app.call env
@@ -21,6 +21,22 @@ describe Rack::MethodOverride do
     app.call env
 
     env["REQUEST_METHOD"].should.equal "PUT"
+  end
+
+  if RUBY_VERSION >= "1.9"
+    should "set rack.errors for invalid UTF8 _method values" do
+      errors = StringIO.new
+      env = Rack::MockRequest.env_for("/",
+        :method => "POST",
+        :input => "_method=\xBF".force_encoding("ASCII-8BIT"),
+        "rack.errors" => errors)
+
+      app.call env
+
+      errors.rewind
+      errors.read.should.equal "Invalid string for method\n"
+      env["REQUEST_METHOD"].should.equal "POST"
+    end
   end
 
   should "modify REQUEST_METHOD for POST requests when X-HTTP-Method-Override is set" do
