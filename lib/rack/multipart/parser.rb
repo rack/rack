@@ -252,7 +252,7 @@ module Rack
           filename = get_filename(head)
 
           if name.nil? || name.empty?
-            name = filename || "#{content_type || TEXT_PLAIN}[]"
+            name = filename || "#{content_type || TEXT_PLAIN}[]".dup
           end
 
           @collector.on_mime_head @mime_index, head, filename, content_type, name

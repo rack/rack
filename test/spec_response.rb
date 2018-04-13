@@ -231,12 +231,12 @@ describe Rack::Response do
   it "has a useful constructor" do
     r = Rack::Response.new("foo")
     status, header, body = r.finish
-    str = ""; body.each { |part| str << part }
+    str = "".dup; body.each { |part| str << part }
     str.must_equal "foo"
 
     r = Rack::Response.new(["foo", "bar"])
     status, header, body = r.finish
-    str = ""; body.each { |part| str << part }
+    str = "".dup; body.each { |part| str << part }
     str.must_equal "foobar"
 
     object_with_each = Object.new
@@ -247,7 +247,7 @@ describe Rack::Response do
     r = Rack::Response.new(object_with_each)
     r.write "foo"
     status, header, body = r.finish
-    str = ""; body.each { |part| str << part }
+    str = "".dup; body.each { |part| str << part }
     str.must_equal "foobarfoo"
 
     r = Rack::Response.new([], 500)
@@ -263,7 +263,7 @@ describe Rack::Response do
       res.write "foo"
     }
     status, _, body = r.finish
-    str = ""; body.each { |part| str << part }
+    str = "".dup; body.each { |part| str << part }
     str.must_equal "foo"
     status.must_equal 404
   end
@@ -271,7 +271,7 @@ describe Rack::Response do
   it "doesn't return invalid responses" do
     r = Rack::Response.new(["foo", "bar"], 204)
     _, header, body = r.finish
-    str = ""; body.each { |part| str << part }
+    str = "".dup; body.each { |part| str << part }
     str.must_be :empty?
     header["Content-Type"].must_be_nil
     header['Content-Length'].must_be_nil

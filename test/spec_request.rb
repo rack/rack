@@ -1106,7 +1106,7 @@ EOF
       [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
     }
 
-    input = <<EOF
+    input = <<EOF.dup
 --AaB03x\r
 content-disposition: form-data; name="reply"\r
 \r

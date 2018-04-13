@@ -27,7 +27,7 @@ describe Rack::Directory do
 
       assert_equal 200, status
 
-      str = ''
+      str = ''.dup
       body.each { |x| str << x }
       assert_match "foo+bar", str
     end
@@ -113,7 +113,7 @@ describe Rack::Directory do
 
       assert_equal 200, status
 
-      str = ''
+      str = ''.dup
       body.each { |x| str << x }
       assert_match "/foo%20bar/omg%20omg.txt", str
     end

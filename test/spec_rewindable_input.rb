@@ -26,14 +26,14 @@ module RewindableTest
   end
 
   it "be able to handle to read(length, buffer)" do
-    buffer = ""
+    buffer = "".dup
     result = @rio.read(1, buffer)
     result.must_equal "h"
     result.object_id.must_equal buffer.object_id
   end
 
   it "be able to handle to read(nil, buffer)" do
-    buffer = ""
+    buffer = "".dup
     result = @rio.read(nil, buffer)
     result.must_equal "hello world"
     result.object_id.must_equal buffer.object_id
@@ -95,7 +95,7 @@ end
 describe Rack::RewindableInput do
   describe "given an IO object that is already rewindable" do
     def setup
-      @io = StringIO.new("hello world")
+      @io = StringIO.new("hello world".dup)
       super
     end
 
@@ -104,7 +104,7 @@ describe Rack::RewindableInput do
 
   describe "given an IO object that is not rewindable" do
     def setup
-      @io = StringIO.new("hello world")
+      @io = StringIO.new("hello world".dup)
       @io.instance_eval do
         undef :rewind
       end
@@ -116,7 +116,7 @@ describe Rack::RewindableInput do
 
   describe "given an IO object whose rewind method raises Errno::ESPIPE" do
     def setup
-      @io = StringIO.new("hello world")
+      @io = StringIO.new("hello world".dup)
       def @io.rewind
         raise Errno::ESPIPE, "You can't rewind this!"
       end

@@ -391,7 +391,7 @@ module Rack
 
       def base_url
         url = "#{scheme}://#{host}"
-        url << ":#{port}" if port != DEFAULT_PORTS[scheme]
+        url = "#{url}:#{port}" if port != DEFAULT_PORTS[scheme]
         url
       end
 
