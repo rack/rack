@@ -475,7 +475,7 @@ module Rack
       end
 
       def split_ip_addresses(ip_addresses)
-        ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
+        ip_addresses ? ip_addresses.strip.split(/[,\s]+/).map { |ip| ip.split(':').length == 2 ? ip.gsub(/:\d+$/, '') : ip.gsub(/(^\[|\]:\d+$)/, '') } : []
       end
 
       def reject_trusted_ip_addresses(ip_addresses)
