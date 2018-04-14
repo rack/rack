@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/response'
 require 'rack/body_proxy'
 

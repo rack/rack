@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "rack/file"
 require "rack/utils"
 

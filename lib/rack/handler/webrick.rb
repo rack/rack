@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'webrick'
 require 'stringio'
 require 'rack/content_length'

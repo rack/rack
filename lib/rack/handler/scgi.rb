@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'scgi'
 require 'stringio'
 require 'rack/content_length'

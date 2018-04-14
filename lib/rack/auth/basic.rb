@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/auth/abstract/handler'
 require 'rack/auth/abstract/request'
 
