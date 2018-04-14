@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # bugrep: Andreas Zehnder
 

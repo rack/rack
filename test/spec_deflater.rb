@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'stringio'
 require 'time'  # for Time#httpdate
@@ -402,7 +404,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain'
       })
 
-      buf = ''
+      buf = ''.dup
       raw_bytes = 0
       inflater = auto_inflater
       body.each do |part|

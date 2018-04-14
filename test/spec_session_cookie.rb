@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'rack/session/cookie'
 require 'rack/lint'

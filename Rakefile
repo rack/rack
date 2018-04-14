@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # Rakefile for Rack.  -*-ruby-*-
 
 desc "Run all the tests"

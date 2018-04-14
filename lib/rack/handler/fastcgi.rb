@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'fcgi'
 require 'socket'
 require 'rack/content_length'

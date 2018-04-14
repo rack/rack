@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thin"
 require "thin/server"
 require "thin/logging"

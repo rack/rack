@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   class MethodOverride
     HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
