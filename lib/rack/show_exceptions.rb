@@ -95,7 +95,11 @@ module Rack
         end
       }.compact
 
-      TEMPLATE.result(binding)
+      template.result(binding)
+    end
+
+    def template
+      TEMPLATE
     end
 
     def h(obj)                  # :nodoc:
