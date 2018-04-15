@@ -199,7 +199,7 @@ describe Rack::Builder do
       end)
       o = Object.new
       def o.call(env)
-        @a = 1 if env['PATH_INFO'] == '/b'; 
+        @a = 1 if env['PATH_INFO'] == '/b';
         [200, {}, []]
       end
       run o
@@ -257,6 +257,11 @@ describe Rack::Builder do
     it "sets __LINE__ correctly" do
       app, _ = Rack::Builder.parse_file config_file('line.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal '1'
+    end
+
+    it "strips leading unicode byte order mark when present" do
+      app, _ = Rack::Builder.parse_file config_file('bom.ru')
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
   end
 
