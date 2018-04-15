@@ -1218,6 +1218,20 @@ EOF
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 3.4.5.6'
     res.body.must_equal '3.4.5.6'
 
+    # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '[2001:db8:cafe::17]:47011'
+    res.body.must_equal '2001:db8:cafe::17'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, [2001:db8:cafe::17]:47011'
+    res.body.must_equal '2001:db8:cafe::17'
+
+    # IPv4 format with optional port: "192.0.2.43:47011"
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.0.2.43:47011'
+    res.body.must_equal '192.0.2.43'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, 192.0.2.43:47011'
+    res.body.must_equal '192.0.2.43'
+
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
     res.body.must_equal 'unknown'
 
