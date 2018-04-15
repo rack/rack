@@ -262,6 +262,7 @@ module Rack
         return remote_addrs.first if remote_addrs.any?
 
         forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
+          .map { |ip| strip_port(ip) }
 
         return reject_trusted_ip_addresses(forwarded_ips).last || forwarded_ips.first || get_header("REMOTE_ADDR")
       end
@@ -476,6 +477,18 @@ module Rack
 
       def split_ip_addresses(ip_addresses)
         ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
+      end
+
+      def strip_port(ip_address)
+        # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
+        # returns: "2001:db8:cafe::17"
+        return ip_address.gsub(/(^\[|\]:\d+$)/, '') if ip_address.include?('[')
+
+        # IPv4 format with optional port: "192.0.2.43:47011"
+        # returns: "192.0.2.43"
+        return ip_address.gsub(/:\d+$/, '') if ip_address.count(':') == 1
+
+        ip_address
       end
 
       def reject_trusted_ip_addresses(ip_addresses)
