@@ -5,9 +5,9 @@ require 'rack/body_proxy'
 
 module Rack
   ### This middleware provides hooks to certain places in the request /
-  #response lifecycle.  This is so that middleware that don't need to filter
-  #the response data can safely leave it alone and not have to send messages
-  #down the traditional "rack stack".
+  # response lifecycle.  This is so that middleware that don't need to filter
+  # the response data can safely leave it alone and not have to send messages
+  # down the traditional "rack stack".
   #
   # The events are:
   #
