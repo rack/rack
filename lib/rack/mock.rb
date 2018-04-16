@@ -64,7 +64,7 @@ module Rack
     def options(uri, opts={}) request(OPTIONS, uri, opts) end
 
     def request(method=GET, uri="", opts={})
-      env = self.class.env_for(uri, opts.merge(:method => method))
+      env = self.class.env_for(uri, opts.merge(method: method))
 
       if opts[:lint]
         app = Rack::Lint.new(@app)

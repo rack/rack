@@ -72,7 +72,7 @@ describe Rack::Handler::CGI do
   end
 
   it "support HTTP auth" do
-    GET("/test", {:user => "ruth", :passwd => "secret"})
+    GET("/test", {user: "ruth", passwd: "secret"})
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 

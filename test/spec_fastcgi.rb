@@ -73,7 +73,7 @@ describe Rack::Handler::FastCGI do
   end
 
   it "support HTTP auth" do
-    GET("/test.fcgi", {:user => "ruth", :passwd => "secret"})
+    GET("/test.fcgi", {user: "ruth", passwd: "secret"})
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 

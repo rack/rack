@@ -11,10 +11,10 @@ describe Rack::Handler::WEBrick do
   include TestRequest::Helpers
 
   before do
-  @server = WEBrick::HTTPServer.new(:Host => @host='127.0.0.1',
-                                    :Port => @port=9202,
-                                    :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-                                    :AccessLog => [])
+  @server = WEBrick::HTTPServer.new(Host: @host='127.0.0.1',
+                                    Port: @port=9202,
+                                    Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+                                    AccessLog: [])
   @server.mount "/test", Rack::Handler::WEBrick,
     Rack::Lint.new(TestRequest.new)
   @thread = Thread.new { @server.start }
@@ -94,7 +94,7 @@ describe Rack::Handler::WEBrick do
   end
 
   it "support HTTP auth" do
-    GET("/test", {:user => "ruth", :passwd => "secret"})
+    GET("/test", {user: "ruth", passwd: "secret"})
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 
@@ -126,10 +126,10 @@ describe Rack::Handler::WEBrick do
     t = Thread.new do
       Rack::Handler::WEBrick.run(lambda {},
                                  {
-                                   :Host => '127.0.0.1',
-                                   :Port => 9210,
-                                   :Logger => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-                                   :AccessLog => []}) { |server|
+                                   Host: '127.0.0.1',
+                                   Port: 9210,
+                                   Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+                                   AccessLog: []}) { |server|
         assert_kind_of WEBrick::HTTPServer, server
         queue.push(server)
       }

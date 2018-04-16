@@ -1337,7 +1337,7 @@ EOF
 
   class MyRequest < Rack::Request
     def params
-      {:foo => "bar"}
+      {foo: "bar"}
     end
   end
 
@@ -1350,7 +1350,7 @@ EOF
 
     req2 = MyRequest.new(env)
     req2.GET.must_equal "foo" => "bar"
-    req2.params.must_equal :foo => "bar"
+    req2.params.must_equal foo: "bar"
   end
 
   it "allow parent request to be instantiated after subclass request" do
@@ -1358,7 +1358,7 @@ EOF
 
     req1 = MyRequest.new(env)
     req1.GET.must_equal "foo" => "bar"
-    req1.params.must_equal :foo => "bar"
+    req1.params.must_equal foo: "bar"
 
     req2 = make_request(env)
     req2.GET.must_equal "foo" => "bar"

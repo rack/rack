@@ -28,7 +28,7 @@ module Rack
 
     class Pool < Abstract::Persisted
       attr_reader :mutex, :pool
-      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge :drop => false
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge drop: false
 
       def initialize(app, options={})
         super

@@ -12,10 +12,10 @@ module Rack
 
       def self.run(app, options=nil)
         options[:Socket] = UNIXServer.new(options[:File]) if options[:File]
-        new(options.merge(:app=>app,
-                          :host=>options[:Host],
-                          :port=>options[:Port],
-                          :socket=>options[:Socket])).listen
+        new(options.merge(app: app,
+                          host: options[:Host],
+                          port: options[:Port],
+                          socket: options[:Socket])).listen
       end
 
       def self.valid_options

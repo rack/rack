@@ -300,9 +300,9 @@ module Rack
       new_header = make_delete_cookie_header(header, key, value)
 
       add_cookie_to_header(new_header, key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :max_age => '0',
-                   :expires => Time.at(0) }.merge(value))
+                 {value: '', path: nil, domain: nil,
+                   max_age: '0',
+                   expires: Time.at(0) }.merge(value))
 
     end
     module_function :add_remove_cookie_to_header

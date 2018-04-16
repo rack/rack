@@ -25,8 +25,8 @@ module Rack
       attr_reader :mutex, :pool
 
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
-        :namespace => 'rack:session',
-        :memcache_server => 'localhost:11211'
+        namespace: 'rack:session',
+        memcache_server: 'localhost:11211'
 
       def initialize(app, options={})
         super

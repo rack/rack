@@ -17,7 +17,7 @@ describe Rack::ShowStatus do
         [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
     }))
 
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
@@ -34,7 +34,7 @@ describe Rack::ShowStatus do
           [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
     }))
 
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
@@ -53,7 +53,7 @@ describe Rack::ShowStatus do
           [500, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
     }))
 
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
     res.wont_be_empty
 
     res["Content-Type"].must_equal "text/html"
@@ -69,7 +69,7 @@ describe Rack::ShowStatus do
           [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
     }))
 
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
     res.must_be :not_found?
 
     res.body.must_equal "foo!"
@@ -80,7 +80,7 @@ describe Rack::ShowStatus do
 
     req = Rack::MockRequest.new(
       show_status(lambda{|env| [401, headers, []] }))
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
 
     res["WWW-Authenticate"].must_equal "Basic blah"
   end
@@ -93,7 +93,7 @@ describe Rack::ShowStatus do
           [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
     }))
 
-    res = req.get("/", :lint => true)
+    res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 

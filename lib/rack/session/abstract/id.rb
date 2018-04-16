@@ -201,17 +201,17 @@ module Rack
 
       class Persisted
         DEFAULT_OPTIONS = {
-          :key =>           RACK_SESSION,
-          :path =>          '/',
-          :domain =>        nil,
-          :expire_after =>  nil,
-          :secure =>        false,
-          :httponly =>      true,
-          :defer =>         false,
-          :renew =>         false,
-          :sidbits =>       128,
-          :cookie_only =>   true,
-          :secure_random => ::SecureRandom
+          key: RACK_SESSION,
+          path: '/',
+          domain: nil,
+          expire_after: nil,
+          secure: false,
+          httponly: true,
+          defer: false,
+          renew: false,
+          sidbits: 128,
+          cookie_only: true,
+          secure_random: ::SecureRandom
         }.freeze
 
         attr_reader :key, :default_options, :sid_secure
