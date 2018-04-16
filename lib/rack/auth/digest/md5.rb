@@ -49,7 +49,7 @@ module Rack
 
           if valid?(auth)
             if auth.nonce.stale?
-              return unauthorized(challenge(:stale => true))
+              return unauthorized(challenge(stale: true))
             else
               env['REMOTE_USER'] = auth.username
 

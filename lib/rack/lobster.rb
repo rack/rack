@@ -67,6 +67,6 @@ if $0 == __FILE__
   require 'rack'
   require 'rack/show_exceptions'
   Rack::Server.start(
-    :app => Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), :Port => 9292
+    app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )
 end

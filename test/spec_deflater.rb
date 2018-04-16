@@ -310,7 +310,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain'
       },
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(200, 'Hello World!', 'gzip', options)
@@ -322,7 +322,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain; charset=us-ascii'
       },
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(200, 'Hello World!', 'gzip', options)
@@ -331,7 +331,7 @@ describe Rack::Deflater do
   it "not deflate if content-type is not set but given in :include" do
     options = {
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(304, 'Hello World!', { 'gzip' => nil }, options)
@@ -343,7 +343,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain'
       },
       'deflater_options' => {
-        :include => %w(text/json)
+        include: %w(text/json)
       }
     }
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
@@ -352,7 +352,7 @@ describe Rack::Deflater do
   it "deflate response if :if lambda evaluates to true" do
     options = {
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body| true }
+        if: lambda { |env, status, headers, body| true }
       }
     }
     verify(200, 'Hello World!', deflate_or_gzip, options)
@@ -361,7 +361,7 @@ describe Rack::Deflater do
   it "not deflate if :if lambda evaluates to false" do
     options = {
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body| false }
+        if: lambda { |env, status, headers, body| false }
       }
     }
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
@@ -375,7 +375,7 @@ describe Rack::Deflater do
         'Content-Length' => response_len.to_s
       },
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body|
+        if: lambda { |env, status, headers, body|
           headers['Content-Length'].to_i >= response_len
         }
       }
@@ -393,7 +393,7 @@ describe Rack::Deflater do
     end
 
     options = {
-      'deflater_options' => { :sync => false },
+      'deflater_options' => { sync: false },
       'app_body' => app_body,
       'skip_body_verify' => true,
     }

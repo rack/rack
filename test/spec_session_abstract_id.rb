@@ -26,7 +26,7 @@ describe Rack::Session::Abstract::ID do
         'fake_hex'
       end
     end
-    id = Rack::Session::Abstract::ID.new nil, :secure_random => secure_random.new
+    id = Rack::Session::Abstract::ID.new nil, secure_random: secure_random.new
     id.send(:generate_sid).must_equal 'fake_hex'
   end
 

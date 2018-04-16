@@ -17,9 +17,9 @@ gem "rubocop", require: false
 # c_platforms = [:mri] if Gem.platforms.last.os == "java"
 
 group :extra do
-  gem 'fcgi', :platforms => c_platforms
+  gem 'fcgi', platforms: c_platforms
   gem 'memcache-client'
-  gem 'thin', :platforms => c_platforms
+  gem 'thin', platforms: c_platforms
 end
 
 group :doc do

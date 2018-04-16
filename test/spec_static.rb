@@ -20,11 +20,11 @@ describe Rack::Static do
 
   root = File.expand_path(File.dirname(__FILE__))
 
-  OPTIONS = {:urls => ["/cgi"], :root => root}
-  STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
-  HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
-  HASH_ROOT_OPTIONS = {:urls => {"/" => "static/foo.html"}, :root => root}
-  GZIP_OPTIONS = {:urls => ["/cgi"], :root => root, :gzip=>true}
+  OPTIONS = {urls: ["/cgi"], root: root}
+  STATIC_OPTIONS = {urls: [""], root: "#{root}/static", index: 'index.html'}
+  HASH_OPTIONS = {urls: {"/cgi/sekret" => 'cgi/test'}, root: root}
+  HASH_ROOT_OPTIONS = {urls: {"/" => "static/foo.html"}, root: root}
+  GZIP_OPTIONS = {urls: ["/cgi"], root: root, gzip: true}
 
   before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
@@ -113,14 +113,14 @@ describe Rack::Static do
   end
 
   it "supports serving fixed cache-control (legacy option)" do
-    opts = OPTIONS.merge(:cache_control => 'public')
+    opts = OPTIONS.merge(cache_control: 'public')
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
     res = request.get("/cgi/test")
     res.must_be :ok?
     res.headers['Cache-Control'].must_equal 'public'
   end
 
-  HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => [
+  HEADER_OPTIONS = {urls: ["/cgi"], root: root, header_rules: [
     [:all, {'Cache-Control' => 'public, max-age=100'}],
     [:fonts, {'Cache-Control' => 'public, max-age=200'}],
     [%w(png jpg), {'Cache-Control' => 'public, max-age=300'}],
@@ -172,8 +172,8 @@ describe Rack::Static do
 
   it "prioritizes header rules over fixed cache-control setting (legacy option)" do
     opts = OPTIONS.merge(
-      :cache_control => 'public, max-age=24',
-      :header_rules => [
+      cache_control: 'public, max-age=24',
+      header_rules: [
         [:all, {'Cache-Control' => 'public, max-age=42'}]
       ])
 

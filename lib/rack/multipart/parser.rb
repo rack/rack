@@ -94,14 +94,14 @@ module Rack
               # those which give the lone filename.
               fn = filename.split(/[\/\\]/).last
 
-              data = {:filename => fn, :type => content_type,
-                      :name => name, :tempfile => body, :head => head}
+              data = {filename: fn, type: content_type,
+                      name: name, tempfile: body, head: head}
             elsif !filename && content_type && body.is_a?(IO)
               body.rewind
 
               # Generic multipart cases, not coming from a form
-              data = {:type => content_type,
-                      :name => name, :tempfile => body, :head => head}
+              data = {type: content_type,
+                      name: name, tempfile: body, head: head}
             end
 
             yield data

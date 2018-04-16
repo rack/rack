@@ -38,17 +38,17 @@ begin
 
     it "faults on no connection" do
       lambda {
-        Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
+        Rack::Session::Memcache.new(incrementor, memcache_server: 'nosuchserver')
       }.must_raise(RuntimeError).message.must_equal 'No memcache servers'
     end
 
     it "connects to existing server" do
-      test_pool = MemCache.new(incrementor, :namespace => 'test:rack:session')
+      test_pool = MemCache.new(incrementor, namespace: 'test:rack:session')
       test_pool.namespace.must_equal 'test:rack:session'
     end
 
     it "passes options to MemCache" do
-      pool = Rack::Session::Memcache.new(incrementor, :namespace => 'test:rack:session')
+      pool = Rack::Session::Memcache.new(incrementor, namespace: 'test:rack:session')
       pool.pool.namespace.must_equal 'test:rack:session'
     end
 
@@ -82,7 +82,7 @@ begin
     end
 
     it "determines session from params" do
-      pool = Rack::Session::Memcache.new(incrementor, :cookie_only => false)
+      pool = Rack::Session::Memcache.new(incrementor, cookie_only: false)
       req = Rack::MockRequest.new(pool)
       res = req.get("/")
       sid = res["Set-Cookie"][session_match, 1]
@@ -103,7 +103,7 @@ begin
     end
 
     it "maintains freshness" do
-      pool = Rack::Session::Memcache.new(incrementor, :expire_after => 3)
+      pool = Rack::Session::Memcache.new(incrementor, expire_after: 3)
       res = Rack::MockRequest.new(pool).get('/')
       res.body.must_include '"counter"=>1'
       cookie = res["Set-Cookie"]
@@ -217,8 +217,8 @@ begin
       hash_check = proc do |env|
         session = env['rack.session']
         unless session.include? 'test'
-          session.update :a => :b, :c => { :d => :e },
-            :f => { :g => { :h => :i} }, 'test' => true
+          session.update :a => :b, :c => { d: :e },
+            :f => { g: { h: :i} }, 'test' => true
         else
           session[:f][:g][:h] = :j
         end

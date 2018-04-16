@@ -18,7 +18,7 @@ describe Rack::Auth::Digest::MD5 do
   end
 
   def protected_app
-    Rack::Auth::Digest::MD5.new(unprotected_app, :realm => realm, :opaque => 'this-should-be-secret') do |username|
+    Rack::Auth::Digest::MD5.new(unprotected_app, realm: realm, opaque: 'this-should-be-secret') do |username|
       { 'Alice' => 'correct-password' }[username]
     end
   end
@@ -160,7 +160,7 @@ describe Rack::Auth::Digest::MD5 do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 10
 
-      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', :wait => 1 do |response|
+      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 1 do |response|
         response.status.must_equal 200
         response.body.to_s.must_equal 'Hi Alice'
         response.headers['WWW-Authenticate'].wont_match(/\bstale=true\b/)
@@ -174,7 +174,7 @@ describe Rack::Auth::Digest::MD5 do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 1
 
-      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', :wait => 2 do |response|
+      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 2 do |response|
         assert_digest_auth_challenge response
         response.headers['WWW-Authenticate'].must_match(/\bstale=true\b/)
       end
@@ -249,7 +249,7 @@ describe Rack::Auth::Digest::MD5 do
 
   it 'return application output if correct credentials given for PUT (using method override of POST)' do
     @request = Rack::MockRequest.new(protected_app_with_method_override)
-    request_with_digest_auth 'POST', '/', 'Alice', 'correct-password', :input => "_method=put" do |response|
+    request_with_digest_auth 'POST', '/', 'Alice', 'correct-password', input: "_method=put" do |response|
       response.status.must_equal 200
       response.body.to_s.must_equal 'Hi Alice'
     end
