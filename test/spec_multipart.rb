@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-# coding: utf-8
-
 require 'minitest/autorun'
 require 'rack'
 require 'rack/multipart'
