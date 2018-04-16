@@ -20,3 +20,8 @@ Style/FrozenStringLiteralComment:
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
   Enabled: true
+
+Layout/LeadingCommentSpace:
+  Enabled: true
+  Exclude:
+    - 'test/builder/options.ru'
