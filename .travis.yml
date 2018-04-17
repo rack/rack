@@ -21,7 +21,6 @@ script: bundle exec rake ci
 
 rvm:
   - rbx-2
-  - jruby-9.0.4.0
   - jruby-head
 
 notifications:
