@@ -125,9 +125,8 @@ module Rack
       ##                            the presence or absence of the
       ##                            appropriate HTTP header in the
       ##                            request. See
-      ##                            <a href="https://tools.ietf.org/html/rfc3875#section-4.1.18">
-      ##                            RFC3875 section 4.1.18</a> for
-      ##                            specific behavior.
+      ##                            {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18]
+      ##                            for specific behavior.
 
       ## In addition to this, the Rack environment must include these
       ## Rack-specific variables:
