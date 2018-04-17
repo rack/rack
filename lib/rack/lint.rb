@@ -35,7 +35,7 @@ module Rack
 
     ## A Rack application is a Ruby object (not a class) that
     ## responds to +call+.
-    def call(env=nil)
+    def call(env = nil)
       dup._call(env)
     end
 
@@ -265,7 +265,7 @@ module Rack
       ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
       ## (use the versions without <tt>HTTP_</tt>).
       %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
-        assert("env contains #{header}, must use #{header[5,-1]}") {
+        assert("env contains #{header}, must use #{header[5, -1]}") {
           not env.include? header
         }
       }

@@ -213,7 +213,7 @@ module Rack
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
       cookies = parse_query(header, ';,') { |s| unescape(s) rescue s }
-      cookies.each_with_object({}) { |(k,v), hash| hash[k] = Array === v ? v.first : v }
+      cookies.each_with_object({}) { |(k, v), hash| hash[k] = Array === v ? v.first : v }
     end
     module_function :parse_cookies_header
 
@@ -299,7 +299,7 @@ module Rack
       new_header = make_delete_cookie_header(header, key, value)
 
       add_cookie_to_header(new_header, key,
-                 {value: '', path: nil, domain: nil,
+                 { value: '', path: nil, domain: nil,
                    max_age: '0',
                    expires: Time.at(0) }.merge(value))
 
@@ -342,7 +342,7 @@ module Rack
       ranges = []
       $1.split(/,\s*/).each do |range_spec|
         return nil  unless range_spec =~ /(\d*)-(\d*)/
-        r0,r1 = $1, $2
+        r0, r1 = $1, $2
         if r0.empty?
           return nil  if r1.empty?
           # suffix-byte-range-spec, represents trailing suffix of file
@@ -356,7 +356,7 @@ module Rack
           else
             r1 = r1.to_i
             return nil  if r1 < r0  # backwards range is syntactically invalid
-            r1 = size-1  if r1 >= size
+            r1 = size - 1  if r1 >= size
           end
         end
         ranges << (r0..r1)  if r0 <= r1
@@ -377,7 +377,7 @@ module Rack
       l = a.unpack("C*")
 
       r, i = 0, -1
-      b.each_byte { |v| r |= v ^ l[i+=1] }
+      b.each_byte { |v| r |= v ^ l[i += 1] }
       r == 0
     end
     module_function :secure_compare
@@ -403,7 +403,7 @@ module Rack
         self.class.new(@for, app)
       end
 
-      def context(env, app=@app)
+      def context(env, app = @app)
         recontext(app).call(env)
       end
     end
@@ -411,11 +411,11 @@ module Rack
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     class HeaderHash < Hash
-      def self.new(hash={})
+      def self.new(hash = {})
         HeaderHash === hash ? hash : super(hash)
       end
 
-      def initialize(hash={})
+      def initialize(hash = {})
         super()
         @names = {}
         hash.each { |k, v| self[k] = v }
@@ -435,7 +435,7 @@ module Rack
 
       def to_hash
         hash = {}
-        each { |k,v| hash[k] = v }
+        each { |k, v| hash[k] = v }
         hash
       end
 

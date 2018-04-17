@@ -14,7 +14,7 @@ describe Rack::ShowStatus do
   it "provide a default status message" do
     req = Rack::MockRequest.new(
       show_status(lambda{|env|
-        [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
+        [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
@@ -31,7 +31,7 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
-          [404, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
+          [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
@@ -50,7 +50,7 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = detail
-          [500, {"Content-Type" => "text/plain", "Content-Length" => "0"}, []]
+          [500, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
@@ -66,7 +66,7 @@ describe Rack::ShowStatus do
     req = Rack::MockRequest.new(
       show_status(
         lambda{|env|
-          [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
+          [404, { "Content-Type" => "text/plain", "Content-Length" => "4" }, ["foo!"]]
     }))
 
     res = req.get("/", lint: true)
@@ -76,7 +76,7 @@ describe Rack::ShowStatus do
   end
 
   it "pass on original headers" do
-    headers = {"WWW-Authenticate" => "Basic blah"}
+    headers = { "WWW-Authenticate" => "Basic blah" }
 
     req = Rack::MockRequest.new(
       show_status(lambda{|env| [401, headers, []] }))
@@ -90,7 +90,7 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
-          [404, {"Content-Type" => "text/plain", "Content-Length" => "4"}, ["foo!"]]
+          [404, { "Content-Type" => "text/plain", "Content-Length" => "4" }, ["foo!"]]
     }))
 
     res = req.get("/", lint: true)

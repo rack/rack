@@ -17,7 +17,7 @@ describe Rack::Server do
   before { SPEC_ARGV[0..-1] = [] }
 
   def app
-    lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }
+    lambda { |env| [200, { 'Content-Type' => 'text/plain' }, ['success']] }
   end
 
   def with_stderr

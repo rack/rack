@@ -79,13 +79,13 @@ module Rack
           frame.function = $4
 
           begin
-            lineno = frame.lineno-1
+            lineno = frame.lineno - 1
             lines = ::File.readlines(frame.filename)
-            frame.pre_context_lineno = [lineno-CONTEXT, 0].max
+            frame.pre_context_lineno = [lineno - CONTEXT, 0].max
             frame.pre_context = lines[frame.pre_context_lineno...lineno]
             frame.context_line = lines[lineno].chomp
-            frame.post_context_lineno = [lineno+CONTEXT, lines.size].min
-            frame.post_context = lines[lineno+1..frame.post_context_lineno]
+            frame.post_context_lineno = [lineno + CONTEXT, lines.size].min
+            frame.post_context = lines[lineno + 1..frame.post_context_lineno]
           rescue
           end
 

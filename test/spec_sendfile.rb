@@ -15,15 +15,15 @@ describe Rack::Sendfile do
     res
   end
 
-  def simple_app(body=sendfile_body)
-    lambda { |env| [200, {'Content-Type' => 'text/plain'}, body] }
+  def simple_app(body = sendfile_body)
+    lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
   end
 
   def sendfile_app(body, mappings = [])
     Rack::Lint.new Rack::Sendfile.new(simple_app(body), nil, mappings)
   end
 
-  def request(headers={}, body=sendfile_body, mappings=[])
+  def request(headers = {}, body = sendfile_body, mappings = [])
     yield Rack::MockRequest.new(sendfile_app(body, mappings)).get('/', headers)
   end
 
@@ -84,7 +84,7 @@ describe Rack::Sendfile do
   end
 
   it 'does nothing when body does not respond to #to_path' do
-    request({'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile'}, ['Not a file...']) do |response|
+    request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' }, ['Not a file...']) do |response|
       response.body.must_equal 'Not a file...'
       response.headers.wont_include 'X-Sendfile'
     end
@@ -106,14 +106,14 @@ describe Rack::Sendfile do
         ["#{dir2}/", '/wibble/']
       ]
 
-      request({'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect'}, first_body, mappings) do |response|
+      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, first_body, mappings) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
-      request({'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect'}, second_body, mappings) do |response|
+      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, second_body, mappings) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
         response.headers['Content-Length'].must_equal '0'

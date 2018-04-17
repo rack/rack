@@ -247,7 +247,7 @@ module Rack
       end
 
       def default_middleware_by_environment
-        m = Hash.new {|h,k| h[k] = []}
+        m = Hash.new {|h, k| h[k] = []}
         m["deployment"] = [
           [Rack::ContentLength],
           [Rack::Chunked],

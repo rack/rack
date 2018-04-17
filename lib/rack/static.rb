@@ -85,7 +85,7 @@ module Rack
   #
   class Static
 
-    def initialize(app, options={})
+    def initialize(app, options = {})
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
@@ -95,7 +95,7 @@ module Rack
       # HTTP Headers
       @header_rules = options[:header_rules] || []
       # Allow for legacy :cache_control option while prioritizing global header_rules setting
-      @header_rules.unshift([:all, {CACHE_CONTROL => options[:cache_control]}]) if options[:cache_control]
+      @header_rules.unshift([:all, { CACHE_CONTROL => options[:cache_control] }]) if options[:cache_control]
 
       @file_server = Rack::File.new(root)
     end

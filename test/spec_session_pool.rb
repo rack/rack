@@ -159,18 +159,18 @@ describe Rack::Session::Pool do
     res = req.get('/')
     res.body.must_equal '{"counter"=>1}'
     cookie = res["Set-Cookie"]
-    sess_id = cookie[/#{pool.key}=([^,;]+)/,1]
+    sess_id = cookie[/#{pool.key}=([^,;]+)/, 1]
 
     delta_incrementor = lambda do |env|
       # emulate disconjoinment of threading
       env['rack.session'] = env['rack.session'].dup
       Thread.stop
-      env['rack.session'][(Time.now.usec*rand).to_i] = true
+      env['rack.session'][(Time.now.usec * rand).to_i] = true
       incrementor.call(env)
     end
     tses = Rack::Utils::Context.new pool, delta_incrementor
     treq = Rack::MockRequest.new(tses)
-    tnum = rand(7).to_i+5
+    tnum = rand(7).to_i + 5
     r = Array.new(tnum) do
       Thread.new(treq) do |run|
         run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
@@ -182,7 +182,7 @@ describe Rack::Session::Pool do
     end
 
     session = pool.pool[sess_id]
-    session.size.must_equal tnum+1 # counter
+    session.size.must_equal tnum + 1 # counter
     session['counter'].must_equal 2 # meeeh
   end
 
@@ -200,7 +200,7 @@ describe Rack::Session::Pool do
 
   it "returns even if not read/written if :expire_after is set" do
     app = Rack::Session::Pool.new(nothing, expire_after: 3600)
-    res = Rack::MockRequest.new(app).get("/", 'rack.session' => {'not' => 'empty'})
+    res = Rack::MockRequest.new(app).get("/", 'rack.session' => { 'not' => 'empty' })
     res["Set-Cookie"].wont_be :nil?
   end
 

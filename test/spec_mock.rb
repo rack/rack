@@ -157,7 +157,7 @@ describe Rack::MockRequest do
   end
 
   it "accept params and build query string for GET requests" do
-    res = Rack::MockRequest.new(app).get("/foo?baz=2", params: {foo: {bar: "1"}})
+    res = Rack::MockRequest.new(app).get("/foo?baz=2", params: { foo: { bar: "1" } })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
@@ -177,7 +177,7 @@ describe Rack::MockRequest do
   end
 
   it "accept params and build url encoded params for POST requests" do
-    res = Rack::MockRequest.new(app).post("/foo", params: {foo: {bar: "1"}})
+    res = Rack::MockRequest.new(app).post("/foo", params: { foo: { bar: "1" } })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
@@ -217,7 +217,7 @@ describe Rack::MockRequest do
   it "call close on the original body object" do
     called = false
     body   = Rack::BodyProxy.new(['hi']) { called = true }
-    capp   = proc { |e| [200, {'Content-Type' => 'text/plain'}, body] }
+    capp   = proc { |e| [200, { 'Content-Type' => 'text/plain' }, body] }
     called.must_equal false
     Rack::MockRequest.new(capp).get('/', lint: true)
     called.must_equal true

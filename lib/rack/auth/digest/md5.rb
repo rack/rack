@@ -23,7 +23,7 @@ module Rack
 
         attr_writer :passwords_hashed
 
-        def initialize(app, realm=nil, opaque=nil, &authenticator)
+        def initialize(app, realm = nil, opaque = nil, &authenticator)
           @passwords_hashed = nil
           if opaque.nil? and realm.respond_to? :values_at
             realm, opaque, @passwords_hashed = realm.values_at :realm, :opaque, :passwords_hashed

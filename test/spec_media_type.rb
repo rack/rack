@@ -25,7 +25,7 @@ describe Rack::MediaType do
       Rack::MediaType.type(@content_type).must_equal 'application/text'
     end
 
-    it  '#params is empty' do
+    it '#params is empty' do
       Rack::MediaType.params(@content_type).must_equal @empty_hash
     end
   end

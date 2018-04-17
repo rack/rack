@@ -30,7 +30,7 @@ module Rack
       attr_reader :mutex, :pool
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge drop: false
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super
         @pool = Hash.new
         @mutex = Mutex.new

@@ -27,7 +27,7 @@ module Rack
         return {} if content_type.nil?
         Hash[*content_type.split(SPLIT_PATTERN)[1..-1].
           collect { |s| s.split('=', 2) }.
-          map { |k,v| [k.downcase, strip_doublequotes(v)] }.flatten]
+          map { |k, v| [k.downcase, strip_doublequotes(v)] }.flatten]
       end
 
       private

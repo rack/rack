@@ -21,7 +21,7 @@ module Rack
 
     attr_reader :root
 
-    def initialize(root, headers={}, default_mime = 'text/plain')
+    def initialize(root, headers = {}, default_mime = 'text/plain')
       @root = root
       @headers = headers
       @default_mime = default_mime
@@ -36,7 +36,7 @@ module Rack
     def get(env)
       request = Rack::Request.new env
       unless ALLOWED_VERBS.include? request.request_method
-        return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
+        return fail(405, "Method Not Allowed", { 'Allow' => ALLOW_HEADER })
       end
 
       path_info = Utils.unescape_path request.path_info
@@ -60,7 +60,7 @@ module Rack
 
     def serving(request, path)
       if request.options?
-        return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
+        return [200, { 'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
       end
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
@@ -82,7 +82,7 @@ module Rack
         # No ranges, or multiple ranges (which we don't support):
         # TODO: Support multiple byte-ranges
         response[0] = 200
-        range = 0..size-1
+        range = 0..size - 1
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
@@ -115,7 +115,7 @@ module Rack
       def each
         ::File.open(path, "rb") do |file|
           file.seek(range.begin)
-          remaining_len = range.end-range.begin+1
+          remaining_len = range.end - range.begin + 1
           while remaining_len > 0
             part = file.read([8192, remaining_len].min)
             break unless part

@@ -47,7 +47,7 @@ module Rack
       return app, options
     end
 
-    def self.new_from_string(builder_script, file="(rackup)")
+    def self.new_from_string(builder_script, file = "(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
         TOPLEVEL_BINDING, file, 0
     end
@@ -115,7 +115,7 @@ module Rack
     #
     #   use SomeMiddleware
     #   run MyApp
-    def warmup(prc=nil, &block)
+    def warmup(prc = nil, &block)
       @warmup = prc || block
     end
 
@@ -153,7 +153,7 @@ module Rack
       app = @map ? generate_map(@run, @map) : @run
       fail "missing run or map statement" unless app
       app.freeze if @freeze_app
-      app = @use.reverse.inject(app) { |a,e| e[a].tap { |x| x.freeze if @freeze_app } }
+      app = @use.reverse.inject(app) { |a, e| e[a].tap { |x| x.freeze if @freeze_app } }
       @warmup.call(app) if @warmup
       app
     end
@@ -165,8 +165,8 @@ module Rack
     private
 
     def generate_map(default_app, mapping)
-      mapped = default_app ? {'/' => default_app} : {}
-      mapping.each { |r,b| mapped[r] = self.class.new(default_app, &b).to_app }
+      mapped = default_app ? { '/' => default_app } : {}
+      mapping.each { |r, b| mapped[r] = self.class.new(default_app, &b).to_app }
       URLMap.new(mapped)
     end
   end
