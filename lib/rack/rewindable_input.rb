@@ -1,6 +1,6 @@
+# -*- encoding: binary -*-
 # frozen_string_literal: true
 
-# -*- encoding: binary -*-
 require 'tempfile'
 require 'rack/utils'
 
