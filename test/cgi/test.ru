@@ -1,4 +1,6 @@
 #!../../bin/rackup
+# frozen_string_literal: true
+
 # -*- ruby -*-
 
 require '../testrequest'
