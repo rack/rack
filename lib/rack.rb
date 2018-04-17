@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-# Copyright (C) 2007, 2008, 2009, 2010 Christian Neukirchen <purl.org/net/chneukirchen>
+# Copyright (C) 2007-present Christian Neukirchen <http://chneukirchen.org/infopage.html>
 #
 # Rack is freely distributable under the terms of an MIT-style license.
-# See COPYING or http://www.opensource.org/licenses/mit-license.php.
+# See MIT-LICENSE or https://opensource.org/licenses/MIT.
 
 # The Rack main module, serving as a namespace for all core Rack
 # modules and classes.
