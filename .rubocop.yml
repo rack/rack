@@ -12,6 +12,9 @@ Style/FrozenStringLiteralComment:
 Style/HashSyntax:
   Enabled: true
 
+Layout/EmptyLineAfterMagicComment:
+  Enabled: true
+
 Layout/LeadingCommentSpace:
   Enabled: true
   Exclude:
