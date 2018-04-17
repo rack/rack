@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-# Copyright (C) 2009-present Michael Fellinger <m.fellinger@gmail.com>
+# Copyright (C) 2009-2018 Michael Fellinger <m.fellinger@gmail.com>
 # Rack::Reloader is subject to the terms of an MIT-style license.
 # See MIT-LICENSE or https://opensource.org/licenses/MIT.
 
