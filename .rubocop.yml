@@ -7,15 +7,6 @@ AllCops:
 Style/FrozenStringLiteralComment:
   Enabled: true
   EnforcedStyle: always
-  Exclude:
-    - 'example/**/*'
-    - 'test/builder/**/*'
-    - 'test/cgi/**/*'
-    - 'test/multipart/**/*'
-    - 'test/rackup/**/*'
-    - 'test/registering_handler/**/*'
-    - 'test/static/**/*'
-    - 'test/unregistered_handler/**/*'
 
 # Use Ruby >= 1.9 syntax for hashes. Prefer { a: :b } over { :a => :b }.
 Style/HashSyntax:
