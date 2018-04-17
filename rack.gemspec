@@ -18,7 +18,7 @@ Also see https://rack.github.io/.
 EOF
 
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
-                        %w(COPYING rack.gemspec Rakefile README.rdoc SPEC)
+                        %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC)
   s.bindir          = 'bin'
   s.executables << 'rackup'
   s.require_path = 'lib'
