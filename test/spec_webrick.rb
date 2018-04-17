@@ -11,8 +11,8 @@ describe Rack::Handler::WEBrick do
   include TestRequest::Helpers
 
   before do
-  @server = WEBrick::HTTPServer.new(Host: @host='127.0.0.1',
-                                    Port: @port=9202,
+  @server = WEBrick::HTTPServer.new(Host: @host = '127.0.0.1',
+                                    Port: @port = 9202,
                                     Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
                                     AccessLog: [])
   @server.mount "/test", Rack::Handler::WEBrick,
@@ -51,7 +51,7 @@ describe Rack::Handler::WEBrick do
 
   it "have rack headers" do
     GET("/test")
-    response["rack.version"].must_equal [1,3]
+    response["rack.version"].must_equal [1, 3]
     response["rack.multithread"].must_equal true
     assert_equal false, response["rack.multiprocess"]
     assert_equal false, response["rack.run_once"]
@@ -82,7 +82,7 @@ describe Rack::Handler::WEBrick do
   end
 
   it "have CGI headers on POST" do
-    POST("/test", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
+    POST("/test", { "rack-form-data" => "23" }, { 'X-test-header' => '42' })
     status.must_equal 200
     response["REQUEST_METHOD"].must_equal "POST"
     response["SCRIPT_NAME"].must_equal "/test"
@@ -94,7 +94,7 @@ describe Rack::Handler::WEBrick do
   end
 
   it "support HTTP auth" do
-    GET("/test", {user: "ruth", passwd: "secret"})
+    GET("/test", { user: "ruth", passwd: "secret" })
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 
@@ -129,7 +129,7 @@ describe Rack::Handler::WEBrick do
                                    Host: '127.0.0.1',
                                    Port: 9210,
                                    Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-                                   AccessLog: []}) { |server|
+                                   AccessLog: [] }) { |server|
         assert_kind_of WEBrick::HTTPServer, server
         queue.push(server)
       }
@@ -186,7 +186,7 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(lambda{ |req|
       [
         200,
-        {"Transfer-Encoding" => "chunked"},
+        { "Transfer-Encoding" => "chunked" },
         ["7\r\nchunked\r\n0\r\n\r\n"]
       ]
     })

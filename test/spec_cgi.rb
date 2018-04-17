@@ -37,7 +37,7 @@ describe Rack::Handler::CGI do
 
   it "have rack headers" do
     GET("/test")
-    response["rack.version"].must_equal [1,3]
+    response["rack.version"].must_equal [1, 3]
     assert_equal false, response["rack.multithread"]
     assert_equal true, response["rack.multiprocess"]
     assert_equal true, response["rack.run_once"]
@@ -61,7 +61,7 @@ describe Rack::Handler::CGI do
   end
 
   it "have CGI headers on POST" do
-    POST("/test", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
+    POST("/test", { "rack-form-data" => "23" }, { 'X-test-header' => '42' })
     status.must_equal 200
     response["REQUEST_METHOD"].must_equal "POST"
     response["SCRIPT_NAME"].must_equal "/test"
@@ -72,7 +72,7 @@ describe Rack::Handler::CGI do
   end
 
   it "support HTTP auth" do
-    GET("/test", {user: "ruth", passwd: "secret"})
+    GET("/test", { user: "ruth", passwd: "secret" })
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 

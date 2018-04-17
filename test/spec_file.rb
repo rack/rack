@@ -17,7 +17,7 @@ describe Rack::File do
       File.write File.join(dir, "you+me.txt"), "hello world"
       app = file(dir)
       env = Rack::MockRequest.env_for("/you+me.txt")
-      status,_,body = app.call env
+      status, _, body = app.call env
 
       assert_equal 200, status
 

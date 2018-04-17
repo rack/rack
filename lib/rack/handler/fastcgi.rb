@@ -9,7 +9,7 @@ if defined? FCGI::Stream
   class FCGI::Stream
     alias _rack_read_without_buffer read
 
-    def read(n, buffer=nil)
+    def read(n, buffer = nil)
       buf = _rack_read_without_buffer n
       buffer.replace(buf.to_s)  if buffer
       buf
@@ -20,7 +20,7 @@ end
 module Rack
   module Handler
     class FastCGI
-      def self.run(app, options={})
+      def self.run(app, options = {})
         if options[:File]
           STDIN.reopen(UNIXServer.new(options[:File]))
         elsif options[:Port]

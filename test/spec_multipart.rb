@@ -172,7 +172,7 @@ describe Rack::Multipart do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     query_parser = Rack::QueryParser.new c, 65536, 100
@@ -477,7 +477,7 @@ Content-Type: image/jpeg\r
 
   it "builds nested multipart body" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
-    data  = Rack::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => files}])
+    data  = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => files }])
 
     options = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
@@ -557,7 +557,7 @@ Content-Type: image/jpeg\r
   end
 
   it "return nil if no UploadedFiles were used" do
-    data = Rack::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => "contents"}])
+    data = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => "contents" }])
     data.must_be_nil
   end
 
@@ -584,7 +584,7 @@ EOF
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
 
-    params.must_equal "description"=>"Very very blue"
+    params.must_equal "description" => "Very very blue"
   end
 
   it "parse multipart upload with no content-length header" do

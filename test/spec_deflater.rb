@@ -98,7 +98,7 @@ describe Rack::Deflater do
   end
 
   def deflate_or_gzip
-    {'deflate, gzip' => 'gzip'}
+    { 'deflate, gzip' => 'gzip' }
   end
 
   it 'be able to deflate bodies that respond to each' do

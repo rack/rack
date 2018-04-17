@@ -28,16 +28,16 @@ describe Rack::ContentType do
   end
 
   it "not change Content-Type if it is already set" do
-    app = lambda { |env| [200, {'Content-Type' => 'foo/bar'}, "Hello, World!"] }
+    app = lambda { |env| [200, { 'Content-Type' => 'foo/bar' }, "Hello, World!"] }
     headers = content_type(app).call(request)[1]
     headers['Content-Type'].must_equal 'foo/bar'
   end
 
   it "detect Content-Type case insensitive" do
-    app = lambda { |env| [200, {'CONTENT-Type' => 'foo/bar'}, "Hello, World!"] }
+    app = lambda { |env| [200, { 'CONTENT-Type' => 'foo/bar' }, "Hello, World!"] }
     headers = content_type(app).call(request)[1]
-    headers.to_a.select { |k,v| k.downcase == "content-type" }.
-      must_equal [["CONTENT-Type","foo/bar"]]
+    headers.to_a.select { |k, v| k.downcase == "content-type" }.
+      must_equal [["CONTENT-Type", "foo/bar"]]
   end
 
   it "not set Content-Type on 304 responses" do

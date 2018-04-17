@@ -68,7 +68,7 @@ module Rack
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s}, bp]
+        [406, { 'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s }, bp]
       end
     end
 
@@ -81,7 +81,7 @@ module Rack
 
       def each(&block)
         @writer = block
-        gzip  =::Zlib::GzipWriter.new(self)
+        gzip = ::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime if @mtime
         @body.each { |part|
           gzip.write(part)

@@ -55,7 +55,7 @@ class RackRequestTest < Minitest::Spec
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'
     hash = {}
-    req.each_header do |k,v|
+    req.each_header do |k, v|
       hash[k] = v
     end
     assert_equal 'bar', hash['foo']
@@ -232,7 +232,7 @@ class RackRequestTest < Minitest::Spec
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 65536, 100)
@@ -274,7 +274,7 @@ class RackRequestTest < Minitest::Spec
 
     old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 3
     begin
-      exp = {"foo"=>{"bar"=>{"baz"=>{"qux"=>"1"}}}}
+      exp = { "foo" => { "bar" => { "baz" => { "qux" => "1" } } } }
       make_request(nested_query).GET.must_equal exp
       lambda { make_request(plain_query).GET  }.must_raise RangeError
     ensure
@@ -300,7 +300,7 @@ class RackRequestTest < Minitest::Spec
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 65536, 100)
@@ -724,7 +724,7 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "provide setters" do
-    req = make_request(e=Rack::MockRequest.env_for(""))
+    req = make_request(e = Rack::MockRequest.env_for(""))
     req.script_name.must_equal ""
     req.script_name = "/foo"
     req.script_name.must_equal "/foo"
@@ -955,7 +955,7 @@ EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 \r
-#{"x"*32768}\r
+#{"x" * 32768}\r
 --AaB03x\r
 content-disposition: form-data; name="mean"; filename="mean"\r
 \r
@@ -1074,7 +1074,7 @@ EOF
 content-disposition: form-data; name="fileupload"; filename="junk.a"\r
 content-type: application/octet-stream\r
 \r
-#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
+#{[0x36, 0xCF, 0x0A, 0xF8].pack('c*')}\r
 --AaB03x--\r
 EOF
 
@@ -1094,7 +1094,7 @@ EOF
     rack_input.rewind
 
     req = make_request Rack::MockRequest.env_for("/",
-                      "rack.request.form_hash" => {'foo' => 'bar'},
+                      "rack.request.form_hash" => { 'foo' => 'bar' },
                       "rack.request.form_input" => rack_input,
                       :input => rack_input)
 
@@ -1105,7 +1105,7 @@ EOF
     app = lambda { |env|
       content = make_request(env).POST["file"].inspect
       size = content.bytesize
-      [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
+      [200, { "Content-Type" => "text/html", "Content-Length" => size.to_s }, [content]]
     }
 
     input = <<EOF.dup
@@ -1337,7 +1337,7 @@ EOF
 
   class MyRequest < Rack::Request
     def params
-      {foo: "bar"}
+      { foo: "bar" }
     end
   end
 

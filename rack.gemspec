@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 Gem::Specification.new do |s|
-  s.name            = "rack"
+  s.name = "rack"
   s.version = File.read('lib/rack.rb')[/RELEASE += +([\"\'])([\d][\w\.]+)\1/, 2]
   s.platform        = Gem::Platform::RUBY
   s.summary         = "a modular Ruby webserver interface"
@@ -20,8 +20,8 @@ EOF
   s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
                         %w(COPYING rack.gemspec Rakefile README.rdoc SPEC)
   s.bindir          = 'bin'
-  s.executables     << 'rackup'
-  s.require_path    = 'lib'
+  s.executables << 'rackup'
+  s.require_path = 'lib'
   s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
   s.test_files      = Dir['test/spec_*.rb']
 

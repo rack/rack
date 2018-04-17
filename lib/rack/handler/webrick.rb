@@ -24,7 +24,7 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
-      def self.run(app, options={})
+      def self.run(app, options = {})
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : nil
 
@@ -81,7 +81,7 @@ module Rack
         env[QUERY_STRING] ||= ""
         unless env[PATH_INFO] == ""
           path, n = req.request_uri.path, env[SCRIPT_NAME].length
-          env[PATH_INFO] = path[n, path.length-n]
+          env[PATH_INFO] = path[n, path.length - n]
         end
         env[REQUEST_PATH] ||= [env[SCRIPT_NAME], env[PATH_INFO]].join
 

@@ -28,12 +28,12 @@ module Rack
         namespace: 'rack:session',
         memcache_server: 'localhost:11211'
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super
 
         @mutex = Mutex.new
         mserv = @default_options[:memcache_server]
-        mopts = @default_options.reject{|k,v| !MemCache::DEFAULT_OPTIONS.include? k }
+        mopts = @default_options.reject{|k, v| !MemCache::DEFAULT_OPTIONS.include? k }
 
         @pool = options[:cache] || MemCache.new(mserv, mopts)
         unless @pool.active? and @pool.servers.any?(&:alive?)

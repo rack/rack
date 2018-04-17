@@ -27,8 +27,8 @@ module Rack
       content = ["<title>Lobstericious!</title>",
                  "<pre>", lobster, "</pre>",
                  "<a href='#{href}'>flip!</a>"]
-      length = content.inject(0) { |a,e| a+e.size }.to_s
-      [200, {CONTENT_TYPE => "text/html", CONTENT_LENGTH => length}, content]
+      length = content.inject(0) { |a, e| a + e.size }.to_s
+      [200, { CONTENT_TYPE => "text/html", CONTENT_LENGTH => length }, content]
     }
 
     def call(env)
@@ -39,8 +39,8 @@ module Rack
             gsub('\\', 'TEMP').
             gsub('/', '\\').
             gsub('TEMP', '/').
-            gsub('{','}').
-            gsub('(',')')
+            gsub('{', '}').
+            gsub('(', ')')
         end.join("\n")
         href = "?flip=right"
       elsif req.GET["flip"] == "crash"

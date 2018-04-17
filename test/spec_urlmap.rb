@@ -137,7 +137,7 @@ describe Rack::URLMap do
   it "be nestable" do
     map = Rack::Lint.new(Rack::URLMap.new("/foo" =>
       Rack::URLMap.new("/bar" =>
-        Rack::URLMap.new("/quux" =>  lambda { |env|
+        Rack::URLMap.new("/quux" => lambda { |env|
                            [200,
                             { "Content-Type" => "text/plain",
                               "X-Position" => "/foo/bar/quux",

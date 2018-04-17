@@ -94,14 +94,14 @@ module Rack
               # those which give the lone filename.
               fn = filename.split(/[\/\\]/).last
 
-              data = {filename: fn, type: content_type,
-                      name: name, tempfile: body, head: head}
+              data = { filename: fn, type: content_type,
+                      name: name, tempfile: body, head: head }
             elsif !filename && content_type && body.is_a?(IO)
               body.rewind
 
               # Generic multipart cases, not coming from a form
-              data = {type: content_type,
-                      name: name, tempfile: body, head: head}
+              data = { type: content_type,
+                      name: name, tempfile: body, head: head }
             end
 
             yield data
@@ -240,8 +240,8 @@ module Rack
 
       def handle_mime_head
         if @buf.index(EOL + EOL)
-          i = @buf.index(EOL+EOL)
-          head = @buf.slice!(0, i+2) # First \r\n
+          i = @buf.index(EOL + EOL)
+          head = @buf.slice!(0, i + 2) # First \r\n
           @buf.slice!(0, 2)          # Second \r\n
 
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
@@ -329,7 +329,7 @@ module Rack
         filename
       end
 
-      CHARSET   = "charset"
+      CHARSET = "charset"
 
       def tag_multipart_encoding(filename, content_type, name, body)
         name = name.to_s
@@ -346,7 +346,7 @@ module Rack
           if TEXT_PLAIN == type_subtype
             rest         = list.drop 1
             rest.each do |param|
-              k,v = param.split('=', 2)
+              k, v = param.split('=', 2)
               k.strip!
               v.strip!
               v = v[1..-2] if v[0] == '"' && v[-1] == '"'

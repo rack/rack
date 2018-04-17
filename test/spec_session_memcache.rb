@@ -218,7 +218,7 @@ begin
         session = env['rack.session']
         unless session.include? 'test'
           session.update :a => :b, :c => { d: :e },
-            :f => { g: { h: :i} }, 'test' => true
+            :f => { g: { h: :i } }, 'test' => true
         else
           session[:f][:g][:h] = :j
         end
@@ -254,12 +254,12 @@ begin
         # emulate disconjoinment of threading
         env['rack.session'] = env['rack.session'].dup
         Thread.stop
-        env['rack.session'][(Time.now.usec*rand).to_i] = true
+        env['rack.session'][(Time.now.usec * rand).to_i] = true
         incrementor.call(env)
       end
       tses = Rack::Utils::Context.new pool, delta_incrementor
       treq = Rack::MockRequest.new(tses)
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         Thread.new(treq) do |run|
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
@@ -271,10 +271,10 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal tnum+1 # counter
+      session.size.must_equal tnum + 1 # counter
       session['counter'].must_equal 2 # meeeh
 
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         app = Rack::Utils::Context.new pool, time_delta
         req = Rack::MockRequest.new app
@@ -288,17 +288,17 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal tnum+1
+      session.size.must_equal tnum + 1
       session['counter'].must_equal 3
 
       drop_counter = proc do |env|
         env['rack.session'].delete 'counter'
         env['rack.session']['foo'] = 'bar'
-        [200, {'Content-Type'=>'text/plain'}, env['rack.session'].inspect]
+        [200, { 'Content-Type' => 'text/plain' }, env['rack.session'].inspect]
       end
       tses = Rack::Utils::Context.new pool, drop_counter
       treq = Rack::MockRequest.new(tses)
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         Thread.new(treq) do |run|
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
@@ -310,7 +310,7 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal r.size+1
+      session.size.must_equal r.size + 1
       session['counter'].must_be_nil?
       session['foo'].must_equal 'bar'
     end

@@ -25,7 +25,7 @@ module Rack
     #   %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
     FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
 
-    def initialize(app, logger=nil)
+    def initialize(app, logger = nil)
       @app = app
       @logger = logger
     end

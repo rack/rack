@@ -13,7 +13,7 @@
 
 module Rack
   # The Rack protocol version number implemented.
-  VERSION = [1,3]
+  VERSION = [1, 3]
 
   # Return the Rack protocol version as a dotted string.
   def self.version

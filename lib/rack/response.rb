@@ -27,7 +27,7 @@ module Rack
 
     CHUNKED = 'chunked'.freeze
 
-    def initialize(body=[], status=200, header={})
+    def initialize(body = [], status = 200, header = {})
       @status = status.to_i
       @header = Utils::HeaderHash.new.merge(header)
 
@@ -50,7 +50,7 @@ module Rack
       yield self  if block_given?
     end
 
-    def redirect(target, status=302)
+    def redirect(target, status = 302)
       self.status = status
       self.location = target
     end
@@ -186,7 +186,7 @@ module Rack
         set_header SET_COOKIE, ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
       end
 
-      def delete_cookie(key, value={})
+      def delete_cookie(key, value = {})
         set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
       end
 

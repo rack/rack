@@ -6,11 +6,11 @@ module Rack
   # status codes).
 
   class Cascade
-    NotFound = [404, {CONTENT_TYPE => "text/plain"}, []]
+    NotFound = [404, { CONTENT_TYPE => "text/plain" }, []]
 
     attr_reader :apps
 
-    def initialize(apps, catch=[404, 405])
+    def initialize(apps, catch = [404, 405])
       @apps = []; @has_app = {}
       apps.each { |app| add app }
 

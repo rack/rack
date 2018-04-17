@@ -59,7 +59,7 @@ module Rack
           @data[key.to_s]
         end
 
-        def fetch(key, default=Unspecified, &block)
+        def fetch(key, default = Unspecified, &block)
           load_for_read!
           if default == Unspecified
             @data.fetch(key.to_s, &block)
@@ -216,7 +216,7 @@ module Rack
 
         attr_reader :key, :default_options, :sid_secure
 
-        def initialize(app, options={})
+        def initialize(app, options = {})
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = @default_options.delete(:key)
@@ -228,7 +228,7 @@ module Rack
           context(env)
         end
 
-        def context(env, app=@app)
+        def context(env, app = @app)
           req = make_request env
           prepare_session(req)
           status, headers, body = app.call(req.env)
@@ -351,7 +351,7 @@ module Rack
 
           session.send(:load!) unless loaded_session?(session)
           session_id ||= session.id
-          session_data = session.to_hash.delete_if { |k,v| v.nil? }
+          session_data = session.to_hash.delete_if { |k, v| v.nil? }
 
           if not data = write_session(req, session_id, session_data, options)
             req.get_header(RACK_ERRORS).puts("Warning! #{self.class.name} failed to save session. Content dropped.")

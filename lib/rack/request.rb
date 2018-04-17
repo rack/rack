@@ -467,7 +467,7 @@ module Rack
         Utils.default_query_parser
       end
 
-      def parse_query(qs, d='&')
+      def parse_query(qs, d = '&')
         query_parser.parse_nested_query(qs, d)
       end
 

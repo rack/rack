@@ -47,7 +47,7 @@ describe Rack::Session::Cookie do
     Rack::Response.new("Nothing").to_a
   end
 
-  def response_for(options={})
+  def response_for(options = {})
     request_options = options.fetch(:request, {})
     cookie = if options[:cookie].is_a?(Rack::Response)
       options[:cookie]["Set-Cookie"]
@@ -387,7 +387,7 @@ describe Rack::Session::Cookie do
 
   it "returns even if not read/written if :expire_after is set" do
     app = [nothing, { expire_after: 3600 }]
-    request = { "rack.session" => { "not" => "empty" }}
+    request = { "rack.session" => { "not" => "empty" } }
     response = response_for(app: app, request: request)
     response["Set-Cookie"].wont_be :nil?
   end
@@ -409,13 +409,13 @@ describe Rack::Session::Cookie do
   end
 
   it "allows passing in a hash with session data from middleware in front" do
-    request = { 'rack.session' => { foo: 'bar' }}
+    request = { 'rack.session' => { foo: 'bar' } }
     response = response_for(app: session_id, request: request)
     response.body.must_match(/foo/)
   end
 
   it "allows modifying session data with session data from middleware in front" do
-    request = { 'rack.session' => { foo: 'bar' }}
+    request = { 'rack.session' => { foo: 'bar' } }
     response = response_for(app: incrementor, request: request)
     response.body.must_match(/counter/)
     response.body.must_match(/foo/)

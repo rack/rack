@@ -10,7 +10,7 @@ describe Rack::Session::Abstract::SessionHash do
     super
     store = Class.new do
       def load_session(req)
-        ["id", {foo: :bar, baz: :qux}]
+        ["id", { foo: :bar, baz: :qux }]
       end
       def session_exists?(req)
         true

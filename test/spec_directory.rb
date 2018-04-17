@@ -9,7 +9,7 @@ require 'fileutils'
 
 describe Rack::Directory do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
-  FILE_CATCH = proc{|env| [200, {'Content-Type'=>'text/plain', "Content-Length" => "7"}, ['passed!']] }
+  FILE_CATCH = proc{|env| [200, { 'Content-Type' => 'text/plain', "Content-Length" => "7" }, ['passed!']] }
 
   attr_reader :app
 
@@ -25,7 +25,7 @@ describe Rack::Directory do
       FileUtils.touch File.join(full_dir, "omg.txt")
       app = Rack::Directory.new(dir, FILE_CATCH)
       env = Rack::MockRequest.env_for("/#{plus_dir}/")
-      status,_,body = app.call env
+      status, _, body = app.call env
 
       assert_equal 200, status
 
@@ -111,7 +111,7 @@ describe Rack::Directory do
       FileUtils.touch File.join(full_dir, "omg omg.txt")
       app = Rack::Directory.new(dir, FILE_CATCH)
       env = Rack::MockRequest.env_for(Rack::Utils.escape_path("/#{space_dir}/"))
-      status,_,body = app.call env
+      status, _, body = app.call env
 
       assert_equal 200, status
 
