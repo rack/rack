@@ -17,6 +17,20 @@ describe Rack::MethodOverride do
     env["REQUEST_METHOD"].must_equal "GET"
   end
 
+  it "sets rack.errors for invalid UTF8 _method values" do
+    errors = StringIO.new
+    env = Rack::MockRequest.env_for("/",
+      :method => "POST",
+      :input => "_method=\xBF".b,
+      Rack::RACK_ERRORS => errors)
+
+    app.call env
+
+    errors.rewind
+    errors.read.must_equal "Invalid string for method\n"
+    env["REQUEST_METHOD"].must_equal "POST"
+  end
+
   it "modify REQUEST_METHOD for POST requests when _method parameter is set" do
     env = Rack::MockRequest.env_for("/", :method => "POST", :input => "_method=put")
     app.call env

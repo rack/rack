@@ -26,7 +26,11 @@ module Rack
       req = Request.new(env)
       method = method_override_param(req) ||
         env[HTTP_METHOD_OVERRIDE_HEADER]
-      method.to_s.upcase
+      begin
+        method.to_s.upcase
+      rescue ArgumentError
+        env[RACK_ERRORS].puts "Invalid string for method"
+      end
     end
 
     private
