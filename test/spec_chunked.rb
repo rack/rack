@@ -21,6 +21,26 @@ describe Rack::Chunked do
       env_for('/', 'HTTP_VERSION' => '1.1', 'REQUEST_METHOD' => 'GET')
   end
 
+  class TrailerBody
+    def each(&block)
+      ['Hello', ' ', 'World!'].each(&block)
+    end
+
+    def trailers
+      { "Expires" => "tomorrow" }
+    end
+  end
+
+  it 'yields trailer headers after the response' do
+    app = lambda { |env|
+      [200, { "Content-Type" => "text/plain", "Trailer" => "Expires" }, TrailerBody.new]
+    }
+    response = Rack::MockResponse.new(*chunked(app).call(@env))
+    response.headers.wont_include 'Content-Length'
+    response.headers['Transfer-Encoding'].must_equal 'chunked'
+    response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\nExpires: tomorrow\r\n\r\n"
+  end
+
   it 'chunk responses with no Content-Length' do
     app = lambda { |env| [200, { "Content-Type" => "text/plain" }, ['Hello', ' ', 'World!']] }
     response = Rack::MockResponse.new(*chunked(app).call(@env))
