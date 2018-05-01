@@ -22,6 +22,7 @@ describe Rack::Static do
 
   OPTIONS = { urls: ["/cgi"], root: root }
   STATIC_OPTIONS = { urls: [""], root: "#{root}/static", index: 'index.html' }
+  STATIC_URLS_OPTIONS = { urls: ["/static"], root: "#{root}", index: 'index.html' }
   HASH_OPTIONS = { urls: { "/cgi/sekret" => 'cgi/test' }, root: root }
   HASH_ROOT_OPTIONS = { urls: { "/" => "static/foo.html" }, root: root }
   GZIP_OPTIONS = { urls: ["/cgi"], root: root, gzip: true }
@@ -29,6 +30,7 @@ describe Rack::Static do
   before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
+  @static_urls_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_URLS_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
   @hash_root_request = Rack::MockRequest.new(static(DummyApp.new, HASH_ROOT_OPTIONS))
   @gzip_request = Rack::MockRequest.new(static(DummyApp.new, GZIP_OPTIONS))
@@ -63,6 +65,16 @@ describe Rack::Static do
     res = @static_request.get("/another/")
     res.must_be :ok?
     res.body.must_match(/another index!/)
+  end
+
+  it "does not call index file when requesting folder with unknown prefix" do
+    res = @static_urls_request.get("/static/another/")
+    res.must_be :ok?
+    res.body.must_match(/index!/)
+
+    res = @static_urls_request.get("/something/else/")
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
   end
 
   it "doesn't call index file if :index option was omitted" do
