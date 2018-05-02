@@ -121,8 +121,8 @@ Servers that choose to support WebSockets and SSE connections should follow thes
                      The handler MAY implement any or all of the following callbacks:
                       on_open(client)              # called when the connection is complete with a client object.
                       on_message(client, message)  # called when a WebSocket message is received by server. <tt>message</tt> will be UTF-8 encoded for text messages and Binary encoded for binary messages.
-                      on_shutdown                  # may be called before a connection is closed due to server shutdown.
-                      on_close                     # called when the connection is closed
+                      on_shutdown(client)          # may be called before a connection is closed due to server shutdown.
+                      on_close(client)             # called after the connection is closed.
                       on_drained(client)           # may be called when the number of pending writes drops to zero.
                      The <tt>client</tt> is used for writing and checking status of the upgraded connect. It has these methods.
                       write(message)               # writes to the WebSocket or SSE connection
