@@ -101,7 +101,7 @@ module Rack
     end
 
     def add_index_root?(path)
-      @index && path =~ /\/$/
+      @index && route_file(path) && path =~ /\/$/
     end
 
     def overwrite_file_path(path)
