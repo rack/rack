@@ -117,7 +117,7 @@ be implemented by the server.
 Servers that choose to support WebSockets and SSE connections should follow these additional environment specifications:
 <tt>rack.upgrade?</tt>:: Is nil or missing if no connection upgrade is possible,
                          :websocket for a WebSocket upgrade, or :sse for an SSE upgrade.
-<tt>rack.upgrade</tt>:: Is used to pass a handler instance or class back to the server for WebSocket and SSE connections.
+<tt>rack.upgrade</tt>:: Is used to pass a handler object back to the server for WebSocket and SSE connections.
                      The handler MAY implement any or all of the following callbacks:
                       on_open(client)              # called when the connection is complete with a client object.
                       on_message(client, message)  # called when a WebSocket message is received by server. <tt>message</tt> will be UTF-8 encoded for text messages and Binary encoded for binary messages.
