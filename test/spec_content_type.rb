@@ -40,9 +40,19 @@ describe Rack::ContentType do
       must_equal [["CONTENT-Type", "foo/bar"]]
   end
 
-  it "not set Content-Type on 304 responses" do
-    app = lambda { |env| [304, {}, []] }
-    response = content_type(app, "text/html").call(request)
-    response[1]['Content-Type'].must_be_nil
+  [100, 204, 304].each do |code|
+    it "not set Content-Type on #{code} responses" do
+      app = lambda { |env| [code, {}, []] }
+      response = content_type(app, "text/html").call(request)
+      response[1]['Content-Type'].must_be_nil
+    end
+  end
+
+  ['100', '204', '304'].each do |code|
+    it "not set Content-Type on #{code} responses if status is a string" do
+      app = lambda { |env| [code, {}, []] }
+      response = content_type(app, "text/html").call(request)
+      response[1]['Content-Type'].must_be_nil
+    end
   end
 end
