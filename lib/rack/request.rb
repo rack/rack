@@ -420,7 +420,7 @@ module Rack
       end
 
       def trusted_proxy?(ip)
-        ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+        ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168|100\.(6[4-9]|[7-9]\d|1[0-1]\d|12[0-7]))\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
       end
 
       # shortcut for <tt>request.params[key]</tt>
