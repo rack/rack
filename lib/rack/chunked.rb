@@ -57,7 +57,7 @@ module Rack
       headers = HeaderHash.new(headers)
 
       if ! chunkable_version?(env[HTTP_VERSION]) ||
-         STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
+         STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) ||
          headers[CONTENT_LENGTH] ||
          headers[TRANSFER_ENCODING]
         [status, headers, body]
