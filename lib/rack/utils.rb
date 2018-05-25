@@ -504,6 +504,7 @@ module Rack
       206 => 'Partial Content',
       207 => 'Multi-Status',
       208 => 'Already Reported',
+      208 => 'Already Reported',
       226 => 'IM Used',
       300 => 'Multiple Choices',
       301 => 'Moved Permanently',
@@ -549,6 +550,7 @@ module Rack
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
+      509 => 'Bandwidth Limit Exceeded',
       510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
