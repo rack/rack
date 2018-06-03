@@ -31,10 +31,13 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
+    UTF_8_BOM = '\xef\xbb\xbf'
+
     def self.parse_file(config, opts = Server::Options.new)
       options = {}
       if config =~ /\.ru$/
         cfgfile = ::File.read(config)
+        cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
         if cfgfile[/^#\\(.*)/] && opts
           options = opts.parse! $1.split(/\s+/)
         end

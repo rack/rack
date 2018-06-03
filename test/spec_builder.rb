@@ -258,6 +258,11 @@ describe Rack::Builder do
       app, _ = Rack::Builder.parse_file config_file('line.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal '3'
     end
+
+    it "strips leading unicode byte order mark when present" do
+      app, _ = Rack::Builder.parse_file config_file('bom.ru')
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+    end
   end
 
   describe 'new_from_string' do
