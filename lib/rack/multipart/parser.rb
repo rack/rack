@@ -41,8 +41,6 @@ module Rack
           str
         end
 
-        def eof?; @content_length == @cursor; end
-
         def rewind
           @io.rewind
         end
@@ -67,11 +65,11 @@ module Rack
         io = BoundedIO.new(io, content_length) if content_length
 
         parser = new(boundary, tmpfile, bufsize, qp)
-        parser.on_read io.read(bufsize), io.eof?
+        parser.on_read io.read(bufsize)
 
         loop do
           break if parser.state == :DONE
-          parser.on_read io.read(bufsize), io.eof?
+          parser.on_read io.read(bufsize)
         end
 
         io.rewind
@@ -183,8 +181,8 @@ module Rack
         @collector = Collector.new tempfile
       end
 
-      def on_read content, eof
-        handle_empty_content!(content, eof)
+      def on_read content
+        handle_empty_content!(content)
         @buf << content
         run_parser
       end
@@ -360,10 +358,9 @@ module Rack
       end
 
 
-      def handle_empty_content!(content, eof)
+      def handle_empty_content!(content)
         if content.nil? || content.empty?
-          raise EOFError if eof
-          return true
+          raise EOFError
         end
       end
     end
