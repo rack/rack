@@ -272,7 +272,9 @@ module Rack
         else
           # Save the read body part.
           if @rx_max_size < @buf.size
-            @collector.on_mime_body @mime_index, @buf.slice!(0, @buf.size - @rx_max_size)
+            chunk = @buf.slice!(0, @buf.size - @rx_max_size)
+            @collector.on_mime_body @mime_index, chunk
+            chunk.clear # deallocate chunk
           end
           :want_read
         end
