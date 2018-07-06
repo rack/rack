@@ -7,6 +7,7 @@ require 'set'
 require 'tempfile'
 require 'rack/query_parser'
 require 'time'
+require 'query_string'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
@@ -112,21 +113,7 @@ module Rack
     module_function :build_query
 
     def build_nested_query(value, prefix = nil)
-      case value
-      when Array
-        value.map { |v|
-          build_nested_query(v, "#{prefix}[]")
-        }.join("&")
-      when Hash
-        value.map { |k, v|
-          build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.reject(&:empty?).join('&')
-      when nil
-        prefix
-      else
-        raise ArgumentError, "value must be a Hash" if prefix.nil?
-        "#{prefix}=#{escape(value)}"
-      end
+      QueryString.build(value, prefix)
     end
     module_function :build_nested_query
 

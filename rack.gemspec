@@ -30,6 +30,7 @@ EOF
   s.homepage        = 'https://rack.github.io/'
   s.required_ruby_version = '>= 2.2.2'
 
+  s.add_dependency 'query_string', '~> 1.0'
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-sprint'
   s.add_development_dependency 'rake'
