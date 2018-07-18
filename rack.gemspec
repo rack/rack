@@ -17,13 +17,12 @@ middleware) into a single method call.
 Also see https://rack.github.io/.
 EOF
 
-  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
+  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
                         %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC)
   s.bindir          = 'bin'
   s.executables << 'rackup'
   s.require_path = 'lib'
   s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
-  s.test_files      = Dir['test/spec_*.rb']
 
   s.author          = 'Leah Neukirchen'
   s.email           = 'leah@vuxu.org'
