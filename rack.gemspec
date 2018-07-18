@@ -23,7 +23,6 @@ EOF
   s.executables << 'rackup'
   s.require_path = 'lib'
   s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
-  s.test_files      = Dir['test/spec_*.rb']
 
   s.author          = 'Leah Neukirchen'
   s.email           = 'leah@vuxu.org'
