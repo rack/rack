@@ -17,7 +17,7 @@ middleware) into a single method call.
 Also see https://rack.github.io/.
 EOF
 
-  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*,test/**/*}'] +
+  s.files           = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
                         %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC)
   s.bindir          = 'bin'
   s.executables << 'rackup'
