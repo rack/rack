@@ -27,3 +27,5 @@ end
 group :doc do
   gem 'rdoc'
 end
+
+gem "byebug", "~> 10.0", :groups => [:development, :test]

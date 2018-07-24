@@ -51,7 +51,9 @@ module Rack
         tempfile = req.get_header(RACK_MULTIPART_TEMPFILE_FACTORY) || Parser::TEMPFILE_FACTORY
         bufsize = req.get_header(RACK_MULTIPART_BUFFER_SIZE) || Parser::BUFSIZE
 
-        info = Parser.parse io, content_length, req.get_header('CONTENT_TYPE'), tempfile, bufsize, params
+        logger = req.get_header(RACK_LOGGER)
+
+        info = Parser.parse io, content_length, req.get_header('CONTENT_TYPE'), tempfile, bufsize, params, logger
         req.set_header(RACK_TEMPFILES, info.tmp_files)
         info.params
       end
