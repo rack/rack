@@ -52,7 +52,7 @@ module Rack
         with_lock(env) do
           unless sid and session = @pool.get(sid)
             sid, session = generate_sid, {}
-            unless /^STORED/ =~ @pool.add(sid, session)
+            unless @pool.add(sid, session).to_s.start_with?("STORED")
               raise "Session collision on '#{sid.inspect}'"
             end
           end

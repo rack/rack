@@ -149,7 +149,7 @@ module Rack
     end
 
     def map_accel_path(env, path)
-      if mapping = @mappings.find { |internal, _| internal =~ path }
+      if mapping = @mappings.find { |internal, _| internal.match?(path) }
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
         mapping.split(',').map(&:strip).each do |m|

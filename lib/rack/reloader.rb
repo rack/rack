@@ -71,7 +71,7 @@ module Rack
         paths = ['./', *$LOAD_PATH].uniq
 
         files.map{|file|
-          next if file =~ /\.(so|bundle)$/ # cannot reload compiled files
+          next if /\.(so|bundle)$/.match?(file) # cannot reload compiled files
 
           found, stat = figure_path(file, paths)
           next unless found && stat && mtime = stat.mtime
