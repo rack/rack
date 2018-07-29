@@ -25,7 +25,7 @@ module Rack
     attr_reader :header
     alias headers header
 
-    CHUNKED = 'chunked'.freeze
+    CHUNKED = 'chunked'
 
     def initialize(body = [], status = 200, header = {})
       @status = status.to_i

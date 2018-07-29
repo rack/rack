@@ -10,7 +10,7 @@ module Rack
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
-        Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0".freeze, '%00'.freeze))])
+        Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0", '%00'))])
       }
 
       class BoundedIO # :nodoc:
