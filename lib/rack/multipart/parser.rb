@@ -7,6 +7,8 @@ module Rack
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
+      using Rack::MatchP
+
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
@@ -313,7 +315,7 @@ module Rack
 
         return unless filename
 
-        if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
+        if filename.scan(/%.?.?/).all? { |s| /%[0-9a-fA-F]{2}/.match?(s) }
           filename = Utils.unescape(filename)
         end
 

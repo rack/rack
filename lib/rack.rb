@@ -88,6 +88,21 @@ module Rack
   RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'.freeze
   RACK_SESSION_UNPACKED_COOKIE_DATA   = 'rack.session.unpacked_cookie_data'.freeze
 
+  unless String.method_defined?(:match?)
+    module MatchP
+      refine String do
+        def match?(pattern)
+          self =~ pattern
+        end
+      end
+      refine Regexp do
+        def match?(string)
+          self =~ string
+        end
+      end
+    end
+  end
+
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"

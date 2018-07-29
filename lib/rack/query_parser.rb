@@ -2,6 +2,8 @@
 
 module Rack
   class QueryParser
+    using Rack::MatchP
+
     DEFAULT_SEP = /[&;] */n
     COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
@@ -137,7 +139,7 @@ module Rack
     end
 
     def params_hash_has_key?(hash, key)
-      return false if key =~ /\[\]/
+      return false if /\[\]/.match?(key)
 
       key.split(/[\[\]]+/).inject(hash) do |h, part|
         next h if part == ''

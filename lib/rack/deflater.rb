@@ -17,6 +17,7 @@ module Rack
   # directive of 'no-transform' is present, or when the response status
   # code is one that doesn't allow an entity body.
   class Deflater
+    using Rack::MatchP
     ##
     # Creates Rack::Deflater middleware.
     #
@@ -108,8 +109,8 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) ||
-          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
-         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+          /\bno-transform\b/.match?(headers['Cache-Control']) ||
+         (headers['Content-Encoding'] && !/\bidentity\b/.match?(headers['Content-Encoding']))
         return false
       end
 
