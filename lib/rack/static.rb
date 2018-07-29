@@ -101,7 +101,7 @@ module Rack
     end
 
     def add_index_root?(path)
-      @index && route_file(path) && path =~ /\/$/
+      @index && route_file(path) && /\/$/.match?(path)
     end
 
     def overwrite_file_path(path)
@@ -122,7 +122,7 @@ module Rack
       if can_serve(path)
         if overwrite_file_path(path)
           env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
-        elsif @gzip && env['HTTP_ACCEPT_ENCODING'] =~ /\bgzip\b/
+        elsif @gzip && /\bgzip\b/.match?(env['HTTP_ACCEPT_ENCODING'])
           path = env[PATH_INFO]
           env[PATH_INFO] += '.gz'
           response = @file_server.call(env)
@@ -159,14 +159,14 @@ module Rack
         when :all
           true
         when :fonts
-          path =~ /\.(?:ttf|otf|eot|woff2|woff|svg)\z/
+          /\.(?:ttf|otf|eot|woff2|woff|svg)\z/.match?(path)
         when String
           path = ::Rack::Utils.unescape(path)
           path.start_with?(rule) || path.start_with?('/' + rule)
         when Array
-          path =~ /\.(#{rule.join('|')})\z/
+          /\.(#{rule.join('|')})\z/.match?(path)
         when Regexp
-          path =~ rule
+          rule.match?(path)
         else
           false
         end

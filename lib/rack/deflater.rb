@@ -108,8 +108,8 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) ||
-          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
-         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+          /\bno-transform\b/.match?(headers['Cache-Control']) ||
+         (headers['Content-Encoding'] && !/\bidentity\b/.match?(headers['Content-Encoding']))
         return false
       end
 
