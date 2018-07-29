@@ -15,6 +15,8 @@ module Rack
   # Don't forget to call #close when you're done. This frees up temporary resources that
   # RewindableInput uses, though it does *not* close the original IO object.
   class RewindableInput
+    using Rack::MatchP
+
     def initialize(io)
       @io = io
       @rewindable_io = nil
@@ -89,7 +91,7 @@ module Rack
     end
 
     def filesystem_has_posix_semantics?
-      RUBY_PLATFORM !~ /(mswin|mingw|cygwin|java)/
+      RUBY_PLATFORM.match? /(mswin|mingw|cygwin|java)/
     end
   end
 end

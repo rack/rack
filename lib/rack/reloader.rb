@@ -22,6 +22,8 @@ module Rack
   # It is performing a check/reload cycle at the start of every request, but
   # also respects a cool down time, during which nothing will be done.
   class Reloader
+    using Rack::MatchP
+
     def initialize(app, cooldown = 10, backend = Stat)
       @app = app
       @cooldown = cooldown
@@ -71,7 +73,7 @@ module Rack
         paths = ['./', *$LOAD_PATH].uniq
 
         files.map{|file|
-          next if file =~ /\.(so|bundle)$/ # cannot reload compiled files
+          next if /\.(so|bundle)$/.match?(file) # cannot reload compiled files
 
           found, stat = figure_path(file, paths)
           next unless found && stat && mtime = stat.mtime

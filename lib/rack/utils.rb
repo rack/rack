@@ -19,6 +19,8 @@ module Rack
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
 
+    using Rack::MatchP
+
     class << self
       attr_accessor :default_query_parser
     end
@@ -275,11 +277,11 @@ module Rack
 
       cookies.reject! { |cookie|
         if value[:domain]
-          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
+          /\A#{escape(key)}=.*domain=#{value[:domain]}/.match?(cookie)
         elsif value[:path]
-          cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/
+          /\A#{escape(key)}=.*path=#{value[:path]}/.match?(cookie)
         else
-          cookie =~ /\A#{escape(key)}=/
+          /\A#{escape(key)}=/.match?(cookie)
         end
       }
 
