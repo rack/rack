@@ -1,8 +1,7 @@
 # frozen_string_literal: true
 
 require 'rack/utils'
-
-require 'byebug'
+require 'strscan'
 
 module Rack
   module Multipart
@@ -14,6 +13,8 @@ module Rack
       TEMPFILE_FACTORY = lambda { |filename, content_type|
         Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0".freeze, '%00'.freeze))])
       }
+
+      BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
 
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
@@ -58,7 +59,7 @@ module Rack
         data[1]
       end
 
-      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp, logger)
+      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
         return EMPTY if 0 == content_length
 
         boundary = parse_boundary content_type
@@ -67,7 +68,7 @@ module Rack
         io = BoundedIO.new(io, content_length) if content_length
         outbuf = String.new
 
-        parser = new(boundary, tmpfile, bufsize, qp, logger)
+        parser = new(boundary, tmpfile, bufsize, qp)
         parser.on_read io.read(bufsize, outbuf)
 
         loop do
@@ -121,29 +122,17 @@ module Rack
 
         include Enumerable
 
-        def initialize(tempfile, logger)
+        def initialize tempfile
           @tempfile = tempfile
           @mime_parts = []
           @open_files = 0
-          @logger = logger
-        end
-
-        attr_reader :logger
-
-        def info(msg)
-          logger.info msg if logger
-        end
-
-        def debug(msg)
-          logger.debug msg if logger
         end
 
         def each
           @mime_parts.each { |part| yield part }
         end
 
-        def on_mime_head(mime_index, head, filename, content_type, name)
-          debug "Collector#on_mime_head. #{name}"
+        def on_mime_head mime_index, head, filename, content_type, name
           if filename
             body = @tempfile.call(filename, content_type)
             body.binmode if body.respond_to?(:binmode)
@@ -155,16 +144,15 @@ module Rack
           end
 
           @mime_parts[mime_index] = klass.new(body, head, filename, content_type, name)
+
           check_open_files
         end
 
         def on_mime_body mime_index, content
-          debug "Collector#on_mime_body. #{content}"
           @mime_parts[mime_index].body << content
         end
 
         def on_mime_finish mime_index
-          info "Collector#on_mime_finish. #{mime_index}"
         end
 
         private
@@ -181,40 +169,28 @@ module Rack
 
       attr_reader :state
 
-      def initialize(boundary, tempfile, bufsize, query_parser, logger)
-        @sbuf           = StringScanner.new("".dup)
-
+      def initialize(boundary, tempfile, bufsize, query_parser)
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @boundary       = "--#{boundary}"
         @bufsize        = bufsize
 
-        @rx = /(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/n
-        @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
         @full_boundary = @boundary
         @end_boundary = @boundary + '--'
         @state = :FAST_FORWARD
         @mime_index = 0
-        @logger = logger
-        @collector = Collector.new tempfile, logger
+        @collector = Collector.new tempfile
+
+        @sbuf = StringScanner.new(+'')
+        @body_regex = /(.*?)(#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/m
+        @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
+        @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
-      attr_reader :logger
-
-      def info(msg)
-        logger.info msg if logger
-      end
-
-      def debug(msg)
-        logger.debug msg if logger
-      end
-
-      def on_read(content)
-        info "on_read: starting"
+      def on_read content
         handle_empty_content!(content)
         @sbuf.concat content
         run_parser
-        info "on_read: complete"
       end
 
       def result
@@ -224,15 +200,12 @@ module Rack
             @query_parser.normalize_params(@params, part.name, data, @query_parser.param_depth_limit)
           end
         end
-
-        info "Count of mime parts: #{@collector.count}"
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
       end
 
       private
 
       def run_parser
-        info "run_parser"
         loop do
           case @state
           when :FAST_FORWARD
@@ -250,32 +223,27 @@ module Rack
       end
 
       def handle_fast_forward
-        # debug "handle_fast_forward"
         if consume_boundary
           @state = :MIME_HEAD
         else
           raise EOFError, "bad content body" if @sbuf.rest_size >= @bufsize
-          # raise EOFError, "bad content body" if @buf.bytesize >= @bufsize
           :want_read
         end
       end
 
       def handle_consume_token
-        # debug "handle_consume_token"
         tok = consume_boundary
         # break if we're at the end of a buffer, but not if it is the end of a field
-        if tok == :END_BOUNDARY || (@sbuf.eos? && tok != :BOUNDARY)
-        # if tok == :END_BOUNDARY || (@buf.empty? && tok != :BOUNDARY)
-          @state = :DONE
+        @state = if tok == :END_BOUNDARY || (@sbuf.eos? && tok != :BOUNDARY)
+          :DONE
         else
-          @state = :MIME_HEAD
+          :MIME_HEAD
         end
       end
 
       def handle_mime_head
-        debug "handle_mime_head. @sbuf: #{@sbuf.inspect}"
-        head = @sbuf.scan_until(/(.*\r\n)\r\n/)
-        if head
+        if @sbuf.scan_until(@head_regex)
+          head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           if name = head[MULTIPART_CONTENT_DISPOSITION, 1]
             name = Rack::Auth::Digest::Params::dequote(name)
@@ -297,24 +265,18 @@ module Rack
       end
 
       def handle_mime_body
-        debug "handle_mime_head. @sbuf: #{@sbuf.inspect}"
-        mod_rx = /(.*)(?:#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/
-
-        if @sbuf.check_until(mod_rx) # check but do not advance the pointer yet
-          mime_body = @sbuf[1]
-          debug "handle_mime_head. mime_body: #{mime_body}"
-          @collector.on_mime_body @mime_index, mime_body
-          @sbuf.pos += mime_body.length + 2 #skip \r\n after the content
+        if @sbuf.check_until(@body_regex) # check but do not advance the pointer yet
+          body = @sbuf[1]
+          @collector.on_mime_body @mime_index, body
+          @sbuf.pos += body.length + 2 # skip \r\n after the content
           @state = :CONSUME_TOKEN
           @mime_index += 1
         else
-          info "handle_mime_head. End of buffer encountered"
-          # Save the read body part.
+          # Save what we have so far
           if @rx_max_size < @sbuf.rest_size
-            @sbuf.pos -= @rx_max_size
-            chunk = @sbuf.rest
-            @collector.on_mime_body @mime_index, chunk
-            chunk.clear # deallocate chunk
+            delta = @sbuf.rest_size - @rx_max_size
+            @collector.on_mime_body @mime_index, @sbuf.peek(delta)
+            @sbuf.pos += delta
           end
           :want_read
         end
@@ -322,19 +284,12 @@ module Rack
 
       def full_boundary; @full_boundary; end
 
-      def rx; @rx; end
-
       def consume_boundary
-        debug "consume_boundary"
-
-        # while @buf.gsub!(/\A([^\n]*(?:\n|\Z))/, '')
-        while read_buffer = @sbuf.scan_until(/\A([^\n]*(?:\n|\Z))/)
-          # read_buffer = $1
+        while read_buffer = @sbuf.scan_until(BOUNDARY_REGEX)
           case read_buffer.strip
           when full_boundary then return :BOUNDARY
           when @end_boundary then return :END_BOUNDARY
           end
-          # return if @buf.empty?
           return if @sbuf.eos?
         end
       end
@@ -402,7 +357,6 @@ module Rack
         name.force_encoding(encoding)
         body.force_encoding(encoding)
       end
-
 
       def handle_empty_content!(content)
         if content.nil? || content.empty?
