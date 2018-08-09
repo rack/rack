@@ -181,7 +181,7 @@ module Rack
         @mime_index = 0
         @collector = Collector.new tempfile
 
-        @sbuf = StringScanner.new(+'')
+        @sbuf = StringScanner.new("".dup)
         @body_regex = /(.*?)(#{EOL})?#{Regexp.quote(@boundary)}(#{EOL}|--)/m
         @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
         @head_regex = /(.*?#{EOL})#{EOL}/m
