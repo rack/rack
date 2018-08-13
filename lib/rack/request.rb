@@ -119,11 +119,11 @@ module Rack
       # to include the port in a generated URI.
       DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
-      HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
-      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
-      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
-      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
-      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
+      HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'
+      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'
+      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'
+      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'
+      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'
 
       def body;            get_header(RACK_INPUT)                         end
       def script_name;     get_header(SCRIPT_NAME).to_s                   end

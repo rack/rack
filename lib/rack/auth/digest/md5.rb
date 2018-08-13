@@ -63,7 +63,7 @@ module Rack
 
         private
 
-        QOP = 'auth'.freeze
+        QOP = 'auth'
 
         def params(hash = {})
           Params.new do |params|

@@ -231,9 +231,9 @@ module Rack
           when false, nil
             nil
           when :lax, 'Lax', :Lax
-            '; SameSite=Lax'.freeze
+            '; SameSite=Lax'
           when true, :strict, 'Strict', :Strict
-            '; SameSite=Strict'.freeze
+            '; SameSite=Strict'
           else
             raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
           end
@@ -588,7 +588,7 @@ module Rack
     end
     module_function :clean_path_info
 
-    NULL_BYTE = "\0".freeze
+    NULL_BYTE = "\0"
 
     def valid_path?(path)
       path.valid_encoding? && !path.include?(NULL_BYTE)

@@ -38,7 +38,7 @@ module Rack
 
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
-        k, v = p.split('='.freeze, 2).map!(&unescaper)
+        k, v = p.split('=', 2).map!(&unescaper)
 
         if cur = params[k]
           if cur.class == Array
@@ -64,7 +64,7 @@ module Rack
       params = make_params
 
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
+        k, v = p.split('=', 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v, param_depth_limit)
       end
@@ -81,22 +81,22 @@ module Rack
       raise RangeError if depth <= 0
 
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''.freeze
-      after = $' || ''.freeze
+      k = $1 || ''
+      after = $' || ''
 
       if k.empty?
-        if !v.nil? && name == "[]".freeze
+        if !v.nil? && name == "[]"
           return Array(v)
         else
           return
         end
       end
 
-      if after == ''.freeze
+      if after == ''
         params[k] = v
-      elsif after == "[".freeze
+      elsif after == "["
         params[name] = v
-      elsif after == "[]".freeze
+      elsif after == "[]"
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
