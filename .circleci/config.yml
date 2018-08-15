@@ -3,10 +3,11 @@ workflows:
 
   test:
     jobs:
-      - test-ruby-2.2
-      - test-ruby-2.3
-      - test-ruby-2.4
-      - test-ruby-2.5
+      - test-jruby
+      # - test-ruby-2.2
+      # - test-ruby-2.3
+      # - test-ruby-2.4
+      # - test-ruby-2.5
 
 version: 2
 
@@ -71,3 +72,14 @@ jobs:
         command: sudo /bin/sh
       - image: memcached:1.4
     steps: *default-steps
+
+  test-jruby:
+    docker:
+      - image: circleci/jruby
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
+
