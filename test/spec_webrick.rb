@@ -200,8 +200,8 @@ describe Rack::Handler::WEBrick do
   end
 
   after do
-  @status_thread.join
-  @server.shutdown
-  @thread.join
+    @status_thread.join
+    @server.shutdown
+    @thread.join(5)
   end
 end
