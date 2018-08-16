@@ -136,7 +136,7 @@ describe Rack::Handler::WEBrick do
     end
 
     server = queue.pop
-    server.shutdown
+    server.shutdown(5)
     t.join
   end
 
