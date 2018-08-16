@@ -136,8 +136,8 @@ describe Rack::Handler::WEBrick do
     end
 
     server = queue.pop
-    server.shutdown(5)
-    t.join
+    server.shutdown
+    t.join(5)
   end
 
   it "return repeated headers" do
