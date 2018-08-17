@@ -7,6 +7,30 @@ require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
 
+# describe Rack::Handler::WEBrick do
+#   it "provide a .run" do
+#     queue = Queue.new
+
+#     t = Thread.new do
+#       Rack::Handler::WEBrick.run(lambda {},
+#                                  {
+#                                    Host: '127.0.0.1',
+#                                    Port: 9210,
+#                                    Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+#                                    AccessLog: [] }) { |server|
+#         assert_kind_of WEBrick::HTTPServer, server
+#         queue.push(server)
+#       }
+#     end
+
+#     server = queue.pop
+#     sleep 2
+#     server.shutdown
+#     sleep 2
+#     t.join
+#   end
+# end
+
 describe Rack::Handler::WEBrick do
   include TestRequest::Helpers
 
@@ -136,8 +160,19 @@ describe Rack::Handler::WEBrick do
     end
 
     server = queue.pop
+
+    # The server may not yet have started: wait for it
+    seconds = 10
+    wait_time = 0.1
+    until server.status == :Running || seconds <= 0
+      seconds -= wait_time
+      sleep wait_time
+    end
+
+    raise "Server never reached status 'Running'" unless server.status == :Running
+
     server.shutdown
-    t.join(5)
+    t.join
   end
 
   it "return repeated headers" do
@@ -202,6 +237,6 @@ describe Rack::Handler::WEBrick do
   after do
     @status_thread.join
     @server.shutdown
-    @thread.join(5)
+    @thread.join
   end
 end
