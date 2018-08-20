@@ -7,30 +7,6 @@ require File.expand_path('../testrequest', __FILE__)
 
 Thread.abort_on_exception = true
 
-# describe Rack::Handler::WEBrick do
-#   it "provide a .run" do
-#     queue = Queue.new
-
-#     t = Thread.new do
-#       Rack::Handler::WEBrick.run(lambda {},
-#                                  {
-#                                    Host: '127.0.0.1',
-#                                    Port: 9210,
-#                                    Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-#                                    AccessLog: [] }) { |server|
-#         assert_kind_of WEBrick::HTTPServer, server
-#         queue.push(server)
-#       }
-#     end
-
-#     server = queue.pop
-#     sleep 2
-#     server.shutdown
-#     sleep 2
-#     t.join
-#   end
-# end
-
 describe Rack::Handler::WEBrick do
   include TestRequest::Helpers
 
