@@ -4,10 +4,10 @@ workflows:
   test:
     jobs:
       - test-jruby
-      # - test-ruby-2.2
-      # - test-ruby-2.3
-      # - test-ruby-2.4
-      # - test-ruby-2.5
+      - test-ruby-2.2
+      - test-ruby-2.3
+      - test-ruby-2.4
+      - test-ruby-2.5
 
 version: 2
 
