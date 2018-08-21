@@ -1295,6 +1295,14 @@ EOF
 
   end
 
+  it "uses a custom trusted proxy filter" do
+    old_ip = Rack::Request.ip_filter
+    Rack::Request.ip_filter = lambda { |ip| ip == 'foo' }
+    req = make_request(Rack::MockRequest.env_for("/"))
+    assert req.trusted_proxy?('foo')
+    Rack::Request.ip_filter = old_ip
+  end
+
   it "regards local addresses as proxies" do
     req = make_request(Rack::MockRequest.env_for("/"))
     req.trusted_proxy?('127.0.0.1').must_equal 0

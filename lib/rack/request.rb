@@ -13,6 +13,12 @@ module Rack
   class Request
     SCHEME_WHITELIST = %w(https http).freeze
 
+    class << self
+      attr_accessor :ip_filter
+    end
+
+    self.ip_filter = lambda { |ip| ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i }
+
     def initialize(env)
       @params = nil
       super(env)
@@ -417,7 +423,7 @@ module Rack
       end
 
       def trusted_proxy?(ip)
-        ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+        Rack::Request.ip_filter.call(ip)
       end
 
       # shortcut for <tt>request.params[key]</tt>
