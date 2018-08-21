@@ -136,6 +136,17 @@ describe Rack::Handler::WEBrick do
     end
 
     server = queue.pop
+
+    # The server may not yet have started: wait for it
+    seconds = 10
+    wait_time = 0.1
+    until server.status == :Running || seconds <= 0
+      seconds -= wait_time
+      sleep wait_time
+    end
+
+    raise "Server never reached status 'Running'" unless server.status == :Running
+
     server.shutdown
     t.join
   end
@@ -200,8 +211,8 @@ describe Rack::Handler::WEBrick do
   end
 
   after do
-  @status_thread.join
-  @server.shutdown
-  @thread.join
+    @status_thread.join
+    @server.shutdown
+    @thread.join
   end
 end
