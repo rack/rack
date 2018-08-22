@@ -425,6 +425,11 @@ describe Rack::Request do
     request.should.be.ssl?
   end
 
+  should "prevent scheme abuse" do
+    request = Rack::Request.new(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_SCHEME' => 'a."><script>alert(1)</script>'))
+    request.scheme.should.not.equal 'a."><script>alert(1)</script>'
+  end
+
   should "parse cookies" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")

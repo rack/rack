@@ -13,6 +13,8 @@ module Rack
     # The environment of the request.
     attr_reader :env
 
+    SCHEME_WHITELIST = %w(https http).freeze
+
     def initialize(env)
       @env = env
     end
@@ -68,10 +70,8 @@ module Rack
         'https'
       elsif @env['HTTP_X_FORWARDED_SSL'] == 'on'
         'https'
-      elsif @env['HTTP_X_FORWARDED_SCHEME']
-        @env['HTTP_X_FORWARDED_SCHEME']
-      elsif @env['HTTP_X_FORWARDED_PROTO']
-        @env['HTTP_X_FORWARDED_PROTO'].split(',')[0]
+      elsif forwarded_scheme
+        forwarded_scheme
       else
         @env["rack.url_scheme"]
       end
@@ -393,6 +393,19 @@ module Rack
       else
         s
       end
+    end
+
+    def forwarded_scheme
+      scheme_headers = [
+        @env['HTTP_X_FORWARDED_SCHEME'],
+        @env['HTTP_X_FORWARDED_PROTO'].to_s.split(',')[0]
+      ]
+
+      scheme_headers.each do |header|
+        return header if SCHEME_WHITELIST.include?(header)
+      end
+
+      nil
     end
   end
 end
