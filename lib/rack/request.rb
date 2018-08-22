@@ -18,6 +18,7 @@ module Rack
     end
 
     self.ip_filter = lambda { |ip| ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i }
+    SCHEME_WHITELIST = %w(https http).freeze
 
     def initialize(env)
       @params = nil
@@ -196,10 +197,8 @@ module Rack
           'https'
         elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
           'https'
-        elsif get_header(HTTP_X_FORWARDED_SCHEME)
-          get_header(HTTP_X_FORWARDED_SCHEME)
-        elsif get_header(HTTP_X_FORWARDED_PROTO)
-          get_header(HTTP_X_FORWARDED_PROTO).split(',')[0]
+        elsif forwarded_scheme
+          forwarded_scheme
         else
           get_header(RACK_URL_SCHEME)
         end
@@ -499,6 +498,19 @@ module Rack
 
       def reject_trusted_ip_addresses(ip_addresses)
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
+      end
+
+      def forwarded_scheme
+        scheme_headers = [
+          get_header(HTTP_X_FORWARDED_SCHEME),
+          get_header(HTTP_X_FORWARDED_PROTO).to_s.split(',')[0]
+        ]
+
+        scheme_headers.each do |header|
+          return header if SCHEME_WHITELIST.include?(header)
+        end
+
+        nil
       end
     end
 
