@@ -572,6 +572,11 @@ class RackRequestTest < Minitest::Spec
     request.must_be :ssl?
   end
 
+  it "prevents scheme abuse" do
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_SCHEME' => 'a."><script>alert(1)</script>'))
+    request.scheme.must_equal 'http'
+  end
+
   it "parse cookies" do
     req = make_request \
       Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
