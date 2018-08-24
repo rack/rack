@@ -215,9 +215,9 @@ Set to 0 for no limit.
 
 Can also be set via the +RACK_MULTIPART_PART_LIMIT+ environment variable.
 
-== History
+== Changelog
 
-See {HISTORY.md}[https://github.com/rack/rack/blob/master/HISTORY.md].
+See {CHANGELOG.md}[https://github.com/rack/rack/blob/master/CHANGELOG.md].
 
 == Contact
 
