@@ -136,11 +136,6 @@ A Gem of \Rack is available at {rubygems.org}[https://rubygems.org/gems/rack]. Y
 
     gem install rack
 
-I also provide a local mirror of the gems (and development snapshots)
-at my site:
-
-    gem install rack --source http://chneukirchen.org/releases/gems/
-
 == Running the tests
 
 Testing \Rack requires the bacon testing framework:
