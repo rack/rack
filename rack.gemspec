@@ -22,7 +22,7 @@ EOF
   s.bindir          = 'bin'
   s.executables << 'rackup'
   s.require_path = 'lib'
-  s.extra_rdoc_files = ['README.rdoc', 'HISTORY.md']
+  s.extra_rdoc_files = ['README.rdoc', 'CHANGELOG.md']
 
   s.author          = 'Leah Neukirchen'
   s.email           = 'leah@vuxu.org'
