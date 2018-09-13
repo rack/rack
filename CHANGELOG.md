@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Changed
 - `Rack::Utils.status_code` now raises an error when the status symbol is invalid instead of `500`.
 - `Rack::Request::SCHEME_WHITELIST` has been renamed to `Rack::Request::ALLOWED_SCHEMES`
+- `Rack::Multipart::Parser.get_filename` now accepts file that contains `+` in its name, avoiding the replacement of `+` to space character since filenames with `+` are valid.
 
 ### Removed
 - HISTORY.md by @twitnithegirl

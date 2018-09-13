@@ -363,6 +363,19 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
+  it "parse filename with plus character" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_plus))
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:type].must_equal "application/octet-stream"
+    params["files"][:filename].must_equal "foo+bar"
+    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      "filename=\"foo+bar\"\r\n" +
+      "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].must_equal "files"
+    params["files"][:tempfile].read.must_equal "contents"
+  end
+
   it "parse filename with percent escaped quotes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_percent_escaped_quotes))
     params = Rack::Multipart.parse_multipart(env)
