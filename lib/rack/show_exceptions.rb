@@ -46,7 +46,7 @@ module Rack
     end
 
     def prefers_plaintext?(env)
-      !accepts_html(env)
+      !accepts_html?(env)
     end
 
     def accepts_html?(env)

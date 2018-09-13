@@ -77,4 +77,17 @@ describe Rack::ShowExceptions do
     assert_match(res, /ShowExceptions/)
     assert_match(res, /unknown location/)
   end
+
+  it "knows to prefer plaintext for non-html" do
+    # We don't need an app for this
+    exc = Rack::ShowExceptions.new(nil)
+
+    [
+      [{ "HTTP_ACCEPT" => "text/plain" }, true],
+      [{ "HTTP_ACCEPT" => "text/foo" }, true],
+      [{ "HTTP_ACCEPT" => "text/html" }, false]
+    ].each do |env, expected|
+      assert_equal(expected, exc.prefers_plaintext?(env))
+    end
+  end
 end
