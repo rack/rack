@@ -16,9 +16,15 @@ app = Rack::Lint.new(lambda { |env|
   end
 
   body = req.head? ? "" : env.to_yaml
-  Rack::Response.new(body,
-                     req.GET["status"] || 200,
-                     "Content-Type" => "text/yaml").finish
+  response = Rack::Response.new(
+    body,
+    req.GET["status"] || 200,
+    "Content-Type" => "text/yaml"
+  )
+  response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
+  response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
+  response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
+  response.finish
 })
 
 describe Rack::MockRequest do
@@ -77,10 +83,10 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].must_equal "DELETE"
 
     Rack::MockRequest.env_for("/", method: "HEAD")["REQUEST_METHOD"]
-     .must_equal "HEAD"
+      .must_equal "HEAD"
 
     Rack::MockRequest.env_for("/", method: "OPTIONS")["REQUEST_METHOD"]
-     .must_equal "OPTIONS"
+      .must_equal "OPTIONS"
   end
 
   it "set content length" do
@@ -227,13 +233,13 @@ describe Rack::MockRequest do
     req = Rack::MockRequest.env_for("/foo")
 
     keys = [
-        Rack::REQUEST_METHOD,
-        Rack::SERVER_NAME,
-        Rack::SERVER_PORT,
-        Rack::QUERY_STRING,
-        Rack::PATH_INFO,
-        Rack::HTTPS,
-        Rack::RACK_URL_SCHEME
+      Rack::REQUEST_METHOD,
+      Rack::SERVER_NAME,
+      Rack::SERVER_PORT,
+      Rack::QUERY_STRING,
+      Rack::PATH_INFO,
+      Rack::HTTPS,
+      Rack::RACK_URL_SCHEME
     ]
     keys.each do |k|
       assert_equal Encoding::ASCII_8BIT, req[k].encoding
@@ -272,6 +278,42 @@ describe Rack::MockResponse do
     res.content_type.must_equal "text/yaml"
     res.content_length.wont_equal 0
     res.location.must_be_nil
+  end
+
+  it "provide access to session cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    session_cookie = res.cookie("session_test")
+    session_cookie.value[0].must_equal "session_test"
+    session_cookie.domain.must_equal ".test.com"
+    session_cookie.path.must_equal "/"
+    session_cookie.secure.must_equal false
+    session_cookie.expires.must_be_nil
+  end
+
+  it "provide access to persistent cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("persistent_test")
+    persistent_cookie.value[0].must_equal "persistent_test"
+    persistent_cookie.domain.must_be_nil
+    persistent_cookie.path.must_equal "/"
+    persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_be :<, (Time.now + 15552000)
+  end
+
+  it "provide access to secure cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    secure_cookie = res.cookie("secure_test")
+    secure_cookie.value[0].must_equal "secure_test"
+    secure_cookie.domain.must_equal ".test.com"
+    secure_cookie.path.must_equal "/"
+    secure_cookie.secure.must_equal true
+    secure_cookie.expires.must_be_nil
+  end
+
+  it "return nil if a non existent cookie is requested" do
+    res = Rack::MockRequest.new(app).get("")
+    res.cookie("i_dont_exist").must_be_nil
   end
 
   it "provide access to the HTTP body" do
