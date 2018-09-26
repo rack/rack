@@ -398,6 +398,11 @@ describe Rack::MockResponse, 'headers' do
     @res.add_header('Foo', 'yep').must_equal '1,1,2,yep'
     @res.get_header('Foo').must_equal '1,1,2,yep'
     @res.get_header('FOO').must_equal '1,1,2,yep'
+
+    # Accepts a delimiter
+    @res.add_header('BAR', '1', ' ').must_equal '1'
+    @res.add_header('BAR', '1', ' ').must_equal '1 1'
+    @res.get_header('BAR').must_equal '1 1'
   end
 
   it 'delete_header' do
