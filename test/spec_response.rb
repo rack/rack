@@ -494,6 +494,11 @@ describe Rack::Response, 'headers' do
     @response.add_header('Bar', '1').must_equal '1'
     @response.has_header?('Bar').must_equal true
     @response.get_header('Bar').must_equal '1'
+
+    # Add with a delimiter
+    @response.add_header('BAZ', '1', ', ').must_equal '1'
+    @response.add_header('BAZ', '2', ', ').must_equal '1, 2'
+    @response.get_header('BAZ').must_equal '1, 2'
   end
 
   it 'delete_header' do

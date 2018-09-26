@@ -70,14 +70,23 @@ class RackRequestTest < Minitest::Spec
   it 'can add to multivalued headers in the env' do
     req = make_request(Rack::MockRequest.env_for('http://example.com:8080/'))
 
+    # Sets on first addition
     assert_equal '1', req.add_header('FOO', '1')
     assert_equal '1', req.get_header('FOO')
 
+    # Adds more values, delimited with commas
     assert_equal '1,2', req.add_header('FOO', '2')
     assert_equal '1,2', req.get_header('FOO')
 
+    # Ignores nil additions
     assert_equal '1,2', req.add_header('FOO', nil)
     assert_equal '1,2', req.get_header('FOO')
+
+    # Add with a delimiter
+    assert_equal '1', req.add_header('BAR', '1', '; ')
+    assert_equal '1', req.get_header('BAR')
+    assert_equal '1; 2', req.add_header('BAR', '2', '; ')
+    assert_equal '1; 2', req.get_header('BAR')
   end
 
   it 'can delete env values' do
