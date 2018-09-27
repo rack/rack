@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For info on
 - CHANGELOG.md using keep a changelog formatting by @twitnithegirl
 
 ### Changed
+- `Rack::Utils.status_code` now raises an error when the status symbol is invalid instead of `500`.
 
 ### Removed
 - HISTORY.md by @twitnithegirl

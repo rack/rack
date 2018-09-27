@@ -463,7 +463,7 @@ describe Rack::Utils do
   end
 
   it "raise an error for an invalid symbol" do
-    assert_raises(ArgumentError, "Unrecognized status_code symbol") do
+    assert_raises(ArgumentError, "Unrecognized status code :foobar") do
       Rack::Utils.status_code(:foobar)
     end
   end

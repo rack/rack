@@ -563,8 +563,7 @@ module Rack
 
     def status_code(status)
       if status.is_a?(Symbol)
-        raise ArgumentError, "Unrecognized status_code symbol" unless SYMBOL_TO_STATUS_CODE[status]
-        SYMBOL_TO_STATUS_CODE[status]
+        SYMBOL_TO_STATUS_CODE.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
       else
         status.to_i
       end
