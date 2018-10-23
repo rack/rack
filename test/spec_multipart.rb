@@ -6,6 +6,7 @@ require 'rack/multipart'
 require 'rack/multipart/parser'
 require 'rack/utils'
 require 'rack/mock'
+require 'timeout'
 
 describe Rack::Multipart do
   def multipart_fixture(name, boundary = "AaB03x")
@@ -150,6 +151,31 @@ describe Rack::Multipart do
     err = thr.value
     err.must_be_instance_of Errno::EPIPE
     wr.close
+  end
+
+  # see https://github.com/rack/rack/pull/1309
+  it "parse strange multipart pdf" do
+    boundary = '---------------------------932620571087722842402766118'
+
+    data = StringIO.new
+    data.write("--#{boundary}")
+    data.write("\r\n")
+    data.write('Content-Disposition: form-data; name="a"; filename="a.pdf"')
+    data.write("\r\n")
+    data.write("Content-Type:application/pdf\r\n")
+    data.write("\r\n")
+    data.write("-" * (1024 * 1024))
+    data.write("\r\n")
+    data.write("--#{boundary}--\r\n")
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => data,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    Timeout::timeout(10) { Rack::Multipart.parse_multipart(env) }
   end
 
   it 'raises an EOF error on content-length mistmatch' do
