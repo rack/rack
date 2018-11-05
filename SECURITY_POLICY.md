@@ -40,7 +40,6 @@ After the initial reply to your report the security team will endeavor to keep y
 If you have not received a reply to your email within 48 hours, or have not heard from the security team for the past five days there are a few steps you can take:
 
 * Contact the current security coordinator [Aaron Patterson](mailto:tenderlove@ruby-lang.org) directly
-* Contact the back-up contact [Santiago Pastorino](mailto:santiago@wyeworks.com) directly.
 
 ## Disclosure Policy
 
