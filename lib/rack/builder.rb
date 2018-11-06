@@ -34,19 +34,28 @@ module Rack
     UTF_8_BOM = '\xef\xbb\xbf'
 
     def self.parse_file(config, opts = Server::Options.new)
-      options = {}
       if config =~ /\.ru$/
-        cfgfile = ::File.read(config)
-        cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
-        if cfgfile[/^#\\(.*)/] && opts
-          options = opts.parse! $1.split(/\s+/)
-        end
-        cfgfile.sub!(/^__END__\n.*\Z/m, '')
-        app = new_from_string cfgfile, config
+        return self.load_file(config, opts)
       else
         require config
         app = Object.const_get(::File.basename(config, '.rb').split('_').map(&:capitalize).join(''))
+        return app, {}
       end
+    end
+
+    def self.load_file(path, opts = Server::Options.new)
+      options = {}
+
+      cfgfile = ::File.read(path)
+      cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
+
+      if cfgfile[/^#\\(.*)/] && opts
+        options = opts.parse! $1.split(/\s+/)
+      end
+
+      cfgfile.sub!(/^__END__\n.*\Z/m, '')
+      app = new_from_string cfgfile, path
+
       return app, options
     end
 
