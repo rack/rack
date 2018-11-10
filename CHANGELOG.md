@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 - `Rack::Utils.status_code` now raises an error when the status symbol is invalid instead of `500`.
+- `Rack::Request::SCHEME_WHITELIST` has been renamed to `Rack::Request::ALLOWED_SCHEMES`
 
 ### Removed
 - HISTORY.md by @twitnithegirl
@@ -16,7 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 #
 #
 # History/News Archive
-Items below this line are from the previously maintained HISTORY.md and NEWS.md files. 
+Items below this line are from the previously maintained HISTORY.md and NEWS.md files.
 #
 
 ## [2.0.0]
@@ -65,13 +66,13 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 - Prevent extremely deep parameters from being parsed. CVE-2015-3225
 
 ## [1.6.1] 2015-05-06
-  - Fix CVE-2014-9490, denial of service attack in OkJson 
-  - Use a monotonic time for Rack::Runtime, if available 
+  - Fix CVE-2014-9490, denial of service attack in OkJson
+  - Use a monotonic time for Rack::Runtime, if available
   - RACK_MULTIPART_LIMIT changed to RACK_MULTIPART_PART_LIMIT (RACK_MULTIPART_LIMIT is deprecated and will be removed in 1.7.0)
 
 ## [1.5.3] 2015-05-06
   - Fix CVE-2014-9490, denial of service attack in OkJson
-  - Backport bug fixes to 1.5 series 
+  - Backport bug fixes to 1.5 series
 
 ## [1.6.0] 2014-01-18
   - Response#unauthorized? helper
