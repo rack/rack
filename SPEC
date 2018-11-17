@@ -130,6 +130,7 @@ The <tt>client</tt> is used for writing and checking status of the upgraded conn
                       close()                      # forces a close of the WebSocket or SSE connection
                       open?()                      # returns true if the connection is open, false otherwise
                       pending()                    # returns the number of pending writes or -1 if the connection is closed
+                      env()                        # returns the `env` Hash from the inital call to `#call()`. Note some elements may no longer be relevant.
 
 The <tt>env['rack.upgrade']</tt> option should only be set it the environment options has a non-nil value for the <tt>rack.upgrade?</tt> option,
 If the response status is 300 or higher, the server MUST ignore the <tt>rack.upgrade</tt> value (send the response without performing an upgrade).
