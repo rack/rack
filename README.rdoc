@@ -2,7 +2,7 @@
 
 {<img src="https://rack.github.io/rack-logo.png" width="400" alt="rack powers web applications" />}[https://rack.github.io/]
 
-{<img src="https://ci.com/gh/rack/rack.svg?style=svg" alt="CircleCI" />}[https://circleci.com/gh/rack/rack]
+{<img src="https://circleci.com/gh/rack/rack.svg?style=svg" alt="CircleCI" />}[https://circleci.com/gh/rack/rack]
 {<img src="https://secure.travis-ci.org/rack/rack.svg" alt="Build Status" />}[https://travis-ci.org/rack/rack]
 {<img src="https://badge.fury.io/rb/rack.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rack]
 {<img src="https://api.dependabot.com/badges/compatibility_score?dependency-name=rack&package-manager=bundler&version-scheme=semver" alt="SemVer Stability" />}[https://dependabot.com/compatibility-score.html?dependency-name=rack&package-manager=bundler&version-scheme=semver]
