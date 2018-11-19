@@ -22,7 +22,7 @@ module Rack
     attr_reader :root
 
     def initialize(root, headers = {}, default_mime = 'text/plain')
-      @root = root
+      @root = ::File.expand_path root
       @headers = headers
       @default_mime = default_mime
       @head = Rack::Head.new(lambda { |env| get env })
