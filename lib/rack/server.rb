@@ -23,10 +23,6 @@ module Rack
             lineno += 1
           }
 
-          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
-            options[:builder] = line
-          }
-
           opts.on("-d", "--debug", "set debugging flags (set $DEBUG to true)") {
             options[:debug] = true
           }
@@ -49,6 +45,10 @@ module Rack
 
           opts.separator ""
           opts.separator "Rack options:"
+          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
+            options[:builder] = line
+          }
+
           opts.on("-s", "--server SERVER", "serve using SERVER (thin/puma/webrick)") { |s|
             options[:server] = s
           }
