@@ -172,7 +172,9 @@ module Rack
 
     # Options may include:
     # * :app
-    #     a rack application to run (overrides :config)
+    #     a rack application to run (overrides :config and :builder)
+    # * :builder
+    #     a string to evaluate a Rack::Builder from
     # * :config
     #     a rackup configuration file path to load (.ru)
     # * :environment
@@ -202,6 +204,14 @@ module Rack
     #     add given paths to $LOAD_PATH
     # * :require
     #     require the given libraries
+    #
+    # Additional options for profiling app initialization include:
+    # * :heapfile
+    #     location for ObjectSpace.dump_all to write the output to
+    # * :profile_file
+    #     location for CPU/Memory (StackProf) profile output (defaults to a tempfile)
+    # * :profile_mode
+    #     StackProf profile mode (cpu|wall|object)
     def initialize(options = nil)
       @ignore_options = []
 
