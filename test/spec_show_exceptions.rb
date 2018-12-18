@@ -27,6 +27,24 @@ describe Rack::ShowExceptions do
     assert_match(res, /ShowExceptions/)
   end
 
+  it "works with binary data in the Rack environment" do
+    res = nil
+
+    # "\xCC" is not a valid UTF-8 string
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| env['foo'] = "\xCC"; raise RuntimeError }
+    ))
+
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_match(res, /RuntimeError/)
+    assert_match(res, /ShowExceptions/)
+  end
+
   it "responds with HTML only to requests accepting HTML" do
     res = nil
 
