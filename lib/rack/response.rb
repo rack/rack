@@ -29,7 +29,7 @@ module Rack
 
     def initialize(body = [], status = 200, header = {})
       @status = status.to_i
-      @header = Utils::HeaderHash.new.merge(header)
+      @header = Utils::HeaderHash.new(header)
 
       @writer  = lambda { |x| @body << x }
       @block   = nil
