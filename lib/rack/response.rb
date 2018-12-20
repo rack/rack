@@ -26,6 +26,10 @@ module Rack
     alias headers header
 
     CHUNKED = 'chunked'
+    STATUS_WITH_NO_ENTITY_BODY = {
+      204 => true,
+      304 => true
+    }.freeze
 
     def initialize(body = [], status = 200, header = {})
       @status = status.to_i
@@ -62,7 +66,7 @@ module Rack
     def finish(&block)
       @block = block
 
-      if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
+      if STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
