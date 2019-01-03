@@ -23,10 +23,6 @@ module Rack
             lineno += 1
           }
 
-          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
-            options[:builder] = line
-          }
-
           opts.on("-d", "--debug", "set debugging flags (set $DEBUG to true)") {
             options[:debug] = true
           }
@@ -49,6 +45,10 @@ module Rack
 
           opts.separator ""
           opts.separator "Rack options:"
+          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
+            options[:builder] = line
+          }
+
           opts.on("-s", "--server SERVER", "serve using SERVER (thin/puma/webrick)") { |s|
             options[:server] = s
           }
@@ -172,7 +172,9 @@ module Rack
 
     # Options may include:
     # * :app
-    #     a rack application to run (overrides :config)
+    #     a rack application to run (overrides :config and :builder)
+    # * :builder
+    #     a string to evaluate a Rack::Builder from
     # * :config
     #     a rackup configuration file path to load (.ru)
     # * :environment
@@ -202,6 +204,14 @@ module Rack
     #     add given paths to $LOAD_PATH
     # * :require
     #     require the given libraries
+    #
+    # Additional options for profiling app initialization include:
+    # * :heapfile
+    #     location for ObjectSpace.dump_all to write the output to
+    # * :profile_file
+    #     location for CPU/Memory (StackProf) profile output (defaults to a tempfile)
+    # * :profile_mode
+    #     StackProf profile mode (cpu|wall|object)
     def initialize(options = nil)
       @ignore_options = []
 
