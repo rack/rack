@@ -11,7 +11,7 @@ describe Rack::Response do
     cc = 'foo'
     response.cache_control = cc
     assert_equal cc, response.cache_control
-    assert_equal cc, response.to_a[2]['Cache-Control']
+    assert_equal cc, response.to_a[1]['Cache-Control']
   end
 
   it 'has an etag method' do
@@ -19,7 +19,7 @@ describe Rack::Response do
     etag = 'foo'
     response.etag = etag
     assert_equal etag, response.etag
-    assert_equal etag, response.to_a[2]['ETag']
+    assert_equal etag, response.to_a[1]['ETag']
   end
 
   it "have sensible default values" do
