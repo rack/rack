@@ -411,6 +411,10 @@ module Rack
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
     class HeaderHash < Hash
+      def self.build(hash)
+        HeaderHash === hash ? hash.dup : new(hash)
+      end
+
       def self.new(hash = {})
         HeaderHash === hash ? hash : super(hash)
       end
