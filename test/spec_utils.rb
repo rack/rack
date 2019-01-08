@@ -692,6 +692,13 @@ describe Rack::Utils::HeaderHash do
     h['foo'].must_be_nil
     h.wont_include 'foo'
   end
+
+  it "be deserialized" do
+    a = Rack::Utils::HeaderHash.new("foo" => "bar")
+    dump = YAML.dump(a)
+    b = YAML.load(dump)
+    b.must_equal a
+  end
 end
 
 describe Rack::Utils::Context do
