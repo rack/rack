@@ -605,6 +605,7 @@ module Rack
       ".vtu"       => "model/vnd.vtu",
       ".vxml"      => "application/voicexml+xml",
       ".war"       => "application/java-archive",
+      ".wasm"      => "application/wasm",
       ".wav"       => "audio/x-wav",
       ".wax"       => "audio/x-ms-wax",
       ".wbmp"      => "image/vnd.wap.wbmp",
