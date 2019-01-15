@@ -369,7 +369,7 @@ module Rack
                 <% env.sort_by { |k, v| k.to_s }.each { |key, val| %>
                 <tr>
                   <td><%=h key %></td>
-                  <td class="code"><div><%=h val %></div></td>
+                  <td class="code"><div><%=h val.inspect %></div></td>
                 </tr>
                 <% } %>
             </tbody>
