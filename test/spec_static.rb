@@ -195,4 +195,14 @@ describe Rack::Static do
     res.headers['Cache-Control'].must_equal 'public, max-age=42'
   end
 
+  it "expands the root path upon the middleware initialization" do
+    relative_path = STATIC_OPTIONS[:root].sub("#{Dir.pwd}/", '')
+    opts = { urls: [""], root: relative_path, index: 'index.html' }
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    Dir.chdir '..' do
+      res = request.get("")
+      res.must_be :ok?
+      res.body.must_match(/index!/)
+    end
+  end
 end
