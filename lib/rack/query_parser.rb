@@ -63,7 +63,7 @@ module Rack
       return {} if qs.nil? || qs.empty?
       params = make_params
 
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+      qs.split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         k, v = p.split('=', 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v, param_depth_limit)
