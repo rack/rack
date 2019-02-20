@@ -14,6 +14,8 @@ class DummyApp
 end
 
 describe Rack::Static do
+  DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
+
   def static(app, *args)
     Rack::Lint.new Rack::Static.new(app, *args)
   end
@@ -136,6 +138,15 @@ describe Rack::Static do
     res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_equal 'text/plain'
     res.body.must_match(/ruby/)
+  end
+
+  it "returns 304 if gzipped file isn't modified since last serve" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = @gzip_request.get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
+    res.status.must_equal 304
+    res.body.must_be :empty?
+    res.headers['Content-Encoding'].must_be_nil
+    res.headers['Content-Type'].must_be_nil
   end
 
   it "supports serving fixed cache-control (legacy option)" do
