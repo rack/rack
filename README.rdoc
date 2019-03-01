@@ -238,7 +238,7 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 The \Rack Core Team, consisting of
 
-* Leah Neukirchen (chneukirchen[https://github.com/chneukirchen])
+* Leah Neukirchen (leahneukirchen[https://github.com/leahneukirchen])
 * James Tucker (raggi[https://github.com/raggi])
 * Josh Peek (josh[https://github.com/josh])
 * José Valim (josevalim[https://github.com/josevalim])
