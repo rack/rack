@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "zlib"
 require "time"  # for Time.httpdate
 require 'rack/utils'
@@ -8,7 +10,6 @@ module Rack
   # Currently supported compression algorithms:
   #
   #   * gzip
-  #   * deflate
   #   * identity (no transformation)
   #
   # The middleware automatically detects when compression is supported
@@ -22,13 +23,18 @@ module Rack
     # [app] rack app instance
     # [options] hash of deflater options, i.e.
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
-    #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.length > 512 }
+    #                  e.g use Rack::Deflater, :if => lambda { |*, body| sum=0; body.each { |i| sum += i.length }; sum > 512 }
     #           'include' - a list of content types that should be compressed
+    #           'sync' - determines if the stream is going to be flused after every chunk.
+    #                    Flushing after every chunk reduces latency for
+    #                    time-sensitive streaming applications, but hurts
+    #                    compression and throughput. Defaults to `true'.
     def initialize(app, options = {})
       @app = app
 
       @condition = options[:if]
       @compressible_types = options[:include]
+      @sync = options[:sync] == false ? false : true
     end
 
     def call(env)
@@ -41,7 +47,7 @@ module Rack
 
       request = Request.new(env)
 
-      encoding = Utils.select_best_encoding(%w(gzip deflate identity),
+      encoding = Utils.select_best_encoding(%w(gzip identity),
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
@@ -53,37 +59,33 @@ module Rack
       case encoding
       when "gzip"
         headers['Content-Encoding'] = "gzip"
-        headers.delete(CONTENT_LENGTH)
-        mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
-        [status, headers, GzipStream.new(body, mtime)]
-      when "deflate"
-        headers['Content-Encoding'] = "deflate"
-        headers.delete(CONTENT_LENGTH)
-        [status, headers, DeflateStream.new(body)]
+        headers.delete('Content-Length')
+        mtime = headers["Last-Modified"]
+        mtime = Time.httpdate(mtime).to_i if mtime
+        [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s}, bp]
+        [406, { 'Content-Type' => "text/plain", 'Content-Length' => message.length.to_s }, bp]
       end
     end
 
     class GzipStream
-      def initialize(body, mtime)
+      def initialize(body, mtime, sync)
+        @sync = sync
         @body = body
         @mtime = mtime
-        @closed = false
       end
 
       def each(&block)
         @writer = block
-        gzip  =::Zlib::GzipWriter.new(self)
-        gzip.mtime = @mtime
+        gzip = ::Zlib::GzipWriter.new(self)
+        gzip.mtime = @mtime if @mtime
         @body.each { |part|
           gzip.write(part)
-          gzip.flush
+          gzip.flush if @sync
         }
       ensure
         gzip.close
@@ -95,39 +97,8 @@ module Rack
       end
 
       def close
-        return if @closed
-        @closed = true
         @body.close if @body.respond_to?(:close)
-      end
-    end
-
-    class DeflateStream
-      DEFLATE_ARGS = [
-        Zlib::DEFAULT_COMPRESSION,
-        # drop the zlib header which causes both Safari and IE to choke
-        -Zlib::MAX_WBITS,
-        Zlib::DEF_MEM_LEVEL,
-        Zlib::DEFAULT_STRATEGY
-      ]
-
-      def initialize(body)
-        @body = body
-        @closed = false
-      end
-
-      def each
-        deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
-        yield fin = deflator.finish
-      ensure
-        deflator.finish unless fin
-        deflator.close
-      end
-
-      def close
-        return if @closed
-        @closed = true
-        @body.close if @body.respond_to?(:close)
+        @body = nil
       end
     end
 
@@ -136,14 +107,14 @@ module Rack
     def should_deflate?(env, status, headers, body)
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
-      if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers[CACHE_CONTROL].to_s =~ /\bno-transform\b/ ||
+      if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
+          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
          (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
         return false
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)

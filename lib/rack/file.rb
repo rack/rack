@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
@@ -19,8 +21,8 @@ module Rack
 
     attr_reader :root
 
-    def initialize(root, headers={}, default_mime = 'text/plain')
-      @root = root
+    def initialize(root, headers = {}, default_mime = 'text/plain')
+      @root = ::File.expand_path root
       @headers = headers
       @default_mime = default_mime
       @head = Rack::Head.new(lambda { |env| get env })
@@ -34,7 +36,7 @@ module Rack
     def get(env)
       request = Rack::Request.new env
       unless ALLOWED_VERBS.include? request.request_method
-        return fail(405, "Method Not Allowed", {'Allow' => ALLOW_HEADER})
+        return fail(405, "Method Not Allowed", { 'Allow' => ALLOW_HEADER })
       end
 
       path_info = Utils.unescape_path request.path_info
@@ -58,7 +60,7 @@ module Rack
 
     def serving(request, path)
       if request.options?
-        return [200, {'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0'}, []]
+        return [200, { 'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
       end
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
@@ -80,7 +82,7 @@ module Rack
         # No ranges, or multiple ranges (which we don't support):
         # TODO: Support multiple byte-ranges
         response[0] = 200
-        range = 0..size-1
+        range = 0..size - 1
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
@@ -113,7 +115,7 @@ module Rack
       def each
         ::File.open(path, "rb") do |file|
           file.seek(range.begin)
-          remaining_len = range.end-range.begin+1
+          remaining_len = range.end - range.begin + 1
           while remaining_len > 0
             part = file.read([8192, remaining_len].min)
             break unless part
@@ -158,7 +160,7 @@ module Rack
 
     def filesize path
       # If response_body is present, use its size.
-      return Rack::Utils.bytesize(response_body) if response_body
+      return response_body.bytesize if response_body
 
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to

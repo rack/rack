@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   class QueryParser
     DEFAULT_SEP = /[&;] */n
@@ -36,7 +38,7 @@ module Rack
 
       (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
-        k, v = p.split('='.freeze, 2).map!(&unescaper)
+        k, v = p.split('=', 2).map!(&unescaper)
 
         if cur = params[k]
           if cur.class == Array
@@ -61,8 +63,8 @@ module Rack
       return {} if qs.nil? || qs.empty?
       params = make_params
 
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
+      qs.split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+        k, v = p.split('=', 2).map! { |s| unescape(s) }
 
         normalize_params(params, k, v, param_depth_limit)
       end
@@ -79,22 +81,22 @@ module Rack
       raise RangeError if depth <= 0
 
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''.freeze
-      after = $' || ''.freeze
+      k = $1 || ''
+      after = $' || ''
 
       if k.empty?
-        if !v.nil? && name == "[]".freeze
+        if !v.nil? && name == "[]"
           return Array(v)
         else
           return
         end
       end
 
-      if after == ''.freeze
+      if after == ''
         params[k] = v
-      elsif after == "[".freeze
+      elsif after == "["
         params[name] = v
-      elsif after == "[]".freeze
+      elsif after == "[]"
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
@@ -102,8 +104,7 @@ module Rack
         child_key = $1
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        first_key = child_key.gsub(/[\[\]]/, ' ').split.first
-        if params_hash_type?(params[k].last) && !params[k].last.key?(first_key)
+        if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
           normalize_params(params[k].last, child_key, v, depth - 1)
         else
           params[k] << normalize_params(make_params, child_key, v, depth - 1)
@@ -133,6 +134,18 @@ module Rack
 
     def params_hash_type?(obj)
       obj.kind_of?(@params_class)
+    end
+
+    def params_hash_has_key?(hash, key)
+      return false if key =~ /\[\]/
+
+      key.split(/[\[\]]+/).inject(hash) do |h, part|
+        next h if part == ''
+        return false unless params_hash_type?(h) && h.key?(part)
+        h[part]
+      end
+
+      true
     end
 
     def unescape(s)

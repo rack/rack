@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   module Multipart
     class Generator
@@ -27,21 +29,18 @@ module Rack
 
       private
       def multipart?
-        multipart = false
-
         query = lambda { |value|
           case value
           when Array
-            value.each(&query)
+            value.any?(&query)
           when Hash
-            value.values.each(&query)
+            value.values.any?(&query)
           when Rack::Multipart::UploadedFile
-            multipart = true
+            true
           end
         }
-        @params.values.each(&query)
 
-        multipart
+        @params.values.any?(&query)
       end
 
       def flattened_params

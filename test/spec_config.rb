@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'rack/builder'
 require 'rack/config'
@@ -13,7 +15,7 @@ describe Rack::Config do
         env['greeting'] = 'hello'
       end
       run lambda { |env|
-        [200, {'Content-Type' => 'text/plain'}, [env['greeting'] || '']]
+        [200, { 'Content-Type' => 'text/plain' }, [env['greeting'] || '']]
       }
     end
 

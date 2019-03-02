@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'uri'
 
 module Rack
@@ -10,14 +12,14 @@ module Rack
   class ForwardRequest < Exception
     attr_reader :url, :env
 
-    def initialize(url, env={})
+    def initialize(url, env = {})
       @url = URI(url)
       @env = env
 
-      @env[PATH_INFO] =       @url.path
-      @env[QUERY_STRING] =    @url.query  if @url.query
-      @env[HTTP_HOST] =       @url.host   if @url.host
-      @env["HTTP_PORT"] =     @url.port   if @url.port
+      @env[PATH_INFO]       = @url.path
+      @env[QUERY_STRING]    = @url.query  if @url.query
+      @env[HTTP_HOST]       = @url.host   if @url.host
+      @env["HTTP_PORT"]     = @url.port   if @url.port
       @env[RACK_URL_SCHEME] = @url.scheme if @url.scheme
 
       super "forwarding to #{url}"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'stringio'
 require 'rack/lint'
@@ -11,7 +13,7 @@ describe Rack::Logger do
     log.info("Program started")
     log.warn("Nothing to do!")
 
-    [200, {'Content-Type' => 'text/plain'}, ["Hello, World!"]]
+    [200, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]]
   }
 
   it "conform to Rack::Lint" do

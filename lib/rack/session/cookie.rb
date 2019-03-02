@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'openssl'
 require 'zlib'
 require 'rack/request'
@@ -103,7 +105,7 @@ module Rack
 
       attr_reader :coder
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         @secrets = options.values_at(:secret, :old_secret).compact
         @hmac = options.fetch(:hmac, OpenSSL::Digest::SHA1)
 
@@ -116,8 +118,8 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder  = options[:coder] ||= Base64::Marshal.new
-        super(app, options.merge!(:cookie_only => true))
+        @coder = options[:coder] ||= Base64::Marshal.new
+        super(app, options.merge!(cookie_only: true))
       end
 
       private
@@ -147,7 +149,7 @@ module Rack
         end
       end
 
-      def persistent_session_id!(data, sid=nil)
+      def persistent_session_id!(data, sid = nil)
         data ||= {}
         data["session_id"] ||= sid || generate_sid
         data

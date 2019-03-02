@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 
 require 'rack/session/abstract/id'
@@ -23,15 +25,15 @@ module Rack
       attr_reader :mutex, :pool
 
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
-        :namespace => 'rack:session',
-        :memcache_server => 'localhost:11211'
+        namespace: 'rack:session',
+        memcache_server: 'localhost:11211'
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super
 
         @mutex = Mutex.new
         mserv = @default_options[:memcache_server]
-        mopts = @default_options.reject{|k,v| !MemCache::DEFAULT_OPTIONS.include? k }
+        mopts = @default_options.reject{|k, v| !MemCache::DEFAULT_OPTIONS.include? k }
 
         @pool = options[:cache] || MemCache.new(mserv, mopts)
         unless @pool.active? and @pool.servers.any?(&:alive?)

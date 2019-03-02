@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/utils'
 require 'rack/body_proxy'
 
@@ -15,7 +17,7 @@ module Rack
       status, headers, body = @app.call(env)
       headers = HeaderHash.new(headers)
 
-      if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
+      if !STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) &&
          !headers[CONTENT_LENGTH] &&
          !headers[TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'zlib'
 
 require 'rack/request'
@@ -25,8 +27,8 @@ module Rack
       content = ["<title>Lobstericious!</title>",
                  "<pre>", lobster, "</pre>",
                  "<a href='#{href}'>flip!</a>"]
-      length = content.inject(0) { |a,e| a+e.size }.to_s
-      [200, {CONTENT_TYPE => "text/html", CONTENT_LENGTH => length}, content]
+      length = content.inject(0) { |a, e| a + e.size }.to_s
+      [200, { CONTENT_TYPE => "text/html", CONTENT_LENGTH => length }, content]
     }
 
     def call(env)
@@ -37,8 +39,8 @@ module Rack
             gsub('\\', 'TEMP').
             gsub('/', '\\').
             gsub('TEMP', '/').
-            gsub('{','}').
-            gsub('(',')')
+            gsub('{', '}').
+            gsub('(', ')')
         end.join("\n")
         href = "?flip=right"
       elsif req.GET["flip"] == "crash"
@@ -65,6 +67,6 @@ if $0 == __FILE__
   require 'rack'
   require 'rack/show_exceptions'
   Rack::Server.start(
-    :app => Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), :Port => 9292
+    app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )
 end

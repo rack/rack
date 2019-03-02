@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'time'
 require 'rack/utils'
 require 'rack/mime'
@@ -41,9 +43,9 @@ table { width:100%%; }
 
     class DirectoryBody < Struct.new(:root, :path, :files)
       def each
-        show_path = Rack::Utils.escape_html(path.sub(/^#{root}/,''))
-        listings = files.map{|f| DIR_FILE % DIR_FILE_escape(*f) }*"\n"
-        page  = DIR_PAGE % [ show_path, show_path , listings ]
+        show_path = Rack::Utils.escape_html(path.sub(/^#{root}/, ''))
+        listings = files.map{|f| DIR_FILE % DIR_FILE_escape(*f) } * "\n"
+        page = DIR_PAGE % [ show_path, show_path, listings ]
         page.each_line{|l| yield l }
       end
 
@@ -56,7 +58,7 @@ table { width:100%%; }
 
     attr_reader :root, :path
 
-    def initialize(root, app=nil)
+    def initialize(root, app = nil)
       @root = ::File.expand_path(root)
       @app = app || Rack::File.new(@root)
       @head = Rack::Head.new(lambda { |env| get env })
@@ -86,9 +88,9 @@ table { width:100%%; }
 
       body = "Bad Request\n"
       size = body.bytesize
-      return [400, {CONTENT_TYPE => "text/plain",
+      return [400, { CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
-        "X-Cascade" => "pass"}, [body]]
+        "X-Cascade" => "pass" }, [body]]
     end
 
     def check_forbidden(path_info)
@@ -96,13 +98,13 @@ table { width:100%%; }
 
       body = "Forbidden\n"
       size = body.bytesize
-      return [403, {CONTENT_TYPE => "text/plain",
+      return [403, { CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
-        "X-Cascade" => "pass"}, [body]]
+        "X-Cascade" => "pass" }, [body]]
     end
 
     def list_directory(path_info, path, script_name)
-      files = [['../','Parent Directory','','','']]
+      files = [['../', 'Parent Directory', '', '', '']]
       glob = ::File.join(path, '*')
 
       url_head = (script_name.split('/') + path_info.split('/')).map do |part|
@@ -126,7 +128,7 @@ table { width:100%%; }
         files << [ url, basename, size, type, mtime ]
       end
 
-      return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, DirectoryBody.new(@root, path, files) ]
+      return [ 200, { CONTENT_TYPE => 'text/html; charset=utf-8' }, DirectoryBody.new(@root, path, files) ]
     end
 
     def stat(node)
@@ -154,9 +156,9 @@ table { width:100%%; }
     def entity_not_found(path_info)
       body = "Entity not found: #{path_info}\n"
       size = body.bytesize
-      return [404, {CONTENT_TYPE => "text/plain",
+      return [404, { CONTENT_TYPE => "text/plain",
         CONTENT_LENGTH => size.to_s,
-        "X-Cascade" => "pass"}, [body]]
+        "X-Cascade" => "pass" }, [body]]
     end
 
     # Stolen from Ramaze

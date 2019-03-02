@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/auth/abstract/handler'
 require 'rack/auth/digest/request'
 require 'rack/auth/digest/params'
@@ -21,7 +23,7 @@ module Rack
 
         attr_writer :passwords_hashed
 
-        def initialize(app, realm=nil, opaque=nil, &authenticator)
+        def initialize(app, realm = nil, opaque = nil, &authenticator)
           @passwords_hashed = nil
           if opaque.nil? and realm.respond_to? :values_at
             realm, opaque, @passwords_hashed = realm.values_at :realm, :opaque, :passwords_hashed
@@ -47,7 +49,7 @@ module Rack
 
           if valid?(auth)
             if auth.nonce.stale?
-              return unauthorized(challenge(:stale => true))
+              return unauthorized(challenge(stale: true))
             else
               env['REMOTE_USER'] = auth.username
 
@@ -61,7 +63,7 @@ module Rack
 
         private
 
-        QOP = 'auth'.freeze
+        QOP = 'auth'
 
         def params(hash = {})
           Params.new do |params|

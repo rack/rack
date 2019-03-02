@@ -1,6 +1,0 @@
-dependencies:
-  pre:
-    - sudo apt-get install lighttpd libfcgi-dev libmemcache-dev memcached
-machine:
-  ruby:
-    version: ruby-head

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'stringio'
 require 'time'  # for Time#httpdate
@@ -44,6 +46,8 @@ describe Rack::Deflater do
       [accept_encoding, accept_encoding.dup]
     end
 
+    start = Time.now.to_i
+
     # build response
     status, headers, body = build_response(
       options['app_status'] || expected_status,
@@ -57,7 +61,7 @@ describe Rack::Deflater do
 
     # verify body
     unless options['skip_body_verify']
-      body_text = ''
+      body_text = ''.dup
       body.each { |part| body_text << part }
 
       deflated_body = case expected_encoding
@@ -67,6 +71,13 @@ describe Rack::Deflater do
       when 'gzip'
         io = StringIO.new(body_text)
         gz = Zlib::GzipReader.new(io)
+        mtime = gz.mtime.to_i
+        if last_mod = headers['Last-Modified']
+          Time.httpdate(last_mod).to_i.must_equal mtime
+        else
+          mtime.must_be(:<=, Time.now.to_i)
+          mtime.must_be(:>=, start.to_i)
+        end
         tmp = gz.read
         gz.close
         tmp
@@ -81,13 +92,22 @@ describe Rack::Deflater do
     yield(status, headers, body) if block_given?
   end
 
+  # automatic gzip detection (streamable)
+  def auto_inflater
+    Zlib::Inflate.new(32 + Zlib::MAX_WBITS)
+  end
+
+  def deflate_or_gzip
+    { 'deflate, gzip' => 'gzip' }
+  end
+
   it 'be able to deflate bodies that respond to each' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
-    verify(200, 'foobar', 'deflate', { 'app_body' => app_body }) do |status, headers, body|
+    verify(200, 'foobar', deflate_or_gzip, { 'app_body' => app_body }) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
@@ -98,15 +118,15 @@ describe Rack::Deflater do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
 
-    verify(200, app_body, 'deflate', { 'skip_body_verify' => true }) do |status, headers, body|
+    verify(200, app_body, deflate_or_gzip, { 'skip_body_verify' => true }) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
 
       buf = []
-      inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflater = auto_inflater
       body.each { |part| buf << inflater.inflate(part) }
       buf << inflater.finish
 
@@ -118,32 +138,33 @@ describe Rack::Deflater do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
     opts = { 'skip_body_verify' => true }
-    verify(200, app_body, 'deflate', opts) do |status, headers, body|
+    verify(200, app_body, 'gzip', opts) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
 
       buf = []
-      inflater = Zlib::Inflate.new(-Zlib::MAX_WBITS)
+      inflater = auto_inflater
       FakeDisconnect = Class.new(RuntimeError)
       assert_raises(FakeDisconnect, "not Zlib::DataError not raised") do
         body.each do |part|
-          buf << inflater.inflate(part)
+          tmp = inflater.inflate(part)
+          buf << tmp if tmp.bytesize > 0
           raise FakeDisconnect
         end
       end
-      assert_raises(Zlib::BufError) { inflater.finish }
+      inflater.finish
       buf.must_equal(%w(foo))
     end
   end
 
   # TODO: This is really just a special case of the above...
   it 'be able to deflate String bodies' do
-    verify(200, 'Hello world!', 'deflate') do |status, headers, body|
+    verify(200, 'Hello world!', deflate_or_gzip) do |status, headers, body|
       headers.must_equal({
-        'Content-Encoding' => 'deflate',
+        'Content-Encoding' => 'gzip',
         'Vary' => 'Accept-Encoding',
         'Content-Type' => 'text/plain'
       })
@@ -280,7 +301,7 @@ describe Rack::Deflater do
         'Content-Encoding' => 'identity'
       }
     }
-    verify(200, 'Hello World!', 'deflate', options)
+    verify(200, 'Hello World!', deflate_or_gzip, options)
   end
 
   it "deflate if content-type matches :include" do
@@ -289,7 +310,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain'
       },
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(200, 'Hello World!', 'gzip', options)
@@ -301,7 +322,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain; charset=us-ascii'
       },
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(200, 'Hello World!', 'gzip', options)
@@ -310,7 +331,7 @@ describe Rack::Deflater do
   it "not deflate if content-type is not set but given in :include" do
     options = {
       'deflater_options' => {
-        :include => %w(text/plain)
+        include: %w(text/plain)
       }
     }
     verify(304, 'Hello World!', { 'gzip' => nil }, options)
@@ -322,7 +343,7 @@ describe Rack::Deflater do
         'Content-Type' => 'text/plain'
       },
       'deflater_options' => {
-        :include => %w(text/json)
+        include: %w(text/json)
       }
     }
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
@@ -331,16 +352,16 @@ describe Rack::Deflater do
   it "deflate response if :if lambda evaluates to true" do
     options = {
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body| true }
+        if: lambda { |env, status, headers, body| true }
       }
     }
-    verify(200, 'Hello World!', 'deflate', options)
+    verify(200, 'Hello World!', deflate_or_gzip, options)
   end
 
   it "not deflate if :if lambda evaluates to false" do
     options = {
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body| false }
+        if: lambda { |env, status, headers, body| false }
       }
     }
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
@@ -354,12 +375,46 @@ describe Rack::Deflater do
         'Content-Length' => response_len.to_s
       },
       'deflater_options' => {
-        :if => lambda { |env, status, headers, body|
+        if: lambda { |env, status, headers, body|
           headers['Content-Length'].to_i >= response_len
         }
       }
     }
 
     verify(200, response, 'gzip', options)
+  end
+
+  it 'will honor sync: false to avoid unnecessary flushing' do
+    app_body = Object.new
+    class << app_body
+      def each
+        (0..20).each { |i| yield "hello\n".freeze }
+      end
+    end
+
+    options = {
+      'deflater_options' => { sync: false },
+      'app_body' => app_body,
+      'skip_body_verify' => true,
+    }
+    verify(200, app_body, deflate_or_gzip, options) do |status, headers, body|
+      headers.must_equal({
+        'Content-Encoding' => 'gzip',
+        'Vary' => 'Accept-Encoding',
+        'Content-Type' => 'text/plain'
+      })
+
+      buf = ''.dup
+      raw_bytes = 0
+      inflater = auto_inflater
+      body.each do |part|
+        raw_bytes += part.bytesize
+        buf << inflater.inflate(part)
+      end
+      buf << inflater.finish
+      expect = "hello\n" * 21
+      buf.must_equal expect
+      raw_bytes.must_be(:<, expect.bytesize)
+    end
   end
 end

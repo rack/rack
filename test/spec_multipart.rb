@@ -1,4 +1,4 @@
-# coding: utf-8
+# frozen_string_literal: true
 
 require 'minitest/autorun'
 require 'rack'
@@ -27,7 +27,7 @@ describe Rack::Multipart do
   it "return nil if content type is not multipart" do
     env = Rack::MockRequest.env_for("/",
             "CONTENT_TYPE" => 'application/x-www-form-urlencoded')
-    Rack::Multipart.parse_multipart(env).must_equal nil
+    Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
   it "parse multipart content when content type present but filename is not" do
@@ -107,11 +107,6 @@ describe Rack::Multipart do
     def rd.rewind; end
     wr.sync = true
 
-    # mock out length to make this pipe look like a Tempfile
-    def rd.length
-      1024 * 1024 * 8
-    end
-
     # write to a pipe in a background thread, this will write a lot
     # unless Rack (properly) shuts down the read end
     thr = Thread.new do
@@ -136,7 +131,7 @@ describe Rack::Multipart do
 
     fixture = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
-      "CONTENT_LENGTH" => rd.length.to_s,
+      "CONTENT_LENGTH" => (1024 * 1024 * 8).to_s,
       :input => rd,
     }
 
@@ -177,7 +172,7 @@ describe Rack::Multipart do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     query_parser = Rack::QueryParser.new c, 65536, 100
@@ -206,7 +201,7 @@ describe Rack::Multipart do
 
   it "parse multipart upload file using custom tempfile class" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
-    my_tempfile = ""
+    my_tempfile = "".dup
     env['rack.multipart.tempfile_factory'] = lambda { |filename, content_type| my_tempfile }
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:tempfile].object_id.must_equal my_tempfile.object_id
@@ -305,11 +300,17 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "bob's flowers.jpg"
   end
 
+  it "parse multipart form with a null byte in the filename" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_null_byte)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "flowers.exe\u0000.jpg"
+  end
+
   it "not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
-    params["files"].must_equal nil
+    params["files"].must_be_nil
     params.keys.wont_include "files"
   end
 
@@ -357,6 +358,19 @@ describe Rack::Multipart do
     params["files"][:head].must_equal "Content-Disposition: form-data; " +
       "name=\"files\"; " +
       "filename=\"escape \\\"quotes\"\r\n" +
+      "Content-Type: application/octet-stream\r\n"
+    params["files"][:name].must_equal "files"
+    params["files"][:tempfile].read.must_equal "contents"
+  end
+
+  it "parse filename with plus character" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_plus))
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:type].must_equal "application/octet-stream"
+    params["files"][:filename].must_equal "foo+bar"
+    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+      "name=\"files\"; " +
+      "filename=\"foo+bar\"\r\n" +
       "Content-Type: application/octet-stream\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
@@ -476,7 +490,7 @@ Content-Type: image/jpeg\r
 
   it "builds nested multipart body" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
-    data  = Rack::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => files}])
+    data  = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => files }])
 
     options = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
@@ -556,8 +570,8 @@ Content-Type: image/jpeg\r
   end
 
   it "return nil if no UploadedFiles were used" do
-    data = Rack::Multipart.build_multipart("people" => [{"submit-name" => "Larry", "files" => "contents"}])
-    data.must_equal nil
+    data = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => "contents" }])
+    data.must_be_nil
   end
 
   it "raise ArgumentError if params is not a Hash" do
@@ -583,7 +597,7 @@ EOF
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
 
-    params.must_equal "description"=>"Very very blue"
+    params.must_equal "description" => "Very very blue"
   end
 
   it "parse multipart upload with no content-length header" do
@@ -682,7 +696,7 @@ true\r
   it "fallback to content-type for name" do
     rack_logo = File.read(multipart_file("rack-logo.png"))
 
-    data = <<-EOF
+    data = <<-EOF.dup
 --AaB03x\r
 Content-Type: text/plain\r
 \r
@@ -701,7 +715,7 @@ Content-Type: image/png\r
     options = {
       "CONTENT_TYPE" => "multipart/related; boundary=AaB03x",
       "CONTENT_LENGTH" => data.bytesize.to_s,
-      :input => StringIO.new(data)
+      :input => StringIO.new(data.dup)
     }
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)

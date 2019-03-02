@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'rack/body_proxy'
 require 'stringio'
@@ -40,7 +42,7 @@ describe Rack::BodyProxy do
     called = false
 
     begin
-      proxy  = Rack::BodyProxy.new(object) { called = true }
+      proxy = Rack::BodyProxy.new(object) { called = true }
       called.must_equal false
       proxy.close
     rescue RuntimeError => e

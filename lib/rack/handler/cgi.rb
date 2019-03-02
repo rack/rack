@@ -1,10 +1,12 @@
+# frozen_string_literal: true
+
 require 'rack/content_length'
 require 'rack/rewindable_input'
 
 module Rack
   module Handler
     class CGI
-      def self.run(app, options=nil)
+      def self.run(app, options = nil)
         $stdin.binmode
         serve app
       end

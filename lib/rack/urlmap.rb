@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'set'
+
 module Rack
   # Rack::URLMap takes a hash mapping urls or paths to apps, and
   # dispatches accordingly.  Support for HTTP/1.1 host names exists if
@@ -20,9 +24,11 @@ module Rack
     end
 
     def remap(map)
+      @known_hosts = Set[]
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2
+          @known_hosts << host
         else
           host = nil
         end
@@ -50,10 +56,13 @@ module Rack
       is_same_server = casecmp?(http_host, server_name) ||
                        casecmp?(http_host, "#{server_name}:#{server_port}")
 
+      is_host_known = @known_hosts.include? http_host
+
       @mapping.each do |host, location, match, app|
         unless casecmp?(http_host, host) \
             || casecmp?(server_name, host) \
-            || (!host && is_same_server)
+            || (!host && is_same_server) \
+            || (!host && !is_host_known) # If we don't have a matching host, default to the first without a specified host
           next
         end
 
@@ -68,7 +77,7 @@ module Rack
         return app.call(env)
       end
 
-      [404, {CONTENT_TYPE => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+      [404, { CONTENT_TYPE => "text/plain", "X-Cascade" => "pass" }, ["Not Found: #{path}"]]
 
     ensure
       env[PATH_INFO]   = path

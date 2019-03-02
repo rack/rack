@@ -1,4 +1,4 @@
-# -*- ruby -*-
+# frozen_string_literal: true
 
 require '../testrequest'
 

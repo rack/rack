@@ -10,22 +10,22 @@ New features will only be added to the master branch and will not be made availa
 
 Only the latest release series will receive bug fixes. When enough bugs are fixed and its deemed worthy to release a new gem, this is the branch it happens from.
 
-* Current release series: 1.6.x
+* Current release series: 2.0.x
 
 ### Security issues
 
 The current release series and the next most recent one will receive patches and new versions in case of a security issue.
 
-* Current release series: 1.6.x
-* Next most recent release series: 1.5.x
+* Current release series: 2.0.x
+* Next most recent release series: 1.6.x
 
 ### Severe security issues
 
 For severe security issues we will provide new versions as above, and also the last major release series will receive patches and new versions. The classification of the security issue is judged by the core team.
 
-* Current release series: 1.6.x
-* Next most recent release series: 1.5.x
-* Last most recent release series: 1.4.x
+* Current release series: 2.0.x
+* Next most recent release series: 1.6.x
+* Last most recent release series: 1.5.x
 
 ### Unsupported Release Series
 
@@ -33,14 +33,13 @@ When a release series is no longer supported, it’s your own responsibility to 
 
 ## Reporting a bug
 
-All security bugs in Rack should be reported to the core team through our private mailing list [rack-core@googlegroups.com](https://groups.google.com/group/rack-core). Your report will be acknowledged within 24 hours, and you’ll receive a more detailed response to your email within 48 hours indicating the next steps in handling your report.
+All security bugs in Rack should be reported to the core team through our private mailing list [rack-core@googlegroups.com](https://groups.google.com/forum/#!forum/rack-core). Your report will be acknowledged within 24 hours, and you’ll receive a more detailed response to your email within 48 hours indicating the next steps in handling your report.
 
 After the initial reply to your report the security team will endeavor to keep you informed of the progress being made towards a fix and full announcement. These updates will be sent at least every five days, in reality this is more likely to be every 24-48 hours.
 
 If you have not received a reply to your email within 48 hours, or have not heard from the security team for the past five days there are a few steps you can take:
 
 * Contact the current security coordinator [Aaron Patterson](mailto:tenderlove@ruby-lang.org) directly
-* Contact the back-up contact [Santiago Pastorino](mailto:santiago@wyeworks.com) directly.
 
 ## Disclosure Policy
 
@@ -64,4 +63,4 @@ No one outside the core team, the initial reporter or vendor-sec will be notifie
 
 ## Comments on this Policy
 
-If you have any suggestions to improve this policy, please send an email the core team at [rack-core@googlegroups.com](https://groups.google.com/group/rack-core).
+If you have any suggestions to improve this policy, please send an email the core team at [rack-core@googlegroups.com](https://groups.google.com/forum/#!forum/rack-core).

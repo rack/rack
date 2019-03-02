@@ -1,5 +1,7 @@
+# frozen_string_literal: true
+
 require 'rack'
-require 'digest/md5'
+require 'digest/sha2'
 
 module Rack
   # Automatically sets the ETag header on all String bodies.
@@ -13,7 +15,7 @@ module Rack
   # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
   class ETag
     ETAG_STRING = Rack::ETAG
-    DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate".freeze
+    DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
     def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)
       @app = app

@@ -1,14 +1,16 @@
+# frozen_string_literal: true
+
 module Rack
   # Rack::Cascade tries a request on several apps, and returns the
   # first response that is not 404 or 405 (or in a list of configurable
   # status codes).
 
   class Cascade
-    NotFound = [404, {CONTENT_TYPE => "text/plain"}, []]
+    NotFound = [404, { CONTENT_TYPE => "text/plain" }, []]
 
     attr_reader :apps
 
-    def initialize(apps, catch=[404, 405])
+    def initialize(apps, catch = [404, 405])
       @apps = []; @has_app = {}
       apps.each { |app| add app }
 

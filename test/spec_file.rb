@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'rack/file'
 require 'rack/lint'
@@ -15,11 +17,11 @@ describe Rack::File do
       File.write File.join(dir, "you+me.txt"), "hello world"
       app = file(dir)
       env = Rack::MockRequest.env_for("/you+me.txt")
-      status,_,body = app.call env
+      status, _, body = app.call env
 
       assert_equal 200, status
 
-      str = ''
+      str = ''.dup
       body.each { |x| str << x }
       assert_match "hello world", str
     end
@@ -156,8 +158,8 @@ describe Rack::File do
 
     res.status.must_equal 206
     res["Content-Length"].must_equal "12"
-    res["Content-Range"].must_equal "bytes 22-33/193"
-    res.body.must_equal "-*- ruby -*-"
+    res["Content-Range"].must_equal "bytes 22-33/208"
+    res.body.must_equal "frozen_strin"
   end
 
   it "return error for unsatisfiable byte range" do
@@ -166,7 +168,7 @@ describe Rack::File do
     res = Rack::MockResponse.new(*file(DOCROOT).call(env))
 
     res.status.must_equal 416
-    res["Content-Range"].must_equal "bytes */193"
+    res["Content-Range"].must_equal "bytes */208"
   end
 
   it "support custom http headers" do
@@ -184,8 +186,8 @@ describe Rack::File do
     status, heads, _ = file(DOCROOT).call(env)
 
     status.must_equal 200
-    heads['Cache-Control'].must_equal nil
-    heads['Access-Control-Allow-Origin'].must_equal nil
+    heads['Cache-Control'].must_be_nil
+    heads['Access-Control-Allow-Origin'].must_be_nil
   end
 
   it "only support GET, HEAD, and OPTIONS requests" do
@@ -218,7 +220,7 @@ describe Rack::File do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT)))
     res = req.head "/cgi/test"
     res.must_be :successful?
-    res['Content-Length'].must_equal "193"
+    res['Content-Length'].must_equal "208"
   end
 
   it "default to a mime type of text/plain" do
@@ -239,13 +241,26 @@ describe Rack::File do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::File.new(DOCROOT, nil, nil)))
     res = req.get "/cgi/test"
     res.must_be :successful?
-    res['Content-Type'].must_equal nil
+    res['Content-Type'].must_be_nil
   end
 
   it "return error when file not found for head request" do
     res = Rack::MockRequest.new(file(DOCROOT)).head("/cgi/missing")
     res.must_be :not_found?
     res.body.must_be :empty?
+  end
+
+  class MyFile < Rack::File
+    def response_body
+      "hello world"
+    end
+  end
+
+  it "behaves gracefully if response_body is present" do
+    file = Rack::Lint.new MyFile.new(DOCROOT)
+    res  = Rack::MockRequest.new(file).get("/cgi/test")
+
+    res.must_be :ok?
   end
 
 end

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'minitest/autorun'
 require 'yaml'
 require 'rack/lint'
@@ -14,9 +16,15 @@ app = Rack::Lint.new(lambda { |env|
   end
 
   body = req.head? ? "" : env.to_yaml
-  Rack::Response.new(body,
-                     req.GET["status"] || 200,
-                     "Content-Type" => "text/yaml").finish
+  response = Rack::Response.new(
+    body,
+    req.GET["status"] || 200,
+    "Content-Type" => "text/yaml"
+  )
+  response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
+  response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
+  response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
+  response.finish
 })
 
 describe Rack::MockRequest do
@@ -54,44 +62,53 @@ describe Rack::MockRequest do
   end
 
   it "allow GET/POST/PUT/DELETE/HEAD" do
-    res = Rack::MockRequest.new(app).get("", :input => "foo")
+    res = Rack::MockRequest.new(app).get("", input: "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
 
-    res = Rack::MockRequest.new(app).post("", :input => "foo")
+    res = Rack::MockRequest.new(app).post("", input: "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
 
-    res = Rack::MockRequest.new(app).put("", :input => "foo")
+    res = Rack::MockRequest.new(app).put("", input: "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "PUT"
 
-    res = Rack::MockRequest.new(app).patch("", :input => "foo")
+    res = Rack::MockRequest.new(app).patch("", input: "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "PATCH"
 
-    res = Rack::MockRequest.new(app).delete("", :input => "foo")
+    res = Rack::MockRequest.new(app).delete("", input: "foo")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "DELETE"
 
-    Rack::MockRequest.env_for("/", :method => "HEAD")["REQUEST_METHOD"]
-     .must_equal "HEAD"
+    Rack::MockRequest.env_for("/", method: "HEAD")["REQUEST_METHOD"]
+      .must_equal "HEAD"
 
-    Rack::MockRequest.env_for("/", :method => "OPTIONS")["REQUEST_METHOD"]
-     .must_equal "OPTIONS"
+    Rack::MockRequest.env_for("/", method: "OPTIONS")["REQUEST_METHOD"]
+      .must_equal "OPTIONS"
   end
 
   it "set content length" do
-    env = Rack::MockRequest.env_for("/", :input => "foo")
+    env = Rack::MockRequest.env_for("/", input: "foo")
     env["CONTENT_LENGTH"].must_equal "3"
+
+    env = Rack::MockRequest.env_for("/", input: StringIO.new("foo"))
+    env["CONTENT_LENGTH"].must_equal "3"
+
+    env = Rack::MockRequest.env_for("/", input: Tempfile.new("name").tap { |t| t << "foo" })
+    env["CONTENT_LENGTH"].must_equal "3"
+
+    env = Rack::MockRequest.env_for("/", input: IO.pipe.first)
+    env["CONTENT_LENGTH"].must_be_nil
   end
 
   it "allow posting" do
-    res = Rack::MockRequest.new(app).get("", :input => "foo")
+    res = Rack::MockRequest.new(app).get("", input: "foo")
     env = YAML.load(res.body)
     env["mock.postdata"].must_equal "foo"
 
-    res = Rack::MockRequest.new(app).post("", :input => StringIO.new("foo"))
+    res = Rack::MockRequest.new(app).post("", input: StringIO.new("foo"))
     env = YAML.load(res.body)
     env["mock.postdata"].must_equal "foo"
   end
@@ -146,7 +163,7 @@ describe Rack::MockRequest do
   end
 
   it "accept params and build query string for GET requests" do
-    res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => {:foo => {:bar => "1"}})
+    res = Rack::MockRequest.new(app).get("/foo?baz=2", params: { foo: { bar: "1" } })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
@@ -156,7 +173,7 @@ describe Rack::MockRequest do
   end
 
   it "accept raw input in params for GET requests" do
-    res = Rack::MockRequest.new(app).get("/foo?baz=2", :params => "foo[bar]=1")
+    res = Rack::MockRequest.new(app).get("/foo?baz=2", params: "foo[bar]=1")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
@@ -166,7 +183,7 @@ describe Rack::MockRequest do
   end
 
   it "accept params and build url encoded params for POST requests" do
-    res = Rack::MockRequest.new(app).post("/foo", :params => {:foo => {:bar => "1"}})
+    res = Rack::MockRequest.new(app).post("/foo", params: { foo: { bar: "1" } })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
@@ -176,7 +193,7 @@ describe Rack::MockRequest do
   end
 
   it "accept raw input in params for POST requests" do
-    res = Rack::MockRequest.new(app).post("/foo", :params => "foo[bar]=1")
+    res = Rack::MockRequest.new(app).post("/foo", params: "foo[bar]=1")
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
@@ -187,7 +204,7 @@ describe Rack::MockRequest do
 
   it "accept params and build multipart encoded params for POST requests" do
     files = Rack::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
-    res = Rack::MockRequest.new(app).post("/foo", :params => { "submit-name" => "Larry", "files" => files })
+    res = Rack::MockRequest.new(app).post("/foo", params: { "submit-name" => "Larry", "files" => files })
     env = YAML.load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
@@ -199,17 +216,34 @@ describe Rack::MockRequest do
 
   it "behave valid according to the Rack spec" do
     url = "https://bla.example.org:9292/meh/foo?bar"
-    Rack::MockRequest.new(app).get(url, :lint => true).
+    Rack::MockRequest.new(app).get(url, lint: true).
       must_be_kind_of Rack::MockResponse
   end
 
   it "call close on the original body object" do
     called = false
     body   = Rack::BodyProxy.new(['hi']) { called = true }
-    capp   = proc { |e| [200, {'Content-Type' => 'text/plain'}, body] }
+    capp   = proc { |e| [200, { 'Content-Type' => 'text/plain' }, body] }
     called.must_equal false
-    Rack::MockRequest.new(capp).get('/', :lint => true)
+    Rack::MockRequest.new(capp).get('/', lint: true)
     called.must_equal true
+  end
+
+  it "defaults encoding to ASCII 8BIT" do
+    req = Rack::MockRequest.env_for("/foo")
+
+    keys = [
+      Rack::REQUEST_METHOD,
+      Rack::SERVER_NAME,
+      Rack::SERVER_PORT,
+      Rack::QUERY_STRING,
+      Rack::PATH_INFO,
+      Rack::HTTPS,
+      Rack::RACK_URL_SCHEME
+    ]
+    keys.each do |k|
+      assert_equal Encoding::ASCII_8BIT, req[k].encoding
+    end
   end
 end
 
@@ -231,7 +265,7 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("/?status=307")
     res.must_be :redirect?
 
-    res = Rack::MockRequest.new(app).get("/?status=201", :lint => true)
+    res = Rack::MockRequest.new(app).get("/?status=201", lint: true)
     res.must_be :empty?
   end
 
@@ -246,6 +280,42 @@ describe Rack::MockResponse do
     res.location.must_be_nil
   end
 
+  it "provide access to session cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    session_cookie = res.cookie("session_test")
+    session_cookie.value[0].must_equal "session_test"
+    session_cookie.domain.must_equal ".test.com"
+    session_cookie.path.must_equal "/"
+    session_cookie.secure.must_equal false
+    session_cookie.expires.must_be_nil
+  end
+
+  it "provide access to persistent cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("persistent_test")
+    persistent_cookie.value[0].must_equal "persistent_test"
+    persistent_cookie.domain.must_be_nil
+    persistent_cookie.path.must_equal "/"
+    persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_be :<, (Time.now + 15552000)
+  end
+
+  it "provide access to secure cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    secure_cookie = res.cookie("secure_test")
+    secure_cookie.value[0].must_equal "secure_test"
+    secure_cookie.domain.must_equal ".test.com"
+    secure_cookie.path.must_equal "/"
+    secure_cookie.secure.must_equal true
+    secure_cookie.expires.must_be_nil
+  end
+
+  it "return nil if a non existent cookie is requested" do
+    res = Rack::MockRequest.new(app).get("")
+    res.cookie("i_dont_exist").must_be_nil
+  end
+
   it "provide access to the HTTP body" do
     res = Rack::MockRequest.new(app).get("")
     res.body.must_match(/rack/)
@@ -253,7 +323,7 @@ describe Rack::MockResponse do
   end
 
   it "provide access to the Rack errors" do
-    res = Rack::MockRequest.new(app).get("/?error=foo", :lint => true)
+    res = Rack::MockRequest.new(app).get("/?error=foo", lint: true)
     res.must_be :ok?
     res.errors.wont_be :empty?
     res.errors.must_include "foo"
@@ -269,7 +339,7 @@ describe Rack::MockResponse do
 
   it "optionally make Rack errors fatal" do
     lambda {
-      Rack::MockRequest.new(app).get("/?error=foo", :fatal => true)
+      Rack::MockRequest.new(app).get("/?error=foo", fatal: true)
     }.must_raise Rack::MockRequest::FatalWarning
   end
 end
