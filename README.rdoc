@@ -168,7 +168,7 @@ Download and install lighttpd:
 
 Installing the FCGI libraries:
 
-If you use Homebrew on Mac:
+If you use Homebrew:
 
     brew install fcgi
 
