@@ -37,7 +37,6 @@ These web servers include \Rack handlers in their distributions:
 * Reel
 * unixrack
 * uWSGI
-* yahns
 
 Any valid \Rack app will run the same on all these handlers, without
 changing anything.
