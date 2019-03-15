@@ -8,10 +8,10 @@ require 'rack/mock'
 require 'tmpdir'
 
 describe Rack::Sendfile do
-  def sendfile_body
-    FileUtils.touch File.join(Dir.tmpdir,  "rack_sendfile")
+  def sendfile_body(filename = "rack_sendfile")
+    FileUtils.touch File.join(Dir.tmpdir,  filename)
     res = ['Hello World']
-    def res.to_path ; File.join(Dir.tmpdir,  "rack_sendfile") ; end
+    res.define_singleton_method(:to_path) { File.join(Dir.tmpdir,  filename) }
     res
   end
 
@@ -71,6 +71,19 @@ describe Rack::Sendfile do
       response.body.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
       response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
+    end
+  end
+
+  it "sets X-Accel-Redirect response header to percent-encoded path" do
+    headers = {
+      'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
+      'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar%/"
+    }
+    request headers, sendfile_body('file_with_%_?_symbol') do |response|
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['Content-Length'].must_equal '0'
+      response.headers['X-Accel-Redirect'].must_equal '/foo/bar%25/file_with_%25_%3F_symbol'
     end
   end
 
