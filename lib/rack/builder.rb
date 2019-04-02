@@ -31,6 +31,7 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
+    # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
     UTF_8_BOM = '\xef\xbb\xbf'
 
     def self.parse_file(config, opts = Server::Options.new)
@@ -95,7 +96,7 @@ module Rack
     def use(middleware, *args, &block)
       if @map
         mapping, @map = @map, nil
-        @use << proc { |app| generate_map app, mapping }
+        @use << proc { |app| generate_map(app, mapping) }
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
