@@ -671,10 +671,10 @@ describe Rack::Utils::HeaderHash do
     h.delete("Hello").must_be_nil
   end
 
-  it "avoid unnecessary object creation if possible" do
+  it "dups given HeaderHash" do
     a = Rack::Utils::HeaderHash.new("foo" => "bar")
     b = Rack::Utils::HeaderHash.new(a)
-    b.object_id.must_equal a.object_id
+    b.object_id.wont_equal a.object_id
     b.must_equal a
   end
 
