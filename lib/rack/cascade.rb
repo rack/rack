@@ -11,7 +11,7 @@ module Rack
     attr_reader :apps
 
     def initialize(apps, catch = [404, 405])
-      @apps = []; @has_app = {}
+      @apps = []
       apps.each { |app| add app }
 
       @catch = {}
@@ -41,12 +41,11 @@ module Rack
     end
 
     def add(app)
-      @has_app[app] = true
       @apps << app
     end
 
     def include?(app)
-      @has_app.include? app
+      @apps.include?(app)
     end
 
     alias_method :<<, :add
