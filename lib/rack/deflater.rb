@@ -4,6 +4,8 @@ require "zlib"
 require "time"  # for Time.httpdate
 require 'rack/utils'
 
+require_relative 'core_ext/regexp'
+
 module Rack
   # This middleware enables compression of http responses.
   #
@@ -17,6 +19,8 @@ module Rack
   # directive of 'no-transform' is present, or when the response status
   # code is one that doesn't allow an entity body.
   class Deflater
+    using ::Rack::RegexpExtensions
+
     ##
     # Creates Rack::Deflater middleware.
     #
@@ -108,7 +112,7 @@ module Rack
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
-          headers['Cache-Control'].to_s =~ /\bno-transform\b/ ||
+          /\bno-transform\b/.match?(headers['Cache-Control'].to_s) ||
          (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
         return false
       end

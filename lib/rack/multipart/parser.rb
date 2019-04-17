@@ -2,12 +2,15 @@
 
 require 'rack/utils'
 require 'strscan'
+require 'rack/core_ext/regexp'
 
 module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
+      using ::Rack::RegexpExtensions
+
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
@@ -311,7 +314,7 @@ module Rack
 
         return unless filename
 
-        if filename.scan(/%.?.?/).all? { |s| s =~ /%[0-9a-fA-F]{2}/ }
+        if filename.scan(/%.?.?/).all? { |s| /%[0-9a-fA-F]{2}/.match?(s) }
           filename = Utils.unescape_path(filename)
         end
 

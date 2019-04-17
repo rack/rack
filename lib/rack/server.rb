@@ -3,10 +3,12 @@
 require 'optparse'
 require 'fileutils'
 
+require_relative 'core_ext/regexp'
 
 module Rack
 
   class Server
+    using ::Rack::RegexpExtensions
 
     class Options
       def parse!(args)
@@ -134,7 +136,7 @@ module Rack
 
             has_options = false
             server.valid_options.each do |name, description|
-              next if name.to_s.match(/^(Host|Port)[^a-zA-Z]/) # ignore handler's host and port options, we do our own.
+              next if /^(Host|Port)[^a-zA-Z]/.match?(name.to_s) # ignore handler's host and port options, we do our own.
               info << "  -O %-21s %s" % [name, description]
               has_options = true
             end
@@ -252,7 +254,7 @@ module Rack
     class << self
       def logging_middleware
         lambda { |server|
-          server.server.name =~ /CGI/ || server.options[:quiet] ? nil : [Rack::CommonLogger, $stderr]
+          /CGI/.match?(server.server.name) || server.options[:quiet] ? nil : [Rack::CommonLogger, $stderr]
         }
       end
 
