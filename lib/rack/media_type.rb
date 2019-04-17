@@ -25,9 +25,12 @@ module Rack
       #   { 'charset' => 'utf-8' }
       def params(content_type)
         return {} if content_type.nil?
-        Hash[*content_type.split(SPLIT_PATTERN)[1..-1].
-          collect { |s| s.split('=', 2) }.
-          map { |k, v| [k.downcase, strip_doublequotes(v)] }.flatten]
+
+        content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
+          k, v = s.split('=', 2)
+
+          hsh[k.tap(&:downcase!)] = strip_doublequotes(v)
+        end
       end
 
       private
