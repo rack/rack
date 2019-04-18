@@ -15,7 +15,7 @@ module Rack
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
       def type(content_type)
         return nil unless content_type
-        content_type.split(SPLIT_PATTERN, 2).first.downcase
+        content_type.split(SPLIT_PATTERN, 2).first.tap &:downcase!
       end
 
       # The media type parameters provided in CONTENT_TYPE as a Hash, or
@@ -25,9 +25,12 @@ module Rack
       #   { 'charset' => 'utf-8' }
       def params(content_type)
         return {} if content_type.nil?
-        Hash[*content_type.split(SPLIT_PATTERN)[1..-1].
-          collect { |s| s.split('=', 2) }.
-          map { |k, v| [k.downcase, strip_doublequotes(v)] }.flatten]
+
+        content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
+          k, v = s.split('=', 2)
+
+          hsh[k.tap(&:downcase!)] = strip_doublequotes(v)
+        end
       end
 
       private
