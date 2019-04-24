@@ -331,6 +331,7 @@ module Rack
       ".mif"       => "application/vnd.mif",
       ".mime"      => "message/rfc822",
       ".mj2"       => "video/mj2",
+      ".mjs"       => "application/javascript",
       ".mlp"       => "application/vnd.dolby.mlp",
       ".mmd"       => "application/vnd.chipnuts.karaoke-mmd",
       ".mmf"       => "application/vnd.smaf",
