@@ -85,6 +85,24 @@ describe Rack::Response do
     response["Set-Cookie"].should.equal "foo=bar; HttpOnly"
   end
 
+  it "can set SameSite cookies with symbol value :none" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => :none}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=None"
+  end
+
+  it "can set SameSite cookies with symbol value :None" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => :None}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=None"
+  end
+
+  it "can set SameSite cookies with string value 'None'" do
+    response = Rack::Response.new
+    response.set_cookie "foo", {:value => "bar", :same_site => "None"}
+    response["Set-Cookie"].should.equal "foo=bar; SameSite=None"
+  end
+
   it "can set SameSite cookies with symbol value :lax" do
     response = Rack::Response.new
     response.set_cookie "foo", {:value => "bar", :same_site => :lax}
