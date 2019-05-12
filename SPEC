@@ -176,15 +176,12 @@ If rack.hijack? is true then rack.hijack must respond to #call.
 rack.hijack must return the io that will also be assigned (or is
 already present, in rack.hijack_io.
 rack.hijack_io must respond to:
-<tt>read, write, read_nonblock, write_nonblock, flush, close,
-close_read, close_write, closed?</tt>
+<tt>read, write, flush, close, close_read, close_write, closed?</tt>
 The semantics of these IO methods must be a best effort match to
 those of a normal ruby IO or Socket object, using standard
 arguments and raising standard exceptions. Servers are encouraged
 to simply pass on real IO objects, although it is recognized that
 this approach is not directly compatible with SPDY and HTTP 2.0.
-IO provided in rack.hijack_io should preference the
-IO::WaitReadable and IO::WaitWritable APIs wherever supported.
 There is a deliberate lack of full specification around
 rack.hijack_io, as semantics will change from server to server.
 Users are encouraged to utilize this API with a knowledge of their
@@ -197,10 +194,9 @@ If rack.hijack? is false, then rack.hijack_io should not be set.
 ==== Response (after headers)
 It is also possible to hijack a response after the status and headers
 have been sent.
-In order to do this, an application may set the special header
-<tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
-accepting an argument that conforms to the <tt>rack.hijack_io</tt>
-protocol.
+In order to do this, an application should set the body to an object
+that responds to <tt>call</tt> accepting an argument that conforms
+to the <tt>rack.hijack_io</tt> protocol.
 After the headers have been sent, and this hijack callback has been
 called, the application is now responsible for the remaining lifecycle
 of the IO. The application is also responsible for maintaining HTTP
@@ -242,8 +238,9 @@ There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
 There must not be a <tt>Content-Length</tt> header when the
 +Status+ is 1xx, 204 or 304.
 === The Body
-The Body must respond to +each+
-and must only yield String values.
+The Body must either:
+* respond to +each+ and must only yield String values.
+* respond to +call+ and must be suitable for a partial +rack.hijack+.
 The Body itself should not be an instance of String, as this will
 break in Ruby 1.9.
 If the Body responds to +close+, it will be called after iteration. If
