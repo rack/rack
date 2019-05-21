@@ -120,7 +120,7 @@ module Rack
       when Hash
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.reject(&:empty?).join('&')
+        }.delete_if(&:empty?).join('&')
       when nil
         prefix
       else
