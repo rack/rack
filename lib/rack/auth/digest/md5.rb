@@ -116,7 +116,7 @@ module Rack
         end
 
         def A2(auth)
-          [ auth.method, auth.uri ] * ':'
+          "#{auth.method}:#{auth.uri}"
         end
 
         def digest(auth, password)
