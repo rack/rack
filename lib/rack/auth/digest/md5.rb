@@ -122,7 +122,7 @@ module Rack
         def digest(auth, password)
           password_hash = passwords_hashed? ? password : H(A1(auth, password))
 
-          KD(password_hash, [ auth.nonce, auth.nc, auth.cnonce, QOP, H(A2(auth)) ] * ':')
+          KD password_hash, "#{auth.nonce}:#{auth.nc}:#{auth.cnonce}:#{QOP}:#{H A2(auth)}"
         end
 
       end
