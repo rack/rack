@@ -108,7 +108,7 @@ module Rack
         alias :H :md5
 
         def KD(secret, data)
-          H([secret, data] * ':')
+          H "#{secret}:#{data}"
         end
 
         def A1(auth, password)
