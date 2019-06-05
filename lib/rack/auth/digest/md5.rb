@@ -112,7 +112,7 @@ module Rack
         end
 
         def A1(auth, password)
-          [ auth.username, auth.realm, password ] * ':'
+          "#{auth.username}:#{auth.realm}:#{password}"
         end
 
         def A2(auth)
