@@ -277,6 +277,7 @@ module Rack
             delta = @sbuf.rest_size - @rx_max_size
             @collector.on_mime_body @mime_index, @sbuf.peek(delta)
             @sbuf.pos += delta
+            @sbuf.string =  @sbuf.rest
           end
           :want_read
         end
