@@ -243,7 +243,12 @@ module Rack
 
       def host
         # Remove port number.
-        host_with_port.to_s.sub(/:\d+\z/, '')
+        h = host_with_port
+        if colon_index = h.index(":")
+          h[0, colon_index]
+        else
+          h
+        end
       end
 
       def port
