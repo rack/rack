@@ -8,11 +8,15 @@ require 'tempfile'
 require 'rack/query_parser'
 require 'time'
 
+require_relative 'core_ext/regexp'
+
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    using ::Rack::RegexpExtensions
+
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
@@ -275,15 +279,15 @@ module Rack
         cookies = header
       end
 
-      cookies.reject! { |cookie|
-        if value[:domain]
-          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
-        elsif value[:path]
-          cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/
-        else
-          cookie =~ /\A#{escape(key)}=/
-        end
-      }
+      regexp = if value[:domain]
+                 /\A#{escape(key)}=.*domain=#{value[:domain]}/
+               elsif value[:path]
+                 /\A#{escape(key)}=.*path=#{value[:path]}/
+               else
+                 /\A#{escape(key)}=/
+               end
+
+      cookies.reject! { |cookie| regexp.match? cookie }
 
       cookies.join("\n")
     end
