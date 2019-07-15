@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require_relative 'core_ext/regexp'
-
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
   # applications.
@@ -33,13 +31,12 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
-    using ::Rack::RegexpExtensions
 
     # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
     UTF_8_BOM = '\xef\xbb\xbf'
 
     def self.parse_file(config, opts = Server::Options.new)
-      if /\.ru$/.match?(config)
+      if config.end_with?('.ru')
         return self.load_file(config, opts)
       else
         require config
