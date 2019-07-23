@@ -496,11 +496,18 @@ module Rack
       def strip_port(ip_address)
         # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
         # returns: "2001:db8:cafe::17"
-        return ip_address.gsub(/(^\[|\]:\d+$)/, '') if ip_address.include?('[')
+        sep_start = ip_address.index('[')
+        sep_end = ip_address.index(']')
+        if (sep_start && sep_end)
+          return ip_address[sep_start + 1, sep_end - 1]
+        end
 
         # IPv4 format with optional port: "192.0.2.43:47011"
         # returns: "192.0.2.43"
-        return ip_address.gsub(/:\d+$/, '') if ip_address.count(':') == 1
+        sep = ip_address.index(':')
+        if (sep && ip_address.count(':') == 1)
+          return ip_address[0, sep]
+        end
 
         ip_address
       end
