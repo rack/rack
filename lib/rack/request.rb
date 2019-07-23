@@ -3,6 +3,8 @@
 require 'rack/utils'
 require 'rack/media_type'
 
+require_relative 'core_ext/regexp'
+
 module Rack
   # Rack::Request provides a convenient interface to a Rack
   # environment.  It is stateless, the environment +env+ passed to the
@@ -13,11 +15,13 @@ module Rack
   #   req.params["data"]
 
   class Request
+    using ::Rack::RegexpExtensions
+
     class << self
       attr_accessor :ip_filter
     end
 
-    self.ip_filter = lambda { |ip| ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i }
+    self.ip_filter = lambda { |ip| /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip) }
     ALLOWED_SCHEMES = %w(https http).freeze
     SCHEME_WHITELIST = ALLOWED_SCHEMES
     if Object.respond_to?(:deprecate_constant)
