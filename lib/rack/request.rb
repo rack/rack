@@ -252,14 +252,14 @@ module Rack
       end
 
       def port
-        if port = host_with_port.split(/:/)[1]
+        if port = extract_port(host_with_port)
           port.to_i
         elsif port = get_header(HTTP_X_FORWARDED_PORT)
           port.to_i
         elsif has_header?(HTTP_X_FORWARDED_HOST)
           DEFAULT_PORTS[scheme]
         elsif has_header?(HTTP_X_FORWARDED_PROTO)
-          DEFAULT_PORTS[get_header(HTTP_X_FORWARDED_PROTO).split(',')[0]]
+          DEFAULT_PORTS[extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO))]
         else
           get_header(SERVER_PORT).to_i
         end
@@ -510,16 +510,28 @@ module Rack
       end
 
       def forwarded_scheme
-        scheme_headers = [
-          get_header(HTTP_X_FORWARDED_SCHEME),
-          get_header(HTTP_X_FORWARDED_PROTO).to_s.split(',')[0]
-        ]
+        allowed_scheme(get_header(HTTP_X_FORWARDED_SCHEME)) ||
+        allowed_scheme(extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO)))
+      end
 
-        scheme_headers.each do |header|
-          return header if ALLOWED_SCHEMES.include?(header)
+      def allowed_scheme(header)
+        header if ALLOWED_SCHEMES.include?(header)
+      end
+
+      def extract_proto_header(header)
+        if header
+          if (comma_index = header.index(','))
+            header[0, comma_index]
+          else
+            header
+          end
         end
+      end
 
-        nil
+      def extract_port(uri)
+        if (colon_index = uri.index(':'))
+          uri[colon_index + 1, uri.length]
+        end
       end
     end
 
