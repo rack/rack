@@ -117,8 +117,7 @@ module Rack
           path = ::File.expand_path(body.to_path)
           if url = map_accel_path(env, path)
             headers[CONTENT_LENGTH] = '0'
-            # '?' must be percent-encoded because it is not query string but a part of path
-            headers[type] = ::Rack::Utils.escape_path(url).gsub('?', '%3F')
+            headers[type] = url
             obody = body
             body = Rack::BodyProxy.new([]) do
               obody.close if obody.respond_to?(:close)
