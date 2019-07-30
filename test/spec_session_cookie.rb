@@ -76,26 +76,26 @@ describe Rack::Session::Cookie do
     it 'uses base64 to encode' do
       coder = Rack::Session::Cookie::Base64.new
       str   = 'fuuuuu'
-      coder.encode(str).must_equal [str].pack('m')
+      coder.encode(str).must_equal [str].pack('m0')
     end
 
     it 'uses base64 to decode' do
       coder = Rack::Session::Cookie::Base64.new
-      str   = ['fuuuuu'].pack('m')
-      coder.decode(str).must_equal str.unpack('m').first
+      str   = ['fuuuuu'].pack('m0')
+      coder.decode(str).must_equal str.unpack('m0').first
     end
 
     describe 'Marshal' do
       it 'marshals and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
         str   = 'fuuuuu'
-        coder.encode(str).must_equal [::Marshal.dump(str)].pack('m')
+        coder.encode(str).must_equal [::Marshal.dump(str)].pack('m0')
       end
 
       it 'marshals and base64 decodes' do
         coder = Rack::Session::Cookie::Base64::Marshal.new
-        str   = [::Marshal.dump('fuuuuu')].pack('m')
-        coder.decode(str).must_equal ::Marshal.load(str.unpack('m').first)
+        str   = [::Marshal.dump('fuuuuu')].pack('m0')
+        coder.decode(str).must_equal ::Marshal.load(str.unpack('m0').first)
       end
 
       it 'rescues failures on decode' do
@@ -108,13 +108,13 @@ describe Rack::Session::Cookie do
       it 'JSON and base64 encodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
         obj   = %w[fuuuuu]
-        coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m')
+        coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m0')
       end
 
       it 'JSON and base64 decodes' do
         coder = Rack::Session::Cookie::Base64::JSON.new
-        str   = [::JSON.dump(%w[fuuuuu])].pack('m')
-        coder.decode(str).must_equal ::JSON.parse(str.unpack('m').first)
+        str   = [::JSON.dump(%w[fuuuuu])].pack('m0')
+        coder.decode(str).must_equal ::JSON.parse(str.unpack('m0').first)
       end
 
       it 'rescues failures on decode' do
@@ -128,14 +128,14 @@ describe Rack::Session::Cookie do
         coder = Rack::Session::Cookie::Base64::ZipJSON.new
         obj   = %w[fuuuuu]
         json = JSON.dump(obj)
-        coder.encode(obj).must_equal [Zlib::Deflate.deflate(json)].pack('m')
+        coder.encode(obj).must_equal [Zlib::Deflate.deflate(json)].pack('m0')
       end
 
       it 'base64 decodes, inflates, and decodes json' do
         coder = Rack::Session::Cookie::Base64::ZipJSON.new
         obj   = %w[fuuuuu]
         json  = JSON.dump(obj)
-        b64   = [Zlib::Deflate.deflate(json)].pack('m')
+        b64   = [Zlib::Deflate.deflate(json)].pack('m0')
         coder.decode(b64).must_equal obj
       end
 

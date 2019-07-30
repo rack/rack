@@ -51,11 +51,11 @@ module Rack
       # Encode session cookies as Base64
       class Base64
         def encode(str)
-          [str].pack('m')
+          [str].pack('m0')
         end
 
         def decode(str)
-          str.unpack('m').first
+          str.unpack('m0').first
         end
 
         # Encode session cookies as Marshaled Base64 data
