@@ -6,6 +6,7 @@ require 'rack/request'
 require 'rack/response'
 require 'rack/session/abstract/id'
 require 'json'
+require 'base64'
 
 module Rack
 
@@ -48,54 +49,35 @@ module Rack
     #
 
     class Cookie < Abstract::Persisted
-      # Encode session cookies as Base64
-      class Base64
+
+      # Marshal and encode with strict Base64
+      BASE64_MARSHALLED = Class.new do
         def encode(str)
-          [str].pack('m0')
+          Base64.strict_encode64 ::Marshal.dump(str)
         end
 
         def decode(str)
-          str.unpack('m0').first
+          return unless str
+          _decode str
         end
 
-        # Encode session cookies as Marshaled Base64 data
-        class Marshal < Base64
-          def encode(str)
-            super(::Marshal.dump(str))
-          end
 
-          def decode(str)
-            return unless str
-            ::Marshal.load(super(str)) rescue nil
-          end
-        end
-
-        # N.B. Unlike other encoding methods, the contained objects must be a
-        # valid JSON composite type, either a Hash or an Array.
-        class JSON < Base64
-          def encode(obj)
-            super(::JSON.dump(obj))
-          end
-
-          def decode(str)
-            return unless str
-            ::JSON.parse(super(str)) rescue nil
-          end
-        end
-
-        class ZipJSON < Base64
-          def encode(obj)
-            super(Zlib::Deflate.deflate(::JSON.dump(obj)))
-          end
-
-          def decode(str)
-            return unless str
-            ::JSON.parse(Zlib::Inflate.inflate(super(str)))
-          rescue
+        def _decode( str, meth = :strict_decode64 )
+          ::Marshal.load( Base64.send meth, str )
+        rescue ArgumentError
+          # Try non-strict Base64 before failing gracefully
+          if meth == :strict_decode64
+            meth = :decode64
+            retry
+          else
+            warn e.message
             nil
           end
+        rescue # for compatibility, swallow all other errors
+          nil
         end
       end
+
 
       # Use no encoding for session cookies
       class Identity
@@ -118,7 +100,8 @@ module Rack
 
         Called from: #{caller[0]}.
         MSG
-        @coder = options[:coder] ||= Base64::Marshal.new
+
+        @coder = options[:coder] ||= BASE64_MARSHALLED.new
         super(app, options.merge!(cookie_only: true))
       end
 

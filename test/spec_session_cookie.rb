@@ -72,76 +72,27 @@ describe Rack::Session::Cookie do
     Rack::Session::Cookie.class_eval { remove_method :warn }
   end
 
-  describe 'Base64' do
-    it 'uses base64 to encode' do
-      coder = Rack::Session::Cookie::Base64.new
+  describe 'DEFAULT_ENCODER' do
+    it 'encodes and decodes' do
+      coder = Rack::Session::Cookie::BASE64_MARSHALLED.new
       str   = 'fuuuuu'
-      coder.encode(str).must_equal [str].pack('m0')
+      coder.decode(coder.encode(str)).must_equal str
     end
 
-    it 'uses base64 to decode' do
-      coder = Rack::Session::Cookie::Base64.new
-      str   = ['fuuuuu'].pack('m0')
-      coder.decode(str).must_equal str.unpack('m0').first
-    end
-
-    describe 'Marshal' do
-      it 'marshals and base64 encodes' do
-        coder = Rack::Session::Cookie::Base64::Marshal.new
-        str   = 'fuuuuu'
-        coder.encode(str).must_equal [::Marshal.dump(str)].pack('m0')
+    describe "can decode both strict and non-strict Base64" do
+      it "decodes, given strict Base64" do
+        str = 'fuuuuu'
+        coder = Rack::Session::Cookie::BASE64_MARSHALLED.new
+        coder.decode("BAhJIgtmdXV1dXUGOgZFVA==").must_equal str
       end
-
-      it 'marshals and base64 decodes' do
-        coder = Rack::Session::Cookie::Base64::Marshal.new
-        str   = [::Marshal.dump('fuuuuu')].pack('m0')
-        coder.decode(str).must_equal ::Marshal.load(str.unpack('m0').first)
+      it "decodes, given non-strict Base64" do
+        str = 'fuuuuu'
+        coder = Rack::Session::Cookie::BASE64_MARSHALLED.new
+        coder.decode("BAhJIgtmdXV1dXUGOgZFVA==\n").must_equal str
       end
-
-      it 'rescues failures on decode' do
-        coder = Rack::Session::Cookie::Base64::Marshal.new
-        coder.decode('lulz').must_be_nil
-      end
-    end
-
-    describe 'JSON' do
-      it 'JSON and base64 encodes' do
-        coder = Rack::Session::Cookie::Base64::JSON.new
-        obj   = %w[fuuuuu]
-        coder.encode(obj).must_equal [::JSON.dump(obj)].pack('m0')
-      end
-
-      it 'JSON and base64 decodes' do
-        coder = Rack::Session::Cookie::Base64::JSON.new
-        str   = [::JSON.dump(%w[fuuuuu])].pack('m0')
-        coder.decode(str).must_equal ::JSON.parse(str.unpack('m0').first)
-      end
-
-      it 'rescues failures on decode' do
-        coder = Rack::Session::Cookie::Base64::JSON.new
-        coder.decode('lulz').must_be_nil
-      end
-    end
-
-    describe 'ZipJSON' do
-      it 'jsons, deflates, and base64 encodes' do
-        coder = Rack::Session::Cookie::Base64::ZipJSON.new
-        obj   = %w[fuuuuu]
-        json = JSON.dump(obj)
-        coder.encode(obj).must_equal [Zlib::Deflate.deflate(json)].pack('m0')
-      end
-
-      it 'base64 decodes, inflates, and decodes json' do
-        coder = Rack::Session::Cookie::Base64::ZipJSON.new
-        obj   = %w[fuuuuu]
-        json  = JSON.dump(obj)
-        b64   = [Zlib::Deflate.deflate(json)].pack('m0')
-        coder.decode(b64).must_equal obj
-      end
-
-      it 'rescues failures on decode' do
-        coder = Rack::Session::Cookie::Base64::ZipJSON.new
-        coder.decode('lulz').must_be_nil
+      it "doesn't blow up when given non-Base64" do
+        coder = Rack::Session::Cookie::BASE64_MARSHALLED.new
+        assert_nil coder.decode(Marshal.dump "fuuuuu")
       end
     end
   end
@@ -405,7 +356,7 @@ describe Rack::Session::Cookie do
 
   it "exposes :coder in env['rack.session.option']" do
     response = response_for(app: session_option[:coder])
-    response.body.must_match(/Base64::Marshal/)
+    response.body.must_match(/BASE64_MARSHALLED/)
   end
 
   it "allows passing in a hash with session data from middleware in front" do
