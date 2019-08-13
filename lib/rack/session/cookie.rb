@@ -125,7 +125,7 @@ module Rack
       def find_session(req, sid)
         data = unpacked_cookie_data(req)
         data = persistent_session_id!(data)
-        [data["session_id"] || raise, data]
+        [data["session_id"], data]
       end
 
       def extract_session_id(request)
