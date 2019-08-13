@@ -13,11 +13,6 @@ module Rack
 
   module Session
 
-    class NullSessionId
-      def empty?; true; end
-      def nil?; true; end
-    end
-
     class SessionId
       attr_reader :public_id
 
@@ -315,7 +310,7 @@ module Rack
         def load_session(req)
           sid = current_session_id(req)
           sid, session = find_session(req, sid)
-          [sid || NullSessionId.new, session || {}]
+          [sid, session || {}]
         end
 
         # Extract session id from request object.
@@ -323,7 +318,7 @@ module Rack
         def extract_session_id(request)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
-          (sid && SessionId.new(sid)) || NullSessionId.new
+          sid && SessionId.new(sid)
         end
 
         # Returns the current session id from the SessionHash.

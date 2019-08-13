@@ -131,7 +131,7 @@ module Rack
       end
 
       def extract_session_id(request)
-        unpacked_cookie_data(request)["session_id"] || NullSessionId.new
+        unpacked_cookie_data(request)["session_id"]
       end
 
       def unpacked_cookie_data(request)
@@ -180,11 +180,7 @@ module Rack
 
       def delete_session(req, session_id, options)
         # Nothing to do here, data is in the client
-        if options[:drop]
-          NullSessionId.new
-        else
-          generate_sid
-        end
+        generate_sid unless options[:drop]
       end
 
       def digest_match?(data, digest)
