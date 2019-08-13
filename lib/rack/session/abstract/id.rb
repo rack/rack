@@ -16,6 +16,20 @@ module Rack
       def nil?; true; end
     end
 
+    class SessionId
+      attr_reader :public_id
+
+      def initialize(public_id)
+        @public_id = public_id
+      end
+
+      alias :cookie_value :public_id
+
+      def empty?; false; end
+      def to_s; raise; end
+      def inspect; public_id.inspect; end
+    end
+
     module Abstract
       # SessionHash is responsible to lazily load the session from store.
 
@@ -62,7 +76,11 @@ module Rack
 
         def [](key)
           load_for_read!
-          @data[key.to_s]
+          if key == "session_id"
+            id.public_id
+          else
+            @data[key.to_s]
+          end
         end
 
         def fetch(key, default=Unspecified, &block)
@@ -260,11 +278,13 @@ module Rack
         # Monkey patch this to use custom methods for session id generation.
 
         def generate_sid(secure = @sid_secure)
-          if secure
+          public_id = if secure
             secure.hex(@sid_length)
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
+
+          SessionId.new(public_id)
         rescue NotImplementedError
           generate_sid(false)
         end
@@ -294,7 +314,7 @@ module Rack
         def extract_session_id(request)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
-          sid || NullSessionId.new
+          (sid && SessionId.new(sid)) || NullSessionId.new
         end
 
         # Returns the current session id from the SessionHash.
@@ -365,7 +385,7 @@ module Rack
             req.get_header(RACK_ERRORS).puts("Deferring cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
-            cookie[:value] = data
+            cookie[:value] = data.cookie_value
             cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
             cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
             set_cookie(req, res, cookie.merge!(options))
