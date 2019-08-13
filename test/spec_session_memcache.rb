@@ -226,11 +226,11 @@ begin
       req = Rack::MockRequest.new(pool)
 
       res0 = req.get("/")
-      session_id = (cookie = res0["Set-Cookie"])[session_match, 1]
-      ses0 = pool.pool.get(session_id, true)
+      session_id = Rack::Session::SessionId.new (cookie = res0["Set-Cookie"])[session_match, 1]
+      ses0 = pool.pool.get(session_id.private_id, true)
 
       req.get("/", "HTTP_COOKIE" => cookie)
-      ses1 = pool.pool.get(session_id, true)
+      ses1 = pool.pool.get(session_id.private_id, true)
 
       ses1.wont_equal ses0
     end
