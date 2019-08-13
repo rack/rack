@@ -43,9 +43,9 @@ module Rack
 
       def get_session(env, sid)
         with_lock(env) do
-          unless !sid.nil? and session = @pool[sid.public_id]
+          unless !sid.nil? and session = @pool[sid.private_id]
             sid, session = generate_sid, {}
-            @pool.store sid.public_id, session
+            @pool.store sid.private_id, session
           end
           [sid, session]
         end
@@ -53,14 +53,14 @@ module Rack
 
       def set_session(env, session_id, new_session, options)
         with_lock(env) do
-          @pool.store session_id.public_id, new_session
+          @pool.store session_id.private_id, new_session
           session_id
         end
       end
 
       def destroy_session(env, session_id, options)
         with_lock(env) do
-          @pool.delete(session_id.public_id)
+          @pool.delete(session_id.private_id)
           if options[:drop]
             NullSessionId.new
           else
