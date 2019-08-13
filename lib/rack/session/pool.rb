@@ -61,7 +61,11 @@ module Rack
       def delete_session(req, session_id, options)
         with_lock(req) do
           @pool.delete(session_id)
-          generate_sid unless options[:drop]
+          if options[:drop]
+            NullSessionId.new
+          else
+            generate_sid
+          end
         end
       end
 
