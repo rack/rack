@@ -47,15 +47,15 @@ module Rack
       def generate_sid
         loop do
           sid = super
-          break sid unless @pool.get(sid.public_id, true)
+          break sid unless @pool.get(sid.private_id, true)
         end
       end
 
       def get_session(env, sid)
         with_lock(env) do
-          unless !sid.nil? and session = @pool.get(sid.public_id)
+          unless !sid.nil? and session = @pool.get(sid.private_id)
             sid, session = generate_sid, {}
-            unless /^STORED/.match?(@pool.add(sid.public_id, session))
+            unless /^STORED/.match?(@pool.add(sid.private_id, session))
               raise "Session collision on '#{sid.inspect}'"
             end
           end
@@ -68,14 +68,14 @@ module Rack
         expiry = expiry.nil? ? 0 : expiry + 1
 
         with_lock(env) do
-          @pool.set session_id.public_id, new_session, expiry
+          @pool.set session_id.private_id, new_session, expiry
           session_id
         end
       end
 
       def destroy_session(env, session_id, options)
         with_lock(env) do
-          @pool.delete(session_id.public_id)
+          @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]
         end
       end

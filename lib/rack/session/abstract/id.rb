@@ -25,11 +25,21 @@ module Rack
         @public_id = public_id
       end
 
+      def private_id
+        hash_sid public_id
+      end
+
       alias :cookie_value :public_id
 
       def empty?; false; end
       def to_s; raise; end
       def inspect; public_id.inspect; end
+
+      private
+
+      def hash_sid(sid)
+        Digest::SHA256.hexdigest(sid)
+      end
     end
 
     module Abstract
