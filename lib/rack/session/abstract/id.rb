@@ -9,6 +9,7 @@ begin
 rescue LoadError
   # We just won't get securerandom
 end
+require "digest/sha2"
 
 module Rack
 
@@ -360,7 +361,7 @@ module Rack
 
           if options[:drop] || options[:renew]
             session_id = destroy_session(env, session.id || generate_sid, options)
-            return if session_id.nil?
+            return unless session_id
           end
 
           return [status, headers, body] unless commit_session?(env, session, options)
