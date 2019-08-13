@@ -169,7 +169,11 @@ module Rack
 
       def destroy_session(env, session_id, options)
         # Nothing to do here, data is in the client
-        generate_sid unless options[:drop]
+        if options[:drop]
+          NullSessionId.new
+        else
+          generate_sid
+        end
       end
 
       def digest_match?(data, digest)

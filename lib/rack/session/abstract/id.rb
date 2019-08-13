@@ -16,6 +16,7 @@ module Rack
 
     class NullSessionId
       def empty?; true; end
+      def nil?; true; end
     end
 
     module Abstract
@@ -51,7 +52,7 @@ module Rack
           else
             @id = @store.send(:extract_session_id, @env)
           end
-          @id || NullSessionId.new
+          @id || raise
         end
 
         def options
@@ -89,7 +90,7 @@ module Rack
 
         def destroy
           clear
-          @id = @store.send(:destroy_session, @env, id, options)
+          @id = @store.send(:destroy_session, @env, id, options) || raise
         end
 
         def to_hash
@@ -271,7 +272,7 @@ module Rack
         def load_session(env)
           sid = current_session_id(env)
           sid, session = get_session(env, sid)
-          [sid, session || {}]
+          [sid || NullSessionId.new, session || {}]
         end
 
         # Extract session id from request object.
@@ -280,7 +281,7 @@ module Rack
           request = Rack::Request.new(env)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
-          sid
+          sid || NullSessionId.new
         end
 
         # Returns the current session id from the SessionHash.
@@ -337,7 +338,7 @@ module Rack
 
           if options[:drop] || options[:renew]
             session_id = destroy_session(env, session.id || generate_sid, options)
-            return [status, headers, body] unless session_id
+            return if session_id.nil?
           end
 
           return [status, headers, body] unless commit_session?(env, session, options)
