@@ -72,11 +72,8 @@ module Rack
         end
 
         def id
-          if @loaded or instance_variable_defined?(:@id)
-          else
-            @id = @store.send(:extract_session_id, @env)
-          end
-          @id || raise
+          return @id if @loaded or instance_variable_defined?(:@id)
+          @id = @store.send(:extract_session_id, @env)
         end
 
         def options
@@ -118,7 +115,7 @@ module Rack
 
         def destroy
           clear
-          @id = @store.send(:destroy_session, @env, id, options) || raise
+          @id = @store.send(:destroy_session, @env, id, options)
         end
 
         def to_hash
