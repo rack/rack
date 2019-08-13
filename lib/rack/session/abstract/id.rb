@@ -13,6 +13,10 @@ module Rack
 
   module Session
 
+    class NullSessionId
+      def empty?; true; end
+    end
+
     module Abstract
       # SessionHash is responsible to lazily load the session from store.
 
@@ -41,8 +45,11 @@ module Rack
         end
 
         def id
-          return @id if @loaded or instance_variable_defined?(:@id)
-          @id = @store.send(:extract_session_id, @req)
+          if @loaded or instance_variable_defined?(:@id)
+          else
+            @id = @store.send(:extract_session_id, @req)
+          end
+          @id || NullSessionId.new
         end
 
         def options
