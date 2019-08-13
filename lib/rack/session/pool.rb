@@ -45,7 +45,7 @@ module Rack
 
       def find_session(req, sid)
         with_lock(req) do
-          unless !sid.nil? and session = @pool[sid.private_id]
+          unless sid and session = @pool[sid.private_id]
             sid, session = generate_sid, {}
             @pool.store sid.private_id, session
           end

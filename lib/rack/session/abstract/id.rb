@@ -374,7 +374,7 @@ module Rack
 
           if options[:drop] || options[:renew]
             session_id = delete_session(req, session.id || generate_sid, options)
-            return if session_id.nil?
+            return unless session_id
           end
 
           return unless commit_session?(req, session, options)
