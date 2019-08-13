@@ -14,6 +14,10 @@ module Rack
 
   module Session
 
+    class NullSessionId
+      def empty?; true; end
+    end
+
     module Abstract
       ENV_SESSION_KEY = 'rack.session'.freeze
       ENV_SESSION_OPTIONS_KEY = 'rack.session.options'.freeze
@@ -43,8 +47,11 @@ module Rack
         end
 
         def id
-          return @id if @loaded or instance_variable_defined?(:@id)
-          @id = @store.send(:extract_session_id, @env)
+          if @loaded or instance_variable_defined?(:@id)
+          else
+            @id = @store.send(:extract_session_id, @env)
+          end
+          @id || NullSessionId.new
         end
 
         def options
