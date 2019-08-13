@@ -39,7 +39,7 @@ module Rack
       def generate_sid
         loop do
           sid = super
-          break sid unless @pool.key? sid
+          break sid unless @pool.key? sid.private_id
         end
       end
 
