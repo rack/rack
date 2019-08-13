@@ -64,7 +64,7 @@ module Rack
 
         def _decode( str, meth = :strict_decode64 )
           ::Marshal.load( Base64.send meth, str )
-        rescue ArgumentError
+        rescue ArgumentError => e
           # Try non-strict Base64 before failing gracefully
           if meth == :strict_decode64
             meth = :decode64
