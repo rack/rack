@@ -14,11 +14,6 @@ module Rack
 
   module Session
 
-    class NullSessionId
-      def empty?; true; end
-      def nil?; true; end
-    end
-
     class SessionId
       attr_reader :public_id
 
@@ -299,7 +294,7 @@ module Rack
         def load_session(env)
           sid = current_session_id(env)
           sid, session = get_session(env, sid)
-          [sid || NullSessionId.new, session || {}]
+          [sid, session || {}]
         end
 
         # Extract session id from request object.
@@ -308,7 +303,7 @@ module Rack
           request = Rack::Request.new(env)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
-          (sid && SessionId.new(sid)) || NullSessionId.new
+          sid && SessionId.new(sid)
         end
 
         # Returns the current session id from the SessionHash.
