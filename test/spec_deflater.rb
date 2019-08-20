@@ -388,7 +388,7 @@ describe Rack::Deflater do
     app_body = Object.new
     class << app_body
       def each
-        (0..20).each { |i| yield "hello\n".freeze }
+        (0..20).each { |i| yield "hello\n" }
       end
     end
 
