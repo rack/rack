@@ -88,8 +88,9 @@ module Rack
         gzip = ::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime if @mtime
         @body.each { |part|
-          gzip.write(part)
-          gzip.flush if @sync
+          len = gzip.write(part)
+          # Flushing empty parts would raise Zlib::BufError.
+          gzip.flush if @sync && len > 0
         }
       ensure
         gzip.close
