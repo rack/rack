@@ -114,6 +114,19 @@ describe Rack::Deflater do
     end
   end
 
+  it 'be able to deflate bodies that respond to each and contain empty chunks' do
+    app_body = Object.new
+    class << app_body; def each; yield('foo'); yield(''); yield('bar'); end; end
+
+    verify(200, 'foobar', deflate_or_gzip, { 'app_body' => app_body }) do |status, headers, body|
+      headers.must_equal({
+        'Content-Encoding' => 'gzip',
+        'Vary' => 'Accept-Encoding',
+        'Content-Type' => 'text/plain'
+      })
+    end
+  end
+
   it 'flush deflated chunks to the client as they become ready' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
