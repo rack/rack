@@ -161,6 +161,8 @@ describe Rack::Server do
   end
 
   it "check pid file presence and not owned process" do
+    owns_pid_1 = (Process.kill(0, 1) rescue nil) == 1
+    skip "cannot test if pid 1 owner matches current process (eg. docker/lxc)" if owns_pid_1
     pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
     server = Rack::Server.new(pid: pidfile)
     server.send(:pidfile_process_status).must_equal :not_owned
