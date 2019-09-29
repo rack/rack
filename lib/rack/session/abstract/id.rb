@@ -9,6 +9,8 @@ require 'rack/request'
 require 'rack/response'
 require 'securerandom'
 
+require_relative '../../core_ext/hash'
+
 module Rack
 
   module Session
@@ -17,6 +19,7 @@ module Rack
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash
+        using ::Rack::HashExtensions
         include Enumerable
         attr_writer :id
 
@@ -162,11 +165,7 @@ module Rack
         end
 
         def stringify_keys(other)
-          hash = {}
-          other.each do |key, value|
-            hash[key.to_s] = value
-          end
-          hash
+          other.transform_keys(&:to_s)
         end
       end
 
