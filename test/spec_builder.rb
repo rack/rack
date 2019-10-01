@@ -240,13 +240,6 @@ describe Rack::Builder do
       env.must_equal({})
     end
 
-    it "requires anything not ending in .ru" do
-      $: << File.dirname(__FILE__)
-      app, * = Rack::Builder.parse_file 'builder/anything'
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
-      $:.pop
-    end
-
     it 'requires an_underscore_app not ending in .ru' do
       $: << File.dirname(__FILE__)
       app, * = Rack::Builder.parse_file 'builder/an_underscore_app'
