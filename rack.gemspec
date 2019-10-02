@@ -28,6 +28,14 @@ EOF
   s.email           = 'leah@vuxu.org'
   s.homepage        = 'https://rack.github.io/'
   s.required_ruby_version = '>= 2.2.2'
+  s.metadata    = {
+    "bug_tracker_uri"   => "https://github.com/rack/rack/issues",
+    "changelog_uri"     => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
+    "documentation_uri" => "https://rubydoc.info/github/rack/rack",
+    "homepage_uri"      => "https://rack.github.io",
+    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rack-devel",
+    "source_code_uri"   => "https://github.com/rack/rack"
+  }
 
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-sprint'
