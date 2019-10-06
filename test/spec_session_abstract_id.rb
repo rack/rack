@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
+require 'minitest/global_expectations/autorun'
 ### WARNING: there be hax in this file.
 
 require 'rack/session/abstract/id'

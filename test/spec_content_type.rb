@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
+require 'minitest/global_expectations/autorun'
 require 'rack/content_type'
 require 'rack/lint'
 require 'rack/mock'
