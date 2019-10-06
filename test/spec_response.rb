@@ -287,6 +287,12 @@ describe Rack::Response do
     r.status.must_equal 200
   end
 
+  it "allows direct access to body" do
+    r = Rack::Response.new(["foo", "bar"])
+    _status, _header, body_proxy = r.finish
+    body_proxy.body.must_equal ["foo", "bar"]
+  end
+
   it "has a constructor that can take a block" do
     r = Rack::Response.new { |res|
       res.status = 404
