@@ -415,7 +415,6 @@ module Rack
             warn "#{klass} is inheriting from #{ID}.  Inheriting from #{ID} is deprecated, please inherit from #{Persisted} instead" if $VERBOSE
             k.instance_variable_set(:"@_rack_warned", true)
           end
-          super
         end
 
         # All thread safety and session retrieval procedures should occur here.
