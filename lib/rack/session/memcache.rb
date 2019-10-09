@@ -70,6 +70,7 @@ module Rack
 
       def destroy_session(env, session_id, options)
         with_lock(env) do
+          @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]
         end
