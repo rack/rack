@@ -237,6 +237,24 @@ begin
       ses1.wont_equal ses0
     end
 
+    it "can read the session with the legacy id" do
+      pool = Rack::Session::Memcache.new(incrementor)
+      req = Rack::MockRequest.new(pool)
+
+      res0 = req.get("/")
+      cookie = res0["Set-Cookie"]
+      session_id = Rack::Session::SessionId.new cookie[session_match, 1]
+      ses0 = pool.pool.get(session_id.private_id, true)
+      pool.pool.set(session_id.public_id, ses0, 0, true)
+      pool.pool.delete(session_id.private_id)
+
+
+      res1 = req.get("/", "HTTP_COOKIE" => cookie)
+      res1["Set-Cookie"].must_be_nil
+      res1.body.must_equal '{"counter"=>2}'
+      pool.pool.get(session_id.private_id, true).wont_be_nil
+    end
+
     # anyone know how to do this better?
     it "cleanly merges sessions when multithreaded" do
       skip unless $DEBUG
