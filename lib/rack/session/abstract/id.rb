@@ -25,9 +25,10 @@ module Rack
                 hash[block.call(key)] = value
               end
               hash
-            end unless {}.respond_to?(:transform_keys)
+            end
           end
-        }
+        } unless {}.respond_to?(:transform_keys)
+
         include Enumerable
         attr_writer :id
 
