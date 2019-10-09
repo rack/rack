@@ -48,7 +48,7 @@ module Rack
 
       def get_session(env, sid)
         with_lock(env) do
-          unless sid and session = @pool.get(sid.private_id)
+          unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid, {}
             unless /^STORED/ =~ @pool.add(sid.private_id, session)
               raise "Session collision on '#{sid.inspect}'"
@@ -88,6 +88,11 @@ module Rack
         @mutex.unlock if @mutex.locked?
       end
 
+      private
+
+      def get_session_with_fallback(sid)
+        @pool.get(sid.private_id) || @pool.get(sid.public_id)
+      end
     end
   end
 end
