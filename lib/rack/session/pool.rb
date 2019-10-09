@@ -43,7 +43,7 @@ module Rack
 
       def get_session(env, sid)
         with_lock(env) do
-          unless sid and session = @pool[sid.private_id]
+          unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid, {}
             @pool.store sid.private_id, session
           end
@@ -60,6 +60,7 @@ module Rack
 
       def destroy_session(env, session_id, options)
         with_lock(env) do
+          @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]
         end
@@ -70,6 +71,12 @@ module Rack
         yield
       ensure
         @mutex.unlock if @mutex.locked?
+      end
+
+      private
+
+      def get_session_with_fallback(sid)
+        @pool[sid.private_id] || @pool[sid.public_id]
       end
     end
   end

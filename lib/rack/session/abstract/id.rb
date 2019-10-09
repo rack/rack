@@ -4,12 +4,17 @@
 require 'time'
 require 'rack/request'
 require 'rack/response'
+<<<<<<< HEAD
 begin
   require 'securerandom'
 rescue LoadError
   # We just won't get securerandom
 end
 require "digest/sha2"
+=======
+require 'securerandom'
+require 'digest/sha2'
+>>>>>>> Fallback to the public id when reading the session in the pool adapter
 
 module Rack
 
