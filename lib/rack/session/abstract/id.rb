@@ -6,6 +6,7 @@ require 'time'
 require 'rack/request'
 require 'rack/response'
 require 'securerandom'
+require 'digest/sha2'
 
 module Rack
 
