@@ -252,6 +252,27 @@ begin
       pool.pool.get(session_id.private_id, true).wont_be_nil
     end
 
+    it "drops the session in the legacy id as well" do
+      pool = Rack::Session::Memcache.new(incrementor)
+      req = Rack::MockRequest.new(pool)
+      drop = Rack::Utils::Context.new(pool, drop_session)
+      dreq = Rack::MockRequest.new(drop)
+
+      res0 = req.get("/")
+      cookie = res0["Set-Cookie"]
+      session_id = Rack::Session::SessionId.new cookie[session_match, 1]
+      ses0 = pool.pool.get(session_id.private_id, true)
+      pool.pool.set(session_id.public_id, ses0, 0, true)
+      pool.pool.delete(session_id.private_id)
+
+
+      res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
+      res2["Set-Cookie"].must_be_nil
+      res2.body.must_equal '{"counter"=>2}'
+      pool.pool.get(session_id.private_id, true).must_be_nil
+      pool.pool.get(session_id.public_id, true).must_be_nil
+    end
+
     # anyone know how to do this better?
     it "cleanly merges sessions when multithreaded" do
       unless $DEBUG
