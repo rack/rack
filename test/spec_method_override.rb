@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/autorun'
+require 'minitest/global_expectations/autorun'
 require 'stringio'
 require 'rack/method_override'
 require 'rack/mock'

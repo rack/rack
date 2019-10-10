@@ -39,5 +39,6 @@ EOF
 
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-sprint'
+  s.add_development_dependency 'minitest-global_expectations'
   s.add_development_dependency 'rake'
 end
