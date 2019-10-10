@@ -407,7 +407,8 @@ module Rack
       #
       # <tt>env['rack.input']</tt> is not touched.
       def delete_param(k)
-        [ self.POST.delete(k), self.GET.delete(k) ].compact.first
+        post_value, get_value = self.POST.delete(k), self.GET.delete(k)
+        post_value || get_value
       end
 
       def base_url
