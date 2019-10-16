@@ -1,4 +1,6 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
+
 require 'uri'
 require 'fileutils'
 require 'set'
@@ -6,11 +8,15 @@ require 'tempfile'
 require 'rack/query_parser'
 require 'time'
 
+require_relative 'core_ext/regexp'
+
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    using ::Rack::RegexpExtensions
+
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
@@ -118,7 +124,7 @@ module Rack
       when Hash
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.reject(&:empty?).join('&')
+        }.delete_if(&:empty?).join('&')
       when nil
         prefix
       else
@@ -175,27 +181,26 @@ module Rack
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 
       expanded_accept_encoding =
-        accept_encoding.map { |m, q|
+        accept_encoding.each_with_object([]) do |(m, q), list|
           if m == "*"
-            (available_encodings - accept_encoding.map { |m2, _| m2 }).map { |m2| [m2, q] }
+            (available_encodings - accept_encoding.map(&:first))
+              .each { |m2| list << [m2, q] }
           else
-            [[m, q]]
+            list << [m, q]
           end
-        }.inject([]) { |mem, list|
-          mem + list
-        }
+        end
 
-      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
+      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map!(&:first)
 
       unless encoding_candidates.include?("identity")
         encoding_candidates.push("identity")
       end
 
-      expanded_accept_encoding.each { |m, q|
+      expanded_accept_encoding.each do |m, q|
         encoding_candidates.delete(m) if q == 0.0
-      }
+      end
 
-      return (encoding_candidates & available_encodings)[0]
+      (encoding_candidates & available_encodings)[0]
     end
     module_function :select_best_encoding
 
@@ -211,7 +216,7 @@ module Rack
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
       cookies = parse_query(header, ';,') { |s| unescape(s) rescue s }
-      cookies.each_with_object({}) { |(k,v), hash| hash[k] = Array === v ? v.first : v }
+      cookies.each_with_object({}) { |(k, v), hash| hash[k] = Array === v ? v.first : v }
     end
     module_function :parse_cookies_header
 
@@ -221,41 +226,19 @@ module Rack
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
-        # There is an RFC mess in the area of date formatting for Cookies. Not
-        # only are there contradicting RFCs and examples within RFC text, but
-        # there are also numerous conflicting names of fields and partially
-        # cross-applicable specifications.
-        #
-        # These are best described in RFC 2616 3.3.1. This RFC text also
-        # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
-        # fixed length format with space-date delimited fields.
-        #
-        # See also RFC 1123 section 5.2.14.
-        #
-        # RFC 6265 also specifies "sane-cookie-date" as RFC 1123 date, defined
-        # in RFC 2616 3.3.1. RFC 6265 also gives examples that clearly denote
-        # the space delimited format. These formats are compliant with RFC 2822.
-        #
-        # For reference, all involved RFCs are:
-        # RFC 822
-        # RFC 1123
-        # RFC 2109
-        # RFC 2616
-        # RFC 2822
-        # RFC 2965
-        # RFC 6265
-        expires = "; expires=" +
-          rfc2822(value[:expires].clone.gmtime) if value[:expires]
+        expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
           case value[:same_site]
           when false, nil
             nil
+          when :none, 'None', :None
+            '; SameSite=None'
           when :lax, 'Lax', :Lax
-            '; SameSite=Lax'.freeze
+            '; SameSite=Lax'
           when true, :strict, 'Strict', :Strict
-            '; SameSite=Strict'.freeze
+            '; SameSite=Strict'
           else
             raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
           end
@@ -295,15 +278,15 @@ module Rack
         cookies = header
       end
 
-      cookies.reject! { |cookie|
-        if value[:domain]
-          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
-        elsif value[:path]
-          cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/
-        else
-          cookie =~ /\A#{escape(key)}=/
-        end
-      }
+      regexp = if value[:domain]
+                 /\A#{escape(key)}=.*domain=#{value[:domain]}/
+               elsif value[:path]
+                 /\A#{escape(key)}=.*path=#{value[:path]}/
+               else
+                 /\A#{escape(key)}=/
+               end
+
+      cookies.reject! { |cookie| regexp.match? cookie }
 
       cookies.join("\n")
     end
@@ -321,9 +304,9 @@ module Rack
       new_header = make_delete_cookie_header(header, key, value)
 
       add_cookie_to_header(new_header, key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :max_age => '0',
-                   :expires => Time.at(0) }.merge(value))
+                 { value: '', path: nil, domain: nil,
+                   max_age: '0',
+                   expires: Time.at(0) }.merge(value))
 
     end
     module_function :add_remove_cookie_to_header
@@ -364,7 +347,7 @@ module Rack
       ranges = []
       $1.split(/,\s*/).each do |range_spec|
         return nil  unless range_spec =~ /(\d*)-(\d*)/
-        r0,r1 = $1, $2
+        r0, r1 = $1, $2
         if r0.empty?
           return nil  if r1.empty?
           # suffix-byte-range-spec, represents trailing suffix of file
@@ -378,7 +361,7 @@ module Rack
           else
             r1 = r1.to_i
             return nil  if r1 < r0  # backwards range is syntactically invalid
-            r1 = size-1  if r1 >= size
+            r1 = size - 1  if r1 >= size
           end
         end
         ranges << (r0..r1)  if r0 <= r1
@@ -399,7 +382,7 @@ module Rack
       l = a.unpack("C*")
 
       r, i = 0, -1
-      b.each_byte { |v| r |= v ^ l[i+=1] }
+      b.each_byte { |v| r |= v ^ l[i += 1] }
       r == 0
     end
     module_function :secure_compare
@@ -425,19 +408,17 @@ module Rack
         self.class.new(@for, app)
       end
 
-      def context(env, app=@app)
+      def context(env, app = @app)
         recontext(app).call(env)
       end
     end
 
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
-    class HeaderHash < Hash
-      def self.new(hash={})
-        HeaderHash === hash ? hash : super(hash)
-      end
-
-      def initialize(hash={})
+    #
+    # @api private
+    class HeaderHash < Hash # :nodoc:
+      def initialize(hash = {})
         super()
         @names = {}
         hash.each { |k, v| self[k] = v }
@@ -457,7 +438,7 @@ module Rack
 
       def to_hash
         hash = {}
-        each { |k,v| hash[k] = v }
+        each { |k, v| hash[k] = v }
         hash
       end
 
@@ -510,13 +491,14 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
-    #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
-    #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
+    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
+    #     ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
+    #               puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
       102 => 'Processing',
+      103 => 'Early Hints',
       200 => 'OK',
       201 => 'Created',
       202 => 'Accepted',
@@ -557,6 +539,7 @@ module Rack
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
+      425 => 'Too Early',
       426 => 'Upgrade Required',
       428 => 'Precondition Required',
       429 => 'Too Many Requests',
@@ -571,12 +554,13 @@ module Rack
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
+      509 => 'Bandwidth Limit Exceeded',
       510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
 
     # Responses with HTTP status codes that should not have an entity body
-    STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 205 << 304)
+    STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])]
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
       [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
@@ -584,7 +568,7 @@ module Rack
 
     def status_code(status)
       if status.is_a?(Symbol)
-        SYMBOL_TO_STATUS_CODE[status] || 500
+        SYMBOL_TO_STATUS_CODE.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
       else
         status.to_i
       end
@@ -605,11 +589,11 @@ module Rack
 
       clean.unshift '/' if parts.empty? || parts.first.empty?
 
-      ::File.join(*clean)
+      ::File.join clean
     end
     module_function :clean_path_info
 
-    NULL_BYTE = "\0".freeze
+    NULL_BYTE = "\0"
 
     def valid_path?(path)
       path.valid_encoding? && !path.include?(NULL_BYTE)

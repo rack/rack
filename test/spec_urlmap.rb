@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/urlmap'
 require 'rack/mock'
 
@@ -117,6 +119,14 @@ describe Rack::URLMap do
     res.must_be :ok?
     res["X-Position"].must_equal "default.org"
 
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org")
+    res.must_be :ok?
+    res["X-Position"].must_equal "default.org"
+
+    res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org", "HTTP_X_FORWARDED_HOST" => "any-host.org")
+    res.must_be :ok?
+    res["X-Position"].must_equal "default.org"
+
     res = Rack::MockRequest.new(map).get("/",
                                          "HTTP_HOST" => "example.org:9292",
                                          "SERVER_PORT" => "9292")
@@ -127,7 +137,7 @@ describe Rack::URLMap do
   it "be nestable" do
     map = Rack::Lint.new(Rack::URLMap.new("/foo" =>
       Rack::URLMap.new("/bar" =>
-        Rack::URLMap.new("/quux" =>  lambda { |env|
+        Rack::URLMap.new("/quux" => lambda { |env|
                            [200,
                             { "Content-Type" => "text/plain",
                               "X-Position" => "/foo/bar/quux",

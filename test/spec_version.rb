@@ -1,5 +1,6 @@
-# -*- encoding: utf-8 -*-
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack'
 
 describe Rack do

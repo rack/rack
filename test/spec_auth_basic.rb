@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/auth/basic'
 require 'rack/lint'
 require 'rack/mock'
@@ -10,7 +12,7 @@ describe Rack::Auth::Basic do
 
   def unprotected_app
     Rack::Lint.new lambda { |env|
-      [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}"] ]
+      [ 200, { 'Content-Type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}"] ]
     }
   end
 
@@ -72,6 +74,13 @@ describe Rack::Auth::Basic do
       response.must_be :client_error?
       response.status.must_equal 400
       response.wont_include 'WWW-Authenticate'
+    end
+  end
+
+  it 'return 401 Bad Request for a nil authorization header' do
+    request 'HTTP_AUTHORIZATION' => nil do |response|
+      response.must_be :client_error?
+      response.status.must_equal 401
     end
   end
 

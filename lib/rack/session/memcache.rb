@@ -1,7 +1,10 @@
+# frozen_string_literal: true
+
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 
 require 'rack/session/abstract/id'
 require 'memcache'
+require 'rack/core_ext/regexp'
 
 module Rack
   module Session
@@ -20,18 +23,20 @@ module Rack
     # a full description of behaviour, please see memcache's documentation.
 
     class Memcache < Abstract::ID
+      using ::Rack::RegexpExtensions
+
       attr_reader :mutex, :pool
 
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
-        :namespace => 'rack:session',
-        :memcache_server => 'localhost:11211'
+        namespace: 'rack:session',
+        memcache_server: 'localhost:11211'
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super
 
         @mutex = Mutex.new
         mserv = @default_options[:memcache_server]
-        mopts = @default_options.reject{|k,v| !MemCache::DEFAULT_OPTIONS.include? k }
+        mopts = @default_options.reject{|k, v| !MemCache::DEFAULT_OPTIONS.include? k }
 
         @pool = options[:cache] || MemCache.new(mserv, mopts)
         unless @pool.active? and @pool.servers.any?(&:alive?)
@@ -50,7 +55,7 @@ module Rack
         with_lock(env) do
           unless sid and session = @pool.get(sid)
             sid, session = generate_sid, {}
-            unless /^STORED/ =~ @pool.add(sid, session)
+            unless /^STORED/.match?(@pool.add(sid, session))
               raise "Session collision on '#{sid.inspect}'"
             end
           end

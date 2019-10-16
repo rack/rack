@@ -60,9 +60,8 @@ below.
                            the presence or absence of the
                            appropriate HTTP header in the
                            request. See
-                           {https://tools.ietf.org/html/rfc3875#section-4.1.18
-                           RFC3875 section 4.1.18} for
-                           specific behavior.
+                           {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18]
+                           for specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
 <tt>rack.version</tt>:: The Array representing this version of Rack
@@ -98,12 +97,13 @@ Rack-specific variables:
 Additional environment specifications have approved to
 standardized middleware APIs.  None of these are required to
 be implemented by the server.
-<tt>rack.session</tt>:: A hash like interface for storing request session data.
+<tt>rack.session</tt>:: A hash like interface for storing
+                        request session data.
                         The store must implement:
-                         store(key, value)         (aliased as []=);
-                         fetch(key, default = nil) (aliased as []);
-                         delete(key);
-                         clear;
+                        store(key, value)         (aliased as []=);
+                        fetch(key, default = nil) (aliased as []);
+                        delete(key);
+                        clear;
 <tt>rack.logger</tt>:: A common object interface for logging messages.
                        The object must implement:
                         info(message, &block)
@@ -237,10 +237,10 @@ consisting of lines (for multiple header values, e.g. multiple
 The lines must not contain characters below 037.
 === The Content-Type
 There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
-204, 205 or 304.
+204 or 304.
 === The Content-Length
 There must not be a <tt>Content-Length</tt> header when the
-+Status+ is 1xx, 204, 205 or 304.
++Status+ is 1xx, 204 or 304.
 === The Body
 The Body must respond to +each+
 and must only yield String values.

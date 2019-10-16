@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 module Rack
   class MethodOverride
     HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
 
-    METHOD_OVERRIDE_PARAM_KEY = "_method".freeze
-    HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE".freeze
+    METHOD_OVERRIDE_PARAM_KEY = "_method"
+    HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE"
     ALLOWED_METHODS = %w[POST]
 
     def initialize(app)
@@ -26,7 +28,11 @@ module Rack
       req = Request.new(env)
       method = method_override_param(req) ||
         env[HTTP_METHOD_OVERRIDE_HEADER]
-      method.to_s.upcase
+      begin
+        method.to_s.upcase
+      rescue ArgumentError
+        env[RACK_ERRORS].puts "Invalid string for method"
+      end
     end
 
     private
@@ -38,6 +44,9 @@ module Rack
     def method_override_param(req)
       req.POST[METHOD_OVERRIDE_PARAM_KEY]
     rescue Utils::InvalidParameterError, Utils::ParameterTypeError
+      req.get_header(RACK_ERRORS).puts "Invalid or incomplete POST params"
+    rescue EOFError
+      req.get_header(RACK_ERRORS).puts "Bad request content body"
     end
   end
 end

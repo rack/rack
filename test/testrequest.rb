@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'yaml'
 require 'net/http'
 require 'rack/lint'
@@ -10,10 +12,10 @@ class TestRequest
     env["test.postdata"] = env["rack.input"].read
     minienv = env.dup
     # This may in the future want to replace with a dummy value instead.
-    minienv.delete_if { |k,v| NOSERIALIZE.any? { |c| v.kind_of?(c) } }
+    minienv.delete_if { |k, v| NOSERIALIZE.any? { |c| v.kind_of?(c) } }
     body = minienv.to_yaml
     size = body.bytesize
-    [status, {"Content-Type" => "text/yaml", "Content-Length" => size.to_s}, [body]]
+    [status, { "Content-Type" => "text/yaml", "Content-Length" => size.to_s }, [body]]
   end
 
   module Helpers
@@ -30,7 +32,7 @@ class TestRequest
       "#{ROOT}/bin/rackup"
     end
 
-    def GET(path, header={})
+    def GET(path, header = {})
       Net::HTTP.start(@host, @port) { |http|
         user = header.delete(:user)
         passwd = header.delete(:passwd)
@@ -48,7 +50,7 @@ class TestRequest
       }
     end
 
-    def POST(path, formdata={}, header={})
+    def POST(path, formdata = {}, header = {})
       Net::HTTP.start(@host, @port) { |http|
         user = header.delete(:user)
         passwd = header.delete(:passwd)
@@ -67,7 +69,7 @@ end
 
 class StreamingRequest
   def self.call(env)
-    [200, {"Content-Type" => "text/plain"}, new]
+    [200, { "Content-Type" => "text/plain" }, new]
   end
 
   def each

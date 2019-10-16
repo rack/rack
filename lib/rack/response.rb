@@ -1,6 +1,9 @@
+# frozen_string_literal: true
+
 require 'rack/request'
 require 'rack/utils'
 require 'rack/body_proxy'
+require 'rack/simple_body_proxy'
 require 'rack/media_type'
 require 'time'
 
@@ -23,11 +26,15 @@ module Rack
     attr_reader :header
     alias headers header
 
-    CHUNKED = 'chunked'.freeze
+    CHUNKED = 'chunked'
+    STATUS_WITH_NO_ENTITY_BODY = {
+      204 => true,
+      304 => true
+    }.freeze
 
-    def initialize(body=[], status=200, header={})
+    def initialize(body = [], status = 200, header = {})
       @status = status.to_i
-      @header = Utils::HeaderHash.new.merge(header)
+      @header = Utils::HeaderHash.new(header)
 
       @writer  = lambda { |x| @body << x }
       @block   = nil
@@ -48,7 +55,7 @@ module Rack
       yield self  if block_given?
     end
 
-    def redirect(target, status=302)
+    def redirect(target, status = 302)
       self.status = status
       self.location = target
     end
@@ -60,13 +67,17 @@ module Rack
     def finish(&block)
       @block = block
 
-      if [204, 205, 304].include?(status.to_i)
+      if STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
         [status.to_i, header, []]
       else
-        [status.to_i, header, BodyProxy.new(self){}]
+        if @block.nil?
+          [status.to_i, header, SimpleBodyProxy.new(@body)]
+        else
+          [status.to_i, header, BodyProxy.new(self){}]
+        end
       end
     end
     alias to_a finish           # For *response
@@ -184,7 +195,7 @@ module Rack
         set_header SET_COOKIE, ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
       end
 
-      def delete_cookie(key, value={})
+      def delete_cookie(key, value = {})
         set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
       end
 

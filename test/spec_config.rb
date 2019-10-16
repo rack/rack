@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/builder'
 require 'rack/config'
 require 'rack/content_length'
@@ -13,7 +15,7 @@ describe Rack::Config do
         env['greeting'] = 'hello'
       end
       run lambda { |env|
-        [200, {'Content-Type' => 'text/plain'}, [env['greeting'] || '']]
+        [200, { 'Content-Type' => 'text/plain' }, [env['greeting'] || '']]
       }
     end
 

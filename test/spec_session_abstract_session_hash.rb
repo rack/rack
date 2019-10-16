@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/session/abstract/id'
 
 describe Rack::Session::Abstract::SessionHash do
@@ -8,7 +10,7 @@ describe Rack::Session::Abstract::SessionHash do
     super
     store = Class.new do
       def load_session(req)
-        ["id", {foo: :bar, baz: :qux}]
+        ["id", { foo: :bar, baz: :qux }]
       end
       def session_exists?(req)
         true
@@ -25,4 +27,21 @@ describe Rack::Session::Abstract::SessionHash do
     assert_equal [:bar, :qux], hash.values
   end
 
+  describe "#fetch" do
+    it "returns value for a matching key" do
+      assert_equal :bar, hash.fetch(:foo)
+    end
+
+    it "works with a default value" do
+      assert_equal :default, hash.fetch(:unknown, :default)
+    end
+
+    it "works with a block" do
+      assert_equal :default, hash.fetch(:unkown) { :default }
+    end
+
+    it "it raises when fetching unknown keys without defaults" do
+      lambda { hash.fetch(:unknown) }.must_raise KeyError
+    end
+  end
 end

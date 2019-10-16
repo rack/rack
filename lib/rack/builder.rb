@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
   # applications.
@@ -29,29 +31,43 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
+
+    # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
+    UTF_8_BOM = '\xef\xbb\xbf'
+
     def self.parse_file(config, opts = Server::Options.new)
-      options = {}
-      if config =~ /\.ru$/
-        cfgfile = ::File.read(config)
-        if cfgfile[/^#\\(.*)/] && opts
-          options = opts.parse! $1.split(/\s+/)
-        end
-        cfgfile.sub!(/^__END__\n.*\Z/m, '')
-        app = new_from_string cfgfile, config
+      if config.end_with?('.ru')
+        return self.load_file(config, opts)
       else
         require config
         app = Object.const_get(::File.basename(config, '.rb').split('_').map(&:capitalize).join(''))
+        return app, {}
       end
+    end
+
+    def self.load_file(path, opts = Server::Options.new)
+      options = {}
+
+      cfgfile = ::File.read(path)
+      cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
+
+      if cfgfile[/^#\\(.*)/] && opts
+        options = opts.parse! $1.split(/\s+/)
+      end
+
+      cfgfile.sub!(/^__END__\n.*\Z/m, '')
+      app = new_from_string cfgfile, path
+
       return app, options
     end
 
-    def self.new_from_string(builder_script, file="(rackup)")
+    def self.new_from_string(builder_script, file = "(rackup)")
       eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
         TOPLEVEL_BINDING, file, 0
     end
 
     def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup = [], nil, default_app, nil
+      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
       instance_eval(&block) if block_given?
     end
 
@@ -81,7 +97,7 @@ module Rack
     def use(middleware, *args, &block)
       if @map
         mapping, @map = @map, nil
-        @use << proc { |app| generate_map app, mapping }
+        @use << proc { |app| generate_map(app, mapping) }
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
@@ -113,7 +129,7 @@ module Rack
     #
     #   use SomeMiddleware
     #   run MyApp
-    def warmup(prc=nil, &block)
+    def warmup(prc = nil, &block)
       @warmup = prc || block
     end
 
@@ -141,10 +157,17 @@ module Rack
       @map[path] = block
     end
 
+    # Freeze the app (set using run) and all middleware instances when building the application
+    # in to_app.
+    def freeze_app
+      @freeze_app = true
+    end
+
     def to_app
       app = @map ? generate_map(@run, @map) : @run
       fail "missing run or map statement" unless app
-      app = @use.reverse.inject(app) { |a,e| e[a] }
+      app.freeze if @freeze_app
+      app = @use.reverse.inject(app) { |a, e| e[a].tap { |x| x.freeze if @freeze_app } }
       @warmup.call(app) if @warmup
       app
     end
@@ -156,8 +179,8 @@ module Rack
     private
 
     def generate_map(default_app, mapping)
-      mapped = default_app ? {'/' => default_app} : {}
-      mapping.each { |r,b| mapped[r] = self.class.new(default_app, &b).to_app }
+      mapped = default_app ? { '/' => default_app } : {}
+      mapping.each { |r, b| mapped[r] = self.class.new(default_app, &b).to_app }
       URLMap.new(mapped)
     end
   end

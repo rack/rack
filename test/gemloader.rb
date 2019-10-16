@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rubygems'
 project = 'rack'
 gemspec = File.expand_path("#{project}.gemspec", Dir.pwd)

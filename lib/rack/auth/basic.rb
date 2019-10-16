@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/auth/abstract/handler'
 require 'rack/auth/abstract/request'
 
@@ -45,7 +47,7 @@ module Rack
         end
 
         def credentials
-          @credentials ||= params.unpack("m*").first.split(/:/, 2)
+          @credentials ||= params.unpack("m*").first.split(':', 2)
         end
 
         def username

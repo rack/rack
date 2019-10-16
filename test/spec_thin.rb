@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 begin
 require 'rack/handler/thin'
 require File.expand_path('../testrequest', __FILE__)
@@ -13,7 +15,7 @@ describe Rack::Handler::Thin do
     Thin::Logging.silent = true
 
     @thread = Thread.new do
-      Rack::Handler::Thin.run(@app, :Host => @host='127.0.0.1', :Port => @port=9204, :tag => "tag") do |server|
+      Rack::Handler::Thin.run(@app, Host: @host = '127.0.0.1', Port: @port = 9204, tag: "tag") do |server|
         @server = server
       end
     end
@@ -44,7 +46,7 @@ describe Rack::Handler::Thin do
 
   it "have rack headers" do
     GET("/")
-    response["rack.version"].must_equal [1,0]
+    response["rack.version"].must_equal [1, 0]
     response["rack.multithread"].must_equal false
     response["rack.multiprocess"].must_equal false
     response["rack.run_once"].must_equal false
@@ -66,7 +68,7 @@ describe Rack::Handler::Thin do
   end
 
   it "have CGI headers on POST" do
-    POST("/", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
+    POST("/", { "rack-form-data" => "23" }, { 'X-test-header' => '42' })
     status.must_equal 200
     response["REQUEST_METHOD"].must_equal "POST"
     response["REQUEST_PATH"].must_equal "/"
@@ -76,7 +78,7 @@ describe Rack::Handler::Thin do
   end
 
   it "support HTTP auth" do
-    GET("/test", {:user => "ruth", :passwd => "secret"})
+    GET("/test", { user: "ruth", passwd: "secret" })
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 

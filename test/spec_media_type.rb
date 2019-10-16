@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/media_type'
 
 describe Rack::MediaType do
@@ -8,7 +10,7 @@ describe Rack::MediaType do
     before { @content_type = nil }
 
     it '#type is nil' do
-      Rack::MediaType.type(@content_type).must_equal nil
+      Rack::MediaType.type(@content_type).must_be_nil
     end
 
     it '#params is empty' do
@@ -23,7 +25,7 @@ describe Rack::MediaType do
       Rack::MediaType.type(@content_type).must_equal 'application/text'
     end
 
-    it  '#params is empty' do
+    it '#params is empty' do
       Rack::MediaType.params(@content_type).must_equal @empty_hash
     end
   end

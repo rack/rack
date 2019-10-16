@@ -1,4 +1,6 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
+
 require 'tempfile'
 require 'rack/utils'
 
@@ -72,7 +74,7 @@ module Rack
         @unlinked = true
       end
 
-      buffer = ""
+      buffer = "".dup
       while @io.read(1024 * 4, buffer)
         entire_buffer_written_out = false
         while !entire_buffer_written_out

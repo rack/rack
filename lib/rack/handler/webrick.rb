@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'webrick'
 require 'stringio'
 require 'rack/content_length'
@@ -22,7 +24,7 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
-      def self.run(app, options={})
+      def self.run(app, options = {})
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : nil
 
@@ -79,17 +81,18 @@ module Rack
         env[QUERY_STRING] ||= ""
         unless env[PATH_INFO] == ""
           path, n = req.request_uri.path, env[SCRIPT_NAME].length
-          env[PATH_INFO] = path[n, path.length-n]
+          env[PATH_INFO] = path[n, path.length - n]
         end
         env[REQUEST_PATH] ||= [env[SCRIPT_NAME], env[PATH_INFO]].join
 
         status, headers, body = @app.call(env)
         begin
           res.status = status.to_i
+          io_lambda = nil
           headers.each { |k, vs|
-            next if k.downcase == RACK_HIJACK
-
-            if k.downcase == "set-cookie"
+            if k == RACK_HIJACK
+              io_lambda = vs
+            elsif k.downcase == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
               # Since WEBrick won't accept repeated headers,
@@ -98,7 +101,6 @@ module Rack
             end
           }
 
-          io_lambda = headers[RACK_HIJACK]
           if io_lambda
             rd, wr = IO.pipe
             res.body = rd

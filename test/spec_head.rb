@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/head'
 require 'rack/lint'
 require 'rack/mock'
@@ -8,7 +10,7 @@ describe Rack::Head do
   def test_response(headers = {})
     body = StringIO.new "foo"
     app = lambda do |env|
-      [200, {"Content-type" => "test/plain", "Content-length" => "3"}, body]
+      [200, { "Content-type" => "test/plain", "Content-length" => "3" }, body]
     end
     request = Rack::MockRequest.env_for("/", headers)
     response = Rack::Lint.new(Rack::Head.new(app)).call(request)

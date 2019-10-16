@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require "thin"
 require "thin/server"
 require "thin/logging"
@@ -8,7 +10,7 @@ require "rack/chunked"
 module Rack
   module Handler
     class Thin
-      def self.run(app, options={})
+      def self.run(app, options = {})
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
 

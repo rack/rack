@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   # *Handlers* connect web servers with Rack.
   #
@@ -52,7 +54,7 @@ module Rack
       elsif ENV.include?("RACK_HANDLER")
         self.get(ENV["RACK_HANDLER"])
       else
-        pick ['puma', 'thin', 'webrick']
+        pick ['puma', 'thin', 'falcon', 'webrick']
       end
     end
 

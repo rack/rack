@@ -1,5 +1,9 @@
+# frozen_string_literal: true
+
 require 'rack/utils'
 require 'rack/media_type'
+
+require_relative 'core_ext/regexp'
 
 module Rack
   # Rack::Request provides a convenient interface to a Rack
@@ -11,6 +15,19 @@ module Rack
   #   req.params["data"]
 
   class Request
+    using ::Rack::RegexpExtensions
+
+    class << self
+      attr_accessor :ip_filter
+    end
+
+    self.ip_filter = lambda { |ip| /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip) }
+    ALLOWED_SCHEMES = %w(https http).freeze
+    SCHEME_WHITELIST = ALLOWED_SCHEMES
+    if Object.respond_to?(:deprecate_constant)
+      deprecate_constant :SCHEME_WHITELIST
+    end
+
     def initialize(env)
       @params = nil
       super(env)
@@ -98,7 +115,7 @@ module Rack
 
     module Helpers
       # The set of form-data media-types. Requests that do not indicate
-      # one of the media types presents in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for form-data / param parsing.
       FORM_DATA_MEDIA_TYPES = [
         'application/x-www-form-urlencoded',
@@ -106,7 +123,7 @@ module Rack
       ]
 
       # The set of media-types. Requests that do not indicate
-      # one of the media types presents in this list will not be eligible
+      # one of the media types present in this list will not be eligible
       # for param parsing like soap attachments or generic multiparts
       PARSEABLE_DATA_MEDIA_TYPES = [
         'multipart/related',
@@ -117,11 +134,11 @@ module Rack
       # to include the port in a generated URI.
       DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
-      HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'.freeze
-      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'.freeze
-      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'.freeze
-      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'.freeze
-      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'.freeze
+      HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'
+      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'
+      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'
+      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'
+      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'
 
       def body;            get_header(RACK_INPUT)                         end
       def script_name;     get_header(SCRIPT_NAME).to_s                   end
@@ -157,10 +174,10 @@ module Rack
       def delete?;  request_method == DELETE  end
 
       # Checks the HTTP request method (or verb) to see if it was of type GET
-      def get?;     request_method == GET       end
+      def get?;     request_method == GET     end
 
       # Checks the HTTP request method (or verb) to see if it was of type HEAD
-      def head?;    request_method == HEAD      end
+      def head?;    request_method == HEAD    end
 
       # Checks the HTTP request method (or verb) to see if it was of type OPTIONS
       def options?; request_method == OPTIONS end
@@ -188,10 +205,8 @@ module Rack
           'https'
         elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
           'https'
-        elsif get_header(HTTP_X_FORWARDED_SCHEME)
-          get_header(HTTP_X_FORWARDED_SCHEME)
-        elsif get_header(HTTP_X_FORWARDED_PROTO)
-          get_header(HTTP_X_FORWARDED_PROTO).split(',')[0]
+        elsif forwarded_scheme
+          forwarded_scheme
         else
           get_header(RACK_URL_SCHEME)
         end
@@ -208,7 +223,7 @@ module Rack
         string = get_header HTTP_COOKIE
 
         return hash if string == get_header(RACK_REQUEST_COOKIE_STRING)
-        hash.replace Utils.parse_cookies_header get_header HTTP_COOKIE
+        hash.replace Utils.parse_cookies_header string
         set_header(RACK_REQUEST_COOKIE_STRING, string)
         hash
       end
@@ -232,18 +247,23 @@ module Rack
 
       def host
         # Remove port number.
-        host_with_port.to_s.sub(/:\d+\z/, '')
+        h = host_with_port
+        if colon_index = h.index(":")
+          h[0, colon_index]
+        else
+          h
+        end
       end
 
       def port
-        if port = host_with_port.split(/:/)[1]
+        if port = extract_port(host_with_port)
           port.to_i
         elsif port = get_header(HTTP_X_FORWARDED_PORT)
           port.to_i
         elsif has_header?(HTTP_X_FORWARDED_HOST)
           DEFAULT_PORTS[scheme]
         elsif has_header?(HTTP_X_FORWARDED_PROTO)
-          DEFAULT_PORTS[get_header(HTTP_X_FORWARDED_PROTO).split(',')[0]]
+          DEFAULT_PORTS[extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO))]
         else
           get_header(SERVER_PORT).to_i
         end
@@ -260,8 +280,9 @@ module Rack
         return remote_addrs.first if remote_addrs.any?
 
         forwarded_ips = split_ip_addresses(get_header('HTTP_X_FORWARDED_FOR'))
+          .map { |ip| strip_port(ip) }
 
-        return reject_trusted_ip_addresses(forwarded_ips).last || get_header("REMOTE_ADDR")
+        return reject_trusted_ip_addresses(forwarded_ips).last || forwarded_ips.first || get_header("REMOTE_ADDR")
       end
 
       # The media type (type/subtype) portion of the CONTENT_TYPE header
@@ -386,12 +407,13 @@ module Rack
       #
       # <tt>env['rack.input']</tt> is not touched.
       def delete_param(k)
-        [ self.POST.delete(k), self.GET.delete(k) ].compact.first
+        post_value, get_value = self.POST.delete(k), self.GET.delete(k)
+        post_value || get_value
       end
 
       def base_url
         url = "#{scheme}://#{host}"
-        url << ":#{port}" if port != DEFAULT_PORTS[scheme]
+        url = "#{url}:#{port}" if port != DEFAULT_PORTS[scheme]
         url
       end
 
@@ -417,12 +439,12 @@ module Rack
       end
 
       def trusted_proxy?(ip)
-        ip =~ /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+        Rack::Request.ip_filter.call(ip)
       end
 
       # shortcut for <tt>request.params[key]</tt>
       def [](key)
-        if $verbose
+        if $VERBOSE
           warn("Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead")
         end
 
@@ -433,7 +455,7 @@ module Rack
       #
       # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
       def []=(key, value)
-        if $verbose
+        if $VERBOSE
           warn("Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead")
         end
 
@@ -464,7 +486,7 @@ module Rack
         Utils.default_query_parser
       end
 
-      def parse_query(qs, d='&')
+      def parse_query(qs, d = '&')
         query_parser.parse_nested_query(qs, d)
       end
 
@@ -476,8 +498,52 @@ module Rack
         ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
       end
 
+      def strip_port(ip_address)
+        # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
+        # returns: "2001:db8:cafe::17"
+        sep_start = ip_address.index('[')
+        sep_end = ip_address.index(']')
+        if (sep_start && sep_end)
+          return ip_address[sep_start + 1, sep_end - 1]
+        end
+
+        # IPv4 format with optional port: "192.0.2.43:47011"
+        # returns: "192.0.2.43"
+        sep = ip_address.index(':')
+        if (sep && ip_address.count(':') == 1)
+          return ip_address[0, sep]
+        end
+
+        ip_address
+      end
+
       def reject_trusted_ip_addresses(ip_addresses)
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
+      end
+
+      def forwarded_scheme
+        allowed_scheme(get_header(HTTP_X_FORWARDED_SCHEME)) ||
+        allowed_scheme(extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO)))
+      end
+
+      def allowed_scheme(header)
+        header if ALLOWED_SCHEMES.include?(header)
+      end
+
+      def extract_proto_header(header)
+        if header
+          if (comma_index = header.index(','))
+            header[0, comma_index]
+          else
+            header
+          end
+        end
+      end
+
+      def extract_port(uri)
+        if (colon_index = uri.index(':'))
+          uri[colon_index + 1, uri.length]
+        end
       end
     end
 

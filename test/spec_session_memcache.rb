@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 begin
   require 'rack/session/memcache'
   require 'rack/lint'
@@ -36,17 +38,17 @@ begin
 
     it "faults on no connection" do
       lambda {
-        Rack::Session::Memcache.new(incrementor, :memcache_server => 'nosuchserver')
+        Rack::Session::Memcache.new(incrementor, memcache_server: 'nosuchserver')
       }.must_raise(RuntimeError).message.must_equal 'No memcache servers'
     end
 
     it "connects to existing server" do
-      test_pool = MemCache.new(incrementor, :namespace => 'test:rack:session')
+      test_pool = MemCache.new(incrementor, namespace: 'test:rack:session')
       test_pool.namespace.must_equal 'test:rack:session'
     end
 
     it "passes options to MemCache" do
-      pool = Rack::Session::Memcache.new(incrementor, :namespace => 'test:rack:session')
+      pool = Rack::Session::Memcache.new(incrementor, namespace: 'test:rack:session')
       pool.pool.namespace.must_equal 'test:rack:session'
     end
 
@@ -80,7 +82,7 @@ begin
     end
 
     it "determines session from params" do
-      pool = Rack::Session::Memcache.new(incrementor, :cookie_only => false)
+      pool = Rack::Session::Memcache.new(incrementor, cookie_only: false)
       req = Rack::MockRequest.new(pool)
       res = req.get("/")
       sid = res["Set-Cookie"][session_match, 1]
@@ -101,7 +103,7 @@ begin
     end
 
     it "maintains freshness" do
-      pool = Rack::Session::Memcache.new(incrementor, :expire_after => 3)
+      pool = Rack::Session::Memcache.new(incrementor, expire_after: 3)
       res = Rack::MockRequest.new(pool).get('/')
       res.body.must_include '"counter"=>1'
       cookie = res["Set-Cookie"]
@@ -143,7 +145,7 @@ begin
       res1.body.must_equal '{"counter"=>1}'
 
       res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
-      res2["Set-Cookie"].must_equal nil
+      res2["Set-Cookie"].must_be_nil
       res2.body.must_equal '{"counter"=>2}'
 
       res3 = req.get("/", "HTTP_COOKIE" => cookie)
@@ -183,7 +185,7 @@ begin
       creq = Rack::MockRequest.new(count)
 
       res0 = dreq.get("/")
-      res0["Set-Cookie"].must_equal nil
+      res0["Set-Cookie"].must_be_nil
       res0.body.must_equal '{"counter"=>1}'
 
       res0 = creq.get("/")
@@ -201,7 +203,7 @@ begin
       creq = Rack::MockRequest.new(count)
 
       res0 = sreq.get("/")
-      res0["Set-Cookie"].must_equal nil
+      res0["Set-Cookie"].must_be_nil
       res0.body.must_equal '{"counter"=>1}'
 
       res0 = creq.get("/")
@@ -215,8 +217,8 @@ begin
       hash_check = proc do |env|
         session = env['rack.session']
         unless session.include? 'test'
-          session.update :a => :b, :c => { :d => :e },
-            :f => { :g => { :h => :i} }, 'test' => true
+          session.update :a => :b, :c => { d: :e },
+            :f => { g: { h: :i } }, 'test' => true
         else
           session[:f][:g][:h] = :j
         end
@@ -252,12 +254,12 @@ begin
         # emulate disconjoinment of threading
         env['rack.session'] = env['rack.session'].dup
         Thread.stop
-        env['rack.session'][(Time.now.usec*rand).to_i] = true
+        env['rack.session'][(Time.now.usec * rand).to_i] = true
         incrementor.call(env)
       end
       tses = Rack::Utils::Context.new pool, delta_incrementor
       treq = Rack::MockRequest.new(tses)
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         Thread.new(treq) do |run|
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
@@ -269,10 +271,10 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal tnum+1 # counter
+      session.size.must_equal tnum + 1 # counter
       session['counter'].must_equal 2 # meeeh
 
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         app = Rack::Utils::Context.new pool, time_delta
         req = Rack::MockRequest.new app
@@ -286,17 +288,17 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal tnum+1
+      session.size.must_equal tnum + 1
       session['counter'].must_equal 3
 
       drop_counter = proc do |env|
         env['rack.session'].delete 'counter'
         env['rack.session']['foo'] = 'bar'
-        [200, {'Content-Type'=>'text/plain'}, env['rack.session'].inspect]
+        [200, { 'Content-Type' => 'text/plain' }, env['rack.session'].inspect]
       end
       tses = Rack::Utils::Context.new pool, drop_counter
       treq = Rack::MockRequest.new(tses)
-      tnum = rand(7).to_i+5
+      tnum = rand(7).to_i + 5
       r = Array.new(tnum) do
         Thread.new(treq) do |run|
           run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
@@ -308,7 +310,7 @@ begin
       end
 
       session = pool.pool.get(session_id)
-      session.size.must_equal r.size+1
+      session.size.must_equal r.size + 1
       session['counter'].must_be_nil?
       session['foo'].must_equal 'bar'
     end

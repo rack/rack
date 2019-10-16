@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   class BodyProxy
     def initialize(body, &block)
@@ -6,7 +8,7 @@ module Rack
       @closed = false
     end
 
-    def respond_to?(method_name, include_all=false)
+    def respond_to?(method_name, include_all = false)
       case method_name
       when :to_ary, 'to_ary'
         return false

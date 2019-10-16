@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/utils'
 require 'forwardable'
 
@@ -33,7 +35,7 @@ module Rack
 
     ## A Rack application is a Ruby object (not a class) that
     ## responds to +call+.
-    def call(env=nil)
+    def call(env = nil)
       dup._call(env)
     end
 
@@ -123,9 +125,8 @@ module Rack
       ##                            the presence or absence of the
       ##                            appropriate HTTP header in the
       ##                            request. See
-      ##                            <a href="https://tools.ietf.org/html/rfc3875#section-4.1.18">
-      ##                            RFC3875 section 4.1.18</a> for
-      ##                            specific behavior.
+      ##                            {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18]
+      ##                            for specific behavior.
 
       ## In addition to this, the Rack environment must include these
       ## Rack-specific variables:
@@ -263,7 +264,7 @@ module Rack
       ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
       ## (use the versions without <tt>HTTP_</tt>).
       %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
-        assert("env contains #{header}, must use #{header[5,-1]}") {
+        assert("env contains #{header}, must use #{header[5, -1]}") {
           not env.include? header
         }
       }
@@ -659,10 +660,10 @@ module Rack
     def check_content_type(status, headers)
       headers.each { |key, value|
         ## There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
-        ## 204, 205 or 304.
+        ## 204 or 304.
         if key.downcase == "content-type"
           assert("Content-Type header found in #{status} response, not allowed") {
-            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
           }
           return
         end
@@ -674,9 +675,9 @@ module Rack
       headers.each { |key, value|
         if key.downcase == 'content-length'
           ## There must not be a <tt>Content-Length</tt> header when the
-          ## +Status+ is 1xx, 204, 205 or 304.
+          ## +Status+ is 1xx, 204 or 304.
           assert("Content-Length header found in #{status} response, not allowed") {
-            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.include? status.to_i
+            not Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
           }
           @content_length = value
         end

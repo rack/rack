@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack/static'
 require 'rack/lint'
 require 'rack/mock'
@@ -7,7 +9,7 @@ require 'stringio'
 
 class DummyApp
   def call(env)
-    [200, {"Content-Type" => "text/plain"}, ["Hello World"]]
+    [200, { "Content-Type" => "text/plain" }, ["Hello World"]]
   end
 end
 
@@ -18,15 +20,17 @@ describe Rack::Static do
 
   root = File.expand_path(File.dirname(__FILE__))
 
-  OPTIONS = {:urls => ["/cgi"], :root => root}
-  STATIC_OPTIONS = {:urls => [""], :root => "#{root}/static", :index => 'index.html'}
-  HASH_OPTIONS = {:urls => {"/cgi/sekret" => 'cgi/test'}, :root => root}
-  HASH_ROOT_OPTIONS = {:urls => {"/" => "static/foo.html"}, :root => root}
-  GZIP_OPTIONS = {:urls => ["/cgi"], :root => root, :gzip=>true}
+  OPTIONS = { urls: ["/cgi"], root: root }
+  STATIC_OPTIONS = { urls: [""], root: "#{root}/static", index: 'index.html' }
+  STATIC_URLS_OPTIONS = { urls: ["/static"], root: "#{root}", index: 'index.html' }
+  HASH_OPTIONS = { urls: { "/cgi/sekret" => 'cgi/test' }, root: root }
+  HASH_ROOT_OPTIONS = { urls: { "/" => "static/foo.html" }, root: root }
+  GZIP_OPTIONS = { urls: ["/cgi"], root: root, gzip: true }
 
   before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
+  @static_urls_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_URLS_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
   @hash_root_request = Rack::MockRequest.new(static(DummyApp.new, HASH_ROOT_OPTIONS))
   @gzip_request = Rack::MockRequest.new(static(DummyApp.new, GZIP_OPTIONS))
@@ -63,6 +67,16 @@ describe Rack::Static do
     res.body.must_match(/another index!/)
   end
 
+  it "does not call index file when requesting folder with unknown prefix" do
+    res = @static_urls_request.get("/static/another/")
+    res.must_be :ok?
+    res.body.must_match(/index!/)
+
+    res = @static_urls_request.get("/something/else/")
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
+  end
+
   it "doesn't call index file if :index option was omitted" do
     res = @request.get("/")
     res.body.must_equal "Hello World"
@@ -87,7 +101,7 @@ describe Rack::Static do
   end
 
   it "serves gzipped files if client accepts gzip encoding and gzip files are present" do
-    res = @gzip_request.get("/cgi/test", 'HTTP_ACCEPT_ENCODING'=>'deflate, gzip')
+    res = @gzip_request.get("/cgi/test", 'HTTP_ACCEPT_ENCODING' => 'deflate, gzip')
     res.must_be :ok?
     res.headers['Content-Encoding'].must_equal 'gzip'
     res.headers['Content-Type'].must_equal 'text/plain'
@@ -95,9 +109,9 @@ describe Rack::Static do
   end
 
   it "serves regular files if client accepts gzip encoding and gzip files are not present" do
-    res = @gzip_request.get("/cgi/rackup_stub.rb", 'HTTP_ACCEPT_ENCODING'=>'deflate, gzip')
+    res = @gzip_request.get("/cgi/rackup_stub.rb", 'HTTP_ACCEPT_ENCODING' => 'deflate, gzip')
     res.must_be :ok?
-    res.headers['Content-Encoding'].must_equal nil
+    res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_equal 'text/x-script.ruby'
     res.body.must_match(/ruby/)
   end
@@ -105,27 +119,27 @@ describe Rack::Static do
   it "serves regular files if client does not accept gzip encoding" do
     res = @gzip_request.get("/cgi/test")
     res.must_be :ok?
-    res.headers['Content-Encoding'].must_equal nil
+    res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_equal 'text/plain'
     res.body.must_match(/ruby/)
   end
 
   it "supports serving fixed cache-control (legacy option)" do
-    opts = OPTIONS.merge(:cache_control => 'public')
+    opts = OPTIONS.merge(cache_control: 'public')
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
     res = request.get("/cgi/test")
     res.must_be :ok?
     res.headers['Cache-Control'].must_equal 'public'
   end
 
-  HEADER_OPTIONS = {:urls => ["/cgi"], :root => root, :header_rules => [
-    [:all, {'Cache-Control' => 'public, max-age=100'}],
-    [:fonts, {'Cache-Control' => 'public, max-age=200'}],
-    [%w(png jpg), {'Cache-Control' => 'public, max-age=300'}],
-    ['/cgi/assets/folder/', {'Cache-Control' => 'public, max-age=400'}],
-    ['cgi/assets/javascripts', {'Cache-Control' => 'public, max-age=500'}],
-    [/\.(css|erb)\z/, {'Cache-Control' => 'public, max-age=600'}]
-  ]}
+  HEADER_OPTIONS = { urls: ["/cgi"], root: root, header_rules: [
+    [:all, { 'Cache-Control' => 'public, max-age=100' }],
+    [:fonts, { 'Cache-Control' => 'public, max-age=200' }],
+    [%w(png jpg), { 'Cache-Control' => 'public, max-age=300' }],
+    ['/cgi/assets/folder/', { 'Cache-Control' => 'public, max-age=400' }],
+    ['cgi/assets/javascripts', { 'Cache-Control' => 'public, max-age=500' }],
+    [/\.(css|erb)\z/, { 'Cache-Control' => 'public, max-age=600' }]
+  ] }
 
   it "supports header rule :all" do
     # Headers for all files via :all shortcut
@@ -170,9 +184,9 @@ describe Rack::Static do
 
   it "prioritizes header rules over fixed cache-control setting (legacy option)" do
     opts = OPTIONS.merge(
-      :cache_control => 'public, max-age=24',
-      :header_rules => [
-        [:all, {'Cache-Control' => 'public, max-age=42'}]
+      cache_control: 'public, max-age=24',
+      header_rules: [
+        [:all, { 'Cache-Control' => 'public, max-age=42' }]
       ])
 
     request = Rack::MockRequest.new(static(DummyApp.new, opts))
@@ -181,4 +195,14 @@ describe Rack::Static do
     res.headers['Cache-Control'].must_equal 'public, max-age=42'
   end
 
+  it "expands the root path upon the middleware initialization" do
+    relative_path = STATIC_OPTIONS[:root].sub("#{Dir.pwd}/", '')
+    opts = { urls: [""], root: relative_path, index: 'index.html' }
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    Dir.chdir '..' do
+      res = request.get("")
+      res.must_be :ok?
+      res.body.must_match(/index!/)
+    end
+  end
 end

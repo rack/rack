@@ -1,5 +1,5 @@
 #!/usr/bin/env ruby
-# -*- ruby -*-
+# frozen_string_literal: true
 
 require 'uri'
 $:.unshift '../../lib'

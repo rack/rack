@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'rack'
 require 'rack/cascade'
 require 'rack/file'
@@ -17,7 +19,7 @@ describe Rack::Cascade do
   app2 = Rack::URLMap.new("/crash" => lambda { |env| raise "boom" })
 
   app3 = Rack::URLMap.new("/foo" => lambda { |env|
-                            [200, { "Content-Type" => "text/plain"}, [""]]})
+                            [200, { "Content-Type" => "text/plain" }, [""]]})
 
   it "dispatch onward on 404 and 405 by default" do
     cascade = cascade([app1, app2, app3])

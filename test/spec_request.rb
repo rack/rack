@@ -1,4 +1,6 @@
-require 'minitest/autorun'
+# frozen_string_literal: true
+
+require 'minitest/global_expectations/autorun'
 require 'stringio'
 require 'cgi'
 require 'rack/request'
@@ -53,7 +55,7 @@ class RackRequestTest < Minitest::Spec
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'
     hash = {}
-    req.each_header do |k,v|
+    req.each_header do |k, v|
       hash[k] = v
     end
     assert_equal 'bar', hash['foo']
@@ -230,7 +232,7 @@ class RackRequestTest < Minitest::Spec
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 65536, 100)
@@ -272,7 +274,7 @@ class RackRequestTest < Minitest::Spec
 
     old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 3
     begin
-      exp = {"foo"=>{"bar"=>{"baz"=>{"qux"=>"1"}}}}
+      exp = { "foo" => { "bar" => { "baz" => { "qux" => "1" } } } }
       make_request(nested_query).GET.must_equal exp
       lambda { make_request(plain_query).GET  }.must_raise RangeError
     ensure
@@ -298,7 +300,7 @@ class RackRequestTest < Minitest::Spec
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super
-        @params = Hash.new{|h,k| h[k.to_s] if k.is_a?(Symbol)}
+        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 65536, 100)
@@ -476,7 +478,7 @@ class RackRequestTest < Minitest::Spec
 
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.referer.must_equal nil
+    req.referer.must_be_nil
   end
 
   it "extract user agent correctly" do
@@ -486,25 +488,25 @@ class RackRequestTest < Minitest::Spec
 
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.user_agent.must_equal nil
+    req.user_agent.must_be_nil
   end
 
   it "treat missing content type as nil" do
     req = make_request \
       Rack::MockRequest.env_for("/")
-    req.content_type.must_equal nil
+    req.content_type.must_be_nil
   end
 
   it "treat empty content type as nil" do
     req = make_request \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.content_type.must_equal nil
+    req.content_type.must_be_nil
   end
 
   it "return nil media type for empty content type" do
     req = make_request \
       Rack::MockRequest.env_for("/", "CONTENT_TYPE" => "")
-    req.media_type.must_equal nil
+    req.media_type.must_be_nil
   end
 
   it "cache, but invalidates the cache" do
@@ -570,6 +572,11 @@ class RackRequestTest < Minitest::Spec
     request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https, http, http'))
     request.scheme.must_equal "https"
     request.must_be :ssl?
+  end
+
+  it "prevents scheme abuse" do
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_SCHEME' => 'a."><script>alert(1)</script>'))
+    request.scheme.must_equal 'http'
   end
 
   it "parse cookies" do
@@ -722,7 +729,7 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "provide setters" do
-    req = make_request(e=Rack::MockRequest.env_for(""))
+    req = make_request(e = Rack::MockRequest.env_for(""))
     req.script_name.must_equal ""
     req.script_name = "/foo"
     req.script_name.must_equal "/foo"
@@ -953,7 +960,7 @@ EOF
 --AaB03x\r
 content-disposition: form-data; name="huge"; filename="huge"\r
 \r
-#{"x"*32768}\r
+#{"x" * 32768}\r
 --AaB03x\r
 content-disposition: form-data; name="mean"; filename="mean"\r
 \r
@@ -1072,7 +1079,7 @@ EOF
 content-disposition: form-data; name="fileupload"; filename="junk.a"\r
 content-type: application/octet-stream\r
 \r
-#{[0x36,0xCF,0x0A,0xF8].pack('c*')}\r
+#{[0x36, 0xCF, 0x0A, 0xF8].pack('c*')}\r
 --AaB03x--\r
 EOF
 
@@ -1092,7 +1099,7 @@ EOF
     rack_input.rewind
 
     req = make_request Rack::MockRequest.env_for("/",
-                      "rack.request.form_hash" => {'foo' => 'bar'},
+                      "rack.request.form_hash" => { 'foo' => 'bar' },
                       "rack.request.form_input" => rack_input,
                       :input => rack_input)
 
@@ -1103,10 +1110,10 @@ EOF
     app = lambda { |env|
       content = make_request(env).POST["file"].inspect
       size = content.bytesize
-      [200, {"Content-Type" => "text/html", "Content-Length" => size.to_s}, [content]]
+      [200, { "Content-Type" => "text/html", "Content-Length" => size.to_s }, [content]]
     }
 
-    input = <<EOF
+    input = <<EOF.dup
 --AaB03x\r
 content-disposition: form-data; name="reply"\r
 \r
@@ -1216,6 +1223,20 @@ EOF
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '127.0.0.1, 3.4.5.6'
     res.body.must_equal '3.4.5.6'
 
+    # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '[2001:db8:cafe::17]:47011'
+    res.body.must_equal '2001:db8:cafe::17'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, [2001:db8:cafe::17]:47011'
+    res.body.must_equal '2001:db8:cafe::17'
+
+    # IPv4 format with optional port: "192.0.2.43:47011"
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '192.0.2.43:47011'
+    res.body.must_equal '192.0.2.43'
+
+    res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, 192.0.2.43:47011'
+    res.body.must_equal '192.0.2.43'
+
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => 'unknown,192.168.0.1'
     res.body.must_equal 'unknown'
 
@@ -1281,28 +1302,45 @@ EOF
     res.body.must_equal '2.2.2.3'
   end
 
-  it "regard local addresses as proxies" do
-    req = make_request(Rack::MockRequest.env_for("/"))
-    req.trusted_proxy?('127.0.0.1').must_equal 0
-    req.trusted_proxy?('10.0.0.1').must_equal 0
-    req.trusted_proxy?('172.16.0.1').must_equal 0
-    req.trusted_proxy?('172.20.0.1').must_equal 0
-    req.trusted_proxy?('172.30.0.1').must_equal 0
-    req.trusted_proxy?('172.31.0.1').must_equal 0
-    req.trusted_proxy?('192.168.0.1').must_equal 0
-    req.trusted_proxy?('::1').must_equal 0
-    req.trusted_proxy?('fd00::').must_equal 0
-    req.trusted_proxy?('localhost').must_equal 0
-    req.trusted_proxy?('unix').must_equal 0
-    req.trusted_proxy?('unix:/tmp/sock').must_equal 0
+  it "preserves ip for trusted proxy chain" do
+    mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '192.168.0.11, 192.168.0.7',
+      'HTTP_CLIENT_IP' => '127.0.0.1'
+    res.body.must_equal '192.168.0.11'
 
-    req.trusted_proxy?("unix.example.org").must_equal nil
-    req.trusted_proxy?("example.org\n127.0.0.1").must_equal nil
-    req.trusted_proxy?("127.0.0.1\nexample.org").must_equal nil
-    req.trusted_proxy?("11.0.0.1").must_equal nil
-    req.trusted_proxy?("172.15.0.1").must_equal nil
-    req.trusted_proxy?("172.32.0.1").must_equal nil
-    req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal nil
+  end
+
+  it "uses a custom trusted proxy filter" do
+    old_ip = Rack::Request.ip_filter
+    Rack::Request.ip_filter = lambda { |ip| ip == 'foo' }
+    req = make_request(Rack::MockRequest.env_for("/"))
+    assert req.trusted_proxy?('foo')
+    Rack::Request.ip_filter = old_ip
+  end
+
+  it "regards local addresses as proxies" do
+    req = make_request(Rack::MockRequest.env_for("/"))
+    req.trusted_proxy?('127.0.0.1').must_equal true
+    req.trusted_proxy?('10.0.0.1').must_equal true
+    req.trusted_proxy?('172.16.0.1').must_equal true
+    req.trusted_proxy?('172.20.0.1').must_equal true
+    req.trusted_proxy?('172.30.0.1').must_equal true
+    req.trusted_proxy?('172.31.0.1').must_equal true
+    req.trusted_proxy?('192.168.0.1').must_equal true
+    req.trusted_proxy?('::1').must_equal true
+    req.trusted_proxy?('fd00::').must_equal true
+    req.trusted_proxy?('localhost').must_equal true
+    req.trusted_proxy?('unix').must_equal true
+    req.trusted_proxy?('unix:/tmp/sock').must_equal true
+
+    req.trusted_proxy?("unix.example.org").must_equal false
+    req.trusted_proxy?("example.org\n127.0.0.1").must_equal false
+    req.trusted_proxy?("127.0.0.1\nexample.org").must_equal false
+    req.trusted_proxy?("11.0.0.1").must_equal false
+    req.trusted_proxy?("172.15.0.1").must_equal false
+    req.trusted_proxy?("172.32.0.1").must_equal false
+    req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal false
   end
 
   it "sets the default session to an empty hash" do
@@ -1312,7 +1350,7 @@ EOF
 
   class MyRequest < Rack::Request
     def params
-      {:foo => "bar"}
+      { foo: "bar" }
     end
   end
 
@@ -1325,7 +1363,7 @@ EOF
 
     req2 = MyRequest.new(env)
     req2.GET.must_equal "foo" => "bar"
-    req2.params.must_equal :foo => "bar"
+    req2.params.must_equal foo: "bar"
   end
 
   it "allow parent request to be instantiated after subclass request" do
@@ -1333,7 +1371,7 @@ EOF
 
     req1 = MyRequest.new(env)
     req1.GET.must_equal "foo" => "bar"
-    req1.params.must_equal :foo => "bar"
+    req1.params.must_equal foo: "bar"
 
     req2 = make_request(env)
     req2.GET.must_equal "foo" => "bar"

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'rack/request'
 
 module Rack
@@ -13,7 +15,11 @@ module Rack
       end
 
       def provided?
-        !authorization_key.nil?
+        !authorization_key.nil? && valid?
+      end
+
+      def valid?
+        !@env[authorization_key].nil?
       end
 
       def parts

@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 require 'helper'
 
 if defined? LIGHTTPD_PID
@@ -36,7 +38,7 @@ describe Rack::Handler::FastCGI do
 
   it "have rack headers" do
     GET("/test.fcgi")
-    response["rack.version"].must_equal [1,3]
+    response["rack.version"].must_equal [1, 3]
     assert_equal false, response["rack.multithread"]
     assert_equal true, response["rack.multiprocess"]
     assert_equal false, response["rack.run_once"]
@@ -60,7 +62,7 @@ describe Rack::Handler::FastCGI do
   end
 
   it "have CGI headers on POST" do
-    POST("/test.fcgi", {"rack-form-data" => "23"}, {'X-test-header' => '42'})
+    POST("/test.fcgi", { "rack-form-data" => "23" }, { 'X-test-header' => '42' })
     status.must_equal 200
     response["REQUEST_METHOD"].must_equal "POST"
     response["SCRIPT_NAME"].must_equal "/test.fcgi"
@@ -71,7 +73,7 @@ describe Rack::Handler::FastCGI do
   end
 
   it "support HTTP auth" do
-    GET("/test.fcgi", {:user => "ruth", :passwd => "secret"})
+    GET("/test.fcgi", { user: "ruth", passwd: "secret" })
     response["HTTP_AUTHORIZATION"].must_equal "Basic cnV0aDpzZWNyZXQ="
   end
 

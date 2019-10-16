@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # bugrep: Andreas Zehnder
 
@@ -15,8 +17,22 @@ module Rack
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash
+        using Module.new {
+          refine Hash do
+            def transform_keys(&block)
+              hash = {}
+              each do |key, value|
+                hash[block.call(key)] = value
+              end
+              hash
+            end
+          end
+        } unless {}.respond_to?(:transform_keys)
+
         include Enumerable
         attr_writer :id
+
+        Unspecified = Object.new
 
         def self.find(req)
           req.get_header RACK_SESSION
@@ -54,7 +70,15 @@ module Rack
           load_for_read!
           @data[key.to_s]
         end
-        alias :fetch :[]
+
+        def fetch(key, default = Unspecified, &block)
+          load_for_read!
+          if default == Unspecified
+            @data.fetch(key.to_s, &block)
+          else
+            @data.fetch(key.to_s, default, &block)
+          end
+        end
 
         def has_key?(key)
           load_for_read!
@@ -150,11 +174,7 @@ module Rack
         end
 
         def stringify_keys(other)
-          hash = {}
-          other.each do |key, value|
-            hash[key.to_s] = value
-          end
-          hash
+          other.transform_keys(&:to_s)
         end
       end
 
@@ -167,7 +187,7 @@ module Rack
       # * :key determines the name of the cookie, by default it is
       #   'rack.session'
       # * :path, :domain, :expire_after, :secure, and :httponly set the related
-      #   cookie options as by Rack::Response#add_cookie
+      #   cookie options as by Rack::Response#set_cookie
       # * :skip will not a set a cookie in the response nor update the session state
       # * :defer will not set a cookie in the response but still update the session
       #   state if it is used with a backend
@@ -189,22 +209,22 @@ module Rack
 
       class Persisted
         DEFAULT_OPTIONS = {
-          :key =>           RACK_SESSION,
-          :path =>          '/',
-          :domain =>        nil,
-          :expire_after =>  nil,
-          :secure =>        false,
-          :httponly =>      true,
-          :defer =>         false,
-          :renew =>         false,
-          :sidbits =>       128,
-          :cookie_only =>   true,
-          :secure_random => ::SecureRandom
-        }
+          key: RACK_SESSION,
+          path: '/',
+          domain: nil,
+          expire_after: nil,
+          secure: false,
+          httponly: true,
+          defer: false,
+          renew: false,
+          sidbits: 128,
+          cookie_only: true,
+          secure_random: ::SecureRandom
+        }.freeze
 
         attr_reader :key, :default_options, :sid_secure
 
-        def initialize(app, options={})
+        def initialize(app, options = {})
           @app = app
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = @default_options.delete(:key)
@@ -216,7 +236,7 @@ module Rack
           context(env)
         end
 
-        def context(env, app=@app)
+        def context(env, app = @app)
           req = make_request env
           prepare_session(req)
           status, headers, body = app.call(req.env)
@@ -339,7 +359,7 @@ module Rack
 
           session.send(:load!) unless loaded_session?(session)
           session_id ||= session.id
-          session_data = session.to_hash.delete_if { |k,v| v.nil? }
+          session_data = session.to_hash.delete_if { |k, v| v.nil? }
 
           if not data = write_session(req, session_id, session_data, options)
             req.get_header(RACK_ERRORS).puts("Warning! #{self.class.name} failed to save session. Content dropped.")
@@ -398,7 +418,7 @@ module Rack
 
       class ID < Persisted
         def self.inherited(klass)
-          k = klass.ancestors.find { |kl| kl.superclass == ID }
+          k = klass.ancestors.find { |kl| kl.respond_to?(:superclass) && kl.superclass == ID }
           unless k.instance_variable_defined?(:"@_rack_warned")
             warn "#{klass} is inheriting from #{ID}.  Inheriting from #{ID} is deprecated, please inherit from #{Persisted} instead" if $VERBOSE
             k.instance_variable_set(:"@_rack_warned", true)
