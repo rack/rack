@@ -15,6 +15,8 @@ module Rack
   module Session
 
     class SessionId
+      ID_VERSION = 2
+
       attr_reader :public_id
 
       def initialize(public_id)
@@ -22,7 +24,7 @@ module Rack
       end
 
       def private_id
-        hash_sid public_id
+        "#{ID_VERSION}::#{hash_sid(public_id)}"
       end
 
       alias :cookie_value :public_id

@@ -248,7 +248,6 @@ begin
       pool.pool.set(session_id.public_id, ses0, 0, true)
       pool.pool.delete(session_id.private_id)
 
-
       res1 = req.get("/", "HTTP_COOKIE" => cookie)
       res1["Set-Cookie"].must_be_nil
       res1.body.must_equal '{"counter"=>2}'
@@ -267,7 +266,6 @@ begin
       ses0 = pool.pool.get(session_id.private_id, true)
       pool.pool.set(session_id.public_id, ses0, 0, true)
       pool.pool.delete(session_id.private_id)
-
 
       res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
       res2["Set-Cookie"].must_be_nil
