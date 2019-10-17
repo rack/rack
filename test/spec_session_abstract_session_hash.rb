@@ -44,4 +44,10 @@ describe Rack::Session::Abstract::SessionHash do
       lambda { hash.fetch(:unknown) }.must_raise KeyError
     end
   end
+
+  describe "#stringify_keys" do
+    it "returns hash or session hash with keys stringified" do
+      assert_equal({ "foo" => :bar, "baz" => :qux }, hash.send(:stringify_keys, hash).to_h)
+    end
+  end
 end
