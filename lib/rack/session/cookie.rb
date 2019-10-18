@@ -6,6 +6,7 @@ require 'rack/request'
 require 'rack/response'
 require 'rack/session/abstract/id'
 require 'json'
+require 'base64'
 
 module Rack
 
@@ -51,11 +52,11 @@ module Rack
       # Encode session cookies as Base64
       class Base64
         def encode(str)
-          [str].pack('m')
+          ::Base64.encode64(str)
         end
 
         def decode(str)
-          str.unpack('m').first
+          ::Base64.decode64(str)
         end
 
         # Encode session cookies as Marshaled Base64 data
