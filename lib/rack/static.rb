@@ -125,7 +125,7 @@ module Rack
       if can_serve(path)
         if overwrite_file_path(path)
           env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
-        elsif @gzip && /\bgzip\b/.match?(env['HTTP_ACCEPT_ENCODING'])
+        elsif @gzip && env['HTTP_ACCEPT_ENCODING'] && /\bgzip\b/.match?(env['HTTP_ACCEPT_ENCODING'])
           path = env[PATH_INFO]
           env[PATH_INFO] += '.gz'
           response = @file_server.call(env)
