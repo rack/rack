@@ -4,17 +4,12 @@
 require 'time'
 require 'rack/request'
 require 'rack/response'
-<<<<<<< HEAD
 begin
   require 'securerandom'
 rescue LoadError
   # We just won't get securerandom
 end
 require "digest/sha2"
-=======
-require 'securerandom'
-require 'digest/sha2'
->>>>>>> Fallback to the public id when reading the session in the pool adapter
 
 module Rack
 
@@ -90,11 +85,7 @@ module Rack
 
         def [](key)
           load_for_read!
-          if key == "session_id"
-            id.public_id
-          else
-            @data[key.to_s]
-          end
+          @data[key.to_s]
         end
         alias :fetch :[]
 
@@ -227,7 +218,7 @@ module Rack
       # Not included by default; you must require 'rack/session/abstract/id'
       # to use.
 
-      class ID
+      class Persisted
         DEFAULT_OPTIONS = {
           :key =>           'rack.session',
           :path =>          '/',
@@ -275,13 +266,11 @@ module Rack
         # Monkey patch this to use custom methods for session id generation.
 
         def generate_sid(secure = @sid_secure)
-          public_id = if secure
+          if secure
             secure.hex(@sid_length)
           else
             "%0#{@sid_length}x" % Kernel.rand(2**@sidbits - 1)
           end
-
-          SessionId.new(public_id)
         rescue NotImplementedError
           generate_sid(false)
         end
@@ -311,7 +300,7 @@ module Rack
           request = Rack::Request.new(env)
           sid = request.cookies[@key]
           sid ||= request.params[@key] unless @cookie_only
-          sid && SessionId.new(sid)
+          sid
         end
 
         # Returns the current session id from the SessionHash.
@@ -383,13 +372,17 @@ module Rack
             env["rack.errors"].puts("Deferring cookie for #{session_id}") if $VERBOSE
           else
             cookie = Hash.new
-            cookie[:value] = data.cookie_value
+            cookie[:value] = cookie_value(data)
             cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
             cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
             set_cookie(env, headers, cookie.merge!(options))
           end
 
           [status, headers, body]
+        end
+
+        def cookie_value(data)
+          data
         end
 
         # Sets the cookie back to the client with session id. We skip the cookie
@@ -430,6 +423,51 @@ module Rack
 
         def destroy_session(env, sid, options)
           raise '#destroy_session not implemented'
+        end
+      end
+
+      class PersistedSecure < Persisted
+        class SecureSessionHash < SessionHash
+          def [](key)
+            if key == "session_id"
+              load_for_read!
+              id.public_id
+            else
+              super
+            end
+          end
+        end
+
+        def generate_sid(*)
+          public_id = super
+
+          SessionId.new(public_id)
+        end
+
+        def extract_session_id(*)
+          public_id = super
+          public_id && SessionId.new(public_id)
+        end
+
+        private
+
+        def session_class
+          SecureSessionHash
+        end
+
+        def cookie_value(data)
+          data.cookie_value
+        end
+      end
+
+      class ID < Persisted
+        def self.inherited(klass)
+          k = klass.ancestors.find { |kl| kl.respond_to?(:superclass) && kl.superclass == ID }
+          unless k.instance_variable_defined?(:"@_rack_warned")
+            warn "#{klass} is inheriting from #{ID}.  Inheriting from #{ID} is deprecated, please inherit from #{Persisted} instead" if $VERBOSE
+            k.instance_variable_set(:"@_rack_warned", true)
+          end
+          super
         end
       end
     end
