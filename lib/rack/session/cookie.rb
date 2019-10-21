@@ -47,7 +47,7 @@ module Rack
     #   })
     #
 
-    class Cookie < Abstract::Persisted
+    class Cookie < Abstract::PersistedSecure
       # Encode session cookies as Base64
       class Base64
         def encode(str)

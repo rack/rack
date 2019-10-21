@@ -26,7 +26,7 @@ module Rack
     #   )
     #   Rack::Handler::WEBrick.run sessioned
 
-    class Pool < Abstract::Persisted
+    class Pool < Abstract::PersistedSecure
       attr_reader :mutex, :pool
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge drop: false
 
