@@ -28,11 +28,11 @@ module Rack
         end
 
         def to_s
-          [([ @timestamp, digest ] * ' ')].pack("m*").strip
+          ["#{@timestamp} #{digest}"].pack("m*").strip
         end
 
         def digest
-          ::Digest::MD5.hexdigest([ @timestamp, self.class.private_key ] * ':')
+          ::Digest::MD5.hexdigest("#{@timestamp}:#{self.class.private_key}")
         end
 
         def valid?
