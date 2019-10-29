@@ -55,7 +55,7 @@ module Rack
         end
       end
 
-      return params.to_params_hash
+      return params.to_h
     end
 
     # parse_nested_query expands a query string into structural types. Supported
@@ -73,7 +73,7 @@ module Rack
         normalize_params(params, k, v, param_depth_limit)
       end
 
-      return params.to_params_hash
+      return params.to_h
     rescue ArgumentError => e
       raise InvalidParameterError, e.message
     end
@@ -177,22 +177,42 @@ module Rack
         @params.key?(key)
       end
 
-      def to_params_hash
-        hash = @params
-        hash.keys.each do |key|
-          value = hash[key]
-          if value.kind_of?(self.class)
-            if value.object_id == self.object_id
-              hash[key] = hash
-            else
-              hash[key] = value.to_params_hash
-            end
-          elsif value.kind_of?(Array)
-            value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
+      # Recursively unwraps nested `Params` objects and constructs an object
+      # of the same shape, but using the objects' internal representations
+      # (Ruby hashes) in place of the objects. The result is a hash consisting
+      # purely of Ruby primitives.
+      #
+      #   Mutation warning!
+      #
+      #   1. This method mutates the internal representation of the `Params`
+      #      objects in order to save object allocations.
+      #
+      #   2. The value you get back is a reference to the internal hash
+      #      representation, not a copy.
+      #
+      #   3. Because the `Params` object's internal representation is mutable
+      #      through the `#[]=` method, it is not thread safe. The result of
+      #      getting the hash representation while another thread is adding a
+      #      key to it is non-deterministic.
+      #
+      def to_h
+        @params.each do |key, value|
+          case value
+          when self
+            # Handle circular references gracefully.
+            @params[key] = @params
+          when Params
+            @params[key] = value.to_h
+          when Array
+            value.map! { |v| v.kind_of?(Params) ? v.to_h : v }
+          else
+            # Ignore anything that is not a `Params` object or
+            # a collection that can contain one.
           end
         end
-        hash
+        @params
       end
+      alias_method :to_params_hash, :to_h
     end
   end
 end
