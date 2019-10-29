@@ -3,7 +3,6 @@
 require 'rack/request'
 require 'rack/utils'
 require 'rack/body_proxy'
-require 'rack/simple_body_proxy'
 require 'rack/media_type'
 require 'time'
 
@@ -73,11 +72,7 @@ module Rack
         close
         [status.to_i, header, []]
       else
-        if @block.nil?
-          [status.to_i, header, SimpleBodyProxy.new(@body)]
-        else
-          [status.to_i, header, BodyProxy.new(self){}]
-        end
+        [status.to_i, header, BodyProxy.new(self){}]
       end
     end
     alias to_a finish           # For *response
