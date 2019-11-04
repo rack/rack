@@ -1,27 +1,124 @@
 # Changelog
-All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/)
 
-## [Unreleased]
+All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
+
+## Unreleased
+
+_Note: There are many unreleased changes in Rack (`master` is around 300 commits ahead of `2-0-stable`), and below is not an exhaustive list. If you would like to help out and document some of the unreleased changes, PRs are welcome._ 
+
 ### Added
-- CHANGELOG.md using keep a changelog formatting by @twitnithegirl
 
 ### Changed
-- `Rack::Utils.status_code` now raises an error when the status symbol is invalid instead of `500`.
-- `Rack::Request::SCHEME_WHITELIST` has been renamed to `Rack::Request::ALLOWED_SCHEMES`
-- `Rack::Multipart::Parser.get_filename` now accepts file that contains `+` in its name, avoiding the replacement of `+` to space character since filenames with `+` are valid.
+
+- Use `Time#httpdate` format for Expires, as proposed by RFC 7231. ([@nanaya](https://github.com/nanaya))
+- Make `Utils.status_code` raise an error when the status symbol is invalid instead of `500`.
+- Rename `Request::SCHEME_WHITELIST` to `Request::ALLOWED_SCHEMES`.
+- Make `Multipart::Parser.get_filename` accept files with `+` in their name.
+- Add Falcon to the default handler fallbacks. ([@ioquatix](https://github.com/ioquatix))
+- Update codebase to avoid string mutations in preparation for `frozen_string_literals`. ([@pat](https://github.com/pat))
+- Change `MockRequest#env_for` to rely on the input optionally responding to `#size` instead of `#length`. ([@janko](https://github.com/janko))
 
 ### Removed
-- HISTORY.md by @twitnithegirl
-- NEWS.md by @twitnithegirl
+
+### Documentation
+
+- Update broken example in `Session::Abstract::ID` documentation. ([tonytonyjan](https://github.com/tonytonyjan))
+- Add Padrino to the list of frameworks implmenting Rack. ([@wikimatze](https://github.com/wikimatze))
+- Remove Mongrel from the suggested server options in the help output. ([@tricknotes](https://github.com/tricknotes))
+- Replace `HISTORY.md` and `NEWS.md` with `CHANGELOG.md`. ([@twitnithegirl](https://github.com/twitnithegirl))
+- Backfill `CHANGELOG.md` from 2.0.1 to 2.0.7 releases. ([@drenmi](https://github.com/Drenmi))
+
+## [2.0.7] - 2019-04-02
+
+### Fixed
+
+- Remove calls to `#eof?` on Rack input in `Multipart::Parser`, as this breaks the specification. ([@matthewd](https://github.com/matthewd))
+- Preserve forwarded IP addresses for trusted proxy chains. ([@SamSaffron](https://github.com/SamSaffron))
+
+## [2.0.6] - 2018-11-05
+
+### Fixed
+
+- [[CVE-2018-16470](https://nvd.nist.gov/vuln/detail/CVE-2018-16470)] Reduce buffer size of `Multipart::Parser` to avoid pathological parsing. ([@tenderlove](https://github.com/tenderlove))
+- Fix a call to a non-existing method `#accepts_html` in the `ShowExceptions` middleware. ([@tomelm](https://github.com/tomelm))
+- [[CVE-2018-16471](https://nvd.nist.gov/vuln/detail/CVE-2018-16471)] Whitelist HTTP and HTTPS schemes in `Request#scheme` to prevent a possible XSS attack. ([@PatrickTulskie](https://github.com/PatrickTulskie))
+
+## [2.0.5] - 2018-04-23
+
+### Fixed
+
+- Record errors originating from invalid UTF8 in `MethodOverride` middleware instead of breaking. ([@mclark](https://github.com/mclark))
+
+## [2.0.4] - 2018-01-31
+
+### Changed
+
+- Ensure the `Lock` middleware passes the original `env` object. ([@lugray](https://github.com/lugray))
+- Improve performance of `Multipart::Parser` when uploading large files. ([@tompng](https://github.com/tompng))
+- Increase buffer size in `Multipart::Parser` for better performance. ([@jkowens](https://github.com/jkowens))
+- Reduce memory usage of `Multipart::Parser` when uploading large files. ([@tompng](https://github.com/tompng))
+- Replace ConcurrentRuby dependency with native `Queue`. ([@devmchakan](https://github.com/devmchakan))
+
+### Fixed
+
+- Require the correct digest algorithm in the `ETag` middleware. ([@matthewd](https://github.com/matthewd))
+
+### Documentation
+
+- Update homepage links to use SSL. ([@hugoabonizio](https://github.com/hugoabonizio))
+
+## [2.0.3] - 2017-05-15
+
+### Changed
+
+- Ensure `env` values are ASCII 8-bit encoded. ([@eileencodes](https://github.com/eileencodes))
+
+### Fixed
+
+- Prevent exceptions when a class with mixins inherits from `Session::Abstract::ID`. ([@jnraine](https://github.com/jnraine))
+
+## [2.0.2] - 2017-05-08
+
+### Added
+
+- Allow `Session::Abstract::SessionHash#fetch` to accept a block with a default value. ([@yannvanhalewyn](https://github.com/yannvanhalewyn))
+- Add `Builder#freeze_app` to freeze application and all middleware. ([@jeremyevans](https://github.com/jeremyevans))
+
+### Changed
+
+- Freeze default session options to avoid accidental mutation. ([@kirs](https://github.com/kirs))
+- Detect partial hijack without hash headers. ([@devmchakan](https://github.com/devmchakan))
+- Update tests to use MiniTest 6 matchers. ([@tonytonyjan](https://github.com/tonytonyjan))
+- Allow 205 Reset Content responses to set a Content-Length, as RFC 7231 proposes setting this to 0. ([@devmchakan](https://github.com/devmchakan))
+
+### Fixed
+
+- Handle `NULL` bytes in multipart filenames. ([@casperisfine](https://github.com/casperisfine))
+- Remove warnings due to miscapitalized global. ([@ioquatix](https://github.com/ioquatix))
+- Prevent exceptions caused by a race condition on multi-threaded servers. ([@sophiedeziel](https://github.com/sophiedeziel))
+- Add RDoc as an explicit depencency for `doc` group. ([@tonytonyjan](https://github.com/tonytonyjan))
+- Record errors originating from `Multipart::Parser` in the `MethodOverride` middleware instead of letting them bubble up. ([@carlzulauf](https://github.com/carlzulauf))
+- Remove remaining use of removed `Utils#bytesize` method from the `File` middleware. ([@brauliomartinezlm](https://github.com/brauliomartinezlm))
+
+### Removed
+
+- Remove `deflate` encoding support to reduce caching overhead. ([@devmchakan](https://github.com/devmchakan))
+
+### Documentation
+
+- Update broken example in `Deflater` documentation. ([@mwpastore](https://github.com/mwpastore))
+
+## [2.0.1] - 2016-06-30
+
+### Changed
+
+- Remove JSON as an explicit dependency. ([@mperham](https://github.com/mperham))
 
 
-#
-#
 # History/News Archive
 Items below this line are from the previously maintained HISTORY.md and NEWS.md files.
-#
 
-## [2.0.0]
+## [2.0.0.rc1] 2016-05-06
 - Rack::Session::Abstract::ID is deprecated. Please change to use Rack::Session::Abstract::Persisted
 
 ## [2.0.0.alpha] 2015-12-04
