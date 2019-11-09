@@ -32,6 +32,7 @@ These web servers include \Rack handlers in their distributions:
 * Ebb
 * Fuzed
 * Glassfish v3
+* NGINX Unit
 * Phusion Passenger (which is mod_rack for Apache and for nginx)
 * Puma
 * Reel
