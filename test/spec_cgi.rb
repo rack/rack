@@ -2,7 +2,7 @@
 
 require 'helper'
 
-if defined? LIGHTTPD_PID
+if defined? Rack::TestCase::LIGHTTPD_PID
 
 require File.expand_path('../testrequest', __FILE__)
 require 'rack/handler/cgi'
@@ -83,4 +83,4 @@ describe Rack::Handler::CGI do
   end
 end
 
-end # if defined? LIGHTTPD_PID
+end # if defined? Rack::TestCase::LIGHTTPD_PID
