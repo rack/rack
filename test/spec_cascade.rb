@@ -28,7 +28,7 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade).get("/toobad").must_be :not_found?
     Rack::MockRequest.new(cascade).get("/cgi/../..").must_be :client_error?
 
-    # Put is not allowed by Rack::File so it'll 405.
+    # Put is not allowed by Rack::Files so it'll 405.
     Rack::MockRequest.new(cascade).put("/foo").must_be :ok?
   end
 

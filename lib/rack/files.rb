@@ -7,12 +7,12 @@ require 'rack/request'
 require 'rack/head'
 
 module Rack
-  # Rack::File serves files below the +root+ directory given, according to the
+  # Rack::Files serves files below the +root+ directory given, according to the
   # path info of the Rack request.
   # e.g. when Rack::Files.new("/etc") is used, you can access 'passwd' file
   # as http://localhost:9292/passwd
   #
-  # Handlers can detect if bodies are a Rack::File, and use mechanisms
+  # Handlers can detect if bodies are a Rack::Files, and use mechanisms
   # like sendfile on the +path+.
 
   class Files
