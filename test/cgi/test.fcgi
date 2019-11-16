@@ -1,4 +1,4 @@
-#!/usr/bin/env ruby
+#!../../bin/ruby
 # frozen_string_literal: true
 
 require 'uri'

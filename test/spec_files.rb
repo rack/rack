@@ -153,12 +153,12 @@ describe Rack::Files do
 
   it "return correct byte range in body" do
     env = Rack::MockRequest.env_for("/cgi/test")
-    env["HTTP_RANGE"] = "bytes=22-33"
+    env["HTTP_RANGE"] = "bytes=19-30"
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
 
     res.status.must_equal 206
     res["Content-Length"].must_equal "12"
-    res["Content-Range"].must_equal "bytes 22-33/208"
+    res["Content-Range"].must_equal "bytes 19-30/205"
     res.body.must_equal "frozen_strin"
   end
 
@@ -168,7 +168,7 @@ describe Rack::Files do
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
 
     res.status.must_equal 416
-    res["Content-Range"].must_equal "bytes */208"
+    res["Content-Range"].must_equal "bytes */205"
   end
 
   it "support custom http headers" do
@@ -220,7 +220,7 @@ describe Rack::Files do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::Files.new(DOCROOT)))
     res = req.head "/cgi/test"
     res.must_be :successful?
-    res['Content-Length'].must_equal "208"
+    res['Content-Length'].must_equal "205"
   end
 
   it "default to a mime type of text/plain" do
