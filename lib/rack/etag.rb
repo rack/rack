@@ -57,8 +57,7 @@ module Rack
       end
 
       def skip_caching?(headers)
-        (headers[CACHE_CONTROL] && headers[CACHE_CONTROL].include?('no-cache')) ||
-          headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
+        headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
       end
 
       def digest_body(body)
