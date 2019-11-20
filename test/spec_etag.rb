@@ -93,12 +93,6 @@ describe Rack::ETag do
     response[1]['ETag'].must_be_nil
   end
 
-  it "not set ETag if no-cache is given" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'no-cache, must-revalidate' }, ['Hello, World!']] }
-    response = etag(app).call(request)
-    response[1]['ETag'].must_be_nil
-  end
-
   it "close the original body" do
     body = StringIO.new
     app = lambda { |env| [200, {}, body] }
