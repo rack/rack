@@ -158,36 +158,7 @@ To run the test suite completely, you need:
   * memcache-client
   * thin
 
-The full set of tests test FCGI access with lighttpd (on port
-9203) so you will need lighttpd installed as well as the FCGI
-libraries and the fcgi gem:
-
-Download and install lighttpd:
-
-    http://www.lighttpd.net/download
-
-Installing the FCGI libraries:
-
-If you use Homebrew:
-
-    brew install fcgi
-
-Or using curl:
-
-    curl -O -k -L https://github.com/FastCGI-Archives/FastCGI.com/raw/master/original_snapshot/fcgi-2.4.1-SNAP-0910052249.tar.gz
-    tar xvfz fcgi-2.4.1-SNAP-0910052249.tar.gz
-    cd fcgi-2.4.1-SNAP-0910052249
-
-    ./configure --prefix=/usr/local
-    make
-    sudo make install
-    cd ..
-
-Installing the Ruby fcgi gem:
-
-    gem install fcgi
-
-Furthermore, to test Memcache sessions, you need memcached (will be
+To test Memcache sessions, you need memcached (will be
 run on port 11211) and memcache-client installed.
 
 == Configuration
