@@ -92,6 +92,7 @@ table { width:100%%; }
 
     def check_forbidden(path_info)
       return unless path_info.include? ".."
+      return if ::File.expand_path(::File.join(@root, path_info)).start_with?(@root)
 
       body = "Forbidden\n"
       size = body.bytesize

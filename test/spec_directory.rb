@@ -95,14 +95,26 @@ describe Rack::Directory do
     res.must_be :bad_request?
   end
 
+  it "allow directory traversal inside root directory" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/cgi/../rackup")
+
+    res.must_be :ok?
+
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/cgi/%2E%2E/rackup")
+
+    res.must_be :ok?
+  end
+
   it "not allow directory traversal" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
-      get("/cgi/../test")
+      get("/cgi/../../lib")
 
     res.must_be :forbidden?
 
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
-      get("/cgi/%2E%2E/test")
+      get("/cgi/%2E%2E/%2E%2E/lib")
 
     res.must_be :forbidden?
   end
