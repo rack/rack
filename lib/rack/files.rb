@@ -18,6 +18,7 @@ module Rack
   class Files
     ALLOWED_VERBS = %w[GET HEAD OPTIONS]
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
+    MULTIPART_BOUNDARY = 'AaB03x'
 
     attr_reader :root
 
@@ -70,69 +71,108 @@ module Rack
       headers[CONTENT_TYPE] = mime_type if mime_type
 
       # Set custom headers
-      @headers.each { |field, content| headers[field] = content } if @headers
+      headers.merge!(@headers) if @headers
 
-      response = [ 200, headers ]
-
+      status = 200
       size = filesize path
 
-      range = nil
       ranges = Rack::Utils.get_byte_ranges(request.get_header('HTTP_RANGE'), size)
-      if ranges.nil? || ranges.length > 1
-        # No ranges, or multiple ranges (which we don't support):
-        # TODO: Support multiple byte-ranges
-        response[0] = 200
-        range = 0..size - 1
+      if ranges.nil?
+        # No ranges:
+        ranges = [0..size - 1]
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
         response[1]["Content-Range"] = "bytes */#{size}"
         return response
-      else
-        # Partial content:
+      elsif ranges.size >= 1
+        # Partial content
         partial_content = true
-        range = ranges[0]
-        response[0] = 206
-        response[1]["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{size}"
-        size = range.end - range.begin + 1
+
+        if ranges.size == 1
+          range = ranges[0]
+          headers["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{size}"
+        else
+          headers[CONTENT_TYPE] = "multipart/byteranges; boundary=#{MULTIPART_BOUNDARY}"
+        end
+
+        status = 206
+        body = BaseIterator.new(path, ranges, mime_type: mime_type, size: size)
+        size = body.bytesize
       end
 
-      response[2] = [response_body] unless response_body.nil?
+      headers[CONTENT_LENGTH] = size.to_s
 
-      response[1][CONTENT_LENGTH] = size.to_s
-      response[2] = if request.head?
-        []
-      elsif partial_content
-        BaseIterator.new path, range
-      else
-        Iterator.new path, range
+      if request.head?
+        body = []
+      elsif !partial_content
+        body = Iterator.new(path, ranges, mime_type: mime_type, size: size)
       end
-      response
+
+      [status, headers, body]
     end
 
     class BaseIterator
-      attr_reader :path, :range
+      attr_reader :path, :ranges, :options
 
-      def initialize path, range
-        @path  = path
-        @range = range
+      def initialize(path, ranges, options)
+        @path = path
+        @ranges = ranges
+        @options = options
       end
 
       def each
         ::File.open(path, "rb") do |file|
-          file.seek(range.begin)
-          remaining_len = range.end - range.begin + 1
-          while remaining_len > 0
-            part = file.read([8192, remaining_len].min)
-            break unless part
-            remaining_len -= part.length
+          ranges.each do |range|
+            yield multipart_heading(range) if multipart?
 
-            yield part
+            each_range_part(file, range) do |part|
+              yield part
+            end
           end
+
+          yield "\r\n--#{MULTIPART_BOUNDARY}--\r\n" if multipart?
         end
       end
 
+      def bytesize
+        size = ranges.inject(0) do |sum, range|
+          sum += multipart_heading(range).bytesize if multipart?
+          sum += range.size
+        end
+        size += "\r\n--#{MULTIPART_BOUNDARY}--\r\n".bytesize if multipart?
+        size
+      end
+
       def close; end
+
+      private
+
+      def multipart?
+        ranges.size > 1
+      end
+
+      def multipart_heading(range)
+<<-EOF
+\r
+--#{MULTIPART_BOUNDARY}\r
+Content-Type: #{options[:mime_type]}\r
+Content-Range: bytes #{range.begin}-#{range.end}/#{options[:size]}\r
+\r
+EOF
+      end
+
+      def each_range_part(file, range)
+        file.seek(range.begin)
+        remaining_len = range.end - range.begin + 1
+        while remaining_len > 0
+          part = file.read([8192, remaining_len].min)
+          break unless part
+          remaining_len -= part.length
+
+          yield part
+        end
+      end
     end
 
     class Iterator < BaseIterator
