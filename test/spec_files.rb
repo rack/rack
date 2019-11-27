@@ -185,6 +185,32 @@ describe Rack::Files do
     res.body.must_equal "frozen_strin"
   end
 
+  it "return correct multiple byte ranges in body" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=22-33, 60-80"
+    res = Rack::MockResponse.new(*files(DOCROOT).call(env))
+
+    res.status.must_equal 206
+    res["Content-Length"].must_equal "191"
+    res["Content-Type"].must_equal "multipart/byteranges; boundary=AaB03x"
+    expected_body = <<-EOF
+\r
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Range: bytes 22-33/208\r
+\r
+frozen_strin\r
+--AaB03x\r
+Content-Type: text/plain\r
+Content-Range: bytes 60-80/208\r
+\r
+e.join(File.dirname(_\r
+--AaB03x--\r
+    EOF
+
+    res.body.must_equal expected_body
+  end
+
   it "return error for unsatisfiable byte range" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=1234-5678"
