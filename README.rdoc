@@ -48,9 +48,11 @@ These frameworks include \Rack adapters in their distributions:
 * Padrino[http://padrinorb.com/]
 * Racktools::SimpleApplication
 * Ramaze[http://ramaze.net/]
+* Roda[https://github.com/jeremyevans/roda]
 * {Ruby on Rails}[https://rubyonrails.org/]
 * Rum[https://github.com/leahneukirchen/rum]
 * Sinatra[http://sinatrarb.com/]
+* Utopia[https://github.com/socketry/utopia]
 * WABuR[https://github.com/ohler55/wabur]
 * ... and many others.
 
