@@ -29,6 +29,7 @@ The included *handlers* connect all kinds of web servers to \Rack:
 These web servers include \Rack handlers in their distributions:
 
 * Agoo[https://github.com/ohler55/agoo]
+* Falcon[https://github.com/socketry/falcon]
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
