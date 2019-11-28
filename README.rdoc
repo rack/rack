@@ -145,11 +145,11 @@ installation and bacon.
 To run the test suite completely, you need:
 
   * fcgi
-  * memcache-client
+  * dalli
   * thin
 
 To test Memcache sessions, you need memcached (will be
-run on port 11211) and memcache-client installed.
+run on port 11211) and dalli installed.
 
 == Configuration
 
