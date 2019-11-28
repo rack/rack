@@ -29,14 +29,9 @@ The included *handlers* connect all kinds of web servers to \Rack:
 These web servers include \Rack handlers in their distributions:
 
 * Agoo[https://github.com/ohler55/agoo]
-* Ebb[https://github.com/gnosek/ebb]
-* Fuzed[https://github.com/KirinDave/fuzed]
-* {Glassfish v3}[https://rubygems.org/gems/glassfish]
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
-* Reel[https://github.com/celluloid/reel]
-* unixrack[https://rubygems.org/gems/unixrack]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
 
 Any valid \Rack app will run the same on all these handlers, without
@@ -48,23 +43,14 @@ These frameworks include \Rack adapters in their distributions:
 
 * Camping[http://www.ruby-camping.com/]
 * Coset[http://leahneukirchen.org/repos/coset/]
-* Espresso[https://rubygems.org/gems/espresso-framework]
-* Halcyon[https://rubygems.org/gems/espresso-framework]
-* Hanami[https://rubygems.org/gems/halcyon]
-* Mack[https://github.com/markbates/mack]
-* Maveric[https://rubygems.org/gems/maveric]
-* Merb[https://rubygems.org/gems/merb]
+* Hanami[https://hanamirb.org/]
 * Padrino[http://padrinorb.com/]
 * Racktools::SimpleApplication
 * Ramaze[http://ramaze.net/]
 * {Ruby on Rails}[https://rubyonrails.org/]
 * Rum[https://github.com/leahneukirchen/rum]
 * Sinatra[http://sinatrarb.com/]
-* Sin[https://github.com/raggi/sin]
-* Vintage[https://rubygems.org/gems/vintage]
 * WABuR[https://github.com/ohler55/wabur]
-* Waves[https://github.com/dyoder/waves]
-* Wee[https://github.com/mneumann/wee]
 * ... and many others.
 
 == Available middleware
