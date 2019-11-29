@@ -306,6 +306,12 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "flowers.exe\u0000.jpg"
   end
 
+  it "is robust separating Content-Disposition fields" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:robust_field_separation))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text"].must_equal "contents"
+  end
+
   it "not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
