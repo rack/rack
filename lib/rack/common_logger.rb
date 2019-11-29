@@ -3,6 +3,7 @@
 require_relative 'constants'
 require_relative 'utils'
 require_relative 'body_proxy'
+require_relative 'request'
 
 module Rack
   # Rack::CommonLogger forwards every request to the given +app+, and
@@ -47,23 +48,24 @@ module Rack
     private
 
     # Log the request to the configured logger.
-    def log(env, status, headers, began_at)
-      length = extract_content_length(headers)
+    def log(env, status, response_headers, began_at)
+      request = Rack::Request.new(env)
+      length = extract_content_length(response_headers)
 
       msg = FORMAT % [
-        env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
-        env["REMOTE_USER"] || "-",
+        request.ip || "-",
+        request.get_header("REMOTE_USER") || "-",
         Time.now.strftime("%d/%b/%Y:%H:%M:%S %z"),
-        env[REQUEST_METHOD],
-        env[SCRIPT_NAME],
-        env[PATH_INFO],
-        env[QUERY_STRING].empty? ? "" : "?#{env[QUERY_STRING]}",
-        env[SERVER_PROTOCOL],
+        request.request_method,
+        request.script_name,
+        request.path_info,
+        request.query_string.empty? ? "" : "?#{request.query_string}",
+        request.get_header(SERVER_PROTOCOL),
         status.to_s[0..3],
         length,
         Utils.clock_time - began_at ]
 
-      logger = @logger || env[RACK_ERRORS]
+      logger = @logger || request.get_header(RACK_ERRORS)
       # Standard library logger doesn't support write but it supports << which actually
       # calls to write on the log device without formatting
       if logger.respond_to?(:write)

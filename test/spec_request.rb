@@ -163,6 +163,23 @@ class RackRequestTest < Minitest::Spec
     req.hostname.must_equal "example.org"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=example.org:9292")
+    req.host.must_equal "example.org"
+
+    # Test obfuscated identifier: https://tools.ietf.org/html/rfc7239#section-6.3
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=ObFuScaTeD")
+    req.host.must_equal "ObFuScaTeD"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_FORWARDED" => "host=example.com; host=example.org:9292")
+    req.host.must_equal "example.org"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292", "HTTP_FORWARDED" => "host=example.com")
+    req.host.must_equal "example.com"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host.must_equal "example.org"
     req.hostname.must_equal "example.org"
@@ -239,6 +256,10 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost", "HTTP_X_FORWARDED_PROTO" => "https,https", "SERVER_PORT" => "80")
     req.port.must_equal 443
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost", "HTTP_FORWARDED" => "proto=https", "HTTP_X_FORWARDED_PROTO" => "http", "SERVER_PORT" => "9393")
+    req.port.must_equal 443
   end
 
   it "figure out the correct host with port" do
@@ -273,6 +294,10 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "SERVER_PORT" => "9393")
     req.host_with_port.must_equal "example.org"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_FORWARDED" => "host=example.com:9292", "SERVER_PORT" => "9393")
+    req.host_with_port.must_equal "example.com:9292"
   end
 
   it "parse the query string" do
@@ -630,6 +655,17 @@ class RackRequestTest < Minitest::Spec
 
     request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'ws'))
     request.scheme.must_equal "ws"
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=https'))
+    request.scheme.must_equal "https"
+    request.must_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=https, proto=http'))
+    request.scheme.must_equal "https"
+    request.must_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_FORWARDED' => 'proto=http, proto=https'))
+    request.scheme.must_equal "http"
     request.wont_be :ssl?
 
     request = make_request(Rack::MockRequest.env_for("/", 'HTTPS' => 'on'))
@@ -1289,7 +1325,7 @@ EOF
     res.body.must_equal 'fe80::202:b3ff:fe1e:8329'
 
     res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4,3.4.5.6'
-    res.body.must_equal '1.2.3.4'
+    res.body.must_equal '3.4.5.6'
 
     res = mock.get '/', 'REMOTE_ADDR' => '127.0.0.1'
     res.body.must_equal '127.0.0.1'
@@ -1300,6 +1336,21 @@ EOF
 
   it 'deals with proxies' do
     mock = Rack::MockRequest.new(Rack::Lint.new(ip_app))
+
+    res = mock.get '/',
+      'REMOTE_ADDR' => '1.2.3.4',
+      'HTTP_FORWARDED' => 'for=3.4.5.6'
+    res.body.must_equal '1.2.3.4'
+
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6',
+      'HTTP_FORWARDED' => 'for=5.6.7.8'
+    res.body.must_equal '5.6.7.8'
+
+    res = mock.get '/',
+      'HTTP_X_FORWARDED_FOR' => '3.4.5.6',
+      'HTTP_FORWARDED' => 'for=5.6.7.8, for=7.8.9.0'
+    res.body.must_equal '7.8.9.0'
 
     res = mock.get '/',
       'REMOTE_ADDR' => '1.2.3.4',
@@ -1333,6 +1384,9 @@ EOF
 
     # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '[2001:db8:cafe::17]:47011'
+    res.body.must_equal '2001:db8:cafe::17'
+
+    res = mock.get '/', 'HTTP_FORWARDED' => 'for="[2001:db8:cafe::17]:47011"'
     res.body.must_equal '2001:db8:cafe::17'
 
     res = mock.get '/', 'HTTP_X_FORWARDED_FOR' => '1.2.3.4, [2001:db8:cafe::17]:47011'

@@ -152,6 +152,8 @@ module Rack
       # The contents of the host/:authority header sent to the proxy.
       HTTP_X_FORWARDED_HOST = 'HTTP_X_FORWARDED_HOST'
 
+      HTTP_FORWARDED          = 'HTTP_FORWARDED'
+
       # The value of the scheme sent to the proxy.
       HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'
 
@@ -331,7 +333,7 @@ module Rack
         end
 
         if forwarded_port = self.forwarded_port
-          return forwarded_port.first
+          return forwarded_port.last
         end
 
         if scheme = self.scheme
@@ -344,22 +346,36 @@ module Rack
       end
 
       def forwarded_for
+        if forwarded_for = get_http_forwarded(:for)
+          forwarded_for.map! do |authority|
+            split_authority(authority)[1]
+          end
+        end
+
         if value = get_header(HTTP_X_FORWARDED_FOR)
-          split_header(value).map do |authority|
+          x_forwarded_for = split_header(value).map do |authority|
             split_authority(wrap_ipv6(authority))[1]
           end
         end
+
+        forwarded_for || x_forwarded_for
       end
 
       def forwarded_port
-        if value = get_header(HTTP_X_FORWARDED_PORT)
+        if forwarded = get_http_forwarded(:for)
+          forwarded.map do |authority|
+            split_authority(authority)[2]
+          end.compact!
+        elsif value = get_header(HTTP_X_FORWARDED_PORT)
           split_header(value).map(&:to_i)
         end
       end
 
       def forwarded_authority
-        if value = get_header(HTTP_X_FORWARDED_HOST)
-          wrap_ipv6(split_header(value).first)
+        if forwarded = get_http_forwarded(:host)
+          forwarded.last
+        elsif value = get_header(HTTP_X_FORWARDED_HOST)
+          wrap_ipv6(split_header(value).last)
         end
       end
 
@@ -372,7 +388,7 @@ module Rack
         external_addresses = reject_trusted_ip_addresses(remote_addresses)
 
         unless external_addresses.empty?
-          return external_addresses.first
+          return external_addresses.last
         end
 
         if forwarded_for = self.forwarded_for
@@ -593,6 +609,12 @@ module Rack
         end
       end
 
+      # Get an array of values set in the RFC 7239 `Forwarded` request header.
+      def get_http_forwarded(token)
+        values = Utils.forwarded_values(get_header(HTTP_FORWARDED))
+        values[token] if values
+      end
+
       def query_parser
         Utils.default_query_parser
       end
@@ -639,6 +661,8 @@ module Rack
       end
 
       def forwarded_scheme
+        forwarded_proto = get_http_forwarded(:proto)
+        (forwarded_proto && allowed_scheme(forwarded_proto.first)) ||
         allowed_scheme(get_header(HTTP_X_FORWARDED_SCHEME)) ||
         allowed_scheme(extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO)))
       end

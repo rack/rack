@@ -140,6 +140,21 @@ module Rack
       end
     end
 
+    FORWARDED_PAIR_REGEX = /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
+
+    def forwarded_values(forwarded_header)
+      return nil unless forwarded_header
+      forwarded_header = forwarded_header.to_s.gsub("\n", ";")
+
+      forwarded_header.split(/\s*;\s*/).each_with_object({}) do |field, values|
+        field.split(/\s*,\s*/).each do |pair|
+          return nil unless pair =~ FORWARDED_PAIR_REGEX
+          (values[$1.downcase.to_sym] ||= []) << $2
+        end
+      end
+    end
+    module_function :forwarded_values
+
     # Return best accept value to use, based on the algorithm
     # in RFC 2616 Section 14.  If there are multiple best
     # matches (same specificity and quality), the value returned
