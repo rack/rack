@@ -38,7 +38,7 @@ describe Rack::CommonLogger do
     log.string.must_match(/"GET \/ " 200 #{length} /)
   end
 
-  it "work with standartd library logger" do
+  it "work with standard library logger" do
     logdev = StringIO.new
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
@@ -58,6 +58,20 @@ describe Rack::CommonLogger do
 
     res.errors.wont_be :empty?
     res.errors.must_match(/"GET \/ " 200 - /)
+  end
+
+  it "log - records host from X-Forwarded-For header" do
+    res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/", 'HTTP_X_FORWARDED_FOR' => '203.0.113.0')
+
+    res.errors.wont_be :empty?
+    res.errors.must_match(/203\.0\.113\.0 - /)
+  end
+
+  it "log - records host from RFC 7239 forwarded for header" do
+    res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/", 'HTTP_FORWARDED' => 'for=203.0.113.0')
+
+    res.errors.wont_be :empty?
+    res.errors.must_match(/203\.0\.113\.0 - /)
   end
 
   def with_mock_time(t = 0)

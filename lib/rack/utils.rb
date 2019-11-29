@@ -146,6 +146,21 @@ module Rack
     end
     module_function :q_values
 
+    FORWARDED_PAIR_REGEX = /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
+
+    def forwarded_values(forwarded_header)
+      return nil unless forwarded_header
+      forwarded_header = forwarded_header.to_s.gsub("\n", ";")
+
+      forwarded_header.split(/\s*;\s*/).each_with_object({}) do |field, values|
+        field.split(/\s*,\s*/).each do |pair|
+          return nil unless pair =~ FORWARDED_PAIR_REGEX
+          (values[$1.downcase.to_sym] ||= []) << $2
+        end
+      end
+    end
+    module_function :forwarded_values
+
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
