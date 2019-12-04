@@ -20,7 +20,7 @@ gem "rubocop", "0.68.1", require: false
 
 group :extra do
   gem 'fcgi', platforms: c_platforms
-  gem 'memcache-client'
+  gem 'dalli'
   gem 'thin', platforms: c_platforms
 end
 
