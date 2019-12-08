@@ -12,7 +12,7 @@ c_platforms = Bundler::Dsl::VALID_PLATFORMS.dup.delete_if do |platform|
   platform =~ /jruby/
 end
 
-gem "rubocop", "0.68.1", require: false
+gem 'rubocop', '0.77.0', require: false
 
 # Alternative solution that might work, but it has bad interactions with
 # Gemfile.lock if that gets committed/reused:
