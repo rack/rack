@@ -627,15 +627,17 @@ module Rack
       assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
          header.respond_to? :each
       }
-      header.each { |key, value|
-        ## Special headers starting "rack." are for communicating with the
-        ## server, and must not be sent back to the client.
-        next if key =~ /^rack\..+$/
 
+      header.each { |key, value|
         ## The header keys must be Strings.
         assert("header key must be a string, was #{key.class}") {
           key.kind_of? String
         }
+
+        ## Special headers starting "rack." are for communicating with the
+        ## server, and must not be sent back to the client.
+        next if key =~ /^rack\..+$/
+
         ## The header must not contain a +Status+ key.
         assert("header must not contain Status") { key.downcase != "status" }
         ## The header must conform to RFC7230 token specification, i.e. cannot
