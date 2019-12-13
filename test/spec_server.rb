@@ -132,7 +132,11 @@ describe Rack::Server do
     )
     t = Thread.new { server.start { |s| Thread.current[:server] = s } }
     t.join(0.01) until t[:server] && t[:server].status != :Stop
-    body = URI.open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
+    body = if URI.respond_to?(:open)
+             URI.open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
+           else
+             open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
+           end
     body.must_equal 'success'
 
     Process.kill(:INT, $$)
