@@ -33,7 +33,7 @@ These web servers include \Rack handlers in their distributions:
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
-* Unicorn[https://github.com/defunkt/unicorn]
+* Unicorn[https://bogomips.org/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
 
 Any valid \Rack app will run the same on all these handlers, without
