@@ -1,6 +1,6 @@
 = \Rack, a modular Ruby webserver interface
 
-{<img src="https://rack.github.io/rack-logo.png" width="400" alt="rack powers web applications" />}[https://rack.github.io/]
+{<img src="https://rack.github.io/logo.png" width="400" alt="rack powers web applications" />}[https://rack.github.io/]
 
 {<img src="https://circleci.com/gh/rack/rack.svg?style=svg" alt="CircleCI" />}[https://circleci.com/gh/rack/rack]
 {<img src="https://badge.fury.io/rb/rack.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rack]
