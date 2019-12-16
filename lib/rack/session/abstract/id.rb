@@ -209,7 +209,7 @@ module Rack
         end
 
         def stringify_keys(other)
-          other.transform_keys(&:to_s)
+          other.to_hash.transform_keys(&:to_s)
         end
       end
 
