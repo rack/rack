@@ -251,6 +251,7 @@ module Rack
           prepare_session(env)
           status, headers, body = app.call(env)
           commit_session(env, status, headers, body)
+          [status, headers, body]
         end
 
         private
@@ -369,7 +370,7 @@ module Rack
           if not data = set_session(env, session_id, session_data, options)
             env["rack.errors"].puts("Warning! #{self.class.name} failed to save session. Content dropped.")
           elsif options[:defer] and not options[:renew]
-            env["rack.errors"].puts("Deferring cookie for #{session_id}") if $VERBOSE
+            env["rack.errors"].puts("Deferring cookie for #{session_id.public_id}") if $VERBOSE
           else
             cookie = Hash.new
             cookie[:value] = cookie_value(data)

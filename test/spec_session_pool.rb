@@ -173,10 +173,10 @@ describe Rack::Session::Pool do
     pool.pool.delete(session_id.private_id)
 
     res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
-    res2["Set-Cookie"].must_be_nil
-    res2.body.must_equal '{"counter"=>2}'
-    pool.pool[session_id.private_id].must_be_nil
-    pool.pool[session_id.public_id].must_be_nil
+    res2["Set-Cookie"].should.be.nil
+    res2.body.should.equal '{"counter"=>2}'
+    pool.pool[session_id.private_id].should.be.nil
+    pool.pool[session_id.public_id].should.be.nil
   end
 
   # anyone know how to do this better?
