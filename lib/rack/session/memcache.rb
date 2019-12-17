@@ -46,8 +46,8 @@ module Rack
         end
       end
 
-      def find_session(req, sid)
-        with_lock(req) do
+      def get_session(env, sid)
+        with_lock(env) do
           unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid, {}
             unless /^STORED/ =~ @pool.add(sid.private_id, session)
@@ -58,18 +58,18 @@ module Rack
         end
       end
 
-      def write_session(req, session_id, new_session, options)
+      def set_session(env, session_id, new_session, options)
         expiry = options[:expire_after]
         expiry = expiry.nil? ? 0 : expiry + 1
 
-        with_lock(req) do
+        with_lock(env) do
           @pool.set session_id.private_id, new_session, expiry
           session_id
         end
       end
 
-      def delete_session(req, session_id, options)
-        with_lock(req) do
+      def destroy_session(env, session_id, options)
+        with_lock(env) do
           @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]

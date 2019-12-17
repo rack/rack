@@ -246,9 +246,9 @@ begin
       pool.pool.delete(session_id.private_id)
 
       res1 = req.get("/", "HTTP_COOKIE" => cookie)
-      res1["Set-Cookie"].must_be_nil
-      res1.body.must_equal '{"counter"=>2}'
-      pool.pool.get(session_id.private_id, true).wont_be_nil
+      res1["Set-Cookie"].should.be.nil
+      res1.body.should.equal '{"counter"=>2}'
+      pool.pool.get(session_id.private_id, true).should.not.be.nil
     end
 
     it "drops the session in the legacy id as well" do
@@ -265,10 +265,10 @@ begin
       pool.pool.delete(session_id.private_id)
 
       res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
-      res2["Set-Cookie"].must_be_nil
-      res2.body.must_equal '{"counter"=>2}'
-      pool.pool.get(session_id.private_id, true).must_be_nil
-      pool.pool.get(session_id.public_id, true).must_be_nil
+      res2["Set-Cookie"].should.be.nil
+      res2.body.should.equal '{"counter"=>2}'
+      pool.pool.get(session_id.private_id, true).should.be.nil
+      pool.pool.get(session_id.public_id, true).should.be.nil
     end
 
     # anyone know how to do this better?
