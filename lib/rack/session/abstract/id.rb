@@ -251,7 +251,6 @@ module Rack
           prepare_session(env)
           status, headers, body = app.call(env)
           commit_session(env, status, headers, body)
-          [status, headers, body]
         end
 
         private
@@ -358,7 +357,7 @@ module Rack
 
           if options[:drop] || options[:renew]
             session_id = destroy_session(env, session.id || generate_sid, options)
-            return unless session_id
+            return [status, headers, body] unless session_id
           end
 
           return [status, headers, body] unless commit_session?(env, session, options)
