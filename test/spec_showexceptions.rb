@@ -92,7 +92,7 @@ describe Rack::ShowExceptions do
       [{ "HTTP_ACCEPT" => "text/foo" }, true],
       [{ "HTTP_ACCEPT" => "text/html" }, false]
     ].each do |env, expected|
-      assert_equal(expected, exc.prefers_plaintext?(env))
+      expected.should.equal exc.prefers_plaintext?(env)
     end
   end
 end
