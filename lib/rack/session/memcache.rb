@@ -19,7 +19,7 @@ module Rack
     # Note that memcache does drop data before it may be listed to expire. For
     # a full description of behaviour, please see memcache's documentation.
 
-    class Memcache < Abstract::ID
+    class Memcache < Abstract::PersistedSecure
       attr_reader :mutex, :pool
 
       DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge \
@@ -42,15 +42,15 @@ module Rack
       def generate_sid
         loop do
           sid = super
-          break sid unless @pool.get(sid, true)
+          break sid unless @pool.get(sid.private_id, true)
         end
       end
 
       def get_session(env, sid)
         with_lock(env) do
-          unless sid and session = @pool.get(sid)
+          unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid, {}
-            unless /^STORED/ =~ @pool.add(sid, session)
+            unless /^STORED/ =~ @pool.add(sid.private_id, session)
               raise "Session collision on '#{sid.inspect}'"
             end
           end
@@ -63,14 +63,15 @@ module Rack
         expiry = expiry.nil? ? 0 : expiry + 1
 
         with_lock(env) do
-          @pool.set session_id, new_session, expiry
+          @pool.set session_id.private_id, new_session, expiry
           session_id
         end
       end
 
       def destroy_session(env, session_id, options)
         with_lock(env) do
-          @pool.delete(session_id)
+          @pool.delete(session_id.public_id)
+          @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]
         end
       end
@@ -88,6 +89,11 @@ module Rack
         @mutex.unlock if @mutex.locked?
       end
 
+      private
+
+      def get_session_with_fallback(sid)
+        @pool.get(sid.private_id) || @pool.get(sid.public_id)
+      end
     end
   end
 end
