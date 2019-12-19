@@ -29,6 +29,14 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Replace `HISTORY.md` and `NEWS.md` with `CHANGELOG.md`. ([@twitnithegirl](https://github.com/twitnithegirl))
 - Backfill `CHANGELOG.md` from 2.0.1 to 2.0.7 releases. ([@drenmi](https://github.com/Drenmi))
 
+## [2.0.8] - 2019-12-08
+
+- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
+
+## [1.6.12] - 2019-12-08
+
+- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
+
 ## [2.0.7] - 2019-04-02
 
 ### Fixed
