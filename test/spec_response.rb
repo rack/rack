@@ -307,9 +307,9 @@ describe Rack::Response do
     header['Content-Length'].must_be_nil
 
     lambda {
-      Rack::Response.new(Object.new)
-    }.must_raise(TypeError).
-      message.must_match(/stringable or iterable required/)
+      Rack::Response.new(Object.new).each{}
+    }.must_raise(NoMethodError).
+      message.must_match(/undefined method .each. for/)
   end
 
   it "knows if it's empty" do
@@ -433,6 +433,28 @@ describe Rack::Response do
     res.headers["Content-Length"].must_equal "8"
   end
 
+  it "does not wrap body" do
+    body = Object.new
+    res = Rack::Response.new(body)
+
+    # It was passed through unchanged:
+    res.finish.last.must_equal body
+  end
+
+  it "does wraps body when using #write" do
+    body = ["Foo"]
+    res = Rack::Response.new(body)
+
+    # Write something using the response object:
+    res.write("Bar")
+
+    # The original body was not modified:
+    body.must_equal ["Foo"]
+
+    # But a new buffered body was created:
+    res.finish.last.must_equal ["Foo", "Bar"]
+  end
+
   it "calls close on #body" do
     res = Rack::Response.new
     res.body = StringIO.new
@@ -449,12 +471,6 @@ describe Rack::Response do
     res.status = 204
     _, _, b = res.finish
     res.body.must_be :closed?
-    b.wont_equal res.body
-
-    res.body = StringIO.new
-    res.status = 205
-    _, _, b = res.finish
-    res.body.wont_be :closed?
     b.wont_equal res.body
 
     res.body = StringIO.new
