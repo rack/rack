@@ -238,16 +238,13 @@ module Rack
       end
 
       def host_with_port
-        if forwarded = get_header(HTTP_X_FORWARDED_HOST)
-          forwarded.split(/,\s?/).last
-        else
-          get_header(HTTP_HOST) || "#{get_header(SERVER_NAME) || get_header(SERVER_ADDR)}:#{get_header(SERVER_PORT)}"
-        end
+        port = self.port
+        port.nil? || port == DEFAULT_PORTS[scheme] ? host : "#{host}:#{port}"
       end
 
       def host
         # Remove port number.
-        h = host_with_port
+        h = hostname.to_s
         if colon_index = h.index(":")
           h[0, colon_index]
         else
@@ -256,17 +253,20 @@ module Rack
       end
 
       def port
-        if port = extract_port(host_with_port)
-          port.to_i
-        elsif port = get_header(HTTP_X_FORWARDED_PORT)
-          port.to_i
-        elsif has_header?(HTTP_X_FORWARDED_HOST)
-          DEFAULT_PORTS[scheme]
-        elsif has_header?(HTTP_X_FORWARDED_PROTO)
-          DEFAULT_PORTS[extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO))]
-        else
-          get_header(SERVER_PORT).to_i
-        end
+        result =
+          if port = extract_port(hostname)
+            port
+          elsif port = get_header(HTTP_X_FORWARDED_PORT)
+            port
+          elsif has_header?(HTTP_X_FORWARDED_HOST)
+            DEFAULT_PORTS[scheme]
+          elsif has_header?(HTTP_X_FORWARDED_PROTO)
+            DEFAULT_PORTS[extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO))]
+          else
+            get_header(SERVER_PORT)
+          end
+
+        result.to_i unless result.to_s.empty?
       end
 
       def ssl?
@@ -412,9 +412,7 @@ module Rack
       end
 
       def base_url
-        url = "#{scheme}://#{host}"
-        url = "#{url}:#{port}" if port != DEFAULT_PORTS[scheme]
-        url
+        "#{scheme}://#{host_with_port}"
       end
 
       # Tries to return a remake of the original request URL as a string.
@@ -496,6 +494,16 @@ module Rack
 
       def split_ip_addresses(ip_addresses)
         ip_addresses ? ip_addresses.strip.split(/[,\s]+/) : []
+      end
+
+      def hostname
+        if forwarded = get_header(HTTP_X_FORWARDED_HOST)
+          forwarded.split(/,\s?/).last
+        else
+          get_header(HTTP_HOST) ||
+            get_header(SERVER_NAME) ||
+            get_header(SERVER_ADDR)
+        end
       end
 
       def strip_port(ip_address)

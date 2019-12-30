@@ -201,6 +201,10 @@ class RackRequestTest < Minitest::Spec
     req.host_with_port.must_equal "example.org:9292"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "")
+    req.host_with_port.must_equal "example.org"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host_with_port.must_equal "example.org:9292"
 
