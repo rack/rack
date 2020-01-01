@@ -42,7 +42,7 @@ module Rack
     end
 
     # Closes this RewindableInput object without closing the originally
-    # wrapped IO oject. Cleans up any temporary resources that this RewindableInput
+    # wrapped IO object. Cleans up any temporary resources that this RewindableInput
     # has created.
     #
     # This method may be called multiple times. It does nothing on subsequent calls.
