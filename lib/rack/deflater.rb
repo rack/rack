@@ -29,7 +29,7 @@ module Rack
     #           'if' - a lambda enabling / disabling deflation based on returned boolean value
     #                  e.g use Rack::Deflater, :if => lambda { |*, body| sum=0; body.each { |i| sum += i.length }; sum > 512 }
     #           'include' - a list of content types that should be compressed
-    #           'sync' - determines if the stream is going to be flused after every chunk.
+    #           'sync' - determines if the stream is going to be flushed after every chunk.
     #                    Flushing after every chunk reduces latency for
     #                    time-sensitive streaming applications, but hurts
     #                    compression and throughput. Defaults to `true'.
