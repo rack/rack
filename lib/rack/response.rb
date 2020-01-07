@@ -62,7 +62,7 @@ module Rack
     end
 
     def finish(&block)
-      if STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
+      if STATUS_WITH_NO_ENTITY_BODY[status.to_i]
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
