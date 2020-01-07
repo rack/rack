@@ -26,11 +26,7 @@ module Rack
     alias headers header
 
     CHUNKED = 'chunked'
-    STATUS_WITH_NO_ENTITY_BODY = {
-      204 => true,
-      205 => true,
-      304 => true,
-    }.freeze
+    STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
 
     def initialize(body = nil, status = 200, header = {})
       @status = status.to_i
