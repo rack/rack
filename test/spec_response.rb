@@ -480,6 +480,15 @@ describe Rack::Response do
     b.wont_equal res.body
   end
 
+  it "doesn't call close on #body when 205" do
+    res = Rack::Response.new
+
+    res.body = StringIO.new
+    res.status = 205
+    _, _, b = res.finish
+    res.body.wont_be :closed?
+  end
+
   it "flatten doesn't cause infinite loop" do
     # https://github.com/rack/rack/issues/419
     res = Rack::Response.new("Hello World")
