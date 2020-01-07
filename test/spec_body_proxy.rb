@@ -63,8 +63,8 @@ describe Rack::BodyProxy do
     body.respond_to?(:to_ary).must_equal true
 
     proxy = Rack::BodyProxy.new(body) { }
-    proxy.respond_to?(:to_ary).must_equal false
-    proxy.respond_to?("to_ary").must_equal false
+    x = [proxy]
+    assert_equal x, x.flatten
   end
 
   it 'not close more than one time' do

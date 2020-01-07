@@ -466,8 +466,8 @@ describe Rack::Response do
 
   it "wraps the body from #to_ary to prevent infinite loops" do
     res = Rack::Response.new
-    res.finish.last.wont_respond_to(:to_ary)
-    lambda { res.finish.last.to_ary }.must_raise NoMethodError
+    x = res.finish
+    assert_equal x, x.flatten
   end
 end
 

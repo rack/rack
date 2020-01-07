@@ -72,11 +72,10 @@ module Rack
         close
         [status.to_i, header, []]
       else
-        [status.to_i, header, BodyProxy.new(self){}]
+        [status.to_i, header, self]
       end
     end
     alias to_a finish           # For *response
-    alias to_ary finish         # For implicit-splat on Ruby 1.9.2
 
     def each(&callback)
       @body.each(&callback)
