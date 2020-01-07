@@ -9,10 +9,6 @@ module Rack
     end
 
     def respond_to?(method_name, include_all = false)
-      case method_name
-      when :to_ary, 'to_ary'
-        return false
-      end
       super or @body.respond_to?(method_name, include_all)
     end
 
@@ -39,7 +35,6 @@ module Rack
     end
 
     def method_missing(method_name, *args, &block)
-      super if :to_ary == method_name
       @body.__send__(method_name, *args, &block)
     end
   end
