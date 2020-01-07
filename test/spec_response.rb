@@ -464,10 +464,11 @@ describe Rack::Response do
     b.wont_equal res.body
   end
 
-  it "wraps the body from #to_ary to prevent infinite loops" do
-    res = Rack::Response.new
+  it "flatten doesn't cause infinite loop" do
+    # https://github.com/rack/rack/issues/419
+    res = Rack::Response.new("Hello World")
     x = res.finish
-    assert_equal x, x.flatten
+    assert_equal [200, {}, "Hello World"], x.flatten
   end
 end
 
