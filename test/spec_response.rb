@@ -467,8 +467,8 @@ describe Rack::Response do
   it "flatten doesn't cause infinite loop" do
     # https://github.com/rack/rack/issues/419
     res = Rack::Response.new("Hello World")
-    x = res.finish
-    assert_equal [200, {}, "Hello World"], x.flatten
+
+    res.finish.flatten.must_be_kind_of(Array)
   end
 end
 
