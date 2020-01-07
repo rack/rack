@@ -169,6 +169,8 @@ module Rack
       @cookies = parse_cookies_from_header
 
       super(body, status, headers)
+
+      buffered_body!
     end
 
     def =~(other)
@@ -190,7 +192,13 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      super.join
+      buffer = String.new
+
+      super.each do |chunk|
+        buffer << chunk
+      end
+
+      return buffer
     end
 
     def empty?

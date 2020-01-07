@@ -26,32 +26,30 @@ module Rack
     alias headers header
 
     CHUNKED = 'chunked'
-    STATUS_WITH_NO_ENTITY_BODY = {
-      204 => true,
-      304 => true
-    }.freeze
+    STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
 
-    def initialize(body = [], status = 200, header = {})
+    def initialize(body = nil, status = 200, header = {})
       @status = status.to_i
       @header = Utils::HeaderHash.new(header)
 
-      @writer  = lambda { |x| @body << x }
-      @block   = nil
-      @length  = 0
+      @writer = self.method(:append)
 
-      @body = []
+      @block = nil
+      @length = 0
 
-      if body.respond_to? :to_str
-        write body.to_str
-      elsif body.respond_to?(:each)
-        body.each { |part|
-          write part.to_s
-        }
+      # Keep track of whether we have expanded the user supplied body.
+      if body.nil?
+        @body = []
+        @buffered = true
+      elsif body.respond_to? :to_str
+        @body = [body]
+        @buffered = true
       else
-        raise TypeError, "stringable or iterable required"
+        @body = body
+        @buffered = false
       end
 
-      yield self  if block_given?
+      yield self if block_given?
     end
 
     def redirect(target, status = 302)
@@ -64,40 +62,45 @@ module Rack
     end
 
     def finish(&block)
-      @block = block
-
-      if STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
+      if STATUS_WITH_NO_ENTITY_BODY[status.to_i]
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
         [status.to_i, header, []]
       else
-        [status.to_i, header, self]
+        if block_given?
+          @block = block
+          [status.to_i, header, self]
+        else
+          [status.to_i, header, @body]
+        end
       end
     end
+
     alias to_a finish           # For *response
 
     def each(&callback)
       @body.each(&callback)
-      @writer = callback
-      @block.call(self)  if @block
+      @buffered = true
+
+      if @block
+        @writer = callback
+        @block.call(self)
+      end
     end
 
     # Append to body and update Content-Length.
     #
     # NOTE: Do not mix #write and direct #body access!
     #
-    def write(str)
-      s = str.to_s
-      @length += s.bytesize unless chunked?
-      @writer.call s
+    def write(chunk)
+      buffered_body!
 
-      set_header(CONTENT_LENGTH, @length.to_s) unless chunked?
-      str
+      @writer.call(chunk.to_s)
     end
 
     def close
-      body.close if body.respond_to?(:close)
+      @body.close if @body.respond_to?(:close)
     end
 
     def empty?
@@ -215,6 +218,38 @@ module Rack
 
       def etag= v
         set_header ETAG, v
+      end
+
+    protected
+
+      def buffered_body!
+        return if @buffered
+
+        if @body.is_a?(Array)
+          # The user supplied body was an array:
+          @body = @body.dup
+        else
+          # Turn the user supplied body into a buffered array:
+          body = @body
+          @body = Array.new
+
+          body.each do |part|
+            @writer.call(part.to_s)
+          end
+        end
+        
+        @buffered = true
+      end
+
+      def append(chunk)
+        @body << chunk
+        
+        unless chunked?
+          @length += chunk.bytesize
+          set_header(CONTENT_LENGTH, @length.to_s)
+        end
+
+        return chunk
       end
     end
 
