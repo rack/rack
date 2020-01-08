@@ -227,7 +227,7 @@ module Rack
 
         if @body.is_a?(Array)
           # The user supplied body was an array:
-          @body = @body.dup
+          @body = @body.compact
         else
           # Turn the user supplied body into a buffered array:
           body = @body
