@@ -52,7 +52,7 @@ module Rack
       # Encode session cookies as Base64
       class Base64
         def encode(str)
-          ::Base64.encode64(str)
+          ::Base64.strict_encode64(str)
         end
 
         def decode(str)
