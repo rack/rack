@@ -41,7 +41,7 @@ module Rack
       if body.nil?
         @body = []
         @buffered = true
-      elsif body.respond_to? :to_str
+      elsif body.respond_to?(:to_str)
         @body = [body]
         @buffered = true
       else
