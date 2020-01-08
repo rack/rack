@@ -60,11 +60,11 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 
 ## [2.0.8] - 2019-12-08
 
-- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
+- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. BREAKING CHANGE: Session ID is now a SessionId instance instead of a String. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
 
 ## [1.6.12] - 2019-12-08
 
-- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
+- [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. BREAKING CHANGE: Session ID is now a SessionId instance instead of a String. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
 
 ## [2.0.7] - 2019-04-02
 
