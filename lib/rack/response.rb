@@ -237,13 +237,13 @@ module Rack
             @writer.call(part.to_s)
           end
         end
-        
+
         @buffered = true
       end
 
       def append(chunk)
         @body << chunk
-        
+
         unless chunked?
           @length += chunk.bytesize
           set_header(CONTENT_LENGTH, @length.to_s)
