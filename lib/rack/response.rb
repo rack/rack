@@ -41,7 +41,7 @@ module Rack
       if body.nil?
         @body = []
         @buffered = true
-      elsif body.respond_to? :to_str
+      elsif body.respond_to?(:to_str)
         @body = [body]
         @buffered = true
       else
@@ -227,7 +227,7 @@ module Rack
 
         if @body.is_a?(Array)
           # The user supplied body was an array:
-          @body = @body.dup
+          @body = @body.compact
         else
           # Turn the user supplied body into a buffered array:
           body = @body
@@ -237,13 +237,13 @@ module Rack
             @writer.call(part.to_s)
           end
         end
-        
+
         @buffered = true
       end
 
       def append(chunk)
         @body << chunk
-        
+
         unless chunked?
           @length += chunk.bytesize
           set_header(CONTENT_LENGTH, @length.to_s)
