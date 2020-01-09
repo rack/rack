@@ -20,7 +20,7 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Add multi mapping support for `X-Accel-Mappings` header. ([@yoshuki](https://github.com/yoshuki))
 - Add `sync: false` option to `Rack::Deflater`. (Eric Wong)
 - Add `Builder#freeze_app` to freeze application and all middleware instances. ([@jeremyevans](https://github.com/jeremyevans))
-- Add API to extract cookies from `Rack::MockResponse`. ([@petercline]((https://github.com/petercline))
+- Add API to extract cookies from `Rack::MockResponse`. ([@petercline](https://github.com/petercline))
 
 ### Changed
 
@@ -31,11 +31,9 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Remove unnecessary buffer growing when parsing multipart. ([@tainoe](https://github.com/tainoe))
 - Expand the root path in `Rack::Static` upon initialization. ([@rosenfeld](https://github.com/rosenfeld))
 - Make `ShowExceptions` work with binary data. ([@axyjo](https://github.com/axyjo))
-- Call the correct `accepts_html?` method for `prefer_plaintext`. ([@tomelm](https://github.com/tomelm))
 - Use buffer string when parsing multipart requests. ([@janko-m](https://github.com/janko-m))
 - Support optional UTF-8 Byte Order Mark (BOM) in config.ru. ([@mikegee](https://github.com/mikegee))
 - Handle `X-Forwarded-For` with optional port. ([@dpritchett](https://github.com/dpritchett))
-- Preserve forwarded IP address for trusted proxy chains. ([@SamSaffron](https://github.com/SamSaffron))
 - Use `Time#httpdate` format for Expires, as proposed by RFC 7231. ([@nanaya](https://github.com/nanaya))
 - Make `Utils.status_code` raise an error when the status symbol is invalid instead of `500`. ([@adambutler](https://github.com/adambutler))
 - Rename `Request::SCHEME_WHITELIST` to `Request::ALLOWED_SCHEMES`.
