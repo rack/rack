@@ -12,6 +12,20 @@ describe Rack::Files do
     Rack::Lint.new Rack::Files.new(*args)
   end
 
+  it "can be used without root" do
+    # https://github.com/rack/rack/issues/1464
+
+    app = Rack::Files.new(nil)
+
+    request = Rack::Request.new(
+      Rack::MockRequest.env_for("/cgi/test")
+    )
+    
+    file_path = File.expand_path("cgi/test", __dir__)
+    status, headers, body = app.serving(request, file_path)
+    assert_equal 200, status
+  end
+
   it 'serves files with + in the file name' do
     Dir.mktmpdir do |dir|
       File.write File.join(dir, "you+me.txt"), "hello world"
