@@ -6,6 +6,17 @@ require 'rack/response'
 require 'stringio'
 
 describe Rack::Response do
+  it 'has standard constructor' do
+    headers = { "header" => "value" }
+    body = ["body"]
+
+    response = Rack::Response[200, headers, body]
+
+    response.status.must_equal 200
+    response.headers.must_equal headers
+    response.body.must_equal body
+  end
+  
   it 'has cache-control methods' do
     response = Rack::Response.new
     cc = 'foo'

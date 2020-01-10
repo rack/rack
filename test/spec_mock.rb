@@ -248,6 +248,17 @@ describe Rack::MockRequest do
 end
 
 describe Rack::MockResponse do
+  it 'has standard constructor' do
+    headers = { "header" => "value" }
+    body = ["body"]
+
+    response = Rack::MockResponse[200, headers, body]
+
+    response.status.must_equal 200
+    response.headers.must_equal headers
+    response.body.must_equal body.join
+  end
+
   it "provide access to the HTTP status" do
     res = Rack::MockRequest.new(app).get("")
     res.must_be :successful?

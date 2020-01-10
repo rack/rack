@@ -157,6 +157,10 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
+    class << self
+      alias [] new
+    end
+    
     # Headers
     attr_reader :original_headers, :cookies
 
