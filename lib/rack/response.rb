@@ -236,6 +236,8 @@ module Rack
           body.each do |part|
             @writer.call(part.to_s)
           end
+
+          body.close if body.respond_to?(:close)
         end
 
         @buffered = true
