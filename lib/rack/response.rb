@@ -21,6 +21,10 @@ module Rack
   # Your application's +call+ should end returning Response#finish.
 
   class Response
+    def self.[] (status, headers, body)
+      self.new(body, status, headers)
+    end
+    
     attr_accessor :length, :status, :body
     attr_reader :header
     alias headers header
