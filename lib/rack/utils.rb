@@ -433,7 +433,7 @@ module Rack
       # on clear, we need to clear @names hash
       def clear
         super
-        @names = {}
+        @names.clear
       end
 
       def each
