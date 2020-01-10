@@ -583,7 +583,6 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar;quux=h&m")
     req.cookies.must_equal "foo" => "bar", "quux" => "h&m"
-    req.cookies.must_equal "foo" => "bar", "quux" => "h&m"
     req.delete_header("HTTP_COOKIE")
     req.cookies.must_equal({})
   end
