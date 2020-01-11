@@ -56,14 +56,6 @@ module Rack
           end
         } unless {}.respond_to?(:transform_keys)
 
-        def transform_keys(&block)
-          hash = dup
-          each do |key, value|
-            hash[block.call(key)] = value
-          end
-          hash
-        end
-
         include Enumerable
         attr_writer :id
 
