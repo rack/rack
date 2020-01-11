@@ -12,7 +12,6 @@ _Note: The list below may not be up-to-date. If you would like to help out and d
 
 ### Fixed
 
-- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
 - Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
 
 ### Documentation
@@ -23,6 +22,7 @@ _Note: The list below may not be up-to-date. If you would like to help out and d
 ## [2.1.1] - 2020-01-12
 
 - Remove `Rack::Chunked` from `Rack::Server` default middleware. ([#1475](https://github.com/rack/rack/pull/1475), [@ioquatix](https://github.com/ioquatix))
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
 
 ## [2.1.0] - 2020-01-10
 
