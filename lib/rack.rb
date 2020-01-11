@@ -11,22 +11,9 @@
 # All modules meant for use in your application are <tt>autoload</tt>ed here,
 # so it should be enough just to <tt>require 'rack'</tt> in your code.
 
+require_relative 'rack/version'
+
 module Rack
-  # The Rack protocol version number implemented.
-  VERSION = [1, 3]
-
-  # Return the Rack protocol version as a dotted string.
-  def self.version
-    VERSION.join(".")
-  end
-
-  RELEASE = "2.2.0"
-
-  # Return the Rack release as a dotted string.
-  def self.release
-    RELEASE
-  end
-
   HTTP_HOST         = 'HTTP_HOST'
   HTTP_VERSION      = 'HTTP_VERSION'
   HTTPS             = 'HTTPS'
