@@ -4,7 +4,22 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-_Note: There are many unreleased changes in Rack (`master` is around 300 commits ahead of `2-0-stable`), and below is not an exhaustive list. If you would like to help out and document some of the unreleased changes, PRs are welcome._ 
+_Note: The list below may not be up-to-date. If you would like to help out and document some of the unreleased changes, PRs are welcome._
+
+### Removed
+
+- Support for Ruby 2.2 as it is well past EOL. ([@ioquatix](https://github.com/ioquatix))
+
+### Fixed
+
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
+- Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
+
+### Documentation
+
+- CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
+
+## [2.1.0] - 2020-01-10
 
 ### Added
 
@@ -42,11 +57,16 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Update codebase to avoid string mutations in preparation for `frozen_string_literals`. ([@pat](https://github.com/pat))
 - Change `MockRequest#env_for` to rely on the input optionally responding to `#size` instead of `#length`. ([@janko](https://github.com/janko))
 - Rename `Rack::File` -> `Rack::Files` and add deprecation notice. ([@postmodern](https://github.com/postmodern)).
+- Prefer Base64 “strict encoding” for Base64 cookies. ([@ioquatix](https://github.com/ioquatix))
 
 ### Removed
 
 - Remove `to_ary` from Response ([@tenderlove](https://github.com/tenderlove))
 - Deprecate `Rack::Session::Memcache` in favor of `Rack::Session::Dalli` from dalli gem ([@fatkodima](https://github.com/fatkodima))
+
+### Fixed
+
+- Eliminate warnings for Ruby 2.7. ([@osamtimizer](https://github.com/osamtimizer]))
 
 ### Documentation
 
@@ -54,13 +74,17 @@ _Note: There are many unreleased changes in Rack (`master` is around 300 commits
 - Add Padrino to the list of frameworks implmenting Rack. ([@wikimatze](https://github.com/wikimatze))
 - Remove Mongrel from the suggested server options in the help output. ([@tricknotes](https://github.com/tricknotes))
 - Replace `HISTORY.md` and `NEWS.md` with `CHANGELOG.md`. ([@twitnithegirl](https://github.com/twitnithegirl))
-- Backfill `CHANGELOG.md` from 2.0.1 to 2.0.7 releases. ([@drenmi](https://github.com/Drenmi))
+- CHANGELOG updates. ([@drenmi](https://github.com/Drenmi), [@p8](https://github.com/p8))
 
 ## [2.0.8] - 2019-12-08
+
+### Security
 
 - [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. BREAKING CHANGE: Session ID is now a SessionId instance instead of a String. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
 
 ## [1.6.12] - 2019-12-08
+
+### Security
 
 - [[CVE-2019-16782](https://nvd.nist.gov/vuln/detail/CVE-2019-16782)] Prevent timing attacks targeted at session ID lookup. BREAKING CHANGE: Session ID is now a SessionId instance instead of a String. ([@tenderlove](https://github.com/tenderlove), [@rafaelfranca](https://github.com/rafaelfranca))
 
