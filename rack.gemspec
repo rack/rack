@@ -27,7 +27,7 @@ EOF
   s.author          = 'Leah Neukirchen'
   s.email           = 'leah@vuxu.org'
   s.homepage        = 'https://rack.github.io/'
-  s.required_ruby_version = '>= 2.2.2'
+  s.required_ruby_version = '>= 2.3.0'
   s.metadata              = {
     "bug_tracker_uri"   => "https://github.com/rack/rack/issues",
     "changelog_uri"     => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
