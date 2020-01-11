@@ -126,32 +126,6 @@ A Gem of \Rack is available at {rubygems.org}[https://rubygems.org/gems/rack]. Y
 
     gem install rack
 
-== Running the tests
-
-Testing \Rack requires the bacon testing framework:
-
-    bundle install --without extra # to be able to run the fast tests
-
-Or:
-
-    bundle install # this assumes that you have installed native extensions!
-
-There is a rake-based test task:
-
-    rake test # tests all the tests
-
-The testsuite has no dependencies outside of the core Ruby
-installation and bacon.
-
-To run the test suite completely, you need:
-
-  * fcgi
-  * dalli
-  * thin
-
-To test Memcache sessions, you need memcached (will be
-run on port 11211) and dalli installed.
-
 == Configuration
 
 Several parameters can be modified on Rack::Utils to configure \Rack behaviour.
@@ -181,6 +155,10 @@ Can also be set via the +RACK_MULTIPART_PART_LIMIT+ environment variable.
 == Changelog
 
 See {CHANGELOG.md}[https://github.com/rack/rack/blob/master/CHANGELOG.md].
+
+== Contributing
+
+See {CONTRIBUTING.md}[https://github.com/rack/rack/blob/master/CONTRIBUTING.md].
 
 == Contact
 
