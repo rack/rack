@@ -146,6 +146,10 @@ module Rack
     end
     module_function :q_values
 
+    # Return best accept value to use, based on the algorithm
+    # in RFC 2616 Section 14.  If there are multiple best
+    # matches (same specificity and quality), the value returned
+    # is arbitrary.
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
