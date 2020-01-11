@@ -18,6 +18,7 @@ _Note: The list below may not be up-to-date. If you would like to help out and d
 ### Documentation
 
 - CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
+- Added [CONTRIBUTING](CONTRIBUTING.md). ([@dblock](https://github.com/dblock))
 
 ## [2.1.0] - 2020-01-10
 
