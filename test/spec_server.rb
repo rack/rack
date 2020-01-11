@@ -150,26 +150,25 @@ describe Rack::Server do
     pidfile = Tempfile.open('pidfile') { |f| break f }
     FileUtils.rm pidfile.path
     server = Rack::Server.new(
-      :app         => app,
-      :environment => 'none',
-      :pid         => pidfile.path,
-      :Port        => TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
-      :Host        => '127.0.0.1',
-      :Logger      => WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-      :AccessLog   => [],
-      :daemonize   => false,
-      :server      => 'webrick',
-      :SSLEnable   => true,
-      :SSLCertName => [['CN', 'nobody'], ['DC', 'example']]
+      app: app,
+      environment: 'none',
+      pid: pidfile.path,
+      Port: TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
+      Host: '127.0.0.1',
+      Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
+      AccessLog: [],
+      daemonize: false,
+      server: 'webrick',
+      SSLEnable: true,
+      SSLCertName: [['CN', 'nobody'], ['DC', 'example']]
     )
     t = Thread.new { server.start { |s| Thread.current[:server] = s } }
     t.join(0.01) until t[:server] && t[:server].status != :Stop
 
     uri = URI.parse("https://127.0.0.1:#{server.options[:Port]}/")
 
-    Net::HTTP.start("127.0.0.1", uri.port,
-                    :use_ssl => true,
-                    :verify_mode => OpenSSL::SSL::VERIFY_NONE) do |http|
+    Net::HTTP.start("127.0.0.1", uri.port, use_ssl: true,
+      verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
 
       request = Net::HTTP::Get.new uri
 
