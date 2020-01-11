@@ -20,6 +20,10 @@ _Note: The list below may not be up-to-date. If you would like to help out and d
 - CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
 - Added [CONTRIBUTING](CONTRIBUTING.md). ([@dblock](https://github.com/dblock))
 
+## [2.1.1] - 2020-01-12
+
+- Remove `Rack::Chunked` from `Rack::Server` default middleware. ([#1475](https://github.com/rack/rack/pull/1475), [@ioquatix](https://github.com/ioquatix))
+
 ## [2.1.0] - 2020-01-10
 
 ### Added
