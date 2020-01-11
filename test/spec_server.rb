@@ -146,7 +146,7 @@ describe Rack::Server do
     open(pidfile.path) { |f| f.read.must_equal $$.to_s }
   end
 
-  it "run an ssl server" do
+  it "run a secure server" do
     pidfile = Tempfile.open('pidfile') { |f| break f }
     FileUtils.rm pidfile.path
     server = Rack::Server.new(
@@ -179,7 +179,7 @@ describe Rack::Server do
     Process.kill(:INT, $$)
     t.join
     open(pidfile.path) { |f| f.read.must_equal $$.to_s }
-  end
+  end if RUBY_VERSION >= "2.6"
 
   it "check pid file presence and running process" do
     pidfile = Tempfile.open('pidfile') { |f| f.write($$); break f }.path
