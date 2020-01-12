@@ -193,8 +193,10 @@ The \Rack Core Team, consisting of
 * Aaron Patterson (tenderlove[https://github.com/tenderlove])
 * Santiago Pastorino (spastorino[https://github.com/spastorino])
 * Konstantin Haase (rkh[https://github.com/rkh])
+* Samuel Williams (ioquatix[https://github.com/ioquatix])
+* Jeremy Evans (jeremyevans[https://github.com/jeremyevans])
 
-and the \Rack Alumnis
+and the \Rack Alumni
 
 * Ryan Tomayko (rtomayko[https://github.com/rtomayko])
 * Scytrin dai Kinthra (scytrin[https://github.com/scytrin])
