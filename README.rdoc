@@ -185,21 +185,24 @@ You are also welcome to join the #rack channel on irc.freenode.net.
 
 The \Rack Core Team, consisting of
 
-* Leah Neukirchen (leahneukirchen[https://github.com/leahneukirchen])
-* James Tucker (raggi[https://github.com/raggi])
-* Josh Peek (josh[https://github.com/josh])
-* José Valim (josevalim[https://github.com/josevalim])
-* Michael Fellinger (manveru[https://github.com/manveru])
 * Aaron Patterson (tenderlove[https://github.com/tenderlove])
-* Santiago Pastorino (spastorino[https://github.com/spastorino])
-* Konstantin Haase (rkh[https://github.com/rkh])
 * Samuel Williams (ioquatix[https://github.com/ioquatix])
 * Jeremy Evans (jeremyevans[https://github.com/jeremyevans])
+* Eileen Uchitelle (eileencodes[https://github.com/eileencodes])
+* Matthew Draper (matthewd[https://github.com/matthewd])
+* Rafael França (rafaelfranca[https://github.com/rafaelfranca])
 
 and the \Rack Alumni
 
 * Ryan Tomayko (rtomayko[https://github.com/rtomayko])
 * Scytrin dai Kinthra (scytrin[https://github.com/scytrin])
+* Leah Neukirchen (leahneukirchen[https://github.com/leahneukirchen])
+* James Tucker (raggi[https://github.com/raggi])
+* Josh Peek (josh[https://github.com/josh])
+* José Valim (josevalim[https://github.com/josevalim])
+* Michael Fellinger (manveru[https://github.com/manveru])
+* Santiago Pastorino (spastorino[https://github.com/spastorino])
+* Konstantin Haase (rkh[https://github.com/rkh])
 
 would like to thank:
 
