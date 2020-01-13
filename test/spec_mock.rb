@@ -279,6 +279,21 @@ describe Rack::MockResponse do
     res.content_length.wont_equal 0
     res.location.must_be_nil
   end
+  
+  #
+  ## The tests below will pass on 2.0.8 but fail on 2.1.0+
+  ## See https://github.com/rack/rack/issues/1472
+  #      https://github.com/rack/rack/issues/1472#issuecomment-573393169
+  #
+  it 'sets the Content-Type headers when basic app used' do
+    simple_app = ->(_env) { [200, {}, ['Hello, world!']] }
+
+    res = Rack::MockRequest.new(simple_app).get('/')
+
+    res.status.must_equal 200
+    res.header['Content-Length'].must_equal '13'
+    res.body.must_equal 'Hello, world!'
+  end
 
   it "provide access to session cookies" do
     res = Rack::MockRequest.new(app).get("")
