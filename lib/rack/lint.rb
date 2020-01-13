@@ -48,7 +48,7 @@ module Rack
       env[RACK_ERRORS] = ErrorWrapper.new(env[RACK_ERRORS])
 
       ## and returns an Array of exactly three values:
-      status, headers, @body = @app.call(env)
+      status, headers, @body = @app.call(env).to_a
       ## The *status*,
       check_status status
       ## the *headers*,

@@ -17,6 +17,12 @@ describe Rack::Lint do
                    }).call(env({})).first.must_equal 200
   end
 
+  it "works with Rack::Response" do
+    Rack::Lint.new(lambda { |env|
+                     Rack::Response.new(["foo"], 200, { "Content-type" => "test/plain", "Content-length" => "3" })
+                   }).call(env({})).first.must_equal 200
+  end
+
   it "notice fatal errors" do
     lambda { Rack::Lint.new(nil).call }.must_raise(Rack::Lint::LintError).
       message.must_match(/No env given/)
