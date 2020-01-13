@@ -21,7 +21,7 @@ module Rack
   # Your application's +call+ should end returning Response#finish.
 
   class Response
-    def self.[] (status, headers, body)
+    def self.[](status, headers, body)
       self.new(body, status, headers)
     end
     
