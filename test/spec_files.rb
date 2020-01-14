@@ -165,6 +165,15 @@ describe Rack::Files do
     body.to_path.must_equal path
   end
 
+  it "return bodies that do not respond to #to_path if a byte range is requested" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=22-33"
+    status, _, body = Rack::Files.new(DOCROOT).call(env)
+
+    status.must_equal 206
+    body.wont_respond_to :to_path
+  end
+
   it "return correct byte range in body" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=22-33"
