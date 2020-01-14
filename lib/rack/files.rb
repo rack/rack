@@ -90,6 +90,7 @@ module Rack
         return response
       else
         # Partial content:
+        partial_content = true
         range = ranges[0]
         response[0] = 206
         response[1]["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{size}"
@@ -99,13 +100,18 @@ module Rack
       response[2] = [response_body] unless response_body.nil?
 
       response[1][CONTENT_LENGTH] = size.to_s
-      response[2] = make_body request, path, range
+      response[2] = if request.head?
+        []
+      elsif partial_content
+        BaseIterator.new path, range
+      else
+        Iterator.new path, range
+      end
       response
     end
 
-    class Iterator
+    class BaseIterator
       attr_reader :path, :range
-      alias :to_path :path
 
       def initialize path, range
         @path  = path
@@ -129,15 +135,11 @@ module Rack
       def close; end
     end
 
-    private
-
-    def make_body request, path, range
-      if request.head?
-        []
-      else
-        Iterator.new path, range
-      end
+    class Iterator < BaseIterator
+      alias :to_path :path
     end
+
+    private
 
     def fail(status, body, headers = {})
       body += "\n"
