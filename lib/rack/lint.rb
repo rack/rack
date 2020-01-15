@@ -48,7 +48,15 @@ module Rack
       env[RACK_ERRORS] = ErrorWrapper.new(env[RACK_ERRORS])
 
       ## and returns an Array of exactly three values:
-      status, headers, @body = @app.call(env)
+      ary = @app.call(env)
+      assert("response #{ary.inspect} is not an Array , but #{ary.class}") {
+        ary.kind_of? Array
+      }
+      assert("response array #{ary.inspect} has #{ary.size} elements instead of 3") {
+        ary.size == 3
+      }
+
+      status, headers, @body = ary
       ## The *status*,
       check_status status
       ## the *headers*,

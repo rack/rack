@@ -163,6 +163,22 @@ describe Rack::Lint do
       message.must_match(/does not respond to #puts/)
   end
 
+  it "notice response errors" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       ""
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_include('response "" is not an Array , but String')
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [nil, nil, nil, nil]
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_include('response array [nil, nil, nil, nil] has 4 elements instead of 3')
+  end
+
   it "notice status errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
