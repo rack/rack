@@ -348,6 +348,19 @@ describe Rack::MockResponse do
     res.body.must_equal 'hi'
   end
 
+  it "return non-binary response body as UTF-8 string" do
+    body = ["utf8 body", "iso-8859-1 body".encode(Encoding::ISO_8859_1)]
+    res = Rack::MockResponse.new(200, {}, body)
+    res.body.encoding.must_equal Encoding::UTF_8
+  end
+
+  it "return binary response body as binary string" do
+    fixture = File.join(File.dirname(__FILE__), "multipart", "rack-logo.png")
+    body = [File.binread(fixture)]
+    res = Rack::MockResponse.new(200, {}, body)
+    res.body.encoding.must_equal Encoding::ASCII_8BIT
+  end
+
   it "optionally make Rack errors fatal" do
     lambda {
       Rack::MockRequest.new(app).get("/?error=foo", fatal: true)

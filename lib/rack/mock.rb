@@ -196,9 +196,13 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      buffer = String.new
+      buffer = String.new(encoding: Encoding::UTF_8)
 
       super.each do |chunk|
+        if chunk.encoding == Encoding::ASCII_8BIT
+          buffer.encode!(Encoding::ASCII_8BIT)
+        end
+
         buffer << chunk
       end
 
