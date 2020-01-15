@@ -676,13 +676,17 @@ module Rack
       ##
       ## === The Headers
       ##
-      def check_headers(header)
-        ## The header must respond to +each+, and yield values of key and value.
-        unless header.respond_to? :each
-          raise LintError, "headers object should respond to #each, but doesn't (got #{header.class} as headers)"
+      def check_headers(headers)
+        ## The headers must be a unfrozen Hash.
+        unless headers.kind_of?(Hash)
+          raise LintError, "headers object should be a hash, but isn't (got #{headers.class} as headers)"
+        end
+        
+        if headers.frozen?
+          raise LintError, "headers object should not be frozen, but is"
         end
 
-        header.each { |key, value|
+        headers.each { |key, value|
           ## The header keys must be Strings.
           unless key.kind_of? String
             raise LintError, "header key must be a string, was #{key.class}"

@@ -284,15 +284,24 @@ describe Rack::Lint do
   end
 
   it "notice header errors" do
+    obj = Object.new
+    def obj.each; end
     lambda {
       io = StringIO.new('a')
       io.binmode
       Rack::Lint.new(lambda { |env|
                        env['rack.input'].each{ |x| }
-                       [200, Object.new, []]
+                       [200, obj, []]
                      }).call(env({ "rack.input" => io }))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "headers object should respond to #each, but doesn't (got Object as headers)"
+      message.must_equal "headers object should be a hash, but isn't (got Object as headers)"
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [200, {}.freeze, []]
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "headers object should not be frozen, but is"
+
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -364,10 +373,13 @@ describe Rack::Lint do
                      [200, { "Foo-Bar" => "one\ntwo\nthree", "Content-Length" => "0", "Content-Type" => "text/plain" }, []]
                    }).call(env({})).first.must_equal 200
 
-    # non-Hash header responses.must_be :allowed?
-    Rack::Lint.new(lambda { |env|
+    lambda {
+      Rack::Lint.new(lambda { |env|
                      [200, [%w(Content-Type text/plain), %w(Content-Length 0)], []]
-                   }).call(env({})).first.must_equal 200
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "headers object should be a hash, but isn't (got Array as headers)"
+
   end
 
   it "notice content-type errors" do
