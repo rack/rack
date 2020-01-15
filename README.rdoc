@@ -136,10 +136,26 @@ e.g:
 
 === key_space_limit
 
-The default number of bytes to allow a single parameter key to take up.
-This helps prevent a rogue client from flooding a Request.
+The default number of bytes to allow all parameters keys in a given parameter hash to take up.
+Does not affect nested parameter hashes, so doesn't actually prevent an attacker from using
+more than this many bytes for parameter keys.
 
-Default to 65536 characters (4 kiB in worst case).
+Defaults to 65536 characters.
+
+=== param_depth_limit
+
+The maximum amount of nesting allowed in parameters.
+For example, if set to 3, this query string would be allowed:
+
+    ?a[b][c]=d
+
+but this query string would not be allowed:
+
+    ?a[b][c][d]=e
+
+Limiting the depth prevents a possible stack overflow when parsing parameters.
+
+Defaults to 100.
 
 === multipart_part_limit
 
