@@ -282,6 +282,31 @@ class RackRequestTest < Minitest::Spec
     end
   end
 
+  it "limit the allowed parameter depth when parsing parameters" do
+    env = Rack::MockRequest.env_for("/?a#{'[a]' * 110}=b")
+    req = make_request(env)
+    lambda { req.GET }.must_raise RangeError
+
+    env = Rack::MockRequest.env_for("/?a#{'[a]' * 90}=b")
+    req = make_request(env)
+    params = req.GET
+    90.times { params = params['a'] }
+    params['a'].must_equal 'b'
+
+    old, Rack::Utils.param_depth_limit = Rack::Utils.param_depth_limit, 3
+    begin
+      env = Rack::MockRequest.env_for("/?a[a][a]=b")
+      req = make_request(env)
+      req.GET['a']['a']['a'].must_equal 'b'
+
+      env = Rack::MockRequest.env_for("/?a[a][a][a]=b")
+      req = make_request(env)
+      lambda { make_request(env).GET  }.must_raise RangeError
+    ensure
+      Rack::Utils.param_depth_limit = old
+    end
+  end
+
   it "not unify GET and POST when calling params" do
     mr = Rack::MockRequest.env_for("/?foo=quux",
       "REQUEST_METHOD" => 'POST',
