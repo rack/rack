@@ -268,7 +268,7 @@ This is an HTTP status. It must be an Integer greater than or equal to
 
 === The Headers
 
-The header must respond to +each+, and yield values of key and value.
+The headers must be a unfrozen Hash.
 The header keys must be Strings.
 Special headers starting "rack." are for communicating with the
 server, and must not be sent back to the client.
