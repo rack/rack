@@ -181,7 +181,7 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(lambda{ |req|
       [
         200,
-        [ [ "rack.hijack", io_lambda ] ],
+        { "rack.hijack" => io_lambda },
         [""]
       ]
     })

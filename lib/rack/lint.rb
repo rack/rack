@@ -631,13 +631,16 @@ module Rack
 
     ## === The Headers
     def check_headers(header)
-      ## The header must respond to +each+, and yield values of key and value.
-      assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
-         header.respond_to? :each
+      ## The header must be a unfrozen Hash.
+      assert("headers object should be a hash, but isn't (got #{header.class} as headers)") {
+         header.kind_of?(Hash)
+      }
+      assert("headers object should not be frozen, but is") {
+         !header.frozen?
       }
 
       header.each { |key, value|
-        ## The header keys must be Strings.
+        ## The keys of the header must be Strings.
         assert("header key must be a string, was #{key.class}") {
           key.kind_of? String
         }

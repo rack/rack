@@ -224,8 +224,8 @@ if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
 This is an HTTP status. When parsed as integer (+to_i+), it must be
 greater than or equal to 100.
 === The Headers
-The header must respond to +each+, and yield values of key and value.
-The header keys must be Strings.
+The header must be a unfrozen Hash.
+The keys of the header must be Strings.
 Special headers starting "rack." are for communicating with the
 server, and must not be sent back to the client.
 The header must not contain a +Status+ key.
