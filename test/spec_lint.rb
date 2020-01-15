@@ -114,6 +114,20 @@ describe Rack::Lint do
       message.must_match(/Invalid CONTENT_LENGTH/)
 
     lambda {
+      Rack::Lint.new(nil).call(env("QUERY_STRING" => nil))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_include('env variable QUERY_STRING has non-string value nil')
+
+    lambda {
+      Rack::Lint.new(nil).call(env("QUERY_STRING" => "\u1234"))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_include('env variable QUERY_STRING has value containing non-ASCII characters and has non-ASCII-8BIT encoding')
+
+    Rack::Lint.new(lambda { |env|
+                     [200, {}, []]
+                   }).call(env("QUERY_STRING" => "\u1234".b)).first.must_equal 200
+
+    lambda {
       e = env
       e.delete("PATH_INFO")
       e.delete("SCRIPT_NAME")
