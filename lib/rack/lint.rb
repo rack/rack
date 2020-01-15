@@ -278,10 +278,16 @@ module Rack
       }
 
       ## The CGI keys (named without a period) must have String values.
+      ## If the string values for CGI keys contain non-ASCII characters,
+      ## they should use ASCII-8BIT encoding.
       env.each { |key, value|
         next  if key.include? "."   # Skip extensions
         assert("env variable #{key} has non-string value #{value.inspect}") {
           value.kind_of? String
+        }
+        next if value.encoding == Encoding::ASCII_8BIT
+        assert("env variable #{key} has value containing non-ASCII characters and has non-ASCII-8BIT encoding #{value.inspect} encoding: #{value.encoding}") {
+          value.b !~ /[\x80-\xff]/n
         }
       }
 

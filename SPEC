@@ -122,6 +122,8 @@ The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
 (use the versions without <tt>HTTP_</tt>).
 The CGI keys (named without a period) must have String values.
+If the string values for CGI keys contain non-ASCII characters,
+they should use ASCII-8BIT encoding.
 There are the following restrictions:
 * <tt>rack.version</tt> must be an array of Integers.
 * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
