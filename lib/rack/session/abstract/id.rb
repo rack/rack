@@ -98,6 +98,11 @@ module Rack
           @data[key.to_s]
         end
 
+        def dig(key, *keys)
+          load_for_read!
+          @data.dig(key.to_s, *keys)
+        end
+
         def fetch(key, default = Unspecified, &block)
           load_for_read!
           if default == Unspecified
