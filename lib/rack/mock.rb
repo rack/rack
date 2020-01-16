@@ -56,14 +56,24 @@ module Rack
       @app = app
     end
 
+    # Make a GET request and return a MockResponse. See #request.
     def get(uri, opts = {})     request(GET, uri, opts)     end
+    # Make a POST request and return a MockResponse. See #request.
     def post(uri, opts = {})    request(POST, uri, opts)    end
+    # Make a PUT request and return a MockResponse. See #request.
     def put(uri, opts = {})     request(PUT, uri, opts)     end
+    # Make a PATCH request and return a MockResponse. See #request.
     def patch(uri, opts = {})   request(PATCH, uri, opts)   end
+    # Make a DELETE request and return a MockResponse. See #request.
     def delete(uri, opts = {})  request(DELETE, uri, opts)  end
+    # Make a HEAD request and return a MockResponse. See #request.
     def head(uri, opts = {})    request(HEAD, uri, opts)    end
+    # Make an OPTIONS request and return a MockResponse. See #request.
     def options(uri, opts = {}) request(OPTIONS, uri, opts) end
 
+    # Make a request using the given request method for the given
+    # uri to the rack application and return a MockResponse.
+    # Options given are passed to MockRequest.env_for.
     def request(method = GET, uri = "", opts = {})
       env = self.class.env_for(uri, opts.merge(method: method))
 
@@ -88,6 +98,13 @@ module Rack
     end
 
     # Return the Rack environment used for a request to +uri+.
+    # All options that are strings are added to the returned environment.
+    # Options:
+    # :fatal :: Whether to raise an exception if request outputs to rack.errors
+    # :input :: The rack.input to set
+    # :method :: The HTTP request method to use
+    # :params :: The params to use
+    # :script_name :: The SCRIPT_NAME to set
     def self.env_for(uri = "", opts = {})
       uri = parse_uri_rfc2396(uri)
       uri.path = "/#{uri.path}" unless uri.path[0] == ?/
