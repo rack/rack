@@ -124,6 +124,10 @@ module Rack
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)
 
+      # No point in compressing empty body, also handles usage with
+      # Rack::Sendfile.
+      return false if headers[CONTENT_LENGTH] == '0'
+
       true
     end
   end
