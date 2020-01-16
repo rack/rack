@@ -84,6 +84,15 @@ describe Rack::Auth::Basic do
     end
   end
 
+  it 'return 400 Bad Request for a authorization header with only username' do
+    auth = 'Basic ' + ['foo'].pack("m*")
+    request 'HTTP_AUTHORIZATION' => auth do |response|
+      response.must_be :client_error?
+      response.status.must_equal 400
+      response.wont_include 'WWW-Authenticate'
+    end
+  end
+
   it 'takes realm as optional constructor arg' do
     app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
     realm.must_equal app.realm

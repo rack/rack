@@ -44,7 +44,7 @@ module Rack
 
       class Request < Auth::AbstractRequest
         def basic?
-          "basic" == scheme
+          "basic" == scheme && credentials.length == 2
         end
 
         def credentials
