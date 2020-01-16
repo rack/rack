@@ -362,6 +362,15 @@ describe Rack::Deflater do
     verify(200, 'Hello World!', { 'gzip' => nil }, options)
   end
 
+  it "not deflate if content-length is 0" do
+    options = {
+      'response_headers' => {
+        'Content-Length' => '0'
+      },
+    }
+    verify(200, '', { 'gzip' => nil }, options)
+  end
+
   it "deflate response if :if lambda evaluates to true" do
     options = {
       'deflater_options' => {
