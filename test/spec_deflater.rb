@@ -76,7 +76,7 @@ describe Rack::Deflater do
           Time.httpdate(last_mod).to_i.must_equal mtime
         else
           mtime.must_be(:<=, Time.now.to_i)
-          mtime.must_be(:>=, start.to_i)
+          mtime.must_be(:>=, start.to_i - 1)
         end
         tmp = gz.read
         gz.close
