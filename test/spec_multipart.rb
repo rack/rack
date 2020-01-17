@@ -30,6 +30,12 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
+  it "parse multipart content when content type present but disposition is not" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text/plain; charset=US-ASCII"].must_equal ["contents"]
+  end
+
   it "parse multipart content when content type present but filename is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
