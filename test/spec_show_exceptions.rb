@@ -25,6 +25,27 @@ describe Rack::ShowExceptions do
 
     assert_match(res, /RuntimeError/)
     assert_match(res, /ShowExceptions/)
+    assert_match(res, /No GET data/)
+    assert_match(res, /No POST data/)
+  end
+
+  it "handles invalid POST data exceptions" do
+    res = nil
+
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise RuntimeError }
+    ))
+
+    res = req.post("/", "HTTP_ACCEPT" => "text/html", "rack.input" => StringIO.new(String.new << '(%bad-params%)'))
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_match(res, /RuntimeError/)
+    assert_match(res, /ShowExceptions/)
+    assert_match(res, /No GET data/)
+    assert_match(res, /Invalid POST data/)
   end
 
   it "works with binary data in the Rack environment" do

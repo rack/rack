@@ -313,7 +313,7 @@ module Rack
         <% end %>
 
         <h3 id="post-info">POST</h3>
-        <% if req.POST and not req.POST.empty? %>
+        <% if ((req.POST and not req.POST.empty?) rescue (no_post_data = "Invalid POST data"; nil)) %>
           <table class="req">
             <thead>
               <tr>
@@ -331,7 +331,7 @@ module Rack
             </tbody>
           </table>
         <% else %>
-          <p>No POST data.</p>
+          <p><%= no_post_data || "No POST data" %>.</p>
         <% end %>
 
 
