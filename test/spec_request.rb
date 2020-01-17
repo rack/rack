@@ -574,6 +574,10 @@ class RackRequestTest < Minitest::Spec
     request.scheme.must_equal "https"
     request.must_be :ssl?
 
+    request = make_request(Rack::MockRequest.env_for("/", 'rack.url_scheme' => 'wss'))
+    request.scheme.must_equal "wss"
+    request.must_be :ssl?
+
     request = make_request(Rack::MockRequest.env_for("/", 'HTTP_HOST' => 'www.example.org:8080'))
     request.scheme.must_equal "http"
     request.wont_be :ssl?
