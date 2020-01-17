@@ -21,6 +21,7 @@ describe Rack::Static do
   root = File.expand_path(File.dirname(__FILE__))
 
   OPTIONS = { urls: ["/cgi"], root: root }
+  CASCADE_OPTIONS = { urls: ["/cgi"], root: root, cascade: true }
   STATIC_OPTIONS = { urls: [""], root: "#{root}/static", index: 'index.html' }
   STATIC_URLS_OPTIONS = { urls: ["/static"], root: "#{root}", index: 'index.html' }
   HASH_OPTIONS = { urls: { "/cgi/sekret" => 'cgi/test' }, root: root }
@@ -29,6 +30,7 @@ describe Rack::Static do
 
   before do
   @request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS))
+  @cascade_request = Rack::MockRequest.new(static(DummyApp.new, CASCADE_OPTIONS))
   @static_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_OPTIONS))
   @static_urls_request = Rack::MockRequest.new(static(DummyApp.new, STATIC_URLS_OPTIONS))
   @hash_request = Rack::MockRequest.new(static(DummyApp.new, HASH_OPTIONS))
@@ -46,6 +48,18 @@ describe Rack::Static do
   it "404s if url root is known but it can't find the file" do
     res = @request.get("/cgi/foo")
     res.must_be :not_found?
+  end
+
+  it "serves files when using :cascade option" do
+    res = @cascade_request.get("/cgi/test")
+    res.must_be :ok?
+    res.body.must_match(/ruby/)
+  end
+
+  it "calls down the chain if if can't find the file when using the :cascade option" do
+    res = @cascade_request.get("/cgi/foo")
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
   end
 
   it "calls down the chain if url root is not known" do
