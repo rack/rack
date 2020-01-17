@@ -510,6 +510,22 @@ Content-Type: image/jpeg\r
     params["people"][0]["files"][:tempfile].read.must_equal "contents"
   end
 
+  it "builds multipart body from StringIO" do
+    files = Rack::Multipart::UploadedFile.new(io: StringIO.new('foo'), filename: 'bar.txt')
+    data  = Rack::Multipart.build_multipart("submit-name" => "Larry", "files" => files)
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].must_equal "Larry"
+    params["files"][:filename].must_equal "bar.txt"
+    params["files"][:tempfile].read.must_equal "foo"
+  end
+
   it "can parse fields that end at the end of the buffer" do
     input = File.read(multipart_file("bad_robots"))
 

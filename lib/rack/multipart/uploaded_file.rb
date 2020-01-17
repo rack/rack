@@ -9,17 +9,23 @@ module Rack
       # The content type of the "uploaded" file
       attr_accessor :content_type
 
-      def initialize(path, content_type = "text/plain", binary = false)
-        raise "#{path} file does not exist" unless ::File.exist?(path)
+      def initialize(filepath = nil, ct = "text/plain", bin = false,
+                     path: filepath, content_type: ct, binary: bin, filename: nil, io: nil)
+        if io
+          @tempfile = io
+          @original_filename = filename
+        else
+          raise "#{path} file does not exist" unless ::File.exist?(path)
+          @original_filename = filename || ::File.basename(path)
+          @tempfile = Tempfile.new([@original_filename, ::File.extname(path)], encoding: Encoding::BINARY)
+          @tempfile.binmode if binary
+          FileUtils.copy_file(path, @tempfile.path)
+        end
         @content_type = content_type
-        @original_filename = ::File.basename(path)
-        @tempfile = Tempfile.new([@original_filename, ::File.extname(path)], encoding: Encoding::BINARY)
-        @tempfile.binmode if binary
-        FileUtils.copy_file(path, @tempfile.path)
       end
 
       def path
-        @tempfile.path
+        @tempfile.path if @tempfile.respond_to?(:path)
       end
       alias_method :local_path, :path
 
