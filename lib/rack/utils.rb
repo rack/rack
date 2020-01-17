@@ -32,7 +32,7 @@ module Rack
 
     # URI escapes. (CGI style space to +)
     def escape(s)
-      URI.encode_www_form_component(s)
+      URI.encode_www_form_component(s).gsub('[', '%5B').gsub(']', '%5D')
     end
     module_function :escape
 
@@ -119,11 +119,11 @@ module Rack
       case value
       when Array
         value.map { |v|
-          build_nested_query(v, "#{prefix}[]")
+          build_nested_query(v, "#{prefix}%5B%5D")
         }.join("&")
       when Hash
         value.map { |k, v|
-          build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
+          build_nested_query(v, prefix ? "#{prefix}%5B#{escape(k)}%5D" : escape(k))
         }.delete_if(&:empty?).join('&')
       when nil
         prefix

@@ -281,9 +281,9 @@ describe Rack::Utils do
     assert_nested_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F",
                         "my weird field" => "q1!2\"'w$5&7/z8)?")
 
-    Rack::Utils.build_nested_query("foo" => [nil]).must_equal "foo[]"
-    Rack::Utils.build_nested_query("foo" => [""]).must_equal "foo[]="
-    Rack::Utils.build_nested_query("foo" => ["bar"]).must_equal "foo[]=bar"
+    Rack::Utils.build_nested_query("foo" => [nil]).must_equal "foo%5B%5D"
+    Rack::Utils.build_nested_query("foo" => [""]).must_equal "foo%5B%5D="
+    Rack::Utils.build_nested_query("foo" => ["bar"]).must_equal "foo%5B%5D=bar"
     Rack::Utils.build_nested_query('foo' => []).must_equal ''
     Rack::Utils.build_nested_query('foo' => {}).must_equal ''
     Rack::Utils.build_nested_query('foo' => 'bar', 'baz' => []).must_equal 'foo=bar'
@@ -294,35 +294,37 @@ describe Rack::Utils do
     Rack::Utils.build_nested_query('foo' => 'bar', 'baz' => '').
       must_equal 'foo=bar&baz='
     Rack::Utils.build_nested_query('foo' => ['1', '2']).
-      must_equal 'foo[]=1&foo[]=2'
+      must_equal 'foo%5B%5D=1&foo%5B%5D=2'
     Rack::Utils.build_nested_query('foo' => 'bar', 'baz' => ['1', '2', '3']).
-      must_equal 'foo=bar&baz[]=1&baz[]=2&baz[]=3'
+      must_equal 'foo=bar&baz%5B%5D=1&baz%5B%5D=2&baz%5B%5D=3'
     Rack::Utils.build_nested_query('foo' => ['bar'], 'baz' => ['1', '2', '3']).
-      must_equal 'foo[]=bar&baz[]=1&baz[]=2&baz[]=3'
+      must_equal 'foo%5B%5D=bar&baz%5B%5D=1&baz%5B%5D=2&baz%5B%5D=3'
     Rack::Utils.build_nested_query('foo' => ['bar'], 'baz' => ['1', '2', '3']).
-      must_equal 'foo[]=bar&baz[]=1&baz[]=2&baz[]=3'
+      must_equal 'foo%5B%5D=bar&baz%5B%5D=1&baz%5B%5D=2&baz%5B%5D=3'
     Rack::Utils.build_nested_query('x' => { 'y' => { 'z' => '1' } }).
-      must_equal 'x[y][z]=1'
+      must_equal 'x%5By%5D%5Bz%5D=1'
     Rack::Utils.build_nested_query('x' => { 'y' => { 'z' => ['1'] } }).
-      must_equal 'x[y][z][]=1'
+      must_equal 'x%5By%5D%5Bz%5D%5B%5D=1'
     Rack::Utils.build_nested_query('x' => { 'y' => { 'z' => ['1', '2'] } }).
-      must_equal 'x[y][z][]=1&x[y][z][]=2'
+      must_equal 'x%5By%5D%5Bz%5D%5B%5D=1&x%5By%5D%5Bz%5D%5B%5D=2'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1' }] }).
-      must_equal 'x[y][][z]=1'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D=1'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => ['1'] }] }).
-      must_equal 'x[y][][z][]=1'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D%5B%5D=1'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1', 'w' => '2' }] }).
-      must_equal 'x[y][][z]=1&x[y][][w]=2'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D=1&x%5By%5D%5B%5D%5Bw%5D=2'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'v' => { 'w' => '1' } }] }).
-      must_equal 'x[y][][v][w]=1'
+      must_equal 'x%5By%5D%5B%5D%5Bv%5D%5Bw%5D=1'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1', 'v' => { 'w' => '2' } }] }).
-      must_equal 'x[y][][z]=1&x[y][][v][w]=2'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D=1&x%5By%5D%5B%5D%5Bv%5D%5Bw%5D=2'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1' }, { 'z' => '2' }] }).
-      must_equal 'x[y][][z]=1&x[y][][z]=2'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D=1&x%5By%5D%5B%5D%5Bz%5D=2'
     Rack::Utils.build_nested_query('x' => { 'y' => [{ 'z' => '1', 'w' => 'a' }, { 'z' => '2', 'w' => '3' }] }).
-      must_equal 'x[y][][z]=1&x[y][][w]=a&x[y][][z]=2&x[y][][w]=3'
+      must_equal 'x%5By%5D%5B%5D%5Bz%5D=1&x%5By%5D%5B%5D%5Bw%5D=a&x%5By%5D%5B%5D%5Bz%5D=2&x%5By%5D%5B%5D%5Bw%5D=3'
     Rack::Utils.build_nested_query({ "foo" => ["1", ["2"]] }).
-      must_equal 'foo[]=1&foo[][]=2'
+      must_equal 'foo%5B%5D=1&foo%5B%5D%5B%5D=2'
+    Rack::Utils.build_nested_query({ "foo" => '[]' }).
+      must_equal 'foo=%5B%5D'
 
     lambda { Rack::Utils.build_nested_query("foo=bar") }.
       must_raise(ArgumentError).
