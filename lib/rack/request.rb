@@ -270,7 +270,7 @@ module Rack
       end
 
       def ssl?
-        scheme == 'https'
+        scheme == 'https' || scheme == 'wss'
       end
 
       def ip
