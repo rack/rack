@@ -19,6 +19,11 @@ module Rack
   #
   #     use Rack::Static, :urls => ["/media"]
   #
+  # Same as previous, but instead of returning 404 for missing files under
+  # /media, call the next middleware:
+  #
+  #     use Rack::Static, :urls => ["/media"], :cascade => true
+  #
   # Serve all requests beginning with /css or /images from the folder "public"
   # in the current directory (ie public/css/* and public/images/*):
   #
@@ -93,6 +98,7 @@ module Rack
       @urls = options[:urls] || ["/favicon.ico"]
       @index = options[:index]
       @gzip = options[:gzip]
+      @cascade = options[:cascade]
       root = options[:root] || Dir.pwd
 
       # HTTP Headers
@@ -143,6 +149,10 @@ module Rack
 
         path = env[PATH_INFO]
         response ||= @file_server.call(env)
+
+        if @cascade && response[0] == 404
+          return @app.call(env)
+        end
 
         headers = response[1]
         applicable_rules(path).each do |rule, new_headers|
