@@ -28,7 +28,9 @@ module Rack
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : nil
 
-        options[:BindAddress] = options.delete(:Host) || default_host
+        if !options[:BindAddress] || options[:Host]
+          options[:BindAddress] = options.delete(:Host) || default_host
+        end
         options[:Port] ||= 8080
         if options[:SSLEnable]
           require 'webrick/https'
