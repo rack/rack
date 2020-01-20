@@ -76,7 +76,7 @@ _Note: The list below may not be up-to-date. If you would like to help out and d
 ### Documentation
 
 - Update broken example in `Session::Abstract::ID` documentation. ([tonytonyjan](https://github.com/tonytonyjan))
-- Add Padrino to the list of frameworks implmenting Rack. ([@wikimatze](https://github.com/wikimatze))
+- Add Padrino to the list of frameworks implementing Rack. ([@wikimatze](https://github.com/wikimatze))
 - Remove Mongrel from the suggested server options in the help output. ([@tricknotes](https://github.com/tricknotes))
 - Replace `HISTORY.md` and `NEWS.md` with `CHANGELOG.md`. ([@twitnithegirl](https://github.com/twitnithegirl))
 - CHANGELOG updates. ([@drenmi](https://github.com/Drenmi), [@p8](https://github.com/p8))
