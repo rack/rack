@@ -8,7 +8,7 @@ require 'rack/show_exceptions'
 require 'rack/urlmap'
 
 class NothingMiddleware
-  def initialize(app)
+  def initialize(app, **)
     @app = app
   end
   def call(env)
@@ -45,7 +45,7 @@ describe Rack::Builder do
 
   it "doesn't dupe env even when mapping" do
     app = builder_to_app do
-      use NothingMiddleware
+      use NothingMiddleware, noop: :noop
       map '/' do |outer_env|
         run lambda { |inner_env|
           inner_env['new_key'] = 'new_value'
