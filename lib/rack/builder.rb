@@ -101,6 +101,7 @@ module Rack
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
+    ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
     # The simplest form of this is a lambda object:
