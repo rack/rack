@@ -1,3 +1,12 @@
+## [2.1.2]
+
+- Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
+- Fix `Rack::Builder#use` with keyword arguments ([@kamipo](https://github.com/kamipo))
+- Skip deflating in Rack::Deflater if Content-Length is 0 ([@jeremyevans](https://github.com/jeremyevans))
+- Remove `SessionHash#transform_keys`, no longer needed ([@pavel](https://github.com/pavel))
+- Add to_hash to wrap Hash and Session classes ([@oleh-demyanyuk](https://github.com/oleh-demyanyuk))
+- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
+
 ## [2.1.1] - 2020-01-12
 
 - Remove `Rack::Chunked` from `Rack::Server` default middleware. ([#1475](https://github.com/rack/rack/pull/1475), [@ioquatix](https://github.com/ioquatix))
