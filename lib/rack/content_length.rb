@@ -19,8 +19,7 @@ module Rack
 
       if !STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) &&
          !headers[CONTENT_LENGTH] &&
-         !headers[TRANSFER_ENCODING] &&
-         body.respond_to?(:to_ary)
+         !headers[TRANSFER_ENCODING]
 
         obody = body
         body, length = [], 0
