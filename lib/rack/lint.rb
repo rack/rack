@@ -206,6 +206,11 @@ module Rack
         assert("session #{session.inspect} must respond to clear") {
           session.respond_to?(:clear)
         }
+
+        ##                         to_hash (returning Hash instance);
+        assert("session #{session.inspect} must respond to to_hash and return Hash instance") {
+          session.respond_to?(:to_hash) && session.to_hash.kind_of?(Hash)
+        }
       end
 
       ## <tt>rack.logger</tt>:: A common object interface for logging messages.
