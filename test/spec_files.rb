@@ -20,7 +20,7 @@ describe Rack::Files do
     request = Rack::Request.new(
       Rack::MockRequest.env_for("/cgi/test")
     )
-    
+
     file_path = File.expand_path("cgi/test", __dir__)
     status, headers, body = app.serving(request, file_path)
     assert_equal 200, status

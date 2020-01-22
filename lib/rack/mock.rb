@@ -177,7 +177,7 @@ module Rack
     class << self
       alias [] new
     end
-    
+
     # Headers
     attr_reader :original_headers, :cookies
 

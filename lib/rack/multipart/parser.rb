@@ -347,7 +347,7 @@ module Rack
           type_subtype = list.first
           type_subtype.strip!
           if TEXT_PLAIN == type_subtype
-            rest         = list.drop 1
+            rest = list.drop 1
             rest.each do |param|
               k, v = param.split('=', 2)
               k.strip!

@@ -46,3 +46,6 @@ Layout/SpaceBeforeFirstArg:
 # Use `{ a: 1 }` not `{a:1}`.
 Layout/SpaceInsideHashLiteralBraces:
   Enabled: true
+
+Layout/TrailingWhitespace:
+  Enabled: true
