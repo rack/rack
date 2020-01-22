@@ -16,7 +16,7 @@ describe Rack::Response do
     response.headers.must_equal headers
     response.body.must_equal body
   end
-  
+
   it 'has cache-control methods' do
     response = Rack::Response.new
     cc = 'foo'

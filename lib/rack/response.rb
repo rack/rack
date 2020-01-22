@@ -24,7 +24,7 @@ module Rack
     def self.[](status, headers, body)
       self.new(body, status, headers)
     end
-    
+
     attr_accessor :length, :status, :body
     attr_reader :header
     alias headers header
