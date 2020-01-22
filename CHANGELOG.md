@@ -256,7 +256,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Fix CVE-2013-0263, timing attack against Rack::Session::Cookie
   - Fix CVE-2013-0262, symlink path traversal in Rack::File
   - Add various methods to Session for enhanced Rails compatibility
-  - Request#trusted_proxy? now only matches whole stirngs
+  - Request#trusted_proxy? now only matches whole strings
   - Add JSON cookie coder, to be default in Rack 1.6+ due to security concerns
   - URLMap host matching in environments that don't set the Host header fixed
   - Fix a race condition that could result in overwritten pidfiles
@@ -494,7 +494,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Add status code lookup utility
   - Response should call #to_i on the status
   - Add Request#user_agent
-  - Request#host knows about forwared host
+  - Request#host knows about forwarded host
   - Return an empty string for Request#host if HTTP_HOST and
     SERVER_NAME are both missing
   - Allow MockRequest to accept hash params
