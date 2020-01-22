@@ -20,13 +20,13 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].must_equal '13'
   end
 
-  it "not set Content-Length on variable length bodies" do
+  it "set Content-Length on variable length bodies" do
     body = lambda { "Hello World!" }
     def body.each ; yield call ; end
 
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
     response = content_length(app).call(request)
-    response[1]['Content-Length'].must_be_nil
+    response[1]['Content-Length'].must_equal '12'
   end
 
   it "not change Content-Length if it is already set" do
