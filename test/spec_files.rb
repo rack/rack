@@ -79,7 +79,7 @@ describe Rack::Files do
 
     res.must_be :ok?
     # res.must_match(/ruby/)    # nope
-    # (/ruby/).must_match res   # This is wierd, but an oddity of minitest
+    # (/ruby/).must_match res   # This is weird, but an oddity of minitest
     # assert_match(/ruby/, res) # nope
     assert_match(res, /ruby/)
   end

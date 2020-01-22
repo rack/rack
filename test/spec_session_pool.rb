@@ -58,7 +58,7 @@ describe Rack::Session::Pool do
       body.must_equal '{"counter"=>3}'
   end
 
-  it "survives nonexistant cookies" do
+  it "survives nonexistent cookies" do
     pool = Rack::Session::Pool.new(incrementor)
     res = Rack::MockRequest.new(pool).
       get("/", "HTTP_COOKIE" => "#{session_key}=blarghfasel")
