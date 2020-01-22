@@ -75,6 +75,31 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session [] must respond to store and []="
 
+    obj = {}
+    obj.singleton_class.send(:undef_method, :to_hash)
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "session {} must respond to to_hash and return Hash instance"
+
+    obj.singleton_class.send(:undef_method, :clear)
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "session {} must respond to clear"
+
+    obj.singleton_class.send(:undef_method, :delete)
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "session {} must respond to delete"
+
+    obj.singleton_class.send(:undef_method, :fetch)
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "session {} must respond to fetch and []"
+
     lambda {
       Rack::Lint.new(nil).call(env("rack.logger" => []))
     }.must_raise(Rack::Lint::LintError).
