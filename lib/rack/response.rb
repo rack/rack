@@ -30,7 +30,7 @@ module Rack
     # Initialize the response object with the specified body, status
     # and headers.
     #
-    # @param body [nil | #each | #to_str] the response body.
+    # @param body [nil, #each, #to_str] the response body.
     # @param status [Integer] the integer status as defined by the
     # HTTP protocol RFCs.
     # @param headers [#each] a list of key-value header pairs which
@@ -76,8 +76,9 @@ module Rack
       CHUNKED == get_header(TRANSFER_ENCODING)
     end
 
+    # Generate a response array consistent with the requirements of the SPEC.
     # @return [Array] a 3-tuple suitable of `[status, headers, body]`
-    # which is a suitable response from the middleware `#call(env)` method.
+    # which is suitable to be returned from the middleware `#call(env)` method.
     def finish(&block)
       if STATUS_WITH_NO_ENTITY_BODY[status.to_i]
         delete_header CONTENT_TYPE
