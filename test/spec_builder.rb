@@ -253,8 +253,14 @@ describe Rack::Builder do
     end
 
     it "strips leading unicode byte order mark when present" do
-      app, _ = Rack::Builder.parse_file config_file('bom.ru')
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+      enc = Encoding.default_external
+      begin
+        Encoding.default_external = 'UTF-8'
+        app, _ = Rack::Builder.parse_file config_file('bom.ru')
+        Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+      ensure
+        Encoding.default_external = enc
+      end
     end
   end
 
