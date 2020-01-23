@@ -10,7 +10,7 @@ module Rack
     class SCGI < ::SCGI::Processor
       attr_accessor :app
 
-      def self.run(app, options = nil)
+      def self.run(app, **options)
         options[:Socket] = UNIXServer.new(options[:File]) if options[:File]
         new(options.merge(app: app,
                           host: options[:Host],
