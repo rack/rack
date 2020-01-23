@@ -26,6 +26,10 @@ describe Rack::Lint do
     lambda { Rack::Lint.new(nil).call 5 }.must_raise(Rack::Lint::LintError).
       message.must_match(/not a Hash/)
 
+    lambda { Rack::Lint.new(nil).call({}.freeze) }.must_raise(Rack::Lint::LintError).
+      message.must_match(/env should not be frozen, but is/)
+
+
     lambda {
       e = env
       e.delete("REQUEST_METHOD")

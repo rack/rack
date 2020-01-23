@@ -11,7 +11,7 @@ The *status*,
 the *headers*,
 and the *body*.
 == The Environment
-The environment must be an instance of Hash that includes
+The environment must be an unfrozen instance of Hash that includes
 CGI-like headers.  The application is free to modify the
 environment.
 The environment is required to include these variables

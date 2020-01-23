@@ -73,11 +73,14 @@ module Rack
 
     ## == The Environment
     def check_env(env)
-      ## The environment must be an instance of Hash that includes
+      ## The environment must be an unfrozen instance of Hash that includes
       ## CGI-like headers.  The application is free to modify the
       ## environment.
       assert("env #{env.inspect} is not a Hash, but #{env.class}") {
         env.kind_of? Hash
+      }
+      assert("env should not be frozen, but is") {
+        !env.frozen?
       }
 
       ##
