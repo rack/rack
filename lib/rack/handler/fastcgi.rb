@@ -20,7 +20,7 @@ end
 module Rack
   module Handler
     class FastCGI
-      def self.run(app, options = {})
+      def self.run(app, **options)
         if options[:File]
           STDIN.reopen(UNIXServer.new(options[:File]))
         elsif options[:Port]

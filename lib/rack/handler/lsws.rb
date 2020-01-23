@@ -7,7 +7,7 @@ require 'rack/rewindable_input'
 module Rack
   module Handler
     class LSWS
-      def self.run(app, options = nil)
+      def self.run(app, **options)
         while LSAPI.accept != nil
           serve app
         end

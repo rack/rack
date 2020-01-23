@@ -24,7 +24,7 @@ end
 module Rack
   module Handler
     class WEBrick < ::WEBrick::HTTPServlet::AbstractServlet
-      def self.run(app, options = {})
+      def self.run(app, **options)
         environment  = ENV['RACK_ENV'] || 'development'
         default_host = environment == 'development' ? 'localhost' : nil
 

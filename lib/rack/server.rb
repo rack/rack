@@ -285,7 +285,7 @@ module Rack
       self.class.middleware
     end
 
-    def start &blk
+    def start(&block)
       if options[:warn]
         $-w = true
       end
@@ -326,7 +326,7 @@ module Rack
         end
       end
 
-      server.run wrapped_app, options, &blk
+      server.run(wrapped_app, **options, &block)
     end
 
     def server
