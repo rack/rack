@@ -27,6 +27,12 @@ module Rack
     CHUNKED = 'chunked'
     STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
 
+    attr_accessor :length, :status, :body
+    attr_reader :headers
+
+    # @deprecated Use {#headers} instead.
+    alias header headers
+
     # Initialize the response object with the specified body, status
     # and headers.
     #
@@ -60,12 +66,6 @@ module Rack
 
       yield self if block_given?
     end
-
-    attr_accessor :length, :status, :body
-    attr_reader :headers
-
-    # @deprecated Use {#headers} instead.
-    alias header headers
 
     def redirect(target, status = 302)
       self.status = status
