@@ -281,12 +281,19 @@ module Rack
         cookies = header
       end
 
-      regexp = if value[:domain]
-                 /\A#{escape(key)}=.*domain=#{value[:domain]}/
-               elsif value[:path]
-                 /\A#{escape(key)}=.*path=#{value[:path]}/
+      key = escape(key)
+      domain = value[:domain]
+      path = value[:path]
+      regexp = if domain
+                 if path
+                   /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
+                 else
+                   /\A#{key}=.*domain=#{domain}(?:;|$)/
+                 end
+               elsif path
+                 /\A#{key}=.*path=#{path}(?:;|$)/
                else
-                 /\A#{escape(key)}=/
+                 /\A#{key}=/
                end
 
       cookies.reject! { |cookie| regexp.match? cookie }
