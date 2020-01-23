@@ -104,7 +104,7 @@ be implemented by the server.
                         fetch(key, default = nil) (aliased as []);
                         delete(key);
                         clear;
-                        to_hash (returning Hash instance);
+                        to_hash (returning unfrozen Hash instance);
 <tt>rack.logger</tt>:: A common object interface for logging messages.
                        The object must implement:
                         info(message, &block)

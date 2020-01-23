@@ -75,12 +75,17 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session [] must respond to store and []="
 
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.session" => {}.freeze))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "session {} must respond to to_hash and return unfrozen Hash instance"
+
     obj = {}
     obj.singleton_class.send(:undef_method, :to_hash)
     lambda {
       Rack::Lint.new(nil).call(env("rack.session" => obj))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "session {} must respond to to_hash and return Hash instance"
+      message.must_equal "session {} must respond to to_hash and return unfrozen Hash instance"
 
     obj.singleton_class.send(:undef_method, :clear)
     lambda {

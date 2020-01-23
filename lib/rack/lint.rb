@@ -210,9 +210,9 @@ module Rack
           session.respond_to?(:clear)
         }
 
-        ##                         to_hash (returning Hash instance);
-        assert("session #{session.inspect} must respond to to_hash and return Hash instance") {
-          session.respond_to?(:to_hash) && session.to_hash.kind_of?(Hash)
+        ##                         to_hash (returning unfrozen Hash instance);
+        assert("session #{session.inspect} must respond to to_hash and return unfrozen Hash instance") {
+          session.respond_to?(:to_hash) && session.to_hash.kind_of?(Hash) && !session.to_hash.frozen?
         }
       end
 
