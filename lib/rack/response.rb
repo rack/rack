@@ -19,22 +19,27 @@ module Rack
   # +write+ are synchronous with the Rack response.
   #
   # Your application's +call+ should end returning Response#finish.
-
   class Response
     def self.[](status, headers, body)
       self.new(body, status, headers)
     end
 
-    attr_accessor :length, :status, :body
-    attr_reader :header
-    alias headers header
-
     CHUNKED = 'chunked'
     STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
 
-    def initialize(body = nil, status = 200, header = {})
+    # Initialize the response object with the specified body, status
+    # and headers.
+    #
+    # @param body [nil | #each | #to_str] the response body.
+    # @param status [Integer] the integer status as defined by the
+    # HTTP protocol RFCs.
+    # @param headers [#each] a list of key-value header pairs which
+    # conform to the HTTP protocol RFCs.
+    #
+    # Providing a body which responds to #to_str is legacy behaviour.
+    def initialize(body = nil, status = 200, headers = {})
       @status = status.to_i
-      @header = Utils::HeaderHash.new(header)
+      @headers = Utils::HeaderHash.new(headers)
 
       @writer = self.method(:append)
 
@@ -56,6 +61,12 @@ module Rack
       yield self if block_given?
     end
 
+    attr_accessor :length, :status, :body
+    attr_reader :headers
+
+    # @deprecated Use {#headers} instead.
+    alias header headers
+
     def redirect(target, status = 302)
       self.status = status
       self.location = target
@@ -65,6 +76,8 @@ module Rack
       CHUNKED == get_header(TRANSFER_ENCODING)
     end
 
+    # @return [Array] a 3-tuple suitable of `[status, headers, body]`
+    # which is a suitable response from the middleware `#call(env)` method.
     def finish(&block)
       if STATUS_WITH_NO_ENTITY_BODY[status.to_i]
         delete_header CONTENT_TYPE
