@@ -66,6 +66,27 @@ describe Rack::Response do
     parts.must_equal ["foo", "bar", "baz"]
   end
 
+  it "calls finish block when body is iterated" do
+    response = Rack::Response.new
+
+    finished = false
+    _, _, body = response.finish do
+      finished = true
+      response.write "foo"
+      response.write "bar"
+      response.write "baz"
+    end
+
+    parts = []
+    finished.must_equal false
+    body.each do |part|
+      finished.must_equal true
+      parts << part
+    end
+
+    parts.must_equal ["foo", "bar", "baz"]
+  end
+
   it "can set and read headers" do
     response = Rack::Response.new
     response["Content-Type"].must_be_nil

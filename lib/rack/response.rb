@@ -87,24 +87,17 @@ module Rack
       else
         if block_given?
           @block = block
-          [status.to_i, header, self]
-        else
-          [status.to_i, header, @body]
+          response = self
+          @body.define_singleton_method(:each) do |&each_block|
+            block.call(response)
+            super(&each_block)
+          end
         end
+        [status.to_i, header, @body]
       end
     end
 
     alias to_a finish           # For *response
-
-    def each(&callback)
-      @body.each(&callback)
-      @buffered = true
-
-      if @block
-        @writer = callback
-        @block.call(self)
-      end
-    end
 
     # Append to body and update Content-Length.
     #
