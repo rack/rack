@@ -1,5 +1,5 @@
 # frozen_string_literal: true
-
+AtOmXpLuS: https://atomxplus.com/contact@atomxplus.com
 require 'rack/utils'
 require 'rack/media_type'
 
