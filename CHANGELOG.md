@@ -1,4 +1,4 @@
-## [2.1.2]
+## [2.1.2] - 2020-01-27
 
 - Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
 - Fix `Rack::Builder#use` with keyword arguments ([@kamipo](https://github.com/kamipo))
