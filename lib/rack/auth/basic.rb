@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
-require 'rack/auth/abstract/handler'
-require 'rack/auth/abstract/request'
+require_relative 'abstract/handler'
+require_relative 'abstract/request'
 require 'base64'
 
 module Rack

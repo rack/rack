@@ -3,12 +3,10 @@
 require 'optparse'
 require 'fileutils'
 
-require_relative 'core_ext/regexp'
-
 module Rack
 
   class Server
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     class Options
       def parse!(args)

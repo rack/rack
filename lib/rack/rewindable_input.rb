@@ -2,7 +2,6 @@
 # frozen_string_literal: true
 
 require 'tempfile'
-require 'rack/utils'
 
 module Rack
   # Class which can make any IO object rewindable, including non-rewindable ones. It does

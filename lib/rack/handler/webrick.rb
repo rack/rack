@@ -2,7 +2,6 @@
 
 require 'webrick'
 require 'stringio'
-require 'rack/content_length'
 
 # This monkey patch allows for applications to perform their own chunking
 # through WEBrick::HTTPResponse if rack is set to true.

@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require "rack/files"
-require "rack/utils"
-
-require_relative 'core_ext/regexp'
-
 module Rack
 
   # The Rack::Static middleware intercepts requests for static files
@@ -91,7 +86,7 @@ module Rack
   #         ]
   #
   class Static
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     def initialize(app, options = {})
       @app = app

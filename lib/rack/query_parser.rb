@@ -1,10 +1,8 @@
 # frozen_string_literal: true
 
-require_relative 'core_ext/regexp'
-
 module Rack
   class QueryParser
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     DEFAULT_SEP = /[&;] */n
     COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }

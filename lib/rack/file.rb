@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rack/files'
+require_relative 'files'
 
 module Rack
   File = Files

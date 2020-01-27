@@ -5,7 +5,7 @@
 #   apeiros, for session id generation, expiry setup, and threadiness
 #   sergio, threadiness and bugreps
 
-require 'rack/session/abstract/id'
+require_relative 'abstract/id'
 require 'thread'
 
 module Rack

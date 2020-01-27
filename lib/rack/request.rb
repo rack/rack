@@ -1,10 +1,5 @@
 # frozen_string_literal: true
 
-require 'rack/utils'
-require 'rack/media_type'
-
-require_relative 'core_ext/regexp'
-
 module Rack
   # Rack::Request provides a convenient interface to a Rack
   # environment.  It is stateless, the environment +env+ passed to the
@@ -15,7 +10,7 @@ module Rack
   #   req.params["data"]
 
   class Request
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     class << self
       attr_accessor :ip_filter

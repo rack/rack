@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
 require 'time'
-require 'rack/utils'
-require 'rack/mime'
-require 'rack/request'
-require 'rack/head'
 
 module Rack
   # Rack::Files serves files below the +root+ directory given, according to the

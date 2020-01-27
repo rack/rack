@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rack/multipart/parser'
+require_relative 'multipart/parser'
 
 module Rack
   # A multipart form data parser, adapted from IOWA.

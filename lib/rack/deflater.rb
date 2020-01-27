@@ -2,9 +2,6 @@
 
 require "zlib"
 require "time"  # for Time.httpdate
-require 'rack/utils'
-
-require_relative 'core_ext/regexp'
 
 module Rack
   # This middleware enables compression of http responses.
@@ -19,7 +16,7 @@ module Rack
   # directive of 'no-transform' is present, or when the response status
   # code is one that doesn't allow an entity body.
   class Deflater
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     ##
     # Creates Rack::Deflater middleware.

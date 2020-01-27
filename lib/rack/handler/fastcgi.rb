@@ -2,8 +2,6 @@
 
 require 'fcgi'
 require 'socket'
-require 'rack/content_length'
-require 'rack/rewindable_input'
 
 if defined? FCGI::Stream
   class FCGI::Stream

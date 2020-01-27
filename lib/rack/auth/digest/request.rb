@@ -1,8 +1,8 @@
 # frozen_string_literal: true
 
-require 'rack/auth/abstract/request'
-require 'rack/auth/digest/params'
-require 'rack/auth/digest/nonce'
+require_relative '../abstract/request'
+require_relative 'params'
+require_relative 'nonce'
 
 module Rack
   module Auth

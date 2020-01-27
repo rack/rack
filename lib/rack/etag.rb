@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require 'rack'
+require_relative '../rack'
 require 'digest/sha2'
 
 module Rack

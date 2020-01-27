@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'rack/auth/abstract/handler'
-require 'rack/auth/digest/request'
-require 'rack/auth/digest/params'
-require 'rack/auth/digest/nonce'
+require_relative '../abstract/handler'
+require_relative 'request'
+require_relative 'params'
+require_relative 'nonce'
 require 'digest/md5'
 
 module Rack

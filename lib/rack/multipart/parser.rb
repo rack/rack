@@ -1,15 +1,13 @@
 # frozen_string_literal: true
 
-require 'rack/utils'
 require 'strscan'
-require 'rack/core_ext/regexp'
 
 module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
-      using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+      (require_relative '../core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"

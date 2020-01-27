@@ -2,8 +2,6 @@
 
 require 'scgi'
 require 'stringio'
-require 'rack/content_length'
-require 'rack/chunked'
 
 module Rack
   module Handler

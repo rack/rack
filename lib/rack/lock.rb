@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'thread'
-require 'rack/body_proxy'
 
 module Rack
   # Rack::Lock locks every request inside a mutex, so that every request

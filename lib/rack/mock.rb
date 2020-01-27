@@ -2,10 +2,7 @@
 
 require 'uri'
 require 'stringio'
-require 'rack'
-require 'rack/lint'
-require 'rack/utils'
-require 'rack/response'
+require_relative '../rack'
 require 'cgi/cookie'
 
 module Rack
