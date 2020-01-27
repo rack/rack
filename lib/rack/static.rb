@@ -91,7 +91,7 @@ module Rack
   #         ]
   #
   class Static
-    using ::Rack::RegexpExtensions
+    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
 
     def initialize(app, options = {})
       @app = app

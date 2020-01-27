@@ -15,7 +15,7 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    using ::Rack::RegexpExtensions
+    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
 
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError

@@ -9,7 +9,7 @@ module Rack
     class MultipartPartLimitError < Errno::EMFILE; end
 
     class Parser
-      using ::Rack::RegexpExtensions
+      using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
 
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
