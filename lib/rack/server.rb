@@ -42,7 +42,7 @@ module Rack
 
           opts.on("-r", "--require LIBRARY",
                   "require the library, before executing your script") { |library|
-            options[:require] = library
+            (options[:require] ||= []) << library
           }
 
           opts.separator ""
@@ -294,14 +294,8 @@ module Rack
         $LOAD_PATH.unshift(*includes)
       end
 
-      if library = options[:require]
-        if library.is_a?(Array)
-          library.each do |library|
-            require library
-          end
-        else
-          require library
-        end
+      Array(options[:require]).each do |library|
+        require library
       end
 
       if options[:debug]
