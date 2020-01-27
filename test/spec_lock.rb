@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/lint'
-require 'rack/lock'
-require 'rack/mock'
+require_relative 'helper'
 
 class Lock
   attr_reader :synchronized

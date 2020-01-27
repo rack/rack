@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/mime'
+require_relative 'helper'
 
 describe Rack::Mime do
 

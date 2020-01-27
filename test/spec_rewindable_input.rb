@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'stringio'
-require 'rack/rewindable_input'
+require_relative 'helper'
 
 module RewindableTest
   extend Minitest::Spec::DSL

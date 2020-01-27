@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/common_logger'
-require 'rack/lint'
-require 'rack/mock'
-
+require_relative 'helper'
 require 'logger'
 
 describe Rack::CommonLogger do

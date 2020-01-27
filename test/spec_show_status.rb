@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/show_status'
-require 'rack/lint'
-require 'rack/mock'
-require 'rack/utils'
+require_relative 'helper'
 
 describe Rack::ShowStatus do
   def show_status(app)

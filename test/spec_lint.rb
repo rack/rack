@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'stringio'
+require_relative 'helper'
 require 'tempfile'
-require 'rack/lint'
-require 'rack/mock'
 
 describe Rack::Lint do
   def env(*args)

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/chunked'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::Chunked do
   def chunked(app)

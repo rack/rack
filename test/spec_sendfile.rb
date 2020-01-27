@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
+require_relative 'helper'
 require 'fileutils'
-require 'rack/lint'
-require 'rack/sendfile'
-require 'rack/mock'
 require 'tmpdir'
 
 describe Rack::Sendfile do

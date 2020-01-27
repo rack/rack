@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/lint'
-require 'rack/mock'
-require 'rack/null_logger'
+require_relative 'helper'
 
 describe Rack::NullLogger do
   it "act as a noop logger" do

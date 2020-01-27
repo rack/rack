@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
+require_relative 'helper'
 require 'rack/lobster'
-require 'rack/lint'
-require 'rack/mock'
 
 module LobsterHelpers
   def lobster

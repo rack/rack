@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/auth/digest/md5'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::Auth::Digest::MD5 do
   def realm

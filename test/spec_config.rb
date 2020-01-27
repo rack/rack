@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/builder'
-require 'rack/config'
-require 'rack/content_length'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::Config do
   it "accept a block that modifies the environment" do

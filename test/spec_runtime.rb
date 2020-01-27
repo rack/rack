@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/lint'
-require 'rack/mock'
-require 'rack/runtime'
+require_relative 'helper'
 
 describe Rack::Runtime do
   def runtime_app(app, *args)

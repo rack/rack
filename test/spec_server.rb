@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack'
-require 'rack/server'
+require_relative 'helper'
 require 'tempfile'
 require 'socket'
+require 'webrick'
 require 'open-uri'
 require 'net/http'
 require 'net/https'
