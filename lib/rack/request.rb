@@ -15,7 +15,7 @@ module Rack
   #   req.params["data"]
 
   class Request
-    using ::Rack::RegexpExtensions
+    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
 
     class << self
       attr_accessor :ip_filter

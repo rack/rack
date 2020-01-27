@@ -19,7 +19,7 @@ module Rack
   # directive of 'no-transform' is present, or when the response status
   # code is one that doesn't allow an entity body.
   class Deflater
-    using ::Rack::RegexpExtensions
+    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
 
     ##
     # Creates Rack::Deflater middleware.
