@@ -44,18 +44,6 @@ module Rack
       # SessionHash is responsible to lazily load the session from store.
 
       class SessionHash
-        using Module.new {
-          refine Hash do
-            def transform_keys(&block)
-              hash = {}
-              each do |key, value|
-                hash[block.call(key)] = value
-              end
-              hash
-            end
-          end
-        } unless {}.respond_to?(:transform_keys)
-
         include Enumerable
         attr_writer :id
 
@@ -206,7 +194,12 @@ module Rack
         end
 
         def stringify_keys(other)
-          other.to_hash.transform_keys(&:to_s)
+          # Use transform_keys after dropping Ruby 2.4 support
+          hash = {}
+          other.to_hash.each do |key, value|
+            hash[key.to_s] = value
+          end
+          hash
         end
       end
 
