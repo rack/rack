@@ -23,7 +23,7 @@ module Rack
     #   lilith.local - - [07/Aug/2006 23:58:02 -0400] "GET / HTTP/1.1" 500 -
     #
     #   %{%s - %s [%s] "%s %s%s %s" %d %s\n} %
-    FORMAT = %{%s - %s [%s] "%s %s%s %s" %d %s %0.4f\n}
+    FORMAT = %{%s - %s [%s] "%s %s%s%s %s" %d %s %0.4f\n}
 
     def initialize(app, logger = nil)
       @app = app
@@ -48,7 +48,8 @@ module Rack
         env["REMOTE_USER"] || "-",
         Time.now.strftime("%d/%b/%Y:%H:%M:%S %z"),
         env[REQUEST_METHOD],
-        path(env),
+        env[SCRIPT_NAME],
+        env[PATH_INFO],
         env[QUERY_STRING].empty? ? "" : "?#{env[QUERY_STRING]}",
         env[SERVER_PROTOCOL],
         status.to_s[0..3],
@@ -63,10 +64,6 @@ module Rack
       else
         logger << msg
       end
-    end
-
-    def path(env)
-      env[SCRIPT_NAME] + env[PATH_INFO]
     end
 
     def extract_content_length(headers)
