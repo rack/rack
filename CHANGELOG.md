@@ -4,14 +4,61 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-_Note: The list below may not be up-to-date. If you would like to help out and document some of the unreleased changes, PRs are welcome._
+### SPEC Changes
+
+- `rack.session` request environment entry must respond to `to_hash` and return unfrozen Hash. ([@jeremyevans](https://github.com/jeremyevans))
+- Request environment cannot be frozen. ([@jeremyevans](https://github.com/jeremyevans))
+- CGI values in the request environment with non-ASCII characters must use ASCII-8BIT encoding. ([@jeremyevans](https://github.com/jeremyevans))
+
+### Added
+
+- `rackup` supports multiple `-r` options and will require all arguments. ([@jeremyevans](https://github.com/jeremyevans))
+- `Server` supports an array of paths to require for the `:require` option. ([@khotta](https://github.com/khotta))
+- `Files` supports multipart range requests. ([@fatkodima](https://github.com/fatkodima))
+- `Multipart::UploadedFile` supports an IO-like object instead of using the filesystem, using `:filename` and `:io` options. ([@jeremyevans](https://github.com/jeremyevans))
+- `Multipart::UploadedFile` supports keyword arguments `:path`, `:content_type`, and `:binary` in addition to positional arguments. ([@jeremyevans](https://github.com/jeremyevans))
+- `Static` supports a `:cascade` option for calling the app if there is no matching file. ([@jeremyevans](https://github.com/jeremyevans))
+- `Session::Abstract::SessionHash#dig`. ([@jeremyevans](https://github.com/jeremyevans))
+- `Response.[]` and `MockResponse.[]` for creating instances using status, headers, and body. ([@ioquatix](https://github.com/ioquatix))
+
+### Changed
+
+- `Etag` will continue sending ETag even if the response should not be cached. ([@henm](https://github.com/henm))
+- `Request#host_with_port` no longer includes a colon for a missing or empty port. ([@AlexWayfer](https://github.com/AlexWayfer))
+- All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix](https://github.com/ioquatix))
+- `Files` handling of range requests no longer return a body that supports `to_path`, to ensure range requests are handled correctly. ([@jeremyevans](https://github.com/jeremyevans))
+- `Multipart::Generator` only includes `Content-Length` for files with paths, and `Content-Disposition` `filename` if the `UploadedFile` instance has one. ([@jeremyevans](https://github.com/jeremyevans))
+- `Request#ssl?` is true for the `wss` scheme (secure websockets). ([@jeremyevans](https://github.com/jeremyevans))
 
 ### Removed
 
+- `Session::Abstract::SessionHash#transform_keys`, no longer needed. (pavel)
+- `URLMap::INFINITY` and `URLMap::NEGATIVE_INFINITY`, in favor of `Float::INFINITY`. ([@ch1c0t](https://github.com/ch1c0t))
+- Deprecation of `Rack::File`. It will be deprecated again in rack 2.2 or 3.0. ([@rafaelfranca](https://github.com/rafaelfranca))
 - Support for Ruby 2.2 as it is well past EOL. ([@ioquatix](https://github.com/ioquatix))
 
 ### Fixed
 
+- `CommonLogger` includes `SCRIPT_NAME` when logging. ([@Erol](https://github.com/Erol))
+- `Utils.parse_nested_query` correctly handles empty queries, using an empty instance of the params class instead of a hash. ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory` correctly escapes paths in links. ([@yous](https://github.com/yous))
+- `Request#delete_cookie` and related `Utils` methods handle `:domain` and `:path` options in same call. ([@jeremyevans](https://github.com/jeremyevans))
+- `Request#delete_cookie` and related `Utils` methods do an exact match on `:domain` and `:path` options. ([@jeremyevans](https://github.com/jeremyevans))
+- `Static` no longer adds headers when a gzipped file request has a 304 response. ([@chooh](https://github.com/chooh))
+- `ContentLength` sets `Content-Length` response header even for bodies not responding to `to_ary`. ([@jeremyevans](https://github.com/jeremyevans))
+- `Multipart::Parser` uses a slightly modified parser to avoid denial of service when parsing MIME boundaries. ([@aiomaster](https://github.com/aiomaster))
+- Thin handler supports options passed directly to `Thin::Controllers::Controller`. ([@jeremyevans](https://github.com/jeremyevans))
+- WEBrick handler no longer ignores `:BindAddress` option. ([@jeremyevans](https://github.com/jeremyevans))
+- `ShowExceptions` handles invalid POST data. ([@jeremyevans](https://github.com/jeremyevans))
+- Basic authentication requires a password, even if the password is empty. ([@jeremyevans](https://github.com/jeremyevans))
+- `Deflater` no longer deflates if `Content-Length` is 0, fixing usage with `Sendfile`. ([@jeremyevans](https://github.com/jeremyevans))
+- `Lint` checks response is array with 3 elements, per SPEC. ([@jeremyevans](https://github.com/jeremyevans))
+- Handle session stores that are not hashes by calling `to_hash`. ([@oleh-demyanyuk](https://github.com/oleh-demyanyuk))
+- `Session::Abstract::PersistedSecure::SecureSessionHash#[]` handles session id key when it is missing. ([@jeremyevans](https://github.com/jeremyevans))
+- Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
+- Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
+- Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
+- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft)) 
 - Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
 
 ### Documentation
