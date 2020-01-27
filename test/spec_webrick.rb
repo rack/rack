@@ -125,11 +125,10 @@ describe Rack::Handler::WEBrick do
 
     t = Thread.new do
       Rack::Handler::WEBrick.run(lambda {},
-                                 {
                                    Host: '127.0.0.1',
                                    Port: 9210,
                                    Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
-                                   AccessLog: [] }) { |server|
+                                   AccessLog: []) { |server|
         assert_kind_of WEBrick::HTTPServer, server
         queue.push(server)
       }
