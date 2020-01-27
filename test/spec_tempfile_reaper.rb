@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/tempfile_reaper'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::TempfileReaper do
   class MockTempfile

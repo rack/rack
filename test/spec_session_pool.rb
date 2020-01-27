@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'thread'
-require 'rack/lint'
-require 'rack/mock'
-require 'rack/session/pool'
+require_relative 'helper'
 
 describe Rack::Session::Pool do
   session_key = Rack::Session::Pool::DEFAULT_OPTIONS[:key]

@@ -1,12 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack'
-require 'rack/cascade'
-require 'rack/files'
-require 'rack/lint'
-require 'rack/urlmap'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::Cascade do
   def cascade(*args)

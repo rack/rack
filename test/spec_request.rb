@@ -1,11 +1,8 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'stringio'
+require_relative 'helper'
 require 'cgi'
-require 'rack/request'
-require 'rack/mock'
-require 'rack/multipart'
+require 'forwardable'
 require 'securerandom'
 
 class RackRequestTest < Minitest::Spec

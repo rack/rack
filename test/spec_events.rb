@@ -1,10 +1,9 @@
 # frozen_string_literal: true
 
-require 'helper'
-require 'rack/events'
+require_relative 'helper'
 
 module Rack
-  class TestEvents < Rack::TestCase
+  class TestEvents < Minitest::Test
     class EventMiddleware
       attr_reader :events
 

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/content_type'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::ContentType do
   def content_type(app, *args)

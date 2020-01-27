@@ -1,10 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'stringio'
-require 'rack/lint'
-require 'rack/logger'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::Logger do
   app = lambda { |env|

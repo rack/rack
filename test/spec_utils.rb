@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/utils'
-require 'rack/mock'
+require_relative 'helper'
 require 'timeout'
 
 describe Rack::Utils do

@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/etag'
-require 'rack/lint'
-require 'rack/mock'
+require_relative 'helper'
 require 'time'
 
 describe Rack::ETag do

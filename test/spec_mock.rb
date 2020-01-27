@@ -1,10 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
+require_relative 'helper'
 require 'yaml'
-require 'rack/lint'
-require 'rack/mock'
-require 'stringio'
 
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)

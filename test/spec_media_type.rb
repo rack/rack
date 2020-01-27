@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/media_type'
+require_relative 'helper'
 
 describe Rack::MediaType do
   before { @empty_hash = {} }

@@ -1,11 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'stringio'
+require_relative 'helper'
 require 'time'  # for Time#httpdate
-require 'rack/deflater'
-require 'rack/lint'
-require 'rack/mock'
 require 'zlib'
 
 describe Rack::Deflater do

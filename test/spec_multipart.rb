@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack'
-require 'rack/multipart'
-require 'rack/multipart/parser'
-require 'rack/utils'
-require 'rack/mock'
+require_relative 'helper'
 require 'timeout'
 
 describe Rack::Multipart do

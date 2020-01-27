@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/body_proxy'
-require 'stringio'
+require_relative 'helper'
 
 describe Rack::BodyProxy do
   it 'call each on the wrapped body' do

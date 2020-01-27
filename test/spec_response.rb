@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack'
-require 'rack/response'
-require 'stringio'
+require_relative 'helper'
 
 describe Rack::Response do
   it 'has standard constructor' do

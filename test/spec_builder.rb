@@ -1,11 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/builder'
-require 'rack/lint'
-require 'rack/mock'
-require 'rack/show_exceptions'
-require 'rack/urlmap'
+require_relative 'helper'
 
 class NothingMiddleware
   def initialize(app, **)

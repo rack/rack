@@ -1,8 +1,6 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/urlmap'
-require 'rack/mock'
+require_relative 'helper'
 
 describe Rack::URLMap do
   it "dispatches paths correctly" do

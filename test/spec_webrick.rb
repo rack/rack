@@ -1,9 +1,8 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
-require 'rack/mock'
+require_relative 'helper'
 require 'thread'
-require File.expand_path('../testrequest', __FILE__)
+require_relative 'testrequest'
 
 Thread.abort_on_exception = true
 

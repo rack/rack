@@ -1,9 +1,7 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
+require_relative 'helper'
 require 'time'
-require 'rack/conditional_get'
-require 'rack/mock'
 
 describe Rack::ConditionalGet do
   def conditional_get(app)

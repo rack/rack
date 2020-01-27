@@ -1,9 +1,9 @@
 # frozen_string_literal: true
 
-require 'minitest/global_expectations/autorun'
+require_relative 'helper'
 begin
 require 'rack/handler/thin'
-require File.expand_path('../testrequest', __FILE__)
+require_relative 'testrequest'
 require 'timeout'
 
 describe Rack::Handler::Thin do
