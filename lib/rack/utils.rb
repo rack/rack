@@ -5,17 +5,16 @@ require 'uri'
 require 'fileutils'
 require 'set'
 require 'tempfile'
-require 'rack/query_parser'
 require 'time'
 
-require_relative 'core_ext/regexp'
+require_relative 'query_parser'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    using ::Rack::RegexpExtensions if RUBY_VERSION < '2.4'
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError

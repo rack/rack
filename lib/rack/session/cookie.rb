@@ -2,9 +2,7 @@
 
 require 'openssl'
 require 'zlib'
-require 'rack/request'
-require 'rack/response'
-require 'rack/session/abstract/id'
+require_relative 'abstract/id'
 require 'json'
 require 'base64'
 

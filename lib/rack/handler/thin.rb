@@ -4,8 +4,6 @@ require "thin"
 require "thin/server"
 require "thin/logging"
 require "thin/backends/tcp_server"
-require "rack/content_length"
-require "rack/chunked"
 
 module Rack
   module Handler
