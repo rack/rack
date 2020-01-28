@@ -29,33 +29,30 @@ module Rack
     # This helps prevent a rogue client from flooding a Request.
     self.default_query_parser = QueryParser.make_default(65536, 100)
 
+    module_function
+
     # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
     end
-    module_function :escape
 
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
     # true URI escaping.
     def escape_path(s)
       ::URI::DEFAULT_PARSER.escape s
     end
-    module_function :escape_path
 
     # Unescapes the **path** component of a URI.  See Rack::Utils.unescape for
     # unescaping query parameters or form components.
     def unescape_path(s)
       ::URI::DEFAULT_PARSER.unescape s
     end
-    module_function :unescape_path
-
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
     def unescape(s, encoding = Encoding::UTF_8)
       URI.decode_www_form_component(s, encoding)
     end
-    module_function :unescape
 
     class << self
       attr_accessor :multipart_part_limit
@@ -91,17 +88,14 @@ module Rack
         Time.now.to_f
       end
     end
-    module_function :clock_time
 
     def parse_query(qs, d = nil, &unescaper)
       Rack::Utils.default_query_parser.parse_query(qs, d, &unescaper)
     end
-    module_function :parse_query
 
     def parse_nested_query(qs, d = nil)
       Rack::Utils.default_query_parser.parse_nested_query(qs, d)
     end
-    module_function :parse_nested_query
 
     def build_query(params)
       params.map { |k, v|
@@ -112,7 +106,6 @@ module Rack
         end
       }.join("&")
     end
-    module_function :build_query
 
     def build_nested_query(value, prefix = nil)
       case value
@@ -131,7 +124,6 @@ module Rack
         "#{prefix}=#{escape(value)}"
       end
     end
-    module_function :build_nested_query
 
     def q_values(q_value_header)
       q_value_header.to_s.split(/\s*,\s*/).map do |part|
@@ -143,7 +135,6 @@ module Rack
         [value, quality]
       end
     end
-    module_function :q_values
 
     # Return best accept value to use, based on the algorithm
     # in RFC 2616 Section 14.  If there are multiple best
@@ -161,7 +152,6 @@ module Rack
       end.last
       matches && matches.first
     end
-    module_function :best_q_match
 
     ESCAPE_HTML = {
       "&" => "&amp;",
@@ -178,7 +168,6 @@ module Rack
     def escape_html(string)
       string.to_s.gsub(ESCAPE_HTML_PATTERN){|c| ESCAPE_HTML[c] }
     end
-    module_function :escape_html
 
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
@@ -205,12 +194,10 @@ module Rack
 
       (encoding_candidates & available_encodings)[0]
     end
-    module_function :select_best_encoding
 
     def parse_cookies(env)
       parse_cookies_header env[HTTP_COOKIE]
     end
-    module_function :parse_cookies
 
     def parse_cookies_header(header)
       # According to RFC 6265:
@@ -220,7 +207,6 @@ module Rack
       cookies = parse_query(header, ';') { |s| unescape(s) rescue s }
       cookies.each_with_object({}) { |(k, v), hash| hash[k] = Array === v ? v.first : v }
     end
-    module_function :parse_cookies_header
 
     def add_cookie_to_header(header, key, value)
       case value
@@ -262,13 +248,11 @@ module Rack
         raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
       end
     end
-    module_function :add_cookie_to_header
 
     def set_cookie_header!(header, key, value)
       header[SET_COOKIE] = add_cookie_to_header(header[SET_COOKIE], key, value)
       nil
     end
-    module_function :set_cookie_header!
 
     def make_delete_cookie_header(header, key, value)
       case header
@@ -299,13 +283,11 @@ module Rack
 
       cookies.join("\n")
     end
-    module_function :make_delete_cookie_header
 
     def delete_cookie_header!(header, key, value = {})
       header[SET_COOKIE] = add_remove_cookie_to_header(header[SET_COOKIE], key, value)
       nil
     end
-    module_function :delete_cookie_header!
 
     # Adds a cookie that will *remove* a cookie from the client.  Hence the
     # strange method name.
@@ -318,12 +300,10 @@ module Rack
                    expires: Time.at(0) }.merge(value))
 
     end
-    module_function :add_remove_cookie_to_header
 
     def rfc2822(time)
       time.rfc2822
     end
-    module_function :rfc2822
 
     # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
     # of '% %b %Y'.
@@ -339,7 +319,6 @@ module Rack
       mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
       time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
-    module_function :rfc2109
 
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
@@ -348,7 +327,6 @@ module Rack
       warn "`byte_ranges` is deprecated, please use `get_byte_ranges`" if $VERBOSE
       get_byte_ranges env['HTTP_RANGE'], size
     end
-    module_function :byte_ranges
 
     def get_byte_ranges(http_range, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
@@ -377,7 +355,6 @@ module Rack
       end
       ranges
     end
-    module_function :get_byte_ranges
 
     # Constant time string comparison.
     #
@@ -394,7 +371,6 @@ module Rack
       b.each_byte { |v| r |= v ^ l[i += 1] }
       r == 0
     end
-    module_function :secure_compare
 
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
@@ -589,7 +565,6 @@ module Rack
         status.to_i
       end
     end
-    module_function :status_code
 
     PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
 
@@ -607,14 +582,12 @@ module Rack
 
       ::File.join clean
     end
-    module_function :clean_path_info
 
     NULL_BYTE = "\0"
 
     def valid_path?(path)
       path.valid_encoding? && !path.include?(NULL_BYTE)
     end
-    module_function :valid_path?
 
   end
 end
