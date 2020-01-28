@@ -92,6 +92,12 @@ Rake::TestTask.new("test:regular") do |t|
   t.verbose = true
 end
 
+desc "Run tests with coverage"
+task "test_cov" do
+  ENV['COVERAGE'] = '1'
+  Rake::Task['test:regular'].invoke
+end
+
 desc "Run all the fast + platform agnostic tests"
 task test: %w[spec test:regular]
 
