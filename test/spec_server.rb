@@ -98,11 +98,17 @@ describe Rack::Server do
   end
 
   it "get options from ARGV" do
-    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production']
+    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', '-w', '-q', '-o', '127.0.0.1', '-O', 'NAME=VALUE', '-ONAME2', '-D']
     server = Rack::Server.new
     server.options[:debug].must_equal true
     server.options[:server].must_equal 'thin'
     server.options[:environment].must_equal 'production'
+    server.options[:warn].must_equal true
+    server.options[:quiet].must_equal true
+    server.options[:Host].must_equal '127.0.0.1'
+    server.options[:NAME].must_equal 'VALUE'
+    server.options[:NAME2].must_equal true
+    server.options[:daemonize].must_equal true
   end
 
   it "only override non-passed options from parsed .ru file" do
@@ -116,6 +122,227 @@ describe Rack::Server do
     server.options[:environment].must_equal 'production'
     server.options[:Port].must_equal '2929'
   end
+
+  def test_options_server(*args)
+    SPEC_ARGV[0..-1] = args
+    output = String.new
+    server = Class.new(Rack::Server) do
+      define_method(:opt_parser) do
+        Class.new(Rack::Server::Options) do
+          define_method(:puts) do |*args|
+            output << args.join("\n") << "\n"
+          end
+          alias warn puts
+          alias abort puts
+          define_method(:exit) do
+            output << "exited"
+          end
+        end.new
+      end
+    end.new
+    output
+  end
+
+  it "support -h option to get help" do
+    test_options_server('-scgi', '-h').must_match(/\AUsage: rackup.*Ruby options:.*Rack options.*Profiling options.*Common options.*exited\z/m)
+  end
+
+  it "support -h option to get handler-specific help" do
+    cgi = Rack::Handler.get('cgi')
+    begin
+      def cgi.valid_options; {"FOO=BAR"=>"BAZ"} end
+      test_options_server('-scgi', '-h').must_match(/\AUsage: rackup.*Ruby options:.*Rack options.*Profiling options.*Common options.*Server-specific options for Rack::Handler::CGI.*-O +FOO=BAR +BAZ.*exited\z/m)
+    ensure
+      cgi.singleton_class.send(:remove_method, :valid_options)
+    end
+  end
+
+  it "support -h option to display warning for invalid handler" do
+    test_options_server('-sbanana', '-h').must_match(/\AUsage: rackup.*Ruby options:.*Rack options.*Profiling options.*Common options.*Warning: Could not find handler specified \(banana\) to determine handler-specific options.*exited\z/m)
+  end
+
+  it "support -v option to get version" do
+    test_options_server('-v').must_match(/\ARack \d\.\d \(Release: \d+\.\d+\.\d+\)\nexited\z/)
+  end
+
+  it "warn for invalid --profile-mode option" do
+    test_options_server('--profile-mode', 'foo').must_match(/\Ainvalid option: --profile-mode unknown profile mode: foo.*Usage: rackup/m)
+  end
+
+  it "warn for invalid options" do
+    test_options_server('--banana').must_match(/\Ainvalid option: --banana.*Usage: rackup/m)
+  end
+
+  it "support -b option to specify inline rackup config" do
+    SPEC_ARGV[0..-1] = ['-scgi', '-E', 'production', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}']
+    server = Rack::Server.new
+    def (server.server).run(app, **) app end
+    s, h, b = server.start.call({})
+    s.must_equal 200
+    h.must_equal 'Content-Length' => '0'
+    body = String.new
+    b.each do |s|
+      body << s
+    end
+    body.must_equal ''
+  end
+
+  it "support -e option to evaluate ruby code" do
+    SPEC_ARGV[0..-1] = ['-scgi', '-e', 'Object::XYZ = 2']
+    begin
+      server = Rack::Server.new
+      Object::XYZ.must_equal 2
+    ensure
+      Object.send(:remove_const, :XYZ)
+    end
+  end
+
+  it "abort if config file does not exist" do
+    SPEC_ARGV[0..-1] = ['-scgi']
+    server = Rack::Server.new
+    def server.abort(s) throw :abort, s end
+    message = catch(:abort) do
+      server.start
+    end
+    message.must_match(/\Aconfiguration .*config\.ru not found/)
+  end
+
+  it "support -I option to change the load path and -r to require" do
+    SPEC_ARGV[0..-1] = ['-scgi', '-Ifoo/bar', '-Itest/load', '-rrack-test-a', '-rrack-test-b']
+    begin
+      server = Rack::Server.new
+      def (server.server).run(*) end
+      def server.handle_profiling(*) end
+      def server.app(*) end
+      server.start
+      $LOAD_PATH.must_include('foo/bar')
+      $LOAD_PATH.must_include('test/load')
+      $LOADED_FEATURES.must_include(File.join(Dir.pwd, "test/load/rack-test-a.rb"))
+      $LOADED_FEATURES.must_include(File.join(Dir.pwd, "test/load/rack-test-b.rb"))
+    ensure
+      $LOAD_PATH.delete('foo/bar')
+      $LOAD_PATH.delete('test/load')
+      $LOADED_FEATURES.delete(File.join(Dir.pwd, "test/load/rack-test-a.rb"))
+      $LOADED_FEATURES.delete(File.join(Dir.pwd, "test/load/rack-test-b.rb"))
+    end
+  end
+
+  it "support -w option to warn and -d option to debug" do
+    SPEC_ARGV[0..-1] = ['-scgi', '-d', '-w']
+    warn = $-w
+    debug = $DEBUG
+    begin
+      server = Rack::Server.new
+      def (server.server).run(*) end
+      def server.handle_profiling(*) end
+      def server.app(*) end
+      def server.p(*) end
+      def server.pp(*) end
+      def server.require(*) end
+      server.start
+      $-w.must_equal true
+      $DEBUG.must_equal true
+    ensure
+      $-w = warn
+      $DEBUG = debug
+    end
+  end
+
+  if RUBY_ENGINE == "ruby"
+    it "support --heap option for heap profiling" do
+      begin
+        require 'objspace'
+      rescue LoadError
+      else
+        begin
+          SPEC_ARGV[0..-1] = ['-scgi', '--heap', 'test-heapfile', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          server = Rack::Server.new
+          def (server.server).run(*) end
+          def server.exit; throw :exit end
+          catch :exit do
+            server.start
+          end
+          File.file?('test-heapfile').must_equal true
+        ensure
+          File.delete 'test-heapfile'
+        end
+      end
+    end
+
+    it "support --profile-mode option for stackprof profiling" do
+      begin
+        require 'objspace'
+      rescue LoadError
+      else
+        begin
+          SPEC_ARGV[0..-1] = ['-scgi', '--profile', 'test-profile', '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          server = Rack::Server.new
+          def (server.server).run(*) end
+          def server.puts(*) end
+          def server.exit; throw :exit end
+          catch :exit do
+            server.start
+          end
+          File.file?('test-profile').must_equal true
+        ensure
+          File.delete 'test-profile'
+        end
+      end
+    end
+
+    it "support --profile-mode option for stackprof profiling without --profile option" do
+      begin
+        require 'stackprof'
+      rescue LoadError
+      else
+        begin
+          SPEC_ARGV[0..-1] = ['-scgi', '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          server = Rack::Server.new
+          def (server.server).run(*) end
+          filename = nil
+          server.define_singleton_method(:make_profile_name) do |fname, &block|
+            super(fname) do |fn|
+              filename = fn
+              block.call(filename)
+            end
+          end
+          def server.puts(*) end
+          def server.exit; throw :exit end
+          catch :exit do
+            server.start
+          end
+          File.file?(filename).must_equal true
+        ensure
+          File.delete filename
+        end
+      end
+    end
+  end
+
+  it "support exit for INT signal when server does not respond to shutdown" do
+    SPEC_ARGV[0..-1] = ['-scgi']
+    server = Rack::Server.new
+    def (server.server).run(*) end
+    def server.handle_profiling(*) end
+    def server.app(*) end
+    exited = false
+    server.define_singleton_method(:exit) do
+      exited = true
+    end
+    server.start
+    exited.must_equal false
+    Process.kill(:INT, $$)
+    exited.must_equal true
+  end
+
+  it "support support Server.start for starting" do
+    SPEC_ARGV[0..-1] = ['-scgi']
+    c = Class.new(Rack::Server) do
+      def start(*) [self.class, :started] end
+    end
+    c.start.must_equal [c, :started]
+  end
+
 
   it "run a server" do
     pidfile = Tempfile.open('pidfile') { |f| break f }
@@ -208,7 +435,15 @@ describe Rack::Server do
     server.send(:pidfile_process_status).must_equal :not_owned
   end
 
-  it "not write pid file when it is created after check" do
+  it "rewrite pid file when it does not reference a running process" do
+    pidfile = Tempfile.open('pidfile') { |f| break f }.path
+    server = Rack::Server.new(pid: pidfile)
+    ::File.open(pidfile, 'w') { }
+    server.send(:write_pid)
+    ::File.read(pidfile).to_i.must_equal $$
+  end
+
+  it "not write pid file when it references a running process" do
     pidfile = Tempfile.open('pidfile') { |f| break f }.path
     ::File.delete(pidfile)
     server = Rack::Server.new(pid: pidfile)

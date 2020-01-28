@@ -141,7 +141,7 @@ module Rack
             return "" if !has_options
           end
           info.join("\n")
-        rescue NameError
+        rescue NameError, LoadError
           return "Warning: Could not find handler specified (#{options[:server] || 'default'}) to determine handler-specific options"
         end
       end
@@ -423,7 +423,10 @@ module Rack
       end
 
       def daemonize_app
+        # Cannot be covered as it forks
+        # :nocov:
         Process.daemon
+        # :nocov:
       end
 
       def write_pid
