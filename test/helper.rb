@@ -7,6 +7,7 @@ if ENV.delete('COVERAGE')
   def SimpleCov.rack_coverage(**opts)
     start do
       add_filter "/test/"
+      add_filter "/lib/rack/handler"
       add_group('Missing'){|src| src.covered_percent < 100}
       add_group('Covered'){|src| src.covered_percent == 100}
     end
