@@ -61,8 +61,10 @@ module Rack
 end
 
 if $0 == __FILE__
+  # :nocov:
   require_relative '../rack'
   Rack::Server.start(
     app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )
+  # :nocov:
 end

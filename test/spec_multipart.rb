@@ -32,6 +32,17 @@ describe Rack::Multipart do
     params["text/plain; charset=US-ASCII"].must_equal ["contents"]
   end
 
+  it "parse multipart content when content type present but disposition is not when using IO" do
+    read, write = IO.pipe
+    env = multipart_fixture(:content_type_and_no_disposition)
+    write.write(env[:input].read)
+    write.close
+    env[:input] = read
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text/plain; charset=US-ASCII"].must_equal ["contents"]
+  end
+
   it "parse multipart content when content type present but filename is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
@@ -521,7 +532,7 @@ Content-Type: image/jpeg\r
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "builds nested multipart body" do
+  it "builds nested multipart body using array" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
     data  = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => files }])
 
@@ -535,6 +546,22 @@ Content-Type: image/jpeg\r
     params["people"][0]["submit-name"].must_equal "Larry"
     params["people"][0]["files"][:filename].must_equal "file1.txt"
     params["people"][0]["files"][:tempfile].read.must_equal "contents"
+  end
+
+  it "builds nested multipart body using hash" do
+    files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
+    data  = Rack::Multipart.build_multipart("people" => { "foo" => { "submit-name" => "Larry", "files" => files } })
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["people"]["foo"]["submit-name"].must_equal "Larry"
+    params["people"]["foo"]["files"][:filename].must_equal "file1.txt"
+    params["people"]["foo"]["files"][:tempfile].read.must_equal "contents"
   end
 
   it "builds multipart body from StringIO" do

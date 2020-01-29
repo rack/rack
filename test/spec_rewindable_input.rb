@@ -77,6 +77,27 @@ module RewindableTest
     tempfile.must_be :closed?
   end
 
+  it "handle partial writes to tempfile" do
+    def @rio.filesystem_has_posix_semantics?
+      def @rewindable_io.write(buffer)
+        super(buffer[0..1])
+      end
+      super
+    end
+    @rio.read(1)
+    tempfile = @rio.instance_variable_get(:@rewindable_io)
+    @rio.close
+    tempfile.must_be :closed?
+  end
+
+  it "close the underlying tempfile upon calling #close when not using posix semantics" do
+    def @rio.filesystem_has_posix_semantics?; false end
+    @rio.read(1)
+    tempfile = @rio.instance_variable_get(:@rewindable_io)
+    @rio.close
+    tempfile.must_be :closed?
+  end
+
   it "be possible to call #close when no data has been buffered yet" do
     @rio.close.must_be_nil
   end

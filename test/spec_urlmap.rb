@@ -242,4 +242,10 @@ describe Rack::URLMap do
     res["X-PathInfo"].must_equal "/"
     res["X-ScriptName"].must_equal ""
   end
+
+  it "not allow locations unless they start with /" do
+    lambda do
+      Rack::URLMap.new("a/" => lambda { |env| })
+    end.must_raise ArgumentError
+  end
 end

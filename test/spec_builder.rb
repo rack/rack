@@ -38,6 +38,19 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/sub").body.to_s.must_equal 'sub'
   end
 
+  it "supports use when mapping" do
+    app = builder_to_app do
+      map '/sub' do
+        use Rack::ContentLength
+        run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['sub']] }
+      end
+      use Rack::ContentLength
+      run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['root']] }
+    end
+    Rack::MockRequest.new(app).get("/").headers['Content-Length'].must_equal '4'
+    Rack::MockRequest.new(app).get("/sub").headers['Content-Length'].must_equal '3'
+  end
+
   it "doesn't dupe env even when mapping" do
     app = builder_to_app do
       use NothingMiddleware, noop: :noop

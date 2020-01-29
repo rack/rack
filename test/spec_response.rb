@@ -512,12 +512,14 @@ describe Rack::Response do
 
   it "provide access to the HTTP headers" do
     res = Rack::Response.new
-    res["Content-Type"] = "text/yaml"
+    res["Content-Type"] = "text/yaml; charset=UTF-8"
 
     res.must_include "Content-Type"
-    res.headers["Content-Type"].must_equal "text/yaml"
-    res["Content-Type"].must_equal "text/yaml"
-    res.content_type.must_equal "text/yaml"
+    res.headers["Content-Type"].must_equal "text/yaml; charset=UTF-8"
+    res["Content-Type"].must_equal "text/yaml; charset=UTF-8"
+    res.content_type.must_equal "text/yaml; charset=UTF-8"
+    res.media_type.must_equal "text/yaml"
+    res.media_type_params.must_equal "charset" => "UTF-8"
     res.content_length.must_be_nil
     res.location.must_be_nil
   end

@@ -159,7 +159,8 @@ describe Rack::Static do
     [%w(png jpg), { 'Cache-Control' => 'public, max-age=300' }],
     ['/cgi/assets/folder/', { 'Cache-Control' => 'public, max-age=400' }],
     ['cgi/assets/javascripts', { 'Cache-Control' => 'public, max-age=500' }],
-    [/\.(css|erb)\z/, { 'Cache-Control' => 'public, max-age=600' }]
+    [/\.(css|erb)\z/, { 'Cache-Control' => 'public, max-age=600' }],
+    [false, { 'Cache-Control' => 'public, max-age=600' }]
   ] }
 
   it "supports header rule :all" do

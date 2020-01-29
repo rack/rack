@@ -31,6 +31,13 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade).get("/cgi/../bla").must_be :not_found?
   end
 
+  it "include? returns whether app is included" do
+    cascade = Rack::Cascade.new([app1, app2])
+    cascade.include?(app1).must_equal true
+    cascade.include?(app2).must_equal true
+    cascade.include?(app3).must_equal false
+  end
+
   it "return 404 if empty" do
     Rack::MockRequest.new(cascade([])).get('/').must_be :not_found?
   end

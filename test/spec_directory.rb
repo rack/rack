@@ -40,6 +40,32 @@ describe Rack::Directory do
     assert_match(res, /<html><head>/)
   end
 
+  it "serve directory indices with bad symlinks" do
+    begin
+      File.symlink('foo', 'test/cgi/foo')
+      res = Rack::MockRequest.new(Rack::Lint.new(app)).
+        get("/cgi/")
+
+      res.must_be :ok?
+      assert_match(res, /<html><head>/)
+    ensure
+      File.delete('test/cgi/foo')
+    end
+  end
+
+  it "return 404 for unreadable directories" do
+    begin
+      File.write('test/cgi/unreadable', '')
+      File.chmod(0, 'test/cgi/unreadable')
+      res = Rack::MockRequest.new(Rack::Lint.new(app)).
+        get("/cgi/unreadable")
+
+      res.status.must_equal 404
+    ensure
+      File.delete('test/cgi/unreadable')
+    end
+  end
+
   it "pass to app if file found" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
       get("/cgi/test")
