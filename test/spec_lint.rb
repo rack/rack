@@ -622,8 +622,8 @@ describe Rack::Lint do
 
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack?'] = true
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0", 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new }, []]
-                     }).call(env({}))[1]['rack.hijack'].call.read.must_equal ''
+                       [201, { "Content-type" => "text/plain", "Content-length" => "0", 'rack.hijack' => lambda {|io| io }, 'rack.hijack_io' => StringIO.new }, []]
+                     }).call(env({}))[1]['rack.hijack'].call(StringIO.new).read.must_equal ''
   end
 
 end

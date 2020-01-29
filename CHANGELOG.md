@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `Lint` checks when response hijacking that `rack.hijack` is called with a valid object. ([@jeremyevans](https://github.com/jeremyevans))
 - `Response#write` correctly updates `Content-Length` if initialized with a body. ([@jeremyevans](https://github.com/jeremyevans))
 - `CommonLogger` includes `SCRIPT_NAME` when logging. ([@Erol](https://github.com/Erol))
 - `Utils.parse_nested_query` correctly handles empty queries, using an empty instance of the params class instead of a hash. ([@jeremyevans](https://github.com/jeremyevans))
