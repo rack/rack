@@ -283,7 +283,7 @@ describe Rack::Lint do
       Rack::Lint.new(lambda { |env|
                        env['rack.input'].each{ |x| }
                        [200, Object.new, []]
-                     }).call(env({"rack.input" => io}))
+                     }).call(env({ "rack.input" => io }))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "headers object should respond to #each, but doesn't (got Object as headers)"
 
@@ -610,14 +610,14 @@ describe Rack::Lint do
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack'].call
                        [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
-                     }).call(env({'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
+                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/rack.hijack_io must respond to read/)
 
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack'].call
                        [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
-                     }).call(env({'rack.hijack?' => true, 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new })).
+                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new })).
         first.must_equal 201
 
       Rack::Lint.new(lambda { |env|

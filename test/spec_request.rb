@@ -462,7 +462,7 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "have params only return GET if POST cannot be processed" do
-    obj = Object.new 
+    obj = Object.new
     def obj.read(*) raise EOFError end
     def obj.set_encoding(*) end
     def obj.rewind(*) end
