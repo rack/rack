@@ -104,6 +104,12 @@ describe Rack::Utils do
     Rack::Utils.parse_query(",foo=bar;,", ";,").must_equal "foo" => "bar"
   end
 
+  it "parse query strings correctly using arrays" do
+    Rack::Utils.parse_query("a[]=1").must_equal "a[]" => "1"
+    Rack::Utils.parse_query("a[]=1&a[]=2").must_equal "a[]" => ["1", "2"]
+    Rack::Utils.parse_query("a[]=1&a[]=2&a[]=3").must_equal "a[]" => ["1", "2", "3"]
+  end
+
   it "not create infinite loops with cycle structures" do
     ex = { "foo" => nil }
     ex["foo"] = ex

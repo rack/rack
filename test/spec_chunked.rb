@@ -54,6 +54,19 @@ describe Rack::Chunked do
     response.body.must_equal "0\r\n\r\n"
   end
 
+  it 'closes body' do
+    obj = Object.new
+    closed = false
+    def obj.each; yield 's' end
+    obj.define_singleton_method(:close) { closed = true }
+    app = lambda { |env| [200, { "Content-Type" => "text/plain" }, obj] }
+    response = Rack::MockRequest.new(Rack::Chunked.new(app)).get('/', @env)
+    response.headers.wont_include 'Content-Length'
+    response.headers['Transfer-Encoding'].must_equal 'chunked'
+    response.body.must_equal "1\r\ns\r\n0\r\n\r\n"
+    closed.must_equal true
+  end
+
   it 'chunks encoded bodies properly' do
     body = ["\uFFFEHello", " ", "World"].map {|t| t.encode("UTF-16LE") }
     app  = lambda { |env| [200, { "Content-Type" => "text/plain" }, body] }

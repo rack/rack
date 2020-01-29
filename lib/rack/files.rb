@@ -45,7 +45,11 @@ module Rack
       available = begin
         ::File.file?(path) && ::File.readable?(path)
       rescue SystemCallError
+        # Not sure in what conditions this exception can occur, but this
+        # is a safe way to handle such an error.
+        # :nocov:
         false
+        # :nocov:
       end
 
       if available

@@ -45,6 +45,11 @@ describe Rack::Files do
     assert_match(res, /ruby/)
   end
 
+  it "does not serve directories" do
+    res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/assets")
+    res.status.must_equal 404
+  end
+
   it "set Last-Modified header" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test")
 

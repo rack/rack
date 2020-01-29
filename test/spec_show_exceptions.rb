@@ -26,6 +26,27 @@ describe Rack::ShowExceptions do
     assert_match(res, /No POST data/)
   end
 
+  it "handles exceptions with backtrace lines for files that are not readable" do
+    res = nil
+
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise RuntimeError, "foo", ["nonexistant.rb:2:in `a': adf (RuntimeError)", "bad-backtrace"] }
+    ))
+
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_includes(res.body, 'RuntimeError')
+    assert_includes(res.body, 'ShowExceptions')
+    assert_includes(res.body, 'No GET data')
+    assert_includes(res.body, 'No POST data')
+    assert_includes(res.body, 'nonexistant.rb')
+    refute_includes(res.body, 'bad-backtrace')
+  end
+
   it "handles invalid POST data exceptions" do
     res = nil
 

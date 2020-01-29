@@ -256,4 +256,18 @@ describe Rack::Auth::Digest::MD5 do
     app = Rack::Auth::Digest::MD5.new(unprotected_app, realm) { true }
     realm.must_equal app.realm
   end
+
+  it 'Request#respond_to? and method_missing work as expected' do
+    req = Rack::Auth::Digest::Request.new({ 'HTTP_AUTHORIZATION' => 'a=b' })
+    req.respond_to?(:banana).must_equal false
+    req.respond_to?(:nonce).must_equal true
+    req.respond_to?(:a).must_equal true
+    req.a.must_equal 'b'
+    lambda { req.a(2) }.must_raise ArgumentError
+  end
+
+  it 'Nonce#fresh? should be the opposite of stale?' do
+    Rack::Auth::Digest::Nonce.new.fresh?.must_equal true
+    Rack::Auth::Digest::Nonce.new.stale?.must_equal false
+  end
 end

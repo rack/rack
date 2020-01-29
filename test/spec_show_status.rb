@@ -40,6 +40,24 @@ describe Rack::ShowStatus do
     assert_match(res, /too meta/)
   end
 
+  it "let the app provide additional information with non-String details" do
+    req = Rack::MockRequest.new(
+      show_status(
+        lambda{|env|
+          env["rack.showstatus.detail"] = ['gone too meta.']
+          [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
+    }))
+
+    res = req.get("/", lint: true)
+    res.must_be :not_found?
+    res.wont_be_empty
+
+    res["Content-Type"].must_equal "text/html"
+    assert_includes(res.body, '404')
+    assert_includes(res.body, 'Not Found')
+    assert_includes(res.body, '[&quot;gone too meta.&quot;]')
+  end
+
   it "escape error" do
     detail = "<script>alert('hi \"')</script>"
     req = Rack::MockRequest.new(
