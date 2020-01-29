@@ -554,7 +554,7 @@ describe Rack::Utils, "cookies" do
   end
 
   it "sets and deletes cookies in header hash" do
-    header = { 'Set-Cookie' => ''}
+    header = { 'Set-Cookie' => '' }
     Rack::Utils.set_cookie_header!(header, 'name', 'value').must_be_nil
     header['Set-Cookie'].must_equal 'name=value'
     Rack::Utils.set_cookie_header!(header, 'name2', 'value2').must_be_nil
