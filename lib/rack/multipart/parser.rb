@@ -99,12 +99,6 @@ module Rack
 
               data = { filename: fn, type: content_type,
                       name: name, tempfile: body, head: head }
-            elsif !filename && content_type && body.is_a?(IO)
-              body.rewind
-
-              # Generic multipart cases, not coming from a form
-              data = { type: content_type,
-                      name: name, tempfile: body, head: head }
             end
 
             yield data
