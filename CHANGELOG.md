@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
+- Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans](https://github.com/jeremyevans))
 - `Etag` will continue sending ETag even if the response should not be cached. ([@henm](https://github.com/henm))
 - `Request#host_with_port` no longer includes a colon for a missing or empty port. ([@AlexWayfer](https://github.com/AlexWayfer))
 - All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix](https://github.com/ioquatix))
@@ -39,6 +40,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `Response#write` correctly updates `Content-Length` if initialized with a body. ([@jeremyevans](https://github.com/jeremyevans))
 - `CommonLogger` includes `SCRIPT_NAME` when logging. ([@Erol](https://github.com/Erol))
 - `Utils.parse_nested_query` correctly handles empty queries, using an empty instance of the params class instead of a hash. ([@jeremyevans](https://github.com/jeremyevans))
 - `Directory` correctly escapes paths in links. ([@yous](https://github.com/yous))
