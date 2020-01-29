@@ -40,6 +40,18 @@ describe Rack::Sendfile do
     end
   end
 
+  it "does nothing and logs to rack.errors when incorrect X-Sendfile-Type header present" do
+    io = StringIO.new
+    request 'HTTP_X_SENDFILE_TYPE' => 'X-Banana', 'rack.errors' => io do |response|
+      response.must_be :ok?
+      response.body.must_equal 'Hello World'
+      response.headers.wont_include 'X-Sendfile'
+
+      io.rewind
+      io.read.must_equal "Unknown x-sendfile variation: 'X-Banana'.\n"
+    end
+  end
+
   it "sets X-Sendfile response header and discards body" do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
       response.must_be :ok?
@@ -139,12 +151,16 @@ describe Rack::Sendfile do
     begin
       dir1 = Dir.mktmpdir
       dir2 = Dir.mktmpdir
+      dir3 = Dir.mktmpdir
 
       first_body = open_file(File.join(dir1, 'rack_sendfile'))
       first_body.puts 'hello world'
 
       second_body = open_file(File.join(dir2, 'rack_sendfile'))
       second_body.puts 'goodbye world'
+
+      third_body = open_file(File.join(dir3, 'rack_sendfile'))
+      third_body.puts 'hello again world'
 
       headers = {
         'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
@@ -163,6 +179,13 @@ describe Rack::Sendfile do
         response.body.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
+      end
+
+      request(headers, third_body) do |response|
+        response.must_be :ok?
+        response.body.must_be :empty?
+        response.headers['Content-Length'].must_equal '0'
+        response.headers['X-Accel-Redirect'].must_equal "#{dir3}/rack_sendfile"
       end
     ensure
       FileUtils.remove_entry_secure dir1

@@ -328,6 +328,9 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("")
     res.body.must_match(/rack/)
     assert_match(res, /rack/)
+
+    res.match('rack')[0].must_equal 'rack'
+    res.match('banana').must_be_nil
   end
 
   it "provide access to the Rack errors" do
@@ -349,6 +352,10 @@ describe Rack::MockResponse do
     lambda {
       Rack::MockRequest.new(app).get("/?error=foo", fatal: true)
     }.must_raise Rack::MockRequest::FatalWarning
+
+    lambda {
+      Rack::MockRequest.new(lambda { |env| env['rack.errors'].write(env['rack.errors'].string) }).get("/", fatal: true)
+    }.must_raise(Rack::MockRequest::FatalWarning).message.must_equal ''
   end
 end
 
