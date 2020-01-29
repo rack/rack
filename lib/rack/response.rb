@@ -46,18 +46,20 @@ module Rack
       @writer = self.method(:append)
 
       @block = nil
-      @length = 0
 
       # Keep track of whether we have expanded the user supplied body.
       if body.nil?
         @body = []
         @buffered = true
+        @length = 0
       elsif body.respond_to?(:to_str)
         @body = [body]
         @buffered = true
+        @length = body.to_str.bytesize
       else
         @body = body
         @buffered = false
+        @length = 0
       end
 
       yield self if block_given?
@@ -242,6 +244,9 @@ module Rack
         if @body.is_a?(Array)
           # The user supplied body was an array:
           @body = @body.compact
+          @body.each do |part|
+            @length += part.to_s.bytesize
+          end
         else
           # Turn the user supplied body into a buffered array:
           body = @body

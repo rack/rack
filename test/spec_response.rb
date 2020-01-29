@@ -48,12 +48,11 @@ describe Rack::Response do
     }
   end
 
-  it "can be written to" do
-    response = Rack::Response.new
+  it "can be written to inside finish block, but does not update Content-Length" do
+    response = Rack::Response.new('foo')
+    response.write "bar"
 
-    _, _, body = response.finish do
-      response.write "foo"
-      response.write "bar"
+    _, h, body = response.finish do
       response.write "baz"
     end
 
@@ -61,6 +60,7 @@ describe Rack::Response do
     body.each { |part| parts << part }
 
     parts.must_equal ["foo", "bar", "baz"]
+    h['Content-Length'].must_equal '6'
   end
 
   it "can set and read headers" do
@@ -381,6 +381,33 @@ describe Rack::Response do
     str = "".dup; body.each { |part| str << part }
     str.must_equal "foo"
     status.must_equal 404
+  end
+
+  it "correctly updates Content-Type when writing when not initialized with body" do
+    r = Rack::Response.new
+    r.write('foo')
+    r.write('bar')
+    r.write('baz')
+    _, header, body = r.finish
+    str = "".dup; body.each { |part| str << part }
+    str.must_equal "foobarbaz"
+    header['Content-Length'].must_equal '9'
+  end
+
+  it "correctly updates Content-Type when writing when initialized with body" do
+    obj = Object.new
+    def obj.each
+      yield 'foo'
+      yield 'bar'
+    end
+    ["foobar", ["foo", "bar"], obj].each do
+      r = Rack::Response.new(["foo", "bar"])
+      r.write('baz')
+      _, header, body = r.finish
+      str = "".dup; body.each { |part| str << part }
+      str.must_equal "foobarbaz"
+      header['Content-Length'].must_equal '9'
+    end
   end
 
   it "doesn't return invalid responses" do
