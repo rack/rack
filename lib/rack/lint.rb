@@ -61,7 +61,10 @@ module Rack
       ## the *headers*,
       check_headers headers
 
-      check_hijack_response headers, env
+      hijack_proc = check_hijack_response headers, env
+      if hijack_proc && headers.is_a?(Hash)
+        headers[RACK_HIJACK] = hijack_proc
+      end
 
       ## and the *body*.
       check_content_type status, headers
@@ -614,7 +617,7 @@ module Rack
           headers[RACK_HIJACK].respond_to? :call
         }
         original_hijack = headers[RACK_HIJACK]
-        headers[RACK_HIJACK] = proc do |io|
+        proc do |io|
           original_hijack.call HijackWrapper.new(io)
         end
       else
@@ -624,6 +627,8 @@ module Rack
         assert('rack.hijack header must not be present if server does not support hijacking') {
           headers[RACK_HIJACK].nil?
         }
+
+        nil
       end
     end
     ## ==== Conventions
