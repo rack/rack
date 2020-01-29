@@ -250,28 +250,30 @@ describe Rack::Server do
         require 'objspace'
       rescue LoadError
       else
+        t = Tempfile.new
         begin
-          SPEC_ARGV[0..-1] = ['-scgi', '--heap', 'test-heapfile', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          SPEC_ARGV[0..-1] = ['-scgi', '--heap', t.path, '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
           server = Rack::Server.new
           def (server.server).run(*) end
           def server.exit; throw :exit end
           catch :exit do
             server.start
           end
-          File.file?('test-heapfile').must_equal true
+          File.file?(t.path).must_equal true
         ensure
-          File.delete 'test-heapfile'
+          File.delete t.path
         end
       end
     end
 
     it "support --profile-mode option for stackprof profiling" do
       begin
-        require 'objspace'
+        require 'stackprof'
       rescue LoadError
       else
+        t = Tempfile.new
         begin
-          SPEC_ARGV[0..-1] = ['-scgi', '--profile', 'test-profile', '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          SPEC_ARGV[0..-1] = ['-scgi', '--profile', t.path, '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
           server = Rack::Server.new
           def (server.server).run(*) end
           def server.puts(*) end
@@ -279,9 +281,9 @@ describe Rack::Server do
           catch :exit do
             server.start
           end
-          File.file?('test-profile').must_equal true
+          File.file?(t.path).must_equal true
         ensure
-          File.delete 'test-profile'
+          File.delete t.path
         end
       end
     end
