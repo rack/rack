@@ -21,7 +21,7 @@ describe Rack::Session::Abstract::SessionHash do
   end
 
   it ".find finds entry in request" do
-    assert_equal({}, @class.find(Rack::Request.new('rack.session'=>{})))
+    assert_equal({}, @class.find(Rack::Request.new('rack.session' => {})))
   end
 
   it ".set sets session in request" do
@@ -58,7 +58,7 @@ describe Rack::Session::Abstract::SessionHash do
 
   it "#each iterates over entries" do
     a = []
-    @hash.each do |k,v|
+    @hash.each do |k, v|
       a << [k, v]
     end
     a.must_equal [["foo", :bar], ["baz", :qux], ["x", { y: 1 }]]
@@ -72,7 +72,7 @@ describe Rack::Session::Abstract::SessionHash do
   end
 
   it "#replace replaces hash" do
-    hash.replace({bar: "foo"})
+    hash.replace({ bar: "foo" })
     assert_equal "foo", hash["bar"]
   end
 

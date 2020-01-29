@@ -150,7 +150,7 @@ describe Rack::Server do
   it "support -h option to get handler-specific help" do
     cgi = Rack::Handler.get('cgi')
     begin
-      def cgi.valid_options; {"FOO=BAR"=>"BAZ"} end
+      def cgi.valid_options; { "FOO=BAR" => "BAZ" } end
       test_options_server('-scgi', '-h').must_match(/\AUsage: rackup.*Ruby options:.*Rack options.*Profiling options.*Common options.*Server-specific options for Rack::Handler::CGI.*-O +FOO=BAR +BAZ.*exited\z/m)
     ensure
       cgi.singleton_class.send(:remove_method, :valid_options)

@@ -26,7 +26,7 @@ describe Rack::Session::Abstract::Persisted do
     @pers = @class.new(nil)
     def @pers.write_session(*) end
     errors = StringIO.new
-    env = {'rack.errors'=>errors}
+    env = { 'rack.errors' => errors }
     req = Rack::Request.new(env)
     store = Class.new do
       def load_session(req)
