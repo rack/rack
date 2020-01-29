@@ -330,6 +330,7 @@ describe Rack::Server do
     server.start
     exited.must_equal false
     Process.kill(:INT, $$)
+    sleep 1 unless RUBY_ENGINE == 'ruby'
     exited.must_equal true
   end
 
