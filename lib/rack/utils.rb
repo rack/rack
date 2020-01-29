@@ -84,9 +84,11 @@ module Rack
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
     else
+      # :nocov:
       def clock_time
         Time.now.to_f
       end
+      # :nocov:
     end
 
     def parse_query(qs, d = nil, &unescaper)

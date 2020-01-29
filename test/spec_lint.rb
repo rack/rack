@@ -151,7 +151,15 @@ describe Rack::Lint do
       message.must_equal "rack.multipart.tempfile_factory return value must respond to #<<"
 
     lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?", "rack.multipart.tempfile_factory" => lambda { |filename, content_type| String.new }))
+      Rack::Lint.new(lambda { |env|
+        env['rack.multipart.tempfile_factory'].call("testfile", "text/plain")
+        []
+      }).call(env("rack.multipart.tempfile_factory" => lambda { |filename, content_type| String.new }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "response array [] has 0 elements instead of 3"
+
+    lambda {
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/REQUEST_METHOD/)
 
@@ -412,6 +420,7 @@ describe Rack::Lint do
 
     lambda {
       Rack::Lint.new(lambda { |env|
+                       env["rack.input"].gets
                        env["rack.input"].read(1, 2, 3)
                        [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
                      }).call(env({}))
@@ -610,6 +619,11 @@ describe Rack::Lint do
                        [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
                      }).call(env({'rack.hijack?' => true, 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new })).
         first.must_equal 201
+
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack?'] = true
+                       [201, { "Content-type" => "text/plain", "Content-length" => "0", 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new }, []]
+                     }).call(env({}))[1]['rack.hijack'].call.read.must_equal ''
   end
 
 end

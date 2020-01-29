@@ -546,6 +546,30 @@ describe Rack::Utils, "cookies" do
       Rack::Utils.add_cookie_to_header(Object.new, 'name', 'value')
     }.must_raise ArgumentError
   end
+
+  it "sets and deletes cookies in header hash" do
+    header = {'Set-Cookie'=>''}
+    Rack::Utils.set_cookie_header!(header, 'name', 'value').must_be_nil
+    header['Set-Cookie'].must_equal 'name=value'
+    Rack::Utils.set_cookie_header!(header, 'name2', 'value2').must_be_nil
+    header['Set-Cookie'].must_equal "name=value\nname2=value2"
+    Rack::Utils.set_cookie_header!(header, 'name2', 'value3').must_be_nil
+    header['Set-Cookie'].must_equal "name=value\nname2=value2\nname2=value3"
+
+    Rack::Utils.delete_cookie_header!(header, 'name2').must_be_nil
+    header['Set-Cookie'].must_equal "name=value\nname2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
+    header['Set-Cookie'].must_equal "name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT\nname=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+
+    header = {'Set-Cookie'=>nil}
+    Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
+    header['Set-Cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+
+    header = {'Set-Cookie'=>[]}
+    Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
+    header['Set-Cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+  end
+
 end
 
 describe Rack::Utils, "byte_range" do
@@ -744,6 +768,8 @@ describe Rack::Utils::Context do
     r2 = c2.call(2)
     r2.must_equal 4
     r3 = c3.call(:misc_symbol)
+    r3.must_be_nil
+    r3 = c2.context(:misc_symbol, test_target3)
     r3.must_be_nil
     r4 = Rack::MockRequest.new(a4).get('/')
     r4.status.must_equal 200

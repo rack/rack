@@ -174,17 +174,13 @@ describe Rack::Server do
   end
 
   it "support -b option to specify inline rackup config" do
-    SPEC_ARGV[0..-1] = ['-scgi', '-E', 'production', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}']
+    SPEC_ARGV[0..-1] = ['-scgi', '-E', 'development', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}']
     server = Rack::Server.new
     def (server.server).run(app, **) app end
-    s, h, b = server.start.call({})
-    s.must_equal 200
-    h.must_equal 'Content-Length' => '0'
-    body = String.new
-    b.each do |s|
-      body << s
-    end
-    body.must_equal ''
+    s, h, b = server.start.call('rack.errors' => StringIO.new)
+    s.must_equal 500
+    h['Content-Type'].must_equal 'text/plain'
+    b.join.must_include 'Rack::Lint::LintError'
   end
 
   it "support -e option to evaluate ruby code" do

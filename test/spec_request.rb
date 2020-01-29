@@ -414,6 +414,7 @@ class RackRequestTest < Minitest::Spec
     req.content_type.must_equal 'text/plain;charset=utf-8'
     req.media_type.must_equal 'text/plain'
     req.media_type_params['charset'].must_equal 'utf-8'
+    req.content_charset.must_equal 'utf-8'
     req.POST.must_be :empty?
     req.params.must_equal "foo" => "quux"
     req.body.read.must_equal "foo=bar&quux=bla"
@@ -460,11 +461,35 @@ class RackRequestTest < Minitest::Spec
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
   end
 
+  it "have params only return GET if POST cannot be processed" do
+    obj = Object.new 
+    def obj.read(*) raise EOFError end
+    def obj.set_encoding(*) end
+    def obj.rewind(*) end
+    req = make_request Rack::MockRequest.env_for("/", 'REQUEST_METHOD' => 'POST', :input => obj)
+    req.params.must_equal req.GET
+    req.params.wont_be_same_as req.GET
+  end
+
   it "get value by key from params with #[]" do
     req = make_request \
       Rack::MockRequest.env_for("?foo=quux")
     req['foo'].must_equal 'quux'
     req[:foo].must_equal 'quux'
+
+    next if self.class == TestProxyRequest
+    verbose = $VERBOSE
+    warn_arg = nil
+    req.define_singleton_method(:warn) do |arg|
+      warn_arg = arg
+    end
+    begin
+      $VERBOSE = true
+      req['foo'].must_equal 'quux'
+      warn_arg.must_equal "Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead"
+    ensure
+      $VERBOSE = verbose
+    end
   end
 
   it "set value to key on params with #[]=" do
@@ -487,6 +512,20 @@ class RackRequestTest < Minitest::Spec
     req.params.must_equal 'foo' => 'jaz'
     req['foo'].must_equal 'jaz'
     req[:foo].must_equal 'jaz'
+
+    verbose = $VERBOSE
+    warn_arg = nil
+    req.define_singleton_method(:warn) do |arg|
+      warn_arg = arg
+    end
+    begin
+      $VERBOSE = true
+      req['foo'] = 'quux'
+      warn_arg.must_equal "Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead"
+      req.params['foo'].must_equal 'quux'
+    ensure
+      $VERBOSE = verbose
+    end
   end
 
   it "return values for the keys in the order given from values_at" do
