@@ -102,10 +102,36 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to fetch and []"
 
+    obj = Object.new
+    def obj.inspect; '[]' end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => []))
+      Rack::Lint.new(nil).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to info"
+
+    def obj.info(*) end
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "logger [] must respond to debug"
+
+    def obj.debug(*) end
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "logger [] must respond to warn"
+
+    def obj.warn(*) end
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "logger [] must respond to error"
+
+    def obj.error(*) end
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "logger [] must respond to fatal"
 
     lambda {
       Rack::Lint.new(nil).call(env("rack.multipart.buffer_size" => 0))
@@ -125,7 +151,7 @@ describe Rack::Lint do
       message.must_equal "rack.multipart.tempfile_factory return value must respond to #<<"
 
     lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?", "rack.multipart.tempfile_factory" => lambda { |filename, content_type| String.new }))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/REQUEST_METHOD/)
 
@@ -203,7 +229,9 @@ describe Rack::Lint do
 
   it "notice error errors" do
     lambda {
-      Rack::Lint.new(nil).call(env("rack.errors" => ""))
+      io = StringIO.new
+      io.binmode
+      Rack::Lint.new(nil).call(env("rack.errors" => "", "rack.input" => io))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/does not respond to #puts/)
   end
@@ -242,9 +270,12 @@ describe Rack::Lint do
 
   it "notice header errors" do
     lambda {
+      io = StringIO.new('a')
+      io.binmode
       Rack::Lint.new(lambda { |env|
+                       env['rack.input'].each{ |x| }
                        [200, Object.new, []]
-                     }).call(env({}))
+                     }).call(env({"rack.input" => io}))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "headers object should respond to #each, but doesn't (got Object as headers)"
 
@@ -564,6 +595,23 @@ describe Rack::Lint do
     assert_lint nil, ''.dup
     assert_lint 1, ''.dup
   end
+
+  it "notice hijack errors" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack'].call
+                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                     }).call(env({'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/rack.hijack_io must respond to read/)
+
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack'].call
+                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                     }).call(env({'rack.hijack?' => true, 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new })).
+        first.must_equal 201
+  end
+
 end
 
 describe "Rack::Lint::InputWrapper" do
