@@ -234,17 +234,19 @@ module Rack
 
       def host_with_port
         port = self.port
-        port.nil? || port == DEFAULT_PORTS[scheme] ? host : "#{host}:#{port}"
+        if port.nil? || port == DEFAULT_PORTS[scheme]
+          host
+        else
+          host = self.host
+          # If host is IPv6
+          host = "[#{host}]" if host.include?(':')
+          "#{host}:#{port}"
+        end
       end
 
       def host
         # Remove port number.
-        h = hostname.to_s
-        if colon_index = h.index(":")
-          h[0, colon_index]
-        else
-          h
-        end
+        strip_port hostname.to_s
       end
 
       def port
@@ -544,8 +546,20 @@ module Rack
       end
 
       def extract_port(uri)
-        if (colon_index = uri.index(':'))
-          uri[colon_index + 1, uri.length]
+        # IPv6 format with optional port: "[2001:db8:cafe::17]:47011"
+        # change `uri` to ":47011"
+        sep_start = uri.index('[')
+        sep_end = uri.index(']')
+        if (sep_start && sep_end)
+          uri = uri[sep_end + 1, uri.length]
+        end
+
+        # IPv4 format with optional port: "192.0.2.43:47011"
+        # or ":47011" from IPv6 above
+        # returns: "47011"
+        sep = uri.index(':')
+        if (sep && uri.count(':') == 1)
+          return uri[sep + 1, uri.length]
         end
       end
     end
