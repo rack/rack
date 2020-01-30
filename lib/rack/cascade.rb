@@ -6,6 +6,7 @@ module Rack
   # status codes).
 
   class Cascade
+    # deprecated, no longer used
     NotFound = [404, { CONTENT_TYPE => "text/plain" }, []]
 
     attr_reader :apps
@@ -19,8 +20,6 @@ module Rack
     end
 
     def call(env)
-      result = NotFound
-
       last_body = nil
 
       @apps.each do |app|
@@ -34,10 +33,10 @@ module Rack
 
         result = app.call(env)
         last_body = result[2]
-        break unless @catch.include?(result[0].to_i)
+        return result unless @catch.include?(result[0].to_i)
       end
 
-      result
+      [404, { CONTENT_TYPE => "text/plain" }, []]
     end
 
     def add(app)
