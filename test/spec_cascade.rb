@@ -42,6 +42,25 @@ describe Rack::Cascade do
     Rack::MockRequest.new(cascade([])).get('/').must_be :not_found?
   end
 
+  it "uses new response object if empty" do
+    app = Rack::Cascade.new([])
+    res = app.call('/')
+    s, h, body = res
+    s.must_equal 404
+    h['Content-Type'].must_equal 'text/plain'
+    body.must_be_empty
+
+    res[0] = 200
+    h['Content-Type'] = 'text/html'
+    body << "a"
+
+    res = app.call('/')
+    s, h, body = res
+    s.must_equal 404
+    h['Content-Type'].must_equal 'text/plain'
+    body.must_be_empty
+  end
+
   it "append new app" do
     cascade = Rack::Cascade.new([], [404, 403])
     Rack::MockRequest.new(cascade).get('/').must_be :not_found?
