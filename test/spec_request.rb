@@ -123,6 +123,14 @@ class RackRequestTest < Minitest::Spec
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host.must_equal "example.org"
 
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[2001:db8:cafe::17]:47011")
+    req.host.must_equal "2001:db8:cafe::17"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "2001:db8:cafe::17")
+    req.host.must_equal "2001:db8:cafe::17"
+
     env = Rack::MockRequest.env_for("/", "SERVER_ADDR" => "192.168.1.1", "SERVER_PORT" => "9292")
     env.delete("SERVER_NAME")
     req = make_request(env)
@@ -150,6 +158,14 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.port.must_equal 9292
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[2001:db8:cafe::17]:47011")
+    req.port.must_equal 47011
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "2001:db8:cafe::17")
+    req.port.must_equal 80
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org")
@@ -204,6 +220,14 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org:9292")
     req.host_with_port.must_equal "example.org:9292"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[2001:db8:cafe::17]:47011")
+    req.host_with_port.must_equal "[2001:db8:cafe::17]:47011"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "2001:db8:cafe::17")
+    req.host_with_port.must_equal "2001:db8:cafe::17"
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "SERVER_PORT" => "9393")
