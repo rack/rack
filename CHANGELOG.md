@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Removed
 
+- `BodyProxy#each` as it was only needed to work around a bug in Ruby <1.9.3. ([@jeremyevans](https://github.com/jeremyevans))
 - `Session::Abstract::SessionHash#transform_keys`, no longer needed. (pavel)
 - `URLMap::INFINITY` and `URLMap::NEGATIVE_INFINITY`, in favor of `Float::INFINITY`. ([@ch1c0t](https://github.com/ch1c0t))
 - Deprecation of `Rack::File`. It will be deprecated again in rack 2.2 or 3.0. ([@rafaelfranca](https://github.com/rafaelfranca))

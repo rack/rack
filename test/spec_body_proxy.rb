@@ -85,8 +85,4 @@ describe Rack::BodyProxy do
     proxy.close
     closed.must_equal true
   end
-
-  it 'provide an #each method' do
-    Rack::BodyProxy.method_defined?(:each).must_equal true
-  end
 end
