@@ -31,10 +31,11 @@ These web servers include \Rack handlers in their distributions:
 
 * Agoo[https://github.com/ohler55/agoo]
 * Falcon[https://github.com/socketry/falcon]
+* Iodine[https://github.com/boazsegev/iodine]
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
-* Unicorn[https://bogomips.org/unicorn/]
+* Unicorn[https://yhbt.net/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
 
 Any valid \Rack app will run the same on all these handlers, without
@@ -42,13 +43,12 @@ changing anything.
 
 == Supported web frameworks
 
-These frameworks include \Rack adapters in their distributions:
+These frameworks and many others support the \Rack API:
 
 * Camping[http://www.ruby-camping.com/]
 * Coset[http://leahneukirchen.org/repos/coset/]
 * Hanami[https://hanamirb.org/]
 * Padrino[http://padrinorb.com/]
-* Racktools::SimpleApplication
 * Ramaze[http://ramaze.net/]
 * Roda[https://github.com/jeremyevans/roda]
 * {Ruby on Rails}[https://rubyonrails.org/]
@@ -56,19 +56,45 @@ These frameworks include \Rack adapters in their distributions:
 * Sinatra[http://sinatrarb.com/]
 * Utopia[https://github.com/socketry/utopia]
 * WABuR[https://github.com/ohler55/wabur]
-* ... and many others.
 
-== Available middleware
+== Available middleware shipped with \Rack
 
 Between the server and the framework, \Rack can be customized to your
-applications needs using middleware, for example:
+applications needs using middleware. \Rack itself ships with the following
+middleware:
 
-* Rack::URLMap, to route to multiple applications inside the same process.
+* Rack::Chunked, for streaming responses using chunked encoding.
 * Rack::CommonLogger, for creating Apache-style logfiles.
+* Rack::ConditionalGet, for returning not modified responses when the response
+  has not changed.
+* Rack::Config, for modifying the environment before processing the request.
+* Rack::ContentLength, for setting Content-Length header based on body size.
+* Rack::ContentType, for setting default Content-Type header for responses.
+* Rack::Deflater, for compressing responses with gzip.
+* Rack::ETag, for setting ETag header on string bodies.
+* Rack::Events, for providing easy hooks when a request is received
+  and when the response is sent.
+* Rack::Files, for serving static files.
+* Rack::Head, for returning an empty body for HEAD requests.
+* Rack::Lint, for checking conformance to the \Rack API.
+* Rack::Lock, for serializing requests using a mutex.
+* Rack::Logger, for setting a logger to handle logging errors.
+* Rack::MethodOverride, for modifying the request method based on a submitted
+  parameter.
+* Rack::Recursive, for including data from other paths in the application,
+  and for performing internal redirects.
+* Rack::Reloader, for reloading files if they have been modified.
+* Rack::Runtime, for including a response header with the time taken to
+  process the request.
+* Rack::Sendfile, for working with web servers that can use optimized
+  file serving for file system paths.
 * Rack::ShowException, for catching unhandled exceptions and
   presenting them in a nice and helpful way with clickable backtrace.
-* Rack::Files, for serving static files.
-* ...many others!
+* Rack::ShowStatus, for using nice error pages for empty client error
+  responses.
+* Rack::Static, for more configurable serving of static files.
+* Rack::TempfileReaper, for removing temporary files creating during a
+  request.
 
 All these components use the same interface, which is described in
 detail in the \Rack specification.  These optional components can be
@@ -87,6 +113,15 @@ over:
   cookie handling.
 * Rack::MockRequest and Rack::MockResponse for efficient and quick
   testing of \Rack application without real HTTP round-trips.
+* Rack::Cascade, for trying additional \Rack applications if an
+  application returns a not found or method not supported response.
+* Rack::Directory, for serving files under a given directory, with
+  directory indexes.
+* Rack::MediaType, for parsing Content-Type headers.
+* Rack::Mime, for determining Content-Type based on file extension.
+* Rack::RewindableInput, for making any IO object rewindable, using
+  a temporary file buffer.
+* Rack::URLMap, to route to multiple applications inside the same process.
 
 == rack-contrib
 
@@ -125,6 +160,16 @@ By default, the lobster is found at http://localhost:9292.
 A Gem of \Rack is available at {rubygems.org}[https://rubygems.org/gems/rack]. You can install it with:
 
     gem install rack
+
+== Usage
+
+You should require the library:
+
+    require 'rack'
+
+\Rack uses autoload to automatically load other files \Rack ships with on demand,
+so you should not need require paths under +rack+.  If you require paths under
++rack+ without requiring +rack+ itself, things may not work correctly.
 
 == Configuration
 
@@ -193,7 +238,6 @@ Mailing list archives are available at
 Git repository (send Git patches to the mailing list):
 
 * https://github.com/rack/rack
-* http://git.vuxu.org/cgi-bin/gitweb.cgi?p=rack-github.git
 
 You are also welcome to join the #rack channel on irc.freenode.net.
 
