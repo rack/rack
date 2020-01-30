@@ -63,6 +63,13 @@ describe Rack::BodyProxy do
     proxy.method(:banana).call.must_equal :pear
   end
 
+  it 'allows calling delegated methods with keywords' do
+    body  = Object.new
+    def body.banana(foo: nil); foo end
+    proxy = Rack::BodyProxy.new(body) { }
+    proxy.banana(foo: 1).must_equal 1
+  end
+
   it 'not respond to :to_ary' do
     body = Object.new.tap { |o| def o.to_ary() end }
     body.respond_to?(:to_ary).must_equal true

@@ -41,6 +41,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `BodyProxy` correctly delegates keyword arguments to the body object on Ruby 2.7+. ([@jeremyevans](https://github.com/jeremyevans))
 - `BodyProxy#method` correctly handles methods delegated to the body object. ([@jeremyevans](https://github.com/jeremyevans))
 - `Request#host` and `Request#host_with_port` handle IPv6 addresses correctly. ([@AlexWayfer](https://github.com/AlexWayfer))
 - `Lint` checks when response hijacking that `rack.hijack` is called with a valid object. ([@jeremyevans](https://github.com/jeremyevans))
