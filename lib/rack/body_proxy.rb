@@ -8,7 +8,7 @@ module Rack
       @closed = false
     end
 
-    def respond_to?(method_name, include_all = false)
+    def respond_to_missing?(method_name, include_all = false)
       super or @body.respond_to?(method_name, include_all)
     end
 

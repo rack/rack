@@ -40,6 +40,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `BodyProxy#method` correctly handles methods delegated to the body object. ([@jeremyevans](https://github.com/jeremyevans))
+- `Request#host` and `Request#host_with_port` handle IPv6 addresses correctly. ([@AlexWayfer](https://github.com/AlexWayfer))
 - `Lint` checks when response hijacking that `rack.hijack` is called with a valid object. ([@jeremyevans](https://github.com/jeremyevans))
 - `Response#write` correctly updates `Content-Length` if initialized with a body. ([@jeremyevans](https://github.com/jeremyevans))
 - `CommonLogger` includes `SCRIPT_NAME` when logging. ([@Erol](https://github.com/Erol))
