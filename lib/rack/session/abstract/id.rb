@@ -393,6 +393,12 @@ module Rack
             cookie[:value] = cookie_value(data)
             cookie[:expires] = Time.now + options[:expire_after] if options[:expire_after]
             cookie[:expires] = Time.now + options[:max_age] if options[:max_age]
+
+            if @same_site.respond_to? :call
+              cookie[:same_site] = @same_site.call(req, res)
+            else
+              cookie[:same_site] = @same_site
+            end
             set_cookie(req, res, cookie.merge!(options))
           end
         end

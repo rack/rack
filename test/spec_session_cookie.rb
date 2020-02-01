@@ -196,6 +196,23 @@ describe Rack::Session::Cookie do
     response.body.must_equal '{"counter"=>1}'
   end
 
+  it "passes through same_site option to session cookie" do
+    response = response_for(app: [incrementor, same_site: :none])
+    response["Set-Cookie"].must_include "SameSite=None"
+  end
+
+  it "allows using a lambda to specify same_site option, because some browsers require different settings" do
+    # Details of why this might need to be set dynamically:
+    # https://www.chromium.org/updates/same-site/incompatible-clients
+    # https://gist.github.com/bnorton/7dee72023787f367c48b3f5c2d71540f
+
+    response = response_for(app: [incrementor, same_site: lambda { |req, res| :none }])
+    response["Set-Cookie"].must_include "SameSite=None"
+
+    response = response_for(app: [incrementor, same_site: lambda { |req, res| :lax }])
+    response["Set-Cookie"].must_include "SameSite=Lax"
+  end
+
   it "loads from a cookie" do
     response = response_for(app: incrementor)
 
