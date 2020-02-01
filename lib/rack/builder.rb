@@ -109,8 +109,11 @@ module Rack
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
     def self.new_from_string(builder_script, file = "(rackup)")
-      eval "Rack::Builder.new {\n" + builder_script + "\n}.to_app",
-        TOPLEVEL_BINDING, file, 0
+      builder = self.new
+
+      builder.instance_eval(builder_script, file)
+
+      return builder.to_app
     end
 
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
