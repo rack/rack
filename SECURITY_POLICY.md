@@ -10,26 +10,26 @@ New features will only be added to the master branch and will not be made availa
 
 Only the latest release series will receive bug fixes. When enough bugs are fixed and its deemed worthy to release a new gem, this is the branch it happens from.
 
-* Current release series: 2.0.x
+* Current release series: 2.1.x
 
 ### Security issues
 
 The current release series and the next most recent one will receive patches and new versions in case of a security issue.
 
-* Current release series: 2.0.x
-* Next most recent release series: 1.6.x
+* Current release series: 2.1.x
+* Next most recent release series: 2.0.x
 
 ### Severe security issues
 
 For severe security issues we will provide new versions as above, and also the last major release series will receive patches and new versions. The classification of the security issue is judged by the core team.
 
-* Current release series: 2.0.x
-* Next most recent release series: 1.6.x
-* Last most recent release series: 1.5.x
+* Current release series: 2.1.x
+* Next most recent release series: 2.0.x
+* Last major release series: 1.6.x
 
 ### Unsupported Release Series
 
-When a release series is no longer supported, it’s your own responsibility to deal with bugs and security issues. We may provide back-ports of the fixes and publish them to git, however there will be no new versions released. If you are not comfortable maintaining your own versions, you should upgrade to a supported version.
+When a release series is no longer supported, it’s your own responsibility to deal with bugs and security issues. If you are not comfortable maintaining your own versions, you should upgrade to a supported version.
 
 ## Reporting a bug
 
