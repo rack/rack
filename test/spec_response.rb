@@ -71,13 +71,13 @@ describe Rack::Response do
   end
 
   it "doesn't mutate given headers" do
-    [{}, Rack::Utils::HeaderHash.new].each do |header|
-      response = Rack::Response.new([], 200, header)
-      response.header["Content-Type"] = "text/plain"
-      response.header["Content-Type"].must_equal "text/plain"
+    headers = {}
 
-      header.wont_include("Content-Type")
-    end
+    response = Rack::Response.new([], 200, headers)
+    response.headers["Content-Type"] = "text/plain"
+    response.headers["Content-Type"].must_equal "text/plain"
+
+    headers.wont_include("Content-Type")
   end
 
   it "can override the initial Content-Type with a different case" do
