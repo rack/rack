@@ -41,7 +41,7 @@ module Rack
     # Providing a body which responds to #to_str is legacy behaviour.
     def initialize(body = nil, status = 200, headers = {})
       @status = status.to_i
-      @headers = Utils::HeaderHash.new(headers)
+      @headers = Utils::HeaderHash[headers]
 
       @writer = self.method(:append)
 

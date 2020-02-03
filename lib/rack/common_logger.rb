@@ -30,10 +30,10 @@ module Rack
 
     def call(env)
       began_at = Utils.clock_time
-      status, header, body = @app.call(env)
-      header = Utils::HeaderHash.new(header)
-      body = BodyProxy.new(body) { log(env, status, header, began_at) }
-      [status, header, body]
+      status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash[headers]
+      body = BodyProxy.new(body) { log(env, status, headers, began_at) }
+      [status, headers, body]
     end
 
     private

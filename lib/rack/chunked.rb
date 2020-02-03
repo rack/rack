@@ -69,7 +69,7 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = HeaderHash.new(headers)
+      headers = HeaderHash[headers]
 
       if ! chunkable_version?(env[SERVER_PROTOCOL]) ||
          STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||

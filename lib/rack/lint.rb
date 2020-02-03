@@ -593,7 +593,7 @@ module Rack
 
       # this check uses headers like a hash, but the spec only requires
       # headers respond to #each
-      headers = Rack::Utils::HeaderHash.new(headers)
+      headers = Rack::Utils::HeaderHash[headers]
 
       ## In order to do this, an application may set the special header
       ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>

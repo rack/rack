@@ -40,7 +40,7 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash.new(headers)
+      headers = Utils::HeaderHash[headers]
 
       unless should_deflate?(env, status, headers, body)
         return [status, headers, body]
