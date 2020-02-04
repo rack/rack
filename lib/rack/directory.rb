@@ -48,7 +48,7 @@ table { width:100%%; }
       end
 
       private
-      def DIR_FILE_escape htmls
+      def DIR_FILE_escape(htmls)
         htmls.map { |e| Utils.escape_html(e) }
       end
     end

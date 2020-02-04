@@ -117,7 +117,7 @@ module Rack
 
         include Enumerable
 
-        def initialize tempfile
+        def initialize(tempfile)
           @tempfile = tempfile
           @mime_parts = []
           @open_files = 0
@@ -127,7 +127,7 @@ module Rack
           @mime_parts.each { |part| yield part }
         end
 
-        def on_mime_head mime_index, head, filename, content_type, name
+        def on_mime_head(mime_index, head, filename, content_type, name)
           if filename
             body = @tempfile.call(filename, content_type)
             body.binmode if body.respond_to?(:binmode)
@@ -143,11 +143,11 @@ module Rack
           check_open_files
         end
 
-        def on_mime_body mime_index, content
+        def on_mime_body(mime_index, content)
           @mime_parts[mime_index].body << content
         end
 
-        def on_mime_finish mime_index
+        def on_mime_finish(mime_index)
         end
 
         private
@@ -182,7 +182,7 @@ module Rack
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
-      def on_read content
+      def on_read(content)
         handle_empty_content!(content)
         @sbuf.concat content
         run_parser

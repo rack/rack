@@ -88,7 +88,7 @@ module Rack
       #   assert_equal 'image/png,*/*', request.get_header('Accept')
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-      def add_header key, v
+      def add_header(key, v)
         if v.nil?
           get_header key
         elsif has_header? key

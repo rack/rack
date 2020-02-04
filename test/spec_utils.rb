@@ -5,18 +5,18 @@ require 'timeout'
 
 describe Rack::Utils do
 
-  def assert_sets exp, act
+  def assert_sets(exp, act)
     exp = Set.new exp.split '&'
     act = Set.new act.split '&'
 
     assert_equal exp, act
   end
 
-  def assert_query exp, act
+  def assert_query(exp, act)
     assert_sets exp, Rack::Utils.build_query(act)
   end
 
-  def assert_nested_query exp, act
+  def assert_nested_query(exp, act)
     assert_sets exp, Rack::Utils.build_nested_query(act)
   end
 
@@ -732,9 +732,9 @@ end
 describe Rack::Utils::Context do
   class ContextTest
     attr_reader :app
-    def initialize app; @app = app; end
-    def call env; context env; end
-    def context env, app = @app; app.call(env); end
+    def initialize(app); @app = app; end
+    def call(env); context env; end
+    def context(env, app = @app); app.call(env); end
   end
   test_target1 = proc{|e| e.to_s + ' world' }
   test_target2 = proc{|e| e.to_i + 2 }

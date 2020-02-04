@@ -168,7 +168,7 @@ module Rack
       #   assert_equal 'Accept-Encoding,Cookie', response.get_header('Vary')
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-      def add_header key, v
+      def add_header(key, v)
         if v.nil?
           get_header key
         elsif has_header? key
@@ -216,7 +216,7 @@ module Rack
         get_header SET_COOKIE
       end
 
-      def set_cookie_header= v
+      def set_cookie_header=(v)
         set_header SET_COOKIE, v
       end
 
@@ -224,7 +224,7 @@ module Rack
         get_header CACHE_CONTROL
       end
 
-      def cache_control= v
+      def cache_control=(v)
         set_header CACHE_CONTROL, v
       end
 
@@ -232,7 +232,7 @@ module Rack
         get_header ETAG
       end
 
-      def etag= v
+      def etag=(v)
         set_header ETAG, v
       end
 
@@ -282,7 +282,7 @@ module Rack
       attr_reader :headers
       attr_accessor :status
 
-      def initialize status, headers
+      def initialize(status, headers)
         @status = status
         @headers = headers
       end

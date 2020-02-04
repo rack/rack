@@ -196,11 +196,11 @@ EOF
     end
 
     # The MIME type for the contents of the file located at @path
-    def mime_type path, default_mime
+    def mime_type(path, default_mime)
       Mime.mime_type(::File.extname(path), default_mime)
     end
 
-    def filesize path
+    def filesize(path)
       # If response_body is present, use its size.
       return response_body.bytesize if response_body
 
