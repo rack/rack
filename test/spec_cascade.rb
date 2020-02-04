@@ -61,6 +61,12 @@ describe Rack::Cascade do
     body.must_be_empty
   end
 
+  it "returns final response if all responses are cascaded" do
+   app = Rack::Cascade.new([])
+   app << lambda { |env| [405, {}, []] }
+   app.call({})[0].must_equal 405
+  end
+
   it "append new app" do
     cascade = Rack::Cascade.new([], [404, 403])
     Rack::MockRequest.new(cascade).get('/').must_be :not_found?
