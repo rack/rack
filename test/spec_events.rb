@@ -7,27 +7,27 @@ module Rack
     class EventMiddleware
       attr_reader :events
 
-      def initialize events
+      def initialize(events)
         @events = events
       end
 
-      def on_start req, res
+      def on_start(req, res)
         events << [self, __method__]
       end
 
-      def on_commit req, res
+      def on_commit(req, res)
         events << [self, __method__]
       end
 
-      def on_send req, res
+      def on_send(req, res)
         events << [self, __method__]
       end
 
-      def on_finish req, res
+      def on_finish(req, res)
         events << [self, __method__]
       end
 
-      def on_error req, res, e
+      def on_error(req, res, e)
         events << [self, __method__]
       end
     end
