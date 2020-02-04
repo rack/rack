@@ -2,7 +2,10 @@
 
 module Rack
 
-  # Sets the Content-Length header on responses with fixed-length bodies.
+  # Sets the Content-Length header on responses that do not specify
+  # a Content-Length or Transfer-Encoding header.  Note that this
+  # does not fix responses that have an invalid Content-Length
+  # header specified.
   class ContentLength
     include Rack::Utils
 

@@ -7,7 +7,8 @@ module Rack
   # Builder Usage:
   #   use Rack::ContentType, "text/plain"
   #
-  # When no content type argument is provided, "text/html" is assumed.
+  # When no content type argument is provided, "text/html" is the
+  # default.
   class ContentType
     include Rack::Utils
 
