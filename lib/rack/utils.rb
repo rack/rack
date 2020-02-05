@@ -406,7 +406,7 @@ module Rack
     # @api private
     class HeaderHash < Hash # :nodoc:
       def self.[](headers)
-        if headers.is_a?(HeaderHash)
+        if headers.is_a?(HeaderHash) && !headers.frozen?
           return headers
         else
           return self.new(headers)

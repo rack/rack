@@ -727,6 +727,35 @@ describe Rack::Utils::HeaderHash do
     h['foo'].must_be_nil
     h.wont_include 'foo'
   end
+
+  it "uses memoized header hash" do
+    env = {}
+    headers = Rack::Utils::HeaderHash.new({ 'content-type' => "text/plain", "content-length" => "3" })
+
+    app = lambda do |env|
+      [200, headers, []]
+    end
+
+    app = Rack::ContentLength.new(app)
+
+    response = app.call(env)
+    assert_same response[1], headers
+  end
+
+	it "duplicates header hash" do
+    env = {}
+    headers = Rack::Utils::HeaderHash.new({ 'content-type' => "text/plain", "content-length" => "3" })
+		headers.freeze
+
+    app = lambda do |env|
+      [200, headers, []]
+    end
+
+    app = Rack::ContentLength.new(app)
+
+    response = app.call(env)
+    refute_same response[1], headers
+  end
 end
 
 describe Rack::Utils::Context do
