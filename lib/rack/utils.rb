@@ -174,17 +174,23 @@ module Rack
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 
-      expanded_accept_encoding =
-        accept_encoding.each_with_object([]) do |(m, q), list|
-          if m == "*"
-            (available_encodings - accept_encoding.map(&:first))
-              .each { |m2| list << [m2, q] }
-          else
-            list << [m, q]
-          end
-        end
+      expanded_accept_encoding = []
 
-      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map!(&:first)
+      accept_encoding.each do |m, q|
+        preference = available_encodings.index(m) || available_encodings.size
+
+        if m == "*"
+          (available_encodings - accept_encoding.map(&:first)).each do |m2|
+            expanded_accept_encoding << [m2, q, preference]
+          end
+        else
+          expanded_accept_encoding << [m, q, preference]
+        end
+      end
+
+      encoding_candidates = expanded_accept_encoding
+        .sort_by { |_, q, p| [-q, p] }
+        .map!(&:first)
 
       unless encoding_candidates.include?("identity")
         encoding_candidates.push("identity")

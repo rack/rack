@@ -444,6 +444,7 @@ describe Rack::Utils do
 
     helper.call(%w(compress gzip identity), [["compress", 1.0], ["gzip", 1.0]]).must_equal "compress"
     helper.call(%w(compress gzip identity), [["compress", 0.5], ["gzip", 1.0]]).must_equal "gzip"
+    helper.call(%w(compress gzip identity), [["gzip", 1.0], ["compress", 1.0]]).must_equal "compress"
 
     helper.call(%w(foo bar identity), []).must_equal "identity"
     helper.call(%w(foo bar identity), [["*", 1.0]]).must_equal "foo"
