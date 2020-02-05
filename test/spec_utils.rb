@@ -743,10 +743,10 @@ describe Rack::Utils::HeaderHash do
     assert_same response[1], headers
   end
 
-	it "duplicates header hash" do
+  it "duplicates header hash" do
     env = {}
     headers = Rack::Utils::HeaderHash.new({ 'content-type' => "text/plain", "content-length" => "3" })
-		headers.freeze
+    headers.freeze
 
     app = lambda do |env|
       [200, headers, []]
