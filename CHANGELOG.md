@@ -24,7 +24,9 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
-- `QueryParser#parse_nested_query` uses original backtrace when reraising exception with new class ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory` uses a streaming approach, significantly improving time to first byte for large directories. ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory` no longer include a Parent directory link in the root directory index. ([@jeremyevans](https://github.com/jeremyevans))
+- `QueryParser#parse_nested_query` uses original backtrace when reraising exception with new class. ([@jeremyevans](https://github.com/jeremyevans))
 - `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans](https://github.com/jeremyevans))
 - `.ru` files supports the `frozen-string-literal` magic comment. ([@eregon](https://github.com/eregon))
 - Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans](https://github.com/jeremyevans))
@@ -40,6 +42,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Removed
 
+- `Directory#path` as it was not used and always returned nil. ([@jeremyevans](https://github.com/jeremyevans))
 - `BodyProxy#each` as it was only needed to work around a bug in Ruby <1.9.3. ([@jeremyevans](https://github.com/jeremyevans))
 - `Session::Abstract::SessionHash#transform_keys`, no longer needed. (pavel)
 - `URLMap::INFINITY` and `URLMap::NEGATIVE_INFINITY`, in favor of `Float::INFINITY`. ([@ch1c0t](https://github.com/ch1c0t))
@@ -49,6 +52,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `Directory` correctly handles root paths containing glob metacharacters. ([@jeremyevans](https://github.com/jeremyevans))
 - `Cascade` uses a new response object for each call if initialized with no apps. ([@jeremyevans](https://github.com/jeremyevans))
 - `BodyProxy` correctly delegates keyword arguments to the body object on Ruby 2.7+. ([@jeremyevans](https://github.com/jeremyevans))
 - `BodyProxy#method` correctly handles methods delegated to the body object. ([@jeremyevans](https://github.com/jeremyevans))
