@@ -16,6 +16,13 @@ module Rack
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
     MULTIPART_BOUNDARY = 'AaB03x'
 
+    # @todo remove in 3.0
+    def self.method_added(name)
+      if name == :response_body
+        raise "#{self.class}\#response_body is no longer supported."
+      end
+    end
+
     attr_reader :root
 
     def initialize(root, headers = {}, default_mime = 'text/plain')
@@ -201,20 +208,10 @@ EOF
     end
 
     def filesize(path)
-      # If response_body is present, use its size.
-      return response_body.bytesize if response_body
-
       #   We check via File::size? whether this file provides size info
       #   via stat (e.g. /proc files often don't), otherwise we have to
       #   figure it out by reading the whole file into memory.
       ::File.size?(path) || ::File.read(path).bytesize
-    end
-
-    # By default, the response body for file requests is nil.
-    # In this case, the response body will be generated later
-    # from the file at @path
-    def response_body
-      nil
     end
   end
 end
