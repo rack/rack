@@ -82,13 +82,13 @@ module Rack
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
-        [status.to_i, header, []]
+        return [@status, @headers, []]
       else
         if block_given?
           @block = block
-          [status.to_i, header, self]
+          return [@status, @headers, self]
         else
-          [status.to_i, header, @body]
+          return [@status, @headers, @body]
         end
       end
     end
