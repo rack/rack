@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Static` supports a `:cascade` option for calling the app if there is no matching file. ([@jeremyevans](https://github.com/jeremyevans))
 - `Session::Abstract::SessionHash#dig`. ([@jeremyevans](https://github.com/jeremyevans))
 - `Response.[]` and `MockResponse.[]` for creating instances using status, headers, and body. ([@ioquatix](https://github.com/ioquatix))
+- Convenient cache and content type methods for `Rack::Response`. ([#1555](https://github.com/rack/rack/pull/1555), [@ioquatix](https://github.com/ioquatix))
 
 ### Changed
 
@@ -33,6 +34,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Multipart::Generator` only includes `Content-Length` for files with paths, and `Content-Disposition` `filename` if the `UploadedFile` instance has one. ([@jeremyevans](https://github.com/jeremyevans))
 - `Request#ssl?` is true for the `wss` scheme (secure websockets). ([@jeremyevans](https://github.com/jeremyevans))
 - `Rack::HeaderHash` is memoized by default. ([#1549](https://github.com/rack/rack/pull/1549), [@ioquatix](https://github.com/ioquatix))
+- `Rack::Directory` allow directory traversal inside root directory. ([#1417](https://github.com/rack/rack/pull/1417), [@ThomasSevestre](https://github.com/ThomasSevestre))
 
 ### Removed
 
