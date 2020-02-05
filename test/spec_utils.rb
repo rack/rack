@@ -34,7 +34,7 @@ describe Rack::Utils do
 
   it "round trip binary data" do
     r = [218, 0].pack 'CC'
-      z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
+    z = Rack::Utils.unescape(Rack::Utils.escape(r), Encoding::BINARY)
     r.must_equal z
   end
 

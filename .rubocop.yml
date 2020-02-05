@@ -50,5 +50,8 @@ Layout/SpaceBeforeFirstArg:
 Layout/SpaceInsideHashLiteralBraces:
   Enabled: true
 
+Layout/Tab:
+  Enabled: true
+
 Layout/TrailingWhitespace:
   Enabled: true
