@@ -21,6 +21,7 @@ module Rack
       if name == :response_body
         raise "#{self.class}\#response_body is no longer supported."
       end
+      super
     end
 
     attr_reader :root
