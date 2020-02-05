@@ -20,9 +20,11 @@ module Rack
     def call(env)
       start_time = Utils.clock_time
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash[headers]
+
       request_time = Utils.clock_time - start_time
 
-      unless headers.has_key?(@header_name)
+      unless headers.key?(@header_name)
         headers[@header_name] = FORMAT_STRING % request_time
       end
 

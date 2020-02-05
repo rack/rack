@@ -11,6 +11,12 @@ describe Rack::Runtime do
     Rack::MockRequest.env_for
   end
 
+  it "works even if headers is an array" do
+    app = lambda { |env| [200, [['Content-Type', 'text/plain']], "Hello, World!"] }
+    response = runtime_app(app).call(request)
+    response[1]['X-Runtime'].must_match(/[\d\.]+/)
+  end
+
   it "sets X-Runtime is none is set" do
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, "Hello, World!"] }
     response = runtime_app(app).call(request)
