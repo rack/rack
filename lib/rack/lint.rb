@@ -284,15 +284,13 @@ module Rack
       end
 
       ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
-      assert("env[SERVER_NAME] must be a valid host") do
-        server_name = env["SERVER_NAME"]
-        URI.parse("http://#{server_name}").host == server_name rescue false
+      assert("#{env[SERVER_NAME]} must be a valid authority") do
+        URI.parse("http://#{env[SERVER_NAME]}/") rescue false
       end
 
       ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
-      assert("env[HTTP_HOST] must be a valid host") do
-        http_host = env["HTTP_HOST"]
-        URI.parse("http://#{http_host}/").host == http_host rescue false
+      assert("#{env[HTTP_HOST]} must be a valid authority") do
+        URI.parse("http://#{env[HTTP_HOST]}/") rescue false
       end
 
       ## The environment must not contain the keys
