@@ -129,11 +129,23 @@ module Rack
       # to include the port in a generated URI.
       DEFAULT_PORTS = { 'http' => 80, 'https' => 443, 'coffee' => 80 }
 
+      # The address of the client which connected to the proxy.
+      HTTP_X_FORWARDED_FOR = 'HTTP_X_FORWARDED_FOR'
+
+      # The contents of the host/:authority header sent to the proxy.
+      HTTP_X_FORWARDED_HOST = 'HTTP_X_FORWARDED_HOST'
+
+      # The value of the scheme sent to the proxy.
       HTTP_X_FORWARDED_SCHEME = 'HTTP_X_FORWARDED_SCHEME'
-      HTTP_X_FORWARDED_PROTO  = 'HTTP_X_FORWARDED_PROTO'
-      HTTP_X_FORWARDED_HOST   = 'HTTP_X_FORWARDED_HOST'
-      HTTP_X_FORWARDED_PORT   = 'HTTP_X_FORWARDED_PORT'
-      HTTP_X_FORWARDED_SSL    = 'HTTP_X_FORWARDED_SSL'
+
+      # The protocol used to connect to the proxy.
+      HTTP_X_FORWARDED_PROTO = 'HTTP_X_FORWARDED_PROTO'
+
+      # The port used to connect to the proxy.
+      HTTP_X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
+
+      # Another way for specifing https scheme was used.
+      HTTP_X_FORWARDED_SSL = 'HTTP_X_FORWARDED_SSL'
 
       def body;            get_header(RACK_INPUT)                         end
       def script_name;     get_header(SCRIPT_NAME).to_s                   end
