@@ -219,7 +219,7 @@ module Rack
         end
       end
 
-      # The authority of the incoming reuqest as defined by RFC2976.
+      # The authority of the incoming request as defined by RFC3976.
       # https://tools.ietf.org/html/rfc3986#section-3.2
       #
       # In HTTP/1, this is the `host` header.

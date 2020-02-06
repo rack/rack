@@ -117,17 +117,19 @@ module Rack
       ##                         follows the <tt>?</tt>, if any. May be
       ##                         empty, but is always required!
 
-      ## <tt>SERVER_NAME</tt>, <tt>SERVER_PORT</tt>::
-      ##                        When combined with <tt>SCRIPT_NAME</tt> and
+      ## <tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
       ##                        <tt>PATH_INFO</tt>, these variables can be
       ##                        used to complete the URL. Note, however,
       ##                        that <tt>HTTP_HOST</tt>, if present,
       ##                        should be used in preference to
       ##                        <tt>SERVER_NAME</tt> for reconstructing
       ##                        the request URL.
-      ##                        <tt>SERVER_NAME</tt> and <tt>SERVER_PORT</tt>
-      ##                        can never be empty strings, and so
-      ##                        are always required.
+      ##                        <tt>SERVER_NAME</tt> can never be an empty
+      ##                        string, and so is always required.
+
+      ## <tt>SERVER_PORT</tt>:: An optional +Integer+ which is the port the
+      ##                        server is running on. Should be specified if
+      ##                        the server is running on a non-standard port.
 
       ## <tt>HTTP_</tt> Variables:: Variables corresponding to the
       ##                            client-supplied HTTP request
@@ -280,7 +282,7 @@ module Rack
       ## The <tt>SERVER_PORT</tt> must be an integer if set.
       assert("env[SERVER_PORT] is not an integer") do
         server_port = env["SERVER_PORT"]
-        server_port.nil? || (Integer(server_port) rescue false)
+        server_port.nil? || server_port.is_a?(Integer)
       end
 
       ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.

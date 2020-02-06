@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.session` request environment entry must respond to `to_hash` and return unfrozen Hash. ([@jeremyevans](https://github.com/jeremyevans))
 - Request environment cannot be frozen. ([@jeremyevans](https://github.com/jeremyevans))
 - CGI values in the request environment with non-ASCII characters must use ASCII-8BIT encoding. ([@jeremyevans](https://github.com/jeremyevans))
+- Improve SPEC/lint relating to SERVER_NAME, SERVER_PORT and HTTP_HOST. ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix](https://github.com/ioquatix))
 
 ### Added
 
@@ -37,7 +38,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::HeaderHash` is memoized by default. ([#1549](https://github.com/rack/rack/pull/1549), [@ioquatix](https://github.com/ioquatix))
 - `Rack::Directory` allow directory traversal inside root directory. ([#1417](https://github.com/rack/rack/pull/1417), [@ThomasSevestre](https://github.com/ThomasSevestre))
 - Sort encodings by server preference. ([#1184](https://github.com/rack/rack/pull/1184), [@ioquatix](https://github.com/ioquatix), [@wjordan](https://github.com/wjordan))
-- Rework host/hostname/authority implementation in `Rack::Request`. ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix](https://github.com/ioquatix))
+- Rework host/hostname/authority implementation in `Rack::Request`. `#host` and `#host_with_port` have been changed to correctly return IPv6 addresses formatted with square brackets, as defined by [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.2.2). ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix](https://github.com/ioquatix))
 
 ### Removed
 
