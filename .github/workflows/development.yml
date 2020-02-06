@@ -1,0 +1,29 @@
+name: Development
+
+on: [push]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest]
+        ruby: [2.3, 2.4, 2.5, 2.6, 2.7, jruby, truffleruby]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v2
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+    - uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
+        restore-keys: |
+          bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+    - name: Install dependencies...
+      run: |
+        sudo apt-get install libfcgi-dev libmemcached-dev
+        bundle config path vendor/bundle
+        bundle install
+    - run: bundle exec rake
