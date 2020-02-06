@@ -271,12 +271,29 @@ module Rack
       ## accepted specifications and must not be used otherwise.
       ##
 
-      %w[REQUEST_METHOD SERVER_NAME SERVER_PORT
-         QUERY_STRING
+      %w[REQUEST_METHOD SERVER_NAME QUERY_STRING
          rack.version rack.input rack.errors
          rack.multithread rack.multiprocess rack.run_once].each { |header|
         assert("env missing required key #{header}") { env.include? header }
       }
+
+      ## The <tt>SERVER_PORT</tt> must be an integer if set.
+      assert("env[SERVER_PORT] is not an integer") do
+        server_port = env["SERVER_PORT"]
+        server_port.nil? || (Integer(server_port) rescue false)
+      end
+
+      ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
+      assert("env[SERVER_NAME] must be a valid host") do
+        server_name = env["SERVER_NAME"]
+        URI.parse("http://#{server_name}").host == server_name rescue false
+      end
+
+      ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
+      assert("env[HTTP_HOST] must be a valid host") do
+        http_host = env["HTTP_HOST"]
+        URI.parse("http://#{http_host}/").host == http_host rescue false
+      end
 
       ## The environment must not contain the keys
       ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>

@@ -145,7 +145,7 @@ class RackRequestTest < Minitest::Spec
     env = Rack::MockRequest.env_for("/")
     env.delete("SERVER_NAME")
     req = make_request(env)
-    req.host.must_equal ""
+    req.host.must_be_nil
   end
 
   it "figure out the correct port" do
@@ -220,7 +220,7 @@ class RackRequestTest < Minitest::Spec
     req.host_with_port.must_equal "example.org:9292"
 
     req = make_request \
-      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "")
+      Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org")
     req.host_with_port.must_equal "example.org"
 
     req = make_request \
