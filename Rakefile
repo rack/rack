@@ -78,7 +78,7 @@ file 'lib/rack/lint.rb'
 file "SPEC.rdoc" => 'lib/rack/lint.rb' do
   File.open("SPEC.rdoc", "wb") { |file|
     IO.foreach("lib/rack/lint.rb") { |line|
-      if line =~ /## (.*)/
+      if line =~ /^\s*## ?(.*)/
         file.puts $1
       end
     }
