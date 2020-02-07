@@ -24,8 +24,9 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
+- `Request#params` no longer rescues EOFError. ([@jeremyevans](https://github.com/jeremyevans))
 - `Directory` uses a streaming approach, significantly improving time to first byte for large directories. ([@jeremyevans](https://github.com/jeremyevans))
-- `Directory` no longer include a Parent directory link in the root directory index. ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory` no longer includes a Parent directory link in the root directory index. ([@jeremyevans](https://github.com/jeremyevans))
 - `QueryParser#parse_nested_query` uses original backtrace when reraising exception with new class. ([@jeremyevans](https://github.com/jeremyevans))
 - `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans](https://github.com/jeremyevans))
 - `.ru` files supports the `frozen-string-literal` magic comment. ([@eregon](https://github.com/eregon))
