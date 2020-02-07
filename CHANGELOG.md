@@ -47,7 +47,6 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Directory#path` as it was not used and always returned nil. ([@jeremyevans](https://github.com/jeremyevans))
 - `BodyProxy#each` as it was only needed to work around a bug in Ruby <1.9.3. ([@jeremyevans](https://github.com/jeremyevans))
-- `Session::Abstract::SessionHash#transform_keys`, no longer needed. (pavel)
 - `URLMap::INFINITY` and `URLMap::NEGATIVE_INFINITY`, in favor of `Float::INFINITY`. ([@ch1c0t](https://github.com/ch1c0t))
 - Deprecation of `Rack::File`. It will be deprecated again in rack 2.2 or 3.0. ([@rafaelfranca](https://github.com/rafaelfranca))
 - Support for Ruby 2.2 as it is well past EOL. ([@ioquatix](https://github.com/ioquatix))
@@ -70,15 +69,11 @@ All notable changes to this project will be documented in this file. For info on
 - `Request#delete_cookie` and related `Utils` methods do an exact match on `:domain` and `:path` options. ([@jeremyevans](https://github.com/jeremyevans))
 - `Static` no longer adds headers when a gzipped file request has a 304 response. ([@chooh](https://github.com/chooh))
 - `ContentLength` sets `Content-Length` response header even for bodies not responding to `to_ary`. ([@jeremyevans](https://github.com/jeremyevans))
-- `Multipart::Parser` uses a slightly modified parser to avoid denial of service when parsing MIME boundaries. ([@aiomaster](https://github.com/aiomaster))
 - Thin handler supports options passed directly to `Thin::Controllers::Controller`. ([@jeremyevans](https://github.com/jeremyevans))
 - WEBrick handler no longer ignores `:BindAddress` option. ([@jeremyevans](https://github.com/jeremyevans))
 - `ShowExceptions` handles invalid POST data. ([@jeremyevans](https://github.com/jeremyevans))
 - Basic authentication requires a password, even if the password is empty. ([@jeremyevans](https://github.com/jeremyevans))
-- `Deflater` no longer deflates if `Content-Length` is 0, fixing usage with `Sendfile`. ([@jeremyevans](https://github.com/jeremyevans))
 - `Lint` checks response is array with 3 elements, per SPEC. ([@jeremyevans](https://github.com/jeremyevans))
-- Handle session stores that are not hashes by calling `to_hash`. ([@oleh-demyanyuk](https://github.com/oleh-demyanyuk))
-- `Session::Abstract::PersistedSecure::SecureSessionHash#[]` handles session id key when it is missing. ([@jeremyevans](https://github.com/jeremyevans))
 - Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
 - Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
 - Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
@@ -89,6 +84,15 @@ All notable changes to this project will be documented in this file. For info on
 
 - CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
 - Added [CONTRIBUTING](CONTRIBUTING.md). ([@dblock](https://github.com/dblock))
+
+## [2.1.2] - 2020-01-27
+
+- Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
+- Fix `Rack::Builder#use` with keyword arguments ([@kamipo](https://github.com/kamipo))
+- Skip deflating in Rack::Deflater if Content-Length is 0 ([@jeremyevans](https://github.com/jeremyevans))
+- Remove `SessionHash#transform_keys`, no longer needed ([@pavel](https://github.com/pavel))
+- Add to_hash to wrap Hash and Session classes ([@oleh-demyanyuk](https://github.com/oleh-demyanyuk))
+- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
 
 ## [2.1.1] - 2020-01-12
 
