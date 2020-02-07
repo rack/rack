@@ -279,10 +279,10 @@ module Rack
         assert("env missing required key #{header}") { env.include? header }
       }
 
-      ## The <tt>SERVER_PORT</tt> must be an integer if set.
-      assert("env[SERVER_PORT] is not an integer") do
+      ## The <tt>SERVER_PORT</tt> must be an Integer if set.
+      assert("env[SERVER_PORT] is not an Integer") do
         server_port = env["SERVER_PORT"]
-        server_port.nil? || server_port.is_a?(Integer)
+        server_port.nil? || (Integer(server_port) rescue false)
       end
 
       ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
