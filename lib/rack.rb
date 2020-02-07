@@ -25,7 +25,6 @@ module Rack
   QUERY_STRING      = 'QUERY_STRING'
   SERVER_PROTOCOL   = 'SERVER_PROTOCOL'
   SERVER_NAME       = 'SERVER_NAME'
-  SERVER_ADDR       = 'SERVER_ADDR'
   SERVER_PORT       = 'SERVER_PORT'
   CACHE_CONTROL     = 'Cache-Control'
   EXPIRES           = 'Expires'

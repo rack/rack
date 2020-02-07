@@ -228,8 +228,8 @@ module Rack
         forwarded_authority || host_authority || server_authority
       end
 
-      # The authority as defined by the `SERVER_NAME`/`SERVER_ADDR` and
-      # `SERVER_PORT` variables.
+      # The authority as defined by the `SERVER_NAME` and `SERVER_PORT`
+      # variables.
       def server_authority
         host = self.server_name
         port = self.server_port
@@ -244,11 +244,7 @@ module Rack
       end
 
       def server_name
-        if name = get_header(SERVER_NAME)
-          name
-        elsif address = get_header(SERVER_ADDR)
-          wrap_ipv6(address)
-        end
+        get_header(SERVER_NAME)
       end
 
       def server_port

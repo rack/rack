@@ -52,6 +52,7 @@ All notable changes to this project will be documented in this file. For info on
 - Deprecation of `Rack::File`. It will be deprecated again in rack 2.2 or 3.0. ([@rafaelfranca](https://github.com/rafaelfranca))
 - Support for Ruby 2.2 as it is well past EOL. ([@ioquatix](https://github.com/ioquatix))
 - Remove `Rack::Files#response_body` as the implementation was broken. ([#1153](https://github.com/rack/rack/pull/1153), [@ioquatix](https://github.com/ioquatix))
+- Remove `SERVER_ADDR` which was never part of the original SPEC. ([#1573](https://github.com/rack/rack/pull/1573), [@ioquatix](https://github.com/ioquatix))
 
 ### Fixed
 
