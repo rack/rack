@@ -301,7 +301,10 @@ module Rack
         split_authority(self.authority)[0]
       end
 
-      # Returns an address suitable for being used with `getaddrinfo`.
+      # Returns an address suitable for being to resolve to an address.
+      # In the case of a domain name or IPv4 address, the result is the same
+      # as +host+. In the case of IPv6 or future address formats, the square
+      # brackets are removed.
       def hostname
         split_authority(self.authority)[1]
       end
