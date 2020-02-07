@@ -485,16 +485,6 @@ class RackRequestTest < Minitest::Spec
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
   end
 
-  it "have params only return GET if POST cannot be processed" do
-    obj = Object.new
-    def obj.read(*) raise EOFError end
-    def obj.set_encoding(*) end
-    def obj.rewind(*) end
-    req = make_request Rack::MockRequest.env_for("/", 'REQUEST_METHOD' => 'POST', :input => obj)
-    req.params.must_equal req.GET
-    req.params.wont_be_same_as req.GET
-  end
-
   it "get value by key from params with #[]" do
     req = make_request \
       Rack::MockRequest.env_for("?foo=quux")

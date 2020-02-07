@@ -374,8 +374,6 @@ module Rack
       # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
       def params
         self.GET.merge(self.POST)
-      rescue EOFError
-        self.GET.dup
       end
 
       # Destructively update a parameter, whether it's in GET and/or POST. Returns nil.
