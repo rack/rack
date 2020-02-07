@@ -403,6 +403,7 @@ module Rack
       def form_data?
         type = media_type
         meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+
         (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 
@@ -590,7 +591,22 @@ module Rack
         value ? value.strip.split(/[,\s]+/) : []
       end
 
-      AUTHORITY = /(?<host>(\[(?<ip6>.*)\])|(?<ip4>[\d\.]+)|(?<name>[a-zA-Z0-9\.\-]+))(:(?<port>\d+))?/
+      AUTHORITY = /
+        # The host:
+        (?<host>
+          # An IPv6 address:
+          (\[(?<ip6>.*)\])
+          |
+          # An IPv4 address:
+          (?<ip4>[\d\.]+)
+          |
+          # A hostname:
+          (?<name>[a-zA-Z0-9\.\-]+)
+        )
+        # The optional port:
+        (:(?<port>\d+))?
+      /x
+
       private_constant :AUTHORITY
 
       def split_authority(authority)
