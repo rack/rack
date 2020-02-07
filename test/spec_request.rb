@@ -136,12 +136,6 @@ class RackRequestTest < Minitest::Spec
     req.host.must_equal "[2001:db8:cafe::17]"
     req.hostname.must_equal "2001:db8:cafe::17"
 
-    env = Rack::MockRequest.env_for("/", "SERVER_ADDR" => "192.168.1.1", "SERVER_PORT" => "9292")
-    env.delete("SERVER_NAME")
-    req = make_request(env)
-    req.host.must_equal "192.168.1.1"
-    req.hostname.must_equal "192.168.1.1"
-
     env = Rack::MockRequest.env_for("/")
     env.delete("SERVER_NAME")
     req = make_request(env)
