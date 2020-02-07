@@ -236,36 +236,39 @@ module Rack
 
         if host
           if port
-            return "#{host}:#{port}"
+            "#{host}:#{port}"
           else
-            return host
+            host
           end
         end
       end
 
       def server_name
         if name = get_header(SERVER_NAME)
-          return name
+          name
         elsif address = get_header(SERVER_ADDR)
-          return wrap_ipv6(address)
+          wrap_ipv6(address)
         end
       end
 
       def server_port
         if port = get_header(SERVER_PORT)
-          return Integer(port)
+          Integer(port)
         end
       end
 
       def cookies
-        hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |k|
-          set_header(k, {})
+        hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |key|
+          set_header(key, {})
         end
-        string = get_header HTTP_COOKIE
 
-        return hash if string == get_header(RACK_REQUEST_COOKIE_STRING)
-        hash.replace Utils.parse_cookies_header string
-        set_header(RACK_REQUEST_COOKIE_STRING, string)
+        string = get_header(HTTP_COOKIE)
+
+        unless string == get_header(RACK_REQUEST_COOKIE_STRING)
+          hash.replace Utils.parse_cookies_header(string)
+          set_header(RACK_REQUEST_COOKIE_STRING, string)
+        end
+
         hash
       end
 
@@ -284,32 +287,29 @@ module Rack
       end
 
       def host_with_port(authority = self.authority)
-        host, address, port = split_authority(authority)
+        host, _, port = split_authority(authority)
 
         if port == DEFAULT_PORTS[self.scheme]
-          return host
+          host
         else
-          return authority
+          authority
         end
       end
 
       # Returns a formatted host, suitable for being used in a URI.
       def host
-        host, address, port = split_authority(self.authority)
-
-        return host
+        split_authority(self.authority)[0]
       end
 
       # Returns an address suitable for being used with `getaddrinfo`.
       def hostname
-        host, address, port = split_authority(self.authority)
-
-        return address
+        split_authority(self.authority)[1]
       end
 
       def port
         if authority = self.authority
-          host, address, port = split_authority(self.authority)
+          _, _, port = split_authority(self.authority)
+
           if port
             return port
           end
@@ -325,7 +325,7 @@ module Rack
           end
         end
 
-        return self.server_port
+        self.server_port
       end
 
       def forwarded_for
@@ -356,11 +356,13 @@ module Rack
         remote_addrs = split_header(get_header('REMOTE_ADDR'))
         remote_addrs = reject_trusted_ip_addresses(remote_addrs)
 
-        return remote_addrs.first if remote_addrs.any?
+        if remote_addrs.any?
+          remote_addrs.first
+        else
+          forwarded_ips = self.forwarded_for
 
-        forwarded_ips = self.forwarded_for
-
-        return reject_trusted_ip_addresses(forwarded_ips).last || forwarded_ips.first || get_header("REMOTE_ADDR")
+          reject_trusted_ip_addresses(forwarded_ips).last || forwarded_ips.first || get_header("REMOTE_ADDR")
+        end
       end
 
       # The media type (type/subtype) portion of the CONTENT_TYPE header
