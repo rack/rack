@@ -28,14 +28,14 @@ Gem::Specification.new do |s|
   s.author = 'Leah Neukirchen'
   s.email = 'leah@vuxu.org'
 
-  s.homepage = 'https://rack.github.io/'
+  s.homepage = 'https://github.com/rack/rack'
+
   s.required_ruby_version = '>= 2.3.0'
+
   s.metadata = {
-    "bug_tracker_uri"   => "https://github.com/rack/rack/issues",
-    "changelog_uri"     => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
+    "bug_tracker_uri" => "https://github.com/rack/rack/issues",
+    "changelog_uri" => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
     "documentation_uri" => "https://rubydoc.info/github/rack/rack",
-    "homepage_uri"      => "https://rack.github.io",
-    "mailing_list_uri"  => "https://groups.google.com/forum/#!forum/rack-devel",
     "source_code_uri"   => "https://github.com/rack/rack"
   }
 
