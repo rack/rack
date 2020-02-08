@@ -97,6 +97,7 @@ module Rack
       cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
 
       if cfgfile[/^#\\(.*)/] && opts
+        warn "Parsing options from the first comment line is deprecated!"
         options = opts.parse! $1.split(/\s+/)
       end
 
