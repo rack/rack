@@ -18,7 +18,7 @@ Gem::Specification.new do |s|
   EOF
 
   s.files = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
-    %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC)
+    %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC.rdoc)
 
   s.bindir = 'bin'
   s.executables << 'rackup'
