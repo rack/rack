@@ -1270,6 +1270,12 @@ EOF
 
     res = mock.get '/', 'REMOTE_ADDR' => '1.2.3.4,3.4.5.6'
     res.body.must_equal '1.2.3.4'
+
+    res = mock.get '/', 'REMOTE_ADDR' => '127.0.0.1'
+    res.body.must_equal '127.0.0.1'
+
+    res = mock.get '/', 'REMOTE_ADDR' => '127.0.0.1,127.0.0.1'
+    res.body.must_equal '127.0.0.1'
   end
 
   it 'deals with proxies' do

@@ -352,16 +352,26 @@ module Rack
       end
 
       def ip
-        remote_addrs = split_header(get_header('REMOTE_ADDR'))
-        remote_addrs = reject_trusted_ip_addresses(remote_addrs)
+        remote_addresses = split_header(get_header('REMOTE_ADDR'))
+        external_addresses = reject_trusted_ip_addresses(remote_addresses)
 
-        if remote_addrs.any?
-          remote_addrs.first
-        else
-          forwarded_ips = self.forwarded_for
-
-          reject_trusted_ip_addresses(forwarded_ips).last || forwarded_ips.first || get_header("REMOTE_ADDR")
+        unless external_addresses.empty?
+          return external_addresses.first
         end
+
+        if forwarded_for = self.forwarded_for
+          unless forwarded_for.empty?
+            # The forwarded for addresses are ordered: client, proxy1, proxy2.
+            # So we reject all the trusted addresses (proxy*) and return the
+            # last client. Or if we trust everyone, we just return the first
+            # address.
+            return reject_trusted_ip_addresses(forwarded_for).last || forwarded_for.first
+          end
+        end
+
+        # If all the addresses are trusted, and we aren't forwarded, just return
+        # the first remote address, which represents the source of the request.
+        remote_addresses.first
       end
 
       # The media type (type/subtype) portion of the CONTENT_TYPE header
