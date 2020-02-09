@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Fixed
+
+- Rework `Rack::Request#ip` to handle empty `forwarded_for`. ([#1577](https://github.com/rack/rack/pull/1577), [@ioquatix](https://github.com/ioquatix))
+
 ## [2.2.0] - 2020-02-08
 
 ### SPEC Changes
