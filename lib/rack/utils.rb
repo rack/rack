@@ -152,7 +152,7 @@ module Rack
       end.compact.sort_by do |match, quality|
         (match.split('/', 2).count('*') * -10) + quality
       end.last
-      matches && matches.first
+      matches&.first
     end
 
     ESCAPE_HTML = {
