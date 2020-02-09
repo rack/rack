@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [2.2.0] - 2020-02-08
+
 ### SPEC Changes
 
 - `rack.session` request environment entry must respond to `to_hash` and return unfrozen Hash. ([@jeremyevans](https://github.com/jeremyevans))
