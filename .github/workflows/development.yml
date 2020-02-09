@@ -61,6 +61,14 @@ jobs:
         restore-keys: |
           bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
 
+    - name: Installing packages (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install libmemcached-dev
+    
+    - name: Installing packages (macos)
+      if: matrix.os == 'macos-latest'
+      run: brew install libmemcached
+
     - name: Bundle install...
       run: |
         bundle config path vendor/bundle
