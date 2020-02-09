@@ -128,3 +128,25 @@ task pushsite: :pushdoc do
   sh "rsync -avz site/ rack.rubyforge.org:/var/www/gforge-projects/rack/"
   sh "cd site && git push"
 end
+
+def clone_and_test(url, name, command)
+  path = "external/#{name}"
+  FileUtils.rm_rf path
+  FileUtils.mkdir_p path
+
+  sh("git clone #{url} #{path}")
+
+  # I tried using `bundle config --local local.async ../` but it simply doesn't work.
+  File.open("#{path}/Gemfile", "a") do |file|
+    file.puts("gem 'rack', path: '../../'")
+  end
+
+  sh("cd #{path} && bundle install && #{command}")
+end
+
+task :external do
+  Bundler.with_clean_env do
+    clone_and_test("https://github.com/kickstarter/rack-attack", "rack-attack", "bundle exec rake")
+    clone_and_test("https://github.com/socketry/falcon", "falcon", "bundle exec rspec")
+  end
+end
