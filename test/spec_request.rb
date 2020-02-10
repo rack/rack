@@ -120,7 +120,7 @@ class RackRequestTest < Minitest::Spec
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "123foo.example.com")
     req.host.must_equal "123foo.example.com"
     req.hostname.must_equal "123foo.example.com"
-      
+
     req = make_request \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.must_equal "example.org"
