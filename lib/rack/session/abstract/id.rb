@@ -252,6 +252,7 @@ module Rack
           @default_options = self.class::DEFAULT_OPTIONS.merge(options)
           @key = @default_options.delete(:key)
           @cookie_only = @default_options.delete(:cookie_only)
+          @same_site = @default_options.delete(:same_site)
           initialize_sid
         end
 

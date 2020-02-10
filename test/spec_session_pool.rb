@@ -178,6 +178,25 @@ describe Rack::Session::Pool do
     pool.pool[session_id.public_id].must_be_nil
   end
 
+  it "passes through same_site option to session pool" do
+    pool = Rack::Session::Pool.new(incrementor, same_site: :none)
+    req = Rack::MockRequest.new(pool)
+    res = req.get("/")
+    res["Set-Cookie"].must_include "SameSite=None"
+  end
+
+  it "allows using a lambda to specify same_site option, because some browsers require different settings" do
+    pool = Rack::Session::Pool.new(incrementor, same_site: lambda { |req, res| :none })
+    req = Rack::MockRequest.new(pool)
+    res = req.get("/")
+    res["Set-Cookie"].must_include "SameSite=None"
+
+    pool = Rack::Session::Pool.new(incrementor, same_site: lambda { |req, res| :lax })
+    req = Rack::MockRequest.new(pool)
+    res = req.get("/")
+    res["Set-Cookie"].must_include "SameSite=Lax"
+  end
+
   # anyone know how to do this better?
   it "should merge sessions when multithreaded" do
     unless $DEBUG
