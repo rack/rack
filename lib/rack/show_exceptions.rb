@@ -63,12 +63,12 @@ module Rack
     def pretty(env, exception)
       req = Rack::Request.new(env)
 
-      # This double assignment is to prevent an "unused variable" warning on
-      # Ruby 1.9.3.  Yes, it is dumb, but I don't like Ruby yelling at me.
+      # This double assignment is to prevent an "unused variable" warning.
+      # Yes, it is dumb, but I don't like Ruby yelling at me.
       path = path = (req.script_name + req.path_info).squeeze("/")
 
-      # This double assignment is to prevent an "unused variable" warning on
-      # Ruby 1.9.3.  Yes, it is dumb, but I don't like Ruby yelling at me.
+      # This double assignment is to prevent an "unused variable" warning.
+      # Yes, it is dumb, but I don't like Ruby yelling at me.
       frames = frames = exception.backtrace.map { |line|
         frame = OpenStruct.new
         if line =~ /(.*?):(\d+)(:in `(.*)')?/
