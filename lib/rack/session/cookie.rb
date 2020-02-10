@@ -118,7 +118,6 @@ module Rack
         Called from: #{caller[0]}.
         MSG
         @coder = options[:coder] ||= Base64::Marshal.new
-        @same_site = options.delete :same_site
         super(app, options.merge!(cookie_only: true))
       end
 
