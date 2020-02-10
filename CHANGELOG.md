@@ -4,6 +4,15 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.3.0] - Unreleased
 
+## [2.2.2] - 2020-02-11
+
+### Fixed
+
+- Fix incorrect `Rack::Request#host` value. ([#1591](https://github.com/rack/rack/pull/1591), [@ioquatix](https://github.com/ioquatix))
+- Revert `Rack::Handler::Thin` implementation. ([#1583](https://github.com/rack/rack/pull/1583), [@jeremyevans](https://github.com/jeremyevans))
+- Double assignment is still needed to prevent an "unused variable" warning. ([#1589](https://github.com/rack/rack/pull/1589), [@kamipo](https://github.com/kamipo))
+- Fix to handle same_site option for session pool. ([#1587](https://github.com/rack/rack/pull/1587), [@kamipo](https://github.com/kamipo))
+
 ## [2.2.1] - 2020-02-09
 
 ### Fixed
