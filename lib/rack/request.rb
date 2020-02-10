@@ -598,7 +598,7 @@ module Rack
         value ? value.strip.split(/[,\s]+/) : []
       end
 
-      AUTHORITY = /
+      AUTHORITY = /^
         # The host:
         (?<host>
           # An IPv6 address:
@@ -612,7 +612,7 @@ module Rack
         )
         # The optional port:
         (:(?<port>\d+))?
-      /x
+      $/x
 
       private_constant :AUTHORITY
 
