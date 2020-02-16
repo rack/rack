@@ -598,35 +598,29 @@ module Rack
         value ? value.strip.split(/[,\s]+/) : []
       end
 
-      AUTHORITY = /^
-        # The host:
+      AUTHORITY = /
+        \A
         (?<host>
-          # An IPv6 address:
-          (\[(?<ip6>.*)\])
+          # Match IPv6 as a string of hex digits and colons in square brackets
+          \[(?<address>(?<ipv6>.*))\]
           |
-          # An IPv4 address:
-          (?<ip4>[\d\.]+)
+          # Match IPv4 as four dot-separated groups of digits
+          (?<address>(?<ipv4>[\d.]{7,}))
           |
-          # A hostname:
-          (?<name>[a-zA-Z0-9\.\-]+)
+          # Match any other string as a hostname
+          (?<address>(?<hostname>.*?))
         )
-        # The optional port:
         (:(?<port>\d+))?
-      $/x
+        \Z
+      /x
 
       private_constant :AUTHORITY
 
       def split_authority(authority)
-        if match = AUTHORITY.match(authority)
-          if address = match[:ip6]
-            return match[:host], address, match[:port]&.to_i
-          else
-            return match[:host], match[:host], match[:port]&.to_i
-          end
-        end
+        return [] if authority.nil?
 
-        # Give up!
-        return authority, authority, nil
+        match = AUTHORITY.match(authority)
+        return match[:host], match[:address], match[:port]&.to_i
       end
 
       def reject_trusted_ip_addresses(ip_addresses)
