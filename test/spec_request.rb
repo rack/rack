@@ -152,6 +152,16 @@ class RackRequestTest < Minitest::Spec
     req.hostname.must_equal "technically_invalid.example.com"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "why-keep-trailing-newlines.co.uk\n")
+    req.host.must_equal "why-keep-trailing-newlines.co.uk"
+    req.hostname.must_equal "why-keep-trailing-newlines.co.uk"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "really\nbad\ninput")
+    req.host.must_equal "really\nbad\ninput"
+    req.hostname.must_equal "really\nbad\ninput"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.must_equal "example.org"
     req.hostname.must_equal "example.org"

@@ -612,7 +612,7 @@ module Rack
         )
         (:(?<port>\d+))?
         \Z
-      /x
+      /mx
 
       private_constant :AUTHORITY
 
