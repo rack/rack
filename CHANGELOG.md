@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.3.0] - Unreleased
 
+- Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
+
 ## [2.2.2] - 2020-02-11
 
 ### Fixed
