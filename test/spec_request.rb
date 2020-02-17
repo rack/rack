@@ -167,6 +167,11 @@ class RackRequestTest < Minitest::Spec
     req.hostname.must_equal "example.org"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[v00000.fe80::a+en1]:47011")
+    req.host.must_equal "[v00000.fe80::a+en1]"
+    req.hostname.must_equal "v00000.fe80::a+en1"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[2001:db8:cafe::17]:47011")
     req.host.must_equal "[2001:db8:cafe::17]"
     req.hostname.must_equal "2001:db8:cafe::17"

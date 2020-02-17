@@ -603,6 +603,9 @@ module Rack
       AUTHORITY = /
         \A
         (?<host>
+          # Match IPvFuture as per RFC 3986
+          \[(?<address>(?<ipvfuture>v\h+ [[:alnum:]._~\-!$&'()*+,;=:]+))\]
+          |
           # Match IPv6 as a string of non-blank characters in square brackets
           \[(?<address>(?<ipv6>[[:graph:]]*))\]
           |
