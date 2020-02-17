@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'resolv'
+
 module Rack
   # Rack::Request provides a convenient interface to a Rack
   # environment.  It is stateless, the environment +env+ passed to the
@@ -601,25 +603,34 @@ module Rack
       AUTHORITY = /
         \A
         (?<host>
-          # Match IPv6 as a string of hex digits and colons in square brackets
-          \[(?<address>(?<ipv6>.*))\]
+          # Match IPv6 as a string of non-blank characters in square brackets
+          \[(?<address>(?<ipv6>[[:graph:]]*))\]
           |
           # Match IPv4 as four dot-separated groups of digits
-          (?<address>(?<ipv4>[\d.]{7,}))
+          (?<address>(?<ipv4>[\d.]*))
           |
-          # Match any other string as a hostname
-          (?<address>(?<hostname>.*?))
+          # Match any other string of non-blank characters as a hostname
+          (?<address>(?<hostname>[[:graph:]]*?))
         )
         (:(?<port>\d+))?
         \Z
-      /mx
+      /x
 
       private_constant :AUTHORITY
 
       def split_authority(authority)
-        return [] if authority.nil?
-
         match = AUTHORITY.match(authority)
+
+        if match.nil?
+          return nil, nil, nil
+        elsif match[:ipv6]
+          # If it matched as IPv6, it should look like a reasonable IPv6 address.
+          return nil, nil, nil unless Resolv::IPv6::Regex.match?(match[:ipv6])
+        elsif match[:ipv4]
+          # If it matched as IPv4, it should look like a reasonable IPv4 address.
+          return nil, nil, nil unless Resolv::IPv4::Regex.match?(match[:ipv4])
+        end
+
         return match[:host], match[:address], match[:port]&.to_i
       end
 
