@@ -13,7 +13,7 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-The exact details of this are described in the \Rack specification,
+The exact details of this are described in the {\Rack specification}[https://github.com/rack/rack/blob/master/SPEC.rdoc],
 which all \Rack applications should conform to.
 
 == Supported web servers
