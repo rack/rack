@@ -4,7 +4,13 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.3.0] - Unreleased
 
+### Changed
+
 - Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
+
+### Fixed
+
+- Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@pvande](https://github.com/onigra))
 
 ## [2.2.2] - 2020-02-11
 
