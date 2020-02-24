@@ -5,6 +5,7 @@ require 'zlib'
 require_relative 'abstract/id'
 require 'json'
 require 'base64'
+require 'delegate'
 
 module Rack
 
