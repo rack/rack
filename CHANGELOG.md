@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
-- Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@pvande](https://github.com/onigra))
+- Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 
 ## [2.2.2] - 2020-02-11
 
