@@ -261,7 +261,7 @@ module Rack
         string = get_header(HTTP_COOKIE)
 
         unless string == get_header(RACK_REQUEST_COOKIE_STRING)
-          hash.replace Utils.parse_cookies_header(string)
+          hash.replace ::Rack::Utils.parse_cookies_header(string)
           set_header(RACK_REQUEST_COOKIE_STRING, string)
         end
 
@@ -583,7 +583,7 @@ module Rack
       end
 
       def query_parser
-        Utils.default_query_parser
+        ::Rack::Utils.default_query_parser
       end
 
       def parse_query(qs, d = '&')

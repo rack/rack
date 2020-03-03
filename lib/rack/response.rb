@@ -21,7 +21,7 @@ module Rack
     end
 
     CHUNKED = 'chunked'
-    STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
+    STATUS_WITH_NO_ENTITY_BODY = ::Rack::Utils::STATUS_WITH_NO_ENTITY_BODY
 
     attr_accessor :length, :status, :body
     attr_reader :headers
@@ -41,7 +41,7 @@ module Rack
     # Providing a body which responds to #to_str is legacy behaviour.
     def initialize(body = nil, status = 200, headers = {})
       @status = status.to_i
-      @headers = Utils::HeaderHash[headers]
+      @headers = ::Rack::Utils::HeaderHash[headers]
 
       @writer = self.method(:append)
 
