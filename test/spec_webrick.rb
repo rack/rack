@@ -50,9 +50,6 @@ describe Rack::Handler::WEBrick do
   it "have rack headers" do
     GET("/test")
     response["rack.version"].must_equal [1, 3]
-    response["rack.multithread"].must_equal true
-    assert_equal false, response["rack.multiprocess"]
-    assert_equal false, response["rack.run_once"]
   end
 
   it "have CGI headers on GET" do

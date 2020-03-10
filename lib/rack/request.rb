@@ -159,7 +159,6 @@ module Rack
       def content_length;  get_header('CONTENT_LENGTH')                   end
       def logger;          get_header(RACK_LOGGER)                        end
       def user_agent;      get_header('HTTP_USER_AGENT')                  end
-      def multithread?;    get_header(RACK_MULTITHREAD)                   end
 
       # the referer of the client
       def referer;         get_header('HTTP_REFERER')                     end

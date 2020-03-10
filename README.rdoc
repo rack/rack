@@ -77,7 +77,6 @@ middleware:
 * Rack::Files, for serving static files.
 * Rack::Head, for returning an empty body for HEAD requests.
 * Rack::Lint, for checking conformance to the \Rack API.
-* Rack::Lock, for serializing requests using a mutex.
 * Rack::Logger, for setting a logger to handle logging errors.
 * Rack::MethodOverride, for modifying the request method based on a submitted
   parameter.
