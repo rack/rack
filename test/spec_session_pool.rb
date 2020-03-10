@@ -225,7 +225,7 @@ describe Rack::Session::Pool do
     tnum = rand(7).to_i + 5
     r = Array.new(tnum) do
       Thread.new(treq) do |run|
-        run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
+        run.get('/', "HTTP_COOKIE" => cookie)
       end
     end.reverse.map{|t| t.run.join.value }
     r.each do |resp|

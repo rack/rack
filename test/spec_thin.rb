@@ -47,9 +47,6 @@ describe Rack::Handler::Thin do
   it "have rack headers" do
     GET("/")
     response["rack.version"].must_equal [1, 0]
-    response["rack.multithread"].must_equal false
-    response["rack.multiprocess"].must_equal false
-    response["rack.run_once"].must_equal false
   end
 
   it "have CGI headers on GET" do

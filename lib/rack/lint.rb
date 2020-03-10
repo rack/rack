@@ -157,22 +157,6 @@ module Rack
 
       ## <tt>rack.errors</tt>:: See below, the error stream.
 
-      ## <tt>rack.multithread</tt>:: true if the application object may be
-      ##                             simultaneously invoked by another thread
-      ##                             in the same process, false otherwise.
-
-      ## <tt>rack.multiprocess</tt>:: true if an equivalent application object
-      ##                              may be simultaneously invoked by another
-      ##                              process, false otherwise.
-
-      ## <tt>rack.run_once</tt>:: true if the server expects
-      ##                          (but does not guarantee!) that the
-      ##                          application will only be invoked this one
-      ##                          time during the life of its containing
-      ##                          process. Normally, this will only be true
-      ##                          for a server based on CGI
-      ##                          (or something similar).
-
       ## <tt>rack.hijack?</tt>:: present and true if the server supports
       ##                         connection hijacking. See below, hijacking.
 
@@ -274,8 +258,7 @@ module Rack
       ##
 
       %w[REQUEST_METHOD SERVER_NAME QUERY_STRING
-         rack.version rack.input rack.errors
-         rack.multithread rack.multiprocess rack.run_once].each { |header|
+         rack.version rack.input rack.errors].each { |header|
         assert("env missing required key #{header}") { env.include? header }
       }
 
