@@ -55,9 +55,6 @@ module Rack
   RACK_SESSION                        = 'rack.session'
   RACK_SESSION_OPTIONS                = 'rack.session.options'
   RACK_SHOWSTATUS_DETAIL              = 'rack.showstatus.detail'
-  RACK_MULTITHREAD                    = 'rack.multithread'
-  RACK_MULTIPROCESS                   = 'rack.multiprocess'
-  RACK_RUNONCE                        = 'rack.run_once'
   RACK_URL_SCHEME                     = 'rack.url_scheme'
   RACK_HIJACK                         = 'rack.hijack'
   RACK_IS_HIJACK                      = 'rack.hijack?'
@@ -94,7 +91,6 @@ module Rack
   autoload :Handler, "rack/handler"
   autoload :Head, "rack/head"
   autoload :Lint, "rack/lint"
-  autoload :Lock, "rack/lock"
   autoload :Logger, "rack/logger"
   autoload :MediaType, "rack/media_type"
   autoload :MethodOverride, "rack/method_override"
