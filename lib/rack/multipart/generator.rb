@@ -42,7 +42,7 @@ module Rack
             value.any?(&query)
           when Hash
             value.values.any?(&query)
-          when Rack::Multipart::UploadedFile
+          when Multipart::UploadedFile
             true
           end
         }
