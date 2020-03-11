@@ -37,17 +37,17 @@ module Rack
         @allow_fallback = @default_options.delete(:allow_fallback)
       end
 
-      def generate_sid
+      def generate_sid(*args, use_mutex: true)
         loop do
-          sid = super
-          break sid unless @pool.key? sid.private_id
+          sid = super(*args)
+          break sid unless use_mutex ? @mutex.synchronize { @pool.key? sid.private_id } : @pool.key?(sid.private_id)
         end
       end
 
       def find_session(req, sid)
         with_lock(req) do
           unless sid and session = get_session_with_fallback(sid)
-            sid, session = generate_sid, {}
+            sid, session = generate_sid(use_mutex: false), {}
             @pool.store sid.private_id, session
           end
           [sid, session]
@@ -65,7 +65,7 @@ module Rack
         with_lock(req) do
           @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
-          generate_sid unless options[:drop]
+          generate_sid(use_mutex: false) unless options[:drop]
         end
       end
 
