@@ -2,6 +2,9 @@
 
 require 'ostruct'
 require 'erb'
+require_relative '../rack'
+require_relative 'request'
+require_relative 'utils'
 
 module Rack
   # Rack::ShowExceptions catches all exceptions raised from the app it

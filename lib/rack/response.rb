@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require 'time'
+require_relative '../rack'
+require_relative 'media_type'
+require_relative 'utils'
 
 module Rack
   # Rack::Response provides a convenient interface to create a Rack

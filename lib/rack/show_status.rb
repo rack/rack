@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require 'erb'
+require_relative '../rack'
+require_relative 'request'
+require_relative 'utils'
 
 module Rack
   # Rack::ShowStatus catches all empty responses and replaces them

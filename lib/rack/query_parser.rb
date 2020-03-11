@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'utils'
+
 module Rack
   class QueryParser
     (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'

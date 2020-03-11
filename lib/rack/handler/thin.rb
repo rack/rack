@@ -4,6 +4,7 @@ require "thin"
 require "thin/server"
 require "thin/logging"
 require "thin/backends/tcp_server"
+require_relative '../version'
 
 module Rack
   module Handler

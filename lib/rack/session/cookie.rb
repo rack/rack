@@ -2,10 +2,11 @@
 
 require 'openssl'
 require 'zlib'
-require_relative 'abstract/id'
 require 'json'
 require 'base64'
 require 'delegate'
+require_relative '../utils'
+require_relative 'abstract/id'
 
 module Rack
 

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative '../rack'
+require_relative 'body_proxy'
+require_relative 'utils'
+
 module Rack
 
   # Sets the Content-Length header on responses that do not specify

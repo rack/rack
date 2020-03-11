@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative '../rack'
+require_relative 'body_proxy'
+require_relative 'utils'
+
 module Rack
 
   # Middleware that enables conditional GET using If-None-Match and

@@ -1,6 +1,9 @@
 # frozen_string_literal: true
 
 require 'zlib'
+require_relative '../rack'
+require_relative 'request'
+require_relative 'response'
 
 module Rack
   # Paste has a Pony, Rack has a Lobster!
@@ -62,7 +65,9 @@ end
 
 if $0 == __FILE__
   # :nocov:
-  require_relative '../rack'
+  require_relative 'lint'
+  require_relative 'server'
+  require_relative 'show_exceptions'
   Rack::Server.start(
     app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )

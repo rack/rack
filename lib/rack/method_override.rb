@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative '../rack'
+require_relative 'request'
+require_relative 'utils'
+
 module Rack
   class MethodOverride
     HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]

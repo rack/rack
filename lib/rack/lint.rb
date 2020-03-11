@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'forwardable'
+require_relative '../rack'
+require_relative 'utils'
 
 module Rack
   # Rack::Lint validates your application and the requests and

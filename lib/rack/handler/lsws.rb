@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'lsapi'
+require_relative '../rewindable_input'
+require_relative '../version'
 
 module Rack
   module Handler

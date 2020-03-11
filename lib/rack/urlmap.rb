@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'set'
+require_relative '../rack'
 
 module Rack
   # Rack::URLMap takes a hash mapping urls or paths to apps, and

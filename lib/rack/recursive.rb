@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'uri'
+require_relative '../rack'
 
 module Rack
   # Rack::ForwardRequest gets caught by Rack::Recursive and redirects

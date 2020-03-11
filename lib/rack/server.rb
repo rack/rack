@@ -2,6 +2,15 @@
 
 require 'optparse'
 require 'fileutils'
+require_relative '../rack'
+require_relative 'builder'
+require_relative 'common_logger'
+require_relative 'content_length'
+require_relative 'handler'
+require_relative 'lint'
+require_relative 'show_exceptions'
+require_relative 'tempfile_reaper'
+
 
 module Rack
 

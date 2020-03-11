@@ -2,6 +2,8 @@
 
 require 'fcgi'
 require 'socket'
+require_relative '../rewindable_input'
+require_relative '../version'
 
 if defined? FCGI::Stream
   class FCGI::Stream

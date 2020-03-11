@@ -1,6 +1,8 @@
 # frozen_string_literal: true
 
 require 'strscan'
+require_relative '../multipart'
+require_relative '../utils'
 
 module Rack
   module Multipart

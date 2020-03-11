@@ -2,6 +2,7 @@
 
 require 'scgi'
 require 'stringio'
+require_relative '../version'
 
 module Rack
   module Handler

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'logger'
+require_relative '../rack'
 
 module Rack
   # Sets up rack.logger to write to rack.errors stream

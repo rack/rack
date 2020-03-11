@@ -6,8 +6,10 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'time'
-
+require_relative '../rack'
+require_relative 'mime'
 require_relative 'query_parser'
+require_relative 'utils'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web

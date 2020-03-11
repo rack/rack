@@ -1,6 +1,11 @@
 # frozen_string_literal: true
 
 require 'time'
+require_relative '../rack'
+require_relative 'files'
+require_relative 'head'
+require_relative 'mime'
+require_relative 'utils'
 
 module Rack
   # Rack::Directory serves entries below the +root+ given, according to the

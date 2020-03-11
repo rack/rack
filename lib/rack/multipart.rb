@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative '../rack'
+require_relative 'request'
+require_relative 'utils'
+require_relative 'multipart/generator'
 require_relative 'multipart/parser'
 
 module Rack
@@ -7,9 +11,6 @@ module Rack
   #
   # Usually, Rack::Request#POST takes care of calling this.
   module Multipart
-    autoload :UploadedFile, 'rack/multipart/uploaded_file'
-    autoload :Generator, 'rack/multipart/generator'
-
     EOL = "\r\n"
     MULTIPART_BOUNDARY = "AaB03x"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni

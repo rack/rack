@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative '../rack'
+require_relative 'utils'
+
 module Rack
 
   # Sets the Content-Type header on responses which don't have one.

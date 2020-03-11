@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative '../multipart'
+require_relative 'uploaded_file'
+
 module Rack
   module Multipart
     class Generator

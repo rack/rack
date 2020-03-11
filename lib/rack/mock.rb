@@ -2,8 +2,12 @@
 
 require 'uri'
 require 'stringio'
-require_relative '../rack'
 require 'cgi/cookie'
+require_relative '../rack'
+require_relative 'lint'
+require_relative 'multipart'
+require_relative 'response'
+require_relative 'utils'
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without

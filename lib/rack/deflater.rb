@@ -2,6 +2,10 @@
 
 require "zlib"
 require "time"  # for Time.httpdate
+require_relative '../rack'
+require_relative 'body_proxy'
+require_relative 'request'
+require_relative 'utils'
 
 module Rack
   # This middleware enables content encoding of http responses,
