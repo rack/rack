@@ -222,7 +222,7 @@ module Rack
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
-        expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
+        expires = "; expires=#{Time.at(value[:expires]).httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
