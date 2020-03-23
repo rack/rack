@@ -48,10 +48,10 @@ module Rack
 
       ## and returns an Array of exactly three values:
       ary = @app.call(env)
-      assert("response #{ary.inspect} is not an Array , but #{ary.class}") {
+      assert("response is not an Array, but #{ary.class}") {
         ary.kind_of? Array
       }
-      assert("response array #{ary.inspect} has #{ary.size} elements instead of 3") {
+      assert("response array has #{ary.size} elements instead of 3") {
         ary.size == 3
       }
 
