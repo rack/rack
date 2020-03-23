@@ -156,7 +156,7 @@ describe Rack::Lint do
         []
       }).call(env("rack.multipart.tempfile_factory" => lambda { |filename, content_type| String.new }))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "response array [] has 0 elements instead of 3"
+      message.must_equal "response array has 0 elements instead of 3"
 
     lambda {
       Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
@@ -250,14 +250,14 @@ describe Rack::Lint do
                        ""
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
-      message.must_include('response "" is not an Array , but String')
+      message.must_include('response is not an Array, but String')
 
     lambda {
       Rack::Lint.new(lambda { |env|
                        [nil, nil, nil, nil]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
-      message.must_include('response array [nil, nil, nil, nil] has 4 elements instead of 3')
+      message.must_include('response array has 4 elements instead of 3')
   end
 
   it "notice status errors" do
