@@ -231,21 +231,19 @@ module Rack
 
     def parse_cookies_from_header
       cookies = Hash.new
-      if original_headers.has_key? 'Set-Cookie'
-        set_cookie_header = original_headers.fetch('Set-Cookie')
-        set_cookie_header.split("\n").each do |cookie|
-          cookie_name, cookie_filling = cookie.split('=', 2)
-          cookie_attributes = identify_cookie_attributes cookie_filling
-          parsed_cookie = CGI::Cookie.new(
-            'name' => cookie_name.strip,
-            'value' => cookie_attributes.fetch('value'),
-            'path' => cookie_attributes.fetch('path', nil),
-            'domain' => cookie_attributes.fetch('domain', nil),
-            'expires' => cookie_attributes.fetch('expires', nil),
-            'secure' => cookie_attributes.fetch('secure', false)
-          )
-          cookies.store(cookie_name, parsed_cookie)
-        end
+      hashed_headers = Rack::Utils::HeaderHash[original_headers]
+      [hashed_headers.fetch("Set-Cookie", "")].flatten.join("\n").split("\n").each do |cookie|
+        cookie_name, cookie_filling = cookie.split('=', 2)
+        cookie_attributes = identify_cookie_attributes cookie_filling
+        parsed_cookie = CGI::Cookie.new(
+          'name' => cookie_name.strip,
+          'value' => cookie_attributes.fetch('value'),
+          'path' => cookie_attributes.fetch('path', nil),
+          'domain' => cookie_attributes.fetch('domain', nil),
+          'expires' => cookie_attributes.fetch('expires', nil),
+          'secure' => cookie_attributes.fetch('secure', false)
+        )
+        cookies.store(cookie_name, parsed_cookie)
       end
       cookies
     end
