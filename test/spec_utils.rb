@@ -639,6 +639,24 @@ describe Rack::Utils::HeaderHash do
     h.wont_include 'ETag'
   end
 
+  it "fetches values via case-insensitive keys" do
+    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+    v = h.fetch("content-MD5", "nope")
+    v.must_equal "d5ff4e2a0 ..."
+  end
+
+  it "fetches values via case-insensitive keys without defaults" do
+    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+    v = h.fetch("content-MD5")
+    v.must_equal "d5ff4e2a0 ..."
+  end
+
+  it "correctly raises an exception on fetch for a non-existent key" do
+    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
+
+	 -> { h.fetch("Set-Cookie") }.must_raise(KeyError)
+  end
+
   it "create deep HeaderHash copy on dup" do
     h1 = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
     h2 = h1.dup
