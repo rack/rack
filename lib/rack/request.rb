@@ -307,7 +307,7 @@ module Rack
 
       def port
         if authority = self.authority
-          _, _, port = split_authority(self.authority)
+          _, _, port = split_authority(authority)
 
           if port
             return port
@@ -319,7 +319,7 @@ module Rack
         end
 
         if scheme = self.scheme
-          if port = DEFAULT_PORTS[self.scheme]
+          if port = DEFAULT_PORTS[scheme]
             return port
           end
         end
