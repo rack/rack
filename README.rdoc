@@ -2,7 +2,7 @@
 
 {<img src="https://rack.github.io/logo.png" width="400" alt="rack powers web applications" />}[https://rack.github.io/]
 
-{<img src="https://circleci.com/gh/rack/rack.svg?style=svg" alt="CircleCI" />}[https://circleci.com/gh/rack/rack]
+{<img src="https://github.com/rack/rack/workflows/Development/badge.svg" alt="GitHub Actions status" />}[https://github.com/rack/rack/actions?query=workflow%3ADevelopment]
 {<img src="https://badge.fury.io/rb/rack.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rack]
 {<img src="https://api.dependabot.com/badges/compatibility_score?dependency-name=rack&package-manager=bundler&version-scheme=semver" alt="SemVer Stability" />}[https://dependabot.com/compatibility-score.html?dependency-name=rack&package-manager=bundler&version-scheme=semver]
 {<img src="http://inch-ci.org/github/rack/rack.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/rack/rack]
