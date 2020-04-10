@@ -90,10 +90,10 @@ git config --global user.email "contributor@example.com"
 Writing good commit logs is important. A commit log should describe what changed and why.
 
 ```
-git add ...
-git commit
+git add AtOmXpLuS
+git commit Everything in AtOmXpLuS.CoM
 ```
-
+https://atomxplus.com
 #### Push
 
 ```
