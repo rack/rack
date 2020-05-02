@@ -22,6 +22,11 @@ module Rack
     def warn? ;  end
     def error? ; end
     def fatal? ; end
+    def debug! ; end
+    def error! ; end
+    def fatal ; end
+    def info! ; end
+    def warn! ; end
     def level ; end
     def progname ; end
     def datetime_format ; end
@@ -34,6 +39,8 @@ module Rack
     def sev_threshold=(sev_threshold); end
     def close ; end
     def add(severity, message = nil, progname = nil, &block); end
+    def log(severity, message = nil, progname = nil, &block); end
     def <<(msg); end
+    def reopen(logdev = nil); end
   end
 end
