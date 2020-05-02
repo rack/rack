@@ -25,6 +25,7 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash[headers]
 
       if etag_status?(status) && etag_body?(body) && !skip_caching?(headers)
         original_body = body

@@ -108,6 +108,8 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash[headers]
+
       if body.respond_to?(:to_path)
         case type = variation(env)
         when 'X-Accel-Redirect'
