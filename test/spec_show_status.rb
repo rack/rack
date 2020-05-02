@@ -117,4 +117,20 @@ describe Rack::ShowStatus do
     assert_match(res, /too meta/)
     res.body.wont_match(/foo/)
   end
+
+  it "close the original body" do
+    closed = false
+
+    body = Object.new
+    def body.each; yield 's' end
+    body.define_singleton_method(:close) { closed = true }
+
+    req = Rack::MockRequest.new(
+      show_status(lambda{|env|
+        [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, body]
+    }))
+
+    response = req.get("/", lint: true)
+    closed.must_equal true
+  end
 end

@@ -33,9 +33,15 @@ module Rack
         # Yes, it is dumb, but I don't like Ruby yelling at me.
         detail = detail = env[RACK_SHOWSTATUS_DETAIL] || message
 
-        body = @template.result(binding)
-        size = body.bytesize
-        [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), [body]]
+        html = @template.result(binding)
+        size = html.bytesize
+
+        original_body = body
+        body = Rack::BodyProxy.new([html]) do
+          original_body.close if original_body.respond_to?(:close)
+        end
+
+        [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), body]
       else
         [status, headers, body]
       end
