@@ -26,7 +26,7 @@ module Rack
       when "GET", "HEAD"
         status, headers, body = @app.call(env)
         headers = Utils::HeaderHash[headers]
-        if status == 200 && fresh?(env, headers)
+        if status.to_i == 200 && fresh?(env, headers)
           status = 304
           headers.delete(CONTENT_TYPE)
           headers.delete(CONTENT_LENGTH)

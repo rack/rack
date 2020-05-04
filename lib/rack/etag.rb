@@ -50,7 +50,7 @@ module Rack
     private
 
       def etag_status?(status)
-        status == 200 || status == 201
+        [200, 201].include?(status.to_i)
       end
 
       def etag_body?(body)
