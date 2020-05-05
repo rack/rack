@@ -257,7 +257,7 @@ module Rack
       cookie_bits.each do |bit|
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=')
-          cookie_attributes.store(cookie_attribute.strip, attribute_value.strip)
+          cookie_attributes.store(cookie_attribute.strip, attribute_value&.strip)
           if cookie_attribute.include? 'max-age'
             cookie_attributes.store('expires', Time.now + attribute_value.strip.to_i)
           end

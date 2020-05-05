@@ -319,6 +319,12 @@ describe Rack::MockResponse do
     secure_cookie.expires.must_be_nil
   end
 
+  it "parses cookie headers with equals sign at the end" do
+    res = Rack::MockRequest.new(->(env) { [200, {"Set-Cookie" => "__cf_bm=_somebase64encodedstringwithequalsatthened=; array=awesome"}, [""]] }).get("")
+    cookie = res.cookie("__cf_bm")
+    cookie.value[0].must_equal "_somebase64encodedstringwithequalsatthened="
+  end
+
   it "return nil if a non existent cookie is requested" do
     res = Rack::MockRequest.new(app).get("")
     res.cookie("i_dont_exist").must_be_nil
