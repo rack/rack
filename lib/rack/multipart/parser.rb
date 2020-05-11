@@ -67,15 +67,9 @@ module Rack
         return EMPTY unless boundary
 
         io = BoundedIO.new(io, content_length) if content_length
-        outbuf = String.new
 
         parser = new(boundary, tmpfile, bufsize, qp)
-        parser.on_read io.read(bufsize, outbuf)
-
-        loop do
-          break if parser.state == :DONE
-          parser.on_read io.read(bufsize, outbuf)
-        end
+        parser.parse(io)
 
         io.rewind
         parser.result
@@ -182,10 +176,27 @@ module Rack
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
-      def on_read(content)
-        handle_empty_content!(content)
-        @sbuf.concat content
-        run_parser
+      def parse(io)
+        outbuf = String.new
+        read_data(io, outbuf)
+
+        loop do
+          status =
+            case @state
+            when :FAST_FORWARD
+              handle_fast_forward
+            when :CONSUME_TOKEN
+              handle_consume_token
+            when :MIME_HEAD
+              handle_mime_head
+            when :MIME_BODY
+              handle_mime_body
+            when :DONE
+              return
+            end
+
+          read_data(io, outbuf) if status == :want_read
+        end
       end
 
       def result
@@ -200,21 +211,10 @@ module Rack
 
       private
 
-      def run_parser
-        loop do
-          case @state
-          when :FAST_FORWARD
-            break if handle_fast_forward == :want_read
-          when :CONSUME_TOKEN
-            break if handle_consume_token == :want_read
-          when :MIME_HEAD
-            break if handle_mime_head == :want_read
-          when :MIME_BODY
-            break if handle_mime_body == :want_read
-          when :DONE
-            break
-          end
-        end
+      def read_data(io, outbuf)
+        content = io.read(@bufsize, outbuf)
+        handle_empty_content!(content)
+        @sbuf.concat(content)
       end
 
       def handle_fast_forward
