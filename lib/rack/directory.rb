@@ -106,13 +106,12 @@ table { width:100%%; }
 
     def list_directory(path_info, path, script_name)
       files = [['../', 'Parent Directory', '', '', '']]
-      glob = ::File.join(path, '*')
 
       url_head = (script_name.split('/') + path_info.split('/')).map do |part|
         Rack::Utils.escape_path part
       end
 
-      Dir[glob].sort.each do |node|
+      Dir.entries(path).reject { |e| e.start_with?('.') }.sort.each do |node|
         stat = stat(node)
         next unless stat
         basename = ::File.basename(node)
