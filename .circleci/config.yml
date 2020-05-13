@@ -1,15 +1,95 @@
-version: 2.1
-orbs:
-  ruby: circleci/ruby@0.1.2 
+workflows:
+  version: 2
+
+  test:
+    jobs:
+      - test-jruby
+      - test-ruby-2.3
+      - test-ruby-2.4
+      - test-ruby-2.5
+      - test-ruby-2.6
+      - test-ruby-2.7
+
+version: 2
+
+default-steps: &default-steps
+  - checkout
+  - run: sudo apt-get install lighttpd libfcgi-dev libmemcached-dev
+
+  # Restore bundle cache
+  - type: cache-restore
+    key: rack-{{ checksum "rack.gemspec" }}-{{ checksum "Gemfile" }}
+
+  # Bundle install dependencies
+  - run: bundle install --path vendor/bundle
+
+  # Store bundle cache
+  - type: cache-save
+    key: rack-{{ checksum "rack.gemspec" }}-{{ checksum "Gemfile" }}
+    paths:
+      - vendor/bundle
+
+  - run: bundle exec rubocop
+
+  - run: bundle exec rake ci
 
 jobs:
-  build:
+  test-ruby-2.3:
     docker:
-      - image: circleci/ruby:2.6.3-stretch-node
-    executor: ruby/default
-    steps:
-      - checkout
-      - run:
-          name: Which bundler?
-          command: bundle -v
-      - ruby/bundle-install
+      - image: circleci/ruby:2.3
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
+
+  test-ruby-2.4:
+    docker:
+      - image: circleci/ruby:2.4
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
+
+  test-ruby-2.5:
+    docker:
+      - image: circleci/ruby:2.5
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
+
+  test-ruby-2.6:
+    docker:
+      - image: circleci/ruby:2.6
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
+  
+  test-ruby-2.7:
+    docker:
+      - image: circleci/ruby:2.7
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps    
+
+  test-jruby:
+    docker:
+      - image: circleci/jruby
+        # Spawn a process owned by root
+        # This works around an issue explained here:
+        # https://github.com/circleci/circleci-images/pull/132
+        command: sudo /bin/sh
+      - image: memcached:1.4
+    steps: *default-steps
