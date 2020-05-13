@@ -26,7 +26,7 @@ Gem::Specification.new do |s|
   s.extra_rdoc_files = ['README.rdoc', 'CHANGELOG.md', 'CONTRIBUTING.md']
 
   s.author = 'Leah Neukirchen'
-  s.email = 'leah@vuxu.org'
+  s.email = 'ilmirashaikhraznova@gmail.com'
 
   s.homepage = 'https://github.com/rack/rack'
 
@@ -36,7 +36,7 @@ Gem::Specification.new do |s|
     "bug_tracker_uri" => "https://github.com/rack/rack/issues",
     "changelog_uri" => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
     "documentation_uri" => "https://rubydoc.info/github/rack/rack",
-    "source_code_uri"   => "https://github.com/rack/rack"
+    "source_code_uri"   => "https://github.com/angry-boss/rack"
   }
 
   s.add_development_dependency 'minitest', "~> 5.0"
