@@ -112,6 +112,7 @@ table { width:100%%; }
       end
 
       Dir.entries(path).reject { |e| e.start_with?('.') }.sort.each do |node|
+        node = ::File.join path, node
         stat = stat(node)
         next unless stat
         basename = ::File.basename(node)
