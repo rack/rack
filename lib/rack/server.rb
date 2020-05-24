@@ -346,9 +346,7 @@ module Rack
           abort "configuration #{options[:config]} not found"
         end
 
-        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        @options.merge!(options) { |key, old, new| old }
-        app
+        return Rack::Builder.parse_file(self.options[:config])
       end
 
       def handle_profiling(heapfile, profile_mode, filename)

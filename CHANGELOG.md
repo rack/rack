@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
 - Removed antiquated handlers: FCGI, LSWS, SCGI, Thin. ([#1658](https://github.com/rack/rack/pull/1658), [@ioquatix](https://github.com/ioquatix))
+- Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix](https://github.com/ioquatix))
 
 ### Fixed
 

@@ -102,18 +102,6 @@ describe Rack::Server do
     server.options[:daemonize].must_equal true
   end
 
-  it "only override non-passed options from parsed .ru file" do
-    builder_file = File.join(File.dirname(__FILE__), 'builder', 'options.ru')
-    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', builder_file]
-    server = Rack::Server.new
-    server.app # force .ru file to be parsed
-
-    server.options[:debug].must_equal true
-    server.options[:server].must_equal 'thin'
-    server.options[:environment].must_equal 'production'
-    server.options[:Port].must_equal '2929'
-  end
-
   def test_options_server(*args)
     SPEC_ARGV[0..-1] = args
     output = String.new
