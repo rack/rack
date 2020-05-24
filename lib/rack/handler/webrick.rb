@@ -37,7 +37,7 @@ module Rack
 
         @server = ::WEBrick::HTTPServer.new(options)
         @server.mount "/", Rack::Handler::WEBrick, app
-        yield @server  if block_given?
+        yield @server if block_given?
         @server.start
       end
 

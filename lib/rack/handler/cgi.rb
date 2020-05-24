@@ -55,5 +55,7 @@ module Rack
         }
       end
     end
+    
+    register 'cgi', 'Rack::Handler::CGI'
   end
 end

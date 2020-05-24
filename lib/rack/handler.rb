@@ -31,7 +31,7 @@ module Rack
     # Select first available Rack handler given an `Array` of server names.
     # Raises `LoadError` if no handler was found.
     #
-    #   > pick ['thin', 'webrick']
+    #   > pick ['puma', 'webrick']
     #   => Rack::Handler::WEBrick
     def self.pick(server_names)
       server_names = Array(server_names)
@@ -45,17 +45,14 @@ module Rack
       raise LoadError, "Couldn't find handler for: #{server_names.join(', ')}."
     end
 
-    SERVER_NAMES = %w(puma thin falcon webrick).freeze
+    RACK_HANDLER = 'RACK_HANDLER'
+
+    SERVER_NAMES = %w(puma falcon webrick).freeze
     private_constant :SERVER_NAMES
 
     def self.default
-      # Guess.
-      if ENV.include?("PHP_FCGI_CHILDREN")
-        Rack::Handler::FastCGI
-      elsif ENV.include?(REQUEST_METHOD)
-        Rack::Handler::CGI
-      elsif ENV.include?("RACK_HANDLER")
-        self.get(ENV["RACK_HANDLER"])
+      if rack_handler = ENV[RACK_HANDLER]
+        self.get(rack_handler)
       else
         pick SERVER_NAMES
       end
@@ -87,18 +84,7 @@ module Rack
       @handlers[server.to_s] = klass.to_s
     end
 
-    autoload :CGI, "rack/handler/cgi"
-    autoload :FastCGI, "rack/handler/fastcgi"
     autoload :WEBrick, "rack/handler/webrick"
-    autoload :LSWS, "rack/handler/lsws"
-    autoload :SCGI, "rack/handler/scgi"
-    autoload :Thin, "rack/handler/thin"
-
-    register 'cgi', 'Rack::Handler::CGI'
-    register 'fastcgi', 'Rack::Handler::FastCGI'
     register 'webrick', 'Rack::Handler::WEBrick'
-    register 'lsws', 'Rack::Handler::LSWS'
-    register 'scgi', 'Rack::Handler::SCGI'
-    register 'thin', 'Rack::Handler::Thin'
   end
 end
