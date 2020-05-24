@@ -320,7 +320,7 @@ describe Rack::MockResponse do
   end
 
   it "parses cookie headers with equals sign at the end" do
-    res = Rack::MockRequest.new(->(env) { [200, {"Set-Cookie" => "__cf_bm=_somebase64encodedstringwithequalsatthened=; array=awesome"}, [""]] }).get("")
+    res = Rack::MockRequest.new(->(env) { [200, { "Set-Cookie" => "__cf_bm=_somebase64encodedstringwithequalsatthened=; array=awesome" }, [""]] }).get("")
     cookie = res.cookie("__cf_bm")
     cookie.value[0].must_equal "_somebase64encodedstringwithequalsatthened="
   end
