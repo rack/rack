@@ -659,9 +659,11 @@ module Rack
 
     ## === The Status
     def check_status(status)
-      ## This is an HTTP status. When parsed as integer (+to_i+), it must be
-      ## greater than or equal to 100.
-      assert("Status must be >=100 seen as integer") { status.to_i >= 100 }
+      ## This is an HTTP status. It must be an Integer greater than or equal to
+      ## 100.
+      assert("Status must be an Integer >=100") {
+        status.is_a?(Integer) && status >= 100
+      }
     end
 
     ## === The Headers
