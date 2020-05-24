@@ -39,13 +39,11 @@ module Rack
     #
     # If the config file ends in +.ru+, it is treated as a
     # rackup file and the contents will be treated as if
-    # specified inside a Rack::Builder block, using the given
-    # options.
+    # specified inside a Rack::Builder block.
     #
     # If the config file does not end in +.ru+, it is
     # required and Rack will use the basename of the file
     # to guess which constant will be the Rack application to run.
-    # The options given will be ignored in this case.
     #
     # Examples:
     #
@@ -61,22 +59,17 @@ module Rack
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
     #   # assumes MyApp constant contains Rack application
-    def self.parse_file(config, opts = Server::Options.new)
-      if config.end_with?('.ru')
-        return self.load_file(config, opts)
+    def self.parse_file(path)
+      if path.end_with?('.ru')
+        return self.load_file(path)
       else
-        require config
-        app = Object.const_get(::File.basename(config, '.rb').split('_').map(&:capitalize).join(''))
-        return app, {}
+        require path
+        return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
       end
     end
 
     # Load the given file as a rackup file, treating the
     # contents as if specified inside a Rack::Builder block.
-    #
-    # Treats the first comment at the beginning of a line
-    # that starts with a backslash as options similar to
-    # options passed on a rackup command line.
     #
     # Ignores content in the file after +__END__+, so that
     # use of +__END__+ will not result in a syntax error.
@@ -90,21 +83,17 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path, opts = Server::Options.new)
-      options = {}
+    def self.load_file(path)
+      config = ::File.read(path)
+      config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
-      cfgfile = ::File.read(path)
-      cfgfile.slice!(/\A#{UTF_8_BOM}/) if cfgfile.encoding == Encoding::UTF_8
-
-      if cfgfile[/^#\\(.*)/] && opts
-        warn "Parsing options from the first comment line is deprecated!"
-        options = opts.parse! $1.split(/\s+/)
+      if config[/^#\\(.*)/]
+        fail "Parsing options from the first comment line is deprecated: #{path}"
       end
 
-      cfgfile.sub!(/^__END__\n.*\Z/m, '')
-      app = new_from_string cfgfile, path
+      config.sub!(/^__END__\n.*\Z/m, '')
 
-      return app, options
+      return new_from_string(config, path)
     end
 
     # Evaluate the given +builder_script+ string in the context of
@@ -114,7 +103,8 @@ module Rack
       # We cannot use instance_eval(String) as that would resolve constants differently.
       binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
       eval builder_script, binding, file
-      builder.to_app
+
+      return builder.to_app
     end
 
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the

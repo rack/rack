@@ -229,23 +229,14 @@ describe Rack::Builder do
       File.join(File.dirname(__FILE__), 'builder', name)
     end
 
-    it "parses commented options" do
-      app, options = Rack::Builder.parse_file config_file('options.ru')
-      options[:debug].must_equal true
-      options[:environment].must_equal 'test'
-      options[:Port].must_equal '2929'
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
-    end
-
     it "removes __END__ before evaluating app" do
       app, _ = Rack::Builder.parse_file config_file('end.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
 
     it "supports multi-line comments" do
-      proc, env = Rack::Builder.parse_file(config_file('comment.ru'))
-      proc.must_be_kind_of Proc
-      env.must_equal({})
+      app = Rack::Builder.parse_file(config_file('comment.ru'))
+      app.must_be_kind_of(Proc)
     end
 
     it 'requires an_underscore_app not ending in .ru' do
