@@ -8,6 +8,8 @@ require 'open-uri'
 require 'net/http'
 require 'net/https'
 
+require 'rack/handler/cgi'
+
 module Minitest::Spec::DSL
   alias :should :it
 end
@@ -73,17 +75,6 @@ describe Rack::Server do
   it "include Rack::TempfileReaper in deployment environment" do
     server = Rack::Server.new(app: 'foo')
     server.middleware['deployment'].flatten.must_include Rack::TempfileReaper
-  end
-
-  it "support CGI" do
-    begin
-      o, ENV["REQUEST_METHOD"] = ENV["REQUEST_METHOD"], 'foo'
-      server = Rack::Server.new(app: 'foo')
-      server.server.name =~ /CGI/
-      Rack::Server.logging_middleware.call(server).must_be_nil
-    ensure
-      ENV['REQUEST_METHOD'] = o
-    end
   end
 
   it "be quiet if said so" do
