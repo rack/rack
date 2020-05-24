@@ -1,5 +1,5 @@
 AllCops:
-  TargetRubyVersion: 2.3
+  TargetRubyVersion: 2.4
   DisabledByDefault: true
   Exclude:
     - '**/vendor/**/*'
@@ -50,7 +50,7 @@ Layout/SpaceBeforeFirstArg:
 Layout/SpaceInsideHashLiteralBraces:
   Enabled: true
 
-Layout/Tab:
+Layout/IndentationStyle:
   Enabled: true
 
 Layout/TrailingWhitespace:
