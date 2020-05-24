@@ -2,7 +2,7 @@
 
 require_relative 'helper'
 require 'thread'
-require_relative 'testrequest'
+require_relative 'test_request'
 
 Thread.abort_on_exception = true
 

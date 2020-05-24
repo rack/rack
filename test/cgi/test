@@ -1,9 +1,5 @@
-#!/usr/bin/env ruby
-# frozen_string_literal: true
-
-$: << File.join(File.dirname(__FILE__), "..", "..", "lib")
-
-require 'rack'
-require '../testrequest'
-
-Rack::Handler::CGI.run(Rack::Lint.new(TestRequest.new))
+***** DO NOT MODIFY THIS FILE! *****
+If you modify this file, tests will break!!!
+The quick brown fox jumps over the ruby dog.
+The quick brown fox jumps over the lazy dog.
+***** DO NOT MODIFY THIS FILE! *****

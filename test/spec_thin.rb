@@ -3,7 +3,7 @@
 require_relative 'helper'
 begin
 require 'rack/handler/thin'
-require_relative 'testrequest'
+require_relative 'test_request'
 require 'timeout'
 
 describe Rack::Handler::Thin do
