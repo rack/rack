@@ -42,17 +42,18 @@ below.
 <tt>QUERY_STRING</tt>:: The portion of the request URL that
                         follows the <tt>?</tt>, if any. May be
                         empty, but is always required!
-<tt>SERVER_NAME</tt>, <tt>SERVER_PORT</tt>::
-                       When combined with <tt>SCRIPT_NAME</tt> and
+<tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
                        <tt>PATH_INFO</tt>, these variables can be
                        used to complete the URL. Note, however,
                        that <tt>HTTP_HOST</tt>, if present,
                        should be used in preference to
                        <tt>SERVER_NAME</tt> for reconstructing
                        the request URL.
-                       <tt>SERVER_NAME</tt> and <tt>SERVER_PORT</tt>
-                       can never be empty strings, and so
-                       are always required.
+                       <tt>SERVER_NAME</tt> can never be an empty
+                       string, and so is always required.
+<tt>SERVER_PORT</tt>:: An optional +Integer+ which is the port the
+                       server is running on. Should be specified if
+                       the server is running on a non-standard port.
 <tt>HTTP_</tt> Variables:: Variables corresponding to the
                            client-supplied HTTP request
                            headers (i.e., variables whose
@@ -122,6 +123,9 @@ and should be prefixed uniquely.  The prefix <tt>rack.</tt>
 is reserved for use with the Rack core distribution and other
 accepted specifications and must not be used otherwise.
 
+The <tt>SERVER_PORT</tt> must be an Integer if set.
+The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
+The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
 The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
 (use the versions without <tt>HTTP_</tt>).
