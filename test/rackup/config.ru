@@ -1,6 +1,6 @@
 # frozen_string_literal: true
 
-require "#{File.dirname(__FILE__)}/../testrequest"
+require_relative "../test_request"
 
 $stderr = File.open("#{File.dirname(__FILE__)}/log_output", "w")
 
