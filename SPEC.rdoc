@@ -246,8 +246,8 @@ if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
   request pattern is intended to provide the hijacker with "raw tcp".
 == The Response
 === The Status
-This is an HTTP status. When parsed as integer (+to_i+), it must be
-greater than or equal to 100.
+This is an HTTP status. It must be an Integer greater than or equal to
+100.
 === The Headers
 The header must respond to +each+, and yield values of key and value.
 The header keys must be Strings.

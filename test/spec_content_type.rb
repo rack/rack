@@ -44,12 +44,4 @@ describe Rack::ContentType do
       response[1]['Content-Type'].must_be_nil
     end
   end
-
-  ['100', '204', '304'].each do |code|
-    it "not set Content-Type on #{code} responses if status is a string" do
-      app = lambda { |env| [code, {}, []] }
-      response = content_type(app, "text/html").call(request)
-      response[1]['Content-Type'].must_be_nil
-    end
-  end
 end

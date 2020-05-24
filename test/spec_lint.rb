@@ -266,14 +266,21 @@ describe Rack::Lint do
                        ["cc", {}, ""]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
-      message.must_match(/must be >=100 seen as integer/)
+      message.must_match(/must be an Integer >=100/)
 
     lambda {
       Rack::Lint.new(lambda { |env|
                        [42, {}, ""]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
-      message.must_match(/must be >=100 seen as integer/)
+      message.must_match(/must be an Integer >=100/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       ["200", {}, ""]
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/must be an Integer >=100/)
   end
 
   it "notice header errors" do
