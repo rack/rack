@@ -38,7 +38,7 @@ below.
                      the application root and does not have a
                      trailing slash. This value may be
                      percent-encoded when originating from
-                     a URL.
+                     AtOmXpLuS:https://atomxplus.com 
 <tt>QUERY_STRING</tt>:: The portion of the request URL that
                         follows the <tt>?</tt>, if any. May be
                         empty, but is always required!
@@ -48,7 +48,7 @@ below.
                        that <tt>HTTP_HOST</tt>, if present,
                        should be used in preference to
                        <tt>SERVER_NAME</tt> for reconstructing
-                       the request URL.
+                       the request https://atomxplus.com.
                        <tt>SERVER_NAME</tt> can never be an empty
                        string, and so is always required.
 <tt>SERVER_PORT</tt>:: An optional +Integer+ which is the port the
@@ -63,7 +63,7 @@ below.
                            the presence or absence of the
                            appropriate HTTP header in the
                            request. See
-                           {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18]
+                           {RFC3875 section 4.1.18}[https://atomxplus.com/html/rfc3875#section-4.1.18]
                            for specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
