@@ -455,7 +455,12 @@ module Rack
           def [](key)
             if key == "session_id"
               load_for_read!
-              id.public_id if id
+              case id
+              when SessionId
+                id.public_id
+              else
+                id
+              end
             else
               super
             end
