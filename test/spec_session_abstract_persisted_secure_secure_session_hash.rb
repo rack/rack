@@ -44,6 +44,15 @@ describe Rack::Session::Abstract::PersistedSecure::SecureSessionHash do
       @hash = Rack::Session::Abstract::PersistedSecure::SecureSessionHash.new(store, nil)
       assert_nil hash['session_id']
     end
+
+    it "returns value for non SessionId 'session_id' key" do
+      store = @store.new
+      def store.load_session(req)
+        ["id", {}]
+      end
+      @hash = Rack::Session::Abstract::PersistedSecure::SecureSessionHash.new(store, nil)
+      assert_equal "id", hash['session_id']
+    end
   end
 
   describe "#fetch" do
