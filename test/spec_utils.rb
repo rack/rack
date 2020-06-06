@@ -654,7 +654,7 @@ describe Rack::Utils::HeaderHash do
   it "correctly raises an exception on fetch for a non-existent key" do
     h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
 
-	  -> { h.fetch("Set-Cookie") }.must_raise(KeyError)
+    -> { h.fetch("Set-Cookie") }.must_raise(KeyError)
   end
 
   it "returns default on fetch miss" do
