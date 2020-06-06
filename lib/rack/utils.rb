@@ -474,8 +474,8 @@ module Rack
       alias_method :member?, :include?
       alias_method :key?, :include?
 
-      def fetch(*args)
-        super(@names[args.first.downcase] || args.first, *(args.drop(1)))
+      def fetch(k, *args)
+        super(@names[k.downcase] || k, *args)
       end
 
       def merge!(other)
