@@ -474,6 +474,10 @@ module Rack
       alias_method :member?, :include?
       alias_method :key?, :include?
 
+      def fetch(k, *args)
+        super(@names[k.downcase] || k, *args)
+      end
+
       def merge!(other)
         other.each { |k, v| self[k] = v }
         self
