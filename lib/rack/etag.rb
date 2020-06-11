@@ -10,17 +10,25 @@ module Rack
   # a sendfile body (body.responds_to :to_path) is given (since such cases
   # should be handled by apache/nginx).
   #
-  # On initialization, you can pass two parameters: a Cache-Control directive
-  # used when Etag is absent and a directive when it is present. The first
-  # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
+  # On initialization, you can pass keywords:
+  # no_cache_control :: a Cache-Control directive to use when ETag is absent (default: nil)
+  # cache_control :: a Cache-Control directive when ETag is present
+  #                  (default: "max-age=0, private, must-revalidate").
+  # skip_etag_if_no_cache :: Whether to skip setting the ETag if the Cache-Control header already
+  #                          includes no-cache (default: true).  Setting this to false causes such
+  #                          responses to be bufferred in order to generate the ETag, which
+  #                          can cause problems with streaming responses.
   class ETag
     ETAG_STRING = Rack::ETAG
     DEFAULT_CACHE_CONTROL = "max-age=0, private, must-revalidate"
 
-    def initialize(app, no_cache_control = nil, cache_control = DEFAULT_CACHE_CONTROL)
+    def initialize(app, no_cache_control_arg = nil, cache_control_arg = DEFAULT_CACHE_CONTROL,
+                   no_cache_control: no_cache_control_arg, cache_control: cache_control_arg,
+                   skip_etag_if_no_cache: true)
       @app = app
       @cache_control = cache_control
       @no_cache_control = no_cache_control
+      @skip_etag_if_no_cache = skip_etag_if_no_cache
     end
 
     def call(env)
@@ -58,6 +66,9 @@ module Rack
       end
 
       def skip_caching?(headers)
+        if @skip_etag_if_no_cache && (headers[CACHE_CONTROL] && headers[CACHE_CONTROL].include?('no-cache'))
+          return true
+        end
         headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
       end
 

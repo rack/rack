@@ -7,6 +7,7 @@ describe Rack::ETag do
   def etag(app, *args)
     Rack::Lint.new Rack::ETag.new(app, *args)
   end
+  ruby2_keywords :etag if respond_to?(:ruby2_keywords, true)
 
   def request
     Rack::MockRequest.env_for
@@ -90,10 +91,16 @@ describe Rack::ETag do
     response[1]['ETag'].must_be_nil
   end
 
-  it "set ETag even if no-cache is given" do
+  it "set ETag even if no-cache is given if skip_etag_if_no_cache: false keyword is used" do
+    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'no-cache, must-revalidate' }, ['Hello, World!']] }
+    response = etag(app, skip_etag_if_no_cache: false).call(request)
+    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+  end
+
+  it "not set ETag if no-cache is given" do
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'no-cache, must-revalidate' }, ['Hello, World!']] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+    response[1]['ETag'].must_be_nil
   end
 
   it "close the original body" do
