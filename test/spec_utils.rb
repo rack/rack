@@ -524,6 +524,10 @@ describe Rack::Utils, "cookies" do
 
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=bar").freeze
     Rack::Utils.parse_cookies(env).must_equal({ "foo" => "bar" })
+
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "%66oo=baz;foo=bar")
+    cookies = Rack::Utils.parse_cookies(env)
+    cookies.must_equal({ "%66oo" => "baz", "foo" => "bar" })
   end
 
   it "adds new cookies to nil header" do
