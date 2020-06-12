@@ -215,8 +215,12 @@ module Rack
       #   the Cookie header such that those with more specific Path attributes
       #   precede those with less specific.  Ordering with respect to other
       #   attributes (e.g., Domain) is unspecified.
-      cookies = parse_query(header, ';,') { |s| unescape(s) rescue s }
-      cookies.each_with_object({}) { |(k, v), hash| hash[k] = Array === v ? v.first : v }
+      return {} unless header
+      header.split(/[;,] */n).each_with_object({}) do |cookie, cookies|
+        next if cookie.empty?
+        key, value = cookie.split('=', 2)
+        cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
+      end
     end
     module_function :parse_cookies_header
 
