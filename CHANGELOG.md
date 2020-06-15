@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.3] - 2020-02-11
+
+- [CVE-2020-8184] Only decode cookie values
+
 ## [2.2.2] - 2020-02-11
 
 ### Fixed
