@@ -1,3 +1,11 @@
+## [2.1.4] - 2020-06-15
+
+- [CVE-2020-8184] When parsing cookies, only decode the value
+
+## [2.1.3] - 2020-05-12
+
+- [CVE-2020-8161] Use Dir.entries instead of Dir[glob] to prevent user-specified glob metacharacters
+-
 ## [2.1.2] - 2020-01-27
 
 - Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
