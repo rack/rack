@@ -173,7 +173,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Removed
 
-- Remove `to_ary` from Response ([@tenderlove](https://github.com/tenderlove))
+- BREAKING CHANGE: Remove `to_ary` from Response ([@tenderlove](https://github.com/tenderlove))
 - Deprecate `Rack::Session::Memcache` in favor of `Rack::Session::Dalli` from dalli gem ([@fatkodima](https://github.com/fatkodima))
 
 ### Fixed
