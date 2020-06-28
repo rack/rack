@@ -333,8 +333,8 @@ describe Rack::Session::Cookie do
     response.body.must_equal '{"counter"=>2}'
   end
 
-  it "supports custom digest class" do
-    app = [incrementor, { secret: "test", hmac: OpenSSL::Digest::SHA256 }]
+  it "supports custom digest instance" do
+    app = [incrementor, { secret: "test", hmac: OpenSSL::Digest.new("SHA256") }]
 
     response = response_for(app: app)
     response = response_for(app: app, cookie: response)

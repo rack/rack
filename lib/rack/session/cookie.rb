@@ -107,7 +107,7 @@ module Rack
 
       def initialize(app, options = {})
         @secrets = options.values_at(:secret, :old_secret).compact
-        @hmac = options.fetch(:hmac, OpenSSL::Digest::SHA1)
+        @hmac = options.fetch(:hmac, "SHA1")
 
         warn <<-MSG unless secure?(options)
         SECURITY WARNING: No secret option provided to Rack::Session::Cookie.
@@ -191,7 +191,7 @@ module Rack
       end
 
       def generate_hmac(data, secret)
-        OpenSSL::HMAC.hexdigest(@hmac.new, secret, data)
+        OpenSSL::HMAC.hexdigest(@hmac, secret, data)
       end
 
       def secure?(options)

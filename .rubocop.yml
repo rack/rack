@@ -55,3 +55,6 @@ Layout/IndentationStyle:
 
 Layout/TrailingWhitespace:
   Enabled: true
+
+Lint/DeprecatedOpenSSLConstant:
+  Enabled: true
