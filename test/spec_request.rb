@@ -558,6 +558,11 @@ describe Rack::Request do
     req.cookies["foo"].should == "%"
   end
 
+  should "parsing cookies should only decode the values" do
+    req = Rack::Request.new Rack::MockRequest.env_for("", "HTTP_COOKIE" => "%66oo=baz;foo=bar")
+    req.cookies.should.equal '%66oo' => 'baz', 'foo' => 'bar'
+  end
+
   should "parse cookies according to RFC 2109" do
     req = Rack::Request.new \
       Rack::MockRequest.env_for('', 'HTTP_COOKIE' => 'foo=bar;foo=car')
