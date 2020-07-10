@@ -63,6 +63,7 @@ module Rack
       ".aif"       => "audio/x-aiff",
       ".aiff"      => "audio/x-aiff",
       ".ami"       => "application/vnd.amiga.ami",
+      ".apng"      => "image/apng",
       ".appcache"  => "text/cache-manifest",
       ".apr"       => "application/vnd.lotus-approach",
       ".asc"       => "application/pgp-signature",
