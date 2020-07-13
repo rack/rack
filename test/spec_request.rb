@@ -343,14 +343,14 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "limit the allowed parameter depth when parsing parameters" do
-    env = Rack::MockRequest.env_for("/?a#{'[a]' * 110}=b")
+    env = Rack::MockRequest.env_for("/?a#{'[a]' * 40}=b")
     req = make_request(env)
     lambda { req.GET }.must_raise RangeError
 
-    env = Rack::MockRequest.env_for("/?a#{'[a]' * 90}=b")
+    env = Rack::MockRequest.env_for("/?a#{'[a]' * 30}=b")
     req = make_request(env)
     params = req.GET
-    90.times { params = params['a'] }
+    30.times { params = params['a'] }
     params['a'].must_equal 'b'
 
     old, Rack::Utils.param_depth_limit = Rack::Utils.param_depth_limit, 3
