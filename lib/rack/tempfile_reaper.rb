@@ -12,7 +12,14 @@ module Rack
 
     def call(env)
       env[RACK_TEMPFILES] ||= []
-      status, headers, body = @app.call(env)
+
+      begin
+        status, headers, body = @app.call(env)
+      rescue Exception
+        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        raise
+      end
+
       body_proxy = BodyProxy.new(body) do
         env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
       end
