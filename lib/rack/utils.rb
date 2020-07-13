@@ -27,7 +27,7 @@ module Rack
     end
     # The default number of bytes to allow parameter keys to take up.
     # This helps prevent a rogue client from flooding a Request.
-    self.default_query_parser = QueryParser.make_default(65536, 100)
+    self.default_query_parser = QueryParser.make_default(65536, 32)
 
     module_function
 

@@ -200,7 +200,7 @@ but this query string would not be allowed:
 
 Limiting the depth prevents a possible stack overflow when parsing parameters.
 
-Defaults to 100.
+Defaults to 32.
 
 === multipart_part_limit
 
