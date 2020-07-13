@@ -30,6 +30,24 @@ describe Rack::TempfileReaper do
     response[0].must_equal 200
   end
 
+  it 'close env[rack.tempfiles] when app raises an error' do
+    tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
+    @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
+    app = lambda { |_| raise 'foo' }
+    proc{call(app)}.must_raise RuntimeError
+    tempfile1.closed.must_equal true
+    tempfile2.closed.must_equal true
+  end
+
+  it 'close env[rack.tempfiles] when app raises an non-StandardError' do
+    tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
+    @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
+    app = lambda { |_| raise LoadError, 'foo' }
+    proc{call(app)}.must_raise LoadError
+    tempfile1.closed.must_equal true
+    tempfile2.closed.must_equal true
+  end
+
   it 'close env[rack.tempfiles] when body is closed' do
     tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
     @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]

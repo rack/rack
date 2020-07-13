@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- TempfileReaper now deletes temp files if application raises an exception. ([#1679](https://github.com/rack/rack/issues/1679), [@jeremyevans](https://github.com/jeremyevans))
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
