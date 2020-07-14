@@ -158,6 +158,22 @@ describe Rack::Session::Pool do
     pool.pool[session_id.private_id].wont_be_nil
   end
 
+  it "cannot read the session with the legacy id if allow_fallback: false option is used" do
+    pool = Rack::Session::Pool.new(incrementor, allow_fallback: false)
+    req = Rack::MockRequest.new(pool)
+
+    res0 = req.get("/")
+    cookie = res0["Set-Cookie"]
+    session_id = Rack::Session::SessionId.new cookie[session_match, 1]
+    ses0 = pool.pool[session_id.private_id]
+    pool.pool[session_id.public_id] = ses0
+    pool.pool.delete(session_id.private_id)
+
+    res1 = req.get("/", "HTTP_COOKIE" => cookie)
+    res1["Set-Cookie"].wont_be_nil
+    res1.body.must_equal '{"counter"=>1}'
+  end
+
   it "drops the session in the legacy id as well" do
     pool = Rack::Session::Pool.new(incrementor)
     req = Rack::MockRequest.new(pool)

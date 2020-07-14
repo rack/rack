@@ -28,12 +28,13 @@ module Rack
 
     class Pool < Abstract::PersistedSecure
       attr_reader :mutex, :pool
-      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge drop: false
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge(drop: false, allow_fallback: true)
 
       def initialize(app, options = {})
         super
         @pool = Hash.new
         @mutex = Mutex.new
+        @allow_fallback = @default_options.delete(:allow_fallback)
       end
 
       def generate_sid
@@ -78,7 +79,7 @@ module Rack
       private
 
       def get_session_with_fallback(sid)
-        @pool[sid.private_id] || @pool[sid.public_id]
+        @pool[sid.private_id] || (@pool[sid.public_id] if @allow_fallback)
       end
     end
   end
