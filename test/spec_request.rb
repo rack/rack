@@ -523,19 +523,21 @@ class RackRequestTest < Minitest::Spec
   it "get value by key from params with #[]" do
     req = make_request \
       Rack::MockRequest.env_for("?foo=quux")
-    req['foo'].must_equal 'quux'
-    req[:foo].must_equal 'quux'
+    assert_output(nil, /deprecated/) do
+      req['foo'].must_equal 'quux'
+      req[:foo].must_equal 'quux'
+    end
 
     next if self.class == TestProxyRequest
     verbose = $VERBOSE
     warn_arg = nil
-    req.define_singleton_method(:warn) do |arg|
-      warn_arg = arg
+    req.define_singleton_method(:warn) do |*args|
+      warn_arg = args
     end
     begin
       $VERBOSE = true
       req['foo'].must_equal 'quux'
-      warn_arg.must_equal "Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead"
+      warn_arg.must_equal ["Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead", {uplevel: 1}]
     ensure
       $VERBOSE = verbose
     end
@@ -544,33 +546,43 @@ class RackRequestTest < Minitest::Spec
   it "set value to key on params with #[]=" do
     req = make_request \
       Rack::MockRequest.env_for("?foo=duh")
-    req['foo'].must_equal 'duh'
-    req[:foo].must_equal 'duh'
+    assert_output(nil, /deprecated/) do
+      req['foo'].must_equal 'duh'
+      req[:foo].must_equal 'duh'
+    end
     req.params.must_equal 'foo' => 'duh'
 
     if req.delegate?
       skip "delegate requests don't cache params, so mutations have no impact"
     end
 
-    req['foo'] = 'bar'
+    assert_output(nil, /deprecated/) do
+      req['foo'] = 'bar'
+    end
     req.params.must_equal 'foo' => 'bar'
-    req['foo'].must_equal 'bar'
-    req[:foo].must_equal 'bar'
+    assert_output(nil, /deprecated/) do
+      req['foo'].must_equal 'bar'
+      req[:foo].must_equal 'bar'
+    end
 
-    req[:foo] = 'jaz'
+    assert_output(nil, /deprecated/) do
+      req[:foo] = 'jaz'
+    end
     req.params.must_equal 'foo' => 'jaz'
-    req['foo'].must_equal 'jaz'
-    req[:foo].must_equal 'jaz'
+    assert_output(nil, /deprecated/) do
+      req['foo'].must_equal 'jaz'
+      req[:foo].must_equal 'jaz'
+    end
 
     verbose = $VERBOSE
     warn_arg = nil
-    req.define_singleton_method(:warn) do |arg|
-      warn_arg = arg
+    req.define_singleton_method(:warn) do |*args|
+      warn_arg = args
     end
     begin
       $VERBOSE = true
       req['foo'] = 'quux'
-      warn_arg.must_equal "Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead"
+      warn_arg.must_equal ["Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead", {uplevel: 1}]
       req.params['foo'].must_equal 'quux'
     ensure
       $VERBOSE = verbose

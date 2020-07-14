@@ -530,9 +530,7 @@ module Rack
 
       # shortcut for <tt>request.params[key]</tt>
       def [](key)
-        if $VERBOSE
-          warn("Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead")
-        end
+        warn("Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead", uplevel: 1)
 
         params[key.to_s]
       end
@@ -541,9 +539,7 @@ module Rack
       #
       # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
       def []=(key, value)
-        if $VERBOSE
-          warn("Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead")
-        end
+        warn("Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead", uplevel: 1)
 
         params[key.to_s] = value
       end
