@@ -184,10 +184,10 @@ module Rack
     def initialize(status, headers, body, errors = StringIO.new(""))
       @original_headers = headers
       @errors           = errors.string if errors.respond_to?(:string)
-      @cookies = parse_cookies_from_header
 
       super(body, status, headers)
 
+      @cookies = parse_cookies_from_header
       buffered_body!
     end
 
@@ -231,8 +231,8 @@ module Rack
 
     def parse_cookies_from_header
       cookies = Hash.new
-      if original_headers.has_key? 'Set-Cookie'
-        set_cookie_header = original_headers.fetch('Set-Cookie')
+      if headers.has_key? 'Set-Cookie'
+        set_cookie_header = headers.fetch('Set-Cookie')
         set_cookie_header.split("\n").each do |cookie|
           cookie_name, cookie_filling = cookie.split('=', 2)
           cookie_attributes = identify_cookie_attributes cookie_filling
