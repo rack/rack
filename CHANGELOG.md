@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- Make Rack::MockResponse handle non-hash headers. ([#1629](https://github.com/rack/rack/issues/1629), [@jeremyevans](https://github.com/jeremyevans))
 - TempfileReaper now deletes temp files if application raises an exception. ([#1679](https://github.com/rack/rack/issues/1679), [@jeremyevans](https://github.com/jeremyevans))
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
