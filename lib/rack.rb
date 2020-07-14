@@ -16,7 +16,6 @@ require_relative 'rack/version'
 module Rack
   HTTP_HOST         = 'HTTP_HOST'
   HTTP_PORT         = 'HTTP_PORT'
-  HTTP_VERSION      = 'HTTP_VERSION'
   HTTPS             = 'HTTPS'
   PATH_INFO         = 'PATH_INFO'
   REQUEST_METHOD    = 'REQUEST_METHOD'
