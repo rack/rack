@@ -84,7 +84,6 @@ module Rack
           RACK_HIJACK_IO    => nil
         )
 
-        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
         env[QUERY_STRING] ||= ""
         unless env[PATH_INFO] == ""
           path, n = req.request_uri.path, env[SCRIPT_NAME].length
