@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For info on
 - Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix](https://github.com/ioquatix))
 - HMAC argument for `Rack::Session::Cookie` doesn't accept a class constant anymore, but only a string recognized by OpenSSL (e.g. `"SHA256"`) or compatible instance (e.g. `OpenSSL::Digest.new("SHA256")`) ([#1676](https://github.com/rack/rack/pull/1676), [@bdewater](https://github.com/bdewater))
 - `Rack::HTTP_VERSION` has been removed and the `HTTP_VERSION` env setting is no longer set in the CGI and Webrick handlers . ([#970](https://github.com/rack/rack/issues/970), [@jeremyevans](https://github.com/jeremyevans))
+- `Rack::Request#[]` and `#[]=` now warn even in non-verbose mode. ([#1277](https://github.com/rack/rack/issues/1277), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Fixed
 
