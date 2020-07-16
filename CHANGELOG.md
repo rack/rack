@@ -21,6 +21,12 @@ All notable changes to this project will be documented in this file. For info on
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
 
+## [2.2.3] - 2020-06-15
+
+### Security
+
+- [[CVE-2020-8184](https://nvd.nist.gov/vuln/detail/CVE-2020-8184)] Do not allow percent-encoded cookie name to override existing cookie names. BREAKING CHANGE: Accessing cookie names that require URL encoding with decoded name no longer works. ([@fletchto99](https://github.com/fletchto99))
+
 ## [2.2.2] - 2020-02-11
 
 ### Fixed
