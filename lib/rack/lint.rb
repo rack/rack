@@ -331,6 +331,8 @@ module Rack
 
         ## * There may be a valid hijack callback in <tt>rack.hijack</tt>
         check_hijack env
+        ## * There may be a valid early hints callback in <tt>rack.early_hints</tt>
+        check_early_hints env
 
         ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
         unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
@@ -607,6 +609,30 @@ module Rack
         nil
       end
 
+      ##
+      ## === Early Hints
+      ##
+      ## The application or any middleware may call the <tt>rack.early_hints</tt>
+      ## with an object which would be valid as the headers of a Rack response.
+      def check_early_hints(env)
+        if env[RACK_EARLY_HINTS]
+          ##
+          ## If <tt>rack.early_hints</tt> is present, it must respond to #call.
+          unless env[RACK_EARLY_HINTS].respond_to?(:call)
+            raise LintError, "rack.early_hints must respond to call"
+          end
+
+          original_callback = env[RACK_EARLY_HINTS]
+          env[RACK_EARLY_HINTS] = lambda do |headers|
+            ## If <tt>rack.early_hints</tt> is called, it must be called with
+            ## valid Rack response headers.
+            check_headers(headers)
+            original_callback.call(headers)
+          end
+        end
+      end
+
+      ##
       ## == The Response
       ##
       ## === The Status

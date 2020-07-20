@@ -123,6 +123,7 @@ There are the following restrictions:
 * There may be a valid input stream in <tt>rack.input</tt>.
 * There must be a valid error stream in <tt>rack.errors</tt>.
 * There may be a valid hijack callback in <tt>rack.hijack</tt>
+* There may be a valid early hints callback in <tt>rack.early_hints</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
@@ -227,6 +228,16 @@ instance is recommended.
 
 The special response header +rack.hijack+ must only be set
 if the request +env+ has a truthy +rack.hijack?+.
+
+=== Early Hints
+
+The application or any middleware may call the <tt>rack.early_hints</tt>
+with an object which would be valid as the headers of a Rack response.
+
+If <tt>rack.early_hints</tt> is present, it must respond to #call.
+If <tt>rack.early_hints</tt> is called, it must be called with
+valid Rack response headers.
+
 == The Response
 
 === The Status
