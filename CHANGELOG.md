@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
 - `rack.hijack_io` has been removed completely.
 - `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
+- rack.early_hints is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon).
 
 ### Removed
 
