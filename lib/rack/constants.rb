@@ -49,6 +49,7 @@ module Rack
   RACK_HIJACK                         = 'rack.hijack'
   RACK_IS_HIJACK                      = 'rack.hijack?'
   RACK_HIJACK_IO                      = 'rack.hijack_io'
+  RACK_EARLY_HINTS                    = 'rack.early_hints'
   RACK_RECURSIVE_INCLUDE              = 'rack.recursive.include'
   RACK_MULTIPART_BUFFER_SIZE          = 'rack.multipart.buffer_size'
   RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'

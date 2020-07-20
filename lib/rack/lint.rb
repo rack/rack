@@ -330,6 +330,8 @@ module Rack
         check_error env[RACK_ERRORS]
         ## * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
         check_hijack env
+        ## * There may be a valid early hints callback in <tt>rack.early_hints</tt>
+        check_early_hints env
 
         ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
         unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
@@ -629,6 +631,26 @@ module Rack
       ## * Middleware should not wrap the IO object for the request pattern. The
       ##   request pattern is intended to provide the hijacker with "raw tcp".
       ##
+
+      ## === Early Hints
+      ##
+      ## The application or any middleware may call the <tt>rack.early_hints</tt>
+      ## with pairs of headers that will be sent as a 103 Early Hints provisional
+      ## response.
+      def check_early_hints(env)
+        if env[RACK_EARLY_HINTS]
+          ##
+          ## If rack.early_hints is present it must respond to #call.
+          assert("rack.early_hints must respond to call") { env[RACK_EARLY_HINTS].respond_to?(:call) }
+          original_callback = env[RACK_EARLY_HINTS]
+          env[RACK_EARLY_HINTS] = lambda do |headers|
+            ##
+            ## The header must be valid.
+            check_headers(headers)
+            original_callback.call(headers)
+          end
+        end
+      end
 
       ## == The Response
       ##

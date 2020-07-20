@@ -129,6 +129,7 @@ There are the following restrictions:
 * There must be a valid input stream in <tt>rack.input</tt>.
 * There must be a valid error stream in <tt>rack.errors</tt>.
 * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
+* There may be a valid early hints callback in <tt>rack.early_hints</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
@@ -241,6 +242,15 @@ if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
 * Middleware should not wrap the IO object for the request pattern. The
   request pattern is intended to provide the hijacker with "raw tcp".
 
+=== Early Hints
+
+The application or any middleware may call the <tt>rack.early_hints</tt>
+with pairs of headers that will be sent as a 103 Early Hints provisional
+response.
+
+If rack.early_hints is present it must respond to #call.
+
+The header must be valid.
 == The Response
 
 === The Status
