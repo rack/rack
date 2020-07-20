@@ -441,6 +441,58 @@ describe Rack::Lint do
 
   end
 
+  it "notice rack.early_hints errors" do
+    def self.env(arg={})
+      super(arg.merge("rack.early_hints" => proc{}))
+    end
+    def self.app(value)
+      app = Rack::Lint.new(lambda { |env|
+                             env['rack.early_hints'].call(value)
+                             [200, {}, []]
+                           })
+      lambda { app.call(env) }
+    end
+
+    app(Object.new).must_raise(Rack::Lint::LintError).
+      message.must_equal "headers object should be a hash, but isn't (got Object as headers)"
+
+    app({}.freeze).must_raise(Rack::Lint::LintError).
+      message.must_equal "headers object should not be frozen, but is"
+
+    app(true => false).must_raise(Rack::Lint::LintError).
+      message.must_equal "header key must be a string, was TrueClass"
+
+    app("status" => "404").must_raise(Rack::Lint::LintError).
+      message.must_match(/must not contain status/)
+
+    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F>
+    invalid_headers.each do |invalid_header|
+      app(invalid_header => "text/plain").
+        must_raise(Rack::Lint::LintError, "on invalid header: #{invalid_header}").
+        message.must_equal("invalid header name: #{invalid_header}")
+    end
+
+    ('A'..'Z').each do |invalid_header|
+      app(invalid_header => "text/plain").
+        must_raise(Rack::Lint::LintError, "on invalid header: #{invalid_header}").
+        message.must_equal("uppercase character in header name: #{invalid_header}")
+    end
+
+    valid_headers = 0.upto(127).map(&:chr) - invalid_headers - ('A'..'Z').to_a
+    valid_headers.each do |valid_header|
+      app(valid_header => "text/plain").call.first.must_equal 200
+    end
+
+    app("foo" => Object.new).must_raise(Rack::Lint::LintError).
+      message.must_equal "a header value must be a String or Array of Strings, but the value of 'foo' is a Object"
+
+    app("foo-bar" => "text\000plain").must_raise(Rack::Lint::LintError).
+      message.must_match(/invalid header/)
+
+    app([%w(content-type text/plain), %w(content-length 0)]).must_raise(Rack::Lint::LintError).
+      message.must_equal "headers object should be a hash, but isn't (got Array as headers)"
+  end
+
   it "notice content-type errors" do
     # lambda {
     #   Rack::Lint.new(lambda { |env|

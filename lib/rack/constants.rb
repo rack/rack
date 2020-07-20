@@ -39,6 +39,7 @@ module Rack
   # Rack environment variables
   RACK_VERSION                        = 'rack.version'
   RACK_TEMPFILES                      = 'rack.tempfiles'
+  RACK_EARLY_HINTS                    = 'rack.early_hints'
   RACK_ERRORS                         = 'rack.errors'
   RACK_LOGGER                         = 'rack.logger'
   RACK_INPUT                          = 'rack.input'

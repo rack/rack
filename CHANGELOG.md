@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For info on
 - Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+- rack.early_hints is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon). ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine, @jeremyevans])
 
 ## [3.0.11] - 2024-05-10
 
