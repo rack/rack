@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Changed
 
 - BREAKING CHANGE: Require `status` to be an Integer. ([#1662](https://github.com/rack/rack/pull/1662), [@olleolleolle](https://github.com/olleolleolle))
+- BREAKING CHANGE: Query parsing now treats parameters without `=` as having the empty string value instead of nil value, to conform to the URL spec. ([#1696](https://github.com/rack/rack/issues/1696), [@jeremyevans](https://github.com/jeremyevans))
 - Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
 - Removed antiquated handlers: FCGI, LSWS, SCGI, Thin. ([#1658](https://github.com/rack/rack/pull/1658), [@ioquatix](https://github.com/ioquatix))
 - Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix](https://github.com/ioquatix))

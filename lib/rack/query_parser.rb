@@ -83,6 +83,7 @@ module Rack
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
       after = $' || ''
+      v ||= String.new
 
       if k.empty?
         if !v.nil? && name == "[]"
