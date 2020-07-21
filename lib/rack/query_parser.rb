@@ -102,7 +102,7 @@ module Rack
       elsif after == "[]"
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        params[k] << v
+        params[k] << v unless v.nil?
       elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
         child_key = $1
         params[k] ||= []

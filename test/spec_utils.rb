@@ -162,7 +162,7 @@ describe Rack::Utils do
       must_equal "pid=1234" => "1023", "a" => "b"
 
     Rack::Utils.parse_nested_query("foo[]").
-      must_equal "foo" => [nil]
+      must_equal "foo" => []
     Rack::Utils.parse_nested_query("foo[]=").
       must_equal "foo" => [""]
     Rack::Utils.parse_nested_query("foo[]=bar").
@@ -174,7 +174,7 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("foo[]=bar&foo[=baz").
       must_equal "foo" => ["bar"], "foo[" => "baz"
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]").
-      must_equal "foo" => ["bar", nil]
+      must_equal "foo" => ["bar"]
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]=").
       must_equal "foo" => ["bar", ""]
 
