@@ -93,6 +93,17 @@ module Rack
 
     attr :options
 
+    # Whether the application server will invoke the application from multiple threads. Implies {reentrant?}.
+    def multithread?
+      @options[:multithread]
+    end
+
+    # Re-entrancy is a feature of event-driven servers which may perform non-blocking operations. When an operation blocks, that particular request may yield and another request may enter the application stack.
+    # @return [Boolean] Whether the application can be invoked multiple times from the same thread.
+    def reentrant?
+      @options[:reentrant]
+    end
+
     # Create a new Rack::Builder instance and return the Rack application
     # generated from it.
     def self.app(default_app = nil, &block)
