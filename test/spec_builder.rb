@@ -224,30 +224,23 @@ describe Rack::Builder do
     end.must_raise(RuntimeError)
   end
 
-  describe "parse_file" do
+  describe "load_file" do
     def config_file(name)
       File.join(File.dirname(__FILE__), 'builder', name)
     end
 
     it "removes __END__ before evaluating app" do
-      app, _ = Rack::Builder.parse_file config_file('end.ru')
+      app, _ = Rack::Builder.load_file config_file('end.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
 
     it "supports multi-line comments" do
-      app = Rack::Builder.parse_file(config_file('comment.ru'))
+      app = Rack::Builder.load_file(config_file('comment.ru'))
       app.must_be_kind_of(Proc)
     end
 
-    it 'requires an_underscore_app not ending in .ru' do
-      $: << File.dirname(__FILE__)
-      app, * = Rack::Builder.parse_file 'builder/an_underscore_app'
-      Rack::MockRequest.new(app).get('/').body.to_s.must_equal 'OK'
-      $:.pop
-    end
-
     it "sets __LINE__ correctly" do
-      app, _ = Rack::Builder.parse_file config_file('line.ru')
+      app, _ = Rack::Builder.load_file config_file('line.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal '3'
     end
 
@@ -255,7 +248,7 @@ describe Rack::Builder do
       enc = Encoding.default_external
       begin
         Encoding.default_external = 'UTF-8'
-        app, _ = Rack::Builder.parse_file config_file('bom.ru')
+        app, _ = Rack::Builder.load_file config_file('bom.ru')
         Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
       ensure
         Encoding.default_external = enc
@@ -263,7 +256,7 @@ describe Rack::Builder do
     end
 
     it "respects the frozen_string_literal magic comment" do
-      app, _ = Rack::Builder.parse_file(config_file('frozen.ru'))
+      app, _ = Rack::Builder.load_file(config_file('frozen.ru'))
       response = Rack::MockRequest.new(app).get('/')
       response.body.must_equal 'frozen'
       body = response.instance_variable_get(:@body)

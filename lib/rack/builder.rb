@@ -35,39 +35,6 @@ module Rack
     # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
     UTF_8_BOM = '\xef\xbb\xbf'
 
-    # Parse the given config file to get a Rack application.
-    #
-    # If the config file ends in +.ru+, it is treated as a
-    # rackup file and the contents will be treated as if
-    # specified inside a Rack::Builder block.
-    #
-    # If the config file does not end in +.ru+, it is
-    # required and Rack will use the basename of the file
-    # to guess which constant will be the Rack application to run.
-    #
-    # Examples:
-    #
-    #   Rack::Builder.parse_file('config.ru')
-    #   # Rack application built using Rack::Builder.new
-    #
-    #   Rack::Builder.parse_file('app.rb')
-    #   # requires app.rb, which can be anywhere in Ruby's
-    #   # load path. After requiring, assumes App constant
-    #   # contains Rack application
-    #
-    #   Rack::Builder.parse_file('./my_app.rb')
-    #   # requires ./my_app.rb, which should be in the
-    #   # process's current directory.  After requiring,
-    #   # assumes MyApp constant contains Rack application
-    def self.parse_file(path)
-      if path.end_with?('.ru')
-        return self.load_file(path)
-      else
-        require path
-        return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
-      end
-    end
-
     # Load the given file as a rackup file, treating the
     # contents as if specified inside a Rack::Builder block.
     #
@@ -83,7 +50,7 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path)
+    def self.load_file(path, **options)
       config = ::File.read(path)
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
@@ -93,16 +60,18 @@ module Rack
 
       config.sub!(/^__END__\n.*\Z/m, '')
 
-      return new_from_string(config, path)
+      return new_from_string(config, path, **options)
     end
 
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
-    def self.new_from_string(builder_script, file = "(rackup)")
-      # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
-      # We cannot use instance_eval(String) as that would resolve constants differently.
-      binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
-      eval builder_script, binding, file
+    def self.new_from_string(builder_script, file = "(rackup)", **options)
+      builder = self.new(**options)
+
+      # Create a top level scope with self as the builder instance:
+      binding = TOPLEVEL_BINDING.eval('->(builder){builder.instance_eval{binding}}').call(builder)
+      
+      eval(builder_script, binding, file)
 
       return builder.to_app
     end
@@ -110,15 +79,19 @@ module Rack
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluted in the context of the instance.
-    def initialize(default_app = nil, &block)
+    def initialize(default_app = nil, **options, &block)
       @use = []
       @map = nil
       @run = default_app
       @warmup = nil
       @freeze_app = false
 
+      @options = options
+
       instance_eval(&block) if block_given?
     end
+
+    attr :options
 
     # Create a new Rack::Builder instance and return the Rack application
     # generated from it.

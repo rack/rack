@@ -346,7 +346,7 @@ module Rack
           abort "configuration #{options[:config]} not found"
         end
 
-        return Rack::Builder.parse_file(self.options[:config])
+        return Rack::Builder.load_file(self.options[:config])
       end
 
       def handle_profiling(heapfile, profile_mode, filename)
