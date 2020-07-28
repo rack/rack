@@ -59,9 +59,9 @@ module Rack
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
     #   # assumes MyApp constant contains Rack application
-    def self.parse_file(path)
+    def self.parse_file(path, **options)
       if path.end_with?('.ru')
-        return self.load_file(path)
+        return self.load_file(path, **options)
       else
         require path
         return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
@@ -83,7 +83,7 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path)
+    def self.load_file(path, **options)
       config = ::File.read(path)
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
@@ -93,16 +93,18 @@ module Rack
 
       config.sub!(/^__END__\n.*\Z/m, '')
 
-      return new_from_string(config, path)
+      return new_from_string(config, path, **options)
     end
 
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
-    def self.new_from_string(builder_script, file = "(rackup)")
-      # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
-      # We cannot use instance_eval(String) as that would resolve constants differently.
-      binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
-      eval builder_script, binding, file
+    def self.new_from_string(builder_script, file = "(rackup)", **options)
+      builder = self.new(**options)
+
+      # Create a top level scope with self as the builder instance:
+      binding = TOPLEVEL_BINDING.eval('->(builder){builder.instance_eval{binding}}').call(builder)
+      
+      eval(builder_script, binding, file)
 
       return builder.to_app
     end
@@ -110,9 +112,29 @@ module Rack
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluted in the context of the instance.
-    def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
+    def initialize(default_app = nil, **options, &block)
+      @use = []
+      @map = nil
+      @run = default_app
+      @warmup = nil
+      @freeze_app = false
+
+      @options = options
+
       instance_eval(&block) if block_given?
+    end
+
+    attr :options
+
+    # Whether the application server will invoke the application from multiple threads. Implies {reentrant?}.
+    def multithread?
+      @options[:multithread]
+    end
+
+    # Re-entrancy is a feature of event-driven servers which may perform non-blocking operations. When an operation blocks, that particular request may yield and another request may enter the application stack.
+    # @return [Boolean] Whether the application can be invoked multiple times from the same thread.
+    def reentrant?
+      multithread? || @options[:reentrant]
     end
 
     # Create a new Rack::Builder instance and return the Rack application
@@ -145,7 +167,12 @@ module Rack
         mapping, @map = @map, nil
         @use << proc { |app| generate_map(app, mapping) }
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
+
+      if middleware.respond_to?(:rackup)
+        @use << proc { |app| rackup(app, middleware, *args) }
+      else
+        @use << proc { |app| middleware.new(app, *args, &block) }
+      end
     end
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
@@ -235,6 +262,15 @@ module Rack
     end
 
     private
+
+    def rackup(app, middleware, *args)
+      builder = self.class.new(app, **@options) do
+        # In this context, self is the builder instance:
+        middleware.rackup(self, *args)
+      end
+
+      return builder.to_app
+    end
 
     # Generate a URLMap instance by generating new Rack applications for each
     # map block in this instance.
