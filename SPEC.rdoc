@@ -138,6 +138,7 @@ There are the following restrictions:
 * There must be a valid input stream in <tt>rack.input</tt>.
 * There must be a valid error stream in <tt>rack.errors</tt>.
 * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
+* There may be a valid provisional response callback in <tt>rack.provisional_response</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
@@ -244,6 +245,22 @@ if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
 * Middleware may wrap the IO object for the response pattern.
 * Middleware should not wrap the IO object for the request pattern. The
   request pattern is intended to provide the hijacker with "raw tcp".
+=== Provisional Response
+
+The application or any middleware may call the <tt>rack.provisional_response</tt>
+with a response code and headers that will be sent as a 1xx provisional response.
+
+If rack.early_hints is present it must respond to #call.
+This is an HTTP status. It must be an Integer greater than or equal to
+100 and lower than 200.
+The header must respond to +each+, and yield values of key and value.
+The header keys must be Strings.
+The header must conform to RFC7230 token specification, i.e. cannot
+contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+The values of the header must be Strings,
+consisting of lines (for multiple header values, e.g. multiple
+<tt>Set-Cookie</tt> values) separated by "\\n".
+The lines must not contain characters below 037.
 == The Response
 === The Status
 This is an HTTP status. It must be an Integer greater than or equal to

@@ -335,6 +335,8 @@ module Rack
       check_error env[RACK_ERRORS]
       ## * There may be a valid hijack stream in <tt>rack.hijack_io</tt>
       check_hijack env
+      ## * There may be a valid provisional response callback in <tt>rack.provisional_response</tt>
+      check_provisional_response env
 
       ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
       assert("REQUEST_METHOD unknown: #{env[REQUEST_METHOD]}") {
@@ -654,6 +656,55 @@ module Rack
     ## * Middleware may wrap the IO object for the response pattern.
     ## * Middleware should not wrap the IO object for the request pattern. The
     ##   request pattern is intended to provide the hijacker with "raw tcp".
+
+    ## === Provisional Response
+    ##
+    ## The application or any middleware may call the <tt>rack.provisional_response</tt>
+    ## with a response code and headers that will be sent as a 1xx provisional response.
+    def check_provisional_response(env)
+      if env[RACK_PROVISIONAL_RESPONSE]
+        ##
+        ## If rack.early_hints is present it must respond to #call.
+        assert("rack.early_hints must respond to call") { env[RACK_PROVISIONAL_RESPONSE].respond_to?(:call) }
+        original_callback = env[RACK_PROVISIONAL_RESPONSE]
+        env[RACK_PROVISIONAL_RESPONSE] = lambda do |status, headers|
+          ## This is an HTTP status. It must be an Integer greater than or equal to
+          ## 100 and lower than 200.
+          assert("Status must be an Integer >=100 and < 200") {
+            status.is_a?(Integer) && status >= 100 && status < 200
+          }
+          
+          ## The header must respond to +each+, and yield values of key and value.
+          assert("headers object should respond to #each, but doesn't (got #{header.class} as headers)") {
+             header.respond_to? :each
+          }
+
+          header.each { |key, value|
+            ## The header keys must be Strings.
+            assert("header key must be a string, was #{key.class}") {
+              key.kind_of? String
+            }
+
+            ## The header must conform to RFC7230 token specification, i.e. cannot
+            ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+            assert("invalid header name: #{key}") { key !~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/ }
+
+            ## The values of the header must be Strings,
+            assert("a header value must be a String, but the value of " +
+              "'#{key}' is a #{value.class}") { value.kind_of? String }
+            ## consisting of lines (for multiple header values, e.g. multiple
+            ## <tt>Set-Cookie</tt> values) separated by "\\n".
+            value.split("\n").each { |item|
+              ## The lines must not contain characters below 037.
+              assert("invalid header value #{key}: #{item.inspect}") {
+                item !~ /[\000-\037]/
+              }
+            }
+          }
+          original_callback.call(status, headers)
+        end
+      end
+    end
 
     ## == The Response
 
