@@ -111,7 +111,12 @@ module Rack
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluted in the context of the instance.
     def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
+      @use = []
+      @map = nil
+      @run = default_app
+      @warmup = nil
+      @freeze_app = false
+
       instance_eval(&block) if block_given?
     end
 
