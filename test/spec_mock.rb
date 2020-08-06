@@ -256,6 +256,13 @@ describe Rack::MockResponse do
     response.body.must_equal body.join
   end
 
+  it 'keep original body encoding' do
+    body = ["body"]
+    response = Rack::MockResponse[200, {}, body]
+
+    response.body.encoding.must_equal body.first.encoding
+  end
+
   it "provide access to the HTTP status" do
     res = Rack::MockRequest.new(app).get("")
     res.must_be :successful?

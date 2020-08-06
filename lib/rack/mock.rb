@@ -210,9 +210,10 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      buffer = String.new
+      enum = super.each
+      buffer = String.new(encoding: enum.first&.encoding)
 
-      super.each do |chunk|
+      enum.each do |chunk|
         buffer << chunk
       end
 

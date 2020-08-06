@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- Fix encoding of `MockResponse#body` to match input body encoding.([#1702](https://github.com/rack/rack/pull/1702), [@Quiwin](https://github.com/quiwin))
 - TempfileReaper now deletes temp files if application raises an exception. ([#1679](https://github.com/rack/rack/issues/1679), [@jeremyevans](https://github.com/jeremyevans))
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
@@ -119,7 +120,7 @@ All notable changes to this project will be documented in this file. For info on
 - Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
 - Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
 - Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
-- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft)) 
+- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft))
 - Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
 
 ### Documentation
