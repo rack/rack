@@ -40,6 +40,11 @@ module Rack
       @rewindable_io.rewind
     end
 
+    def size
+      make_rewindable unless @rewindable_io
+      @rewindable_io.size
+    end
+
     # Closes this RewindableInput object without closing the originally
     # wrapped IO object. Cleans up any temporary resources that this RewindableInput
     # has created.
