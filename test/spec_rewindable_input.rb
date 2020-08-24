@@ -49,6 +49,10 @@ module RewindableTest
     @rio.gets.must_equal "hello world"
   end
 
+  it "be able to handle size" do
+    @rio.size.must_equal "hello world".size
+  end
+
   it "be able to handle each" do
     array = []
     @rio.each do |data|
