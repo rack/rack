@@ -1,3 +1,6 @@
+require:
+  - rubocop-packaging
+
 AllCops:
   TargetRubyVersion: 2.4
   DisabledByDefault: true
