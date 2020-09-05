@@ -537,7 +537,7 @@ class RackRequestTest < Minitest::Spec
     begin
       $VERBOSE = true
       req['foo'].must_equal 'quux'
-      warn_arg.must_equal ["Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead", {uplevel: 1}]
+      warn_arg.must_equal ["Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead", { uplevel: 1 }]
     ensure
       $VERBOSE = verbose
     end
@@ -582,7 +582,7 @@ class RackRequestTest < Minitest::Spec
     begin
       $VERBOSE = true
       req['foo'] = 'quux'
-      warn_arg.must_equal ["Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead", {uplevel: 1}]
+      warn_arg.must_equal ["Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead", { uplevel: 1 }]
       req.params['foo'].must_equal 'quux'
     ensure
       $VERBOSE = verbose
