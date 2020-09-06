@@ -151,7 +151,7 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for '/', fixture
     lambda {
       Rack::Multipart.parse_multipart(env)
-    }.must_raise EOFError
+    }.must_raise Rack::Multipart::EmptyContentError
     rd.close
 
     err = thr.value

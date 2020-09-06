@@ -6,6 +6,10 @@ module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end
 
+    # Use specific error class when parsing multipart request
+    # that ends early.
+    class EmptyContentError < ::EOFError; end
+
     class Parser
       (require_relative '../core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
@@ -356,7 +360,7 @@ module Rack
 
       def handle_empty_content!(content)
         if content.nil? || content.empty?
-          raise EOFError
+          raise EmptyContentError
         end
       end
     end

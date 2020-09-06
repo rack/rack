@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::HTTP_VERSION` has been removed and the `HTTP_VERSION` env setting is no longer set in the CGI and Webrick handlers . ([#970](https://github.com/rack/rack/issues/970), [@jeremyevans](https://github.com/jeremyevans))
 - `Rack::Request#[]` and `#[]=` now warn even in non-verbose mode. ([#1277](https://github.com/rack/rack/issues/1277), [@jeremyevans](https://github.com/jeremyevans))
 - Decrease default allowed parameter recursion level from 100 to 32. ([#1640](https://github.com/rack/rack/issues/1640), [@jeremyevans](https://github.com/jeremyevans))
+- Attempting to parse a multipart response with an empty body now raises Rack::Multipart::EmptyContentError. ([#1603](https://github.com/rack/rack/issues/1603), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Fixed
 
