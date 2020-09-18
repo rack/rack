@@ -68,7 +68,11 @@ We definitely appreciate pull requests that highlight or reproduce a problem, ev
 
 Implement your feature or bug fix.
 
-Make sure that `bundle exec rake fulltest` completes without errors.
+Make sure that all tests pass:
+
+```
+bundle exec rake test
+```
 
 #### Write Documentation
 
