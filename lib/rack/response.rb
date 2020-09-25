@@ -78,7 +78,7 @@ module Rack
     # @return [Array] a 3-tuple suitable of `[status, headers, body]`
     # which is suitable to be returned from the middleware `#call(env)` method.
     def finish(&block)
-      if STATUS_WITH_NO_ENTITY_BODY[status.to_i]
+      if STATUS_WITH_NO_ENTITY_BODY[@status]
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
