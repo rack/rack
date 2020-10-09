@@ -374,14 +374,22 @@ module Rack
     # that have already been processed by HMAC. This should not be used
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
-    def secure_compare(a, b)
-      return false unless a.bytesize == b.bytesize
+    if defined?(OpenSSL.fixed_length_secure_compare)
+      def secure_compare(a, b)
+        return false unless a.bytesize == b.bytesize
 
-      l = a.unpack("C*")
+        OpenSSL.fixed_length_secure_compare(a, b)
+      end
+    else
+      def secure_compare(a, b)
+        return false unless a.bytesize == b.bytesize
 
-      r, i = 0, -1
-      b.each_byte { |v| r |= v ^ l[i += 1] }
-      r == 0
+        l = a.unpack("C*")
+
+        r, i = 0, -1
+        b.each_byte { |v| r |= v ^ l[i += 1] }
+        r == 0
+      end
     end
 
     # Context allows the use of a compatible middleware at different points
