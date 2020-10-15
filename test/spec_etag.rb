@@ -72,6 +72,12 @@ describe Rack::ETag do
     response[1]['ETag'].must_be_nil
   end
 
+  it "not set ETag if body has nil values" do
+    app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, [nil]] }
+    response = etag(app).call(request)
+    response[1]['ETag'].must_be_nil
+  end
+
   it "not set ETag if Last-Modified is set" do
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Last-Modified' => Time.now.httpdate }, ["Hello, World!"]] }
     response = etag(app).call(request)

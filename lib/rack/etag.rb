@@ -66,6 +66,7 @@ module Rack
         digest = nil
 
         body.each do |part|
+          part = part.to_s unless part.is_a?(String)
           parts << part
           (digest ||= Digest::SHA256.new) << part unless part.empty?
         end
