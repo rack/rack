@@ -15,7 +15,7 @@ module Rack
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
       def type(content_type)
         return nil unless content_type
-        content_type.split(SPLIT_PATTERN, 2).first.tap &:downcase!
+        content_type.split(SPLIT_PATTERN, 2).first.tap(&:downcase!)
       end
 
       # The media type parameters provided in CONTENT_TYPE as a Hash, or
