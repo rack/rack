@@ -218,10 +218,9 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/c").status.must_equal 200
   end
 
-  it 'complains about a missing run' do
-    proc do
-      Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
-    end.must_raise(RuntimeError)
+  it 'should result in the default app' do
+    app = Rack::Builder.new.to_app
+    app.must_equal Rack::Builder::DEFAULT_APP
   end
 
   describe "parse_file" do
