@@ -149,7 +149,7 @@ task :external do
   FileUtils.mv ".rubocop.yml", ".rack.rubocop.yml.disabled"
 
   Bundler.with_clean_env do
-    clone_and_test("https://github.com/kickstarter/rack-attack", "rack-attack", "bundle exec rake")
+    clone_and_test("https://github.com/rack/rack-attack", "rack-attack", "bundle exec rake test")
     clone_and_test("https://github.com/rtomayko/rack-cache", "rack-cache", "bundle exec rake")
     clone_and_test("https://github.com/socketry/falcon", "falcon", "bundle exec rspec")
   end
