@@ -24,7 +24,6 @@ module Rack
         end
       end
     end
-    include Assertion
 
     ## This specification aims to formalize the Rack protocol.  You
     ## can (and should) use Rack::Lint to enforce it.
@@ -383,8 +382,6 @@ module Rack
     end
 
     class InputWrapper
-      include Assertion
-
       def initialize(input)
         @input = input
       end
@@ -492,8 +489,6 @@ module Rack
     end
 
     class ErrorWrapper
-      include Assertion
-
       def initialize(error)
         @error = error
       end
@@ -522,7 +517,6 @@ module Rack
     end
 
     class HijackWrapper
-      include Assertion
       extend Forwardable
 
       REQUIRED_METHODS = [
