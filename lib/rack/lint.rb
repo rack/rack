@@ -17,6 +17,8 @@ module Rack
     class LintError < RuntimeError; end
     module Assertion
       def assert(message)
+        warn("Rack::Lint::Assertion#assert is deprecated as it is inherently inefficient. " \
+          "Use `raise Rack::Lint::LintError, 'msg' unless condition` instead", uplevel: 1)
         unless yield
           raise LintError, message
         end
