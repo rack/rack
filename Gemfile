@@ -4,6 +4,7 @@ source 'https://rubygems.org'
 
 gemspec
 
+gem "webrick"
 gem "rubocop", require: false
 gem "rubocop-packaging", require: false
 
