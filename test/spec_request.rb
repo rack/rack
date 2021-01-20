@@ -308,12 +308,12 @@ class RackRequestTest < Minitest::Spec
     req.params[:quux].must_equal "bla"
   end
 
-  it "use semi-colons as separators for query strings in GET" do
+  it "does not use semi-colons as separators for query strings in GET" do
     req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
     req.query_string.must_equal "foo=bar&quux=b;la;wun=duh"
-    req.GET.must_equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
+    req.GET.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
     req.POST.must_be :empty?
-    req.params.must_equal "foo" => "bar", "quux" => "b", "la" => nil, "wun" => "duh"
+    req.params.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
   end
 
   it "limit the keys from the GET query string" do

@@ -4,7 +4,7 @@ module Rack
   class QueryParser
     (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
-    DEFAULT_SEP = /[&;] */n
+    DEFAULT_SEP = /[&] */n
     COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
     # ParameterTypeError is the error that is raised when incoming structural
@@ -29,10 +29,9 @@ module Rack
     end
 
     # Stolen from Mongrel, with some small modifications:
-    # Parses a query string by breaking it up at the '&'
-    # and ';' characters.  You can also use this to parse
-    # cookies by changing the characters used in the second
-    # parameter (which defaults to '&;').
+    # Parses a query string by breaking it up at the '&'.  You can also use this
+    # to parse cookies by changing the characters used in the second parameter
+    # (which defaults to '&').
     def parse_query(qs, d = nil, &unescaper)
       unescaper ||= method(:unescape)
 

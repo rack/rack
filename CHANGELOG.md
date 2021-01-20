@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.0.0] - Unreleased
 
+### Security
+
+- Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
+
 ### Added
 
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
