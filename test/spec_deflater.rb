@@ -402,6 +402,31 @@ describe Rack::Deflater do
     verify(200, response, 'gzip', options)
   end
 
+  it 'will change gzip level' do
+    response = 'Hello World!' * 1000
+    small_options = {
+      'deflater_options' => { gzip_compression_level: 9 },
+      'skip_body_verify' => true,
+    }
+    fast_options = {
+      'deflater_options' => { gzip_compression_level: 1 },
+      'skip_body_verify' => true,
+    }
+    verify(200, response, 'gzip', small_options) do |_, _, body_small|
+      verify(200, response, 'gzip', fast_options) do |_, _, body_fast|
+        small_bytes = 0
+        body_small.each do |part|
+          small_bytes += part.bytesize
+        end
+        fast_bytes = 0
+        body_fast.each do |part|
+          fast_bytes += part.bytesize
+        end
+        assert small_bytes < fast_bytes
+      end
+    end
+  end
+
   it 'will honor sync: false to avoid unnecessary flushing' do
     app_body = Object.new
     class << app_body

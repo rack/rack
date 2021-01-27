@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Added
 
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
+- `Rack::Deflater` supports `gzip_compression_level`. ([@bayleedev](https://github.com/bayleedev))
 
 ### Changed
 

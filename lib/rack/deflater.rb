@@ -33,11 +33,18 @@ module Rack
     # :sync :: determines if the stream is going to be flushed after every chunk.  Flushing after every chunk reduces
     #          latency for time-sensitive streaming applications, but hurts compression and throughput.
     #          Defaults to +true+.
+    # :gzip_compression_level ::  An integer from 0 to 9 controlling the level of
+    #                          compression; 1 is fastest and produces the least
+    #                          compression, and 9 is slowest and produces the
+    #                          most compression. 0 is no compression. The
+    #                          default is 6. This is only needed for the `gzip`
+    #                          type encoding.
     def initialize(app, options = {})
       @app = app
       @condition = options[:if]
       @compressible_types = options[:include]
       @sync = options.fetch(:sync, true)
+      @gzip_compression_level = options.fetch(:gzip_compression_level, 6)
     end
 
     def call(env)
@@ -65,7 +72,7 @@ module Rack
         headers.delete(CONTENT_LENGTH)
         mtime = headers["Last-Modified"]
         mtime = Time.httpdate(mtime).to_i if mtime
-        [status, headers, GzipStream.new(body, mtime, @sync)]
+        [status, headers, GzipStream.new(body, mtime, @sync, @gzip_compression_level)]
       when "identity"
         [status, headers, body]
       when nil
@@ -82,16 +89,18 @@ module Rack
       # mtime :: The modification time of the body, used to set the
       #          modification time in the gzip header.
       # sync :: Whether to flush each gzip chunk as soon as it is ready.
-      def initialize(body, mtime, sync)
+      # gzip_compression_level :: The compression value for gzip.
+      def initialize(body, mtime, sync, gzip_compression_level)
         @body = body
         @mtime = mtime
         @sync = sync
+        @gzip_compression_level = gzip_compression_level
       end
 
       # Yield gzip compressed strings to the given block.
       def each(&block)
         @writer = block
-        gzip = ::Zlib::GzipWriter.new(self)
+        gzip = ::Zlib::GzipWriter.new(self, @gzip_compression_level)
         gzip.mtime = @mtime if @mtime
         @body.each { |part|
           # Skip empty strings, as they would result in no output,
