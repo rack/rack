@@ -24,6 +24,10 @@ jobs:
         restore-keys: |
           bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
 
+    - name: Updating packages (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get update
+
     - name: Installing packages (ubuntu)
       if: matrix.os == 'ubuntu-latest'
       run: sudo apt-get install libfcgi-dev libmemcached-dev
@@ -60,6 +64,10 @@ jobs:
         key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
         restore-keys: |
           bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+
+    - name: Updating packages (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get update
 
     - name: Installing packages (ubuntu)
       if: matrix.os == 'ubuntu-latest'
