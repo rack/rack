@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file. For info on
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
+- Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the mulitpart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 
 ## [2.2.3] - 2020-06-15
 
@@ -130,7 +131,7 @@ All notable changes to this project will be documented in this file. For info on
 - Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
 - Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
 - Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
-- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft)) 
+- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft))
 - Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
 
 ### Documentation
