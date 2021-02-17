@@ -532,6 +532,22 @@ Content-Type: image/jpeg\r
     params["files"][:tempfile].read.must_equal "contents"
   end
 
+  it "builds multipart filename with space" do
+    files = Rack::Multipart::UploadedFile.new(multipart_file("space case.txt"))
+    data  = Rack::Multipart.build_multipart("submit-name" => "Larry", "files" => files)
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].must_equal "Larry"
+    params["files"][:filename].must_equal "space case.txt"
+    params["files"][:tempfile].read.must_equal "contents"
+  end
+
   it "builds nested multipart body using array" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
     data  = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => files }])
