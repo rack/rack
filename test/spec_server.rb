@@ -89,14 +89,14 @@ describe Rack::Server do
   end
 
   it "get options from ARGV" do
-    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', '-w', '-q', '-o', '127.0.0.1', '-O', 'NAME=VALUE', '-ONAME2', '-D']
+    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', '-w', '-q', '-o', 'localhost', '-O', 'NAME=VALUE', '-ONAME2', '-D']
     server = Rack::Server.new
     server.options[:debug].must_equal true
     server.options[:server].must_equal 'thin'
     server.options[:environment].must_equal 'production'
     server.options[:warn].must_equal true
     server.options[:quiet].must_equal true
-    server.options[:Host].must_equal '127.0.0.1'
+    server.options[:Host].must_equal 'localhost'
     server.options[:NAME].must_equal 'VALUE'
     server.options[:NAME2].must_equal true
     server.options[:daemonize].must_equal true
@@ -329,8 +329,8 @@ describe Rack::Server do
       app: app,
       environment: 'none',
       pid: pidfile.path,
-      Port: TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
-      Host: '127.0.0.1',
+      Port: TCPServer.open('localhost', 0){|s| s.addr[1] },
+      Host: 'localhost',
       Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
       AccessLog: [],
       daemonize: false,
@@ -339,9 +339,9 @@ describe Rack::Server do
     t = Thread.new { server.start { |s| Thread.current[:server] = s } }
     t.join(0.01) until t[:server] && t[:server].status != :Stop
     body = if URI.respond_to?(:open)
-             URI.open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
+             URI.open("http://localhost:#{server.options[:Port]}/") { |f| f.read }
            else
-             open("http://127.0.0.1:#{server.options[:Port]}/") { |f| f.read }
+             open("http://localhost:#{server.options[:Port]}/") { |f| f.read }
            end
     body.must_equal 'success'
 
@@ -357,8 +357,8 @@ describe Rack::Server do
       app: app,
       environment: 'none',
       pid: pidfile.path,
-      Port: TCPServer.open('127.0.0.1', 0){|s| s.addr[1] },
-      Host: '127.0.0.1',
+      Port: TCPServer.open('localhost', 0){|s| s.addr[1] },
+      Host: 'localhost',
       Logger: WEBrick::Log.new(nil, WEBrick::BasicLog::WARN),
       AccessLog: [],
       daemonize: false,
@@ -369,9 +369,9 @@ describe Rack::Server do
     t = Thread.new { server.start { |s| Thread.current[:server] = s } }
     t.join(0.01) until t[:server] && t[:server].status != :Stop
 
-    uri = URI.parse("https://127.0.0.1:#{server.options[:Port]}/")
+    uri = URI.parse("https://localhost:#{server.options[:Port]}/")
 
-    Net::HTTP.start("127.0.0.1", uri.port, use_ssl: true,
+    Net::HTTP.start("localhost", uri.port, use_ssl: true,
       verify_mode: OpenSSL::SSL::VERIFY_NONE) do |http|
 
       request = Net::HTTP::Get.new uri
