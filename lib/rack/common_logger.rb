@@ -44,8 +44,8 @@ module Rack
     private
 
     # Log the request to the configured logger.
-    def log(env, status, header, began_at)
-      length = extract_content_length(header)
+    def log(env, status, headers, began_at)
+      length = extract_content_length(headers)
 
       msg = FORMAT % [
         env['HTTP_X_FORWARDED_FOR'] || env["REMOTE_ADDR"] || "-",
