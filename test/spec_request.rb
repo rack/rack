@@ -667,6 +667,14 @@ class RackRequestTest < Minitest::Spec
     request.scheme.must_equal "http"
     request.wont_be :ssl?
 
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_SCHEME' => 'ws'))
+    request.scheme.must_equal "ws"
+    request.wont_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'ws'))
+    request.scheme.must_equal "ws"
+    request.wont_be :ssl?
+
     request = make_request(Rack::MockRequest.env_for("/", 'HTTPS' => 'on'))
     request.scheme.must_equal "https"
     request.must_be :ssl?
@@ -695,12 +703,20 @@ class RackRequestTest < Minitest::Spec
     request.scheme.must_equal "https"
     request.must_be :ssl?
 
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_SCHEME' => 'wss'))
+    request.scheme.must_equal "wss"
+    request.must_be :ssl?
+
     request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https'))
     request.scheme.must_equal "https"
     request.must_be :ssl?
 
     request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'https, http, http'))
     request.scheme.must_equal "https"
+    request.must_be :ssl?
+
+    request = make_request(Rack::MockRequest.env_for("/", 'HTTP_X_FORWARDED_PROTO' => 'wss'))
+    request.scheme.must_equal "wss"
     request.must_be :ssl?
   end
 

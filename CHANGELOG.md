@@ -33,6 +33,7 @@ All notable changes to this project will be documented in this file. For info on
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the mulitpart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
+- `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
 ## [2.2.3] - 2020-06-15
 
