@@ -9,79 +9,86 @@ module Rack
   class Lint
     def initialize(app)
       @app = app
-      @content_length = nil
     end
 
     # :stopdoc:
 
     class LintError < RuntimeError; end
-    module Assertion
-      def assert(message)
-        warn("Rack::Lint::Assertion#assert is deprecated as it is inherently inefficient. " \
-          "Use `raise Rack::Lint::LintError, 'msg' unless condition` instead", uplevel: 1)
-        unless yield
-          raise LintError, message
-        end
-      end
-    end
 
-    ## This specification aims to formalize the Rack protocol.  You
+    ## This specification aims to formalize the Rack protocol. You
     ## can (and should) use Rack::Lint to enforce it.
     ##
     ## When you develop middleware, be sure to add a Lint before and
     ## after to catch all mistakes.
-
+    ##
     ## = Rack applications
-
+    ##
     ## A Rack application is a Ruby object (not a class) that
     ## responds to +call+.
     def call(env = nil)
-      Wrapper.new(env).to_a(env)
+      Wrapper.new(@app, env).response
     end
 
     class Wrapper
-      def to_a(env)
-        ## It takes exactly one argument, the *environment*
-        raise LintError, "No env given" unless env
-        check_env env
+      def initialize(app, env)
+        @app = app
+        @env = env
+        @response = nil
+        @head_request = false
 
-        env[RACK_INPUT] = InputWrapper.new(env[RACK_INPUT])
-        env[RACK_ERRORS] = ErrorWrapper.new(env[RACK_ERRORS])
+        @status = nil
+        @headers = nil
+        @body = nil
+        @invoked = nil
+        @closed = false
+        @size = 0
+      end
+
+      def response
+        ## It takes exactly one argument, the *environment*
+        raise LintError, "No env given" unless @env
+        check_environment(@env)
+
+        @env[RACK_INPUT] = InputWrapper.new(@env[RACK_INPUT])
+        @env[RACK_ERRORS] = ErrorWrapper.new(@env[RACK_ERRORS])
 
         ## and returns an Array of exactly three values:
-        ary = @app.call(env)
-        raise LintError, "response is not an Array, but #{ary.class}" unless ary.kind_of? Array
-        raise LintError, "response array has #{ary.size} elements instead of 3" unless ary.size == 3
+        @response = @app.call(@env)
+        raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
+        raise LintError, "response array has #{@response.size} elements instead of 3" unless @response.size == 3
 
-        status, headers, @body = ary
+        @status, @headers, @body = @response
         ## The *status*,
-        check_status status
-        ## the *headers*,
-        check_headers headers
+        check_status(@status)
 
-        hijack_proc = check_hijack_response headers, env
-        if hijack_proc && headers.is_a?(Hash)
-          headers[RACK_HIJACK] = hijack_proc
+        ## the *headers*,
+        check_headers(@headers)
+
+        hijack_proc = check_hijack_response(@headers, @env)
+        if hijack_proc && @headers.is_a?(Hash)
+          @headers[RACK_HIJACK] = hijack_proc
         end
 
         ## and the *body*.
-        check_content_type status, headers
-        check_content_length status, headers
-        @head_request = env[REQUEST_METHOD] == HEAD
+        check_content_type(@status, @headers)
+        check_content_length(@status, @headers)
+        @head_request = @env[REQUEST_METHOD] == HEAD
 
-        @lint = (env['rack.lint'] ||= []) << self
+        @lint = (@env['rack.lint'] ||= []) << self
 
-        if (env['rack.lint.body_iteration'] ||= 0) > 0
+        if (@env['rack.lint.body_iteration'] ||= 0) > 0
           raise LintError, "Middleware must not call #each directly"
         end
 
-        [status, headers, self]
+        return [@status, @headers, self]
       end
 
+      ##
       ## == The Environment
-      def check_env(env)
+      ##
+      def check_environment(env)
         ## The environment must be an unfrozen instance of Hash that includes
-        ## CGI-like headers.  The application is free to modify the
+        ## CGI-like headers. The application is free to modify the
         ## environment.
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
@@ -188,7 +195,7 @@ module Rack
         ##                           an object resembling an IO. See hijacking.
 
         ## Additional environment specifications have approved to
-        ## standardized middleware APIs.  None of these are required to
+        ## standardized middleware APIs. None of these are required to
         ## be implemented by the server.
 
         ## <tt>rack.session</tt>:: A hash like interface for storing
@@ -356,7 +363,7 @@ module Rack
         end
 
         ## * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
-        ##   set.  <tt>PATH_INFO</tt> should be <tt>/</tt> if
+        ##   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
         ##   <tt>SCRIPT_NAME</tt> is empty.
         unless env[SCRIPT_NAME] || env[PATH_INFO]
           raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
@@ -367,6 +374,7 @@ module Rack
         end
       end
 
+      ##
       ## === The Input Stream
       ##
       ## The input stream is an IO-like object which contains the raw HTTP
@@ -486,7 +494,9 @@ module Rack
         end
       end
 
+      ##
       ## === The Error Stream
+      ##
       def check_error(error)
         ## The error stream must respond to +puts+, +write+ and +flush+.
         [:puts, :write, :flush].each { |method|
@@ -542,13 +552,16 @@ module Rack
         end
       end
 
+      ##
       ## === Hijacking
+      ##
       #
       # AUTHORS: n.b. The trailing whitespace between paragraphs is important and
       # should not be removed. The whitespace creates paragraphs in the RDoc
       # output.
       #
       ## ==== Request (before status)
+      ##
       def check_hijack(env)
         if env[RACK_IS_HIJACK]
           ## If rack.hijack? is true then rack.hijack must respond to #call.
@@ -593,13 +606,12 @@ module Rack
         end
       end
 
+      ##
       ## ==== Response (after headers)
+      ##
       ## It is also possible to hijack a response after the status and headers
       ## have been sent.
       def check_hijack_response(headers, env)
-
-        # this check uses headers like a hash, but the spec only requires
-        # headers respond to #each
         headers = Rack::Utils::HeaderHash[headers]
 
         ## In order to do this, an application may set the special header
@@ -638,16 +650,20 @@ module Rack
           nil
         end
       end
+      ##
       ## ==== Conventions
+      ##
       ## * Middleware should not use hijack unless it is handling the whole
       ##   response.
       ## * Middleware may wrap the IO object for the response pattern.
       ## * Middleware should not wrap the IO object for the request pattern. The
       ##   request pattern is intended to provide the hijacker with "raw tcp".
+      ##
 
       ## == The Response
-
+      ##
       ## === The Status
+      ##
       def check_status(status)
         ## This is an HTTP status. It must be an Integer greater than or equal to
         ## 100.
@@ -656,7 +672,9 @@ module Rack
         end
       end
 
+      ##
       ## === The Headers
+      ##
       def check_headers(header)
         ## The header must respond to +each+, and yield values of key and value.
         unless header.respond_to? :each
@@ -694,7 +712,9 @@ module Rack
         }
       end
 
+      ##
       ## === The Content-Type
+      ##
       def check_content_type(status, headers)
         headers.each { |key, value|
           ## There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
@@ -708,7 +728,9 @@ module Rack
         }
       end
 
+      ##
       ## === The Content-Length
+      ##
       def check_content_length(status, headers)
         headers.each { |key, value|
           if key.downcase == 'content-length'
@@ -722,38 +744,63 @@ module Rack
         }
       end
 
-      def verify_content_length(bytes)
+      def verify_content_length(size)
         if @head_request
-          unless bytes == 0
+          unless size == 0
             raise LintError, "Response body was given for HEAD request, but should be empty"
           end
         elsif @content_length
-          unless @content_length == bytes.to_s
-            raise LintError, "Content-Length header was #{@content_length}, but should be #{bytes}"
+          unless @content_length == size.to_s
+            raise LintError, "Content-Length header was #{@content_length}, but should be #{size}"
           end
         end
       end
 
+      ##
       ## === The Body
+      ##
+      ## The Body is typically an +Array+ of +String+ instances, an enumerable
+      ## that yields +String+ instances, a +Proc+ instance, or a File-like
+      ## object.
+      ##
+      ## The Body must respond to +each+ or +call+. It may optionally respond to
+      ## +to_path+.
+      ##
+      ## A Body that responds to +each+ is considered to be an Enumerable Body.
+      ##
+      ## A Body that responds to +call+ is considered to be a Streaming Body.
+      ##
+      ## A Body that responds to +to_path+ is expected to generate the same
+      ## content as would be produced by reading a local file opened with the
+      ## path returned by calling +to_path+.
+      ##
+      ## A body that responds to both +each+ and +call+ must be treated as an
+      ## Enumerable Body, not a Streaming Body. If it responds to +each+, you
+      ## must call +each+ and not +call+. If the body doesn't respond to
+      ## +each+, then you can assume it responds to +call+.
+
+      ##
+      ## ==== Enumerable Body
+      ##
       def each
-        @closed = false
-        bytes = 0
+        ## The Enumerable Body must respond to +each+.
+        raise LintError, "Enumerable Body must respond to each" unless @body.respond_to?(:each)
 
-        ## The Body must respond to +each+
-        unless @body.respond_to?(:each)
-          raise LintError, "Response body must respond to each"
-        end
+        ## It must only be called once.
+        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
 
-        @body.each { |part|
+        @invoked = :each
+
+        @body.each do |chunk|
           ## and must only yield String values.
-          unless part.kind_of? String
-            raise LintError, "Body yielded non-string value #{part.inspect}"
+          unless chunk.kind_of? String
+            raise LintError, "Body yielded non-string value #{chunk.inspect}"
           end
 
-          ## 
+          ##
           ## The Body itself should not be an instance of String, as this will
           ## break in Ruby 1.9.
-          ## 
+          ##
           ## Middleware must not call +each+ directly on the Body.
           ## Instead, middleware can return a new Body that calls +each+ on the
           ## original Body, yielding at least once per iteration.
@@ -765,11 +812,11 @@ module Rack
             end
           end
 
-          bytes += part.bytesize
-          yield part
-        }
+          @size += chunk.bytesize
+          yield chunk
+        end
 
-        verify_content_length(bytes)
+        verify_content_length(@size)
 
         verify_to_path
       end
@@ -797,7 +844,7 @@ module Rack
         close
       end
 
-      ## 
+      ##
       ## If the Body responds to +close+, it will be called after iteration. If
       ## the original Body is replaced by a new Body, the new Body
       ## must close the original Body after iteration, if it responds to +close+.
@@ -805,7 +852,7 @@ module Rack
       ## implementation of +to_ary+ must call +close+ after iteration.
       def close
         @closed = true
-        @body.close  if @body.respond_to?(:close)
+        @body.close if @body.respond_to?(:close)
         index = @lint.index(self)
         unless @env['rack.lint'][0..index].all? {|lint| lint.instance_variable_get(:@closed)}
           raise LintError, "Body has not been closed"
@@ -824,17 +871,62 @@ module Rack
             raise LintError, "The file identified by body.to_path does not exist"
           end
         end
+
+        ##
+        ## The Body commonly is an Array of Strings, the application
+        ## instance itself, or a File-like object.
       end
 
       ##
-      ## The Body commonly is an Array of Strings, the application
-      ## instance itself, or a File-like object.
+      ## ==== Streaming Body
+      ##
+      def call(stream)
+        ## The Streaming Body must respond to +call+.
+        raise LintError, "Streaming Body must respond to call" unless @body.respond_to?(:call)
+
+        ## It must only be called once.
+        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+
+        @invoked = :call
+
+        ## It takes a +stream+ argument.
+        ##
+        ## The +stream+ argument must implement:
+        ## <tt>read, write, flush, close, close_read, close_write, closed?</tt>
+        ##
+        @body.call(StreamWrapper.new(stream))
+      end
+
+      class StreamWrapper
+        extend Forwardable
+
+        ## The semantics of these IO methods must be a best effort match to
+        ## those of a normal Ruby IO or Socket object, using standard arguments
+        ## and raising standard exceptions. Servers are encouraged to simply
+        ## pass on real IO objects, although it is recognized that this approach
+        ## is not directly compatible with HTTP/2.
+        REQUIRED_METHODS = [
+          :read, :write, :flush, :close,
+          :close_read, :close_write, :closed?
+        ]
+
+        def_delegators :@stream, *REQUIRED_METHODS
+
+        def initialize(stream)
+          @stream = stream
+          
+          REQUIRED_METHODS.each do |method_name|
+            raise LintError, "Stream must respond to #{method_name}" unless stream.respond_to?(method_name)
+          end
+        end
+      end
 
       # :startdoc:
     end
   end
 end
 
+##
 ## == Thanks
 ## Some parts of this specification are adopted from PEP333: Python
 ## Web Server Gateway Interface

@@ -1,9 +1,11 @@
-This specification aims to formalize the Rack protocol.  You
+This specification aims to formalize the Rack protocol. You
 can (and should) use Rack::Lint to enforce it.
 
 When you develop middleware, be sure to add a Lint before and
 after to catch all mistakes.
+
 = Rack applications
+
 A Rack application is a Ruby object (not a class) that
 responds to +call+.
 It takes exactly one argument, the *environment*
@@ -11,9 +13,11 @@ and returns an Array of exactly three values:
 The *status*,
 the *headers*,
 and the *body*.
+
 == The Environment
+
 The environment must be an unfrozen instance of Hash that includes
-CGI-like headers.  The application is free to modify the
+CGI-like headers. The application is free to modify the
 environment.
 
 The environment is required to include these variables
@@ -98,7 +102,7 @@ Rack-specific variables:
                           has received #call, this will contain
                           an object resembling an IO. See hijacking.
 Additional environment specifications have approved to
-standardized middleware APIs.  None of these are required to
+standardized middleware APIs. None of these are required to
 be implemented by the server.
 <tt>rack.session</tt>:: A hash like interface for storing
                         request session data.
@@ -143,9 +147,10 @@ There are the following restrictions:
 * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
 * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
-  set.  <tt>PATH_INFO</tt> should be <tt>/</tt> if
+  set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
   <tt>SCRIPT_NAME</tt> is empty.
   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
+
 === The Input Stream
 
 The input stream is an IO-like object which contains the raw HTTP
@@ -179,15 +184,20 @@ The input stream must respond to +gets+, +each+, +read+ and +rewind+.
   developers must buffer the input data into some rewindable object
   if the underlying input stream is not rewindable.
 * +close+ must never be called on the input stream.
+
 === The Error Stream
+
 The error stream must respond to +puts+, +write+ and +flush+.
 * +puts+ must be called with a single argument that responds to +to_s+.
 * +write+ must be called with a single argument that is a String.
 * +flush+ must be called without arguments and must be called
   in order to make the error appear for sure.
 * +close+ must never be called on the error stream.
+
 === Hijacking
+
 ==== Request (before status)
+
 If rack.hijack? is true then rack.hijack must respond to #call.
 rack.hijack must return the io that will also be assigned (or is
 already present, in rack.hijack_io.
@@ -216,7 +226,9 @@ provides the minimum of specification and support.
 If rack.hijack? is false, then rack.hijack should not be set.
 
 If rack.hijack? is false, then rack.hijack_io should not be set.
+
 ==== Response (after headers)
+
 It is also possible to hijack a response after the status and headers
 have been sent.
 In order to do this, an application may set the special header
@@ -238,17 +250,24 @@ the <tt>rack.hijack</tt> response API is in use.
 
 The special response header <tt>rack.hijack</tt> must only be set
 if the request env has <tt>rack.hijack?</tt> <tt>true</tt>.
+
 ==== Conventions
+
 * Middleware should not use hijack unless it is handling the whole
   response.
 * Middleware may wrap the IO object for the response pattern.
 * Middleware should not wrap the IO object for the request pattern. The
   request pattern is intended to provide the hijacker with "raw tcp".
+
 == The Response
+
 === The Status
+
 This is an HTTP status. It must be an Integer greater than or equal to
 100.
+
 === The Headers
+
 The header must respond to +each+, and yield values of key and value.
 The header keys must be Strings.
 Special headers starting "rack." are for communicating with the
@@ -260,14 +279,43 @@ The values of the header must be Strings,
 consisting of lines (for multiple header values, e.g. multiple
 <tt>Set-Cookie</tt> values) separated by "\\n".
 The lines must not contain characters below 037.
+
 === The Content-Type
+
 There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
 204 or 304.
+
 === The Content-Length
+
 There must not be a <tt>Content-Length</tt> header when the
 +Status+ is 1xx, 204 or 304.
+
 === The Body
-The Body must respond to +each+
+
+The Body is typically an +Array+ of +String+ instances, an enumerable
+that yields +String+ instances, a +Proc+ instance, or a File-like
+object.
+
+The Body must respond to +each+ or +call+. It may optionally respond to
++to_path+.
+
+A Body that responds to +each+ is considered to be an Enumerable Body.
+
+A Body that responds to +call+ is considered to be a Streaming Body.
+
+A Body that responds to +to_path+ is expected to generate the same
+content as would be produced by reading a local file opened with the
+path returned by calling +to_path+.
+
+A body that responds to both +each+ and +call+ must be treated as an
+Enumerable Body, not a Streaming Body. If it responds to +each+, you
+must call +each+ and not +call+. If the body doesn't respond to
++each+, then you can assume it responds to +call+.
+
+==== Enumerable Body
+
+The Enumerable Body must respond to +each+.
+It must only be called once.
 and must only yield String values.
 
 The Body itself should not be an instance of String, as this will
@@ -296,6 +344,22 @@ transport the response.
 
 The Body commonly is an Array of Strings, the application
 instance itself, or a File-like object.
+
+==== Streaming Body
+
+The Streaming Body must respond to +call+.
+It must only be called once.
+It takes a +stream+ argument.
+
+The +stream+ argument must implement:
+<tt>read, write, flush, close, close_read, close_write, closed?</tt>
+
+The semantics of these IO methods must be a best effort match to
+those of a normal Ruby IO or Socket object, using standard arguments
+and raising standard exceptions. Servers are encouraged to simply
+pass on real IO objects, although it is recognized that this approach
+is not directly compatible with HTTP/2.
+
 == Thanks
 Some parts of this specification are adopted from PEP333: Python
 Web Server Gateway Interface
