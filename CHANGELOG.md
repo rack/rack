@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file. For info on
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
-- Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the mulitpart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
+- Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
 ## [2.2.3] - 2020-06-15
@@ -291,7 +291,7 @@ All notable changes to this project will be documented in this file. For info on
 - Handle `NULL` bytes in multipart filenames. ([@casperisfine](https://github.com/casperisfine))
 - Remove warnings due to miscapitalized global. ([@ioquatix](https://github.com/ioquatix))
 - Prevent exceptions caused by a race condition on multi-threaded servers. ([@sophiedeziel](https://github.com/sophiedeziel))
-- Add RDoc as an explicit depencency for `doc` group. ([@tonytonyjan](https://github.com/tonytonyjan))
+- Add RDoc as an explicit dependency for `doc` group. ([@tonytonyjan](https://github.com/tonytonyjan))
 - Record errors originating from `Multipart::Parser` in the `MethodOverride` middleware instead of letting them bubble up. ([@carlzulauf](https://github.com/carlzulauf))
 - Remove remaining use of removed `Utils#bytesize` method from the `File` middleware. ([@brauliomartinezlm](https://github.com/brauliomartinezlm))
 

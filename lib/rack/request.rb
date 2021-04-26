@@ -144,7 +144,7 @@ module Rack
       # The port used to connect to the proxy.
       HTTP_X_FORWARDED_PORT = 'HTTP_X_FORWARDED_PORT'
 
-      # Another way for specifing https scheme was used.
+      # Another way for specifying https scheme was used.
       HTTP_X_FORWARDED_SSL = 'HTTP_X_FORWARDED_SSL'
 
       def body;            get_header(RACK_INPUT)                         end
