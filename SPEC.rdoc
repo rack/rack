@@ -283,6 +283,10 @@ to that produced by calling +each+; this may be used by the
 server as an alternative, possibly more efficient way to
 transport the response.
 
+Strings must be processed individually as they are yielded by +each+.
+However, if the Body responds to +to_ary+ it can be implicitly coerced to
+an Array, which may then be processed all at once.
+
 The Body commonly is an Array of Strings, the application
 instance itself, or a File-like object.
 == Thanks
