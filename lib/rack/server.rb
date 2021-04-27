@@ -438,7 +438,8 @@ module Rack
       def check_pid!
         case pidfile_process_status
         when :running, :not_owned
-          $stderr.puts "A server is already running. Check #{options[:pid]}."
+          pid = ::File.read(options[:pid])
+          $stderr.puts "A server is already running (pid: #{pid}, file: #{options[:pid]})."
           exit(1)
         when :dead
           ::File.delete(options[:pid])
