@@ -430,8 +430,7 @@ describe Rack::Server do
       lambda { server.send(:write_pid) }.must_raise SystemExit
       err.rewind
       output = err.read
-      output.must_match(/already running/)
-      output.must_include pidfile
+      output.must_match(/already running \(pid: 1, file: #{pidfile}\)/)
     end
   end
 
@@ -442,8 +441,7 @@ describe Rack::Server do
       lambda { server.start }.must_raise SystemExit
       err.rewind
       output = err.read
-      output.must_match(/already running/)
-      output.must_include pidfile
+      output.must_match(/already running \(pid: 1, file: #{pidfile}\)/)
     end
   end
 
