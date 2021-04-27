@@ -40,6 +40,7 @@ module Rack
     end
 
     def _call(env)
+      @env = env
       ## It takes exactly one argument, the *environment*
       raise LintError, "No env given" unless env
       check_env env
@@ -67,6 +68,13 @@ module Rack
       check_content_type status, headers
       check_content_length status, headers
       @head_request = env[REQUEST_METHOD] == HEAD
+
+      @lint = (env['rack.lint'] ||= []) << self
+
+      if (env['rack.lint.body_iteration'] ||= 0) > 0
+        raise LintError, "Middleware must not call #each directly"
+      end
+
       [status, headers, self]
     end
 
@@ -741,43 +749,84 @@ module Rack
         unless part.kind_of? String
           raise LintError, "Body yielded non-string value #{part.inspect}"
         end
+        ## 
+        ## The Body itself should not be an instance of String, as this will
+        ## break in Ruby 1.9.
+        ## 
+        ## Middleware must not call +each+ directly on the Body.
+        ## Instead, middleware can return a new Body that calls +each+ on the
+        ## original Body, yielding at least once per iteration.
+        if @lint[0] == self
+          @env['rack.lint.body_iteration'] += 1
+        else
+          if (@env['rack.lint.body_iteration'] -= 1) > 0
+            raise LintError, "New body must yield at least once per iteration of old body"
+          end
+        end
+
         bytes += part.bytesize
         yield part
       }
       verify_content_length(bytes)
 
-      ##
-      ## The Body itself should not be an instance of String, as this will
-      ## break in Ruby 1.9.
-      ##
-      ## If the Body responds to +close+, it will be called after iteration. If
-      ## the body is replaced by a middleware after action, the original body
-      ## must be closed first, if it responds to close.
-      # XXX howto: raise LintError, "Body has not been closed" unless @closed
+      verify_to_path
+    end
 
+    def respond_to?(sym, *)
+      if sym.to_s == :to_ary
+        @body.respond_to? sym
+      else
+        super
+      end
+    end
 
+    ##
+    ## If the Body responds to +to_ary+, it must return an Array whose
+    ## contents are identical to that produced by calling +each+.
+    ## Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
+    ## In other words, middleware can only process the Body directly if it responds to +to_ary+.
+    def to_ary
+      @body.to_ary.tap do |content|
+        unless content == @body.enum_for.to_a
+          raise LintError, "#to_ary not identical to contents produced by calling #each"
+        end
+      end
+    ensure
+      close
+    end
+
+    ## 
+    ## If the Body responds to +close+, it will be called after iteration. If
+    ## the original Body is replaced by a new Body, the new Body
+    ## must close the original Body after iteration, if it responds to +close+.
+    ## If the Body responds to both +to_ary+ and +close+, its
+    ## implementation of +to_ary+ must call +close+ after iteration.
+    def close
+      @closed = true
+      @body.close  if @body.respond_to?(:close)
+      index = @lint.index(self)
+      unless @env['rack.lint'][0..index].all? {|lint| lint.instance_variable_get(:@closed)}
+        raise LintError, "Body has not been closed"
+      end
+    end
+
+    def verify_to_path
       ##
       ## If the Body responds to +to_path+, it must return a String
       ## identifying the location of a file whose contents are identical
       ## to that produced by calling +each+; this may be used by the
       ## server as an alternative, possibly more efficient way to
       ## transport the response.
-
       if @body.respond_to?(:to_path)
         unless ::File.exist? @body.to_path
           raise LintError, "The file identified by body.to_path does not exist"
         end
       end
-
-      ##
-      ## The Body commonly is an Array of Strings, the application
-      ## instance itself, or a File-like object.
     end
 
-    def close
-      @closed = true
-      @body.close  if @body.respond_to?(:close)
-    end
+    ##
+    ## The Body commonly is an Array of Strings, the application
+    ## instance itself, or a File-like object.
 
     # :startdoc:
 

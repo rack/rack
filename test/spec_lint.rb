@@ -414,6 +414,92 @@ describe Rack::Lint do
       body.each { |part| }
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/yielded non-string/)
+
+    # Lint before and after the Rack middleware being tested.
+    def stacked_lint(app)
+      Rack::Lint.new(lambda do |env|
+        Rack::Lint.new(app).call(env).tap {|response| response[2] = yield response[2]}
+      end)
+    end
+
+    yielder_app = lambda do |_|
+      input = Object.new
+      def input.each; 10.times {yield 'foo'}; end
+      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+    end
+
+    lambda {
+      body = stacked_lint(yielder_app) {|body|
+        new_body = Struct.new(:body) do
+          def each(&block)
+            body.each { |part| yield part.upcase }
+            body.close
+          end
+        end
+        new_body.new(body)
+      }.call(env({}))[2]
+      body.each {|part| part.must_equal 'FOO'}
+      body.close
+    }.call
+
+    lambda {
+      body = stacked_lint(yielder_app) { |body|
+        body.enum_for.to_a
+      }.call(env({}))[2]
+      body.each {}
+      body.close
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/Middleware must not call #each directly/)
+
+    lambda {
+      body = stacked_lint(yielder_app) { |body|
+        new_body = Struct.new(:body) do
+          def each(&block)
+            body.enum_for.each_slice(2) { |parts| yield parts.join }
+          end
+        end
+        new_body.new(body)
+      }.call(env({}))[2]
+      body.each {}
+      body.close
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/New body must yield at least once per iteration of old body/)
+
+    lambda {
+      body = stacked_lint(yielder_app) { |body|
+        Struct.new(:body) do
+          def each; body.each {|part| yield part} end
+        end.new(body)
+      }.call(env({}))[2]
+      body.each {}
+      body.close
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/Body has not been closed/)
+
+    static_app = lambda do |_|
+      input = ['foo'] * 10
+      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+    end
+
+    lambda {
+      body = stacked_lint(static_app) { |body| body.to_ary}.call(env({}))[2]
+      body.each {}
+      body.close
+    }.call
+
+    array_mismatch = lambda do |_|
+      input = Object.new
+      def input.to_ary; ['bar'] * 10; end
+      def input.each; 10.times {yield 'foo'}; end
+      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+    end
+
+    lambda {
+      body = stacked_lint(array_mismatch) { |body| body.to_ary}.call(env({}))[2]
+      body.each {}
+      body.close
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/#to_ary not identical to contents produced by calling #each/)
   end
 
   it "notice input handling errors" do
