@@ -388,21 +388,27 @@ describe Rack::Server do
   it "check pid file presence and running process" do
     pidfile = Tempfile.open('pidfile') { |f| f.write($$); break f }.path
     server = Rack::Server.new(pid: pidfile)
-    server.send(:pidfile_process_status).must_equal :running
+    with_stderr do |err|
+      lambda { server.send(:check_pid!) }.must_raise SystemExit
+      err.rewind
+      output = err.read
+      output.must_match(/already running \(pid: #{$$}, file: #{pidfile}\)/)
+    end
   end
 
   it "check pid file presence and dead process" do
     dead_pid = `echo $$`.to_i
     pidfile = Tempfile.open('pidfile') { |f| f.write(dead_pid); break f }.path
     server = Rack::Server.new(pid: pidfile)
-    server.send(:pidfile_process_status).must_equal :dead
+    server.send(:check_pid!)
+    ::File.exist?(pidfile).must_equal false
   end
 
   it "check pid file presence and exited process" do
     pidfile = Tempfile.open('pidfile') { |f| break f }.path
     ::File.delete(pidfile)
     server = Rack::Server.new(pid: pidfile)
-    server.send(:pidfile_process_status).must_equal :exited
+    server.send(:check_pid!)
   end
 
   it "check pid file presence and not owned process" do
@@ -410,7 +416,12 @@ describe Rack::Server do
     skip "cannot test if pid 1 owner matches current process (eg. docker/lxc)" if owns_pid_1
     pidfile = Tempfile.open('pidfile') { |f| f.write(1); break f }.path
     server = Rack::Server.new(pid: pidfile)
-    server.send(:pidfile_process_status).must_equal :not_owned
+    with_stderr do |err|
+      lambda { server.send(:check_pid!) }.must_raise SystemExit
+      err.rewind
+      output = err.read
+      output.must_match(/already running \(pid: 1, file: #{pidfile}\)/)
+    end
   end
 
   it "rewrite pid file when it does not reference a running process" do
