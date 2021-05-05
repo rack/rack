@@ -273,9 +273,20 @@ and must only yield String values.
 The Body itself should not be an instance of String, as this will
 break in Ruby 1.9.
 
+Middleware must not call +each+ directly on the Body.
+Instead, middleware can return a new Body that calls +each+ on the
+original Body, yielding at least once per iteration.
+
+If the Body responds to +to_ary+, it must return an Array whose
+contents are identical to that produced by calling +each+.
+Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
+In other words, middleware can only process the Body directly if it responds to +to_ary+.
+
 If the Body responds to +close+, it will be called after iteration. If
-the body is replaced by a middleware after action, the original body
-must be closed first, if it responds to close.
+the original Body is replaced by a new Body, the new Body
+must close the original Body after iteration, if it responds to +close+.
+If the Body responds to both +to_ary+ and +close+, its
+implementation of +to_ary+ must call +close+ after iteration.
 
 If the Body responds to +to_path+, it must return a String
 identifying the location of a file whose contents are identical

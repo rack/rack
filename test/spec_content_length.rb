@@ -17,13 +17,13 @@ describe Rack::ContentLength do
     response[1]['Content-Length'].must_equal '13'
   end
 
-  it "set Content-Length on variable length bodies" do
+  it "not set Content-Length on variable length bodies" do
     body = lambda { "Hello World!" }
     def body.each ; yield call ; end
 
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
     response = content_length(app).call(request)
-    response[1]['Content-Length'].must_equal '12'
+    response[1]['Content-Length'].must_be_nil
   end
 
   it "not change Content-Length if it is already set" do
@@ -56,15 +56,13 @@ describe Rack::ContentLength do
   it "close bodies that need to be closed" do
     body = Struct.new(:body) do
       attr_reader :closed
-      def each; body.join; end
+      def each; body.each {|b| yield b}; close; end
       def close; @closed = true; end
-      def to_ary; end
+      def to_ary; enum_for.to_a; end
     end.new(%w[one two three])
 
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
-    response = content_length(app).call(request)
-    body.closed.must_be_nil
-    response[2].close
+    content_length(app).call(request)
     body.closed.must_equal true
   end
 
@@ -73,7 +71,7 @@ describe Rack::ContentLength do
       def each
         yield body.shift until body.empty?
       end
-      def to_ary; end
+      def to_ary; enum_for.to_a; end
     end.new(%w[one two three])
 
     app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }

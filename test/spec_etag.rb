@@ -13,9 +13,7 @@ describe Rack::ETag do
   end
 
   def sendfile_body
-    res = ['Hello World']
-    def res.to_path ; "/tmp/hello.txt" ; end
-    res
+    File.new(File::NULL)
   end
 
   it "set ETag if none is set if status is 200" do
