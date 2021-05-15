@@ -37,7 +37,7 @@ These web servers include \Rack handlers in their distributions:
 * Puma[https://puma.io/]
 * Unicorn[https://yhbt.net/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
-* AWS Lambda[https://lamby.custominktech.com]
+* {AWS Lambda}[https://lamby.custominktech.com]
 
 Any valid \Rack app will run the same on all these handlers, without
 changing anything.
