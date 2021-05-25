@@ -49,7 +49,6 @@ module Rack
 
       def initialize(env)
         @env = env
-        super()
       end
 
       # Predicate method to test to see if `name` has been set as request
