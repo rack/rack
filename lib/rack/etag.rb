@@ -61,7 +61,7 @@ module Rack
           (digest ||= Digest::SHA256.new) << part unless part.empty?
         end
 
-        digest && digest.hexdigest.byteslice(0,32)
+        digest && digest.hexdigest.byteslice(0, 32)
       end
   end
 end

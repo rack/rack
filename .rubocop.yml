@@ -2,7 +2,7 @@ require:
   - rubocop-packaging
 
 AllCops:
-  TargetRubyVersion: 2.4
+  TargetRubyVersion: 2.5
   DisabledByDefault: true
   Exclude:
     - '**/vendor/**/*'

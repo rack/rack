@@ -749,10 +749,10 @@ module Rack
         unless part.kind_of? String
           raise LintError, "Body yielded non-string value #{part.inspect}"
         end
-        ## 
+        ##
         ## The Body itself should not be an instance of String, as this will
         ## break in Ruby 1.9.
-        ## 
+        ##
         ## Middleware must not call +each+ directly on the Body.
         ## Instead, middleware can return a new Body that calls +each+ on the
         ## original Body, yielding at least once per iteration.
@@ -795,7 +795,7 @@ module Rack
       close
     end
 
-    ## 
+    ##
     ## If the Body responds to +close+, it will be called after iteration. If
     ## the original Body is replaced by a new Body, the new Body
     ## must close the original Body after iteration, if it responds to +close+.

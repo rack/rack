@@ -425,7 +425,7 @@ describe Rack::Lint do
     yielder_app = lambda do |_|
       input = Object.new
       def input.each; 10.times {yield 'foo'}; end
-      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+      [200, { "Content-type" => "text/plain", "Content-length" => "30" }, input]
     end
 
     lambda {
@@ -478,7 +478,7 @@ describe Rack::Lint do
 
     static_app = lambda do |_|
       input = ['foo'] * 10
-      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+      [200, { "Content-type" => "text/plain", "Content-length" => "30" }, input]
     end
 
     lambda {
@@ -491,7 +491,7 @@ describe Rack::Lint do
       input = Object.new
       def input.to_ary; ['bar'] * 10; end
       def input.each; 10.times {yield 'foo'}; end
-      [200, {"Content-type" => "text/plain", "Content-length" => "30"}, input]
+      [200, { "Content-type" => "text/plain", "Content-length" => "30" }, input]
     end
 
     lambda {
