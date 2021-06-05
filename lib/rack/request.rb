@@ -49,6 +49,9 @@ module Rack
 
       def initialize(env)
         @env = env
+        # This module is included at least in `ActionDispatch::Request`
+        # The call to `super()` allows additional mixed-in initializers are called
+        super()
       end
 
       # Predicate method to test to see if `name` has been set as request
