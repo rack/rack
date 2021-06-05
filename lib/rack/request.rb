@@ -24,8 +24,8 @@ module Rack
     end
 
     def initialize(env)
+      @env = env
       @params = nil
-      super(env)
     end
 
     def params
