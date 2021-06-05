@@ -34,8 +34,8 @@ All notable changes to this project will be documented in this file. For info on
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
-- `Rack::Request::Env#initialize` does not need to call `super()`. This was leftover from the creation of the `Env` module. ~~Flatten the `Env` module into `Request` as it is unused outside.~~ ([#1751](https://github.com/rack/rack/pull/1751), [@agrberg](https://github.com/agrberg))
-- Restore Rails compatibility. `Rack::Request::Env` is included in `ActionDispatch::Request`. ([#1755](https://github.com/rack/rack/pull/1755), [@agrberg](https://github.com/agrberg))
+- ~~`Rack::Request::Env#initialize` does not need to call `super()`. This was leftover from the creation of the `Env` module. Flatten the `Env` module into `Request` as it is unused outside.~~ ([#1751](https://github.com/rack/rack/pull/1751), [@agrberg](https://github.com/agrberg))
+- Restore Rails compatibility. `Rack::Request::Env` is included in Rails' `ActionDispatch::Request`. The `super()` call should be maintained to allow its mixing in to other classes w/o disrupting the initialization chain. ([#1755](https://github.com/rack/rack/pull/1755), [@agrberg](https://github.com/agrberg))
 
 ## [2.2.3] - 2020-06-15
 
