@@ -14,16 +14,19 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    def self.make_default(key_space_limit, param_depth_limit)
-      new Params, key_space_limit, param_depth_limit
+    def self.make_default(param_depth_limit)
+      new Params, nil, param_depth_limit
     end
 
-    attr_reader :key_space_limit, :param_depth_limit
+    attr_reader :param_depth_limit
 
     def initialize(params_class, key_space_limit, param_depth_limit)
       @params_class = params_class
-      @key_space_limit = key_space_limit
       @param_depth_limit = param_depth_limit
+
+      unless key_space_limit.nil?
+        warn("`second argument `key_space limit` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      end
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -120,15 +123,11 @@ module Rack
     end
 
     def make_params
-      @params_class.new @key_space_limit
-    end
-
-    def new_space_limit(key_space_limit)
-      self.class.new @params_class, key_space_limit, param_depth_limit
+      @params_class.new
     end
 
     def new_depth_limit(param_depth_limit)
-      self.class.new @params_class, key_space_limit, param_depth_limit
+      self.class.new @params_class, nil, param_depth_limit
     end
 
     private
@@ -154,8 +153,7 @@ module Rack
     end
 
     class Params
-      def initialize(limit)
-        @limit  = limit
+      def initialize
         @size   = 0
         @params = {}
       end
@@ -165,8 +163,6 @@ module Rack
       end
 
       def []=(key, value)
-        @size += key.size if key && !@params.key?(key)
-        raise RangeError, 'exceeded available parameter key space' if @size > @limit
         @params[key] = value
       end
 

@@ -98,17 +98,6 @@ describe Rack::Multipart do
     params['user_sid'].encoding.must_equal Encoding::UTF_8
   end
 
-  it "raise RangeError if the key space is exhausted" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      lambda { Rack::Multipart.parse_multipart(env) }.must_raise(RangeError)
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
-  end
-
   it "parse multipart form webkit style" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
@@ -219,7 +208,7 @@ describe Rack::Multipart do
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    query_parser = Rack::QueryParser.new c, 65536, 100
+    query_parser = Rack::QueryParser.new c, nil, 100
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env, query_parser)
     params[:files][:type].must_equal "text/plain"
