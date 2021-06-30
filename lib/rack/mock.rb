@@ -4,6 +4,7 @@ require 'uri'
 require 'stringio'
 require_relative '../rack'
 require 'cgi/cookie'
+require 'time'  # for Time.httpdate
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without
@@ -265,6 +266,10 @@ module Rack
         if bit.include? 'secure'
           cookie_attributes.store('secure', true)
         end
+      end
+      # the 'expires' attribute, if set, must be an instance of Time
+      if (expires = cookie_attributes['expires']).is_a? String
+        cookie_attributes.store('expires', Time.httpdate(expires))
       end
       cookie_attributes
     end

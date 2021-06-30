@@ -21,6 +21,7 @@ app = Rack::Lint.new(lambda { |env|
   response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
   response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
   response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
+  response.set_cookie("expires_test", { value: "expires_test", expires: (Time.now + 86400), path: "/" })
   response.finish
 })
 
@@ -317,6 +318,17 @@ describe Rack::MockResponse do
     secure_cookie.path.must_equal "/"
     secure_cookie.secure.must_equal true
     secure_cookie.expires.must_be_nil
+  end
+
+  it "handles 'expires' in cookies" do
+    res = Rack::MockRequest.new(app).get("")
+    expires_cookie = res.cookie("expires_test")
+    expires_cookie.value[0].must_equal "expires_test"
+    expires_cookie.domain.must_be_nil
+    expires_cookie.path.must_equal "/"
+    expires_cookie.secure.must_equal false
+    expires_cookie.expires.wont_be_nil
+    expires_cookie.expires.must_be :<, (Time.now + 86400)
   end
 
   it "parses cookie headers with equals sign at the end" do
