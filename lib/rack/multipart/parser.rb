@@ -300,10 +300,10 @@ module Rack
         when RFC2183
           params = Hash[*head.scan(DISPPARM).flat_map(&:compact)]
 
-          if filename = params['filename']
-            filename = $1 if filename =~ /^"(.*)"$/
-          elsif filename = params['filename*']
+          if filename = params['filename*']
             encoding, _, filename = filename.split("'", 3)
+          elsif filename = params['filename']
+            filename = $1 if filename =~ /^"(.*)"$/
           end
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1
