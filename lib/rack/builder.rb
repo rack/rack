@@ -78,8 +78,6 @@ module Rack
     #
     #   $ cat config.ru
     #
-    #   #\ -p 9393
-    #
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
