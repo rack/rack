@@ -1,39 +1,48 @@
+# frozen_string_literal: true
+
 require "zlib"
 require "time"  # for Time.httpdate
-require 'rack/utils'
 
 module Rack
-  # This middleware enables compression of http responses.
+  # This middleware enables content encoding of http responses,
+  # usually for purposes of compression.
   #
-  # Currently supported compression algorithms:
+  # Currently supported encodings:
   #
-  #   * gzip
-  #   * deflate
-  #   * identity (no transformation)
+  # * gzip
+  # * identity (no transformation)
   #
-  # The middleware automatically detects when compression is supported
-  # and allowed. For example no transformation is made when a cache
-  # directive of 'no-transform' is present, or when the response status
-  # code is one that doesn't allow an entity body.
+  # This middleware automatically detects when encoding is supported
+  # and allowed. For example no encoding is made when a cache
+  # directive of 'no-transform' is present, when the response status
+  # code is one that doesn't allow an entity body, or when the body
+  # is empty.
+  #
+  # Note that despite the name, Deflater does not support the +deflate+
+  # encoding.
   class Deflater
-    ##
-    # Creates Rack::Deflater middleware.
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
+
+    # Creates Rack::Deflater middleware. Options:
     #
-    # [app] rack app instance
-    # [options] hash of deflater options, i.e.
-    #           'if' - a lambda enabling / disabling deflation based on returned boolean value
-    #                  e.g use Rack::Deflater, :if => lambda { |env, status, headers, body| body.length > 512 }
-    #           'include' - a list of content types that should be compressed
+    # :if :: a lambda enabling / disabling deflation based on returned boolean value
+    #        (e.g <tt>use Rack::Deflater, :if => lambda { |*, body| sum=0; body.each { |i| sum += i.length }; sum > 512 }</tt>).
+    #        However, be aware that calling `body.each` inside the block will break cases where `body.each` is not idempotent,
+    #        such as when it is an +IO+ instance.
+    # :include :: a list of content types that should be compressed. By default, all content types are compressed.
+    # :sync :: determines if the stream is going to be flushed after every chunk.  Flushing after every chunk reduces
+    #          latency for time-sensitive streaming applications, but hurts compression and throughput.
+    #          Defaults to +true+.
     def initialize(app, options = {})
       @app = app
-
       @condition = options[:if]
       @compressible_types = options[:include]
+      @sync = options.fetch(:sync, true)
     end
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash.new(headers)
+      headers = Utils::HeaderHash[headers]
 
       unless should_deflate?(env, status, headers, body)
         return [status, headers, body]
@@ -41,11 +50,11 @@ module Rack
 
       request = Request.new(env)
 
-      encoding = Utils.select_best_encoding(%w(gzip deflate identity),
+      encoding = Utils.select_best_encoding(%w(gzip identity),
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["Vary"].to_s.split(",").map { |v| v.strip }
+      vary = headers["Vary"].to_s.split(",").map(&:strip)
       unless vary.include?("*") || vary.include?("Accept-Encoding")
         headers["Vary"] = vary.push("Accept-Encoding").join(",")
       end
@@ -54,99 +63,80 @@ module Rack
       when "gzip"
         headers['Content-Encoding'] = "gzip"
         headers.delete(CONTENT_LENGTH)
-        mtime = headers.key?("Last-Modified") ?
-          Time.httpdate(headers["Last-Modified"]) : Time.now
-        [status, headers, GzipStream.new(body, mtime)]
-      when "deflate"
-        headers['Content-Encoding'] = "deflate"
-        headers.delete(CONTENT_LENGTH)
-        [status, headers, DeflateStream.new(body)]
+        mtime = headers["Last-Modified"]
+        mtime = Time.httpdate(mtime).to_i if mtime
+        [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
       when nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
-        [406, {CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s}, bp]
+        [406, { CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s }, bp]
       end
     end
 
+    # Body class used for gzip encoded responses.
     class GzipStream
-      def initialize(body, mtime)
+      # Initialize the gzip stream.  Arguments:
+      # body :: Response body to compress with gzip
+      # mtime :: The modification time of the body, used to set the
+      #          modification time in the gzip header.
+      # sync :: Whether to flush each gzip chunk as soon as it is ready.
+      def initialize(body, mtime, sync)
         @body = body
         @mtime = mtime
-        @closed = false
+        @sync = sync
       end
 
+      # Yield gzip compressed strings to the given block.
       def each(&block)
         @writer = block
-        gzip  =::Zlib::GzipWriter.new(self)
-        gzip.mtime = @mtime
+        gzip = ::Zlib::GzipWriter.new(self)
+        gzip.mtime = @mtime if @mtime
         @body.each { |part|
+          # Skip empty strings, as they would result in no output,
+          # and flushing empty parts would raise Zlib::BufError.
+          next if part.empty?
+
           gzip.write(part)
-          gzip.flush
+          gzip.flush if @sync
         }
       ensure
         gzip.close
-        @writer = nil
       end
 
+      # Call the block passed to #each with the the gzipped data.
       def write(data)
         @writer.call(data)
       end
 
+      # Close the original body if possible.
       def close
-        return if @closed
-        @closed = true
-        @body.close if @body.respond_to?(:close)
-      end
-    end
-
-    class DeflateStream
-      DEFLATE_ARGS = [
-        Zlib::DEFAULT_COMPRESSION,
-        # drop the zlib header which causes both Safari and IE to choke
-        -Zlib::MAX_WBITS,
-        Zlib::DEF_MEM_LEVEL,
-        Zlib::DEFAULT_STRATEGY
-      ]
-
-      def initialize(body)
-        @body = body
-        @closed = false
-      end
-
-      def each
-        deflator = ::Zlib::Deflate.new(*DEFLATE_ARGS)
-        @body.each { |part| yield deflator.deflate(part, Zlib::SYNC_FLUSH) }
-        yield deflator.finish
-        nil
-      ensure
-        deflator.close
-      end
-
-      def close
-        return if @closed
-        @closed = true
         @body.close if @body.respond_to?(:close)
       end
     end
 
     private
 
+    # Whether the body should be compressed.
     def should_deflate?(env, status, headers, body)
       # Skip compressing empty entity body responses and responses with
       # no-transform set.
-      if Utils::STATUS_WITH_NO_ENTITY_BODY.include?(status) ||
-          headers[CACHE_CONTROL].to_s =~ /\bno-transform\b/ ||
-         (headers['Content-Encoding'] && headers['Content-Encoding'] !~ /\bidentity\b/)
+      if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
+          /\bno-transform\b/.match?(headers['Cache-Control'].to_s) ||
+          headers['Content-Encoding']&.!~(/\bidentity\b/)
         return false
       end
 
       # Skip if @compressible_types are given and does not include request's content type
-      return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))
+      return false if @compressible_types && !(headers.has_key?('Content-Type') && @compressible_types.include?(headers['Content-Type'][/[^;]*/]))
 
       # Skip if @condition lambda is given and evaluates to false
       return false if @condition && !@condition.call(env, status, headers, body)
+
+      # No point in compressing empty body, also handles usage with
+      # Rack::Sendfile.
+      return false if headers[CONTENT_LENGTH] == '0'
 
       true
     end

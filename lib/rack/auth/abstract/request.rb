@@ -1,4 +1,4 @@
-require 'rack/request'
+# frozen_string_literal: true
 
 module Rack
   module Auth
@@ -13,7 +13,11 @@ module Rack
       end
 
       def provided?
-        !authorization_key.nil?
+        !authorization_key.nil? && valid?
+      end
+
+      def valid?
+        !@env[authorization_key].nil?
       end
 
       def parts
@@ -21,7 +25,7 @@ module Rack
       end
 
       def scheme
-        @scheme ||= parts.first && parts.first.downcase
+        @scheme ||= parts.first&.downcase
       end
 
       def params

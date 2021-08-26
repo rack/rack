@@ -1,9 +1,11 @@
+# frozen_string_literal: true
+
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # THANKS:
 #   apeiros, for session id generation, expiry setup, and threadiness
 #   sergio, threadiness and bugreps
 
-require 'rack/session/abstract/id'
+require_relative 'abstract/id'
 require 'thread'
 
 module Rack
@@ -24,11 +26,11 @@ module Rack
     #   )
     #   Rack::Handler::WEBrick.run sessioned
 
-    class Pool < Abstract::ID
+    class Pool < Abstract::PersistedSecure
       attr_reader :mutex, :pool
-      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge :drop => false
+      DEFAULT_OPTIONS = Abstract::ID::DEFAULT_OPTIONS.merge drop: false
 
-      def initialize(app, options={})
+      def initialize(app, options = {})
         super
         @pool = Hash.new
         @mutex = Mutex.new
@@ -37,39 +39,46 @@ module Rack
       def generate_sid
         loop do
           sid = super
-          break sid unless @pool.key? sid
+          break sid unless @pool.key? sid.private_id
         end
       end
 
-      def get_session(env, sid)
-        with_lock(env) do
-          unless sid and session = @pool[sid]
+      def find_session(req, sid)
+        with_lock(req) do
+          unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid, {}
-            @pool.store sid, session
+            @pool.store sid.private_id, session
           end
           [sid, session]
         end
       end
 
-      def set_session(env, session_id, new_session, options)
-        with_lock(env) do
-          @pool.store session_id, new_session
+      def write_session(req, session_id, new_session, options)
+        with_lock(req) do
+          @pool.store session_id.private_id, new_session
           session_id
         end
       end
 
-      def destroy_session(env, session_id, options)
-        with_lock(env) do
-          @pool.delete(session_id)
+      def delete_session(req, session_id, options)
+        with_lock(req) do
+          @pool.delete(session_id.public_id)
+          @pool.delete(session_id.private_id)
           generate_sid unless options[:drop]
         end
       end
 
-      def with_lock(env)
-        @mutex.lock if env['rack.multithread']
+      def with_lock(req)
+        @mutex.lock if req.multithread?
         yield
       ensure
         @mutex.unlock if @mutex.locked?
+      end
+
+      private
+
+      def get_session_with_fallback(sid)
+        @pool[sid.private_id] || @pool[sid.public_id]
       end
     end
   end

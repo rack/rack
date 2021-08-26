@@ -1,13 +1,15 @@
-require 'rack/auth/abstract/request'
-require 'rack/auth/digest/params'
-require 'rack/auth/digest/nonce'
+# frozen_string_literal: true
+
+require_relative '../abstract/request'
+require_relative 'params'
+require_relative 'nonce'
 
 module Rack
   module Auth
     module Digest
       class Request < Auth::AbstractRequest
         def method
-          @env['rack.methodoverride.original_method'] || @env[REQUEST_METHOD]
+          @env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] || @env[REQUEST_METHOD]
         end
 
         def digest?

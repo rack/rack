@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   module Auth
     module Digest
@@ -17,7 +19,7 @@ module Rack
         end
 
         def self.split_header_value(str)
-          str.scan( /(\w+\=(?:"[^\"]+"|[^,]+))/n ).collect{ |v| v[0] }
+          str.scan(/\w+\=(?:"[^\"]+"|[^,]+)/n)
         end
 
         def initialize
@@ -38,16 +40,15 @@ module Rack
 
         def to_s
           map do |k, v|
-            "#{k}=" + (UNQUOTED.include?(k) ? v.to_s : quote(v))
+            "#{k}=#{(UNQUOTED.include?(k) ? v.to_s : quote(v))}"
           end.join(', ')
         end
 
         def quote(str) # From WEBrick::HTTPUtils
-          '"' << str.gsub(/[\\\"]/o, "\\\1") << '"'
+          '"' + str.gsub(/[\\\"]/o, "\\\1") + '"'
         end
 
       end
     end
   end
 end
-

@@ -1,19 +1,25 @@
+# frozen_string_literal: true
+
 module Rack
+  # Proxy for response bodies allowing calling a block when
+  # the response body is closed (after the response has been fully
+  # sent to the client).
   class BodyProxy
+    # Set the response body to wrap, and the block to call when the
+    # response has been fully sent.
     def initialize(body, &block)
       @body = body
       @block = block
       @closed = false
     end
 
-    def respond_to?(method_name, include_all=false)
-      case method_name
-      when :to_ary, 'to_ary'
-        return false
-      end
+    # Return whether the wrapped body responds to the method.
+    def respond_to_missing?(method_name, include_all = false)
       super or @body.respond_to?(method_name, include_all)
     end
 
+    # If not already closed, close the wrapped body and
+    # then call the block the proxy was initialized with.
     def close
       return if @closed
       @closed = true
@@ -24,21 +30,16 @@ module Rack
       end
     end
 
+    # Whether the proxy is closed.  The proxy starts as not closed,
+    # and becomes closed on the first call to close.
     def closed?
       @closed
     end
 
-    # N.B. This method is a special case to address the bug described by #434.
-    # We are applying this special case for #each only. Future bugs of this
-    # class will be handled by requesting users to patch their ruby
-    # implementation, to save adding too many methods in this class.
-    def each
-      @body.each { |body| yield body }
-    end
-
+    # Delegate missing methods to the wrapped body.
     def method_missing(method_name, *args, &block)
-      super if :to_ary == method_name
       @body.__send__(method_name, *args, &block)
     end
+    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
   end
 end

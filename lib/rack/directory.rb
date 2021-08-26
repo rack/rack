@@ -1,6 +1,6 @@
+# frozen_string_literal: true
+
 require 'time'
-require 'rack/utils'
-require 'rack/mime'
 
 module Rack
   # Rack::Directory serves entries below the +root+ given, according to the
@@ -8,11 +8,11 @@ module Rack
   # will be presented in an html based index. If a file is found, the env will
   # be passed to the specified +app+.
   #
-  # If +app+ is not specified, a Rack::File of the same +root+ will be used.
+  # If +app+ is not specified, a Rack::Files of the same +root+ will be used.
 
   class Directory
-    DIR_FILE = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>"
-    DIR_PAGE = <<-PAGE
+    DIR_FILE = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>\n"
+    DIR_PAGE_HEADER = <<-PAGE
 <html><head>
   <title>%s</title>
   <meta http-equiv="content-type" content="text/html; charset=utf-8" />
@@ -33,116 +33,153 @@ table { width:100%%; }
     <th class='type'>Type</th>
     <th class='mtime'>Last Modified</th>
   </tr>
-%s
+    PAGE
+    DIR_PAGE_FOOTER = <<-PAGE
 </table>
 <hr />
 </body></html>
     PAGE
 
-    attr_reader :files
-    attr_accessor :root, :path
+    # Body class for directory entries, showing an index page with links
+    # to each file.
+    class DirectoryBody < Struct.new(:root, :path, :files)
+      # Yield strings for each part of the directory entry
+      def each
+        show_path = Utils.escape_html(path.sub(/^#{root}/, ''))
+        yield(DIR_PAGE_HEADER % [ show_path, show_path ])
 
-    def initialize(root, app=nil)
-      @root = F.expand_path(root)
-      @app = app || Rack::File.new(@root)
+        unless path.chomp('/') == root
+          yield(DIR_FILE % DIR_FILE_escape(files.call('..')))
+        end
+
+        Dir.foreach(path) do |basename|
+          next if basename.start_with?('.')
+          next unless f = files.call(basename)
+          yield(DIR_FILE % DIR_FILE_escape(f))
+        end
+
+        yield(DIR_PAGE_FOOTER)
+      end
+
+      private
+
+      # Escape each element in the array of html strings.
+      def DIR_FILE_escape(htmls)
+        htmls.map { |e| Utils.escape_html(e) }
+      end
+    end
+
+    # The root of the directory hierarchy.  Only requests for files and
+    # directories inside of the root directory are supported.
+    attr_reader :root
+
+    # Set the root directory and application for serving files.
+    def initialize(root, app = nil)
+      @root = ::File.expand_path(root)
+      @app = app || Files.new(@root)
+      @head = Head.new(method(:get))
     end
 
     def call(env)
-      dup._call(env)
+      # strip body if this is a HEAD call
+      @head.call env
     end
 
-    F = ::File
+    # Internals of request handling.  Similar to call but does
+    # not remove body for HEAD requests.
+    def get(env)
+      script_name = env[SCRIPT_NAME]
+      path_info = Utils.unescape_path(env[PATH_INFO])
 
-    def _call(env)
-      @env = env
-      @script_name = env[SCRIPT_NAME]
-      @path_info = Utils.unescape(env[PATH_INFO])
-
-      if forbidden = check_forbidden
-        forbidden
+      if client_error_response = check_bad_request(path_info) || check_forbidden(path_info)
+        client_error_response
       else
-        @path = F.join(@root, @path_info)
-        list_path
+        path = ::File.join(@root, path_info)
+        list_path(env, path, path_info, script_name)
       end
     end
 
-    def check_forbidden
-      return unless @path_info.include? ".."
+    # Rack response to use for requests with invalid paths, or nil if path is valid.
+    def check_bad_request(path_info)
+      return if Utils.valid_path?(path_info)
+
+      body = "Bad Request\n"
+      [400, { CONTENT_TYPE => "text/plain",
+        CONTENT_LENGTH => body.bytesize.to_s,
+        "X-Cascade" => "pass" }, [body]]
+    end
+
+    # Rack response to use for requests with paths outside the root, or nil if path is inside the root.
+    def check_forbidden(path_info)
+      return unless path_info.include? ".."
+      return if ::File.expand_path(::File.join(@root, path_info)).start_with?(@root)
 
       body = "Forbidden\n"
-      size = Rack::Utils.bytesize(body)
-      return [403, {CONTENT_TYPE => "text/plain",
-        CONTENT_LENGTH => size.to_s,
-        "X-Cascade" => "pass"}, [body]]
+      [403, { CONTENT_TYPE => "text/plain",
+        CONTENT_LENGTH => body.bytesize.to_s,
+        "X-Cascade" => "pass" }, [body]]
     end
 
-    def list_directory
-      @files = [['../','Parent Directory','','','']]
-      glob = F.join(@path, '*')
-
-      url_head = (@script_name.split('/') + @path_info.split('/')).map do |part|
-        Rack::Utils.escape part
+    # Rack response to use for directories under the root.
+    def list_directory(path_info, path, script_name)
+      url_head = (script_name.split('/') + path_info.split('/')).map do |part|
+        Utils.escape_path part
       end
 
-      Dir[glob].sort.each do |node|
-        stat = stat(node)
-        next  unless stat
-        basename = F.basename(node)
-        ext = F.extname(node)
+      # Globbing not safe as path could contain glob metacharacters
+      body = DirectoryBody.new(@root, path, ->(basename) do
+        stat = stat(::File.join(path, basename))
+        next unless stat
 
-        url = F.join(*url_head + [Rack::Utils.escape(basename)])
-        size = stat.size
-        type = stat.directory? ? 'directory' : Mime.mime_type(ext)
-        size = stat.directory? ? '-' : filesize_format(size)
+        url = ::File.join(*url_head + [Utils.escape_path(basename)])
         mtime = stat.mtime.httpdate
-        url << '/'  if stat.directory?
-        basename << '/'  if stat.directory?
+        if stat.directory?
+          type = 'directory'
+          size = '-'
+          url << '/'
+          if basename == '..'
+            basename = 'Parent Directory'
+          else
+            basename << '/'
+          end
+        else
+          type = Mime.mime_type(::File.extname(basename))
+          size = filesize_format(stat.size)
+        end
 
-        @files << [ url, basename, size, type, mtime ]
-      end
+        [ url, basename, size, type, mtime ]
+      end)
 
-      return [ 200, { CONTENT_TYPE =>'text/html; charset=utf-8'}, self ]
+      [ 200, { CONTENT_TYPE => 'text/html; charset=utf-8' }, body ]
     end
 
-    def stat(node, max = 10)
-      F.stat(node)
+    # File::Stat for the given path, but return nil for missing/bad entries.
+    def stat(path)
+      ::File.stat(path)
     rescue Errno::ENOENT, Errno::ELOOP
       return nil
     end
 
-    # TODO: add correct response if not readable, not sure if 404 is the best
-    #       option
-    def list_path
-      @stat = F.stat(@path)
-
-      if @stat.readable?
-        return @app.call(@env) if @stat.file?
-        return list_directory if @stat.directory?
-      else
-        raise Errno::ENOENT, 'No such file or directory'
+    # Rack response to use for files and directories under the root.
+    # Unreadable and non-file, non-directory entries will get a 404 response.
+    def list_path(env, path, path_info, script_name)
+      if (stat = stat(path)) && stat.readable?
+        return @app.call(env) if stat.file?
+        return list_directory(path_info, path, script_name) if stat.directory?
       end
 
-    rescue Errno::ENOENT, Errno::ELOOP
-      return entity_not_found
+      entity_not_found(path_info)
     end
 
-    def entity_not_found
-      body = "Entity not found: #{@path_info}\n"
-      size = Rack::Utils.bytesize(body)
-      return [404, {CONTENT_TYPE => "text/plain",
-        CONTENT_LENGTH => size.to_s,
-        "X-Cascade" => "pass"}, [body]]
-    end
-
-    def each
-      show_path = Rack::Utils.escape_html(@path.sub(/^#{@root}/,''))
-      files = @files.map{|f| DIR_FILE % DIR_FILE_escape(*f) }*"\n"
-      page  = DIR_PAGE % [ show_path, show_path , files ]
-      page.each_line{|l| yield l }
+    # Rack response to use for unreadable and non-file, non-directory entries.
+    def entity_not_found(path_info)
+      body = "Entity not found: #{path_info}\n"
+      [404, { CONTENT_TYPE => "text/plain",
+        CONTENT_LENGTH => body.bytesize.to_s,
+        "X-Cascade" => "pass" }, [body]]
     end
 
     # Stolen from Ramaze
-
     FILESIZE_FORMAT = [
       ['%.1fT', 1 << 40],
       ['%.1fG', 1 << 30],
@@ -150,18 +187,13 @@ table { width:100%%; }
       ['%.1fK', 1 << 10],
     ]
 
+    # Provide human readable file sizes
     def filesize_format(int)
       FILESIZE_FORMAT.each do |format, size|
         return format % (int.to_f / size) if int >= size
       end
 
-      int.to_s + 'B'
-    end
-
-    private
-    # Assumes url is already escaped.
-    def DIR_FILE_escape url, *html
-      [url, *html.map { |e| Utils.escape_html(e) }]
+      "#{int}B"
     end
   end
 end

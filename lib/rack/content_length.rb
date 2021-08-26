@@ -1,9 +1,11 @@
-require 'rack/utils'
-require 'rack/body_proxy'
+# frozen_string_literal: true
 
 module Rack
 
-  # Sets the Content-Length header on responses with fixed-length bodies.
+  # Sets the Content-Length header on responses that do not specify
+  # a Content-Length or Transfer-Encoding header.  Note that this
+  # does not fix responses that have an invalid Content-Length
+  # header specified.
   class ContentLength
     include Rack::Utils
 
@@ -13,22 +15,15 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = HeaderHash.new(headers)
+      headers = HeaderHash[headers]
 
-      if !STATUS_WITH_NO_ENTITY_BODY.include?(status.to_i) &&
+      if !STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) &&
          !headers[CONTENT_LENGTH] &&
-         !headers['Transfer-Encoding'] &&
+         !headers[TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)
 
-        obody = body
-        body, length = [], 0
-        obody.each { |part| body << part; length += bytesize(part) }
-
-        body = BodyProxy.new(body) do
-          obody.close if obody.respond_to?(:close)
-        end
-
-        headers[CONTENT_LENGTH] = length.to_s
+        body = body.to_ary
+        headers[CONTENT_LENGTH] = body.sum(&:bytesize).to_s
       end
 
       [status, headers, body]

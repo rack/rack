@@ -1,7 +1,6 @@
-require 'zlib'
+# frozen_string_literal: true
 
-require 'rack/request'
-require 'rack/response'
+require 'zlib'
 
 module Rack
   # Paste has a Pony, Rack has a Lobster!
@@ -25,8 +24,8 @@ module Rack
       content = ["<title>Lobstericious!</title>",
                  "<pre>", lobster, "</pre>",
                  "<a href='#{href}'>flip!</a>"]
-      length = content.inject(0) { |a,e| a+e.size }.to_s
-      [200, {CONTENT_TYPE => "text/html", CONTENT_LENGTH => length}, content]
+      length = content.inject(0) { |a, e| a + e.size }.to_s
+      [200, { CONTENT_TYPE => "text/html", CONTENT_LENGTH => length }, content]
     }
 
     def call(env)
@@ -37,8 +36,8 @@ module Rack
             gsub('\\', 'TEMP').
             gsub('/', '\\').
             gsub('TEMP', '/').
-            gsub('{','}').
-            gsub('(',')')
+            gsub('{', '}').
+            gsub('(', ')')
         end.join("\n")
         href = "?flip=right"
       elsif req.GET["flip"] == "crash"
@@ -62,9 +61,10 @@ module Rack
 end
 
 if $0 == __FILE__
-  require 'rack'
-  require 'rack/showexceptions'
+  # :nocov:
+  require_relative '../rack'
   Rack::Server.start(
-    :app => Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), :Port => 9292
+    app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )
+  # :nocov:
 end

@@ -1,9 +1,12 @@
-require 'optparse'
+# frozen_string_literal: true
 
+require 'optparse'
+require 'fileutils'
 
 module Rack
 
   class Server
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
     class Options
       def parse!(args)
@@ -18,10 +21,6 @@ module Rack
           opts.on("-e", "--eval LINE", "evaluate a LINE of code") { |line|
             eval line, TOPLEVEL_BINDING, "-e", lineno
             lineno += 1
-          }
-
-          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
-            options[:builder] = line
           }
 
           opts.on("-d", "--debug", "set debugging flags (set $DEBUG to true)") {
@@ -41,12 +40,16 @@ module Rack
 
           opts.on("-r", "--require LIBRARY",
                   "require the library, before executing your script") { |library|
-            options[:require] = library
+            (options[:require] ||= []) << library
           }
 
           opts.separator ""
           opts.separator "Rack options:"
-          opts.on("-s", "--server SERVER", "serve using SERVER (thin/puma/webrick/mongrel)") { |s|
+          opts.on("-b", "--builder BUILDER_LINE", "evaluate a BUILDER_LINE of code as a builder script") { |line|
+            options[:builder] = line
+          }
+
+          opts.on("-s", "--server SERVER", "serve using SERVER (thin/puma/webrick)") { |s|
             options[:server] = s
           }
 
@@ -75,6 +78,24 @@ module Rack
           opts.on("-P", "--pid FILE", "file to store PID") { |f|
             options[:pid] = ::File.expand_path(f)
           }
+
+          opts.separator ""
+          opts.separator "Profiling options:"
+
+          opts.on("--heap HEAPFILE", "Build the application, then dump the heap to HEAPFILE") do |e|
+            options[:heapfile] = e
+          end
+
+          opts.on("--profile PROFILE", "Dump CPU or Memory profile to PROFILE (defaults to a tempfile)") do |e|
+            options[:profile_file] = e
+          end
+
+          opts.on("--profile-mode MODE", "Profile mode (cpu|wall|object)") do |e|
+            { cpu: true, wall: true, object: true }.fetch(e.to_sym) do
+              raise OptionParser::InvalidOption, "unknown profile mode: #{e}"
+            end
+            options[:profile_mode] = e.to_sym
+          end
 
           opts.separator ""
           opts.separator "Common options:"
@@ -106,21 +127,21 @@ module Rack
       def handler_opts(options)
         begin
           info = []
-          server = Rack::Handler.get(options[:server]) || Rack::Handler.default(options)
+          server = Rack::Handler.get(options[:server]) || Rack::Handler.default
           if server && server.respond_to?(:valid_options)
             info << ""
             info << "Server-specific options for #{server.name}:"
 
             has_options = false
             server.valid_options.each do |name, description|
-              next if name.to_s.match(/^(Host|Port)[^a-zA-Z]/) # ignore handler's host and port options, we do our own.
+              next if /^(Host|Port)[^a-zA-Z]/.match?(name.to_s) # ignore handler's host and port options, we do our own.
               info << "  -O %-21s %s" % [name, description]
               has_options = true
             end
             return "" if !has_options
           end
           info.join("\n")
-        rescue NameError
+        rescue NameError, LoadError
           return "Warning: Could not find handler specified (#{options[:server] || 'default'}) to determine handler-specific options"
         end
       end
@@ -151,7 +172,9 @@ module Rack
 
     # Options may include:
     # * :app
-    #     a rack application to run (overrides :config)
+    #     a rack application to run (overrides :config and :builder)
+    # * :builder
+    #     a string to evaluate a Rack::Builder from
     # * :config
     #     a rackup configuration file path to load (.ru)
     # * :environment
@@ -181,6 +204,14 @@ module Rack
     #     add given paths to $LOAD_PATH
     # * :require
     #     require the given libraries
+    #
+    # Additional options for profiling app initialization include:
+    # * :heapfile
+    #     location for ObjectSpace.dump_all to write the output to
+    # * :profile_file
+    #     location for CPU/Memory (StackProf) profile output (defaults to a tempfile)
+    # * :profile_mode
+    #     StackProf profile mode (cpu|wall|object)
     def initialize(options = nil)
       @ignore_options = []
 
@@ -205,12 +236,12 @@ module Rack
       default_host = environment == 'development' ? 'localhost' : '0.0.0.0'
 
       {
-        :environment => environment,
-        :pid         => nil,
-        :Port        => 9292,
-        :Host        => default_host,
-        :AccessLog   => [],
-        :config      => "config.ru"
+        environment: environment,
+        pid: nil,
+        Port: 9292,
+        Host: default_host,
+        AccessLog: [],
+        config: "config.ru"
       }
     end
 
@@ -221,22 +252,20 @@ module Rack
     class << self
       def logging_middleware
         lambda { |server|
-          server.server.name =~ /CGI/ || server.options[:quiet] ? nil : [Rack::CommonLogger, $stderr]
+          /CGI/.match?(server.server.name) || server.options[:quiet] ? nil : [Rack::CommonLogger, $stderr]
         }
       end
 
       def default_middleware_by_environment
-        m = Hash.new {|h,k| h[k] = []}
+        m = Hash.new {|h, k| h[k] = []}
         m["deployment"] = [
           [Rack::ContentLength],
-          [Rack::Chunked],
           logging_middleware,
           [Rack::TempfileReaper]
         ]
         m["production"] = m["deployment"]
         m["development"] = [
           [Rack::ContentLength],
-          [Rack::Chunked],
           logging_middleware,
           [Rack::ShowExceptions],
           [Rack::Lint],
@@ -255,7 +284,7 @@ module Rack
       self.class.middleware
     end
 
-    def start &blk
+    def start(&block)
       if options[:warn]
         $-w = true
       end
@@ -264,7 +293,7 @@ module Rack
         $LOAD_PATH.unshift(*includes)
       end
 
-      if library = options[:require]
+      Array(options[:require]).each do |library|
         require library
       end
 
@@ -280,7 +309,9 @@ module Rack
 
       # Touch the wrapped app, so that the config.ru is loaded before
       # daemonization (i.e. before chdir, etc).
-      wrapped_app
+      handle_profiling(options[:heapfile], options[:profile_mode], options[:profile_file]) do
+        wrapped_app
+      end
 
       daemonize_app if options[:daemonize]
 
@@ -294,14 +325,14 @@ module Rack
         end
       end
 
-      server.run wrapped_app, options, &blk
+      server.run(wrapped_app, **options, &block)
     end
 
     def server
       @_server ||= Rack::Handler.get(options[:server])
 
       unless @_server
-        @_server = Rack::Handler.default(options)
+        @_server = Rack::Handler.default
 
         # We already speak FastCGI
         @ignore_options = [:File, :Port] if @_server.to_s == 'Rack::Handler::FastCGI'
@@ -316,9 +347,45 @@ module Rack
           abort "configuration #{options[:config]} not found"
         end
 
-        app, options = Rack::Builder.parse_file(self.options[:config], opt_parser)
-        @options.merge!(options) { |key, old, new| old }
-        app
+        return Rack::Builder.parse_file(self.options[:config])
+      end
+
+      def handle_profiling(heapfile, profile_mode, filename)
+        if heapfile
+          require "objspace"
+          ObjectSpace.trace_object_allocations_start
+          yield
+          GC.start
+          ::File.open(heapfile, "w") { |f| ObjectSpace.dump_all(output: f) }
+          exit
+        end
+
+        if profile_mode
+          require "stackprof"
+          require "tempfile"
+
+          make_profile_name(filename) do |filename|
+            ::File.open(filename, "w") do |f|
+              StackProf.run(mode: profile_mode, out: f) do
+                yield
+              end
+              puts "Profile written to: #{filename}"
+            end
+          end
+          exit
+        end
+
+        yield
+      end
+
+      def make_profile_name(filename)
+        if filename
+          yield filename
+        else
+          ::Dir::Tmpname.create("profile.dump") do |tmpname, _, _|
+            yield tmpname
+          end
+        end
       end
 
       def build_app_from_string
@@ -355,51 +422,38 @@ module Rack
       end
 
       def daemonize_app
-        if RUBY_VERSION < "1.9"
-          exit if fork
-          Process.setsid
-          exit if fork
-          Dir.chdir "/"
-          STDIN.reopen "/dev/null"
-          STDOUT.reopen "/dev/null", "a"
-          STDERR.reopen "/dev/null", "a"
-        else
-          Process.daemon
-        end
+        # Cannot be covered as it forks
+        # :nocov:
+        Process.daemon
+        # :nocov:
       end
 
       def write_pid
         ::File.open(options[:pid], ::File::CREAT | ::File::EXCL | ::File::WRONLY ){ |f| f.write("#{Process.pid}") }
-        at_exit { ::File.delete(options[:pid]) if ::File.exist?(options[:pid]) }
+        at_exit { ::FileUtils.rm_f(options[:pid]) }
       rescue Errno::EEXIST
         check_pid!
         retry
       end
 
       def check_pid!
-        case pidfile_process_status
-        when :running, :not_owned
-          $stderr.puts "A server is already running. Check #{options[:pid]}."
-          exit(1)
-        when :dead
-          ::File.delete(options[:pid])
-        end
-      end
-
-      def pidfile_process_status
-        return :exited unless ::File.exist?(options[:pid])
+        return unless ::File.exist?(options[:pid])
 
         pid = ::File.read(options[:pid]).to_i
-        return :dead if pid == 0
+        raise Errno::ESRCH if pid == 0
 
         Process.kill(0, pid)
-        :running
+        exit_with_pid(pid)
       rescue Errno::ESRCH
-        :dead
+        ::File.delete(options[:pid])
       rescue Errno::EPERM
-        :not_owned
+        exit_with_pid(pid)
       end
 
+      def exit_with_pid(pid)
+        $stderr.puts "A server is already running (pid: #{pid}, file: #{options[:pid]})."
+        exit(1)
+      end
   end
 
 end

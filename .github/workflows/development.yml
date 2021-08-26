@@ -1,0 +1,77 @@
+name: Development
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', jruby, truffleruby-head]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+
+    - uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
+        restore-keys: |
+          bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+
+    - name: Installing packages (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install libfcgi-dev libmemcached-dev
+
+    - name: Installing packages (macos)
+      if: matrix.os == 'macos-latest'
+      run: brew install fcgi libmemcached
+
+    - name: Bundle install...
+      run: |
+        bundle config path vendor/bundle
+        bundle install
+
+    - run: bundle exec rake
+
+  external:
+    needs: test
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest]
+        ruby: [2.6, 2.7]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+
+    - uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
+        restore-keys: |
+          bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+
+    - name: Installing packages (ubuntu)
+      if: matrix.os == 'ubuntu-latest'
+      run: sudo apt-get install libmemcached-dev
+
+    - name: Installing packages (macos)
+      if: matrix.os == 'macos-latest'
+      run: brew install libmemcached
+
+    - name: Bundle install...
+      run: |
+        bundle config path vendor/bundle
+        bundle install
+
+    - run: bundle exec rake external

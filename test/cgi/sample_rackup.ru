@@ -1,5 +1,5 @@
-# -*- ruby -*-
+# frozen_string_literal: true
 
-require '../testrequest'
+require '../test_request'
 
 run Rack::Lint.new(TestRequest.new)

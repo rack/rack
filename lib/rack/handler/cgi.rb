@@ -1,10 +1,9 @@
-require 'rack/content_length'
-require 'rack/rewindable_input'
+# frozen_string_literal: true
 
 module Rack
   module Handler
     class CGI
-      def self.run(app, options=nil)
+      def self.run(app, **options)
         $stdin.binmode
         serve app
       end
@@ -15,19 +14,17 @@ module Rack
 
         env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
 
-        env.update({"rack.version" => Rack::VERSION,
-                     "rack.input" => Rack::RewindableInput.new($stdin),
-                     "rack.errors" => $stderr,
+        env.update(
+          RACK_VERSION      => Rack::VERSION,
+          RACK_INPUT        => Rack::RewindableInput.new($stdin),
+          RACK_ERRORS       => $stderr,
+          RACK_MULTITHREAD  => false,
+          RACK_MULTIPROCESS => true,
+          RACK_RUNONCE      => true,
+          RACK_URL_SCHEME   => ["yes", "on", "1"].include?(ENV[HTTPS]) ? "https" : "http"
+        )
 
-                     "rack.multithread" => false,
-                     "rack.multiprocess" => true,
-                     "rack.run_once" => true,
-
-                     "rack.url_scheme" => ["yes", "on", "1"].include?(ENV[HTTPS]) ? "https" : "http"
-                   })
-
-        env[QUERY_STRING]   ||= ""
-        env[HTTP_VERSION] ||= env[SERVER_PROTOCOL]
+        env[QUERY_STRING] ||= ""
         env[REQUEST_PATH] ||= "/"
 
         status, headers, body = app.call(env)
@@ -57,5 +54,7 @@ module Rack
         }
       end
     end
+
+    register 'cgi', 'Rack::Handler::CGI'
   end
 end

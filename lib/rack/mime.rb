@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   module Mime
     # Returns String with mime type if found, otherwise use +fallback+.
@@ -13,7 +15,7 @@ module Rack
     # This is a shortcut for:
     #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
-    def mime_type(ext, fallback='application/octet-stream')
+    def mime_type(ext, fallback = 'application/octet-stream')
       MIME_TYPES.fetch(ext.to_s.downcase, fallback)
     end
     module_function :mime_type
@@ -45,11 +47,6 @@ module Rack
     #
     # N.B. On Ubuntu the mime.types file does not include the leading period, so
     # users may need to modify the data before merging into the hash.
-    #
-    # To add the list mongrel provides, use:
-    #
-    #     require 'mongrel/handlers'
-    #     Rack::Mime::MIME_TYPES.merge!(Mongrel::DirHandler::MIME_TYPES)
 
     MIME_TYPES = {
       ".123"       => "application/vnd.lotus-1-2-3",
@@ -66,6 +63,7 @@ module Rack
       ".aif"       => "audio/x-aiff",
       ".aiff"      => "audio/x-aiff",
       ".ami"       => "application/vnd.amiga.ami",
+      ".apng"      => "image/apng",
       ".appcache"  => "text/cache-manifest",
       ".apr"       => "application/vnd.lotus-approach",
       ".asc"       => "application/pgp-signature",
@@ -80,6 +78,7 @@ module Rack
       ".atx"       => "application/vnd.antix.game-component",
       ".au"        => "audio/basic",
       ".avi"       => "video/x-msvideo",
+      ".avif"      => "image/avif",
       ".bat"       => "application/x-msdownload",
       ".bcpio"     => "application/x-bcpio",
       ".bdm"       => "application/vnd.syncml.dm+wbxml",
@@ -200,6 +199,7 @@ module Rack
       ".fe_launch" => "application/vnd.denovo.fcselayout-link",
       ".fg5"       => "application/vnd.fujitsu.oasysgp",
       ".fli"       => "video/x-fli",
+      ".flif"      => "image/flif",
       ".flo"       => "application/vnd.micrografx.flo",
       ".flv"       => "video/x-flv",
       ".flw"       => "application/vnd.kde.kivio",
@@ -240,6 +240,10 @@ module Rack
       ".h264"      => "video/h264",
       ".hbci"      => "application/vnd.hbci",
       ".hdf"       => "application/x-hdf",
+      ".heic"      => "image/heic",
+      ".heics"     => "image/heic-sequence",
+      ".heif"      => "image/heif",
+      ".heifs"     => "image/heif-sequence",
       ".hh"        => "text/x-c",
       ".hlp"       => "application/winhlp",
       ".hpgl"      => "application/vnd.hp-hpgl",
@@ -311,6 +315,7 @@ module Rack
       ".lvp"       => "audio/vnd.lucent.voice",
       ".lwp"       => "application/vnd.lotus-wordpro",
       ".m3u"       => "audio/x-mpegurl",
+      ".m3u8"      => "application/x-mpegurl",
       ".m4a"       => "audio/mp4a-latm",
       ".m4v"       => "video/mp4",
       ".ma"        => "application/mathematica",
@@ -348,6 +353,7 @@ module Rack
       ".mp4s"      => "application/mp4",
       ".mp4v"      => "video/mp4",
       ".mpc"       => "application/vnd.mophun.certificate",
+      ".mpd"       => "application/dash+xml",
       ".mpeg"      => "video/mpeg",
       ".mpg"       => "video/mpeg",
       ".mpga"      => "audio/mpeg",
@@ -547,6 +553,7 @@ module Rack
       ".spp"       => "application/scvp-vp-response",
       ".spq"       => "application/scvp-vp-request",
       ".src"       => "application/x-wais-source",
+      ".srt"       => "text/srt",
       ".srx"       => "application/sparql-results+xml",
       ".sse"       => "application/vnd.kodak-descriptor",
       ".ssf"       => "application/vnd.epson.ssf",
@@ -581,6 +588,7 @@ module Rack
       ".tr"        => "text/troff",
       ".tra"       => "application/vnd.trueapp",
       ".trm"       => "application/x-msterminal",
+      ".ts"        => "video/mp2t",
       ".tsv"       => "text/tab-separated-values",
       ".ttf"       => "application/octet-stream",
       ".twd"       => "application/vnd.simtech-mindmapper",
@@ -605,15 +613,18 @@ module Rack
       ".vrml"      => "model/vrml",
       ".vsd"       => "application/vnd.visio",
       ".vsf"       => "application/vnd.vsf",
+      ".vtt"       => "text/vtt",
       ".vtu"       => "model/vnd.vtu",
       ".vxml"      => "application/voicexml+xml",
       ".war"       => "application/java-archive",
+      ".wasm"      => "application/wasm",
       ".wav"       => "audio/x-wav",
       ".wax"       => "audio/x-ms-wax",
       ".wbmp"      => "image/vnd.wap.wbmp",
       ".wbs"       => "application/vnd.criticaltools.wbs+xml",
       ".wbxml"     => "application/vnd.wap.wbxml",
       ".webm"      => "video/webm",
+      ".webp"      => "image/webp",
       ".wm"        => "video/x-ms-wm",
       ".wma"       => "audio/x-ms-wma",
       ".wmd"       => "application/x-ms-wmd",

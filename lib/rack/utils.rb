@@ -1,171 +1,103 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
+
+require 'uri'
 require 'fileutils'
 require 'set'
 require 'tempfile'
-require 'rack/multipart'
 require 'time'
 
-major, minor, patch = RUBY_VERSION.split('.').map { |v| v.to_i }
-
-if major == 1 && minor < 9
-  require 'rack/backports/uri/common_18'
-elsif major == 1 && minor == 9 && patch == 2 && RUBY_PATCHLEVEL <= 328 && RUBY_ENGINE != 'jruby'
-  require 'rack/backports/uri/common_192'
-elsif major == 1 && minor == 9 && patch == 3 && RUBY_PATCHLEVEL < 125
-  require 'rack/backports/uri/common_193'
-else
-  require 'uri/common'
-end
+require_relative 'query_parser'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    # ParameterTypeError is the error that is raised when incoming structural
-    # parameters (parsed by parse_nested_query) contain conflicting types.
-    class ParameterTypeError < TypeError; end
+    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
-    # InvalidParameterError is the error that is raised when incoming structural
-    # parameters (parsed by parse_nested_query) contain invalid format or byte
-    # sequence.
-    class InvalidParameterError < ArgumentError; end
+    ParameterTypeError = QueryParser::ParameterTypeError
+    InvalidParameterError = QueryParser::InvalidParameterError
+    DEFAULT_SEP = QueryParser::DEFAULT_SEP
+    COMMON_SEP = QueryParser::COMMON_SEP
+    KeySpaceConstrainedParams = QueryParser::Params
+
+    class << self
+      attr_accessor :default_query_parser
+    end
+    # The default number of bytes to allow parameter keys to take up.
+    # This helps prevent a rogue client from flooding a Request.
+    self.default_query_parser = QueryParser.make_default(65536, 32)
+
+    module_function
 
     # URI escapes. (CGI style space to +)
     def escape(s)
       URI.encode_www_form_component(s)
     end
-    module_function :escape
 
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
     # true URI escaping.
     def escape_path(s)
-      escape(s).gsub('+', '%20')
+      ::URI::DEFAULT_PARSER.escape s
     end
-    module_function :escape_path
+
+    # Unescapes the **path** component of a URI.  See Rack::Utils.unescape for
+    # unescaping query parameters or form components.
+    def unescape_path(s)
+      ::URI::DEFAULT_PARSER.unescape s
+    end
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    if defined?(::Encoding)
-      def unescape(s, encoding = Encoding::UTF_8)
-        URI.decode_www_form_component(s, encoding)
-      end
-    else
-      def unescape(s, encoding = nil)
-        URI.decode_www_form_component(s, encoding)
-      end
+    def unescape(s, encoding = Encoding::UTF_8)
+      URI.decode_www_form_component(s, encoding)
     end
-    module_function :unescape
-
-    DEFAULT_SEP = /[&;] */n
-    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
     class << self
-      attr_accessor :key_space_limit
       attr_accessor :multipart_part_limit
     end
-
-    # The default number of bytes to allow parameter keys to take up.
-    # This helps prevent a rogue client from flooding a Request.
-    self.key_space_limit = 65536
 
     # The maximum number of parts a request can contain. Accepting too many part
     # can lead to the server running out of file handles.
     # Set to `0` for no limit.
-    # FIXME: RACK_MULTIPART_LIMIT was introduced by mistake and it will be removed in 1.7.0
-    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_LIMIT'] || 128).to_i
+    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || 128).to_i
 
-    # Stolen from Mongrel, with some small modifications:
-    # Parses a query string by breaking it up at the '&'
-    # and ';' characters.  You can also use this to parse
-    # cookies by changing the characters used in the second
-    # parameter (which defaults to '&;').
+    def self.param_depth_limit
+      default_query_parser.param_depth_limit
+    end
+
+    def self.param_depth_limit=(v)
+      self.default_query_parser = self.default_query_parser.new_depth_limit(v)
+    end
+
+    def self.key_space_limit
+      default_query_parser.key_space_limit
+    end
+
+    def self.key_space_limit=(v)
+      self.default_query_parser = self.default_query_parser.new_space_limit(v)
+    end
+
+    if defined?(Process::CLOCK_MONOTONIC)
+      def clock_time
+        Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      end
+    else
+      # :nocov:
+      def clock_time
+        Time.now.to_f
+      end
+      # :nocov:
+    end
+
     def parse_query(qs, d = nil, &unescaper)
-      unescaper ||= method(:unescape)
-
-      params = KeySpaceConstrainedParams.new
-
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        next if p.empty?
-        k, v = p.split('='.freeze, 2).map!(&unescaper)
-
-        if cur = params[k]
-          if cur.class == Array
-            params[k] << v
-          else
-            params[k] = [cur, v]
-          end
-        else
-          params[k] = v
-        end
-      end
-
-      return params.to_params_hash
+      Rack::Utils.default_query_parser.parse_query(qs, d, &unescaper)
     end
-    module_function :parse_query
 
-    # parse_nested_query expands a query string into structural types. Supported
-    # types are Arrays, Hashes and basic value types. It is possible to supply
-    # query strings with parameters of conflicting types, in this case a
-    # ParameterTypeError is raised. Users are encouraged to return a 400 in this
-    # case.
     def parse_nested_query(qs, d = nil)
-      return {} if qs.nil? || qs.empty?
-      params = KeySpaceConstrainedParams.new
-
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
-        k, v = p.split('='.freeze, 2).map! { |s| unescape(s) }
-
-        normalize_params(params, k, v)
-      end
-
-      return params.to_params_hash
-    rescue ArgumentError => e
-      raise InvalidParameterError, e.message
+      Rack::Utils.default_query_parser.parse_nested_query(qs, d)
     end
-    module_function :parse_nested_query
-
-    # normalize_params recursively expands parameters into structural types. If
-    # the structural types represented by two different parameter names are in
-    # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v = nil)
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
-
-      return if k.empty?
-
-      if after == ""
-        params[k] = v
-      elsif after == "["
-        params[name] = v
-      elsif after == "[]"
-        params[k] ||= []
-        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
-        child_key = $1
-        params[k] ||= []
-        raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
-        if params_hash_type?(params[k].last) && !params[k].last.key?(child_key)
-          normalize_params(params[k].last, child_key, v)
-        else
-          params[k] << normalize_params(params.class.new, child_key, v)
-        end
-      else
-        params[k] ||= params.class.new
-        raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v)
-      end
-
-      return params
-    end
-    module_function :normalize_params
-
-    def params_hash_type?(obj)
-      obj.kind_of?(KeySpaceConstrainedParams) || obj.kind_of?(Hash)
-    end
-    module_function :params_hash_type?
 
     def build_query(params)
       params.map { |k, v|
@@ -176,7 +108,6 @@ module Rack
         end
       }.join("&")
     end
-    module_function :build_query
 
     def build_nested_query(value, prefix = nil)
       case value
@@ -187,7 +118,7 @@ module Rack
       when Hash
         value.map { |k, v|
           build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
-        }.reject(&:empty?).join('&')
+        }.delete_if(&:empty?).join('&')
       when nil
         prefix
       else
@@ -195,20 +126,22 @@ module Rack
         "#{prefix}=#{escape(value)}"
       end
     end
-    module_function :build_nested_query
 
     def q_values(q_value_header)
       q_value_header.to_s.split(/\s*,\s*/).map do |part|
         value, parameters = part.split(/\s*;\s*/, 2)
         quality = 1.0
-        if md = /\Aq=([\d.]+)/.match(parameters)
+        if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
         end
         [value, quality]
       end
     end
-    module_function :q_values
 
+    # Return best accept value to use, based on the algorithm
+    # in RFC 2616 Section 14.  If there are multiple best
+    # matches (same specificity and quality), the value returned
+    # is arbitrary.
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
@@ -219,9 +152,8 @@ module Rack
       end.compact.sort_by do |match, quality|
         (match.split('/', 2).count('*') * -10) + quality
       end.last
-      matches && matches.first
+      matches&.first
     end
-    module_function :best_q_match
 
     ESCAPE_HTML = {
       "&" => "&amp;",
@@ -231,149 +163,159 @@ module Rack
       '"' => "&quot;",
       "/" => "&#x2F;"
     }
-    if //.respond_to?(:encoding)
-      ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-    else
-      # On 1.8, there is a kcode = 'u' bug that allows for XSS otherwise
-      # TODO doesn't apply to jruby, so a better condition above might be preferable?
-      ESCAPE_HTML_PATTERN = /#{Regexp.union(*ESCAPE_HTML.keys)}/n
-    end
+
+    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
 
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
     def escape_html(string)
       string.to_s.gsub(ESCAPE_HTML_PATTERN){|c| ESCAPE_HTML[c] }
     end
-    module_function :escape_html
 
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
 
-      expanded_accept_encoding =
-        accept_encoding.map { |m, q|
-          if m == "*"
-            (available_encodings - accept_encoding.map { |m2, _| m2 }).map { |m2| [m2, q] }
-          else
-            [[m, q]]
-          end
-        }.inject([]) { |mem, list|
-          mem + list
-        }
+      expanded_accept_encoding = []
 
-      encoding_candidates = expanded_accept_encoding.sort_by { |_, q| -q }.map { |m, _| m }
+      accept_encoding.each do |m, q|
+        preference = available_encodings.index(m) || available_encodings.size
+
+        if m == "*"
+          (available_encodings - accept_encoding.map(&:first)).each do |m2|
+            expanded_accept_encoding << [m2, q, preference]
+          end
+        else
+          expanded_accept_encoding << [m, q, preference]
+        end
+      end
+
+      encoding_candidates = expanded_accept_encoding
+        .sort_by { |_, q, p| [-q, p] }
+        .map!(&:first)
 
       unless encoding_candidates.include?("identity")
         encoding_candidates.push("identity")
       end
 
-      expanded_accept_encoding.each { |m, q|
+      expanded_accept_encoding.each do |m, q|
         encoding_candidates.delete(m) if q == 0.0
-      }
+      end
 
-      return (encoding_candidates & available_encodings)[0]
+      (encoding_candidates & available_encodings)[0]
     end
-    module_function :select_best_encoding
 
-    def set_cookie_header!(header, key, value)
+    def parse_cookies(env)
+      parse_cookies_header env[HTTP_COOKIE]
+    end
+
+    def parse_cookies_header(header)
+      # According to RFC 6265:
+      # The syntax for cookie headers only supports semicolons
+      # User Agent -> Server ==
+      # Cookie: SID=31d4d96e407aad42; lang=en-US
+      return {} unless header
+      header.split(/[;] */n).each_with_object({}) do |cookie, cookies|
+        next if cookie.empty?
+        key, value = cookie.split('=', 2)
+        cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
+      end
+    end
+
+    def add_cookie_to_header(header, key, value)
       case value
       when Hash
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
-        # There is an RFC mess in the area of date formatting for Cookies. Not
-        # only are there contradicting RFCs and examples within RFC text, but
-        # there are also numerous conflicting names of fields and partially
-        # cross-applicable specifications.
-        #
-        # These are best described in RFC 2616 3.3.1. This RFC text also
-        # specifies that RFC 822 as updated by RFC 1123 is preferred. That is a
-        # fixed length format with space-date delimeted fields.
-        #
-        # See also RFC 1123 section 5.2.14.
-        #
-        # RFC 6265 also specifies "sane-cookie-date" as RFC 1123 date, defined
-        # in RFC 2616 3.3.1. RFC 6265 also gives examples that clearly denote
-        # the space delimited format. These formats are compliant with RFC 2822.
-        #
-        # For reference, all involved RFCs are:
-        # RFC 822
-        # RFC 1123
-        # RFC 2109
-        # RFC 2616
-        # RFC 2822
-        # RFC 2965
-        # RFC 6265
-        expires = "; expires=" +
-          rfc2822(value[:expires].clone.gmtime) if value[:expires]
+        expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
+        same_site =
+          case value[:same_site]
+          when false, nil
+            nil
+          when :none, 'None', :None
+            '; SameSite=None'
+          when :lax, 'Lax', :Lax
+            '; SameSite=Lax'
+          when true, :strict, 'Strict', :Strict
+            '; SameSite=Strict'
+          else
+            raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
+          end
         value = value[:value]
       end
       value = [value] unless Array === value
 
       cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
-        "#{path}#{max_age}#{expires}#{secure}#{httponly}"
+        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
 
-      case header["Set-Cookie"]
+      case header
       when nil, ''
-        header["Set-Cookie"] = cookie
+        cookie
       when String
-        header["Set-Cookie"] = [header["Set-Cookie"], cookie].join("\n")
+        [header, cookie].join("\n")
       when Array
-        header["Set-Cookie"] = (header["Set-Cookie"] + [cookie]).join("\n")
+        (header + [cookie]).join("\n")
+      else
+        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
       end
+    end
 
+    def set_cookie_header!(header, key, value)
+      header[SET_COOKIE] = add_cookie_to_header(header[SET_COOKIE], key, value)
       nil
     end
-    module_function :set_cookie_header!
 
-    def delete_cookie_header!(header, key, value = {})
-      case header["Set-Cookie"]
+    def make_delete_cookie_header(header, key, value)
+      case header
       when nil, ''
         cookies = []
       when String
-        cookies = header["Set-Cookie"].split("\n")
+        cookies = header.split("\n")
       when Array
-        cookies = header["Set-Cookie"]
+        cookies = header
       end
 
-      cookies.reject! { |cookie|
-        if value[:domain]
-          cookie =~ /\A#{escape(key)}=.*domain=#{value[:domain]}/
-        elsif value[:path]
-          cookie =~ /\A#{escape(key)}=.*path=#{value[:path]}/
-        else
-          cookie =~ /\A#{escape(key)}=/
-        end
-      }
+      key = escape(key)
+      domain = value[:domain]
+      path = value[:path]
+      regexp = if domain
+                 if path
+                   /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
+                 else
+                   /\A#{key}=.*domain=#{domain}(?:;|$)/
+                 end
+               elsif path
+                 /\A#{key}=.*path=#{path}(?:;|$)/
+               else
+                 /\A#{key}=/
+               end
 
-      header["Set-Cookie"] = cookies.join("\n")
+      cookies.reject! { |cookie| regexp.match? cookie }
 
-      set_cookie_header!(header, key,
-                 {:value => '', :path => nil, :domain => nil,
-                   :max_age => '0',
-                   :expires => Time.at(0) }.merge(value))
+      cookies.join("\n")
+    end
 
+    def delete_cookie_header!(header, key, value = {})
+      header[SET_COOKIE] = add_remove_cookie_to_header(header[SET_COOKIE], key, value)
       nil
     end
-    module_function :delete_cookie_header!
 
-    # Return the bytesize of String; uses String#size under Ruby 1.8 and
-    # String#bytesize under 1.9.
-    if ''.respond_to?(:bytesize)
-      def bytesize(string)
-        string.bytesize
-      end
-    else
-      def bytesize(string)
-        string.size
-      end
+    # Adds a cookie that will *remove* a cookie from the client.  Hence the
+    # strange method name.
+    def add_remove_cookie_to_header(header, key, value = {})
+      new_header = make_delete_cookie_header(header, key, value)
+
+      add_cookie_to_header(new_header, key,
+                 { value: '', path: nil, domain: nil,
+                   max_age: '0',
+                   expires: Time.at(0) }.merge(value))
+
     end
-    module_function :bytesize
 
     def rfc2822(time)
       time.rfc2822
     end
-    module_function :rfc2822
 
     # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
     # of '% %b %Y'.
@@ -389,19 +331,22 @@ module Rack
       mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
       time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
-    module_function :rfc2109
 
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
     # Returns an empty array if none of the ranges are satisfiable.
     def byte_ranges(env, size)
+      warn "`byte_ranges` is deprecated, please use `get_byte_ranges`" if $VERBOSE
+      get_byte_ranges env['HTTP_RANGE'], size
+    end
+
+    def get_byte_ranges(http_range, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
-      http_range = env['HTTP_RANGE']
       return nil unless http_range && http_range =~ /bytes=([^;]+)/
       ranges = []
       $1.split(/,\s*/).each do |range_spec|
         return nil  unless range_spec =~ /(\d*)-(\d*)/
-        r0,r1 = $1, $2
+        r0, r1 = $1, $2
         if r0.empty?
           return nil  if r1.empty?
           # suffix-byte-range-spec, represents trailing suffix of file
@@ -415,14 +360,13 @@ module Rack
           else
             r1 = r1.to_i
             return nil  if r1 < r0  # backwards range is syntactically invalid
-            r1 = size-1  if r1 >= size
+            r1 = size - 1  if r1 >= size
           end
         end
         ranges << (r0..r1)  if r0 <= r1
       end
       ranges
     end
-    module_function :byte_ranges
 
     # Constant time string comparison.
     #
@@ -430,16 +374,23 @@ module Rack
     # that have already been processed by HMAC. This should not be used
     # on variable length plaintext strings because it could leak length info
     # via timing attacks.
-    def secure_compare(a, b)
-      return false unless bytesize(a) == bytesize(b)
+    if defined?(OpenSSL.fixed_length_secure_compare)
+      def secure_compare(a, b)
+        return false unless a.bytesize == b.bytesize
 
-      l = a.unpack("C*")
+        OpenSSL.fixed_length_secure_compare(a, b)
+      end
+    else
+      def secure_compare(a, b)
+        return false unless a.bytesize == b.bytesize
 
-      r, i = 0, -1
-      b.each_byte { |v| r |= v ^ l[i+=1] }
-      r == 0
+        l = a.unpack("C*")
+
+        r, i = 0, -1
+        b.each_byte { |v| r |= v ^ l[i += 1] }
+        r == 0
+      end
     end
-    module_function :secure_compare
 
     # Context allows the use of a compatible middleware at different points
     # in a request handling stack. A compatible middleware must define
@@ -462,22 +413,40 @@ module Rack
         self.class.new(@for, app)
       end
 
-      def context(env, app=@app)
+      def context(env, app = @app)
         recontext(app).call(env)
       end
     end
 
     # A case-insensitive Hash that preserves the original case of a
     # header when set.
-    class HeaderHash < Hash
-      def self.new(hash={})
-        HeaderHash === hash ? hash : super(hash)
+    #
+    # @api private
+    class HeaderHash < Hash # :nodoc:
+      def self.[](headers)
+        if headers.is_a?(HeaderHash) && !headers.frozen?
+          return headers
+        else
+          return self.new(headers)
+        end
       end
 
-      def initialize(hash={})
+      def initialize(hash = {})
         super()
         @names = {}
         hash.each { |k, v| self[k] = v }
+      end
+
+      # on dup/clone, we need to duplicate @names hash
+      def initialize_copy(other)
+        super
+        @names = other.names.dup
+      end
+
+      # on clear, we need to clear @names hash
+      def clear
+        super
+        @names.clear
       end
 
       def each
@@ -488,7 +457,7 @@ module Rack
 
       def to_hash
         hash = {}
-        each { |k,v| hash[k] = v }
+        each { |k, v| hash[k] = v }
         hash
       end
 
@@ -517,6 +486,10 @@ module Rack
       alias_method :member?, :include?
       alias_method :key?, :include?
 
+      def fetch(k, *args)
+        super(@names[k.downcase] || k, *args)
+      end
+
       def merge!(other)
         other.each { |k, v| self[k] = v }
         self
@@ -532,56 +505,23 @@ module Rack
         other.each { |k, v| self[k] = v }
         self
       end
-    end
 
-    class KeySpaceConstrainedParams
-      def initialize(limit = Utils.key_space_limit)
-        @limit  = limit
-        @size   = 0
-        @params = {}
-      end
-
-      def [](key)
-        @params[key]
-      end
-
-      def []=(key, value)
-        @size += key.size if key && !@params.key?(key)
-        raise RangeError, 'exceeded available parameter key space' if @size > @limit
-        @params[key] = value
-      end
-
-      def key?(key)
-        @params.key?(key)
-      end
-
-      def to_params_hash
-        hash = @params
-        hash.keys.each do |key|
-          value = hash[key]
-          if value.kind_of?(self.class)
-            if value.object_id == self.object_id
-              hash[key] = hash
-            else
-              hash[key] = value.to_params_hash
-            end
-          elsif value.kind_of?(Array)
-            value.map! {|x| x.kind_of?(self.class) ? x.to_params_hash : x}
-          end
+      protected
+        def names
+          @names
         end
-        hash
-      end
     end
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    # curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
-    #   ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
-    #             puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
+    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
+    #     ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
+    #               puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
       102 => 'Processing',
+      103 => 'Early Hints',
       200 => 'OK',
       201 => 'Created',
       202 => 'Accepted',
@@ -598,6 +538,7 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
+      306 => '(Unused)',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
@@ -618,13 +559,16 @@ module Rack
       415 => 'Unsupported Media Type',
       416 => 'Range Not Satisfiable',
       417 => 'Expectation Failed',
+      421 => 'Misdirected Request',
       422 => 'Unprocessable Entity',
       423 => 'Locked',
       424 => 'Failed Dependency',
+      425 => 'Too Early',
       426 => 'Upgrade Required',
       428 => 'Precondition Required',
       429 => 'Too Many Requests',
       431 => 'Request Header Fields Too Large',
+      451 => 'Unavailable for Legal Reasons',
       500 => 'Internal Server Error',
       501 => 'Not Implemented',
       502 => 'Bad Gateway',
@@ -634,12 +578,13 @@ module Rack
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
+      509 => 'Bandwidth Limit Exceeded',
       510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
 
     # Responses with HTTP status codes that should not have an entity body
-    STATUS_WITH_NO_ENTITY_BODY = Set.new((100..199).to_a << 204 << 205 << 304)
+    STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])]
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
       [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
@@ -647,14 +592,11 @@ module Rack
 
     def status_code(status)
       if status.is_a?(Symbol)
-        SYMBOL_TO_STATUS_CODE[status] || 500
+        SYMBOL_TO_STATUS_CODE.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
       else
         status.to_i
       end
     end
-    module_function :status_code
-
-    Multipart = Rack::Multipart
 
     PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
 
@@ -668,11 +610,16 @@ module Rack
         part == '..' ? clean.pop : clean << part
       end
 
-      clean.unshift '/' if parts.empty? || parts.first.empty?
-
-      ::File.join(*clean)
+      clean_path = clean.join(::File::SEPARATOR)
+      clean_path.prepend("/") if parts.empty? || parts.first.empty?
+      clean_path
     end
-    module_function :clean_path_info
+
+    NULL_BYTE = "\0"
+
+    def valid_path?(path)
+      path.valid_encoding? && !path.include?(NULL_BYTE)
+    end
 
   end
 end

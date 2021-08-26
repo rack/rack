@@ -1,6 +1,7 @@
 # -*- encoding: binary -*-
+# frozen_string_literal: true
+
 require 'tempfile'
-require 'rack/utils'
 
 module Rack
   # Class which can make any IO object rewindable, including non-rewindable ones. It does
@@ -39,8 +40,13 @@ module Rack
       @rewindable_io.rewind
     end
 
+    def size
+      make_rewindable unless @rewindable_io
+      @rewindable_io.size
+    end
+
     # Closes this RewindableInput object without closing the originally
-    # wrapped IO oject. Cleans up any temporary resources that this RewindableInput
+    # wrapped IO object. Cleans up any temporary resources that this RewindableInput
     # has created.
     #
     # This method may be called multiple times. It does nothing on subsequent calls.
@@ -57,15 +63,6 @@ module Rack
 
     private
 
-    # Ruby's Tempfile class has a bug. Subclass it and fix it.
-    class Tempfile < ::Tempfile
-      def _close
-        @tmpfile.close if @tmpfile
-        @data[1] = nil if @data
-        @tmpfile = nil
-      end
-    end
-
     def make_rewindable
       # Buffer all data into a tempfile. Since this tempfile is private to this
       # RewindableInput object, we chmod it so that nobody else can read or write
@@ -77,18 +74,16 @@ module Rack
       @rewindable_io.set_encoding(Encoding::BINARY) if @rewindable_io.respond_to?(:set_encoding)
       @rewindable_io.binmode
       if filesystem_has_posix_semantics?
-        # Use ::File.unlink as 1.9.1 Tempfile has a bug where unlink closes the file!
-        ::File.unlink @rewindable_io.path
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
 
-      buffer = ""
+      buffer = "".dup
       while @io.read(1024 * 4, buffer)
         entire_buffer_written_out = false
         while !entire_buffer_written_out
           written = @rewindable_io.write(buffer)
-          entire_buffer_written_out = written == Rack::Utils.bytesize(buffer)
+          entire_buffer_written_out = written == buffer.bytesize
           if !entire_buffer_written_out
             buffer.slice!(0 .. written - 1)
           end

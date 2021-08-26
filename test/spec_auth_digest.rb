@@ -1,6 +1,6 @@
-require 'rack/auth/digest/md5'
-require 'rack/lint'
-require 'rack/mock'
+# frozen_string_literal: true
+
+require_relative 'helper'
 
 describe Rack::Auth::Digest::MD5 do
   def realm
@@ -10,12 +10,12 @@ describe Rack::Auth::Digest::MD5 do
   def unprotected_app
     Rack::Lint.new lambda { |env|
       friend = Rack::Utils.parse_query(env["QUERY_STRING"])["friend"]
-      [ 200, {'Content-Type' => 'text/plain'}, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
+      [ 200, { 'Content-Type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
     }
   end
 
   def protected_app
-    Rack::Auth::Digest::MD5.new(unprotected_app, :realm => realm, :opaque => 'this-should-be-secret') do |username|
+    Rack::Auth::Digest::MD5.new(unprotected_app, realm: realm, opaque: 'this-should-be-secret') do |username|
       { 'Alice' => 'correct-password' }[username]
     end
   end
@@ -100,160 +100,174 @@ describe Rack::Auth::Digest::MD5 do
   end
 
   def assert_digest_auth_challenge(response)
-    response.should.be.a.client_error
-    response.status.should.equal 401
-    response.should.include 'WWW-Authenticate'
-    response.headers['WWW-Authenticate'].should =~ /^Digest /
-    response.body.should.be.empty
+    response.must_be :client_error?
+    response.status.must_equal 401
+    response.must_include 'WWW-Authenticate'
+    response.headers['WWW-Authenticate'].must_match(/^Digest /)
+    response.body.must_be :empty?
   end
 
   def assert_bad_request(response)
-    response.should.be.a.client_error
-    response.status.should.equal 400
-    response.should.not.include 'WWW-Authenticate'
+    response.must_be :client_error?
+    response.status.must_equal 400
+    response.wont_include 'WWW-Authenticate'
   end
 
-  should 'challenge when no credentials are specified' do
+  it 'challenge when no credentials are specified' do
     request 'GET', '/' do |response|
       assert_digest_auth_challenge response
     end
   end
 
-  should 'return application output if correct credentials given' do
+  it 'return application output if correct credentials given' do
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice'
     end
   end
 
-  should 'return application output if correct credentials given (hashed passwords)' do
+  it 'return application output if correct credentials given (hashed passwords)' do
     @request = Rack::MockRequest.new(protected_app_with_hashed_passwords)
 
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice'
     end
   end
 
-  should 'rechallenge if incorrect username given' do
+  it 'rechallenge if incorrect username given' do
     request_with_digest_auth 'GET', '/', 'Bob', 'correct-password' do |response|
       assert_digest_auth_challenge response
     end
   end
 
-  should 'rechallenge if incorrect password given' do
+  it 'rechallenge if incorrect password given' do
     request_with_digest_auth 'GET', '/', 'Alice', 'wrong-password' do |response|
       assert_digest_auth_challenge response
     end
   end
 
-  should 'rechallenge if incorrect user and blank password given' do
+  it 'rechallenge if incorrect user and blank password given' do
     request_with_digest_auth 'GET', '/', 'Bob', '' do |response|
       assert_digest_auth_challenge response
     end
   end
 
-  should 'not rechallenge if nonce is not stale' do
+  it 'not rechallenge if nonce is not stale' do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 10
 
-      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', :wait => 1 do |response|
-        response.status.should.equal 200
-        response.body.to_s.should.equal 'Hi Alice'
-        response.headers['WWW-Authenticate'].should.not =~ /\bstale=true\b/
+      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 1 do |response|
+        response.status.must_equal 200
+        response.body.to_s.must_equal 'Hi Alice'
+        response.headers['WWW-Authenticate'].wont_match(/\bstale=true\b/)
       end
     ensure
       Rack::Auth::Digest::Nonce.time_limit = nil
     end
   end
 
-  should 'rechallenge with stale parameter if nonce is stale' do
+  it 'rechallenge with stale parameter if nonce is stale' do
     begin
       Rack::Auth::Digest::Nonce.time_limit = 1
 
-      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', :wait => 2 do |response|
+      request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 2 do |response|
         assert_digest_auth_challenge response
-        response.headers['WWW-Authenticate'].should =~ /\bstale=true\b/
+        response.headers['WWW-Authenticate'].must_match(/\bstale=true\b/)
       end
     ensure
       Rack::Auth::Digest::Nonce.time_limit = nil
     end
   end
 
-  should 'return 400 Bad Request if incorrect qop given' do
+  it 'return 400 Bad Request if incorrect qop given' do
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', 'qop' => 'auth-int' do |response|
       assert_bad_request response
     end
   end
 
-  should 'return 400 Bad Request if incorrect uri given' do
+  it 'return 400 Bad Request if incorrect uri given' do
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', 'uri' => '/foo' do |response|
       assert_bad_request response
     end
   end
 
-  should 'return 400 Bad Request if different auth scheme used' do
+  it 'return 400 Bad Request if different auth scheme used' do
     request 'GET', '/', 'HTTP_AUTHORIZATION' => 'Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ==' do |response|
       assert_bad_request response
     end
   end
 
-  should 'not require credentials for unprotected path' do
+  it 'not require credentials for unprotected path' do
     @request = Rack::MockRequest.new(partially_protected_app)
     request 'GET', '/' do |response|
-      response.should.be.ok
+      response.must_be :ok?
     end
   end
 
-  should 'challenge when no credentials are specified for protected path' do
+  it 'challenge when no credentials are specified for protected path' do
     @request = Rack::MockRequest.new(partially_protected_app)
     request 'GET', '/protected' do |response|
       assert_digest_auth_challenge response
     end
   end
 
-  should 'return application output if correct credentials given for protected path' do
+  it 'return application output if correct credentials given for protected path' do
     @request = Rack::MockRequest.new(partially_protected_app)
     request_with_digest_auth 'GET', '/protected', 'Alice', 'correct-password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice'
     end
   end
 
-  should 'return application output when used with a query string and path as uri' do
+  it 'return application output when used with a query string and path as uri' do
     @request = Rack::MockRequest.new(partially_protected_app)
     request_with_digest_auth 'GET', '/protected?friend=Mike', 'Alice', 'correct-password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice and Mike'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice and Mike'
     end
   end
 
-  should 'return application output when used with a query string and fullpath as uri' do
+  it 'return application output when used with a query string and fullpath as uri' do
     @request = Rack::MockRequest.new(partially_protected_app)
     qs_uri = '/protected?friend=Mike'
     request_with_digest_auth 'GET', qs_uri, 'Alice', 'correct-password', 'uri' => qs_uri do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice and Mike'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice and Mike'
     end
   end
 
-  should 'return application output if correct credentials given for POST' do
+  it 'return application output if correct credentials given for POST' do
     request_with_digest_auth 'POST', '/', 'Alice', 'correct-password' do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice'
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice'
     end
   end
 
-  should 'return application output if correct credentials given for PUT (using method override of POST)' do
+  it 'return application output if correct credentials given for PUT (using method override of POST)' do
     @request = Rack::MockRequest.new(protected_app_with_method_override)
-    request_with_digest_auth 'POST', '/', 'Alice', 'correct-password', :input => "_method=put" do |response|
-      response.status.should.equal 200
-      response.body.to_s.should.equal 'Hi Alice'
+    request_with_digest_auth 'POST', '/', 'Alice', 'correct-password', input: "_method=put" do |response|
+      response.status.must_equal 200
+      response.body.to_s.must_equal 'Hi Alice'
     end
   end
 
   it 'takes realm as optional constructor arg' do
     app = Rack::Auth::Digest::MD5.new(unprotected_app, realm) { true }
-    realm.should == app.realm
+    realm.must_equal app.realm
+  end
+
+  it 'Request#respond_to? and method_missing work as expected' do
+    req = Rack::Auth::Digest::Request.new({ 'HTTP_AUTHORIZATION' => 'a=b' })
+    req.respond_to?(:banana).must_equal false
+    req.respond_to?(:nonce).must_equal true
+    req.respond_to?(:a).must_equal true
+    req.a.must_equal 'b'
+    lambda { req.a(2) }.must_raise ArgumentError
+  end
+
+  it 'Nonce#fresh? should be the opposite of stale?' do
+    Rack::Auth::Digest::Nonce.new.fresh?.must_equal true
+    Rack::Auth::Digest::Nonce.new.stale?.must_equal false
   end
 end

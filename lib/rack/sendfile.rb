@@ -1,5 +1,4 @@
-require 'rack/file'
-require 'rack/body_proxy'
+# frozen_string_literal: true
 
 module Rack
 
@@ -14,7 +13,7 @@ module Rack
   #
   # In order to take advantage of this middleware, the response body must
   # respond to +to_path+ and the request must include an X-Sendfile-Type
-  # header. Rack::File and other components implement +to_path+ so there's
+  # header. Rack::Files and other components implement +to_path+ so there's
   # rarely anything you need to do in your application. The X-Sendfile-Type
   # header is typically set in your web servers configuration. The following
   # sections attempt to document
@@ -53,7 +52,7 @@ module Rack
   # that it maps to. The middleware performs a simple substitution on the
   # resulting path.
   #
-  # See Also: http://wiki.codemongers.com/NginxXSendfile
+  # See Also: https://www.nginx.com/resources/wiki/start/topics/examples/xsendfile
   #
   # === lighttpd
   #
@@ -99,9 +98,7 @@ module Rack
   # will be matched with case indifference.
 
   class Sendfile
-    F = ::File
-
-    def initialize(app, variation=nil, mappings=[])
+    def initialize(app, variation = nil, mappings = [])
       @app = app
       @variation = variation
       @mappings = mappings.map do |internal, external|
@@ -111,22 +108,25 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
+      headers = Utils::HeaderHash[headers]
+
       if body.respond_to?(:to_path)
         case type = variation(env)
         when 'X-Accel-Redirect'
-          path = F.expand_path(body.to_path)
+          path = ::File.expand_path(body.to_path)
           if url = map_accel_path(env, path)
             headers[CONTENT_LENGTH] = '0'
-            headers[type] = url
+            # '?' must be percent-encoded because it is not query string but a part of path
+            headers[type] = ::Rack::Utils.escape_path(url).gsub('?', '%3F')
             obody = body
             body = Rack::BodyProxy.new([]) do
               obody.close if obody.respond_to?(:close)
             end
           else
-            env['rack.errors'].puts "X-Accel-Mapping header missing"
+            env[RACK_ERRORS].puts "X-Accel-Mapping header missing"
           end
         when 'X-Sendfile', 'X-Lighttpd-Send-File'
-          path = F.expand_path(body.to_path)
+          path = ::File.expand_path(body.to_path)
           headers[CONTENT_LENGTH] = '0'
           headers[type] = path
           obody = body
@@ -135,7 +135,7 @@ module Rack
           end
         when '', nil
         else
-          env['rack.errors'].puts "Unknown x-sendfile variation: '#{type}'.\n"
+          env[RACK_ERRORS].puts "Unknown x-sendfile variation: '#{type}'.\n"
         end
       end
       [status, headers, body]
@@ -149,11 +149,15 @@ module Rack
     end
 
     def map_accel_path(env, path)
-      if mapping = @mappings.find { |internal,_| internal =~ path }
+      if mapping = @mappings.find { |internal, _| internal =~ path }
         path.sub(*mapping)
       elsif mapping = env['HTTP_X_ACCEL_MAPPING']
-        internal, external = mapping.split('=', 2).map{ |p| p.strip }
-        path.sub(/^#{internal}/i, external)
+        mapping.split(',').map(&:strip).each do |m|
+          internal, external = m.split('=', 2).map(&:strip)
+          new_path = path.sub(/^#{internal}/i, external)
+          return new_path unless path == new_path
+        end
+        path
       end
     end
   end

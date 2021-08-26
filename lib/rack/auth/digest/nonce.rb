@@ -1,4 +1,7 @@
+# frozen_string_literal: true
+
 require 'digest/md5'
+require 'base64'
 
 module Rack
   module Auth
@@ -18,7 +21,7 @@ module Rack
         end
 
         def self.parse(string)
-          new(*string.unpack("m*").first.split(' ', 2))
+          new(*Base64.decode64(string).split(' ', 2))
         end
 
         def initialize(timestamp = Time.now, given_digest = nil)
@@ -26,11 +29,11 @@ module Rack
         end
 
         def to_s
-          [([ @timestamp, digest ] * ' ')].pack("m*").strip
+          Base64.encode64("#{@timestamp} #{digest}").strip
         end
 
         def digest
-          ::Digest::MD5.hexdigest([ @timestamp, self.class.private_key ] * ':')
+          ::Digest::MD5.hexdigest("#{@timestamp}:#{self.class.private_key}")
         end
 
         def valid?

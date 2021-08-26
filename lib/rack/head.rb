@@ -1,4 +1,4 @@
-require 'rack/body_proxy'
+# frozen_string_literal: true
 
 module Rack
   # Rack::Head returns an empty body for all HEAD requests. It leaves

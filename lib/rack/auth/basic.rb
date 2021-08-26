@@ -1,5 +1,8 @@
-require 'rack/auth/abstract/handler'
-require 'rack/auth/abstract/request'
+# frozen_string_literal: true
+
+require_relative 'abstract/handler'
+require_relative 'abstract/request'
+require 'base64'
 
 module Rack
   module Auth
@@ -41,11 +44,11 @@ module Rack
 
       class Request < Auth::AbstractRequest
         def basic?
-          "basic" == scheme
+          "basic" == scheme && credentials.length == 2
         end
 
         def credentials
-          @credentials ||= params.unpack("m*").first.split(/:/, 2)
+          @credentials ||= Base64.decode64(params).split(':', 2)
         end
 
         def username

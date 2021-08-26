@@ -1,3 +1,7 @@
+# frozen_string_literal: true
+
+require 'set'
+
 module Rack
   # Rack::URLMap takes a hash mapping urls or paths to apps, and
   # dispatches accordingly.  Support for HTTP/1.1 host names exists if
@@ -12,17 +16,16 @@ module Rack
   # first, since they are most specific.
 
   class URLMap
-    NEGATIVE_INFINITY = -1.0 / 0.0
-    INFINITY = 1.0 / 0.0
-
     def initialize(map = {})
       remap(map)
     end
 
     def remap(map)
+      @known_hosts = Set[]
       @mapping = map.map { |location, app|
         if location =~ %r{\Ahttps?://(.*?)(/.*)}
           host, location = $1, $2
+          @known_hosts << host
         else
           host = nil
         end
@@ -36,22 +39,27 @@ module Rack
 
         [host, location, match, app]
       }.sort_by do |(host, location, _, _)|
-        [host ? -host.size : INFINITY, -location.size]
+        [host ? -host.size : Float::INFINITY, -location.size]
       end
     end
 
     def call(env)
-      path = env[PATH_INFO]
+      path        = env[PATH_INFO]
       script_name = env[SCRIPT_NAME]
-      hHost = env[HTTP_HOST]
-      sName = env[SERVER_NAME]
-      sPort = env[SERVER_PORT]
+      http_host   = env[HTTP_HOST]
+      server_name = env[SERVER_NAME]
+      server_port = env[SERVER_PORT]
+
+      is_same_server = casecmp?(http_host, server_name) ||
+                       casecmp?(http_host, "#{server_name}:#{server_port}")
+
+      is_host_known = @known_hosts.include? http_host
 
       @mapping.each do |host, location, match, app|
-        unless casecmp?(hHost, host) \
-            || casecmp?(sName, host) \
-            || (!host && (casecmp?(hHost, sName) ||
-                          casecmp?(hHost, sName+':'+sPort)))
+        unless casecmp?(http_host, host) \
+            || casecmp?(server_name, host) \
+            || (!host && is_same_server) \
+            || (!host && !is_host_known) # If we don't have a matching host, default to the first without a specified host
           next
         end
 
@@ -66,10 +74,10 @@ module Rack
         return app.call(env)
       end
 
-      [404, {CONTENT_TYPE => "text/plain", "X-Cascade" => "pass"}, ["Not Found: #{path}"]]
+      [404, { CONTENT_TYPE => "text/plain", "X-Cascade" => "pass" }, ["Not Found: #{path}"]]
 
     ensure
-      env[PATH_INFO] = path
+      env[PATH_INFO]   = path
       env[SCRIPT_NAME] = script_name
     end
 
@@ -87,4 +95,3 @@ module Rack
     end
   end
 end
-
