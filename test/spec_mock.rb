@@ -345,6 +345,15 @@ describe Rack::MockResponse do
     second_cookie.value[0].must_equal "times"
   end
 
+  it "parses multiple set-cookie headers provided as hash with array value" do
+    cookie_headers = { "set-cookie" => ["array=awesome", "multiple=times"]}
+    res = Rack::MockRequest.new(->(env) { [200, cookie_headers, [""]] }).get("")
+    array_cookie = res.cookie("array")
+    array_cookie.value[0].must_equal "awesome"
+    second_cookie = res.cookie("multiple")
+    second_cookie.value[0].must_equal "times"
+  end
+
   it "provide access to the HTTP body" do
     res = Rack::MockRequest.new(app).get("")
     res.body.must_match(/rack/)
