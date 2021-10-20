@@ -52,7 +52,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.2.0] - 2020-02-08
 
-- BREAKING CHANGE: streaming in Rails no longer works without a workaround. See [#1416](https://github.com/rack/rack/pull/1416) and [#1619](https://github.com/rack/rack/issues/1619).
+- BREAKING CHANGE: if you are using the `Rack::ETag` middleware, streaming no longer works without a workaround, see [#1619 (comment)](https://github.com/rack/rack/issues/1619#issuecomment-848460528).
 
 ### SPEC Changes
 
