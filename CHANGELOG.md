@@ -87,7 +87,7 @@ All notable changes to this project will be documented in this file. For info on
 - `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans](https://github.com/jeremyevans))
 - `.ru` files supports the `frozen-string-literal` magic comment. ([@eregon](https://github.com/eregon))
 - Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans](https://github.com/jeremyevans))
-- `Etag` will continue sending ETag even if the response should not be cached. ([@henm](https://github.com/henm))
+- BREAKING CHANGE: `Etag` will continue sending ETag even if the response should not be cached. Streaming no longer works without a workaround, see [#1619](https://github.com/rack/rack/issues/1619#issuecomment-848460528). ([@henm](https://github.com/henm))
 - `Request#host_with_port` no longer includes a colon for a missing or empty port. ([@AlexWayfer](https://github.com/AlexWayfer))
 - All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix](https://github.com/ioquatix))
 - `Files` handling of range requests no longer return a body that supports `to_path`, to ensure range requests are handled correctly. ([@jeremyevans](https://github.com/jeremyevans))
