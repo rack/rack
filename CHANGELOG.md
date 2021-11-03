@@ -141,6 +141,12 @@ All notable changes to this project will be documented in this file. For info on
 - CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
 - Added [CONTRIBUTING](CONTRIBUTING.md). ([@dblock](https://github.com/dblock))
 
+## [2.0.9] - 2020-02-08
+
+- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
+- Add support for `SameSite=None` cookie value. ([@hennikul](https://github.com/hennikul))
+
 ## [2.1.2] - 2020-01-27
 
 - Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
