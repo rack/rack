@@ -4,6 +4,7 @@ require 'uri'
 require 'stringio'
 require_relative '../rack'
 require 'cgi/cookie'
+require 'time'
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without
@@ -260,14 +261,18 @@ module Rack
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=', 2)
           cookie_attributes.store(cookie_attribute.strip, attribute_value.strip)
-          if cookie_attribute.include? 'max-age'
-            cookie_attributes.store('expires', Time.now + attribute_value.strip.to_i)
-          end
         end
         if bit.include? 'secure'
           cookie_attributes.store('secure', true)
         end
       end
+
+      if cookie_attributes.key? 'max-age'
+        cookie_attributes.store('expires', Time.now + cookie_attributes['max-age'].to_i)
+      elsif cookie_attributes.key? 'expires'
+        cookie_attributes.store('expires', Time.httpdate(cookie_attributes['expires']))
+      end
+
       cookie_attributes
     end
 

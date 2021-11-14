@@ -21,6 +21,8 @@ app = Rack::Lint.new(lambda { |env|
   response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
   response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
   response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
+  response.set_cookie("persistent_with_expires_test", { value: "persistent_with_expires_test", expires: Time.httpdate("Thu, 31 Oct 2021 07:28:00 GMT"), path: "/" })
+  response.set_cookie("expires_and_max-age_test", { value: "expires_and_max-age_test", expires: Time.now + 15552000 * 2, max_age: 15552000, path: "/" })
   response.finish
 })
 
@@ -298,13 +300,32 @@ describe Rack::MockResponse do
     session_cookie.expires.must_be_nil
   end
 
-  it "provide access to persistent cookies" do
+  it "provides access to persistent cookies set with max-age" do
     res = Rack::MockRequest.new(app).get("")
     persistent_cookie = res.cookie("persistent_test")
     persistent_cookie.value[0].must_equal "persistent_test"
     persistent_cookie.domain.must_be_nil
     persistent_cookie.path.must_equal "/"
     persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_be :<, (Time.now + 15552000)
+  end
+
+  it "provides access to persistent cookies set with expires" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("persistent_with_expires_test")
+    persistent_cookie.value[0].must_equal "persistent_with_expires_test"
+    persistent_cookie.domain.must_be_nil
+    persistent_cookie.path.must_equal "/"
+    persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_equal Time.httpdate("Thu, 31 Oct 2021 07:28:00 GMT")
+  end
+
+  it "parses cookies giving max-age precedence over expires" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("expires_and_max-age_test")
+    persistent_cookie.value[0].must_equal "expires_and_max-age_test"
     persistent_cookie.expires.wont_be_nil
     persistent_cookie.expires.must_be :<, (Time.now + 15552000)
   end
