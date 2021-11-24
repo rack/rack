@@ -200,6 +200,10 @@ module Rack
     end
 
     def body
+      # By default String.new creates an object in ASCII-8BIT encoding
+      # We should specify the encoding according to Rack::Response#body encoding
+      encoding = super.join.encoding.to_s
+
       # FIXME: apparently users of MockResponse expect the return value of
       # MockResponse#body to be a string.  However, the real response object
       # returns the body as a list.
@@ -210,7 +214,7 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      buffer = String.new
+      buffer = String.new.force_encoding(encoding)
 
       super.each do |chunk|
         buffer << chunk

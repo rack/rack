@@ -393,6 +393,13 @@ describe Rack::MockResponse do
       Rack::MockRequest.new(lambda { |env| env['rack.errors'].write(env['rack.errors'].string) }).get("/", fatal: true)
     }.must_raise(Rack::MockRequest::FatalWarning).message.must_equal ''
   end
+
+  it "allows Rack::Response encoding" do
+    encoding = 'Windows-1251'
+    body = String.new('body').force_encoding(encoding)
+    res = Rack::MockResponse.new(200, {}, body)
+    res.body.encoding.to_s.must_equal encoding
+  end
 end
 
 describe Rack::MockResponse, 'headers' do
