@@ -16,7 +16,25 @@ module Rack
       attr_accessor :ip_filter
     end
 
-    self.ip_filter = lambda { |ip| /\A(127|10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip) }
+    TRUSTED_PROXIES = 
+      [
+        "127.0.0.0/8", # localhost IPv4 range, per RFC-3330
+        "::1", # localhost IPv6
+        "fc00::/7", # private IPv6 range fc00::/7
+        "10.0.0.0/8", # private IPv4 range 10.x.x.x
+        "172.16.0.0/12", # private IPv4 range 172.16.0.0 .. 172.31.255.255
+        "192.168.0.0/16", # private IPv4 range 192.168.x.x
+      ].map { |proxy| IPAddr.new(proxy) }
+    
+    self.ip_filter = lambda do |ip| 
+      return true if TRUSTED_PROXIES.any? { |tp| tp.include? ip } 
+      false
+    rescue IPAddr::InvalidAddressError
+      # Not actually an IP address
+      return true if /\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip)
+      false
+    end
+
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
     SCHEME_WHITELIST = ALLOWED_SCHEMES
     if Object.respond_to?(:deprecate_constant)
