@@ -1488,7 +1488,6 @@ EOF
 
     req.trusted_proxy?("unix.example.org").must_equal false
     req.trusted_proxy?("example.org\n127.0.0.1").must_equal false
-    req.trusted_proxy?("127.0.0.1\nexample.org").must_equal false
     req.trusted_proxy?("11.0.0.1").must_equal false
     req.trusted_proxy?("172.15.0.1").must_equal false
     req.trusted_proxy?("172.32.0.1").must_equal false
