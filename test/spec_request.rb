@@ -1473,6 +1473,7 @@ EOF
   it "regards local addresses as proxies" do
     req = make_request(Rack::MockRequest.env_for("/"))
     req.trusted_proxy?('127.0.0.1').must_equal true
+    req.trusted_proxy?('127.0.0.6').must_equal true
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('172.16.0.1').must_equal true
     req.trusted_proxy?('172.20.0.1').must_equal true
