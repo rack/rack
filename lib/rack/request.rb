@@ -16,24 +16,21 @@ module Rack
       attr_accessor :ip_filter
     end
 
-    TRUSTED_PROXIES = 
-      [
-        "127.0.0.0/8", # localhost IPv4 range, per RFC-3330
-        "::1", # localhost IPv6
-        "fc00::/7", # private IPv6 range fc00::/7
-        "10.0.0.0/8", # private IPv4 range 10.x.x.x
-        "172.16.0.0/12", # private IPv4 range 172.16.0.0 .. 172.31.255.255
-        "192.168.0.0/16", # private IPv4 range 192.168.x.x
-      ].map { |proxy| IPAddr.new(proxy) }
+    TRUSTED_PROXIES = /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z|\A::1\Z|\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z|\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z|\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z|\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
     
-    self.ip_filter = lambda do |ip| 
-      return true if TRUSTED_PROXIES.any? { |tp| tp.include? ip } 
-      false
-    rescue IPAddr::InvalidAddressError
-      # Not actually an IP address
-      return true if /\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip)
-      false
-    end
+    # For readability and comprehension, here is the preceding regex represented in parts:
+    # TRUSTED_PROXIES = 
+    #  [
+    #    /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/, # localhost IPv4 range, per RFC-3330
+    #    /\A::1\Z/, # localhost IPv6
+    #    /\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z/, # private IPv6 range fc00::/7
+    #    /\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/, # private IPv4 range 10.x.x.x
+    #    /\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z/, # private IPv4 range 172.16.0.0 .. 172.31.255.255
+    #    /\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z/, # private IPv4 range 192.168.x.x
+    #    /\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+    #  ]
+    
+    self.ip_filter = lambda { |ip| TRUSTED_PROXIES.match?(ip) }
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
     SCHEME_WHITELIST = ALLOWED_SCHEMES
