@@ -16,19 +16,24 @@ module Rack
       attr_accessor :ip_filter
     end
 
-    TRUSTED_PROXIES = /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z|\A::1\Z|\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z|\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z|\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z|\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z|\Alocalhost\Z|\Aunix\Z|\Aunix:/i
+    TRUSTED_PROXIES = /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z
+                      |\A::1\Z
+                      |\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z
+                      |\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z
+                      |\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z
+                      |\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z
+                      |\Alocalhost\Z|\Aunix\Z|\Aunix:/ix
     
     # For readability and comprehension, here is the preceding regex represented in parts:
-    # TRUSTED_PROXIES = 
-    #  [
-    #    /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/, # localhost IPv4 range, per RFC-3330
-    #    /\A::1\Z/, # localhost IPv6
-    #    /\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z/, # private IPv6 range fc00::/7
-    #    /\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/, # private IPv4 range 10.x.x.x
-    #    /\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z/, # private IPv4 range 172.16.0.0 .. 172.31.255.255
-    #    /\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z/, # private IPv4 range 192.168.x.x
-    #    /\Alocalhost\Z|\Aunix\Z|\Aunix:/i
-    #  ]
+    #
+    #    \A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z     # localhost IPv4 range 127.x.x.x, per RFC-3330
+    #    \A::1\Z                                                    # localhost IPv6 ::1
+    #    \A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z   # private IPv6 range fc00::/7
+    #    \A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z      # private IPv4 range 10.x.x.x
+    #    \A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z      # private IPv4 range 172.16.0.0 .. 172.31.255.255
+    #    \A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z     # private IPv4 range 192.168.x.x
+    #    \Alocalhost\Z|\Aunix\Z|\Aunix:                             # localhost hostname, and unix domain sockets
+    #
     
     self.ip_filter = lambda { |ip| TRUSTED_PROXIES.match?(ip) }
 
