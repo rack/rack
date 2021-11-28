@@ -1474,6 +1474,7 @@ EOF
     req = make_request(Rack::MockRequest.env_for("/"))
     req.trusted_proxy?('127.0.0.1').must_equal true
     req.trusted_proxy?('127.0.0.6').must_equal true
+    req.trusted_proxy?('127.0.0.30').must_equal true
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('172.16.0.1').must_equal true
     req.trusted_proxy?('172.20.0.1').must_equal true
@@ -1493,6 +1494,7 @@ EOF
     req.trusted_proxy?("127.256.0.1").must_equal false
     req.trusted_proxy?("127.0.256.1").must_equal false
     req.trusted_proxy?("127.0.0.256").must_equal false
+    req.trusted_proxy?('127.0.0.300').must_equal false
     req.trusted_proxy?("10.256.0.1").must_equal false
     req.trusted_proxy?("10.0.256.1").must_equal false
     req.trusted_proxy?("10.0.0.256").must_equal false
