@@ -1473,14 +1473,18 @@ EOF
   it "regards local addresses as proxies" do
     req = make_request(Rack::MockRequest.env_for("/"))
     req.trusted_proxy?('127.0.0.1').must_equal true
+    req.trusted_proxy?('127.000.000.001').must_equal true
     req.trusted_proxy?('127.0.0.6').must_equal true
     req.trusted_proxy?('127.0.0.30').must_equal true
     req.trusted_proxy?('10.0.0.1').must_equal true
+    req.trusted_proxy?('10.000.000.001').must_equal true
     req.trusted_proxy?('172.16.0.1').must_equal true
     req.trusted_proxy?('172.20.0.1').must_equal true
     req.trusted_proxy?('172.30.0.1').must_equal true
     req.trusted_proxy?('172.31.0.1').must_equal true
+    req.trusted_proxy?('172.31.000.001').must_equal true
     req.trusted_proxy?('192.168.0.1').must_equal true
+    req.trusted_proxy?('192.168.000.001').must_equal true
     req.trusted_proxy?('::1').must_equal true
     req.trusted_proxy?('fd00::').must_equal true
     req.trusted_proxy?('FD00::').must_equal true
@@ -1499,6 +1503,7 @@ EOF
     req.trusted_proxy?("10.0.256.1").must_equal false
     req.trusted_proxy?("10.0.0.256").must_equal false
     req.trusted_proxy?("11.0.0.1").must_equal false
+    req.trusted_proxy?("11.000.000.001").must_equal false
     req.trusted_proxy?("172.15.0.1").must_equal false
     req.trusted_proxy?("172.32.0.1").must_equal false
     req.trusted_proxy?("172.16.256.1").must_equal false
