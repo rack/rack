@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For info on
 - Decrease default allowed parameter recursion level from 100 to 32. ([#1640](https://github.com/rack/rack/issues/1640), [@jeremyevans](https://github.com/jeremyevans))
 - Attempting to parse a multipart response with an empty body now raises Rack::Multipart::EmptyContentError. ([#1603](https://github.com/rack/rack/issues/1603), [@jeremyevans](https://github.com/jeremyevans))
 - `Rack::Utils.secure_compare` uses OpenSSL's faster implementation if available. ([#1711](https://github.com/rack/rack/pull/1711), [@bdewater](https://github.com/bdewater))
+- BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
 
 ### Fixed
 

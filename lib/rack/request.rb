@@ -16,15 +16,17 @@ module Rack
       attr_accessor :ip_filter
     end
 
+    VALID_IPV4_OCTET = '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])'.freeze
+    
     TRUSTED_PROXIES = Regexp.union(
-      /\A127\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/i,     # localhost IPv4 range 127.x.x.x, per RFC-3330
-      /\A::1\Z/i,                                                    # localhost IPv6 ::1
-      /\A[fF][cCdD][0-9a-fA-F]{2}(?:[:][0-9a-fA-F]{0,4}){0,7}\Z/i,   # private IPv6 range fc00 .. fdff
-      /\A10\.(([1-9]?\d|[12]\d\d)\.){2}([1-9]?\d|[12]\d\d)\Z/i,      # private IPv4 range 10.x.x.x
-      /\A172\.(1[6-9]|2\d|3[01])(\.([1-9]?\d|[12]\d\d)){2}\Z/i,      # private IPv4 range 172.16.0.0 .. 172.31.255.255
-      /\A192\.168\.([1-9]?\d|[12]\d\d)\.([1-9]?\d|[12]\d\d)\Z/i,     # private IPv4 range 192.168.x.x
-      /\Alocalhost\Z|\Aunix\Z|\Aunix:/i,                             # localhost hostname, and unix domain sockets
-    )
+      /\A127(\.(#{VALID_IPV4_OCTET})){3}$\Z/,                         # localhost IPv4 range 127.x.x.x, per RFC-3330
+      /\A::1\Z/,                                                      # localhost IPv6 ::1
+      /\A[f][cd][0-9a-f]{2}(?:[:][0-9a-f]{0,4}){0,7}\Z/i,             # private IPv6 range fc00 .. fdff
+      /\A10(\.(#{VALID_IPV4_OCTET})){3}$\Z/,                          # private IPv4 range 10.x.x.x
+      /\A172\.(1[6-9]|2\d|3[01])(\.(#{VALID_IPV4_OCTET})){2}$\Z/,     # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      /\A192\.168(\.(#{VALID_IPV4_OCTET})){2}\Z/,                     # private IPv4 range 192.168.x.x
+      /\Alocalhost\Z|\Aunix\Z|\Aunix:/i,                              # localhost hostname, and unix domain sockets
+    ).freeze
     
     self.ip_filter = lambda { |ip| TRUSTED_PROXIES.match?(ip) }
 

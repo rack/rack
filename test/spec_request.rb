@@ -1482,6 +1482,7 @@ EOF
     req.trusted_proxy?('192.168.0.1').must_equal true
     req.trusted_proxy?('::1').must_equal true
     req.trusted_proxy?('fd00::').must_equal true
+    req.trusted_proxy?('FD00::').must_equal true
     req.trusted_proxy?('localhost').must_equal true
     req.trusted_proxy?('unix').must_equal true
     req.trusted_proxy?('unix:/tmp/sock').must_equal true
@@ -1489,9 +1490,17 @@ EOF
     req.trusted_proxy?("unix.example.org").must_equal false
     req.trusted_proxy?("example.org\n127.0.0.1").must_equal false
     req.trusted_proxy?("127.0.0.1\nexample.org").must_equal false
+    req.trusted_proxy?("127.256.0.1").must_equal false
+    req.trusted_proxy?("127.0.256.1").must_equal false
+    req.trusted_proxy?("127.0.0.256").must_equal false
+    req.trusted_proxy?("10.256.0.1").must_equal false
+    req.trusted_proxy?("10.0.256.1").must_equal false
+    req.trusted_proxy?("10.0.0.256").must_equal false
     req.trusted_proxy?("11.0.0.1").must_equal false
     req.trusted_proxy?("172.15.0.1").must_equal false
     req.trusted_proxy?("172.32.0.1").must_equal false
+    req.trusted_proxy?("172.16.256.1").must_equal false
+    req.trusted_proxy?("172.16.0.256").must_equal false
     req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal false
   end
 
