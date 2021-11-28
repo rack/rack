@@ -19,11 +19,11 @@ module Rack
     VALID_IPV4_OCTET = '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])'.freeze
     
     TRUSTED_PROXIES = Regexp.union(
-      /\A127(\.(#{VALID_IPV4_OCTET})){3}$\Z/,                         # localhost IPv4 range 127.x.x.x, per RFC-3330
+      /\A127(\.(#{VALID_IPV4_OCTET})){3}\Z/,                         # localhost IPv4 range 127.x.x.x, per RFC-3330
       /\A::1\Z/,                                                      # localhost IPv6 ::1
       /\A[f][cd][0-9a-f]{2}(?:[:][0-9a-f]{0,4}){0,7}\Z/i,             # private IPv6 range fc00 .. fdff
-      /\A10(\.(#{VALID_IPV4_OCTET})){3}$\Z/,                          # private IPv4 range 10.x.x.x
-      /\A172\.(1[6-9]|2\d|3[01])(\.(#{VALID_IPV4_OCTET})){2}$\Z/,     # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      /\A10(\.(#{VALID_IPV4_OCTET})){3}\Z/,                          # private IPv4 range 10.x.x.x
+      /\A172\.(1[6-9]|2\d|3[01])(\.(#{VALID_IPV4_OCTET})){2}\Z/,     # private IPv4 range 172.16.0.0 .. 172.31.255.255
       /\A192\.168(\.(#{VALID_IPV4_OCTET})){2}\Z/,                     # private IPv4 range 192.168.x.x
       /\Alocalhost\Z|\Aunix\Z|\Aunix:/i,                              # localhost hostname, and unix domain sockets
     ).freeze
