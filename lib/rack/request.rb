@@ -16,7 +16,20 @@ module Rack
       attr_accessor :ip_filter
     end
 
-    self.ip_filter = lambda { |ip| /\A127\.0\.0\.1\Z|\A(10|172\.(1[6-9]|2[0-9]|30|31)|192\.168)\.|\A::1\Z|\Afd[0-9a-f]{2}:.+|\Alocalhost\Z|\Aunix\Z|\Aunix:/i.match?(ip) }
+    valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
+    
+    trusted_proxies = Regexp.union(
+      /\A127#{valid_ipv4_octet}{3}\z/,                          # localhost IPv4 range 127.x.x.x, per RFC-3330
+      /\A::1\z/,                                                # localhost IPv6 ::1
+      /\Af[cd][0-9a-f]{2}(?::[0-9a-f]{0,4}){0,7}\z/i,           # private IPv6 range fc00 .. fdff
+      /\A10#{valid_ipv4_octet}{3}\z/,                           # private IPv4 range 10.x.x.x
+      /\A172\.(1[6-9]|2[0-9]|3[01])#{valid_ipv4_octet}{2}\z/,   # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      /\A192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
+      /\Alocalhost\z|\Aunix(\z|:)/i,                            # localhost hostname, and unix domain sockets
+    )
+    
+    self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
+
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
     SCHEME_WHITELIST = ALLOWED_SCHEMES
     if Object.respond_to?(:deprecate_constant)
