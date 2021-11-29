@@ -16,19 +16,19 @@ module Rack
       attr_accessor :ip_filter
     end
 
-    valid_ipv4_octet = '(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])'.freeze
+    valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
     
-    TRUSTED_PROXIES = Regexp.union(
-      /\A127(\.(#{valid_ipv4_octet})){3}\z/,                         # localhost IPv4 range 127.x.x.x, per RFC-3330
+    trusted_proxies = Regexp.union(
+      /\A127#{valid_ipv4_octet}{3}\z/,                         # localhost IPv4 range 127.x.x.x, per RFC-3330
       /\A::1\z/,                                                      # localhost IPv6 ::1
       /\Af[cd][0-9a-f]{2}(?::[0-9a-f]{0,4}){0,7}\z/i,             # private IPv6 range fc00 .. fdff
-      /\A10(\.(#{valid_ipv4_octet})){3}\z/,                          # private IPv4 range 10.x.x.x
-      /\A172\.(1[6-9]|2[0-9]|3[01])(\.(#{valid_ipv4_octet})){2}\z/,     # private IPv4 range 172.16.0.0 .. 172.31.255.255
-      /\A192\.168(\.(#{valid_ipv4_octet})){2}\z/,                     # private IPv4 range 192.168.x.x
-      /\Alocalhost\z|\Aunix\z|\Aunix:/i,                              # localhost hostname, and unix domain sockets
+      /\A10#{valid_ipv4_octet}{3}\z/,                          # private IPv4 range 10.x.x.x
+      /\A172\.(1[6-9]|2[0-9]|3[01])#{valid_ipv4_octet}{2}\z/,     # private IPv4 range 172.16.0.0 .. 172.31.255.255
+      /\A192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
+      /\Alocalhost\z|\Aunix(\z|:)/i,                              # localhost hostname, and unix domain sockets
     ).freeze
     
-    self.ip_filter = lambda { |ip| TRUSTED_PROXIES.match?(ip) }
+    self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
     SCHEME_WHITELIST = ALLOWED_SCHEMES
