@@ -396,7 +396,7 @@ describe Rack::MockResponse do
 
   it "allows Rack::Response encoding" do
     encoding = 'Windows-1251'
-    body = String.new('body').force_encoding(encoding)
+    body = String.new('(Ответ*)').force_encoding(encoding)
     res = Rack::MockResponse.new(200, {}, body)
     res.body.encoding.to_s.must_equal encoding
   end
