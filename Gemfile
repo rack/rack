@@ -8,6 +8,8 @@ gem "webrick"
 gem "rubocop", require: false
 gem "rubocop-packaging", require: false
 
+gem "psych", "~> 4.0"
+
 group :doc do
   gem 'rdoc'
 end
