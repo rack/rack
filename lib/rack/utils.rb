@@ -317,21 +317,6 @@ module Rack
       time.rfc2822
     end
 
-    # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
-    # of '% %b %Y'.
-    # It assumes that the time is in GMT to comply to the RFC 2109.
-    #
-    # NOTE: I'm not sure the RFC says it requires GMT, but is ambiguous enough
-    # that I'm certain someone implemented only that option.
-    # Do not use %a and %b from Time.strptime, it would use localized names for
-    # weekday and month.
-    #
-    def rfc2109(time)
-      wday = Time::RFC2822_DAY_NAME[time.wday]
-      mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
-      time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
-    end
-
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
     # Returns an empty array if none of the ranges are satisfiable.
