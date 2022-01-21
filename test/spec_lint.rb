@@ -721,10 +721,10 @@ describe Rack::Lint do
 
 end
 
-describe "Rack::Lint::InputWrapper" do
+describe "Rack::Lint::Wrapper::InputWrapper" do
   it "delegate :rewind to underlying IO object" do
     io = StringIO.new("123")
-    wrapper = Rack::Lint::InputWrapper.new(io)
+    wrapper = Rack::Lint::Wrapper::InputWrapper.new(io)
     wrapper.read.must_equal "123"
     wrapper.read.must_equal ""
     wrapper.rewind
