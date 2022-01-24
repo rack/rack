@@ -1,4 +1,11 @@
 # frozen_string_literal: true
+module Rack
+  class Builder
+  end
+end
+
+# Return a top level scope with self as the builder instance
+Rack::Builder::EVAL_CONTEXT = ->(builder){builder.instance_eval{binding}}
 
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
@@ -123,8 +130,7 @@ module Rack
     def self.new_from_string(builder_script, file = "(rackup)", config: nil)
       builder = self.new(config: config)
 
-      # Create a top level scope with self as the builder instance:
-      binding = TOPLEVEL_BINDING.eval('->(builder){builder.instance_eval{binding}}').call(builder)
+      binding = Rack::Builder::EVAL_CONTEXT.call(builder)
       
       eval(builder_script, binding, file)
 
