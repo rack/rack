@@ -11,8 +11,6 @@ group :maintenance, optional: true do
   gem "rubocop-packaging", require: false
 end
 
-gem "psych", "~> 4.0"
-
 group :doc do
   gem 'rdoc'
 end
