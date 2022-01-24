@@ -1,9 +1,6 @@
 # frozen_string_literal: true
 
-require 'logger'
-
 module Rack
-  # Sets up rack.logger to write to rack.errors stream
   class Lock
     def initialize(app)
       @app = app
