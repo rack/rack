@@ -31,6 +31,30 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
+    # Config stores settings on what the server supports, such as whether it
+    # is multithreaded.
+    class Config
+      def initialize(multithread: true, reentrant: multithread)
+        @multithread = multithread
+        @reentrant = reentrant
+      end
+
+      # Whether the application server will invoke the application from multiple threads. Implies {reentrant?}.
+      def multithread?; @multithread; end
+
+      # Re-entrancy is a feature of event-driven servers which may perform non-blocking operations. When
+      # an operation blocks, that particular request may yield and another request may enter the application stack.
+      def reentrant?; @reentrant; end
+
+      def rackup(middleware, *args, &block)
+        if middleware.respond_to?(:rackup)
+          middleware.rackup(self, *args, &block)
+        else
+          middleware.new(*args, &block)
+        end
+      end
+      ruby2_keywords(:rackup) if respond_to?(:ruby2_keywords, true)
+    end
 
     # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
     UTF_8_BOM = '\xef\xbb\xbf'
@@ -59,9 +83,9 @@ module Rack
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
     #   # assumes MyApp constant contains Rack application
-    def self.parse_file(path)
+    def self.parse_file(path, config: nil)
       if path.end_with?('.ru')
-        return self.load_file(path)
+        return self.load_file(path, config: config)
       else
         require path
         return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
@@ -81,7 +105,7 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path)
+    def self.load_file(path, config: nil)
       config = ::File.read(path)
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
@@ -91,16 +115,18 @@ module Rack
 
       config.sub!(/^__END__\n.*\Z/m, '')
 
-      return new_from_string(config, path)
+      return new_from_string(config, path, config: config)
     end
 
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
-    def self.new_from_string(builder_script, file = "(rackup)")
-      # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
-      # We cannot use instance_eval(String) as that would resolve constants differently.
-      binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
-      eval builder_script, binding, file
+    def self.new_from_string(builder_script, file = "(rackup)", config: nil)
+      builder = self.new(config: config)
+
+      # Create a top level scope with self as the builder instance:
+      binding = TOPLEVEL_BINDING.eval('->(builder){builder.instance_eval{binding}}').call(builder)
+      
+      eval(builder_script, binding, file)
 
       return builder.to_app
     end
@@ -108,8 +134,14 @@ module Rack
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluated in the context of the instance.
-    def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
+    def initialize(default_app = nil, config: nil, &block)
+      @use = []
+      @map = nil
+      @run = default_app
+      @warmup = nil
+      @freeze_app = false
+      @config = config || Config.new
+
       instance_eval(&block) if block_given?
     end
 
@@ -143,7 +175,8 @@ module Rack
         mapping, @map = @map, nil
         @use << proc { |app| generate_map(app, mapping) }
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
+
+      @use << proc { |app| @config.rackup(middleware, app, *args, &block) }
     end
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 

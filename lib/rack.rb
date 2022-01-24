@@ -91,6 +91,7 @@ module Rack
   autoload :Handler, "rack/handler"
   autoload :Head, "rack/head"
   autoload :Lint, "rack/lint"
+  autoload :Lock, "rack/lock"
   autoload :Logger, "rack/logger"
   autoload :MediaType, "rack/media_type"
   autoload :MethodOverride, "rack/method_override"
