@@ -3,6 +3,12 @@
 require_relative 'helper'
 require 'yaml'
 
+unless YAML.respond_to?(:unsafe_load)
+  def YAML.unsafe_load(body)
+    load(body)
+  end
+end
+
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
 
