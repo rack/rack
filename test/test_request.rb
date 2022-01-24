@@ -5,7 +5,7 @@ require 'net/http'
 require 'rack/lint'
 
 class TestRequest
-  NOSERIALIZE = [Method, Proc, Rack::Lint::InputWrapper]
+  NOSERIALIZE = [Method, Proc, Rack::Lint::Wrapper::InputWrapper]
 
   def call(env)
     status = env["QUERY_STRING"] =~ /secret/ ? 403 : 200
@@ -42,7 +42,7 @@ class TestRequest
         http.request(get) { |response|
           @status = response.code.to_i
           begin
-            @response = YAML.load(response.body)
+            @response = YAML.unsafe_load(response.body)
           rescue TypeError, ArgumentError
             @response = nil
           end
@@ -60,7 +60,7 @@ class TestRequest
         post.basic_auth user, passwd  if user && passwd
         http.request(post) { |response|
           @status = response.code.to_i
-          @response = YAML.load(response.body)
+          @response = YAML.unsafe_load(response.body)
         }
       }
     end

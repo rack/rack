@@ -53,13 +53,7 @@ jobs:
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
-
-    - uses: actions/cache@v1
-      with:
-        path: vendor/bundle
-        key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
-        restore-keys: |
-          bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+        bundler-cache: true
 
     - name: Installing packages (ubuntu)
       if: matrix.os == 'ubuntu-latest'

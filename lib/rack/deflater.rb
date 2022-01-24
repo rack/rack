@@ -77,6 +77,9 @@ module Rack
 
     # Body class used for gzip encoded responses.
     class GzipStream
+
+      BUFFER_LENGTH = 128 * 1_024
+
       # Initialize the gzip stream.  Arguments:
       # body :: Response body to compress with gzip
       # mtime :: The modification time of the body, used to set the
@@ -93,14 +96,21 @@ module Rack
         @writer = block
         gzip = ::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime if @mtime
-        @body.each { |part|
-          # Skip empty strings, as they would result in no output,
-          # and flushing empty parts would raise Zlib::BufError.
-          next if part.empty?
-
-          gzip.write(part)
-          gzip.flush if @sync
-        }
+        # @body.each is equivalent to @body.gets (slow)
+        if @body.is_a? ::File
+          while part = @body.read(BUFFER_LENGTH)
+            gzip.write(part)
+            gzip.flush if @sync
+          end
+        else
+          @body.each { |part|
+            # Skip empty strings, as they would result in no output,
+            # and flushing empty parts would raise Zlib::BufError.
+            next if part.empty?
+            gzip.write(part)
+            gzip.flush if @sync
+          }
+        end
       ensure
         gzip.close
       end

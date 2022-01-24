@@ -481,10 +481,6 @@ describe Rack::Utils do
     Rack::Utils.rfc2822(Time.at(0).gmtime).must_equal "Thu, 01 Jan 1970 00:00:00 -0000"
   end
 
-  it "return rfc2109 format from rfc2109 helper" do
-    Rack::Utils.rfc2109(Time.at(0).gmtime).must_equal "Thu, 01-Jan-1970 00:00:00 GMT"
-  end
-
   it "clean directory traversal" do
     Rack::Utils.clean_path_info("/cgi/../cgi/test").must_equal "/cgi/test"
     Rack::Utils.clean_path_info(".").must_be_empty

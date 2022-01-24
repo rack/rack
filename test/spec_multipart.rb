@@ -49,6 +49,12 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
+  it "parse multipart content with different filename and filename*" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "bar"
+  end
+
   it "set US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
