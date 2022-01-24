@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. For info on
 
 - Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
 
+### Removed
+
+- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix), [@jeremyevans](https://github.com/jeremyevans)))
+
 ### Added
 
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
@@ -44,10 +48,6 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [[CVE-2020-8184](https://nvd.nist.gov/vuln/detail/CVE-2020-8184)] Do not allow percent-encoded cookie name to override existing cookie names. BREAKING CHANGE: Accessing cookie names that require URL encoding with decoded name no longer works. ([@fletchto99](https://github.com/fletchto99))
-
-### Removed
-
-- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. Removed `Rack::Lock` which depends on these variables. ([#1618](https://github.com/rack/rack/pull/1591), [@ioquatix](https://github.com/ioquatix))
 
 ## [2.2.2] - 2020-02-11
 
