@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
 - Rack::Session::Pool now accepts `:allow_fallback` option to disable fallback to public id. ([#1431](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
+- Rack::Builder::Config has been added. Servers should use this class or a subclass of this to pass configurations when builing. ([#1720](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Changed
 

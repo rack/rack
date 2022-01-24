@@ -41,17 +41,17 @@ module Rack
     # Config stores settings on what the server supports, such as whether it
     # is multithreaded.
     class Config
-      def initialize(multithread: true, reentrant: multithread)
+      def initialize(multithread: true, concurrent: multithread)
         @multithread = multithread
-        @reentrant = reentrant
+        @concurrent = concurrent
       end
 
-      # Whether the application server will invoke the application from multiple threads. Implies {reentrant?}.
+      # Whether the application server will invoke the application from multiple threads. Generally implies {concurrent?}.
       def multithread?; @multithread; end
 
-      # Re-entrancy is a feature of event-driven servers which may perform non-blocking operations. When
-      # an operation blocks, that particular request may yield and another request may enter the application stack.
-      def reentrant?; @reentrant; end
+      # Whether any part of the application can be executed concurrently in the same process.  Should be true
+      # if the server uses threads, fibers, or a non-blocking event-driven design.
+      def concurrent?; @concurrent; end
 
       def rackup(middleware, *args, &block)
         if middleware.respond_to?(:rackup)
