@@ -14,7 +14,7 @@ module Rack
     end
 
     def self.rackup(config, app)
-      if config.multithread?
+      if config.multithread? || (config.concurrent? && RUBY_VERSION >= '3')
         new(app)
       else
         app
