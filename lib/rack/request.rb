@@ -10,8 +10,6 @@ module Rack
   #   req.params["data"]
 
   class Request
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     class << self
       attr_accessor :ip_filter
     end

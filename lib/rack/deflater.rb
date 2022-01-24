@@ -21,8 +21,6 @@ module Rack
   # Note that despite the name, Deflater does not support the +deflate+
   # encoding.
   class Deflater
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     # Creates Rack::Deflater middleware. Options:
     #
     # :if :: a lambda enabling / disabling deflation based on returned boolean value

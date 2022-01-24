@@ -6,8 +6,6 @@ require 'fileutils'
 module Rack
 
   class Server
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     class Options
       def parse!(args)
         options = {}

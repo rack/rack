@@ -22,8 +22,6 @@ module Rack
   # It is performing a check/reload cycle at the start of every request, but
   # also respects a cool down time, during which nothing will be done.
   class Reloader
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     def initialize(app, cooldown = 10, backend = Stat)
       @app = app
       @cooldown = cooldown

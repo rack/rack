@@ -14,8 +14,6 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
