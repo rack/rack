@@ -11,8 +11,6 @@ module Rack
     class EmptyContentError < ::EOFError; end
 
     class Parser
-      (require_relative '../core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|

@@ -86,8 +86,6 @@ module Rack
   #         ]
   #
   class Static
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     def initialize(app, options = {})
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
