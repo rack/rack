@@ -182,9 +182,14 @@ module Rack
     # Errors
     attr_accessor :errors
 
-    def initialize(status, headers, body, errors = StringIO.new(""))
+    def initialize(status, headers, body, errors = nil)
       @original_headers = headers
-      @errors           = errors.string if errors.respond_to?(:string)
+
+      if errors
+        @errors = errors.string if errors.respond_to?(:string)
+      else
+        @errors = nil
+      end
 
       super(body, status, headers)
 
