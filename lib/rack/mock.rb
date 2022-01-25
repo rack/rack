@@ -199,24 +199,23 @@ module Rack
       body.match other
     end
 
-    def body
-      # FIXME: apparently users of MockResponse expect the return value of
-      # MockResponse#body to be a string.  However, the real response object
-      # returns the body as a list.
-      #
-      # See spec_showstatus.rb:
-      #
-      #   should "not replace existing messages" do
-      #     ...
-      #     res.body.should == "foo!"
-      #   end
-      buffer = String.new
+    def body(join: true)
+      if join
+        buffer = String.new
 
-      super.each do |chunk|
-        buffer << chunk
+        super().each do |chunk|
+          buffer << chunk
+        end
+
+        return buffer
+      else
+        super
       end
+    end
 
-      return buffer
+    # @returns [String] The response body parts joined into a single string.
+    def join
+      body(join: true)
     end
 
     def empty?
