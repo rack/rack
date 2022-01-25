@@ -471,7 +471,8 @@ module Rack
           set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
           get_header RACK_REQUEST_FORM_HASH
         else
-          {}
+          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
+          set_header(RACK_REQUEST_FORM_HASH, {})
         end
       end
 

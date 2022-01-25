@@ -434,7 +434,9 @@ class RackRequestTest < Minitest::Spec
     req.media_type.must_equal 'text/plain'
     req.media_type_params['charset'].must_equal 'utf-8'
     req.content_charset.must_equal 'utf-8'
-    req.POST.must_be :empty?
+    post = req.POST
+    post.must_be_empty
+    req.POST.must_be_same_as post
     req.params.must_equal "foo" => "quux"
     req.body.read.must_equal "foo=bar&quux=bla"
   end
