@@ -40,6 +40,7 @@ module Rack
         @headers = nil
         @body = nil
         @invoked = nil
+        @content_length = nil
         @closed = false
         @size = 0
       end
