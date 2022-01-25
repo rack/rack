@@ -186,14 +186,14 @@ describe Rack::Session::Cookie do
     response = response_for(app: [incrementor, { coder: identity }])
 
     response["Set-Cookie"].must_include "rack.session="
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
     identity.calls.must_equal [:decode, :encode]
   end
 
   it "creates a new cookie" do
     response = response_for(app: incrementor)
     response["Set-Cookie"].must_include "rack.session="
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
   end
 
   it "passes through same_site option to session cookie" do
@@ -217,10 +217,10 @@ describe Rack::Session::Cookie do
     response = response_for(app: incrementor)
 
     response = response_for(app: incrementor, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     response = response_for(app: incrementor, cookie: response)
-    response.body.must_equal '{"counter"=>3}'
+    response.join.must_equal '{"counter"=>3}'
   end
 
   it "renew session id" do
@@ -229,29 +229,29 @@ describe Rack::Session::Cookie do
     response = response_for(app: only_session_id, cookie: cookie)
     cookie   = response['Set-Cookie'] if response['Set-Cookie']
 
-    response.body.wont_equal ""
-    old_session_id = response.body
+    response.join.wont_equal ""
+    old_session_id = response.join
 
     response = response_for(app: renewer, cookie: cookie)
     cookie   = response['Set-Cookie'] if response['Set-Cookie']
     response = response_for(app: only_session_id, cookie: cookie)
 
-    response.body.wont_equal ""
-    response.body.wont_equal old_session_id
+    response.join.wont_equal ""
+    response.join.wont_equal old_session_id
   end
 
   it "destroys session" do
     response = response_for(app: incrementor)
     response = response_for(app: only_session_id, cookie: response)
 
-    response.body.wont_equal ""
-    old_session_id = response.body
+    response.join.wont_equal ""
+    old_session_id = response.join
 
     response = response_for(app: destroy_session, cookie: response)
     response = response_for(app: only_session_id, cookie: response)
 
-    response.body.wont_equal ""
-    response.body.wont_equal old_session_id
+    response.join.wont_equal ""
+    response.join.wont_equal old_session_id
   end
 
   it "survives broken cookies" do
@@ -259,13 +259,13 @@ describe Rack::Session::Cookie do
       app: incrementor,
       cookie: "rack.session=blarghfasel"
     )
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
 
     response = response_for(
       app: [incrementor, { secret: "test" }],
       cookie: "rack.session="
     )
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
   end
 
   it "barks on too big cookies" do
@@ -279,15 +279,15 @@ describe Rack::Session::Cookie do
 
     response = response_for(app: app)
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>3}'
+    response.join.must_equal '{"counter"=>3}'
 
     app = [incrementor, { secret: "other" }]
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
   end
 
   it "loads from a cookie with accept-only integrity hash for graceful key rotation" do
@@ -295,42 +295,42 @@ describe Rack::Session::Cookie do
 
     app = [incrementor, { secret: "test2", old_secret: "test" }]
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     app = [incrementor, { secret: "test3", old_secret: "test2" }]
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>3}'
+    response.join.must_equal '{"counter"=>3}'
   end
 
   it "ignores tampered with session cookies" do
     app = [incrementor, { secret: "test" }]
     response = response_for(app: app)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     _, digest = response["Set-Cookie"].split("--")
     tampered_with_cookie = "hackerman-was-here" + "--" + digest
 
     response = response_for(app: app, cookie: tampered_with_cookie)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
   end
 
   it "supports either of secret or old_secret" do
     app = [incrementor, { secret: "test" }]
     response = response_for(app: app)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     app = [incrementor, { old_secret: "test" }]
     response = response_for(app: app)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
   end
 
   it "supports custom digest instance" do
@@ -338,15 +338,15 @@ describe Rack::Session::Cookie do
 
     response = response_for(app: app)
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>2}'
+    response.join.must_equal '{"counter"=>2}'
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>3}'
+    response.join.must_equal '{"counter"=>3}'
 
     app = [incrementor, { secret: "other" }]
 
     response = response_for(app: app, cookie: response)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
   end
 
   it "can handle Rack::Lint middleware" do
@@ -354,7 +354,7 @@ describe Rack::Session::Cookie do
 
     lint = Rack::Lint.new(session_id)
     response = response_for(app: lint, cookie: response)
-    response.body.wont_be :nil?
+    response.join.wont_be :nil?
   end
 
   it "can handle middleware that inspects the env" do
@@ -372,16 +372,16 @@ describe Rack::Session::Cookie do
 
     inspector = TestEnvInspector.new(session_id)
     response = response_for(app: inspector, cookie: response)
-    response.body.wont_be :nil?
+    response.join.wont_be :nil?
   end
 
   it "returns the session id in the session hash" do
     response = response_for(app: incrementor)
-    response.body.must_equal '{"counter"=>1}'
+    response.join.must_equal '{"counter"=>1}'
 
     response = response_for(app: session_id, cookie: response)
-    response.body.must_match(/"session_id"=>/)
-    response.body.must_match(/"counter"=>1/)
+    response.join.must_match(/"session_id"=>/)
+    response.join.must_match(/"counter"=>1/)
   end
 
   it "does not return a cookie if set to secure but not using ssl" do
@@ -420,25 +420,25 @@ describe Rack::Session::Cookie do
 
   it "exposes :secret in env['rack.session.option']" do
     response = response_for(app: [session_option[:secret], { secret: "foo" }])
-    response.body.must_equal '"foo"'
+    response.join.must_equal '"foo"'
   end
 
   it "exposes :coder in env['rack.session.option']" do
     response = response_for(app: session_option[:coder])
-    response.body.must_match(/Base64::Marshal/)
+    response.join.must_match(/Base64::Marshal/)
   end
 
   it "allows passing in a hash with session data from middleware in front" do
     request = { 'rack.session' => { foo: 'bar' } }
     response = response_for(app: session_id, request: request)
-    response.body.must_match(/foo/)
+    response.join.must_match(/foo/)
   end
 
   it "allows modifying session data with session data from middleware in front" do
     request = { 'rack.session' => { foo: 'bar' } }
     response = response_for(app: incrementor, request: request)
-    response.body.must_match(/counter/)
-    response.body.must_match(/foo/)
+    response.join.must_match(/counter/)
+    response.join.must_match(/foo/)
   end
 
   it "allows more than one '--' in the cookie when calculating digests" do
@@ -457,9 +457,9 @@ describe Rack::Session::Cookie do
     }.new
     _app = [ app, { secret: "test", coder: unsafe_coder } ]
     response = response_for(app: _app)
-    response.body.must_equal "1--"
+    response.join.must_equal "1--"
     response = response_for(app: _app, cookie: response)
-    response.body.must_equal "1--2--"
+    response.join.must_equal "1--2--"
   end
 
   it 'allows for non-strict encoded cookie' do
@@ -491,8 +491,8 @@ describe Rack::Session::Cookie do
       incrementor
     ], cookie: non_strict_response)
 
-    response.body.must_match %Q["value"=>"#{'A' * 256}"]
-    response.body.must_match '"counter"=>2'
-    response.body.must_match(/\A{[^}]+}\z/)
+    response.join.must_match %Q["value"=>"#{'A' * 256}"]
+    response.join.must_match '"counter"=>2'
+    response.join.must_match(/\A{[^}]+}\z/)
   end
 end

@@ -104,7 +104,7 @@ describe Rack::Auth::Digest::MD5 do
     response.status.must_equal 401
     response.must_include 'WWW-Authenticate'
     response.headers['WWW-Authenticate'].must_match(/^Digest /)
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   def assert_bad_request(response)
@@ -122,7 +122,7 @@ describe Rack::Auth::Digest::MD5 do
   it 'return application output if correct credentials given' do
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice'
+      response.join.must_equal 'Hi Alice'
     end
   end
 
@@ -131,7 +131,7 @@ describe Rack::Auth::Digest::MD5 do
 
     request_with_digest_auth 'GET', '/', 'Alice', 'correct-password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice'
+      response.join.must_equal 'Hi Alice'
     end
   end
 
@@ -159,7 +159,7 @@ describe Rack::Auth::Digest::MD5 do
 
       request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 1 do |response|
         response.status.must_equal 200
-        response.body.to_s.must_equal 'Hi Alice'
+        response.join.must_equal 'Hi Alice'
         response.headers['WWW-Authenticate'].wont_match(/\bstale=true\b/)
       end
     ensure
@@ -216,7 +216,7 @@ describe Rack::Auth::Digest::MD5 do
     @request = Rack::MockRequest.new(partially_protected_app)
     request_with_digest_auth 'GET', '/protected', 'Alice', 'correct-password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice'
+      response.join.must_equal 'Hi Alice'
     end
   end
 
@@ -224,7 +224,7 @@ describe Rack::Auth::Digest::MD5 do
     @request = Rack::MockRequest.new(partially_protected_app)
     request_with_digest_auth 'GET', '/protected?friend=Mike', 'Alice', 'correct-password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice and Mike'
+      response.join.must_equal 'Hi Alice and Mike'
     end
   end
 
@@ -233,14 +233,14 @@ describe Rack::Auth::Digest::MD5 do
     qs_uri = '/protected?friend=Mike'
     request_with_digest_auth 'GET', qs_uri, 'Alice', 'correct-password', 'uri' => qs_uri do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice and Mike'
+      response.join.must_equal 'Hi Alice and Mike'
     end
   end
 
   it 'return application output if correct credentials given for POST' do
     request_with_digest_auth 'POST', '/', 'Alice', 'correct-password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice'
+      response.join.must_equal 'Hi Alice'
     end
   end
 
@@ -248,7 +248,7 @@ describe Rack::Auth::Digest::MD5 do
     @request = Rack::MockRequest.new(protected_app_with_method_override)
     request_with_digest_auth 'POST', '/', 'Alice', 'correct-password', input: "_method=put" do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Alice'
+      response.join.must_equal 'Hi Alice'
     end
   end
 

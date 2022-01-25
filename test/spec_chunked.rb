@@ -35,7 +35,7 @@ describe Rack::Chunked do
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
-    response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\nExpires: tomorrow\r\n\r\n"
+    response.join.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\nExpires: tomorrow\r\n\r\n"
   end
 
   it 'chunk responses with no Content-Length' do
@@ -43,7 +43,7 @@ describe Rack::Chunked do
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
-    response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\n\r\n"
+    response.join.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\n\r\n"
   end
 
   it 'chunks empty bodies properly' do
@@ -51,7 +51,7 @@ describe Rack::Chunked do
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
-    response.body.must_equal "0\r\n\r\n"
+    response.join.must_equal "0\r\n\r\n"
   end
 
   it 'closes body' do
@@ -63,7 +63,7 @@ describe Rack::Chunked do
     response = Rack::MockRequest.new(Rack::Chunked.new(app)).get('/', @env)
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
-    response.body.must_equal "1\r\ns\r\n0\r\n\r\n"
+    response.join.must_equal "1\r\ns\r\n0\r\n\r\n"
     closed.must_equal true
   end
 
@@ -73,9 +73,9 @@ describe Rack::Chunked do
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.wont_include 'Content-Length'
     response.headers['Transfer-Encoding'].must_equal 'chunked'
-    response.body.encoding.to_s.must_equal "ASCII-8BIT"
-    response.body.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".dup.force_encoding("BINARY")
-    response.body.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".dup.force_encoding(Encoding::BINARY)
+    response.join.encoding.to_s.must_equal "ASCII-8BIT"
+    response.join.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".dup.force_encoding("BINARY")
+    response.join.must_equal "c\r\n\xFE\xFFH\x00e\x00l\x00l\x00o\x00\r\n2\r\n \x00\r\na\r\nW\x00o\x00r\x00l\x00d\x00\r\n0\r\n\r\n".dup.force_encoding(Encoding::BINARY)
   end
 
   it 'not modify response when Content-Length header present' do

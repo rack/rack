@@ -35,7 +35,7 @@ describe Rack::Sendfile do
   it "does nothing when no X-Sendfile-Type header present" do
     request do |response|
       response.must_be :ok?
-      response.body.must_equal 'Hello World'
+      response.join.must_equal 'Hello World'
       response.headers.wont_include 'X-Sendfile'
     end
   end
@@ -44,7 +44,7 @@ describe Rack::Sendfile do
     io = StringIO.new
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Banana', 'rack.errors' => io do |response|
       response.must_be :ok?
-      response.body.must_equal 'Hello World'
+      response.join.must_equal 'Hello World'
       response.headers.wont_include 'X-Sendfile'
 
       io.rewind
@@ -55,7 +55,7 @@ describe Rack::Sendfile do
   it "sets X-Sendfile response header and discards body" do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
       response.must_be :ok?
-      response.body.must_be :empty?
+      response.join.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
       response.headers['X-Sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
@@ -64,7 +64,7 @@ describe Rack::Sendfile do
   it "sets X-Lighttpd-Send-File response header and discards body" do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Lighttpd-Send-File' do |response|
       response.must_be :ok?
-      response.body.must_be :empty?
+      response.join.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
       response.headers['X-Lighttpd-Send-File'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
@@ -77,7 +77,7 @@ describe Rack::Sendfile do
     }
     request headers do |response|
       response.must_be :ok?
-      response.body.must_be :empty?
+      response.join.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
       response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
     end
@@ -90,7 +90,7 @@ describe Rack::Sendfile do
     }
     request headers, sendfile_body('file_with_%_?_symbol') do |response|
       response.must_be :ok?
-      response.body.must_be :empty?
+      response.join.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
       response.headers['X-Accel-Redirect'].must_equal '/foo/bar%25/file_with_%25_%3F_symbol'
     end
@@ -99,7 +99,7 @@ describe Rack::Sendfile do
   it 'writes to rack.error when no X-Accel-Mapping is specified' do
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' do |response|
       response.must_be :ok?
-      response.body.must_equal 'Hello World'
+      response.join.must_equal 'Hello World'
       response.headers.wont_include 'X-Accel-Redirect'
       response.errors.must_include 'X-Accel-Mapping'
     end
@@ -107,7 +107,7 @@ describe Rack::Sendfile do
 
   it 'does nothing when body does not respond to #to_path' do
     request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' }, ['Not a file...']) do |response|
-      response.body.must_equal 'Not a file...'
+      response.join.must_equal 'Not a file...'
       response.headers.wont_include 'X-Sendfile'
     end
   end
@@ -130,14 +130,14 @@ describe Rack::Sendfile do
 
       request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, first_body, mappings) do |response|
         response.must_be :ok?
-        response.body.must_be :empty?
+        response.join.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
       request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, second_body, mappings) do |response|
         response.must_be :ok?
-        response.body.must_be :empty?
+        response.join.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
       end
@@ -169,21 +169,21 @@ describe Rack::Sendfile do
 
       request(headers, first_body) do |response|
         response.must_be :ok?
-        response.body.must_be :empty?
+        response.join.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
       request(headers, second_body) do |response|
         response.must_be :ok?
-        response.body.must_be :empty?
+        response.join.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
       end
 
       request(headers, third_body) do |response|
         response.must_be :ok?
-        response.body.must_be :empty?
+        response.join.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal "#{dir3}/rack_sendfile"
       end

@@ -73,7 +73,7 @@ describe Rack::Files do
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
 
     res.status.must_equal 304
-    res.body.must_be :empty?
+    res.join.must_be :empty?
   end
 
   it "return the file if it's modified since last serve" do
@@ -192,7 +192,7 @@ describe Rack::Files do
     res.status.must_equal 206
     res["Content-Length"].must_equal "12"
     res["Content-Range"].must_equal "bytes 22-33/209"
-    res.body.must_equal "IS FILE! ***"
+    res.join.must_equal "IS FILE! ***"
   end
 
   it "return correct multiple byte ranges in body" do
@@ -218,7 +218,7 @@ Content-Range: bytes 60-80/209\r
 --AaB03x--\r
     EOF
 
-    res.body.must_equal expected_body
+    res.join.must_equal expected_body
   end
 
   it "return error for unsatisfiable byte range" do
@@ -306,6 +306,6 @@ Content-Range: bytes 60-80/209\r
   it "return error when file not found for head request" do
     res = Rack::MockRequest.new(files(DOCROOT)).head("/cgi/missing")
     res.must_be :not_found?
-    res.body.must_be :empty?
+    res.join.must_be :empty?
   end
 end

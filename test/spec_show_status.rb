@@ -53,9 +53,9 @@ describe Rack::ShowStatus do
     res.wont_be_empty
 
     res["Content-Type"].must_equal "text/html"
-    assert_includes(res.body, '404')
-    assert_includes(res.body, 'Not Found')
-    assert_includes(res.body, '[&quot;gone too meta.&quot;]')
+    assert_includes(res.join, '404')
+    assert_includes(res.join, 'Not Found')
+    assert_includes(res.join, '[&quot;gone too meta.&quot;]')
   end
 
   it "escape error" do
@@ -73,7 +73,7 @@ describe Rack::ShowStatus do
     res["Content-Type"].must_equal "text/html"
     assert_match(res, /500/)
     res.wont_include detail
-    res.body.must_include Rack::Utils.escape_html(detail)
+    res.join.must_include Rack::Utils.escape_html(detail)
   end
 
   it "not replace existing messages" do
@@ -86,7 +86,7 @@ describe Rack::ShowStatus do
     res = req.get("/", lint: true)
     res.must_be :not_found?
 
-    res.body.must_equal "foo!"
+    res.join.must_equal "foo!"
   end
 
   it "pass on original headers" do
@@ -115,7 +115,7 @@ describe Rack::ShowStatus do
     res["Content-Length"].wont_equal "4"
     assert_match(res, /404/)
     assert_match(res, /too meta/)
-    res.body.wont_match(/foo/)
+    res.join.wont_match(/foo/)
   end
 
   it "close the original body" do

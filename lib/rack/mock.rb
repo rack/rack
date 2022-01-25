@@ -182,8 +182,9 @@ module Rack
     attr_accessor :errors
 
     def initialize(status, headers, body, errors = StringIO.new(""))
+      @joined = false
       @original_headers = headers
-      @errors           = errors.string if errors.respond_to?(:string)
+      @errors = errors.string if errors.respond_to?(:string)
 
       super(body, status, headers)
 
@@ -191,16 +192,10 @@ module Rack
       buffered_body!
     end
 
-    def =~(other)
-      body =~ other
-    end
-
-    def match(other)
-      body.match other
-    end
-
-    def body(join: true)
+    def body(join = (deprecated = true))
       if join
+        warn 'Prefer MockResponse#join for response body as string!' if deprecated
+
         buffer = String.new
 
         super().each do |chunk|
@@ -215,7 +210,15 @@ module Rack
 
     # @returns [String] The response body parts joined into a single string.
     def join
-      body(join: true)
+      @joined ||= self.body(true)
+    end
+
+    def =~(other)
+      join =~ other
+    end
+
+    def match(other)
+      join.match other
     end
 
     def empty?

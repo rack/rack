@@ -39,12 +39,12 @@ describe Rack::ShowExceptions do
     res.must_be :server_error?
     res.status.must_equal 500
 
-    assert_includes(res.body, 'RuntimeError')
-    assert_includes(res.body, 'ShowExceptions')
-    assert_includes(res.body, 'No GET data')
-    assert_includes(res.body, 'No POST data')
-    assert_includes(res.body, 'nonexistant.rb')
-    refute_includes(res.body, 'bad-backtrace')
+    assert_includes(res.join, 'RuntimeError')
+    assert_includes(res.join, 'ShowExceptions')
+    assert_includes(res.join, 'No GET data')
+    assert_includes(res.join, 'No POST data')
+    assert_includes(res.join, 'nonexistant.rb')
+    refute_includes(res.join, 'bad-backtrace')
   end
 
   it "handles invalid POST data exceptions" do
@@ -107,13 +107,13 @@ describe Rack::ShowExceptions do
 
       res.content_type.must_equal exmime
 
-      res.body.must_include "RuntimeError"
-      res.body.must_include "It was never supposed to work"
+      res.join.must_include "RuntimeError"
+      res.join.must_include "It was never supposed to work"
 
       if exmime == "text/html"
-        res.body.must_include '</html>'
+        res.join.must_include '</html>'
       else
-        res.body.wont_include '</html>'
+        res.join.wont_include '</html>'
       end
     end
   end
@@ -156,7 +156,7 @@ describe Rack::ShowExceptions do
 
     res.must_be :server_error?
     res.status.must_equal 500
-    res.body.must_equal "foo"
+    res.join.must_equal "foo"
   end
 
   it "knows to prefer plaintext for non-html" do

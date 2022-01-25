@@ -36,7 +36,7 @@ describe Rack::Auth::Basic do
     response.status.must_equal 401
     response.must_include 'WWW-Authenticate'
     response.headers['WWW-Authenticate'].must_match(/Basic realm="#{Regexp.escape(realm)}"/)
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it 'challenge correctly when no credentials are specified' do
@@ -54,7 +54,7 @@ describe Rack::Auth::Basic do
   it 'return application output if correct credentials are specified' do
     request_with_basic_auth 'Boss', 'password' do |response|
       response.status.must_equal 200
-      response.body.to_s.must_equal 'Hi Boss'
+      response.join.must_equal 'Hi Boss'
     end
   end
 

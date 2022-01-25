@@ -17,7 +17,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => timestamp)
 
     response.status.must_equal 304
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it "set a 304 status and truncate body when If-Modified-Since hits and is higher than current time" do
@@ -28,7 +28,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => Time.now.httpdate)
 
     response.status.must_equal 304
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it "set a 304 status and truncate body when If-None-Match hits" do
@@ -39,7 +39,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_NONE_MATCH' => '1234')
 
     response.status.must_equal 304
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it "set a 304 status and truncate body when If-None-Match hits but If-Modified-Since is after Last-Modified" do
@@ -50,7 +50,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => Time.now.httpdate, 'HTTP_IF_NONE_MATCH' => '1234')
 
     response.status.must_equal 304
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it "not set a 304 status if If-Modified-Since hits but Etag does not" do
@@ -62,7 +62,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => timestamp, 'HTTP_IF_NONE_MATCH' => '4321')
 
     response.status.must_equal 200
-    response.body.must_equal 'TEST'
+    response.join.must_equal 'TEST'
   end
 
   it "set a 304 status and truncate body when both If-None-Match and If-Modified-Since hits" do
@@ -74,7 +74,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => timestamp, 'HTTP_IF_NONE_MATCH' => '1234')
 
     response.status.must_equal 304
-    response.body.must_be :empty?
+    response.join.must_be :empty?
   end
 
   it "not affect non-GET/HEAD requests" do
@@ -85,7 +85,7 @@ describe Rack::ConditionalGet do
       post("/", 'HTTP_IF_NONE_MATCH' => '1234')
 
     response.status.must_equal 200
-    response.body.must_equal 'TEST'
+    response.join.must_equal 'TEST'
   end
 
   it "not affect non-200 requests" do
@@ -96,7 +96,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_NONE_MATCH' => '1234')
 
     response.status.must_equal 302
-    response.body.must_equal 'TEST'
+    response.join.must_equal 'TEST'
   end
 
   it "not affect requests with malformed HTTP_IF_NONE_MATCH" do
@@ -108,7 +108,7 @@ describe Rack::ConditionalGet do
       get("/", 'HTTP_IF_MODIFIED_SINCE' => bad_timestamp)
 
     response.status.must_equal 200
-    response.body.must_equal 'TEST'
+    response.join.must_equal 'TEST'
   end
 
 end

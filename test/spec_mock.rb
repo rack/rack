@@ -56,7 +56,7 @@ describe Rack::MockRequest do
   it "provide sensible defaults" do
     res = Rack::MockRequest.new(app).request
 
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
@@ -69,23 +69,23 @@ describe Rack::MockRequest do
 
   it "allow GET/POST/PUT/DELETE/HEAD" do
     res = Rack::MockRequest.new(app).get("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
 
     res = Rack::MockRequest.new(app).post("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "POST"
 
     res = Rack::MockRequest.new(app).put("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "PUT"
 
     res = Rack::MockRequest.new(app).patch("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "PATCH"
 
     res = Rack::MockRequest.new(app).delete("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "DELETE"
 
     Rack::MockRequest.env_for("/", method: "HEAD")["REQUEST_METHOD"]
@@ -111,11 +111,11 @@ describe Rack::MockRequest do
 
   it "allow posting" do
     res = Rack::MockRequest.new(app).get("", input: "foo")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["mock.postdata"].must_equal "foo"
 
     res = Rack::MockRequest.new(app).post("", input: StringIO.new("foo"))
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["mock.postdata"].must_equal "foo"
   end
 
@@ -124,7 +124,7 @@ describe Rack::MockRequest do
       get("https://bla.example.org:9292/meh/foo?bar")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "bla.example.org"
     env["SERVER_PORT"].must_equal "9292"
@@ -138,7 +138,7 @@ describe Rack::MockRequest do
       get("https://example.org/foo")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "443"
@@ -153,7 +153,7 @@ describe Rack::MockRequest do
       get("foo")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
@@ -164,13 +164,13 @@ describe Rack::MockRequest do
 
   it "properly convert method name to an uppercase string" do
     res = Rack::MockRequest.new(app).request(:get)
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
   end
 
   it "accept params and build query string for GET requests" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", params: { foo: { bar: "1" } })
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo[bar]=1"
@@ -180,7 +180,7 @@ describe Rack::MockRequest do
 
   it "accept raw input in params for GET requests" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", params: "foo[bar]=1")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo[bar]=1"
@@ -190,7 +190,7 @@ describe Rack::MockRequest do
 
   it "accept params and build url encoded params for POST requests" do
     res = Rack::MockRequest.new(app).post("/foo", params: { foo: { bar: "1" } })
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -200,7 +200,7 @@ describe Rack::MockRequest do
 
   it "accept raw input in params for POST requests" do
     res = Rack::MockRequest.new(app).post("/foo", params: "foo[bar]=1")
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -211,7 +211,7 @@ describe Rack::MockRequest do
   it "accept params and build multipart encoded params for POST requests" do
     files = Rack::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
     res = Rack::MockRequest.new(app).post("/foo", params: { "submit-name" => "Larry", "files" => files })
-    env = YAML.unsafe_load(res.body)
+    env = YAML.unsafe_load(res.join)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -262,7 +262,7 @@ describe Rack::MockResponse do
 
     response.status.must_equal 200
     response.headers.must_equal headers
-    response.body.must_equal body.join
+    response.join.must_equal body.join
   end
 
   it "provide access to the HTTP status" do
@@ -365,7 +365,7 @@ describe Rack::MockResponse do
 
   it "provide access to the HTTP body" do
     res = Rack::MockRequest.new(app).get("")
-    res.body.must_match(/rack/)
+    res.join.must_match(/rack/)
     assert_match(res, /rack/)
 
     res.match('rack')[0].must_equal 'rack'
@@ -390,7 +390,7 @@ describe Rack::MockResponse do
     body = StringIO.new("hi")
     res = Rack::MockResponse.new(200, {}, body)
     body.close if body.respond_to?(:close)
-    res.body.must_equal 'hi'
+    res.join.must_equal 'hi'
   end
 
   it "optionally make Rack errors fatal" do

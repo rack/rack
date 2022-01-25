@@ -34,8 +34,8 @@ describe Rack::Builder do
         run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['sub']] }
       end
     end
-    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
-    Rack::MockRequest.new(app).get("/sub").body.to_s.must_equal 'sub'
+    Rack::MockRequest.new(app).get("/").join.must_equal 'root'
+    Rack::MockRequest.new(app).get("/sub").join.must_equal 'sub'
   end
 
   it "supports use when mapping" do
@@ -61,7 +61,7 @@ describe Rack::Builder do
         }
       end
     end
-    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
+    Rack::MockRequest.new(app).get("/").join.must_equal 'root'
     NothingMiddleware.env['new_key'].must_equal 'new_value'
   end
 
@@ -72,8 +72,8 @@ describe Rack::Builder do
       end
     end
 
-    builder_app1_id = Rack::MockRequest.new(app).get("/").body.to_s
-    builder_app2_id = Rack::MockRequest.new(app).get("/").body.to_s
+    builder_app1_id = Rack::MockRequest.new(app).get("/").join
+    builder_app2_id = Rack::MockRequest.new(app).get("/").join
 
     builder_app2_id.wont_equal builder_app1_id
   end
@@ -118,7 +118,7 @@ describe Rack::Builder do
     response = Rack::MockRequest.new(app).get("/",
         'HTTP_AUTHORIZATION' => 'Basic ' + ["joe:secret"].pack("m*"))
     response.status.must_equal 200
-    response.body.to_s.must_equal 'Hi Boss'
+    response.join.must_equal 'Hi Boss'
   end
 
   it "has explicit #to_app" do
@@ -140,8 +140,8 @@ describe Rack::Builder do
       run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['root']] }
     end
 
-    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
-    Rack::MockRequest.new(app).get("/sub").body.to_s.must_equal 'sub'
+    Rack::MockRequest.new(app).get("/").join.must_equal 'root'
+    Rack::MockRequest.new(app).get("/sub").join.must_equal 'sub'
   end
 
   it "accepts middleware-only map blocks" do
@@ -231,7 +231,7 @@ describe Rack::Builder do
 
     it "removes __END__ before evaluating app" do
       app, _ = Rack::Builder.parse_file config_file('end.ru')
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+      Rack::MockRequest.new(app).get("/").join.must_equal 'OK'
     end
 
     it "supports multi-line comments" do
@@ -242,13 +242,13 @@ describe Rack::Builder do
     it 'requires an_underscore_app not ending in .ru' do
       $: << File.dirname(__FILE__)
       app, * = Rack::Builder.parse_file 'builder/an_underscore_app'
-      Rack::MockRequest.new(app).get('/').body.to_s.must_equal 'OK'
+      Rack::MockRequest.new(app).get('/').join.must_equal 'OK'
       $:.pop
     end
 
     it "sets __LINE__ correctly" do
       app, _ = Rack::Builder.parse_file config_file('line.ru')
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal '3'
+      Rack::MockRequest.new(app).get("/").join.must_equal '3'
     end
 
     it "strips leading unicode byte order mark when present" do
@@ -256,7 +256,7 @@ describe Rack::Builder do
       begin
         Encoding.default_external = 'UTF-8'
         app, _ = Rack::Builder.parse_file config_file('bom.ru')
-        Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+        Rack::MockRequest.new(app).get("/").join.must_equal 'OK'
       ensure
         Encoding.default_external = enc
       end
@@ -265,7 +265,7 @@ describe Rack::Builder do
     it "respects the frozen_string_literal magic comment" do
       app, _ = Rack::Builder.parse_file(config_file('frozen.ru'))
       response = Rack::MockRequest.new(app).get('/')
-      response.body.must_equal 'frozen'
+      response.join.must_equal 'frozen'
       body = response.instance_variable_get(:@body)
       body.must_equal(['frozen'])
       body[0].frozen?.must_equal true
@@ -275,7 +275,7 @@ describe Rack::Builder do
   describe 'new_from_string' do
     it "builds a rack app from string" do
       app, = Rack::Builder.new_from_string "run lambda{|env| [200, {'Content-Type' => 'text/plane'}, ['OK']] }"
-      Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+      Rack::MockRequest.new(app).get("/").join.must_equal 'OK'
     end
   end
 end

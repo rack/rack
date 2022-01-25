@@ -42,7 +42,7 @@ describe Rack::Recursive do
       get("/app2")
 
     res.must_be :ok?
-    res.body.must_equal "App2App1"
+    res.join.must_equal "App2App1"
   end
 
   it "raise error on requests not below the app" do
@@ -63,11 +63,11 @@ describe Rack::Recursive do
 
     res = Rack::MockRequest.new(app).get("/app3")
     res.must_be :ok?
-    res.body.must_equal "App1"
+    res.join.must_equal "App1"
 
     res = Rack::MockRequest.new(app).get("/app4")
     res.must_be :ok?
-    res.body.must_equal "App1"
+    res.join.must_equal "App1"
     res["X-Path-Info"].must_equal "/quux"
     res["X-Query-String"].must_equal "meh"
   end

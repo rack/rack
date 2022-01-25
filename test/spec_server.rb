@@ -38,7 +38,7 @@ describe Rack::Server do
   it "prefer to use :builder when it is passed in" do
     server = Rack::Server.new(builder: "run lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['success']] }")
     server.app.class.must_equal Proc
-    Rack::MockRequest.new(server.app).get("/").body.to_s.must_equal 'success'
+    Rack::MockRequest.new(server.app).get("/").join.must_equal 'success'
   end
 
   it "allow subclasses to override middleware" do

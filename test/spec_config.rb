@@ -15,6 +15,6 @@ describe Rack::Config do
     end
 
     response = Rack::MockRequest.new(app).get('/')
-    response.body.must_equal 'hello'
+    response.join.must_equal 'hello'
   end
 end

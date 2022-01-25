@@ -40,7 +40,7 @@ describe Rack::Static do
   it "serves files" do
     res = @request.get("/cgi/test")
     res.must_be :ok?
-    res.body.must_match(/ruby/)
+    res.join.must_match(/ruby/)
   end
 
   it "404s if url root is known but it can't find the file" do
@@ -51,65 +51,65 @@ describe Rack::Static do
   it "serves files when using :cascade option" do
     res = @cascade_request.get("/cgi/test")
     res.must_be :ok?
-    res.body.must_match(/ruby/)
+    res.join.must_match(/ruby/)
   end
 
   it "calls down the chain if if can't find the file when using the :cascade option" do
     res = @cascade_request.get("/cgi/foo")
     res.must_be :ok?
-    res.body.must_equal "Hello World"
+    res.join.must_equal "Hello World"
   end
 
   it "calls down the chain if url root is not known" do
     res = @request.get("/something/else")
     res.must_be :ok?
-    res.body.must_equal "Hello World"
+    res.join.must_equal "Hello World"
   end
 
   it "calls index file when requesting root in the given folder" do
     res = @static_request.get("/")
     res.must_be :ok?
-    res.body.must_match(/index!/)
+    res.join.must_match(/index!/)
 
     res = @static_request.get("/other/")
     res.must_be :not_found?
 
     res = @static_request.get("/another/")
     res.must_be :ok?
-    res.body.must_match(/another index!/)
+    res.join.must_match(/another index!/)
   end
 
   it "does not call index file when requesting folder with unknown prefix" do
     res = @static_urls_request.get("/static/another/")
     res.must_be :ok?
-    res.body.must_match(/index!/)
+    res.join.must_match(/index!/)
 
     res = @static_urls_request.get("/something/else/")
     res.must_be :ok?
-    res.body.must_equal "Hello World"
+    res.join.must_equal "Hello World"
   end
 
   it "doesn't call index file if :index option was omitted" do
     res = @request.get("/")
-    res.body.must_equal "Hello World"
+    res.join.must_equal "Hello World"
   end
 
   it "serves hidden files" do
     res = @hash_request.get("/cgi/sekret")
     res.must_be :ok?
-    res.body.must_match(/ruby/)
+    res.join.must_match(/ruby/)
   end
 
   it "calls down the chain if the URI is not specified" do
     res = @hash_request.get("/something/else")
     res.must_be :ok?
-    res.body.must_equal "Hello World"
+    res.join.must_equal "Hello World"
   end
 
   it "allows the root URI to be configured via hash options" do
     res = @hash_root_request.get("/")
     res.must_be :ok?
-    res.body.must_match(/foo.html!/)
+    res.join.must_match(/foo.html!/)
   end
 
   it "serves gzipped files if client accepts gzip encoding and gzip files are present" do
@@ -117,7 +117,7 @@ describe Rack::Static do
     res.must_be :ok?
     res.headers['Content-Encoding'].must_equal 'gzip'
     res.headers['Content-Type'].must_equal 'text/plain'
-    Zlib::GzipReader.wrap(StringIO.new(res.body), &:read).must_match(/ruby/)
+    Zlib::GzipReader.wrap(StringIO.new(res.join), &:read).must_match(/ruby/)
   end
 
   it "serves regular files if client accepts gzip encoding and gzip files are not present" do
@@ -125,7 +125,7 @@ describe Rack::Static do
     res.must_be :ok?
     res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_equal 'text/x-script.ruby'
-    res.body.must_match(/ruby/)
+    res.join.must_match(/ruby/)
   end
 
   it "serves regular files if client does not accept gzip encoding" do
@@ -133,14 +133,14 @@ describe Rack::Static do
     res.must_be :ok?
     res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_equal 'text/plain'
-    res.body.must_match(/ruby/)
+    res.join.must_match(/ruby/)
   end
 
   it "returns 304 if gzipped file isn't modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
     res = @gzip_request.get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
     res.status.must_equal 304
-    res.body.must_be :empty?
+    res.join.must_be :empty?
     res.headers['Content-Encoding'].must_be_nil
     res.headers['Content-Type'].must_be_nil
   end
@@ -224,7 +224,7 @@ describe Rack::Static do
     Dir.chdir '..' do
       res = request.get("")
       res.must_be :ok?
-      res.body.must_match(/index!/)
+      res.join.must_match(/index!/)
     end
   end
 end

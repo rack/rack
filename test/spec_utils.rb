@@ -843,6 +843,6 @@ describe Rack::Utils::Context do
     r4.status.must_equal 200
     r5 = Rack::MockRequest.new(a5).get('/')
     r5.status.must_equal 200
-    r4.body.must_equal r5.body
+    r4.join.must_equal r5.join
   end
 end

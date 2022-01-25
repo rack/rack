@@ -23,14 +23,14 @@ describe Rack::Lobster::LambdaLobster do
   it "look like a lobster" do
     res = lambda_lobster.get("/")
     res.must_be :ok?
-    res.body.must_include "(,(,,(,,,("
-    res.body.must_include "?flip"
+    res.join.must_include "(,(,,(,,,("
+    res.join.must_include "?flip"
   end
 
   it "be flippable" do
     res = lambda_lobster.get("/?flip")
     res.must_be :ok?
-    res.body.must_include "(,,,(,,(,("
+    res.join.must_include "(,,,(,,(,("
   end
 end
 
@@ -40,15 +40,15 @@ describe Rack::Lobster do
   it "look like a lobster" do
     res = lobster.get("/")
     res.must_be :ok?
-    res.body.must_include "(,(,,(,,,("
-    res.body.must_include "?flip"
-    res.body.must_include "crash"
+    res.join.must_include "(,(,,(,,,("
+    res.join.must_include "?flip"
+    res.join.must_include "crash"
   end
 
   it "be flippable" do
     res = lobster.get("/?flip=left")
     res.must_be :ok?
-    res.body.must_include "),,,),,),)"
+    res.join.must_include "),,,),,),)"
   end
 
   it "provide crashing for testing purposes" do

@@ -127,7 +127,7 @@ describe Rack::Directory do
       FileUtils.touch File.join(dir, "secret.txt")
       app = Rack::Directory.new(File.join(dir, "uploads"))
       res = Rack::MockRequest.new(app).get("/.%3F")
-      refute_match "secret.txt", res.body
+      refute_match "secret.txt", res.join
     end
   end
 
@@ -144,7 +144,7 @@ describe Rack::Directory do
     res = mr.get("/cgi/test%2bdirectory")
 
     res.must_be :ok?
-    res.body.must_match(Regexp.new(Rack::Utils.escape_html(
+    res.join.must_match(Regexp.new(Rack::Utils.escape_html(
       "/cgi/test\\+directory/test\\+file")))
 
     res = mr.get("/cgi/test%2bdirectory/test%2bfile")
@@ -200,7 +200,7 @@ describe Rack::Directory do
     res = mr.get("/script-path/cgi/test%2bdirectory")
 
     res.must_be :ok?
-    res.body.must_match(Regexp.new(Rack::Utils.escape_html(
+    res.join.must_match(Regexp.new(Rack::Utils.escape_html(
       "/script-path/cgi/test\\+directory/test\\+file")))
 
     res = mr.get("/script-path/cgi/test+directory/test+file")
@@ -212,6 +212,6 @@ describe Rack::Directory do
       head("/cgi/missing")
 
     res.must_be :not_found?
-    res.body.must_be :empty?
+    res.join.must_be :empty?
   end
 end
