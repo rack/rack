@@ -178,15 +178,8 @@ Several parameters can be modified on Rack::Utils to configure \Rack behaviour.
 
 e.g:
 
-    Rack::Utils.key_space_limit = 128
+    Rack::Utils.param_depth_limit = 3
 
-=== key_space_limit
-
-The default number of bytes to allow all parameters keys in a given parameter hash to take up.
-Does not affect nested parameter hashes, so doesn't actually prevent an attacker from using
-more than this many bytes for parameter keys.
-
-Defaults to 65536 characters.
 
 === param_depth_limit
 
@@ -213,6 +206,10 @@ The default is 128, which means that a single request can't upload more than 128
 Set to 0 for no limit.
 
 Can also be set via the +RACK_MULTIPART_PART_LIMIT+ environment variable.
+
+=== key_space_limit
+
+No longer has an effect, deprecated.
 
 == Changelog
 

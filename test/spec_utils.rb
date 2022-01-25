@@ -114,13 +114,39 @@ describe Rack::Utils do
     ex = { "foo" => nil }
     ex["foo"] = ex
 
-    params = Rack::Utils::KeySpaceConstrainedParams.new(65536)
+    params = Rack::Utils::KeySpaceConstrainedParams.new
     params['foo'] = params
     params.to_params_hash.to_s.must_equal ex.to_s
   end
 
   it "parse nil as an empty query string" do
     Rack::Utils.parse_nested_query(nil).must_equal({})
+  end
+
+  it "should warn using deprecated Rack::Util.key_space_limit=" do
+    begin
+      warn_arg = nil
+      Rack::Utils.define_singleton_method(:warn) do |*args|
+        warn_arg = args.first
+      end
+      Rack::Utils.key_space_limit = 65536
+      warn_arg.must_equal("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack")
+    ensure
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
+    end
+  end
+
+  it "should warn using deprecated Rack::Util.key_space_limit" do
+    begin
+      warn_arg = nil
+      Rack::Utils.define_singleton_method(:warn) do |*args|
+        warn_arg = args.first
+      end
+      Rack::Utils.key_space_limit
+      warn_arg.must_equal("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack")
+    ensure
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
+    end
   end
 
   it "raise an exception if the params are too deep" do
@@ -259,7 +285,7 @@ describe Rack::Utils do
           @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
-      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536, 100)
+      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 100)
       h1 = Rack::Utils.parse_query(",foo=bar;,", ";,")
       h1[:foo].must_equal "bar"
       h2 = Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")

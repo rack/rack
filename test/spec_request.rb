@@ -295,7 +295,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -314,32 +314,6 @@ class RackRequestTest < Minitest::Spec
     req.GET.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
     req.POST.must_be :empty?
     req.params.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
-  end
-
-  it "limit the keys from the GET query string" do
-    env = Rack::MockRequest.env_for("/?foo=bar")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      req = make_request(env)
-      lambda { req.GET }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
-  end
-
-  it "limit the key size per nested params hash" do
-    nested_query = Rack::MockRequest.env_for("/?foo%5Bbar%5D%5Bbaz%5D%5Bqux%5D=1")
-    plain_query  = Rack::MockRequest.env_for("/?foo_bar__baz__qux_=1")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 3
-    begin
-      exp = { "foo" => { "bar" => { "baz" => { "qux" => "1" } } } }
-      make_request(nested_query).GET.must_equal exp
-      lambda { make_request(plain_query).GET  }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
   end
 
   it "limit the allowed parameter depth when parsing parameters" do
@@ -388,7 +362,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -436,20 +410,6 @@ class RackRequestTest < Minitest::Spec
     req.GET.must_equal "foo" => "quux"
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
     req.params.must_equal "foo" => "bar", "quux" => "bla"
-  end
-
-  it "limit the keys from the POST form data" do
-    env = Rack::MockRequest.env_for("",
-            "REQUEST_METHOD" => 'POST',
-            :input => "foo=bar&quux=bla")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      req = make_request(env)
-      lambda { req.POST }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
   end
 
   it "parse POST data with explicit content type regardless of method" do

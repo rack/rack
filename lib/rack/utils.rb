@@ -23,9 +23,10 @@ module Rack
     class << self
       attr_accessor :default_query_parser
     end
-    # The default number of bytes to allow parameter keys to take up.
-    # This helps prevent a rogue client from flooding a Request.
-    self.default_query_parser = QueryParser.make_default(65536, 32)
+    # The default amount of nesting to allowed by hash parameters.
+    # This helps prevent a rogue client from triggering a possible stack overflow
+    # when parsing parameters.
+    self.default_query_parser = QueryParser.make_default(32)
 
     module_function
 
@@ -70,11 +71,12 @@ module Rack
     end
 
     def self.key_space_limit
-      default_query_parser.key_space_limit
+      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      65536
     end
 
     def self.key_space_limit=(v)
-      self.default_query_parser = self.default_query_parser.new_space_limit(v)
+      warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
     end
 
     if defined?(Process::CLOCK_MONOTONIC)
