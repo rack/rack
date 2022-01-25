@@ -188,7 +188,7 @@ module Rack
       if errors
         @errors = errors.string if errors.respond_to?(:string)
       else
-        @errors = nil
+        @errors = ""
       end
 
       super(body, status, headers)
