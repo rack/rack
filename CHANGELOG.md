@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Utils.secure_compare` uses OpenSSL's faster implementation if available. ([#1711](https://github.com/rack/rack/pull/1711), [@bdewater](https://github.com/bdewater))
 - BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
 
+### Removed
+
+- `Rack::MockResponse#body` violates Liskov substitution principle. Use `Rack::MockResponse#join` for the current behaviour. ([#1791][https://github.com/rack/rack/pull/1791], [@ioquatix][https://github.com/ioquatix])
+
 ### Fixed
 
 - Make Rack::MockResponse handle non-hash headers. ([#1629](https://github.com/rack/rack/issues/1629), [@jeremyevans](https://github.com/jeremyevans))

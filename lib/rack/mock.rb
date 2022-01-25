@@ -192,25 +192,19 @@ module Rack
       buffered_body!
     end
 
-    def body(join = (deprecated = true))
-      if join
-        warn 'Prefer MockResponse#join for response body as string!' if deprecated
-
-        buffer = String.new
-
-        super().each do |chunk|
-          buffer << chunk
-        end
-
-        return buffer
-      else
-        super
-      end
-    end
-
     # @returns [String] The response body parts joined into a single string.
     def join
-      @joined ||= self.body(true)
+      unless @joined
+        @joined = String.new
+
+        body.each do |chunk|
+          @joined << chunk
+        end
+
+        @joined.freeze
+      end
+
+      return @joined
     end
 
     def =~(other)
