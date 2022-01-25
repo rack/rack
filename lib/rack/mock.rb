@@ -192,19 +192,29 @@ module Rack
       buffered_body!
     end
 
-    # @returns [String] The response body parts joined into a single string.
-    def join
-      unless @joined
-        @joined = String.new
+    def body(join = true)
+      body = super()
+
+      # This is considered deprecated behaviour, prefer to use #join.
+      if join && body.respond_to?(:each)
+        # warn 'Prefer MockResponse#join for response body as string!' if deprecated
+
+        buffer = String.new
 
         body.each do |chunk|
-          @joined << chunk
+          buffer << chunk
         end
 
-        @joined.freeze
+        return buffer
+      else
+        # Everything else:
+        return body
       end
+    end
 
-      return @joined
+    # @returns [String] The response body parts joined into a single string.
+    def join
+      @joined ||= self.body(true)
     end
 
     def =~(other)
