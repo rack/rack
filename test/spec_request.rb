@@ -295,7 +295,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, nil, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -362,7 +362,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, nil, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser

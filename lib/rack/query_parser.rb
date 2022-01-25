@@ -14,19 +14,23 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    def self.make_default(param_depth_limit)
-      new Params, nil, param_depth_limit
+    def self.make_default(_key_space_limit=(not_deprecated = true; nil), param_depth_limit)
+      unless not_deprecated
+        warn("`first argument `key_space limit` is deprecated and no longer has an effect. Please call with only one argument, which will be required in a future version of Rack", uplevel: 1)
+      end
+
+      new Params, param_depth_limit
     end
 
     attr_reader :param_depth_limit
 
-    def initialize(params_class, key_space_limit, param_depth_limit)
+    def initialize(params_class, _key_space_limit=(not_deprecated = true; nil), param_depth_limit)
+      unless not_deprecated
+        warn("`second argument `key_space limit` is deprecated and no longer has an effect. Please call with only two arguments, which will be required in a future version of Rack", uplevel: 1)
+      end
+
       @params_class = params_class
       @param_depth_limit = param_depth_limit
-
-      unless key_space_limit.nil?
-        warn("`second argument `key_space limit` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
-      end
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -127,7 +131,7 @@ module Rack
     end
 
     def new_depth_limit(param_depth_limit)
-      self.class.new @params_class, nil, param_depth_limit
+      self.class.new @params_class, param_depth_limit
     end
 
     private

@@ -70,6 +70,11 @@ module Rack
       self.default_query_parser = self.default_query_parser.new_depth_limit(v)
     end
 
+    def self.key_space_limit
+      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      65536
+    end
+
     def self.key_space_limit=(v)
       warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
     end
