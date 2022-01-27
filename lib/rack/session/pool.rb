@@ -45,7 +45,7 @@ module Rack
       end
 
       def find_session(req, sid)
-        with_lock(req) do
+        @mutex.synchronize do
           unless sid and session = get_session_with_fallback(sid)
             sid, session = generate_sid(use_mutex: false), {}
             @pool.store sid.private_id, session
@@ -55,25 +55,18 @@ module Rack
       end
 
       def write_session(req, session_id, new_session, options)
-        with_lock(req) do
+        @mutex.synchronize do
           @pool.store session_id.private_id, new_session
           session_id
         end
       end
 
       def delete_session(req, session_id, options)
-        with_lock(req) do
+        @mutex.synchronize do
           @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
           generate_sid(use_mutex: false) unless options[:drop]
         end
-      end
-
-      def with_lock(req)
-        @mutex.lock if req.multithread?
-        yield
-      ensure
-        @mutex.unlock if @mutex.locked?
       end
 
       private

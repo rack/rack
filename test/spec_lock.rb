@@ -139,28 +139,6 @@ describe Rack::Lock do
     lock.synchronized.must_equal false
   end
 
-  it "set multithread flag to false" do
-    app = lock_app(lambda { |env|
-      env['rack.multithread'].must_equal false
-      [200, { "Content-Type" => "text/plain" }, %w{ a b c }]
-    }, false)
-    env = Rack::MockRequest.env_for("/")
-    env['rack.multithread'].must_equal true
-    _, _, body = app.call(env)
-    body.close
-    env['rack.multithread'].must_equal true
-  end
-
-  it "reset original multithread flag when exiting lock" do
-    app = Class.new(Rack::Lock) {
-      def call(env)
-        env['rack.multithread'].must_equal true
-        super
-      end
-    }.new(lambda { |env| [200, { "Content-Type" => "text/plain" }, %w{ a b c }] })
-    Rack::Lint.new(app).call(Rack::MockRequest.env_for("/"))
-  end
-
   it 'not unlock if an error is raised before the mutex is locked' do
     lock = Class.new do
       def initialize() @unlocked = false end
@@ -181,7 +159,6 @@ describe Rack::Lock do
     end
     app = Rack::Lock.new lambda { |env| [200, { "Content-Type" => "text/plain" }, proxy.new(env)] }
     response = app.call(Rack::MockRequest.env_for("/"))[2]
-    response.env['rack.multithread'].must_equal false
   end
 
   it "unlock if an exception occurs before returning" do

@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. For info on
 
 - Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
 
+### Removed
+
+- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix), [@jeremyevans](https://github.com/jeremyevans)))
+
 ### Added
 
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))

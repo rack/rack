@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'thread'
-
 module Rack
   # Rack::Lock locks every request inside a mutex, so that every request
   # will effectively be executed synchronously.
@@ -12,10 +10,8 @@ module Rack
 
     def call(env)
       @mutex.lock
-      @env = env
-      @old_rack_multithread = env[RACK_MULTITHREAD]
       begin
-        response = @app.call(env.merge!(RACK_MULTITHREAD => false))
+        response = @app.call(env)
         returned = response << BodyProxy.new(response.pop) { unlock }
       ensure
         unlock unless returned
@@ -26,7 +22,6 @@ module Rack
 
     def unlock
       @mutex.unlock
-      @env[RACK_MULTITHREAD] = @old_rack_multithread
     end
   end
 end
