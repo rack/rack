@@ -259,9 +259,8 @@ describe Rack::Utils do
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_equal "expected Array (got String) for param `y'"
 
-    lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
-      must_raise(Rack::Utils::InvalidParameterError).
-      message.must_equal "invalid byte sequence in UTF-8"
+    Rack::Utils.parse_nested_query("foo%81E=1").
+      must_equal "foo\x81E"=>"1"
   end
 
   it "only moves to a new array when the full key has been seen" do
@@ -274,6 +273,20 @@ describe Rack::Utils do
         { "id" => "1", "y" => { "a" => "5", "b" => "7" }, "z" => { "id" => "3", "w" => "0" } },
         { "id" => "2", "y" => { "a" => "6", "b" => "8" }, "z" => { "id" => "4", "w" => "0" } },
       ]
+  end
+
+  it "handles unexpected use of [ and ] in parameter keys as normal characters" do
+    Rack::Utils.parse_nested_query("[]=1&[a]=2&b[=3&c]=4").
+      must_equal "[]" => "1", "[a]" => "2", "b[" => "3", "c]" => "4"
+
+    Rack::Utils.parse_nested_query("d[[]=5&e][]=6&f[[]]=7").
+      must_equal "d" => {"[" => "5"}, "e]" => ["6"], "f" => { "[" => { "]" => "7" } }
+
+    Rack::Utils.parse_nested_query("g[h]i=8&j[k]l[m]=9").
+      must_equal "g" => { "h" => { "i" => "8" } }, "j" => { "k" => { "l[m]" =>"9" } }
+
+    Rack::Utils.parse_nested_query("l[[[[[[[[]]]]]]]=10").
+      must_equal "l"=>{"[[[[[[["=>{"]]]]]]"=>"10"}}
   end
 
   it "allow setting the params hash class to use for parsing query strings" do

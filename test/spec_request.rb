@@ -1527,6 +1527,22 @@ EOF
     end
   }
 
+  (24..27).each do |exp|
+    length = 2**exp
+    it "handles ASCII NUL input of #{length} bytes" do
+      mr = Rack::MockRequest.env_for("/",
+        "REQUEST_METHOD" => 'POST',
+        :input => "\0"*length)
+      req = make_request mr
+      req.query_string.must_equal ""
+      req.GET.must_be :empty?
+      keys = req.POST.keys
+      keys.length.must_equal 1
+      keys.first.length.must_equal(length-1)
+      keys.first.must_equal("\0"*(length-1))
+    end
+  end
+
   class NonDelegate < Rack::Request
     def delegate?; false; end
   end

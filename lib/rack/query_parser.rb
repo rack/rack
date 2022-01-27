@@ -72,7 +72,7 @@ module Rack
         (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
-          normalize_params(params, k, v, param_depth_limit)
+          normalize_params(params, k, v, 0)
         end
       end
 
@@ -85,11 +85,29 @@ module Rack
     # the structural types represented by two different parameter names are in
     # conflict, a ParameterTypeError is raised.
     def normalize_params(params, name, v, depth)
-      raise RangeError if depth <= 0
+      raise RangeError if depth >= param_depth_limit
 
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
+      if !name
+        k = after = ''
+      elsif depth == 0
+        if start = name.index('[', 1)
+          k = name[0, start]
+          after = name[start, name.length]
+        else
+          k = name
+          after = ''
+        end
+      elsif name.start_with?('[]')
+        k = '[]'
+        after = name[2, name.length]
+      elsif name.start_with?('[') && (start = name.index(']', 1))
+        k = name[1, start-1]
+        after = name[start+1, name.length]
+      else
+        k = name
+        after = ''
+      end
+
       v ||= String.new
 
       if k.empty?
@@ -101,26 +119,32 @@ module Rack
       end
 
       if after == ''
-        params[k] = v
+        if k == '[]' && depth != 0
+          return [v]
+        else
+          params[k] = v
+        end
       elsif after == "["
         params[name] = v
       elsif after == "[]"
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
-        child_key = $1
+      elsif after.start_with?('[]')
+        unless after[2] == '[' && after.end_with?(']') && (child_key = after[3, after.length-4]) && !child_key.empty? && !child_key.index('[') && !child_key.index(']')
+          child_key = after[2, after.length]
+        end
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
-          normalize_params(params[k].last, child_key, v, depth - 1)
+          normalize_params(params[k].last, child_key, v, depth + 1)
         else
-          params[k] << normalize_params(make_params, child_key, v, depth - 1)
+          params[k] << normalize_params(make_params, child_key, v, depth + 1)
         end
       else
         params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v, depth - 1)
+        params[k] = normalize_params(params[k], after, v, depth + 1)
       end
 
       params
