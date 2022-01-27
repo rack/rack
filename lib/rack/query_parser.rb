@@ -88,22 +88,30 @@ module Rack
       raise RangeError if depth >= param_depth_limit
 
       if !name
+        # nil name, treat same as empty string (required by tests)
         k = after = ''
       elsif depth == 0
+        # Start of parsing, don't treat [] or [ at start of string specially
         if start = name.index('[', 1)
+          # Start of parameter nesting, use part before brackets as key
           k = name[0, start]
           after = name[start, name.length]
         else
+          # Plain parameter with no nesting
           k = name
           after = ''
         end
       elsif name.start_with?('[]')
+        # Array nesting
         k = '[]'
         after = name[2, name.length]
       elsif name.start_with?('[') && (start = name.index(']', 1))
+        # Hash nesting, use the part inside brackets as the key
         k = name[1, start-1]
         after = name[start+1, name.length]
       else
+        # Probably malformed input, nested but not starting with [
+        # treat full name as key for backwards compatibility.
         k = name
         after = ''
       end
@@ -131,7 +139,9 @@ module Rack
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
       elsif after.start_with?('[]')
+        # Recognize x[][y] (hash inside array) parameters
         unless after[2] == '[' && after.end_with?(']') && (child_key = after[3, after.length-4]) && !child_key.empty? && !child_key.index('[') && !child_key.index(']')
+          # Handle other nested array parameters
           child_key = after[2, after.length]
         end
         params[k] ||= []
