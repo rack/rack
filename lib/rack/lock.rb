@@ -1,24 +1,27 @@
 # frozen_string_literal: true
 
 module Rack
+  # Rack::Lock locks every request inside a mutex, so that every request
+  # will effectively be executed synchronously.
   class Lock
-    def initialize(app)
-      @app = app
-      @mutex = ::Thread::Mutex.new
+    def initialize(app, mutex = Mutex.new)
+      @app, @mutex = app, mutex
     end
 
     def call(env)
-      @mutex.synchronize do
-        @app.call(env)
+      @mutex.lock
+      begin
+        response = @app.call(env)
+        returned = response << BodyProxy.new(response.pop) { unlock }
+      ensure
+        unlock unless returned
       end
     end
 
-    def self.rackup(config, app)
-      if config.multithread? || (config.concurrent? && RUBY_VERSION >= '3')
-        new(app)
-      else
-        app
-      end
+    private
+
+    def unlock
+      @mutex.unlock
     end
   end
 end
