@@ -1,11 +1,4 @@
 # frozen_string_literal: true
-module Rack
-  class Builder
-  end
-end
-
-# Return a top level scope with self as the builder instance
-Rack::Builder::EVAL_CONTEXT = ->(builder){builder.instance_eval{binding}}
 
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
@@ -38,30 +31,6 @@ module Rack
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
 
   class Builder
-    # Config stores settings on what the server supports, such as whether it
-    # is multithreaded.
-    class Config
-      def initialize(multithread: true, concurrent: multithread)
-        @multithread = multithread
-        @concurrent = concurrent
-      end
-
-      # Whether the application server will invoke the application from multiple threads. Generally implies {concurrent?}.
-      def multithread?; @multithread; end
-
-      # Whether any part of the application can be executed concurrently in the same process.  Should be true
-      # if the server uses threads, fibers, or a non-blocking event-driven design.
-      def concurrent?; @concurrent; end
-
-      def rackup(middleware, *args, &block)
-        if middleware.respond_to?(:rackup)
-          middleware.rackup(self, *args, &block)
-        else
-          middleware.new(*args, &block)
-        end
-      end
-      ruby2_keywords(:rackup) if respond_to?(:ruby2_keywords, true)
-    end
 
     # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
     UTF_8_BOM = '\xef\xbb\xbf'
@@ -90,9 +59,9 @@ module Rack
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
     #   # assumes MyApp constant contains Rack application
-    def self.parse_file(path, config: nil)
+    def self.parse_file(path)
       if path.end_with?('.ru')
-        return self.load_file(path, config: config)
+        return self.load_file(path)
       else
         require path
         return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
@@ -112,7 +81,7 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path, config: nil)
+    def self.load_file(path)
       config = ::File.read(path)
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
@@ -122,17 +91,16 @@ module Rack
 
       config.sub!(/^__END__\n.*\Z/m, '')
 
-      return new_from_string(config, path, config: config)
+      return new_from_string(config, path)
     end
 
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
-    def self.new_from_string(builder_script, file = "(rackup)", config: nil)
-      builder = self.new(config: config)
-
-      binding = Rack::Builder::EVAL_CONTEXT.call(builder)
-      
-      eval(builder_script, binding, file)
+    def self.new_from_string(builder_script, file = "(rackup)")
+      # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
+      # We cannot use instance_eval(String) as that would resolve constants differently.
+      binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
+      eval builder_script, binding, file
 
       return builder.to_app
     end
@@ -140,14 +108,8 @@ module Rack
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluated in the context of the instance.
-    def initialize(default_app = nil, config: nil, &block)
-      @use = []
-      @map = nil
-      @run = default_app
-      @warmup = nil
-      @freeze_app = false
-      @config = config || Config.new
-
+    def initialize(default_app = nil, &block)
+      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
       instance_eval(&block) if block_given?
     end
 
@@ -181,8 +143,7 @@ module Rack
         mapping, @map = @map, nil
         @use << proc { |app| generate_map(app, mapping) }
       end
-
-      @use << proc { |app| @config.rackup(middleware, app, *args, &block) }
+      @use << proc { |app| middleware.new(app, *args, &block) }
     end
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
 
