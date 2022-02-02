@@ -205,7 +205,7 @@ module Rack
         @collector.each do |part|
           part.get_data do |data|
             tag_multipart_encoding(part.filename, part.content_type, part.name, data)
-            @query_parser.normalize_params(@params, part.name, data, 0)
+            @query_parser.normalize_params(@params, part.name, data)
           end
         end
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
