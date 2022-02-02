@@ -72,7 +72,7 @@ module Rack
         (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
-          normalize_params(params, k, v, 0)
+          _normalize_params(params, k, v, 0)
         end
       end
 
@@ -83,8 +83,14 @@ module Rack
 
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
-    # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v, depth)
+    # conflict, a ParameterTypeError is raised.  The depth argument is deprecated
+    # and should no longer be used, it is kept for backwards compatibility with
+    # earlier versions of rack.
+    def normalize_params(params, name, v, _depth=nil)
+      _normalize_params(params, name, v, 0)
+    end
+
+    private def _normalize_params(params, name, v, depth)
       raise RangeError if depth >= param_depth_limit
 
       if !name
@@ -147,14 +153,14 @@ module Rack
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
-          normalize_params(params[k].last, child_key, v, depth + 1)
+          _normalize_params(params[k].last, child_key, v, depth + 1)
         else
-          params[k] << normalize_params(make_params, child_key, v, depth + 1)
+          params[k] << _normalize_params(make_params, child_key, v, depth + 1)
         end
       else
         params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v, depth + 1)
+        params[k] = _normalize_params(params[k], after, v, depth + 1)
       end
 
       params
