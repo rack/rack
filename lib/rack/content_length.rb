@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'utils'
+
 module Rack
 
   # Sets the Content-Length header on responses that do not specify

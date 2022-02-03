@@ -3,6 +3,12 @@
 require_relative 'helper'
 require 'time'
 
+separate_testing do
+  require_relative '../lib/rack/etag'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::ETag do
   def etag(app, *args)
     Rack::Lint.new Rack::ETag.new(app, *args)

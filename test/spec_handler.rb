@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/handler'
+end
+
 class Rack::Handler::Lobster; end
 class RockLobster; end
 

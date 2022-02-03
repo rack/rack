@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'urlmap'
+
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
   # applications.

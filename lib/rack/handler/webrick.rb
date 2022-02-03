@@ -3,6 +3,9 @@
 require 'webrick'
 require 'stringio'
 
+require_relative '../constants'
+require_relative '../version'
+
 # This monkey patch allows for applications to perform their own chunking
 # through WEBrick::HTTPResponse if rack is set to true.
 class WEBrick::HTTPResponse

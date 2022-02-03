@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/lock'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+end
+
 class Lock
   attr_reader :synchronized
 

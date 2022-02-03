@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/content_type'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::ContentType do
   def content_type(app, *args)
     Rack::Lint.new Rack::ContentType.new(app, *args)

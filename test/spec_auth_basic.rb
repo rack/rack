@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/auth/basic'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+end
+
 describe Rack::Auth::Basic do
   def realm
     'WallysWorld'

@@ -4,6 +4,14 @@ require_relative 'helper'
 require 'tempfile'
 require 'fileutils'
 
+separate_testing do
+  require_relative '../lib/rack/directory'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/utils'
+  require_relative '../lib/rack/builder'
+end
+
 describe Rack::Directory do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
   FILE_CATCH = proc{|env| [200, { 'Content-Type' => 'text/plain', "Content-Length" => "7" }, ['passed!']] }

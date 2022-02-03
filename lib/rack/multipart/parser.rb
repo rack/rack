@@ -2,6 +2,10 @@
 
 require 'strscan'
 
+require_relative '../auth/digest/params'
+require_relative '../utils'
+require_relative '../multipart' unless defined?(Rack::Multipart)
+
 module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end

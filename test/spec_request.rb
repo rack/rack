@@ -5,6 +5,12 @@ require 'cgi'
 require 'forwardable'
 require 'securerandom'
 
+separate_testing do
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+end
+
 class RackRequestTest < Minitest::Spec
   it "copies the env when duping" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))

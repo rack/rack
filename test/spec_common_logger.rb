@@ -3,6 +3,12 @@
 require_relative 'helper'
 require 'logger'
 
+separate_testing do
+  require_relative '../lib/rack/common_logger'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::CommonLogger do
   obj = 'foobar'
   length = obj.size

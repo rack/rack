@@ -2,14 +2,16 @@
 
 require_relative 'helper'
 require 'yaml'
+require_relative 'psych_fix'
 
-# Work correctly with older versions of Psych, having
-# unsafe_load call load (in older versions, load operates
-# as unsafe_load in current version).
-unless YAML.respond_to?(:unsafe_load)
-  def YAML.unsafe_load(body)
-    load(body)
-  end
+separate_testing do
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/response'
+  require_relative '../lib/rack/multipart'
+  require_relative '../lib/rack/constants'
+  require_relative '../lib/rack/body_proxy'
 end
 
 app = Rack::Lint.new(lambda { |env|

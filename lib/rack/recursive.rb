@@ -2,6 +2,8 @@
 
 require 'uri'
 
+require_relative 'constants'
+
 module Rack
   # Rack::ForwardRequest gets caught by Rack::Recursive and redirects
   # the current request to the app at +url+.

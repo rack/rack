@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'media_type'
+
 module Rack
   # Rack::Request provides a convenient interface to a Rack
   # environment.  It is stateless, the environment +env+ passed to the
@@ -660,3 +664,5 @@ module Rack
     include Helpers
   end
 end
+
+require_relative 'multipart' unless defined?(Rack::Multipart)

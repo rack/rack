@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/method_override'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::MethodOverride do
   def app
     Rack::Lint.new(Rack::MethodOverride.new(lambda {|e|

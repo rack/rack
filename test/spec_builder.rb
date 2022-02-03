@@ -2,6 +2,15 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/builder'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/content_length'
+  require_relative '../lib/rack/show_exceptions'
+  require_relative '../lib/rack/auth/basic'
+end
+
 class NothingMiddleware
   def initialize(app, **)
     @app = app

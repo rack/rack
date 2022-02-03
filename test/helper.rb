@@ -16,6 +16,15 @@ if ENV.delete('COVERAGE')
 end
 
 $:.unshift(File.expand_path('../lib', __dir__))
-require_relative '../lib/rack'
+if ENV['SEPARATE']
+  def self.separate_testing
+    yield
+  end
+else
+  require_relative '../lib/rack'
+
+  def self.separate_testing
+  end
+end
 require 'minitest/global_expectations/autorun'
 require 'stringio'

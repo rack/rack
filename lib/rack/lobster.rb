@@ -2,6 +2,10 @@
 
 require 'zlib'
 
+require_relative 'constants'
+require_relative 'request'
+require_relative 'response'
+
 module Rack
   # Paste has a Pony, Rack has a Lobster!
   class Lobster
@@ -62,7 +66,9 @@ end
 
 if $0 == __FILE__
   # :nocov:
-  require_relative '../rack'
+  require_relative 'server'
+  require_relative 'show_exceptions'
+  require_relative 'lint'
   Rack::Server.start(
     app: Rack::ShowExceptions.new(Rack::Lint.new(Rack::Lobster.new)), Port: 9292
   )

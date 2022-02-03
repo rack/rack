@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require 'tempfile'
+require 'fileutils'
+require_relative '../multipart'
+
 module Rack
   module Multipart
     class UploadedFile

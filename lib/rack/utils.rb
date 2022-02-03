@@ -8,6 +8,7 @@ require 'tempfile'
 require 'time'
 
 require_relative 'query_parser'
+require_relative 'mime'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
