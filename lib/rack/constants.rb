@@ -52,6 +52,7 @@ module Rack
   RACK_RECURSIVE_INCLUDE              = 'rack.recursive.include'
   RACK_MULTIPART_BUFFER_SIZE          = 'rack.multipart.buffer_size'
   RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'
+  RACK_RESPONSE_FINISHED              = 'rack.response_finished'
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'
   RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'
   RACK_REQUEST_FORM_VARS              = 'rack.request.form_vars'
