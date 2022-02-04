@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/headers'
+end
+
 class RackHeadersTest < Minitest::Spec
   before do
     @h = Rack::Headers.new
