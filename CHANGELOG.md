@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::Headers` added to support lower-case header keys. ([@jeremyevans](https://github.com/jeremyevans))
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
+- `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans](https://github.com/jeremyevans))
 - Rack::Session::Pool now accepts `:allow_fallback` option to disable fallback to public id. ([#1431](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Changed

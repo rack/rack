@@ -155,3 +155,12 @@ describe Rack::RewindableInput do
     include RewindableTest
   end
 end
+
+describe Rack::RewindableInput::Middleware do
+  it "wraps rack.input in RewindableInput" do
+    app = proc{|env| [200, {}, [env['rack.input'].class.to_s]]}
+    app.call('rack.input'=>StringIO.new(''))[2].must_equal ['StringIO']
+    app = Rack::RewindableInput::Middleware.new(app)
+    app.call('rack.input'=>StringIO.new(''))[2].must_equal ['Rack::RewindableInput']
+  end
+end
