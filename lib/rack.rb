@@ -90,6 +90,7 @@ module Rack
   autoload :ForwardRequest, "rack/recursive"
   autoload :Handler, "rack/handler"
   autoload :Head, "rack/head"
+  autoload :Headers, "rack/headers"
   autoload :Lint, "rack/lint"
   autoload :Lock, "rack/lock"
   autoload :Logger, "rack/logger"
