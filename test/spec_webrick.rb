@@ -2,7 +2,14 @@
 
 require_relative 'helper'
 require 'thread'
+require 'webrick'
 require_relative 'test_request'
+
+separate_testing do
+  require_relative '../lib/rack/handler'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/response'
+end
 
 Thread.abort_on_exception = true
 

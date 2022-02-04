@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
-require_relative 'multipart/parser'
+require_relative 'constants'
+require_relative 'utils'
 
 module Rack
   # A multipart form data parser, adapted from IOWA.
@@ -63,3 +64,6 @@ module Rack
 
   end
 end
+
+require_relative 'request' unless defined?(Rack::Request)
+require_relative 'multipart/parser'

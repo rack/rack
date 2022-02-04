@@ -2,6 +2,8 @@
 
 require 'logger'
 
+require_relative 'constants'
+
 module Rack
   # Sets up rack.logger to write to rack.errors stream
   class Logger

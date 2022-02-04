@@ -3,6 +3,10 @@
 require 'ostruct'
 require 'erb'
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'request'
+
 module Rack
   # Rack::ShowExceptions catches all exceptions raised from the app it
   # wraps.  It shows a useful backtrace with the sourcefile and

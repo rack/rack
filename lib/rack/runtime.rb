@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'utils'
+
 module Rack
   # Sets an "X-Runtime" response header, indicating the response
   # time of the request, in seconds

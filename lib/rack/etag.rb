@@ -1,7 +1,9 @@
 # frozen_string_literal: true
 
-require_relative '../rack'
 require 'digest/sha2'
+
+require_relative 'constants'
+require_relative 'utils'
 
 module Rack
   # Automatically sets the ETag header on all String bodies.

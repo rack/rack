@@ -3,6 +3,14 @@
 require_relative 'helper'
 require 'timeout'
 
+separate_testing do
+  require_relative '../lib/rack/utils'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/content_length'
+end
+
 describe Rack::Utils do
 
   def assert_sets(exp, act)

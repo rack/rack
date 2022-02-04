@@ -2,6 +2,14 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/session/pool'
+  require_relative '../lib/rack/response'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/utils'
+end
+
 describe Rack::Session::Pool do
   session_key = Rack::Session::Pool::DEFAULT_OPTIONS[:key]
   session_match = /#{session_key}=([0-9a-fA-F]+);/

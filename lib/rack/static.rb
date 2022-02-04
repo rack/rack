@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'files'
+require_relative 'mime'
+
 module Rack
 
   # The Rack::Static middleware intercepts requests for static files

@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/body_proxy'
+end
+
 describe Rack::BodyProxy do
   it 'call each on the wrapped body' do
     called = false

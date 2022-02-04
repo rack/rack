@@ -4,6 +4,12 @@ require_relative 'helper'
 require 'time'  # for Time#httpdate
 require 'zlib'
 
+separate_testing do
+  require_relative '../lib/rack/deflater'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Deflater do
 
   def build_response(status, body, accept_encoding, options = {})

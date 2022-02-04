@@ -3,6 +3,12 @@
 require_relative 'helper'
 require 'time'
 
+separate_testing do
+  require_relative '../lib/rack/conditional_get'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::ConditionalGet do
   def conditional_get(app)
     Rack::Lint.new Rack::ConditionalGet.new(app)

@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/rewindable_input'
+end
+
 module RewindableTest
   extend Minitest::Spec::DSL
 

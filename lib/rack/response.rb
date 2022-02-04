@@ -2,6 +2,10 @@
 
 require 'time'
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'media_type'
+
 module Rack
   # Rack::Response provides a convenient interface to create a Rack
   # response.

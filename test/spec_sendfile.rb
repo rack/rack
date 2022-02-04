@@ -4,6 +4,12 @@ require_relative 'helper'
 require 'fileutils'
 require 'tmpdir'
 
+separate_testing do
+  require_relative '../lib/rack/sendfile'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Sendfile do
   def sendfile_body(filename = "rack_sendfile")
     FileUtils.touch File.join(Dir.tmpdir,  filename)

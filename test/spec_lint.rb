@@ -3,6 +3,11 @@
 require_relative 'helper'
 require 'tempfile'
 
+separate_testing do
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Lint do
   def env(*args)
     Rack::MockRequest.env_for("/", *args)

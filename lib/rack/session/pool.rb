@@ -6,7 +6,6 @@
 #   sergio, threadiness and bugreps
 
 require_relative 'abstract/id'
-require 'thread'
 
 module Rack
   module Session

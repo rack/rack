@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/mime'
+end
+
 describe Rack::Mime do
 
   it "should return the fallback mime-type for files with no extension" do

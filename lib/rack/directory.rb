@@ -2,6 +2,12 @@
 
 require 'time'
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'head'
+require_relative 'mime'
+require_relative 'files'
+
 module Rack
   # Rack::Directory serves entries below the +root+ given, according to the
   # path info of the Rack request. If a directory is found, the file's contents

@@ -3,6 +3,14 @@
 require_relative 'helper'
 require 'timeout'
 
+separate_testing do
+  require_relative '../lib/rack/multipart'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/query_parser'
+  require_relative '../lib/rack/utils'
+end
+
 describe Rack::Multipart do
   def multipart_fixture(name, boundary = "AaB03x")
     file = multipart_file(name)

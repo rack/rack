@@ -3,6 +3,12 @@
 require_relative 'helper'
 require 'zlib'
 
+separate_testing do
+  require_relative '../lib/rack/static'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 class DummyApp
   def call(env)
     [200, { "Content-Type" => "text/plain" }, ["Hello World"]]

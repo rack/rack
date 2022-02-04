@@ -1,7 +1,11 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
+
 require 'rack/session/abstract/id'
+separate_testing do
+  require_relative '../lib/rack/request'
+end
 
 describe Rack::Session::Abstract::SessionHash do
   attr_reader :hash

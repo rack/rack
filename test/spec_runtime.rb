@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/runtime'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Runtime do
   def runtime_app(app, *args)
     Rack::Lint.new Rack::Runtime.new(app, *args)
