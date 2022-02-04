@@ -258,6 +258,31 @@ describe Rack::Lint do
       Rack::Lint.new(nil).call(env("SCRIPT_NAME" => "/"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/cannot be .* make it ''/)
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.closed" => "not a callable"))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.closed callbacks be an array of callable objects/)
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.closed" => ["not a callable"]))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.closed callbacks must respond to call/)
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.closed" => [-> () {}]))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.closed callbacks must accept an argument/)
+
+    callable_object = Class.new do
+      def call
+      end
+    end.new
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.closed" => [callable_object]))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.closed callbacks must accept an argument/)
   end
 
   it "notice input errors" do
@@ -855,6 +880,17 @@ describe Rack::Lint do
                        env['rack.hijack?'] = true
                        [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' => lambda {|io| io }, 'rack.hijack_io' => StringIO.new }, []]
                      }).call(env({}))[1]['rack.hijack'].call(StringIO.new).read.must_equal ''
+  end
+
+  it "pass valid rack.closed" do
+    callable_object = Class.new do
+      def call(env)
+      end
+    end.new
+
+    Rack::Lint.new(lambda { |env|
+                     [200, {}, ["foo"]]
+                   }).call(env({ "rack.closed" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
   end
 
 end

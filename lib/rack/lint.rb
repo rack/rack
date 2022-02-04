@@ -374,6 +374,30 @@ module Rack
         unless env[SCRIPT_NAME] != "/"
           raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
+
+        ## * <tt>rack.closed</tt>:: An array of callbacks that must be
+        ## invoked after a response is completed. This is equivalent to
+        ## <tt>body.close</tt> and the same requirements exist for invoking it.
+        ## The callbacks must take a single argument, <tt>reason = nil</tt>.
+        ## If <tt>reason</tt> is given, it indiciates a failure was detected
+        ## while writing the body to the client.
+        if callbacks = env[RACK_CLOSED]
+          raise LintError, "rack.closed must be an array of callable objects" unless callbacks.is_a?(Array)
+
+          callbacks.each do |callback|
+            raise LintError, "rack.closed values must respond to call" unless callback.respond_to?(:call)
+
+            arity = if callback.respond_to?(:arity)
+              callback.arity
+            else
+              callback.method(:call).arity
+            end
+
+            raise LintError, "rack.closed values must accept an optional reason argument" unless arity == -1
+          end
+        else
+          raise LintError, "rack.closed must be present"
+        end
       end
 
       ##

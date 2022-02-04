@@ -46,6 +46,7 @@ module Rack
   RACK_SESSION_OPTIONS                = 'rack.session.options'
   RACK_SHOWSTATUS_DETAIL              = 'rack.showstatus.detail'
   RACK_URL_SCHEME                     = 'rack.url_scheme'
+  RACK_CLOSED                         = 'rack.closed'
   RACK_HIJACK                         = 'rack.hijack'
   RACK_IS_HIJACK                      = 'rack.hijack?'
   RACK_HIJACK_IO                      = 'rack.hijack_io'
