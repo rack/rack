@@ -363,6 +363,18 @@ module Rack
         unless env[SCRIPT_NAME] != "/"
           raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
+
+        ## <tt>rack.response_finished</tt>:: An array of callables run after the HTTP response has been finished,
+        ## either normally or with an error (e.g. the client disconnected).
+        ## Invoked with <tt>(env, status, headers, error)</tt> arguments. If there is no error sending the response,
+        ## the error argument will be +nil+, otherwise you can expect an exception object, e.g. +IOError+.
+        if callables = env[RACK_RESPONSE_FINISHED]
+          raise LintError, "rack.response_finished must be an array of callable objects" unless callables.is_a?(Array)
+
+          callables.each do |callable|
+            raise LintError, "rack.response_finished values must respond to call(env, status, headers, error)" unless callable.respond_to?(:call)
+          end
+        end
       end
 
       ##
@@ -582,7 +594,7 @@ module Rack
           ## ignore the +body+ part of the response tuple when the
           ## +rack.hijack+ response header is present. Using an empty +Array+
           ## instance is recommended.
-        else       
+        else
           ##
           ## The special response header +rack.hijack+ must only be set
           ## if the request +env+ has a truthy +rack.hijack?+.
