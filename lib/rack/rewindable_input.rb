@@ -3,17 +3,29 @@
 
 require 'tempfile'
 
+require_relative 'constants'
+
 module Rack
   # Class which can make any IO object rewindable, including non-rewindable ones. It does
   # this by buffering the data into a tempfile, which is rewindable.
   #
-  # rack.input is required to be rewindable, so if your input stream IO is non-rewindable
-  # by nature (e.g. a pipe or a socket) then you can wrap it in an object of this class
-  # to easily make it rewindable.
-  #
   # Don't forget to call #close when you're done. This frees up temporary resources that
   # RewindableInput uses, though it does *not* close the original IO object.
   class RewindableInput
+    # Makes rack.input rewindable, for compatibility with applications and middleware
+    # designed for earlier versions of Rack (where rack.input was required to be
+    # rewindable).
+    class Middleware
+      def initialize(app)
+        @app = app
+      end
+
+      def call(env)
+        env[RACK_INPUT] = RewindableInput.new(env[RACK_INPUT])
+        @app.call(env)
+      end
+    end
+
     def initialize(io)
       @io = io
       @rewindable_io = nil
