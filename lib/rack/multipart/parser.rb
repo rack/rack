@@ -50,10 +50,6 @@ module Rack
 
           str
         end
-
-        def rewind
-          @io.rewind
-        end
       end
 
       MultipartInfo = Struct.new :params, :tmp_files
@@ -77,7 +73,6 @@ module Rack
         parser = new(boundary, tmpfile, bufsize, qp)
         parser.parse(io)
 
-        io.rewind
         parser.result
       end
 

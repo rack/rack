@@ -454,17 +454,6 @@ class RackRequestTest < Minitest::Spec
         "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
         :input => "foo=bar&quux=bla")
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
-    req.body.read.must_equal "foo=bar&quux=bla"
-  end
-
-  it "rewind input after parsing POST data" do
-    input = StringIO.new("foo=bar&quux=bla")
-    req = make_request \
-      Rack::MockRequest.env_for("/",
-        "CONTENT_TYPE" => 'application/x-www-form-urlencoded;foo=bar',
-        :input => input)
-    req.params.must_equal "foo" => "bar", "quux" => "bla"
-    input.read.must_equal "foo=bar&quux=bla"
   end
 
   it "safely accepts POST requests with empty body" do

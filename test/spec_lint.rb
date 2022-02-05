@@ -569,14 +569,6 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with non-String buffer/)
 
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env["rack.input"].rewind(0)
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
-                     }).call(env({}))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/rewind called with arguments/)
-
     weirdio = Object.new
     class << weirdio
       def gets
@@ -591,10 +583,6 @@ describe Rack::Lint do
         yield 23
         yield 42
       end
-
-      def rewind
-        raise Errno::ESPIPE, "Errno::ESPIPE"
-      end
     end
 
     eof_weirdio = Object.new
@@ -608,9 +596,6 @@ describe Rack::Lint do
       end
 
       def each
-      end
-
-      def rewind
       end
     end
 
@@ -645,15 +630,6 @@ describe Rack::Lint do
                      }).call(env("rack.input" => eof_weirdio))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read\(nil\) returned nil on EOF/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env["rack.input"].rewind
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
-                     }).call(env("rack.input" => weirdio))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/rewind raised Errno::ESPIPE/)
-
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -736,15 +712,4 @@ describe Rack::Lint do
                      }).call(env({}))[1]['rack.hijack'].call(StringIO.new).read.must_equal ''
   end
 
-end
-
-describe "Rack::Lint::Wrapper::InputWrapper" do
-  it "delegate :rewind to underlying IO object" do
-    io = StringIO.new("123")
-    wrapper = Rack::Lint::Wrapper::InputWrapper.new(io)
-    wrapper.read.must_equal "123"
-    wrapper.read.must_equal ""
-    wrapper.rewind
-    wrapper.read.must_equal "123"
-  end
 end

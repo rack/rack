@@ -376,8 +376,8 @@ module Rack
           raise LintError, "rack.input #{input} is not opened in binary mode"
         end
 
-        ## The input stream must respond to +gets+, +each+, +read+ and +rewind+.
-        [:gets, :each, :read, :rewind].each { |method|
+        ## The input stream must respond to +gets+, +each+, and +read+.
+        [:gets, :each, :read].each { |method|
           unless input.respond_to? method
             raise LintError, "rack.input #{input} does not respond to ##{method}"
           end
@@ -458,21 +458,6 @@ module Rack
             end
             yield line
           }
-        end
-
-        ## * +rewind+ must be called without arguments. It rewinds the input
-        ##   stream back to the beginning. It must not raise Errno::ESPIPE:
-        ##   that is, it may not be a pipe or a socket. Therefore, handler
-        ##   developers must buffer the input data into some rewindable object
-        ##   if the underlying input stream is not rewindable.
-        def rewind(*args)
-          raise LintError, "rack.input#rewind called with arguments" unless args.size == 0
-          begin
-            @input.rewind
-            true
-          rescue Errno::ESPIPE
-            raise LintError, "rack.input#rewind raised Errno::ESPIPE"
-          end
         end
 
         ## * +close+ must never be called on the input stream.

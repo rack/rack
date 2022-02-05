@@ -468,8 +468,6 @@ module Rack
 
             set_header RACK_REQUEST_FORM_VARS, form_vars
             set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
-
-            get_header(RACK_INPUT).rewind
           end
           set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
           get_header RACK_REQUEST_FORM_HASH

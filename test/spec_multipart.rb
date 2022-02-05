@@ -176,6 +176,7 @@ describe Rack::Multipart do
     data.write("-" * (1024 * 1024))
     data.write("\r\n")
     data.write("--#{boundary}--\r\n")
+    data.rewind
 
     fixture = {
       "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
@@ -507,16 +508,6 @@ Content-Type: image/jpeg\r
 
     files[:name].must_equal "document[attachment]"
     files[:tempfile].read.must_equal "contents"
-  end
-
-  it "rewinds input after parsing upload" do
-    options = multipart_fixture(:text)
-    input = options[:input]
-    env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    params["submit-name"].must_equal "Larry"
-    params["files"][:filename].must_equal "file1.txt"
-    input.read.length.must_equal 307
   end
 
   it "builds multipart body" do
