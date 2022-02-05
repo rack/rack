@@ -144,7 +144,7 @@ The input stream is an IO-like object which contains the raw HTTP
 POST data.
 When applicable, its external encoding must be "ASCII-8BIT" and it
 must be opened in binary mode, for Ruby 1.9 compatibility.
-The input stream must respond to +gets+, +each+, +read+ and +rewind+.
+The input stream must respond to +gets+, +each+, and +read+.
 * +gets+ must be called without arguments and return a string,
   or +nil+ on EOF.
 * +read+ behaves like IO#read.
@@ -165,11 +165,6 @@ The input stream must respond to +gets+, +each+, +read+ and +rewind+.
   If +buffer+ is given, then the read data will be placed
   into +buffer+ instead of a newly created String object.
 * +each+ must be called without arguments and only yield Strings.
-* +rewind+ must be called without arguments. It rewinds the input
-  stream back to the beginning. It must not raise Errno::ESPIPE:
-  that is, it may not be a pipe or a socket. Therefore, handler
-  developers must buffer the input data into some rewindable object
-  if the underlying input stream is not rewindable.
 * +close+ must never be called on the input stream.
 
 === The Error Stream
