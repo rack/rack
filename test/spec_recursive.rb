@@ -2,6 +2,13 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/recursive'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/urlmap'
+end
+
 describe Rack::Recursive do
   before do
   @app1 = lambda { |env|

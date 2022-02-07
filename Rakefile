@@ -98,8 +98,24 @@ task "test_cov" do
   Rake::Task['test:regular'].invoke
 end
 
+desc "Run separate tests for each test file, to test directly requiring components"
+task "test:separate" do
+  fails = []
+  FileList["test/**/spec_*.rb"].each do |file|
+    puts "#{FileUtils::RUBY} -w #{file}"
+    fails << file unless system({'SEPARATE'=>'1'},  FileUtils::RUBY, '-w', file)
+  end
+  if fails.empty?
+    puts 'All test files passed'
+  else
+    puts "Failures in the following test files:"
+    puts fails
+    raise "At least one separate test failed"
+  end
+end
+
 desc "Run all the fast + platform agnostic tests"
-task test: %w[spec test:regular]
+task test: %w[spec test:regular test:separate]
 
 desc "Run all the tests we run on CI"
 task ci: :test

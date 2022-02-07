@@ -9,6 +9,10 @@ require 'json'
 require 'openssl'
 require 'zlib'
 
+require_relative '../constants'
+require_relative '../utils'
+require_relative 'abstract/id'
+
 module Rack
 
   module Session

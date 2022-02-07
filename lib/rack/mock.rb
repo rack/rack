@@ -2,8 +2,12 @@
 
 require 'uri'
 require 'stringio'
-require_relative '../rack'
 require 'cgi/cookie'
+require 'time'
+
+require_relative 'response'
+require_relative 'version'
+require_relative 'constants'
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without
@@ -44,9 +48,6 @@ module Rack
       RACK_VERSION      => Rack::VERSION,
       RACK_INPUT        => StringIO.new,
       RACK_ERRORS       => StringIO.new,
-      RACK_MULTITHREAD  => true,
-      RACK_MULTIPROCESS => true,
-      RACK_RUNONCE      => false,
     }.freeze
 
     def initialize(app)
@@ -181,9 +182,14 @@ module Rack
     # Errors
     attr_accessor :errors
 
-    def initialize(status, headers, body, errors = StringIO.new(""))
+    def initialize(status, headers, body, errors = nil)
       @original_headers = headers
-      @errors           = errors.string if errors.respond_to?(:string)
+
+      if errors
+        @errors = errors.string if errors.respond_to?(:string)
+      else
+        @errors = ""
+      end
 
       super(body, status, headers)
 
@@ -233,18 +239,20 @@ module Rack
       cookies = Hash.new
       if headers.has_key? 'Set-Cookie'
         set_cookie_header = headers.fetch('Set-Cookie')
-        set_cookie_header.split("\n").each do |cookie|
-          cookie_name, cookie_filling = cookie.split('=', 2)
-          cookie_attributes = identify_cookie_attributes cookie_filling
-          parsed_cookie = CGI::Cookie.new(
-            'name' => cookie_name.strip,
-            'value' => cookie_attributes.fetch('value'),
-            'path' => cookie_attributes.fetch('path', nil),
-            'domain' => cookie_attributes.fetch('domain', nil),
-            'expires' => cookie_attributes.fetch('expires', nil),
-            'secure' => cookie_attributes.fetch('secure', false)
-          )
-          cookies.store(cookie_name, parsed_cookie)
+        Array(set_cookie_header).each do |header_value|
+          header_value.split("\n").each do |cookie|
+            cookie_name, cookie_filling = cookie.split('=', 2)
+            cookie_attributes = identify_cookie_attributes cookie_filling
+            parsed_cookie = CGI::Cookie.new(
+              'name' => cookie_name.strip,
+              'value' => cookie_attributes.fetch('value'),
+              'path' => cookie_attributes.fetch('path', nil),
+              'domain' => cookie_attributes.fetch('domain', nil),
+              'expires' => cookie_attributes.fetch('expires', nil),
+              'secure' => cookie_attributes.fetch('secure', false)
+            )
+            cookies.store(cookie_name, parsed_cookie)
+          end
         end
       end
       cookies
@@ -258,14 +266,18 @@ module Rack
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=', 2)
           cookie_attributes.store(cookie_attribute.strip, attribute_value.strip)
-          if cookie_attribute.include? 'max-age'
-            cookie_attributes.store('expires', Time.now + attribute_value.strip.to_i)
-          end
         end
         if bit.include? 'secure'
           cookie_attributes.store('secure', true)
         end
       end
+
+      if cookie_attributes.key? 'max-age'
+        cookie_attributes.store('expires', Time.now + cookie_attributes['max-age'].to_i)
+      elsif cookie_attributes.key? 'expires'
+        cookie_attributes.store('expires', Time.httpdate(cookie_attributes['expires']))
+      end
+
       cookie_attributes
     end
 

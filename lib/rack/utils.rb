@@ -8,14 +8,13 @@ require 'tempfile'
 require 'time'
 
 require_relative 'query_parser'
+require_relative 'mime'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
@@ -25,9 +24,10 @@ module Rack
     class << self
       attr_accessor :default_query_parser
     end
-    # The default number of bytes to allow parameter keys to take up.
-    # This helps prevent a rogue client from flooding a Request.
-    self.default_query_parser = QueryParser.make_default(65536, 32)
+    # The default amount of nesting to allowed by hash parameters.
+    # This helps prevent a rogue client from triggering a possible stack overflow
+    # when parsing parameters.
+    self.default_query_parser = QueryParser.make_default(32)
 
     module_function
 
@@ -72,11 +72,12 @@ module Rack
     end
 
     def self.key_space_limit
-      default_query_parser.key_space_limit
+      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      65536
     end
 
     def self.key_space_limit=(v)
-      self.default_query_parser = self.default_query_parser.new_space_limit(v)
+      warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
     end
 
     if defined?(Process::CLOCK_MONOTONIC)
@@ -315,21 +316,6 @@ module Rack
 
     def rfc2822(time)
       time.rfc2822
-    end
-
-    # Modified version of stdlib time.rb Time#rfc2822 to use '%d-%b-%Y' instead
-    # of '% %b %Y'.
-    # It assumes that the time is in GMT to comply to the RFC 2109.
-    #
-    # NOTE: I'm not sure the RFC says it requires GMT, but is ambiguous enough
-    # that I'm certain someone implemented only that option.
-    # Do not use %a and %b from Time.strptime, it would use localized names for
-    # weekday and month.
-    #
-    def rfc2109(time)
-      wday = Time::RFC2822_DAY_NAME[time.wday]
-      mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
-      time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
 
     # Parses the "Range:" header, if present, into an array of Range objects.

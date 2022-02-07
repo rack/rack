@@ -8,7 +8,15 @@ require 'open-uri'
 require 'net/http'
 require 'net/https'
 
-require 'rack/handler/cgi'
+separate_testing do
+  require_relative '../lib/rack/server'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/show_exceptions'
+  require_relative '../lib/rack/tempfile_reaper'
+  require_relative '../lib/rack/handler'
+  require_relative '../lib/rack/handler/cgi'
+end
 
 module Minitest::Spec::DSL
   alias :should :it

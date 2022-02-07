@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/head'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Head do
 
   def test_response(headers = {})

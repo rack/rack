@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'urlmap'
+
 module Rack
   # Rack::Builder implements a small DSL to iteratively construct Rack
   # applications.
@@ -77,8 +79,6 @@ module Rack
     # Example config.ru file:
     #
     #   $ cat config.ru
-    #
-    #   #\ -p 9393
     #
     #   use Rack::ContentLength
     #   require './app.rb'

@@ -3,6 +3,14 @@
 require_relative 'helper'
 require 'timeout'
 
+separate_testing do
+  require_relative '../lib/rack/utils'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/content_length'
+end
+
 describe Rack::Utils do
 
   def assert_sets(exp, act)
@@ -114,13 +122,39 @@ describe Rack::Utils do
     ex = { "foo" => nil }
     ex["foo"] = ex
 
-    params = Rack::Utils::KeySpaceConstrainedParams.new(65536)
+    params = Rack::Utils::KeySpaceConstrainedParams.new
     params['foo'] = params
     params.to_params_hash.to_s.must_equal ex.to_s
   end
 
   it "parse nil as an empty query string" do
     Rack::Utils.parse_nested_query(nil).must_equal({})
+  end
+
+  it "should warn using deprecated Rack::Util.key_space_limit=" do
+    begin
+      warn_arg = nil
+      Rack::Utils.define_singleton_method(:warn) do |*args|
+        warn_arg = args.first
+      end
+      Rack::Utils.key_space_limit = 65536
+      warn_arg.must_equal("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack")
+    ensure
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
+    end
+  end
+
+  it "should warn using deprecated Rack::Util.key_space_limit" do
+    begin
+      warn_arg = nil
+      Rack::Utils.define_singleton_method(:warn) do |*args|
+        warn_arg = args.first
+      end
+      Rack::Utils.key_space_limit
+      warn_arg.must_equal("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack")
+    ensure
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
+    end
   end
 
   it "raise an exception if the params are too deep" do
@@ -135,7 +169,7 @@ describe Rack::Utils do
 
   it "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
-      must_equal "foo" => nil
+      must_equal "foo" => ""
     Rack::Utils.parse_nested_query("foo=").
       must_equal "foo" => ""
     Rack::Utils.parse_nested_query("foo=bar").
@@ -152,7 +186,7 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("&foo=1&&bar=2").
       must_equal "foo" => "1", "bar" => "2"
     Rack::Utils.parse_nested_query("foo&bar=").
-      must_equal "foo" => nil, "bar" => ""
+      must_equal "foo" => "", "bar" => ""
     Rack::Utils.parse_nested_query("foo=bar&baz=").
       must_equal "foo" => "bar", "baz" => ""
     Rack::Utils.parse_nested_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F").
@@ -162,19 +196,19 @@ describe Rack::Utils do
       must_equal "pid=1234" => "1023", "a" => "b"
 
     Rack::Utils.parse_nested_query("foo[]").
-      must_equal "foo" => [nil]
+      must_equal "foo" => [""]
     Rack::Utils.parse_nested_query("foo[]=").
       must_equal "foo" => [""]
     Rack::Utils.parse_nested_query("foo[]=bar").
       must_equal "foo" => ["bar"]
     Rack::Utils.parse_nested_query("foo[]=bar&foo").
-      must_equal "foo" => nil
+      must_equal "foo" => ""
     Rack::Utils.parse_nested_query("foo[]=bar&foo[").
-      must_equal "foo" => ["bar"], "foo[" => nil
+      must_equal "foo" => ["bar"], "foo[" => ""
     Rack::Utils.parse_nested_query("foo[]=bar&foo[=baz").
       must_equal "foo" => ["bar"], "foo[" => "baz"
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]").
-      must_equal "foo" => ["bar", nil]
+      must_equal "foo" => ["bar", ""]
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]=").
       must_equal "foo" => ["bar", ""]
 
@@ -185,6 +219,8 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("foo[]=bar&baz[]=1&baz[]=2&baz[]=3").
       must_equal "foo" => ["bar"], "baz" => ["1", "2", "3"]
 
+    Rack::Utils.parse_nested_query("x[y][z]").
+      must_equal "x" => { "y" => { "z" => "" } }
     Rack::Utils.parse_nested_query("x[y][z]=1").
       must_equal "x" => { "y" => { "z" => "1" } }
     Rack::Utils.parse_nested_query("x[y][z][]=1").
@@ -231,9 +267,8 @@ describe Rack::Utils do
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_equal "expected Array (got String) for param `y'"
 
-    lambda { Rack::Utils.parse_nested_query("foo%81E=1") }.
-      must_raise(Rack::Utils::InvalidParameterError).
-      message.must_equal "invalid byte sequence in UTF-8"
+    Rack::Utils.parse_nested_query("foo%81E=1").
+      must_equal "foo\x81E"=>"1"
   end
 
   it "only moves to a new array when the full key has been seen" do
@@ -248,6 +283,20 @@ describe Rack::Utils do
       ]
   end
 
+  it "handles unexpected use of [ and ] in parameter keys as normal characters" do
+    Rack::Utils.parse_nested_query("[]=1&[a]=2&b[=3&c]=4").
+      must_equal "[]" => "1", "[a]" => "2", "b[" => "3", "c]" => "4"
+
+    Rack::Utils.parse_nested_query("d[[]=5&e][]=6&f[[]]=7").
+      must_equal "d" => {"[" => "5"}, "e]" => ["6"], "f" => { "[" => { "]" => "7" } }
+
+    Rack::Utils.parse_nested_query("g[h]i=8&j[k]l[m]=9").
+      must_equal "g" => { "h" => { "i" => "8" } }, "j" => { "k" => { "l[m]" =>"9" } }
+
+    Rack::Utils.parse_nested_query("l[[[[[[[[]]]]]]]=10").
+      must_equal "l"=>{"[[[[[[["=>{"]]]]]]"=>"10"}}
+  end
+
   it "allow setting the params hash class to use for parsing query strings" do
     begin
       default_parser = Rack::Utils.default_query_parser
@@ -257,7 +306,7 @@ describe Rack::Utils do
           @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
-      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 65536, 100)
+      Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 100)
       h1 = Rack::Utils.parse_query(",foo=bar;,", ";,")
       h1[:foo].must_equal "bar"
       h2 = Rack::Utils.parse_nested_query("x[y][][z]=1&x[y][][w]=2")
@@ -338,7 +387,7 @@ describe Rack::Utils do
   end
 
   it 'performs the inverse function of #parse_nested_query' do
-    [{ "foo" => nil, "bar" => "" },
+    [{ "bar" => "" },
       { "foo" => "bar", "baz" => "" },
       { "foo" => ["1", "2"] },
       { "foo" => "bar", "baz" => ["1", "2", "3"] },
@@ -479,10 +528,6 @@ describe Rack::Utils do
 
   it "return rfc2822 format from rfc2822 helper" do
     Rack::Utils.rfc2822(Time.at(0).gmtime).must_equal "Thu, 01 Jan 1970 00:00:00 -0000"
-  end
-
-  it "return rfc2109 format from rfc2109 helper" do
-    Rack::Utils.rfc2109(Time.at(0).gmtime).must_equal "Thu, 01-Jan-1970 00:00:00 GMT"
   end
 
   it "clean directory traversal" do

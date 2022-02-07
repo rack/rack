@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/media_type'
+end
+
 describe Rack::MediaType do
   before { @empty_hash = {} }
 

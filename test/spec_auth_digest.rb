@@ -2,6 +2,16 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/auth/digest/md5'
+  require_relative '../lib/rack/auth/digest/nonce'
+  require_relative '../lib/rack/auth/digest/params'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/urlmap'
+  require_relative '../lib/rack/method_override'
+end
+
 describe Rack::Auth::Digest::MD5 do
   def realm
     'WallysWorld'

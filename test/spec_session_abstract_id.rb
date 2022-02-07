@@ -3,7 +3,10 @@
 require_relative 'helper'
 ### WARNING: there be hax in this file.
 
-require 'rack/session/abstract/id'
+require_relative '../lib/rack/session/abstract/id'
+separate_testing do
+  require_relative '../lib/rack/request'
+end
 
 describe Rack::Session::Abstract::ID do
   attr_reader :id

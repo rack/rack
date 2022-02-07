@@ -2,6 +2,11 @@
 
 require 'erb'
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'request'
+require_relative 'body_proxy'
+
 module Rack
   # Rack::ShowStatus catches all empty responses and replaces them
   # with a site explaining the error.

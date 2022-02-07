@@ -3,10 +3,13 @@
 # AUTHOR: blink <blinketje@gmail.com>; blink#ruby-lang@irc.freenode.net
 # bugrep: Andreas Zehnder
 
-require_relative '../../../rack'
 require 'time'
 require 'securerandom'
 require 'digest/sha2'
+
+require_relative '../../constants'
+require_relative '../../request'
+require_relative '../../response'
 
 module Rack
 

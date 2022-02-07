@@ -2,6 +2,14 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/session/pool'
+  require_relative '../lib/rack/response'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/utils'
+end
+
 describe Rack::Session::Pool do
   session_key = Rack::Session::Pool::DEFAULT_OPTIONS[:key]
   session_match = /#{session_key}=([0-9a-fA-F]+);/
@@ -158,6 +166,22 @@ describe Rack::Session::Pool do
     pool.pool[session_id.private_id].wont_be_nil
   end
 
+  it "cannot read the session with the legacy id if allow_fallback: false option is used" do
+    pool = Rack::Session::Pool.new(incrementor, allow_fallback: false)
+    req = Rack::MockRequest.new(pool)
+
+    res0 = req.get("/")
+    cookie = res0["Set-Cookie"]
+    session_id = Rack::Session::SessionId.new cookie[session_match, 1]
+    ses0 = pool.pool[session_id.private_id]
+    pool.pool[session_id.public_id] = ses0
+    pool.pool.delete(session_id.private_id)
+
+    res1 = req.get("/", "HTTP_COOKIE" => cookie)
+    res1["Set-Cookie"].wont_be_nil
+    res1.body.must_equal '{"counter"=>1}'
+  end
+
   it "drops the session in the legacy id as well" do
     pool = Rack::Session::Pool.new(incrementor)
     req = Rack::MockRequest.new(pool)
@@ -225,7 +249,7 @@ describe Rack::Session::Pool do
     tnum = rand(7).to_i + 5
     r = Array.new(tnum) do
       Thread.new(treq) do |run|
-        run.get('/', "HTTP_COOKIE" => cookie, 'rack.multithread' => true)
+        run.get('/', "HTTP_COOKIE" => cookie)
       end
     end.reverse.map{|t| t.run.join.value }
     r.each do |resp|

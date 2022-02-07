@@ -2,6 +2,13 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/config'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/builder'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Config do
   it "accept a block that modifies the environment" do
     app = Rack::Builder.new do

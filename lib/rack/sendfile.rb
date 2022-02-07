@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'body_proxy'
+
 module Rack
 
   # = Sendfile

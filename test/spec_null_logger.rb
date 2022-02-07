@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/null_logger'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::NullLogger do
   it "act as a noop logger" do
     app = lambda { |env|

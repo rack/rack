@@ -13,7 +13,7 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-The exact details of this are described in the {\Rack specification}[https://github.com/rack/rack/blob/master/SPEC.rdoc],
+The exact details of this are described in the {\Rack specification}[rdoc-ref:SPEC.rdoc],
 which all \Rack applications should conform to.
 
 == Supported web servers
@@ -37,6 +37,7 @@ These web servers include \Rack handlers in their distributions:
 * Puma[https://puma.io/]
 * Unicorn[https://yhbt.net/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
+* Lamby[https://lamby.custominktech.com] (for AWS Lambda)
 
 Any valid \Rack app will run the same on all these handlers, without
 changing anything.
@@ -177,15 +178,8 @@ Several parameters can be modified on Rack::Utils to configure \Rack behaviour.
 
 e.g:
 
-    Rack::Utils.key_space_limit = 128
+    Rack::Utils.param_depth_limit = 3
 
-=== key_space_limit
-
-The default number of bytes to allow all parameters keys in a given parameter hash to take up.
-Does not affect nested parameter hashes, so doesn't actually prevent an attacker from using
-more than this many bytes for parameter keys.
-
-Defaults to 65536 characters.
 
 === param_depth_limit
 
@@ -212,6 +206,10 @@ The default is 128, which means that a single request can't upload more than 128
 Set to 0 for no limit.
 
 Can also be set via the +RACK_MULTIPART_PART_LIMIT+ environment variable.
+
+=== key_space_limit
+
+No longer has an effect, deprecated.
 
 == Changelog
 

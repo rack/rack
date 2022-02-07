@@ -1,7 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
-require 'rack/lobster'
+
+require_relative '../lib/rack/lobster'
+separate_testing do
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
 
 module LobsterHelpers
   def lobster

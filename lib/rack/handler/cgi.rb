@@ -18,9 +18,6 @@ module Rack
           RACK_VERSION      => Rack::VERSION,
           RACK_INPUT        => Rack::RewindableInput.new($stdin),
           RACK_ERRORS       => $stderr,
-          RACK_MULTITHREAD  => false,
-          RACK_MULTIPROCESS => true,
-          RACK_RUNONCE      => true,
           RACK_URL_SCHEME   => ["yes", "on", "1"].include?(ENV[HTTPS]) ? "https" : "http"
         )
 

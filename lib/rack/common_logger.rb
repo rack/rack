@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'utils'
+require_relative 'body_proxy'
+
 module Rack
   # Rack::CommonLogger forwards every request to the given +app+, and
   # logs a line in the

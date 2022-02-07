@@ -2,7 +2,14 @@
 
 require_relative 'helper'
 require 'thread'
+require 'webrick'
 require_relative 'test_request'
+
+separate_testing do
+  require_relative '../lib/rack/handler'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/response'
+end
 
 Thread.abort_on_exception = true
 
@@ -50,9 +57,6 @@ describe Rack::Handler::WEBrick do
   it "have rack headers" do
     GET("/test")
     response["rack.version"].must_equal [1, 3]
-    response["rack.multithread"].must_equal true
-    assert_equal false, response["rack.multiprocess"]
-    assert_equal false, response["rack.run_once"]
   end
 
   it "have CGI headers on GET" do
@@ -178,7 +182,7 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(lambda{ |req|
       [
         200,
-        [ [ "rack.hijack", io_lambda ] ],
+        { "rack.hijack" => io_lambda },
         [""]
       ]
     })

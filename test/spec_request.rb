@@ -5,6 +5,12 @@ require 'cgi'
 require 'forwardable'
 require 'securerandom'
 
+separate_testing do
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+end
+
 class RackRequestTest < Minitest::Spec
   it "copies the env when duping" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
@@ -295,7 +301,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -314,32 +320,6 @@ class RackRequestTest < Minitest::Spec
     req.GET.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
     req.POST.must_be :empty?
     req.params.must_equal "foo" => "bar", "quux" => "b;la;wun=duh"
-  end
-
-  it "limit the keys from the GET query string" do
-    env = Rack::MockRequest.env_for("/?foo=bar")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      req = make_request(env)
-      lambda { req.GET }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
-  end
-
-  it "limit the key size per nested params hash" do
-    nested_query = Rack::MockRequest.env_for("/?foo%5Bbar%5D%5Bbaz%5D%5Bqux%5D=1")
-    plain_query  = Rack::MockRequest.env_for("/?foo_bar__baz__qux_=1")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 3
-    begin
-      exp = { "foo" => { "bar" => { "baz" => { "qux" => "1" } } } }
-      make_request(nested_query).GET.must_equal exp
-      lambda { make_request(plain_query).GET  }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
   end
 
   it "limit the allowed parameter depth when parsing parameters" do
@@ -388,7 +368,7 @@ class RackRequestTest < Minitest::Spec
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 65536, 100)
+    parser = Rack::QueryParser.new(c, 100)
     c = Class.new(Rack::Request) do
       define_method(:query_parser) do
         parser
@@ -438,20 +418,6 @@ class RackRequestTest < Minitest::Spec
     req.params.must_equal "foo" => "bar", "quux" => "bla"
   end
 
-  it "limit the keys from the POST form data" do
-    env = Rack::MockRequest.env_for("",
-            "REQUEST_METHOD" => 'POST',
-            :input => "foo=bar&quux=bla")
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      req = make_request(env)
-      lambda { req.POST }.must_raise RangeError
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
-  end
-
   it "parse POST data with explicit content type regardless of method" do
     req = make_request \
       Rack::MockRequest.env_for("/",
@@ -474,7 +440,9 @@ class RackRequestTest < Minitest::Spec
     req.media_type.must_equal 'text/plain'
     req.media_type_params['charset'].must_equal 'utf-8'
     req.content_charset.must_equal 'utf-8'
-    req.POST.must_be :empty?
+    post = req.POST
+    post.must_be_empty
+    req.POST.must_be_same_as post
     req.params.must_equal "foo" => "quux"
     req.body.read.must_equal "foo=bar&quux=bla"
   end
@@ -1473,14 +1441,21 @@ EOF
   it "regards local addresses as proxies" do
     req = make_request(Rack::MockRequest.env_for("/"))
     req.trusted_proxy?('127.0.0.1').must_equal true
+    req.trusted_proxy?('127.000.000.001').must_equal true
+    req.trusted_proxy?('127.0.0.6').must_equal true
+    req.trusted_proxy?('127.0.0.30').must_equal true
     req.trusted_proxy?('10.0.0.1').must_equal true
+    req.trusted_proxy?('10.000.000.001').must_equal true
     req.trusted_proxy?('172.16.0.1').must_equal true
     req.trusted_proxy?('172.20.0.1').must_equal true
     req.trusted_proxy?('172.30.0.1').must_equal true
     req.trusted_proxy?('172.31.0.1').must_equal true
+    req.trusted_proxy?('172.31.000.001').must_equal true
     req.trusted_proxy?('192.168.0.1').must_equal true
+    req.trusted_proxy?('192.168.000.001').must_equal true
     req.trusted_proxy?('::1').must_equal true
     req.trusted_proxy?('fd00::').must_equal true
+    req.trusted_proxy?('FD00::').must_equal true
     req.trusted_proxy?('localhost').must_equal true
     req.trusted_proxy?('unix').must_equal true
     req.trusted_proxy?('unix:/tmp/sock').must_equal true
@@ -1488,9 +1463,19 @@ EOF
     req.trusted_proxy?("unix.example.org").must_equal false
     req.trusted_proxy?("example.org\n127.0.0.1").must_equal false
     req.trusted_proxy?("127.0.0.1\nexample.org").must_equal false
+    req.trusted_proxy?("127.256.0.1").must_equal false
+    req.trusted_proxy?("127.0.256.1").must_equal false
+    req.trusted_proxy?("127.0.0.256").must_equal false
+    req.trusted_proxy?('127.0.0.300').must_equal false
+    req.trusted_proxy?("10.256.0.1").must_equal false
+    req.trusted_proxy?("10.0.256.1").must_equal false
+    req.trusted_proxy?("10.0.0.256").must_equal false
     req.trusted_proxy?("11.0.0.1").must_equal false
+    req.trusted_proxy?("11.000.000.001").must_equal false
     req.trusted_proxy?("172.15.0.1").must_equal false
     req.trusted_proxy?("172.32.0.1").must_equal false
+    req.trusted_proxy?("172.16.256.1").must_equal false
+    req.trusted_proxy?("172.16.0.256").must_equal false
     req.trusted_proxy?("2001:470:1f0b:18f8::1").must_equal false
   end
 
@@ -1547,6 +1532,22 @@ EOF
       req2.params.must_equal "foo" => "#{b}bar#{b}"
     end
   }
+
+  (24..27).each do |exp|
+    length = 2**exp
+    it "handles ASCII NUL input of #{length} bytes" do
+      mr = Rack::MockRequest.env_for("/",
+        "REQUEST_METHOD" => 'POST',
+        :input => "\0"*length)
+      req = make_request mr
+      req.query_string.must_equal ""
+      req.GET.must_be :empty?
+      keys = req.POST.keys
+      keys.length.must_equal 1
+      keys.first.length.must_equal(length-1)
+      keys.first.must_equal("\0"*(length-1))
+    end
+  end
 
   class NonDelegate < Rack::Request
     def delegate?; false; end

@@ -2,6 +2,13 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/session/cookie'
+  require_relative '../lib/rack/response'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Session::Cookie do
   incrementor = lambda do |env|
     env["rack.session"]["counter"] ||= 0

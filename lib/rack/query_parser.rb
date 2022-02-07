@@ -2,8 +2,6 @@
 
 module Rack
   class QueryParser
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     DEFAULT_SEP = /[&] */n
     COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
@@ -16,15 +14,22 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
-    def self.make_default(key_space_limit, param_depth_limit)
-      new Params, key_space_limit, param_depth_limit
+    def self.make_default(_key_space_limit=(not_deprecated = true; nil), param_depth_limit)
+      unless not_deprecated
+        warn("`first argument `key_space limit` is deprecated and no longer has an effect. Please call with only one argument, which will be required in a future version of Rack", uplevel: 1)
+      end
+
+      new Params, param_depth_limit
     end
 
-    attr_reader :key_space_limit, :param_depth_limit
+    attr_reader :param_depth_limit
 
-    def initialize(params_class, key_space_limit, param_depth_limit)
+    def initialize(params_class, _key_space_limit=(not_deprecated = true; nil), param_depth_limit)
+      unless not_deprecated
+        warn("`second argument `key_space limit` is deprecated and no longer has an effect. Please call with only two arguments, which will be required in a future version of Rack", uplevel: 1)
+      end
+
       @params_class = params_class
-      @key_space_limit = key_space_limit
       @param_depth_limit = param_depth_limit
     end
 
@@ -67,7 +72,7 @@ module Rack
         (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
-          normalize_params(params, k, v, param_depth_limit)
+          _normalize_params(params, k, v, 0)
         end
       end
 
@@ -78,13 +83,46 @@ module Rack
 
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
-    # conflict, a ParameterTypeError is raised.
-    def normalize_params(params, name, v, depth)
-      raise RangeError if depth <= 0
+    # conflict, a ParameterTypeError is raised.  The depth argument is deprecated
+    # and should no longer be used, it is kept for backwards compatibility with
+    # earlier versions of rack.
+    def normalize_params(params, name, v, _depth=nil)
+      _normalize_params(params, name, v, 0)
+    end
 
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
+    private def _normalize_params(params, name, v, depth)
+      raise RangeError if depth >= param_depth_limit
+
+      if !name
+        # nil name, treat same as empty string (required by tests)
+        k = after = ''
+      elsif depth == 0
+        # Start of parsing, don't treat [] or [ at start of string specially
+        if start = name.index('[', 1)
+          # Start of parameter nesting, use part before brackets as key
+          k = name[0, start]
+          after = name[start, name.length]
+        else
+          # Plain parameter with no nesting
+          k = name
+          after = ''
+        end
+      elsif name.start_with?('[]')
+        # Array nesting
+        k = '[]'
+        after = name[2, name.length]
+      elsif name.start_with?('[') && (start = name.index(']', 1))
+        # Hash nesting, use the part inside brackets as the key
+        k = name[1, start-1]
+        after = name[start+1, name.length]
+      else
+        # Probably malformed input, nested but not starting with [
+        # treat full name as key for backwards compatibility.
+        k = name
+        after = ''
+      end
+
+      v ||= String.new
 
       if k.empty?
         if !v.nil? && name == "[]"
@@ -95,41 +133,45 @@ module Rack
       end
 
       if after == ''
-        params[k] = v
+        if k == '[]' && depth != 0
+          return [v]
+        else
+          params[k] = v
+        end
       elsif after == "["
         params[name] = v
       elsif after == "[]"
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
-        child_key = $1
+      elsif after.start_with?('[]')
+        # Recognize x[][y] (hash inside array) parameters
+        unless after[2] == '[' && after.end_with?(']') && (child_key = after[3, after.length-4]) && !child_key.empty? && !child_key.index('[') && !child_key.index(']')
+          # Handle other nested array parameters
+          child_key = after[2, after.length]
+        end
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
-          normalize_params(params[k].last, child_key, v, depth - 1)
+          _normalize_params(params[k].last, child_key, v, depth + 1)
         else
-          params[k] << normalize_params(make_params, child_key, v, depth - 1)
+          params[k] << _normalize_params(make_params, child_key, v, depth + 1)
         end
       else
         params[k] ||= make_params
         raise ParameterTypeError, "expected Hash (got #{params[k].class.name}) for param `#{k}'" unless params_hash_type?(params[k])
-        params[k] = normalize_params(params[k], after, v, depth - 1)
+        params[k] = _normalize_params(params[k], after, v, depth + 1)
       end
 
       params
     end
 
     def make_params
-      @params_class.new @key_space_limit
-    end
-
-    def new_space_limit(key_space_limit)
-      self.class.new @params_class, key_space_limit, param_depth_limit
+      @params_class.new
     end
 
     def new_depth_limit(param_depth_limit)
-      self.class.new @params_class, key_space_limit, param_depth_limit
+      self.class.new @params_class, param_depth_limit
     end
 
     private
@@ -155,8 +197,7 @@ module Rack
     end
 
     class Params
-      def initialize(limit)
-        @limit  = limit
+      def initialize
         @size   = 0
         @params = {}
       end
@@ -166,8 +207,6 @@ module Rack
       end
 
       def []=(key, value)
-        @size += key.size if key && !@params.key?(key)
-        raise RangeError, 'exceeded available parameter key space' if @size > @limit
         @params[key] = value
       end
 

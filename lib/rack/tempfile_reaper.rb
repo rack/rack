@@ -1,5 +1,8 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+require_relative 'body_proxy'
+
 module Rack
 
   # Middleware tracks and cleans Tempfiles created throughout a request (i.e. Rack::Multipart)

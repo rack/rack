@@ -3,11 +3,18 @@
 require 'optparse'
 require 'fileutils'
 
+require_relative 'version'
+require_relative 'handler'
+require_relative 'builder'
+require_relative 'common_logger'
+require_relative 'content_length'
+require_relative 'show_exceptions'
+require_relative 'lint'
+require_relative 'tempfile_reaper'
+
 module Rack
 
   class Server
-    (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
     class Options
       def parse!(args)
         options = {}
@@ -73,6 +80,10 @@ module Rack
 
           opts.on("-D", "--daemonize", "run daemonized in the background") { |d|
             options[:daemonize] = d ? true : false
+          }
+
+          opts.on("--daemonize-noclose", "run daemonized in the background without closing stdout/stderr") {
+            options[:daemonize] = :noclose
           }
 
           opts.on("-P", "--pid FILE", "file to store PID") { |f|
@@ -187,7 +198,8 @@ module Rack
     # * :server
     #     choose a specific Rack::Handler, e.g. cgi, fcgi, webrick
     # * :daemonize
-    #     if true, the server will daemonize itself (fork, detach, etc)
+    #     if truthy, the server will daemonize itself (fork, detach, etc)
+    #     if :noclose, the server will not close STDOUT/STDERR
     # * :pid
     #     path to write a pid file after daemonize
     # * :Host
@@ -423,7 +435,7 @@ module Rack
       def daemonize_app
         # Cannot be covered as it forks
         # :nocov:
-        Process.daemon
+        Process.daemon(nil, options[:daemonize] == :noclose)
         # :nocov:
       end
 

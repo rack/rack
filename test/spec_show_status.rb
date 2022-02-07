@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/show_status'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::ShowStatus do
   def show_status(app)
     Rack::Lint.new Rack::ShowStatus.new(app)

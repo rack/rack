@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/events'
+end
+
 module Rack
   class TestEvents < Minitest::Test
     class EventMiddleware

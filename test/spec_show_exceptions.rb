@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/show_exceptions'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::ShowExceptions do
   def show_exceptions(app)
     Rack::Lint.new Rack::ShowExceptions.new(app)

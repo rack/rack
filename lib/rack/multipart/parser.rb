@@ -2,6 +2,10 @@
 
 require 'strscan'
 
+require_relative '../auth/digest/params'
+require_relative '../utils'
+require_relative '../multipart' unless defined?(Rack::Multipart)
+
 module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end
@@ -11,8 +15,6 @@ module Rack
     class EmptyContentError < ::EOFError; end
 
     class Parser
-      (require_relative '../core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
-
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
@@ -207,7 +209,7 @@ module Rack
         @collector.each do |part|
           part.get_data do |data|
             tag_multipart_encoding(part.filename, part.content_type, part.name, data)
-            @query_parser.normalize_params(@params, part.name, data, @query_parser.param_depth_limit)
+            @query_parser.normalize_params(@params, part.name, data)
           end
         end
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
@@ -300,10 +302,10 @@ module Rack
         when RFC2183
           params = Hash[*head.scan(DISPPARM).flat_map(&:compact)]
 
-          if filename = params['filename']
-            filename = $1 if filename =~ /^"(.*)"$/
-          elsif filename = params['filename*']
+          if filename = params['filename*']
             encoding, _, filename = filename.split("'", 3)
+          elsif filename = params['filename']
+            filename = $1 if filename =~ /^"(.*)"$/
           end
         when BROKEN_QUOTED, BROKEN_UNQUOTED
           filename = $1

@@ -1,5 +1,9 @@
 # frozen_string_literal: true
 
+require_relative 'body_proxy'
+require_relative 'request'
+require_relative 'response'
+
 module Rack
   ### This middleware provides hooks to certain places in the request /
   # response lifecycle.  This is so that middleware that don't need to filter

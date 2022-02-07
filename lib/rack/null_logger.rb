@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'constants'
+
 module Rack
   class NullLogger
     def initialize(app)

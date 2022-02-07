@@ -2,6 +2,10 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/response'
+end
+
 describe Rack::Response do
   it 'has standard constructor' do
     headers = { "header" => "value" }

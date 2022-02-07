@@ -2,6 +2,12 @@
 
 require 'time'
 
+require_relative 'constants'
+require_relative 'head'
+require_relative 'utils'
+require_relative 'request'
+require_relative 'mime'
+
 module Rack
   # Rack::Files serves files below the +root+ directory given, according to the
   # path info of the Rack request.

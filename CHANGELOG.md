@@ -8,13 +8,20 @@ All notable changes to this project will be documented in this file. For info on
 
 - Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
 
+### Removed
+
+- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix), [@jeremyevans](https://github.com/jeremyevans)))
+
 ### Added
 
+- `Rack::Headers` added to support lower-case header keys. ([@jeremyevans](https://github.com/jeremyevans))
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
+- Rack::Session::Pool now accepts `:allow_fallback` option to disable fallback to public id. ([#1431](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Changed
 
 - BREAKING CHANGE: Require `status` to be an Integer. ([#1662](https://github.com/rack/rack/pull/1662), [@olleolleolle](https://github.com/olleolleolle))
+- BREAKING CHANGE: Query parsing now treats parameters without `=` as having the empty string value instead of nil value, to conform to the URL spec. ([#1696](https://github.com/rack/rack/issues/1696), [@jeremyevans](https://github.com/jeremyevans))
 - Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
 - Removed antiquated handlers: FCGI, LSWS, SCGI, Thin. ([#1658](https://github.com/rack/rack/pull/1658), [@ioquatix](https://github.com/ioquatix))
 - Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix](https://github.com/ioquatix))
@@ -24,6 +31,8 @@ All notable changes to this project will be documented in this file. For info on
 - Decrease default allowed parameter recursion level from 100 to 32. ([#1640](https://github.com/rack/rack/issues/1640), [@jeremyevans](https://github.com/jeremyevans))
 - Attempting to parse a multipart response with an empty body now raises Rack::Multipart::EmptyContentError. ([#1603](https://github.com/rack/rack/issues/1603), [@jeremyevans](https://github.com/jeremyevans))
 - `Rack::Utils.secure_compare` uses OpenSSL's faster implementation if available. ([#1711](https://github.com/rack/rack/pull/1711), [@bdewater](https://github.com/bdewater))
+- `Rack::Request#POST` now caches an empty hash if input content type is not parseable. ([#749](https://github.com/rack/rack/pull/749), [@jeremyevans](https://github.com/jeremyevans))
+- BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
 
 ### Fixed
 
@@ -86,7 +95,7 @@ All notable changes to this project will be documented in this file. For info on
 - `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans](https://github.com/jeremyevans))
 - `.ru` files supports the `frozen-string-literal` magic comment. ([@eregon](https://github.com/eregon))
 - Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans](https://github.com/jeremyevans))
-- `Etag` will continue sending ETag even if the response should not be cached. ([@henm](https://github.com/henm))
+- BREAKING CHANGE: `Etag` will continue sending ETag even if the response should not be cached. Streaming no longer works without a workaround, see [#1619](https://github.com/rack/rack/issues/1619#issuecomment-848460528). ([@henm](https://github.com/henm))
 - `Request#host_with_port` no longer includes a colon for a missing or empty port. ([@AlexWayfer](https://github.com/AlexWayfer))
 - All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix](https://github.com/ioquatix))
 - `Files` handling of range requests no longer return a body that supports `to_path`, to ensure range requests are handled correctly. ([@jeremyevans](https://github.com/jeremyevans))
@@ -139,6 +148,12 @@ All notable changes to this project will be documented in this file. For info on
 
 - CHANGELOG updates. ([@aupajo](https://github.com/aupajo))
 - Added [CONTRIBUTING](CONTRIBUTING.md). ([@dblock](https://github.com/dblock))
+
+## [2.0.9] - 2020-02-08
+
+- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
+- Add support for `SameSite=None` cookie value. ([@hennikul](https://github.com/hennikul))
 
 ## [2.1.2] - 2020-01-27
 

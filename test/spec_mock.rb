@@ -2,6 +2,17 @@
 
 require_relative 'helper'
 require 'yaml'
+require_relative 'psych_fix'
+
+separate_testing do
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/request'
+  require_relative '../lib/rack/response'
+  require_relative '../lib/rack/multipart'
+  require_relative '../lib/rack/constants'
+  require_relative '../lib/rack/body_proxy'
+end
 
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
@@ -21,6 +32,8 @@ app = Rack::Lint.new(lambda { |env|
   response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
   response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
   response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
+  response.set_cookie("persistent_with_expires_test", { value: "persistent_with_expires_test", expires: Time.httpdate("Thu, 31 Oct 2021 07:28:00 GMT"), path: "/" })
+  response.set_cookie("expires_and_max-age_test", { value: "expires_and_max-age_test", expires: Time.now + 15552000 * 2, max_age: 15552000, path: "/" })
   response.finish
 })
 
@@ -47,7 +60,7 @@ describe Rack::MockRequest do
   it "provide sensible defaults" do
     res = Rack::MockRequest.new(app).request
 
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
@@ -60,23 +73,23 @@ describe Rack::MockRequest do
 
   it "allow GET/POST/PUT/DELETE/HEAD" do
     res = Rack::MockRequest.new(app).get("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
 
     res = Rack::MockRequest.new(app).post("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
 
     res = Rack::MockRequest.new(app).put("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "PUT"
 
     res = Rack::MockRequest.new(app).patch("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "PATCH"
 
     res = Rack::MockRequest.new(app).delete("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "DELETE"
 
     Rack::MockRequest.env_for("/", method: "HEAD")["REQUEST_METHOD"]
@@ -102,11 +115,11 @@ describe Rack::MockRequest do
 
   it "allow posting" do
     res = Rack::MockRequest.new(app).get("", input: "foo")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["mock.postdata"].must_equal "foo"
 
     res = Rack::MockRequest.new(app).post("", input: StringIO.new("foo"))
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["mock.postdata"].must_equal "foo"
   end
 
@@ -115,7 +128,7 @@ describe Rack::MockRequest do
       get("https://bla.example.org:9292/meh/foo?bar")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "bla.example.org"
     env["SERVER_PORT"].must_equal "9292"
@@ -129,7 +142,7 @@ describe Rack::MockRequest do
       get("https://example.org/foo")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "443"
@@ -144,7 +157,7 @@ describe Rack::MockRequest do
       get("foo")
     res.must_be_kind_of Rack::MockResponse
 
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
@@ -155,13 +168,13 @@ describe Rack::MockRequest do
 
   it "properly convert method name to an uppercase string" do
     res = Rack::MockRequest.new(app).request(:get)
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
   end
 
   it "accept params and build query string for GET requests" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", params: { foo: { bar: "1" } })
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo[bar]=1"
@@ -171,7 +184,7 @@ describe Rack::MockRequest do
 
   it "accept raw input in params for GET requests" do
     res = Rack::MockRequest.new(app).get("/foo?baz=2", params: "foo[bar]=1")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo[bar]=1"
@@ -181,7 +194,7 @@ describe Rack::MockRequest do
 
   it "accept params and build url encoded params for POST requests" do
     res = Rack::MockRequest.new(app).post("/foo", params: { foo: { bar: "1" } })
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -191,7 +204,7 @@ describe Rack::MockRequest do
 
   it "accept raw input in params for POST requests" do
     res = Rack::MockRequest.new(app).post("/foo", params: "foo[bar]=1")
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -202,7 +215,7 @@ describe Rack::MockRequest do
   it "accept params and build multipart encoded params for POST requests" do
     files = Rack::Multipart::UploadedFile.new(File.join(File.dirname(__FILE__), "multipart", "file1.txt"))
     res = Rack::MockRequest.new(app).post("/foo", params: { "submit-name" => "Larry", "files" => files })
-    env = YAML.load(res.body)
+    env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
@@ -298,13 +311,32 @@ describe Rack::MockResponse do
     session_cookie.expires.must_be_nil
   end
 
-  it "provide access to persistent cookies" do
+  it "provides access to persistent cookies set with max-age" do
     res = Rack::MockRequest.new(app).get("")
     persistent_cookie = res.cookie("persistent_test")
     persistent_cookie.value[0].must_equal "persistent_test"
     persistent_cookie.domain.must_be_nil
     persistent_cookie.path.must_equal "/"
     persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_be :<, (Time.now + 15552000)
+  end
+
+  it "provides access to persistent cookies set with expires" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("persistent_with_expires_test")
+    persistent_cookie.value[0].must_equal "persistent_with_expires_test"
+    persistent_cookie.domain.must_be_nil
+    persistent_cookie.path.must_equal "/"
+    persistent_cookie.secure.must_equal false
+    persistent_cookie.expires.wont_be_nil
+    persistent_cookie.expires.must_equal Time.httpdate("Thu, 31 Oct 2021 07:28:00 GMT")
+  end
+
+  it "parses cookies giving max-age precedence over expires" do
+    res = Rack::MockRequest.new(app).get("")
+    persistent_cookie = res.cookie("expires_and_max-age_test")
+    persistent_cookie.value[0].must_equal "expires_and_max-age_test"
     persistent_cookie.expires.wont_be_nil
     persistent_cookie.expires.must_be :<, (Time.now + 15552000)
   end
@@ -338,6 +370,15 @@ describe Rack::MockResponse do
 
   it "parses multiple set-cookie headers provided as an array" do
     cookie_headers = [["set-cookie", "array=awesome\nmultiple=times"]]
+    res = Rack::MockRequest.new(->(env) { [200, cookie_headers, [""]] }).get("")
+    array_cookie = res.cookie("array")
+    array_cookie.value[0].must_equal "awesome"
+    second_cookie = res.cookie("multiple")
+    second_cookie.value[0].must_equal "times"
+  end
+
+  it "parses multiple set-cookie headers provided as hash with array value" do
+    cookie_headers = { "set-cookie" => ["array=awesome", "multiple=times"]}
     res = Rack::MockRequest.new(->(env) { [200, cookie_headers, [""]] }).get("")
     array_cookie = res.cookie("array")
     array_cookie.value[0].must_equal "awesome"

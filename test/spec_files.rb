@@ -2,6 +2,12 @@
 
 require_relative 'helper'
 
+separate_testing do
+  require_relative '../lib/rack/files'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+end
+
 describe Rack::Files do
   DOCROOT = File.expand_path(File.dirname(__FILE__)) unless defined? DOCROOT
 

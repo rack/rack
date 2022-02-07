@@ -3,6 +3,14 @@
 require_relative 'helper'
 require 'timeout'
 
+separate_testing do
+  require_relative '../lib/rack/multipart'
+  require_relative '../lib/rack/lint'
+  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/query_parser'
+  require_relative '../lib/rack/utils'
+end
+
 describe Rack::Multipart do
   def multipart_fixture(name, boundary = "AaB03x")
     file = multipart_file(name)
@@ -49,6 +57,12 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
+  it "parse multipart content with different filename and filename*" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "bar"
+  end
+
   it "set US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
@@ -90,17 +104,6 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:unity3d_wwwform))
     params = Rack::Multipart.parse_multipart(env)
     params['user_sid'].encoding.must_equal Encoding::UTF_8
-  end
-
-  it "raise RangeError if the key space is exhausted" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
-
-    old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
-    begin
-      lambda { Rack::Multipart.parse_multipart(env) }.must_raise(RangeError)
-    ensure
-      Rack::Utils.key_space_limit = old
-    end
   end
 
   it "parse multipart form webkit style" do
@@ -213,7 +216,7 @@ describe Rack::Multipart do
         @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    query_parser = Rack::QueryParser.new c, 65536, 100
+    query_parser = Rack::QueryParser.new c, 100
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env, query_parser)
     params[:files][:type].must_equal "text/plain"
