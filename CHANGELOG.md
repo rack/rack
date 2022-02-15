@@ -39,6 +39,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Request#POST` now caches an empty hash if input content type is not parseable. ([#749](https://github.com/rack/rack/pull/749), [@jeremyevans](https://github.com/jeremyevans))
 - BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
 - Explicitly deprecate `Rack::File` which was an alias for `Rack::Files`. ([#1811](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix)).
+- Moved `Rack::Session` into [separate gem](https://github.com/rack/rack-session). ([#1805](https://github.com/rack/rack/pull/1805), [@ioquatix](https://github.com/ioquatix))
 
 ### Fixed
 
