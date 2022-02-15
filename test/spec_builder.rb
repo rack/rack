@@ -26,6 +26,13 @@ class NothingMiddleware
 end
 
 describe Rack::Builder do
+  it "has a default app" do
+    app = Rack::Builder.app
+    
+    response = Rack::MockRequest.new(app).get("/")
+    response.status.must_equal 404
+  end
+
   def builder(&block)
     Rack::Lint.new Rack::Builder.new(&block)
   end
@@ -225,12 +232,6 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/a").must_be :server_error?
     Rack::MockRequest.new(app).get("/b").must_be :server_error?
     Rack::MockRequest.new(app).get("/c").status.must_equal 200
-  end
-
-  it 'complains about a missing run' do
-    proc do
-      Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
-    end.must_raise(RuntimeError)
   end
 
   describe "parse_file" do

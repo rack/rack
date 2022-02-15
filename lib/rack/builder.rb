@@ -107,17 +107,19 @@ module Rack
       return builder.to_app
     end
 
+    DEFAULT_APP = lambda{|env| [404, {}, []]}
+
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluated in the context of the instance.
-    def initialize(default_app = nil, &block)
+    def initialize(default_app = DEFAULT_APP, &block)
       @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
       instance_eval(&block) if block_given?
     end
 
     # Create a new Rack::Builder instance and return the Rack application
     # generated from it.
-    def self.app(default_app = nil, &block)
+    def self.app(default_app = DEFAULT_APP, &block)
       self.new(default_app, &block).to_app
     end
 
