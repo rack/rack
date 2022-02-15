@@ -72,10 +72,4 @@ module Rack
       autoload :Request, "rack/auth/digest/request"
     end
   end
-
-  module Session
-    autoload :Cookie, "rack/session/cookie"
-    autoload :Pool, "rack/session/pool"
-    autoload :Memcache, "rack/session/memcache"
-  end
 end
