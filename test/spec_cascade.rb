@@ -21,7 +21,7 @@ describe Rack::Cascade do
   app2 = Rack::URLMap.new("/crash" => lambda { |env| raise "boom" })
 
   app3 = Rack::URLMap.new("/foo" => lambda { |env|
-                            [200, { "Content-Type" => "text/plain" }, [""]]})
+                            [200, { "content-type" => "text/plain" }, [""]]})
 
   it "dispatch onward on 404 and 405 by default" do
     cascade = cascade([app1, app2, app3])
@@ -55,17 +55,17 @@ describe Rack::Cascade do
     res = app.call('/')
     s, h, body = res
     s.must_equal 404
-    h['Content-Type'].must_equal 'text/plain'
+    h['content-type'].must_equal 'text/plain'
     body.must_be_empty
 
     res[0] = 200
-    h['Content-Type'] = 'text/html'
+    h['content-type'] = 'text/html'
     body << "a"
 
     res = app.call('/')
     s, h, body = res
     s.must_equal 404
-    h['Content-Type'].must_equal 'text/plain'
+    h['content-type'].must_equal 'text/plain'
     body.must_be_empty
   end
 

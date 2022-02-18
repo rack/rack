@@ -98,7 +98,7 @@ module Rack
           headers.each { |k, vs|
             if k == RACK_HIJACK
               io_lambda = vs
-            elsif k.downcase == "set-cookie"
+            elsif k == "set-cookie"
               res.cookies.concat vs.split("\n")
             else
               # Since WEBrick won't accept repeated headers,

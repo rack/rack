@@ -166,7 +166,7 @@ describe Rack::Server do
     def (server.server).run(app, **) app end
     s, h, b = server.start.call('rack.errors' => StringIO.new)
     s.must_equal 500
-    h['Content-Type'].must_equal 'text/plain'
+    h['content-type'].must_equal 'text/plain'
     b.join.must_include 'Rack::Lint::LintError'
   end
 

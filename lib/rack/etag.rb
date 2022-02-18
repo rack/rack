@@ -27,7 +27,6 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash[headers]
 
       if etag_status?(status) && body.respond_to?(:to_ary) && !skip_caching?(headers)
         body = body.to_ary
@@ -53,7 +52,7 @@ module Rack
       end
 
       def skip_caching?(headers)
-        headers.key?(ETAG_STRING) || headers.key?('Last-Modified')
+        headers.key?(ETAG_STRING) || headers.key?('last-modified')
       end
 
       def digest_body(body)

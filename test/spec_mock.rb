@@ -27,7 +27,7 @@ app = Rack::Lint.new(lambda { |env|
   response = Rack::Response.new(
     body,
     req.GET["status"] || 200,
-    "Content-Type" => "text/yaml"
+    "content-type" => "text/yaml"
   )
   response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
   response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
@@ -233,7 +233,7 @@ describe Rack::MockRequest do
   it "call close on the original body object" do
     called = false
     body   = Rack::BodyProxy.new(['hi']) { called = true }
-    capp   = proc { |e| [200, { 'Content-Type' => 'text/plain' }, body] }
+    capp   = proc { |e| [200, { 'content-type' => 'text/plain' }, body] }
     called.must_equal false
     Rack::MockRequest.new(capp).get('/', lint: true)
     called.must_equal true
@@ -292,10 +292,10 @@ describe Rack::MockResponse do
 
   it "provide access to the HTTP headers" do
     res = Rack::MockRequest.new(app).get("")
-    res.must_include "Content-Type"
-    res.headers["Content-Type"].must_equal "text/yaml"
-    res.original_headers["Content-Type"].must_equal "text/yaml"
-    res["Content-Type"].must_equal "text/yaml"
+    res.must_include "content-type"
+    res.headers["content-type"].must_equal "text/yaml"
+    res.original_headers["content-type"].must_equal "text/yaml"
+    res["content-type"].must_equal "text/yaml"
     res.content_type.must_equal "text/yaml"
     res.content_length.wont_equal 0
     res.location.must_be_nil
@@ -362,13 +362,13 @@ describe Rack::MockResponse do
     res.cookie("i_dont_exist").must_be_nil
   end
 
-  it "parses cookie headers provided as an array" do
+  deprecated "parses cookie headers provided as an array" do
     res = Rack::MockRequest.new(->(env) { [200, [["set-cookie", "array=awesome"]], [""]] }).get("")
     array_cookie = res.cookie("array")
     array_cookie.value[0].must_equal "awesome"
   end
 
-  it "parses multiple set-cookie headers provided as an array" do
+  deprecated "parses multiple set-cookie headers provided as an array" do
     cookie_headers = [["set-cookie", "array=awesome\nmultiple=times"]]
     res = Rack::MockRequest.new(->(env) { [200, cookie_headers, [""]] }).get("")
     array_cookie = res.cookie("array")
@@ -402,7 +402,7 @@ describe Rack::MockResponse do
     res.errors.must_include "foo"
   end
 
-  it "handle enumerable headers that are not a hash" do
+  deprecated "handle enumerable headers that are not a hash" do
     # this is exactly what rack-test does
     res = Rack::MockResponse.new(200, [], [])
     res.cookies.must_equal({})
@@ -434,21 +434,21 @@ describe Rack::MockResponse, 'headers' do
   end
 
   it 'has_header?' do
-    lambda { @res.has_header? nil }.must_raise NoMethodError
+    lambda { @res.has_header? nil }.must_raise ArgumentError
 
     @res.has_header?('FOO').must_equal true
     @res.has_header?('Foo').must_equal true
   end
 
   it 'get_header' do
-    lambda { @res.get_header nil }.must_raise NoMethodError
+    lambda { @res.get_header nil }.must_raise ArgumentError
 
     @res.get_header('FOO').must_equal '1'
     @res.get_header('Foo').must_equal '1'
   end
 
   it 'set_header' do
-    lambda { @res.set_header nil, '1' }.must_raise NoMethodError
+    lambda { @res.set_header nil, '1' }.must_raise ArgumentError
 
     @res.set_header('FOO', '2').must_equal '2'
     @res.get_header('FOO').must_equal '2'
@@ -463,7 +463,7 @@ describe Rack::MockResponse, 'headers' do
   end
 
   it 'add_header' do
-    lambda { @res.add_header nil, '1' }.must_raise NoMethodError
+    lambda { @res.add_header nil, '1' }.must_raise ArgumentError
 
     # Sets header on first addition
     @res.add_header('FOO', '1').must_equal '1,1'
@@ -484,7 +484,7 @@ describe Rack::MockResponse, 'headers' do
   end
 
   it 'delete_header' do
-    lambda { @res.delete_header nil }.must_raise NoMethodError
+    lambda { @res.delete_header nil }.must_raise ArgumentError
 
     @res.delete_header('FOO').must_equal '1'
     @res.has_header?('FOO').must_equal false

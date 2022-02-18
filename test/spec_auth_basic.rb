@@ -15,7 +15,7 @@ describe Rack::Auth::Basic do
 
   def unprotected_app
     Rack::Lint.new lambda { |env|
-      [ 200, { 'Content-Type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}"] ]
+      [ 200, { 'content-type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}"] ]
     }
   end
 
@@ -40,8 +40,8 @@ describe Rack::Auth::Basic do
   def assert_basic_auth_challenge(response)
     response.must_be :client_error?
     response.status.must_equal 401
-    response.must_include 'WWW-Authenticate'
-    response.headers['WWW-Authenticate'].must_match(/Basic realm="#{Regexp.escape(realm)}"/)
+    response.must_include 'www-authenticate'
+    response.headers['www-authenticate'].must_match(/Basic realm="#{Regexp.escape(realm)}"/)
     response.body.must_be :empty?
   end
 
@@ -68,7 +68,7 @@ describe Rack::Auth::Basic do
     request 'HTTP_AUTHORIZATION' => 'Digest params' do |response|
       response.must_be :client_error?
       response.status.must_equal 400
-      response.wont_include 'WWW-Authenticate'
+      response.wont_include 'www-authenticate'
     end
   end
 
@@ -76,7 +76,7 @@ describe Rack::Auth::Basic do
     request 'HTTP_AUTHORIZATION' => '' do |response|
       response.must_be :client_error?
       response.status.must_equal 400
-      response.wont_include 'WWW-Authenticate'
+      response.wont_include 'www-authenticate'
     end
   end
 
@@ -92,7 +92,7 @@ describe Rack::Auth::Basic do
     request 'HTTP_AUTHORIZATION' => auth do |response|
       response.must_be :client_error?
       response.status.must_equal 400
-      response.wont_include 'WWW-Authenticate'
+      response.wont_include 'www-authenticate'
     end
   end
 

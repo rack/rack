@@ -584,8 +584,6 @@ module Rack
       ## It is also possible to hijack a response after the status and headers
       ## have been sent.
       def check_hijack_response(headers, env)
-        headers = Rack::Utils::HeaderHash[headers]
-
         ## In order to do this, an application may set the special header
         ## <tt>rack.hijack</tt> to an object that responds to <tt>call</tt>
         ## accepting an argument that conforms to the <tt>rack.hijack_io</tt>
@@ -668,10 +666,12 @@ module Rack
           next if key =~ /^rack\..+$/
 
           ## The header must not contain a +Status+ key.
-          raise LintError, "header must not contain Status" if key.downcase == "status"
-          ## The header must conform to RFC7230 token specification, i.e. cannot
+          raise LintError, "header must not contain status" if key == "status"
+          ## Header keys must conform to RFC7230 token specification, i.e. cannot
           ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
           raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
+          ## Header keys must not contain uppercase ASCII characters (A-Z).
+          raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
           ## The values of the header must be Strings,
           unless value.kind_of? String
@@ -689,15 +689,15 @@ module Rack
       end
 
       ##
-      ## === The Content-Type
+      ## === The content-type
       ##
       def check_content_type(status, headers)
         headers.each { |key, value|
-          ## There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
-          ## 204 or 304.
-          if key.downcase == "content-type"
+          ## There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
+          ## 204, or 304.
+          if key == "content-type"
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
-              raise LintError, "Content-Type header found in #{status} response, not allowed"
+              raise LintError, "content-type header found in #{status} response, not allowed"
             end
             return
           end
@@ -705,15 +705,15 @@ module Rack
       end
 
       ##
-      ## === The Content-Length
+      ## === The content-length
       ##
       def check_content_length(status, headers)
         headers.each { |key, value|
-          if key.downcase == 'content-length'
-            ## There must not be a <tt>Content-Length</tt> header when the
-            ## +Status+ is 1xx, 204 or 304.
+          if key == 'content-length'
+            ## There must not be a <tt>content-length</tt> header key when the
+            ## +Status+ is 1xx, 204, or 304.
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
-              raise LintError, "Content-Length header found in #{status} response, not allowed"
+              raise LintError, "content-length header found in #{status} response, not allowed"
             end
             @content_length = value
           end
@@ -727,7 +727,7 @@ module Rack
           end
         elsif @content_length
           unless @content_length == size.to_s
-            raise LintError, "Content-Length header was #{@content_length}, but should be #{size}"
+            raise LintError, "content-length header was #{@content_length}, but should be #{size}"
           end
         end
       end

@@ -26,5 +26,19 @@ else
   def self.separate_testing
   end
 end
+
 require 'minitest/global_expectations/autorun'
 require 'stringio'
+
+class Minitest::Spec
+  def self.deprecated(*args, &block)
+    it(*args) do
+      begin
+        verbose, $VERBOSE = $VERBOSE, nil
+        instance_exec(&block)
+      ensure
+        $VERBOSE = verbose
+      end
+    end
+  end
+end

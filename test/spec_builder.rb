@@ -37,10 +37,10 @@ describe Rack::Builder do
   it "supports mapping" do
     app = builder_to_app do
       map '/' do |outer_env|
-        run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['root']] }
+        run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['root']] }
       end
       map '/sub' do
-        run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['sub']] }
+        run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['sub']] }
       end
     end
     Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
@@ -51,13 +51,13 @@ describe Rack::Builder do
     app = builder_to_app do
       map '/sub' do
         use Rack::ContentLength
-        run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['sub']] }
+        run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['sub']] }
       end
       use Rack::ContentLength
-      run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['root']] }
+      run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['root']] }
     end
-    Rack::MockRequest.new(app).get("/").headers['Content-Length'].must_equal '4'
-    Rack::MockRequest.new(app).get("/sub").headers['Content-Length'].must_equal '3'
+    Rack::MockRequest.new(app).get("/").headers['content-length'].must_equal '4'
+    Rack::MockRequest.new(app).get("/sub").headers['content-length'].must_equal '3'
   end
 
   it "doesn't dupe env even when mapping" do
@@ -66,7 +66,7 @@ describe Rack::Builder do
       map '/' do |outer_env|
         run lambda { |inner_env|
           inner_env['new_key'] = 'new_value'
-          [200, { "Content-Type" => "text/plain" }, ['root']]
+          [200, { "content-type" => "text/plain" }, ['root']]
         }
       end
     end
@@ -77,7 +77,7 @@ describe Rack::Builder do
   it "dupe #to_app when mapping so Rack::Reloader can reload the application on each request" do
     app = builder do
       map '/' do |outer_env|
-        run lambda { |env|  [200, { "Content-Type" => "text/plain" }, [object_id.to_s]] }
+        run lambda { |env|  [200, { "content-type" => "text/plain" }, [object_id.to_s]] }
       end
     end
 
@@ -116,7 +116,7 @@ describe Rack::Builder do
         'secret' == password
       end
 
-      run lambda { |env| [200, { "Content-Type" => "text/plain" }, ['Hi Boss']] }
+      run lambda { |env| [200, { "content-type" => "text/plain" }, ['Hi Boss']] }
     end
 
     response = Rack::MockRequest.new(app).get("/")
@@ -144,9 +144,9 @@ describe Rack::Builder do
   it "can mix map and run for endpoints" do
     app = builder do
       map '/sub' do
-        run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['sub']] }
+        run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['sub']] }
       end
-      run lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, ['root']] }
+      run lambda { |inner_env| [200, { "content-type" => "text/plain" }, ['root']] }
     end
 
     Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'root'
@@ -183,7 +183,7 @@ describe Rack::Builder do
         def call(env)
           raise "bzzzt"  if @called > 0
         @called += 1
-          [200, { 'Content-Type' => 'text/plain' }, ['OK']]
+          [200, { 'content-type' => 'text/plain' }, ['OK']]
         end
       end
 
@@ -283,7 +283,7 @@ describe Rack::Builder do
 
   describe 'new_from_string' do
     it "builds a rack app from string" do
-      app, = Rack::Builder.new_from_string "run lambda{|env| [200, {'Content-Type' => 'text/plane'}, ['OK']] }"
+      app, = Rack::Builder.new_from_string "run lambda{|env| [200, {'content-type' => 'text/plane'}, ['OK']] }"
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
   end

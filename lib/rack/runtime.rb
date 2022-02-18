@@ -11,18 +11,17 @@ module Rack
   # too.
   class Runtime
     FORMAT_STRING = "%0.6f" # :nodoc:
-    HEADER_NAME = "X-Runtime" # :nodoc:
+    HEADER_NAME = "x-runtime" # :nodoc:
 
     def initialize(app, name = nil)
       @app = app
       @header_name = HEADER_NAME
-      @header_name += "-#{name}" if name
+      @header_name += "-#{name.to_s.downcase}" if name
     end
 
     def call(env)
       start_time = Utils.clock_time
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash[headers]
 
       request_time = Utils.clock_time - start_time
 

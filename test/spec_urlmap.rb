@@ -12,9 +12,9 @@ describe Rack::URLMap do
   it "dispatches paths correctly" do
     app = lambda { |env|
       [200, {
-        'X-ScriptName' => env['SCRIPT_NAME'],
-        'X-PathInfo' => env['PATH_INFO'],
-        'Content-Type' => 'text/plain'
+        'x-scriptname' => env['SCRIPT_NAME'],
+        'x-pathinfo' => env['PATH_INFO'],
+        'content-type' => 'text/plain'
       }, [""]]
     }
     map = Rack::Lint.new(Rack::URLMap.new({
@@ -31,111 +31,111 @@ describe Rack::URLMap do
 
     res = Rack::MockRequest.new(map).get("/foo")
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/foo"
-    res["X-PathInfo"].must_equal ""
+    res["x-scriptname"].must_equal "/foo"
+    res["x-pathinfo"].must_equal ""
 
     res = Rack::MockRequest.new(map).get("/foo/")
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/foo"
-    res["X-PathInfo"].must_equal "/"
+    res["x-scriptname"].must_equal "/foo"
+    res["x-pathinfo"].must_equal "/"
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/foo/bar"
-    res["X-PathInfo"].must_equal ""
+    res["x-scriptname"].must_equal "/foo/bar"
+    res["x-pathinfo"].must_equal ""
 
     res = Rack::MockRequest.new(map).get("/foo/bar/")
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/foo/bar"
-    res["X-PathInfo"].must_equal "/"
+    res["x-scriptname"].must_equal "/foo/bar"
+    res["x-pathinfo"].must_equal "/"
 
     res = Rack::MockRequest.new(map).get("/foo///bar//quux")
     res.status.must_equal 200
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/foo/bar"
-    res["X-PathInfo"].must_equal "//quux"
+    res["x-scriptname"].must_equal "/foo/bar"
+    res["x-pathinfo"].must_equal "//quux"
 
     res = Rack::MockRequest.new(map).get("/foo/quux", "SCRIPT_NAME" => "/bleh")
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/bleh/foo"
-    res["X-PathInfo"].must_equal "/quux"
+    res["x-scriptname"].must_equal "/bleh/foo"
+    res["x-pathinfo"].must_equal "/quux"
 
     res = Rack::MockRequest.new(map).get("/bar", 'HTTP_HOST' => 'foo.org')
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/bar"
-    res["X-PathInfo"].must_be :empty?
+    res["x-scriptname"].must_equal "/bar"
+    res["x-pathinfo"].must_be :empty?
 
     res = Rack::MockRequest.new(map).get("/bar/", 'HTTP_HOST' => 'foo.org')
     res.must_be :ok?
-    res["X-ScriptName"].must_equal "/bar"
-    res["X-PathInfo"].must_equal '/'
+    res["x-scriptname"].must_equal "/bar"
+    res["x-pathinfo"].must_equal '/'
   end
 
 
   it "dispatches hosts correctly" do
     map = Rack::Lint.new(Rack::URLMap.new("http://foo.org/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "foo.org",
-                                "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
+                              { "content-type" => "text/plain",
+                                "x-position" => "foo.org",
+                                "x-host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]},
                            "http://subdomain.foo.org/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "subdomain.foo.org",
-                                "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
+                              { "content-type" => "text/plain",
+                                "x-position" => "subdomain.foo.org",
+                                "x-host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]},
                            "http://bar.org/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "bar.org",
-                                "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
+                              { "content-type" => "text/plain",
+                                "x-position" => "bar.org",
+                                "x-host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]},
                            "/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "default.org",
-                                "X-Host" => env["HTTP_HOST"] || env["SERVER_NAME"],
+                              { "content-type" => "text/plain",
+                                "x-position" => "default.org",
+                                "x-host" => env["HTTP_HOST"] || env["SERVER_NAME"],
                               }, [""]]}
                            ))
 
     res = Rack::MockRequest.new(map).get("/")
     res.must_be :ok?
-    res["X-Position"].must_equal "default.org"
+    res["x-position"].must_equal "default.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "bar.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "bar.org"
+    res["x-position"].must_equal "bar.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "foo.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "foo.org"
+    res["x-position"].must_equal "foo.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "subdomain.foo.org", "SERVER_NAME" => "foo.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "subdomain.foo.org"
+    res["x-position"].must_equal "subdomain.foo.org"
 
     res = Rack::MockRequest.new(map).get("http://foo.org/")
     res.must_be :ok?
-    res["X-Position"].must_equal "foo.org"
+    res["x-position"].must_equal "foo.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "example.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "default.org"
+    res["x-position"].must_equal "default.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "default.org"
+    res["x-position"].must_equal "default.org"
 
     res = Rack::MockRequest.new(map).get("/", "HTTP_HOST" => "any-host.org", "HTTP_X_FORWARDED_HOST" => "any-host.org")
     res.must_be :ok?
-    res["X-Position"].must_equal "default.org"
+    res["x-position"].must_equal "default.org"
 
     res = Rack::MockRequest.new(map).get("/",
                                          "HTTP_HOST" => "example.org:9292",
                                          "SERVER_PORT" => "9292")
     res.must_be :ok?
-    res["X-Position"].must_equal "default.org"
+    res["x-position"].must_equal "default.org"
   end
 
   it "be nestable" do
@@ -143,10 +143,10 @@ describe Rack::URLMap do
       Rack::URLMap.new("/bar" =>
         Rack::URLMap.new("/quux" => lambda { |env|
                            [200,
-                            { "Content-Type" => "text/plain",
-                              "X-Position" => "/foo/bar/quux",
-                              "X-PathInfo" => env["PATH_INFO"],
-                              "X-ScriptName" => env["SCRIPT_NAME"],
+                            { "content-type" => "text/plain",
+                              "x-position" => "/foo/bar/quux",
+                              "x-pathinfo" => env["PATH_INFO"],
+                              "x-scriptname" => env["SCRIPT_NAME"],
                             }, [""]]}
                          ))))
 
@@ -155,98 +155,98 @@ describe Rack::URLMap do
 
     res = Rack::MockRequest.new(map).get("/foo/bar/quux")
     res.must_be :ok?
-    res["X-Position"].must_equal "/foo/bar/quux"
-    res["X-PathInfo"].must_equal ""
-    res["X-ScriptName"].must_equal "/foo/bar/quux"
+    res["x-position"].must_equal "/foo/bar/quux"
+    res["x-pathinfo"].must_equal ""
+    res["x-scriptname"].must_equal "/foo/bar/quux"
   end
 
   it "route root apps correctly" do
     map = Rack::Lint.new(Rack::URLMap.new("/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "root",
-                                "X-PathInfo" => env["PATH_INFO"],
-                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              { "content-type" => "text/plain",
+                                "x-position" => "root",
+                                "x-pathinfo" => env["PATH_INFO"],
+                                "x-scriptname" => env["SCRIPT_NAME"]
                               }, [""]]},
                            "/foo" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "foo",
-                                "X-PathInfo" => env["PATH_INFO"],
-                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              { "content-type" => "text/plain",
+                                "x-position" => "foo",
+                                "x-pathinfo" => env["PATH_INFO"],
+                                "x-scriptname" => env["SCRIPT_NAME"]
                               }, [""]]}
                            ))
 
     res = Rack::MockRequest.new(map).get("/foo/bar")
     res.must_be :ok?
-    res["X-Position"].must_equal "foo"
-    res["X-PathInfo"].must_equal "/bar"
-    res["X-ScriptName"].must_equal "/foo"
+    res["x-position"].must_equal "foo"
+    res["x-pathinfo"].must_equal "/bar"
+    res["x-scriptname"].must_equal "/foo"
 
     res = Rack::MockRequest.new(map).get("/foo")
     res.must_be :ok?
-    res["X-Position"].must_equal "foo"
-    res["X-PathInfo"].must_equal ""
-    res["X-ScriptName"].must_equal "/foo"
+    res["x-position"].must_equal "foo"
+    res["x-pathinfo"].must_equal ""
+    res["x-scriptname"].must_equal "/foo"
 
     res = Rack::MockRequest.new(map).get("/bar")
     res.must_be :ok?
-    res["X-Position"].must_equal "root"
-    res["X-PathInfo"].must_equal "/bar"
-    res["X-ScriptName"].must_equal ""
+    res["x-position"].must_equal "root"
+    res["x-pathinfo"].must_equal "/bar"
+    res["x-scriptname"].must_equal ""
 
     res = Rack::MockRequest.new(map).get("")
     res.must_be :ok?
-    res["X-Position"].must_equal "root"
-    res["X-PathInfo"].must_equal "/"
-    res["X-ScriptName"].must_equal ""
+    res["x-position"].must_equal "root"
+    res["x-pathinfo"].must_equal "/"
+    res["x-scriptname"].must_equal ""
   end
 
   it "not squeeze slashes" do
     map = Rack::Lint.new(Rack::URLMap.new("/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "root",
-                                "X-PathInfo" => env["PATH_INFO"],
-                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              { "content-type" => "text/plain",
+                                "x-position" => "root",
+                                "x-pathinfo" => env["PATH_INFO"],
+                                "x-scriptname" => env["SCRIPT_NAME"]
                               }, [""]]},
                            "/foo" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "foo",
-                                "X-PathInfo" => env["PATH_INFO"],
-                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              { "content-type" => "text/plain",
+                                "x-position" => "foo",
+                                "x-pathinfo" => env["PATH_INFO"],
+                                "x-scriptname" => env["SCRIPT_NAME"]
                               }, [""]]}
                            ))
 
     res = Rack::MockRequest.new(map).get("/http://example.org/bar")
     res.must_be :ok?
-    res["X-Position"].must_equal "root"
-    res["X-PathInfo"].must_equal "/http://example.org/bar"
-    res["X-ScriptName"].must_equal ""
+    res["x-position"].must_equal "root"
+    res["x-pathinfo"].must_equal "/http://example.org/bar"
+    res["x-scriptname"].must_equal ""
   end
 
   it "not be case sensitive with hosts" do
     map = Rack::Lint.new(Rack::URLMap.new("http://example.org/" => lambda { |env|
                              [200,
-                              { "Content-Type" => "text/plain",
-                                "X-Position" => "root",
-                                "X-PathInfo" => env["PATH_INFO"],
-                                "X-ScriptName" => env["SCRIPT_NAME"]
+                              { "content-type" => "text/plain",
+                                "x-position" => "root",
+                                "x-pathinfo" => env["PATH_INFO"],
+                                "x-scriptname" => env["SCRIPT_NAME"]
                               }, [""]]}
                            ))
 
     res = Rack::MockRequest.new(map).get("http://example.org/")
     res.must_be :ok?
-    res["X-Position"].must_equal "root"
-    res["X-PathInfo"].must_equal "/"
-    res["X-ScriptName"].must_equal ""
+    res["x-position"].must_equal "root"
+    res["x-pathinfo"].must_equal "/"
+    res["x-scriptname"].must_equal ""
 
     res = Rack::MockRequest.new(map).get("http://EXAMPLE.ORG/")
     res.must_be :ok?
-    res["X-Position"].must_equal "root"
-    res["X-PathInfo"].must_equal "/"
-    res["X-ScriptName"].must_equal ""
+    res["x-position"].must_equal "root"
+    res["x-pathinfo"].must_equal "/"
+    res["x-scriptname"].must_equal ""
   end
 
   it "not allow locations unless they start with /" do

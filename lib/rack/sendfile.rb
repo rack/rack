@@ -112,16 +112,15 @@ module Rack
 
     def call(env)
       status, headers, body = @app.call(env)
-      headers = Utils::HeaderHash[headers]
 
       if body.respond_to?(:to_path)
         case type = variation(env)
-        when 'X-Accel-Redirect'
+        when /x-accel-redirect/i
           path = ::File.expand_path(body.to_path)
           if url = map_accel_path(env, path)
             headers[CONTENT_LENGTH] = '0'
             # '?' must be percent-encoded because it is not query string but a part of path
-            headers[type] = ::Rack::Utils.escape_path(url).gsub('?', '%3F')
+            headers[type.downcase] = ::Rack::Utils.escape_path(url).gsub('?', '%3F')
             obody = body
             body = Rack::BodyProxy.new([]) do
               obody.close if obody.respond_to?(:close)
@@ -129,10 +128,10 @@ module Rack
           else
             env[RACK_ERRORS].puts "X-Accel-Mapping header missing"
           end
-        when 'X-Sendfile', 'X-Lighttpd-Send-File'
+        when /x-sendfile|x-lighttpd-send-file/i
           path = ::File.expand_path(body.to_path)
           headers[CONTENT_LENGTH] = '0'
-          headers[type] = path
+          headers[type.downcase] = path
           obody = body
           body = Rack::BodyProxy.new([]) do
             obody.close if obody.respond_to?(:close)

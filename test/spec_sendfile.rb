@@ -19,7 +19,7 @@ describe Rack::Sendfile do
   end
 
   def simple_app(body = sendfile_body)
-    lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
+    lambda { |env| [200, { 'content-type' => 'text/plain' }, body] }
   end
 
   def sendfile_app(body, mappings = [])
@@ -38,32 +38,32 @@ describe Rack::Sendfile do
     end.open(path, 'wb+')
   end
 
-  it "does nothing when no X-Sendfile-Type header present" do
+  it "does nothing when no x-sendfile-Type header present" do
     request do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
-      response.headers.wont_include 'X-Sendfile'
+      response.headers.wont_include 'x-sendfile'
     end
   end
 
-  it "does nothing and logs to rack.errors when incorrect X-Sendfile-Type header present" do
+  it "does nothing and logs to rack.errors when incorrect x-sendfile-Type header present" do
     io = StringIO.new
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Banana', 'rack.errors' => io do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
-      response.headers.wont_include 'X-Sendfile'
+      response.headers.wont_include 'x-sendfile'
 
       io.rewind
       io.read.must_equal "Unknown x-sendfile variation: 'X-Banana'.\n"
     end
   end
 
-  it "sets X-Sendfile response header and discards body" do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
+  it "sets x-sendfile response header and discards body" do
+    request 'HTTP_X_SENDFILE_TYPE' => 'x-sendfile' do |response|
       response.must_be :ok?
       response.body.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
-      response.headers['X-Sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
+      response.headers['x-sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
@@ -112,9 +112,9 @@ describe Rack::Sendfile do
   end
 
   it 'does nothing when body does not respond to #to_path' do
-    request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' }, ['Not a file...']) do |response|
+    request({ 'HTTP_X_SENDFILE_TYPE' => 'x-sendfile' }, ['Not a file...']) do |response|
       response.body.must_equal 'Not a file...'
-      response.headers.wont_include 'X-Sendfile'
+      response.headers.wont_include 'x-sendfile'
     end
   end
 

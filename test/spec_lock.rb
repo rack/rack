@@ -49,7 +49,7 @@ describe Rack::Lock do
         def each; %w{ hi mom }.each { |x| yield x }; end
       }.new
 
-      app = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, response] })
+      app = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, response] })
       response = app.call(env)[2]
       list = []
       response.each { |x| list << x }
@@ -63,7 +63,7 @@ describe Rack::Lock do
       res = ['Hello World']
       def res.to_path ; "/tmp/hello.txt" ; end
 
-      app = Rack::Lock.new(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, res] }, lock)
+      app = Rack::Lock.new(lambda { |inner_env| [200, { "content-type" => "text/plain" }, res] }, lock)
       body = app.call(env)[2]
 
       body.must_respond_to :to_path
@@ -75,7 +75,7 @@ describe Rack::Lock do
 
       res = ['Hello World']
 
-      app = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, res] })
+      app = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, res] })
       body = app.call(env)[2]
 
       body.wont_respond_to :to_path
@@ -90,7 +90,7 @@ describe Rack::Lock do
       def close; @close_called = true; end
     }.new
 
-    app = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, response] })
+    app = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, response] })
     app.call(env)
     response.close_called.must_equal false
     response.close
@@ -101,7 +101,7 @@ describe Rack::Lock do
     lock     = Lock.new
     env      = Rack::MockRequest.env_for("/")
     response = Object.new
-    app      = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, response] }, lock)
+    app      = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, response] }, lock)
     lock.synchronized.must_equal false
     response = app.call(env)[2]
     lock.synchronized.must_equal true
@@ -111,7 +111,7 @@ describe Rack::Lock do
 
   it "return value from app" do
     env  = Rack::MockRequest.env_for("/")
-    body = [200, { "Content-Type" => "text/plain" }, %w{ hi mom }]
+    body = [200, { "content-type" => "text/plain" }, %w{ hi mom }]
     app  = lock_app(lambda { |inner_env| body })
 
     res = app.call(env)
@@ -123,7 +123,7 @@ describe Rack::Lock do
   it "call synchronize on lock" do
     lock = Lock.new
     env = Rack::MockRequest.env_for("/")
-    app = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, %w{ a b c }] }, lock)
+    app = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, %w{ a b c }] }, lock)
     lock.synchronized.must_equal false
     app.call(env)
     lock.synchronized.must_equal true
@@ -153,7 +153,7 @@ describe Rack::Lock do
       def unlock() @unlocked = true end
     end.new
     env = Rack::MockRequest.env_for("/")
-    app = lock_app(proc { [200, { "Content-Type" => "text/plain" }, []] }, lock)
+    app = lock_app(proc { [200, { "content-type" => "text/plain" }, []] }, lock)
     lambda { app.call(env) }.must_raise Exception
     lock.unlocked?.must_equal false
   end
@@ -163,7 +163,7 @@ describe Rack::Lock do
       attr_reader :env
       def initialize(env) @env = env end
     end
-    app = Rack::Lock.new lambda { |env| [200, { "Content-Type" => "text/plain" }, proxy.new(env)] }
+    app = Rack::Lock.new lambda { |env| [200, { "content-type" => "text/plain" }, proxy.new(env)] }
     response = app.call(Rack::MockRequest.env_for("/"))[2]
   end
 
@@ -177,7 +177,7 @@ describe Rack::Lock do
 
   it "not replace the environment" do
     env  = Rack::MockRequest.env_for("/")
-    app  = lock_app(lambda { |inner_env| [200, { "Content-Type" => "text/plain" }, [inner_env.object_id.to_s]] })
+    app  = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, [inner_env.object_id.to_s]] })
 
     _, _, body = app.call(env)
 

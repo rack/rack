@@ -29,7 +29,6 @@ module Rack
       case env[REQUEST_METHOD]
       when "GET", "HEAD"
         status, headers, body = @app.call(env)
-        headers = Utils::HeaderHash[headers]
         if status == 200 && fresh?(env, headers)
           status = 304
           headers.delete(CONTENT_TYPE)
@@ -61,13 +60,13 @@ module Rack
     # Whether the ETag response header matches the If-None-Match request header.
     # If so, the request has not been modified.
     def etag_matches?(none_match, headers)
-      headers['ETag'] == none_match
+      headers[ETAG] == none_match
     end
 
     # Whether the Last-Modified response header matches the If-Modified-Since
     # request header.  If so, the request has not been modified.
     def modified_since?(modified_since, headers)
-      last_modified = to_rfc2822(headers['Last-Modified']) and
+      last_modified = to_rfc2822(headers['last-modified']) and
         modified_since >= last_modified
     end
 

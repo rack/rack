@@ -47,7 +47,7 @@ module Rack
     def get(env)
       request = Rack::Request.new env
       unless ALLOWED_VERBS.include? request.request_method
-        return fail(405, "Method Not Allowed", { 'Allow' => ALLOW_HEADER })
+        return fail(405, "Method Not Allowed", { 'allow' => ALLOW_HEADER })
       end
 
       path_info = Utils.unescape_path request.path_info
@@ -75,12 +75,12 @@ module Rack
 
     def serving(request, path)
       if request.options?
-        return [200, { 'Allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
+        return [200, { 'allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
       end
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
 
-      headers = { "Last-Modified" => last_modified }
+      headers = { "last-modified" => last_modified }
       mime_type = mime_type path, @default_mime
       headers[CONTENT_TYPE] = mime_type if mime_type
 
@@ -97,7 +97,7 @@ module Rack
       elsif ranges.empty?
         # Unsatisfiable. Return error, and file size:
         response = fail(416, "Byte range unsatisfiable")
-        response[1]["Content-Range"] = "bytes */#{size}"
+        response[1]["content-range"] = "bytes */#{size}"
         return response
       elsif ranges.size >= 1
         # Partial content
@@ -105,7 +105,7 @@ module Rack
 
         if ranges.size == 1
           range = ranges[0]
-          headers["Content-Range"] = "bytes #{range.begin}-#{range.end}/#{size}"
+          headers["content-range"] = "bytes #{range.begin}-#{range.end}/#{size}"
         else
           headers[CONTENT_TYPE] = "multipart/byteranges; boundary=#{MULTIPART_BOUNDARY}"
         end
@@ -170,8 +170,8 @@ module Rack
 <<-EOF
 \r
 --#{MULTIPART_BOUNDARY}\r
-Content-Type: #{options[:mime_type]}\r
-Content-Range: bytes #{range.begin}-#{range.end}/#{options[:size]}\r
+content-type: #{options[:mime_type]}\r
+content-range: bytes #{range.begin}-#{range.end}/#{options[:size]}\r
 \r
 EOF
       end
@@ -203,7 +203,7 @@ EOF
         {
           CONTENT_TYPE   => "text/plain",
           CONTENT_LENGTH => body.size.to_s,
-          "X-Cascade" => "pass"
+          "x-cascade" => "pass"
         }.merge!(headers),
         [body]
       ]

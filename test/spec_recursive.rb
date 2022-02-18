@@ -13,8 +13,8 @@ describe Rack::Recursive do
   before do
   @app1 = lambda { |env|
     res = Rack::Response.new
-    res["X-Path-Info"] = env["PATH_INFO"]
-    res["X-Query-String"] = env["QUERY_STRING"]
+    res["x-path-info"] = env["PATH_INFO"]
+    res["x-query-string"] = env["QUERY_STRING"]
     res.finish do |inner_res|
       inner_res.write "App1"
     end
@@ -75,7 +75,7 @@ describe Rack::Recursive do
     res = Rack::MockRequest.new(app).get("/app4")
     res.must_be :ok?
     res.body.must_equal "App1"
-    res["X-Path-Info"].must_equal "/quux"
-    res["X-Query-String"].must_equal "meh"
+    res["x-path-info"].must_equal "/quux"
+    res["x-query-string"].must_equal "meh"
   end
 end

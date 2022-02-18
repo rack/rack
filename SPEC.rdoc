@@ -255,22 +255,23 @@ The header keys must be Strings.
 Special headers starting "rack." are for communicating with the
 server, and must not be sent back to the client.
 The header must not contain a +Status+ key.
-The header must conform to RFC7230 token specification, i.e. cannot
+Header keys must conform to RFC7230 token specification, i.e. cannot
 contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+Header keys must not contain uppercase ASCII characters (A-Z).
 The values of the header must be Strings,
 consisting of lines (for multiple header values, e.g. multiple
 <tt>Set-Cookie</tt> values) separated by "\\n".
 The lines must not contain characters below 037.
 
-=== The Content-Type
+=== The content-type
 
-There must not be a <tt>Content-Type</tt>, when the +Status+ is 1xx,
-204 or 304.
+There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
+204, or 304.
 
-=== The Content-Length
+=== The content-length
 
-There must not be a <tt>Content-Length</tt> header when the
-+Status+ is 1xx, 204 or 304.
+There must not be a <tt>content-length</tt> header key when the
++Status+ is 1xx, 204, or 304.
 
 === The Body
 
