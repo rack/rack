@@ -34,6 +34,7 @@ jobs:
 
     - name: Bundle install...
       run: |
+        gem update --system
         bundle config path vendor/bundle
         bundle install
 
