@@ -8,6 +8,7 @@ require 'time'
 require_relative 'response'
 require_relative 'version'
 require_relative 'constants'
+require_relative 'headers'
 
 module Rack
   # Rack::MockRequest helps testing your Rack application without
@@ -237,8 +238,8 @@ module Rack
 
     def parse_cookies_from_header
       cookies = Hash.new
-      if headers.has_key? 'Set-Cookie'
-        set_cookie_header = headers.fetch('Set-Cookie')
+      if headers.has_key? 'set-cookie'
+        set_cookie_header = headers.fetch('set-cookie')
         Array(set_cookie_header).each do |header_value|
           header_value.split("\n").each do |cookie|
             cookie_name, cookie_filling = cookie.split('=', 2)

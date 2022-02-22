@@ -166,7 +166,7 @@ task :external do
 
   Bundler.with_clean_env do
     clone_and_test("https://github.com/rack/rack-attack", "rack-attack", "bundle exec rake test")
-    clone_and_test("https://github.com/rtomayko/rack-cache", "rack-cache", "bundle exec rake")
+    clone_and_test("https://github.com/ioquatix/rack-cache", "rack-cache", "bundle exec rake")
     clone_and_test("https://github.com/socketry/falcon", "falcon", "bundle exec rspec")
   end
 end

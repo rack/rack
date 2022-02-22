@@ -23,7 +23,7 @@ describe Rack::Response do
     cc = 'foo'
     response.cache_control = cc
     assert_equal cc, response.cache_control
-    assert_equal cc, response.to_a[1]['Cache-Control']
+    assert_equal cc, response.to_a[1]['cache-control']
   end
 
   it 'has an etag method' do
@@ -628,9 +628,9 @@ describe Rack::Response do
     response.cache!(1000)
     response.do_not_cache!
 
-    expect(response['Cache-Control']).must_equal "no-cache, must-revalidate"
+    expect(response['cache-control']).must_equal "no-cache, must-revalidate"
 
-    expires_header = Time.parse(response['Expires'])
+    expires_header = Time.parse(response['expires'])
     expect(expires_header).must_be :<=, Time.now
   end
 
@@ -641,34 +641,34 @@ describe Rack::Response do
     expires = Time.now + 100 # At least this far into the future
     response.cache!(duration)
 
-    expect(response['Cache-Control']).must_equal "public, max-age=120"
+    expect(response['cache-control']).must_equal "public, max-age=120"
 
-    expires_header = Time.parse(response['Expires'])
+    expires_header = Time.parse(response['expires'])
     expect(expires_header).must_be :>=, expires
   end
 end
 
 describe Rack::Response, 'headers' do
   before do
-    @response = Rack::Response.new([], 200, { 'Foo' => '1' })
+    @response = Rack::Response.new([], 200, { 'foo' => '1' })
   end
 
   it 'has_header?' do
-    lambda { @response.has_header? nil }.must_raise NoMethodError
+    lambda { @response.has_header? nil }.must_raise ArgumentError
 
     @response.has_header?('Foo').must_equal true
     @response.has_header?('foo').must_equal true
   end
 
   it 'get_header' do
-    lambda { @response.get_header nil }.must_raise NoMethodError
+    lambda { @response.get_header nil }.must_raise ArgumentError
 
     @response.get_header('Foo').must_equal '1'
     @response.get_header('foo').must_equal '1'
   end
 
   it 'set_header' do
-    lambda { @response.set_header nil, '1' }.must_raise NoMethodError
+    lambda { @response.set_header nil, '1' }.must_raise ArgumentError
 
     @response.set_header('Foo', '2').must_equal '2'
     @response.has_header?('Foo').must_equal true
@@ -680,7 +680,7 @@ describe Rack::Response, 'headers' do
   end
 
   it 'add_header' do
-    lambda { @response.add_header nil, '1' }.must_raise NoMethodError
+    lambda { @response.add_header nil, '1' }.must_raise ArgumentError
 
     # Add a value to an existing header
     @response.add_header('Foo', '2').must_equal '1,2'
@@ -702,7 +702,7 @@ describe Rack::Response, 'headers' do
   end
 
   it 'delete_header' do
-    lambda { @response.delete_header nil }.must_raise NoMethodError
+    lambda { @response.delete_header nil }.must_raise ArgumentError
 
     @response.delete_header('Foo').must_equal '1'
     (!!@response.has_header?('Foo')).must_equal false

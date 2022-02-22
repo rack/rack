@@ -157,8 +157,8 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(lambda { |req|
         [
           401,
-          { "Content-Type" => "text/plain",
-            "WWW-Authenticate" => "Bar realm=X\nBaz realm=Y" },
+          { "content-type" => "text/plain",
+            "www-authenticate" => "Bar realm=X\nBaz realm=Y" },
           [""]
         ]
       })
@@ -198,15 +198,15 @@ describe Rack::Handler::WEBrick do
     Rack::Lint.new(lambda{ |req|
       [
         200,
-        { "Transfer-Encoding" => "chunked" },
+        { "transfer-encoding" => "chunked" },
         ["7\r\nchunked\r\n0\r\n\r\n"]
       ]
     })
 
     Net::HTTP.start(@host, @port){ |http|
       res = http.get("/chunked")
-      res["Transfer-Encoding"].must_equal "chunked"
-      res["Content-Length"].must_be_nil
+      res["transfer-encoding"].must_equal "chunked"
+      res["content-length"].must_be_nil
       res.body.must_equal "chunked"
     }
   end

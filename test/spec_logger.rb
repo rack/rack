@@ -15,7 +15,7 @@ describe Rack::Logger do
     log.info("Program started")
     log.warn("Nothing to do!")
 
-    [200, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]]
+    [200, { 'content-type' => 'text/plain' }, ["Hello, World!"]]
   }
 
   it "conform to Rack::Lint" do

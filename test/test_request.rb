@@ -16,7 +16,7 @@ class TestRequest
     minienv.delete_if { |k, v| NOSERIALIZE.any? { |c| v.kind_of?(c) } }
     body = minienv.to_yaml
     size = body.bytesize
-    [status, { "Content-Type" => "text/yaml", "Content-Length" => size.to_s }, [body]]
+    [status, { "content-type" => "text/yaml", "content-length" => size.to_s }, [body]]
   end
 
   module Helpers
@@ -70,7 +70,7 @@ end
 
 class StreamingRequest
   def self.call(env)
-    [200, { "Content-Type" => "text/plain" }, new]
+    [200, { "content-type" => "text/plain" }, new]
   end
 
   def each

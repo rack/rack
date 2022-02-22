@@ -16,14 +16,14 @@ describe Rack::ShowStatus do
   it "provide a default status message" do
     req = Rack::MockRequest.new(
       show_status(lambda{|env|
-        [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
+        [404, { "content-type" => "text/plain", "content-length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
-    res["Content-Type"].must_equal "text/html"
+    res["content-type"].must_equal "text/html"
     assert_match(res, /404/)
     assert_match(res, /Not Found/)
   end
@@ -33,14 +33,14 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
-          [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
+          [404, { "content-type" => "text/plain", "content-length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
-    res["Content-Type"].must_equal "text/html"
+    res["content-type"].must_equal "text/html"
     assert_match(res, /404/)
     assert_match(res, /Not Found/)
     assert_match(res, /too meta/)
@@ -51,14 +51,14 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = ['gone too meta.']
-          [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
+          [404, { "content-type" => "text/plain", "content-length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
-    res["Content-Type"].must_equal "text/html"
+    res["content-type"].must_equal "text/html"
     assert_includes(res.body, '404')
     assert_includes(res.body, 'Not Found')
     assert_includes(res.body, '[&quot;gone too meta.&quot;]')
@@ -70,13 +70,13 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = detail
-          [500, { "Content-Type" => "text/plain", "Content-Length" => "0" }, []]
+          [500, { "content-type" => "text/plain", "content-length" => "0" }, []]
     }))
 
     res = req.get("/", lint: true)
     res.wont_be_empty
 
-    res["Content-Type"].must_equal "text/html"
+    res["content-type"].must_equal "text/html"
     assert_match(res, /500/)
     res.wont_include detail
     res.body.must_include Rack::Utils.escape_html(detail)
@@ -86,7 +86,7 @@ describe Rack::ShowStatus do
     req = Rack::MockRequest.new(
       show_status(
         lambda{|env|
-          [404, { "Content-Type" => "text/plain", "Content-Length" => "4" }, ["foo!"]]
+          [404, { "content-type" => "text/plain", "content-length" => "4" }, ["foo!"]]
     }))
 
     res = req.get("/", lint: true)
@@ -96,13 +96,13 @@ describe Rack::ShowStatus do
   end
 
   it "pass on original headers" do
-    headers = { "WWW-Authenticate" => "Basic blah" }
+    headers = { "www-authenticate" => "Basic blah" }
 
     req = Rack::MockRequest.new(
       show_status(lambda{|env| [401, headers, []] }))
     res = req.get("/", lint: true)
 
-    res["WWW-Authenticate"].must_equal "Basic blah"
+    res["www-authenticate"].must_equal "Basic blah"
   end
 
   it "replace existing messages if there is detail" do
@@ -110,15 +110,15 @@ describe Rack::ShowStatus do
       show_status(
         lambda{|env|
           env["rack.showstatus.detail"] = "gone too meta."
-          [404, { "Content-Type" => "text/plain", "Content-Length" => "4" }, ["foo!"]]
+          [404, { "content-type" => "text/plain", "content-length" => "4" }, ["foo!"]]
     }))
 
     res = req.get("/", lint: true)
     res.must_be :not_found?
     res.wont_be_empty
 
-    res["Content-Type"].must_equal "text/html"
-    res["Content-Length"].wont_equal "4"
+    res["content-type"].must_equal "text/html"
+    res["content-length"].wont_equal "4"
     assert_match(res, /404/)
     assert_match(res, /too meta/)
     res.body.wont_match(/foo/)
@@ -133,7 +133,7 @@ describe Rack::ShowStatus do
 
     req = Rack::MockRequest.new(
       show_status(lambda{|env|
-        [404, { "Content-Type" => "text/plain", "Content-Length" => "0" }, body]
+        [404, { "content-type" => "text/plain", "content-length" => "0" }, body]
     }))
 
     response = req.get("/", lint: true)

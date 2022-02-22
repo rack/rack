@@ -23,81 +23,81 @@ describe Rack::ETag do
   end
 
   it "set ETag if none is set if status is 200" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]] }
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+    response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
   it "set ETag if none is set if status is 201" do
-    app = lambda { |env| [201, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]] }
+    app = lambda { |env| [201, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+    response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
-  it "set Cache-Control to 'max-age=0, private, must-revalidate' (default) if none is set" do
-    app = lambda { |env| [201, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]] }
+  it "set cache-control to 'max-age=0, private, must-revalidate' (default) if none is set" do
+    app = lambda { |env| [201, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['Cache-Control'].must_equal 'max-age=0, private, must-revalidate'
+    response[1]['cache-control'].must_equal 'max-age=0, private, must-revalidate'
   end
 
-  it "set Cache-Control to chosen one if none is set" do
-    app = lambda { |env| [201, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]] }
+  it "set cache-control to chosen one if none is set" do
+    app = lambda { |env| [201, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app, nil, 'public').call(request)
-    response[1]['Cache-Control'].must_equal 'public'
+    response[1]['cache-control'].must_equal 'public'
   end
 
-  it "set a given Cache-Control even if digest could not be calculated" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, []] }
+  it "set a given cache-control even if digest could not be calculated" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, []] }
     response = etag(app, 'no-cache').call(request)
-    response[1]['Cache-Control'].must_equal 'no-cache'
+    response[1]['cache-control'].must_equal 'no-cache'
   end
 
-  it "not set Cache-Control if it is already set" do
-    app = lambda { |env| [201, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'public' }, ["Hello, World!"]] }
+  it "not set cache-control if it is already set" do
+    app = lambda { |env| [201, { 'content-type' => 'text/plain', 'cache-control' => 'public' }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['Cache-Control'].must_equal 'public'
+    response[1]['cache-control'].must_equal 'public'
   end
 
-  it "not set Cache-Control if directive isn't present" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, ["Hello, World!"]] }
+  it "not set cache-control if directive isn't present" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app, nil, nil).call(request)
-    response[1]['Cache-Control'].must_be_nil
+    response[1]['cache-control'].must_be_nil
   end
 
   it "not change ETag if it is already set" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'ETag' => '"abc"' }, ["Hello, World!"]] }
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'etag' => '"abc"' }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "\"abc\""
+    response[1]['etag'].must_equal "\"abc\""
   end
 
   it "not set ETag if body is empty" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Last-Modified' => Time.now.httpdate }, []] }
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'last-modified' => Time.now.httpdate }, []] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_be_nil
+    response[1]['etag'].must_be_nil
   end
 
-  it "not set ETag if Last-Modified is set" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Last-Modified' => Time.now.httpdate }, ["Hello, World!"]] }
+  it "not set ETag if last-modified is set" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'last-modified' => Time.now.httpdate }, ["Hello, World!"]] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_be_nil
+    response[1]['etag'].must_be_nil
   end
 
   it "not set ETag if a sendfile_body is given" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain' }, sendfile_body] }
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, sendfile_body] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_be_nil
+    response[1]['etag'].must_be_nil
   end
 
   it "not set ETag if a status is not 200 or 201" do
-    app = lambda { |env| [401, { 'Content-Type' => 'text/plain' }, ['Access denied.']] }
+    app = lambda { |env| [401, { 'content-type' => 'text/plain' }, ['Access denied.']] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_be_nil
+    response[1]['etag'].must_be_nil
   end
 
   it "set ETag even if no-cache is given" do
-    app = lambda { |env| [200, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'no-cache, must-revalidate' }, ['Hello, World!']] }
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'cache-control' => 'no-cache, must-revalidate' }, ['Hello, World!']] }
     response = etag(app).call(request)
-    response[1]['ETag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+    response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
   it "close the original body" do

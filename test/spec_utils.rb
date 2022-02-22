@@ -131,30 +131,12 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query(nil).must_equal({})
   end
 
-  it "should warn using deprecated Rack::Util.key_space_limit=" do
-    begin
-      warn_arg = nil
-      Rack::Utils.define_singleton_method(:warn) do |*args|
-        warn_arg = args.first
-      end
-      Rack::Utils.key_space_limit = 65536
-      warn_arg.must_equal("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack")
-    ensure
-      Rack::Utils.singleton_class.send(:remove_method, :warn)
-    end
+  deprecated "should warn using deprecated Rack::Util.key_space_limit=" do
+    Rack::Utils.key_space_limit = 65536
   end
 
-  it "should warn using deprecated Rack::Util.key_space_limit" do
-    begin
-      warn_arg = nil
-      Rack::Utils.define_singleton_method(:warn) do |*args|
-        warn_arg = args.first
-      end
-      Rack::Utils.key_space_limit
-      warn_arg.must_equal("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack")
-    ensure
-      Rack::Utils.singleton_class.send(:remove_method, :warn)
-    end
+  deprecated "should warn using deprecated Rack::Util.key_space_limit" do
+    Rack::Utils.key_space_limit
   end
 
   it "raise an exception if the params are too deep" do
@@ -604,26 +586,26 @@ describe Rack::Utils, "cookies" do
   end
 
   it "sets and deletes cookies in header hash" do
-    header = { 'Set-Cookie' => '' }
+    header = { 'set-cookie' => '' }
     Rack::Utils.set_cookie_header!(header, 'name', 'value').must_be_nil
-    header['Set-Cookie'].must_equal 'name=value'
+    header['set-cookie'].must_equal 'name=value'
     Rack::Utils.set_cookie_header!(header, 'name2', 'value2').must_be_nil
-    header['Set-Cookie'].must_equal "name=value\nname2=value2"
+    header['set-cookie'].must_equal "name=value\nname2=value2"
     Rack::Utils.set_cookie_header!(header, 'name2', 'value3').must_be_nil
-    header['Set-Cookie'].must_equal "name=value\nname2=value2\nname2=value3"
+    header['set-cookie'].must_equal "name=value\nname2=value2\nname2=value3"
 
     Rack::Utils.delete_cookie_header!(header, 'name2').must_be_nil
-    header['Set-Cookie'].must_equal "name=value\nname2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    header['set-cookie'].must_equal "name=value\nname2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
-    header['Set-Cookie'].must_equal "name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT\nname=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    header['set-cookie'].must_equal "name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT\nname=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
-    header = { 'Set-Cookie' => nil }
+    header = { 'set-cookie' => nil }
     Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
-    header['Set-Cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    header['set-cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
 
-    header = { 'Set-Cookie' => [] }
+    header = { 'set-cookie' => [] }
     Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
-    header['Set-Cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    header['set-cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
   end
 
 end
@@ -676,167 +658,24 @@ describe Rack::Utils, "byte_range" do
 end
 
 describe Rack::Utils::HeaderHash do
-  it "retain header case" do
+  deprecated ".[] returns instance of Rack::Headers" do
+    h = Rack::Utils::HeaderHash["Content-MD5" => "d5ff4e2a0 ..."]
+    h.must_be_kind_of Rack::Headers
+    h['content-md5'].must_equal "d5ff4e2a0 ..."
+
+    h = Rack::Utils::HeaderHash[[["Content-MD5","d5ff4e2a0 ..."]]]
+    h.must_be_kind_of Rack::Headers
+    h['content-md5'].must_equal "d5ff4e2a0 ..."
+  end
+
+  deprecated ".new returns instance of Rack::Headers" do
     h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    h['ETag'] = 'Boo!'
-    h.to_hash.must_equal "Content-MD5" => "d5ff4e2a0 ...", "ETag" => 'Boo!'
-  end
+    h.must_be_kind_of Rack::Headers
+    h['content-md5'].must_equal "d5ff4e2a0 ..."
 
-  it "check existence of keys case insensitively" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    h.must_include 'content-md5'
-    h.wont_include 'ETag'
-  end
-
-  it "fetches values via case-insensitive keys" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    v = h.fetch("content-MD5", "nope")
-    v.must_equal "d5ff4e2a0 ..."
-  end
-
-  it "fetches values via case-insensitive keys without defaults" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    v = h.fetch("content-MD5")
-    v.must_equal "d5ff4e2a0 ..."
-  end
-
-  it "correctly raises an exception on fetch for a non-existent key" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-
-    -> { h.fetch("Set-Cookie") }.must_raise(KeyError)
-  end
-
-  it "returns default on fetch miss" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-
-    v = h.fetch("Missing-Header", "default")
-    v.must_equal "default"
-  end
-
-  it "returns default on fetch miss using block" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-
-    v = h.fetch("Missing-Header") { |el| "Didn't find #{el}" }
-    v.must_equal "Didn't find Missing-Header"
-  end
-
-  it "create deep HeaderHash copy on dup" do
-    h1 = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    h2 = h1.dup
-
-    h1.must_include 'content-md5'
-    h2.must_include 'content-md5'
-
-    h2.delete("Content-MD5")
-
-    h2.wont_include 'content-md5'
-    h1.must_include 'content-md5'
-  end
-
-  it "merge case-insensitively" do
-    h = Rack::Utils::HeaderHash.new("ETag" => 'HELLO', "content-length" => '123')
-    merged = h.merge("Etag" => 'WORLD', 'Content-Length' => '321', "Foo" => 'BAR')
-    merged.must_equal "Etag" => 'WORLD', "Content-Length" => '321', "Foo" => 'BAR'
-  end
-
-  it "overwrite case insensitively and assume the new key's case" do
-    h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
-    h["foo-bar"] = "bizzle"
-    h["FOO-BAR"].must_equal "bizzle"
-    h.length.must_equal 1
-    h.to_hash.must_equal "foo-bar" => "bizzle"
-  end
-
-  it "be converted to real Hash" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h.to_hash.must_be_instance_of Hash
-  end
-
-  it "convert Array values to Strings when converting to Hash" do
-    h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
-    h.to_hash.must_equal({ "foo" => "bar\nbaz" })
-  end
-
-  it "replace hashes correctly" do
-    h = Rack::Utils::HeaderHash.new("Foo-Bar" => "baz")
-    j = { "foo" => "bar" }
-    h.replace(j)
-    h["foo"].must_equal "bar"
-  end
-
-  it "be able to delete the given key case-sensitively" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h.delete("foo")
-    h["foo"].must_be_nil
-    h["FOO"].must_be_nil
-  end
-
-  it "be able to delete the given key case-insensitively" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h.delete("FOO")
-    h["foo"].must_be_nil
-    h["FOO"].must_be_nil
-  end
-
-  it "return the deleted value when #delete is called on an existing key" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h.delete("Foo").must_equal "bar"
-  end
-
-  it "return nil when #delete is called on a non-existent key" do
-    h = Rack::Utils::HeaderHash.new("foo" => "bar")
-    h.delete("Hello").must_be_nil
-  end
-
-  it "dups given HeaderHash" do
-    a = Rack::Utils::HeaderHash.new("foo" => "bar")
-    b = Rack::Utils::HeaderHash.new(a)
-    b.object_id.wont_equal a.object_id
-    b.must_equal a
-  end
-
-  it "convert Array values to Strings when responding to #each" do
-    h = Rack::Utils::HeaderHash.new("foo" => ["bar", "baz"])
-    h.each do |k, v|
-      k.must_equal "foo"
-      v.must_equal "bar\nbaz"
-    end
-  end
-
-  it "not create headers out of thin air" do
-    h = Rack::Utils::HeaderHash.new
-    h['foo']
-    h['foo'].must_be_nil
-    h.wont_include 'foo'
-  end
-
-  it "uses memoized header hash" do
-    env = {}
-    headers = Rack::Utils::HeaderHash.new({ 'content-type' => "text/plain", "content-length" => "3" })
-
-    app = lambda do |env|
-      [200, headers, []]
-    end
-
-    app = Rack::ContentLength.new(app)
-
-    response = app.call(env)
-    assert_same response[1], headers
-  end
-
-  it "duplicates header hash" do
-    env = {}
-    headers = Rack::Utils::HeaderHash.new({ 'content-type' => "text/plain", "content-length" => "3" })
-    headers.freeze
-
-    app = lambda do |env|
-      [200, headers, []]
-    end
-
-    app = Rack::ContentLength.new(app)
-
-    response = app.call(env)
-    refute_same response[1], headers
+    h = Rack::Utils::HeaderHash.new([["Content-MD5","d5ff4e2a0 ..."]])
+    h.must_be_kind_of Rack::Headers
+    h['content-md5'].must_equal "d5ff4e2a0 ..."
   end
 end
 
@@ -850,7 +689,7 @@ describe Rack::Utils::Context do
   test_target1 = proc{|e| e.to_s + ' world' }
   test_target2 = proc{|e| e.to_i + 2 }
   test_target3 = proc{|e| nil }
-  test_target4 = proc{|e| [200, { 'Content-Type' => 'text/plain', 'Content-Length' => '0' }, ['']] }
+  test_target4 = proc{|e| [200, { 'content-type' => 'text/plain', 'content-length' => '0' }, ['']] }
   test_app = ContextTest.new test_target4
 
   it "set context correctly" do

@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 module Rack
+  # Request env keys
   HTTP_HOST         = 'HTTP_HOST'
   HTTP_PORT         = 'HTTP_PORT'
   HTTPS             = 'HTTPS'
@@ -12,14 +13,16 @@ module Rack
   SERVER_PROTOCOL   = 'SERVER_PROTOCOL'
   SERVER_NAME       = 'SERVER_NAME'
   SERVER_PORT       = 'SERVER_PORT'
-  CACHE_CONTROL     = 'Cache-Control'
-  EXPIRES           = 'Expires'
-  CONTENT_LENGTH    = 'Content-Length'
-  CONTENT_TYPE      = 'Content-Type'
-  SET_COOKIE        = 'Set-Cookie'
-  TRANSFER_ENCODING = 'Transfer-Encoding'
   HTTP_COOKIE       = 'HTTP_COOKIE'
-  ETAG              = 'ETag'
+  
+  # Response Header Keys
+  CACHE_CONTROL     = 'cache-control'
+  CONTENT_LENGTH    = 'content-length'
+  CONTENT_TYPE      = 'content-type'
+  ETAG              = 'etag'
+  EXPIRES           = 'expires'
+  SET_COOKIE        = 'set-cookie'
+  TRANSFER_ENCODING = 'transfer-encoding'
 
   # HTTP method verbs
   GET     = 'GET'

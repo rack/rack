@@ -11,6 +11,12 @@ All notable changes to this project will be documented in this file. For info on
 ### SPEC Changes
 
 - rack.input is no longer required to be rewindable.
+- rack.multithread/rack.multiprocess/rack.run_once are no longer required environment keys.
+- Response status must now be an integer greater than or equal to 100.
+- Response headers must now be an unfrozen hash.
+- Response header keys can no longer include uppercase characters.
+- Response body can now respond to #call instead of #each, for the equivalent of response hijacking in previous versions.
+- Middleware must no longer call #each on the body, but they can call #to_ary on the body if it responds to #to_ary.
 
 ### Removed
 

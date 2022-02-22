@@ -5,6 +5,7 @@ require 'time'
 require_relative 'constants'
 require_relative 'utils'
 require_relative 'media_type'
+require_relative 'headers'
 
 module Rack
   # Rack::Response provides a convenient interface to create a Rack
@@ -39,13 +40,22 @@ module Rack
     # @param body [nil, #each, #to_str] the response body.
     # @param status [Integer] the integer status as defined by the
     # HTTP protocol RFCs.
-    # @param headers [#each] a list of key-value header pairs which
+    # @param headers [Hash] a hash of key-value header pairs which
     # conform to the HTTP protocol RFCs.
     #
     # Providing a body which responds to #to_str is legacy behaviour.
     def initialize(body = nil, status = 200, headers = {})
       @status = status.to_i
-      @headers = Utils::HeaderHash[headers]
+
+      unless headers.is_a?(Hash)
+        warn "Proving non-hash headers to Rack::Response is deprecated and will be removed in Rack 3.1", uplevel: 1 
+      end
+
+      @headers = Headers.new
+      # Convert headers input to a plain hash with lowercase keys.
+      headers.each do |k, v|
+        @headers[k] = v
+      end
 
       @writer = self.method(:append)
 
@@ -127,10 +137,22 @@ module Rack
       @block == nil && @body.empty?
     end
 
-    def has_header?(key);   headers.key? key;   end
-    def get_header(key);    headers[key];       end
-    def set_header(key, v); headers[key] = v;   end
-    def delete_header(key); headers.delete key; end
+    def has_header?(key)
+      raise ArgumentError unless key.is_a?(String)
+      headers.key? key
+    end
+    def get_header(key)
+      raise ArgumentError unless key.is_a?(String)
+      headers[key]
+    end
+    def set_header(key, v)
+      raise ArgumentError unless key.is_a?(String)
+      headers[key] = v
+    end
+    def delete_header(key)
+      raise ArgumentError unless key.is_a?(String)
+      headers.delete key
+    end
 
     alias :[] :get_header
     alias :[]= :set_header
@@ -173,6 +195,8 @@ module Rack
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
       def add_header(key, v)
+        raise ArgumentError unless key.is_a?(String)
+
         if v.nil?
           get_header key
         elsif has_header? key
@@ -206,11 +230,11 @@ module Rack
       end
 
       def location
-        get_header "Location"
+        get_header "location"
       end
 
       def location=(location)
-        set_header "Location", location
+        set_header "location", location
       end
 
       def set_cookie(key, value)

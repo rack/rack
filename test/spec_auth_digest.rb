@@ -20,7 +20,7 @@ describe Rack::Auth::Digest::MD5 do
   def unprotected_app
     Rack::Lint.new lambda { |env|
       friend = Rack::Utils.parse_query(env["QUERY_STRING"])["friend"]
-      [ 200, { 'Content-Type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
+      [ 200, { 'content-type' => 'text/plain' }, ["Hi #{env['REMOTE_USER']}#{friend ? " and #{friend}" : ''}"] ]
     }
   end
 
@@ -91,7 +91,7 @@ describe Rack::Auth::Digest::MD5 do
       sleep wait
     end
 
-    challenge = response['WWW-Authenticate'].split(' ', 2).last
+    challenge = response['www-authenticate'].split(' ', 2).last
 
     params = Rack::Auth::Digest::Params.parse(challenge)
 
@@ -112,15 +112,15 @@ describe Rack::Auth::Digest::MD5 do
   def assert_digest_auth_challenge(response)
     response.must_be :client_error?
     response.status.must_equal 401
-    response.must_include 'WWW-Authenticate'
-    response.headers['WWW-Authenticate'].must_match(/^Digest /)
+    response.must_include 'www-authenticate'
+    response.headers['www-authenticate'].must_match(/^Digest /)
     response.body.must_be :empty?
   end
 
   def assert_bad_request(response)
     response.must_be :client_error?
     response.status.must_equal 400
-    response.wont_include 'WWW-Authenticate'
+    response.wont_include 'www-authenticate'
   end
 
   it 'challenge when no credentials are specified' do
@@ -170,7 +170,7 @@ describe Rack::Auth::Digest::MD5 do
       request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 1 do |response|
         response.status.must_equal 200
         response.body.to_s.must_equal 'Hi Alice'
-        response.headers['WWW-Authenticate'].wont_match(/\bstale=true\b/)
+        response.headers['www-authenticate'].wont_match(/\bstale=true\b/)
       end
     ensure
       Rack::Auth::Digest::Nonce.time_limit = nil
@@ -183,7 +183,7 @@ describe Rack::Auth::Digest::MD5 do
 
       request_with_digest_auth 'GET', '/', 'Alice', 'correct-password', wait: 2 do |response|
         assert_digest_auth_challenge response
-        response.headers['WWW-Authenticate'].must_match(/\bstale=true\b/)
+        response.headers['www-authenticate'].must_match(/\bstale=true\b/)
       end
     ensure
       Rack::Auth::Digest::Nonce.time_limit = nil

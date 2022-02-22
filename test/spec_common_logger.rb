@@ -15,15 +15,15 @@ describe Rack::CommonLogger do
 
   app = Rack::Lint.new lambda { |env|
     [200,
-     { "Content-Type" => "text/html", "Content-Length" => length.to_s },
+     { "content-type" => "text/html", "content-length" => length.to_s },
      [obj]]}
   app_without_length = Rack::Lint.new lambda { |env|
     [200,
-     { "Content-Type" => "text/html" },
+     { "content-type" => "text/html" },
      []]}
   app_with_zero_length = Rack::Lint.new lambda { |env|
     [200,
-     { "Content-Type" => "text/html", "Content-Length" => "0" },
+     { "content-type" => "text/html", "content-length" => "0" },
      []]}
 
   it "log to rack.errors by default" do

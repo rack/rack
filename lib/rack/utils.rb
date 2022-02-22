@@ -9,6 +9,7 @@ require 'time'
 
 require_relative 'query_parser'
 require_relative 'mime'
+require_relative 'headers'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
@@ -72,12 +73,12 @@ module Rack
     end
 
     def self.key_space_limit
-      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in Rack 3.1", uplevel: 1)
       65536
     end
 
     def self.key_space_limit=(v)
-      warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in a future version of Rack", uplevel: 1)
+      warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in Rack 3.1", uplevel: 1)
     end
 
     if defined?(Process::CLOCK_MONOTONIC)
@@ -404,98 +405,32 @@ module Rack
       end
     end
 
-    # A case-insensitive Hash that preserves the original case of a
+    # A wrapper around Headers
     # header when set.
     #
     # @api private
     class HeaderHash < Hash # :nodoc:
       def self.[](headers)
-        if headers.is_a?(HeaderHash) && !headers.frozen?
+        warn "Rack::Utils::HeaderHash is deprecated and will be removed in Rack 3.1, switch to Rack::Headers", uplevel: 1
+        if headers.is_a?(Headers) && !headers.frozen?
           return headers
-        else
-          return self.new(headers)
         end
+
+        new_headers = Headers.new
+        headers.each{|k,v| new_headers[k] = v}
+        new_headers
       end
 
-      def initialize(hash = {})
-        super()
-        @names = {}
-        hash.each { |k, v| self[k] = v }
+      def self.new(hash = {})
+        warn "Rack::Utils::HeaderHash is deprecated and will be removed in Rack 3.1, switch to Rack::Headers", uplevel: 1
+        headers = Headers.new
+        hash.each{|k,v| headers[k] = v}
+        headers
       end
 
-      # on dup/clone, we need to duplicate @names hash
-      def initialize_copy(other)
-        super
-        @names = other.names.dup
+      def allocate
+        raise TypeError, "cannot allocate HeaderHash"
       end
-
-      # on clear, we need to clear @names hash
-      def clear
-        super
-        @names.clear
-      end
-
-      def each
-        super do |k, v|
-          yield(k, v.respond_to?(:to_ary) ? v.to_ary.join("\n") : v)
-        end
-      end
-
-      def to_hash
-        hash = {}
-        each { |k, v| hash[k] = v }
-        hash
-      end
-
-      def [](k)
-        super(k) || super(@names[k.downcase])
-      end
-
-      def []=(k, v)
-        canonical = k.downcase.freeze
-        delete k if @names[canonical] && @names[canonical] != k # .delete is expensive, don't invoke it unless necessary
-        @names[canonical] = k
-        super k, v
-      end
-
-      def delete(k)
-        canonical = k.downcase
-        result = super @names.delete(canonical)
-        result
-      end
-
-      def include?(k)
-        super || @names.include?(k.downcase)
-      end
-
-      alias_method :has_key?, :include?
-      alias_method :member?, :include?
-      alias_method :key?, :include?
-
-      def fetch(k, *args)
-        super(@names[k.downcase] || k, *args)
-      end
-
-      def merge!(other)
-        other.each { |k, v| self[k] = v }
-        self
-      end
-
-      def merge(other)
-        hash = dup
-        hash.merge! other
-      end
-
-      def replace(other)
-        clear
-        other.each { |k, v| self[k] = v }
-        self
-      end
-
-      protected
-        def names
-          @names
-        end
     end
 
     # Every standard HTTP code mapped to the appropriate message.
