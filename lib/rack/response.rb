@@ -36,7 +36,7 @@ module Rack
     # Initialize the response object with the specified body, status
     # and headers.
     #
-    # @param body [nil, #each, #call, #to_s] the response body.
+    # @param body [nil, #each, #call, #to_str] the response body.
     # @param status [Integer] the integer status as defined by the
     # HTTP protocol RFCs.
     # @param headers [#each] a list of key-value header pairs which
