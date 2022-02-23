@@ -41,7 +41,7 @@ module Rack
     # Initialize the response object with the specified body, status
     # and headers.
     #
-    # @param body [nil, #each, #to_str] the response body.
+    # @param body [nil, #each, #call, #to_s] the response body.
     # @param status [Integer] the integer status as defined by the
     # HTTP protocol RFCs.
     # @param headers [Hash] a hash of key-value header pairs which
@@ -76,7 +76,7 @@ module Rack
         @length = body.to_str.bytesize
       else
         @body = body
-        @buffered = false
+        @buffered = nil # undetermined as of yet.
         @length = 0
       end
 
@@ -293,27 +293,31 @@ module Rack
     protected
 
       def buffered_body!
-        return if @buffered
+        if @buffered.nil?
+          if @body.is_a?(Array)
+            # The user supplied body was an array:
+            @body = @body.compact
+            @body.each do |part|
+              @length += part.to_s.bytesize
+            end
+          elsif @body.respond_to?(:each)
+            # Turn the user supplied body into a buffered array:
+            body = @body
+            @body = Array.new
 
-        if @body.is_a?(Array)
-          # The user supplied body was an array:
-          @body = @body.compact
-          @body.each do |part|
-            @length += part.to_s.bytesize
+            body.each do |part|
+              @writer.call(part.to_s)
+            end
+
+            body.close if body.respond_to?(:close)
+            
+            @buffered = true
+          else
+            @buffered = false
           end
-        else
-          # Turn the user supplied body into a buffered array:
-          body = @body
-          @body = Array.new
-
-          body.each do |part|
-            @writer.call(part.to_s)
-          end
-
-          body.close if body.respond_to?(:close)
         end
 
-        @buffered = true
+        return @buffered
       end
 
       def append(chunk)
