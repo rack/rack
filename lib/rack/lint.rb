@@ -655,7 +655,7 @@ module Rack
           raise LintError, "headers object should not be frozen, but is"
         end
 
-        headers.each { |key, value|
+        headers.each do |key, value|
           ## The header keys must be Strings.
           unless key.kind_of? String
             raise LintError, "header key must be a string, was #{key.class}"
@@ -663,7 +663,7 @@ module Rack
 
           ## Special headers starting "rack." are for communicating with the
           ## server, and must not be sent back to the client.
-          next if key =~ /^rack\..+$/
+          next if key.start_with?("rack.")
 
           ## The header must not contain a +Status+ key.
           raise LintError, "header must not contain status" if key == "status"
@@ -673,19 +673,23 @@ module Rack
           ## Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
-          ## The values of the header must be Strings,
-          unless value.kind_of? String
-            raise LintError, "a header value must be a String, but the value of '#{key}' is a #{value.class}"
+          ## Header values must be either a String instance,
+          if value.kind_of?(String)
+            check_header_value(key, value)
+          elsif value.kind_of?(Array)
+            ## or an Array of String instances,
+            value.each{|value| check_header_value(key, value)}
+          else
+            raise LintError, "a header value must be a String or Array of Strings, but the value of '#{key}' is a #{value.class}"
           end
-          ## consisting of lines (for multiple header values, e.g. multiple
-          ## <tt>Set-Cookie</tt> values) separated by "\\n".
-          value.split("\n").each { |item|
-            ## The lines must not contain characters below 037.
-            if item =~ /[\000-\037]/
-              raise LintError, "invalid header value #{key}: #{item.inspect}"
-            end
-          }
-        }
+        end
+      end
+
+      def check_header_value(key, value)
+        ## such that each String instance must not contain characters below 037.
+        if value =~ /[\000-\037]/
+          raise LintError, "invalid header value #{key}: #{value.inspect}"
+        end
       end
 
       ##

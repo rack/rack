@@ -466,21 +466,21 @@ describe Rack::MockResponse, 'headers' do
     lambda { @res.add_header nil, '1' }.must_raise ArgumentError
 
     # Sets header on first addition
-    @res.add_header('FOO', '1').must_equal '1,1'
-    @res.get_header('FOO').must_equal '1,1'
+    @res.add_header('FOO', '1').must_equal ['1', '1']
+    @res.get_header('FOO').must_equal ['1', '1']
 
     # Ignores nil additions
-    @res.add_header('FOO', nil).must_equal '1,1'
-    @res.get_header('FOO').must_equal '1,1'
+    @res.add_header('FOO', nil).must_equal ['1', '1']
+    @res.get_header('FOO').must_equal ['1', '1']
 
     # Converts additions to strings
-    @res.add_header('FOO', 2).must_equal '1,1,2'
-    @res.get_header('FOO').must_equal '1,1,2'
+    @res.add_header('FOO', 2).must_equal ['1', '1', '2']
+    @res.get_header('FOO').must_equal ['1', '1', '2']
 
     # Respects underlying case-sensitivity
-    @res.add_header('Foo', 'yep').must_equal '1,1,2,yep'
-    @res.get_header('Foo').must_equal '1,1,2,yep'
-    @res.get_header('FOO').must_equal '1,1,2,yep'
+    @res.add_header('Foo', 'yep').must_equal ['1', '1', '2', 'yep']
+    @res.get_header('Foo').must_equal ['1', '1', '2', 'yep']
+    @res.get_header('FOO').must_equal ['1', '1', '2', 'yep']
   end
 
   it 'delete_header' do

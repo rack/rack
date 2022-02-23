@@ -95,15 +95,15 @@ module Rack
         begin
           res.status = status.to_i
           io_lambda = nil
-          headers.each { |k, vs|
-            if k == RACK_HIJACK
-              io_lambda = vs
-            elsif k == "set-cookie"
-              res.cookies.concat vs.split("\n")
+          headers.each { |key, value|
+            if key == RACK_HIJACK
+              io_lambda = value
+            elsif key == "set-cookie"
+              res.cookies.concat(Array(value))
             else
               # Since WEBrick won't accept repeated headers,
               # merge the values per RFC 1945 section 4.2.
-              res[k] = vs.split("\n").join(", ")
+              res[key] = Array(value).join(", ")
             end
           }
 

@@ -143,19 +143,19 @@ module Rack
 
     def has_header?(key)
       raise ArgumentError unless key.is_a?(String)
-      headers.key? key
+      @headers.key?(key)
     end
     def get_header(key)
       raise ArgumentError unless key.is_a?(String)
-      headers[key]
+      @headers[key]
     end
-    def set_header(key, v)
+    def set_header(key, value)
       raise ArgumentError unless key.is_a?(String)
-      headers[key] = v
+      @headers[key] = value
     end
     def delete_header(key)
       raise ArgumentError unless key.is_a?(String)
-      headers.delete key
+      @headers.delete key
     end
 
     alias :[] :get_header
@@ -186,7 +186,7 @@ module Rack
       def redirect?;            [301, 302, 303, 307, 308].include? status; end
 
       def include?(header)
-        has_header? header
+        has_header?(header)
       end
 
       # Add a header that may have multiple values.
@@ -198,15 +198,23 @@ module Rack
       #   assert_equal 'Accept-Encoding,Cookie', response.get_header('Vary')
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-      def add_header(key, v)
+      def add_header(key, value)
         raise ArgumentError unless key.is_a?(String)
 
-        if v.nil?
-          get_header key
-        elsif has_header? key
-          set_header key, "#{get_header key},#{v}"
+        if value.nil?
+          return get_header(key)
+        end
+
+        value = value.to_s
+
+        if header = get_header(key)
+          if header.is_a?(Array)
+            header << value
+          else
+            set_header(key, [header, value])
+          end
         else
-          set_header key, v
+          set_header(key, value)
         end
       end
 
@@ -242,28 +250,31 @@ module Rack
       end
 
       def set_cookie(key, value)
-        cookie_header = get_header SET_COOKIE
-        set_header SET_COOKIE, ::Rack::Utils.add_cookie_to_header(cookie_header, key, value)
+        add_header SET_COOKIE, Utils.set_cookie_header(key, value)
       end
 
       def delete_cookie(key, value = {})
-        set_header SET_COOKIE, ::Rack::Utils.add_remove_cookie_to_header(get_header(SET_COOKIE), key, value)
+        set_header(SET_COOKIE,
+          Utils.delete_set_cookie_header!(
+            get_header(SET_COOKIE), key, value
+          )
+        )
       end
 
       def set_cookie_header
         get_header SET_COOKIE
       end
 
-      def set_cookie_header=(v)
-        set_header SET_COOKIE, v
+      def set_cookie_header=(value)
+        set_header SET_COOKIE, value
       end
 
       def cache_control
         get_header CACHE_CONTROL
       end
 
-      def cache_control=(v)
-        set_header CACHE_CONTROL, v
+      def cache_control=(value)
+        set_header CACHE_CONTROL, value
       end
 
       # Specifies that the content shouldn't be cached. Overrides `cache!` if already called.
@@ -286,8 +297,8 @@ module Rack
         get_header ETAG
       end
 
-      def etag=(v)
-        set_header ETAG, v
+      def etag=(value)
+        set_header ETAG, value
       end
 
     protected
@@ -345,10 +356,21 @@ module Rack
         @headers = headers
       end
 
-      def has_header?(key);   headers.key? key;   end
-      def get_header(key);    headers[key];       end
-      def set_header(key, v); headers[key] = v;   end
-      def delete_header(key); headers.delete key; end
+      def has_header?(key)
+        headers.key?(key)
+      end
+
+      def get_header(key)
+        headers[key]
+      end
+
+      def set_header(key, value)
+        headers[key] = value
+      end
+
+      def delete_header(key)
+        headers.delete(key)
+      end
     end
   end
 end

@@ -365,15 +365,7 @@ describe Rack::Lint do
                        [200, { "foo" => Object.new }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "a header value must be a String, but the value of 'foo' is a Object"
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [200, { "foo" => [1, 2, 3] }, []]
-                     }).call(env({}))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_equal "a header value must be a String, but the value of 'foo' is a Array"
-
+      message.must_equal "a header value must be a String or Array of Strings, but the value of 'foo' is a Object"
 
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -381,11 +373,6 @@ describe Rack::Lint do
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/invalid header/)
-
-    # line ends (010).must_be :allowed in header values.?
-    Rack::Lint.new(lambda { |env|
-                     [200, { "foo-bar" => "one\ntwo\nthree", "content-length" => "0", "content-type" => "text/plain" }, []]
-                   }).call(env({})).first.must_equal 200
 
     lambda {
       Rack::Lint.new(lambda { |env|

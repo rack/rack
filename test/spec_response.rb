@@ -103,16 +103,16 @@ describe Rack::Response do
     response.set_cookie "foo", "bar"
     response["Set-Cookie"].must_equal "foo=bar"
     response.set_cookie "foo2", "bar2"
-    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2"]
     response.set_cookie "foo3", "bar3"
-    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2", "foo3=bar3"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2", "foo3=bar3"]
   end
 
   it "can set cookies with the same name for multiple domains" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "sample.example.com" }
     response.set_cookie "foo", { value: "bar", domain: ".example.com" }
-    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"]
   end
 
   it "formats the Cookie expiration date accordingly to RFC 6265" do
@@ -237,31 +237,35 @@ describe Rack::Response do
     response["Set-Cookie"].must_equal [
       "foo2=bar2",
       "foo=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    ].join("\n")
+    ]
   end
 
   it "can delete cookies with the same name from multiple domains" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "sample.example.com" }
     response.set_cookie "foo", { value: "bar", domain: ".example.com" }
-    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"]
     response.delete_cookie "foo", domain: ".example.com"
-    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
     response.delete_cookie "foo", domain: "sample.example.com"
-    response["Set-Cookie"].must_equal ["foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
-                                         "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+    response["Set-Cookie"].must_equal [
+      "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      "foo=; domain=sample.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
   end
 
   it "only deletes cookies for the domain specified" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "example.com.example.com" }
     response.set_cookie "foo", { value: "bar", domain: "example.com" }
-    response["Set-Cookie"].must_equal ["foo=bar; domain=example.com.example.com", "foo=bar; domain=example.com"].join("\n")
-    response.delete_cookie "foo", domain: "example.com"
-    response["Set-Cookie"].must_equal ["foo=bar; domain=example.com.example.com", "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
-    response.delete_cookie "foo", domain: "example.com.example.com"
-    response["Set-Cookie"].must_equal ["foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
-                                         "foo=; domain=example.com.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+    response["Set-Cookie"].must_equal ["foo=bar; domain=example.com.example.com", "foo=bar; domain=example.com"]
+    response.delete_cookie "foo", { domain: "example.com" }
+    response["Set-Cookie"].must_equal ["foo=bar; domain=example.com.example.com", "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+    response.delete_cookie "foo", { domain: "example.com.example.com" }
+    response["Set-Cookie"].must_equal [
+      "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      "foo=; domain=example.com.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
   end
 
   it "can delete cookies with the same name with different paths" do
@@ -269,11 +273,11 @@ describe Rack::Response do
     response.set_cookie "foo", { value: "bar", path: "/" }
     response.set_cookie "foo", { value: "bar", path: "/path" }
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
-                                         "foo=bar; path=/path"].join("\n")
+                                         "foo=bar; path=/path"]
 
     response.delete_cookie "foo", path: "/path"
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
-                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+                                         "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
   end
 
   it "only delete cookies with the path specified" do
@@ -283,12 +287,12 @@ describe Rack::Response do
     response.set_cookie "foo", value: "bar", path: "/a/b"
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
                                        "foo=bar; path=/a",
-                                       "foo=bar; path=/a/b"].join("\n")
+                                       "foo=bar; path=/a/b"]
 
     response.delete_cookie "foo", path: "/a"
     response["Set-Cookie"].must_equal ["foo=bar; path=/",
                                        "foo=bar; path=/a/b",
-                                       "foo=; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"].join("\n")
+                                       "foo=; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
   end
 
   it "only delete cookies with the domain and path specified" do
@@ -312,7 +316,7 @@ describe Rack::Response do
       "foo=bar; domain=example.com; path=/",
       "foo=bar; domain=example.com; path=/a",
       "foo=bar; domain=example.com; path=/a/b",
-    ].join("\n")
+    ]
 
     response.delete_cookie "foo", path: "/a", domain: "example.com"
     response["Set-Cookie"].must_equal [
@@ -325,7 +329,7 @@ describe Rack::Response do
       "foo=bar; domain=example.com; path=/",
       "foo=bar; domain=example.com; path=/a/b",
       "foo=; domain=example.com; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
-    ].join("\n")
+    ]
 
     response.delete_cookie "foo", path: "/a/b", domain: "example.com"
     response["Set-Cookie"].must_equal [
@@ -338,7 +342,7 @@ describe Rack::Response do
       "foo=bar; domain=example.com; path=/",
       "foo=; domain=example.com; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
       "foo=; domain=example.com; path=/a/b; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
-    ].join("\n")
+    ]
   end
 
   it "can do redirects" do
@@ -683,12 +687,12 @@ describe Rack::Response, 'headers' do
     lambda { @response.add_header nil, '1' }.must_raise ArgumentError
 
     # Add a value to an existing header
-    @response.add_header('Foo', '2').must_equal '1,2'
-    @response.get_header('Foo').must_equal '1,2'
+    @response.add_header('Foo', '2').must_equal ["1", "2"]
+    @response.get_header('Foo').must_equal ["1", "2"]
 
     # Add nil to an existing header
-    @response.add_header('Foo', nil).must_equal '1,2'
-    @response.get_header('Foo').must_equal '1,2'
+    @response.add_header('Foo', nil).must_equal ["1", "2"]
+    @response.get_header('Foo').must_equal ["1", "2"]
 
     # Add nil to a nonexistent header
     @response.add_header('Bar', nil).must_be_nil
