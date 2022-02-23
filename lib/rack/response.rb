@@ -32,7 +32,11 @@ module Rack
     attr_reader :headers
 
     # @deprecated Use {#headers} instead.
-    alias header headers
+    def header
+      warn 'Rack::Response#header is deprecated and will be removed in Rack 3.1', uplevel: 1
+
+      headers
+    end
 
     # Initialize the response object with the specified body, status
     # and headers.
@@ -48,7 +52,7 @@ module Rack
       @status = status.to_i
 
       unless headers.is_a?(Hash)
-        warn "Proving non-hash headers to Rack::Response is deprecated and will be removed in Rack 3.1", uplevel: 1 
+        warn "Providing non-hash headers to Rack::Response is deprecated and will be removed in Rack 3.1", uplevel: 1
       end
 
       @headers = Headers.new
