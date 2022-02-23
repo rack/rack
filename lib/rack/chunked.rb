@@ -4,6 +4,7 @@ require_relative 'constants'
 require_relative 'utils'
 
 module Rack
+  warn "Rack::Chunked is deprecated and will be removed in Rack 3.1", uplevel: 1
 
   # Middleware that applies chunked transfer encoding to response bodies
   # when the response does not include a Content-Length header.
