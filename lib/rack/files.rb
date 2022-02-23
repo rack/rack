@@ -4,6 +4,7 @@ require 'time'
 
 require_relative 'constants'
 require_relative 'head'
+require_relative 'headers'
 require_relative 'utils'
 require_relative 'request'
 require_relative 'mime'
@@ -32,7 +33,7 @@ module Rack
 
     attr_reader :root
 
-    def initialize(root, headers = {}, default_mime = 'text/plain')
+    def initialize(root, headers = nil, default_mime = 'text/plain')
       @root = (::File.expand_path(root) if root)
       @headers = headers
       @default_mime = default_mime
@@ -80,7 +81,7 @@ module Rack
       last_modified = ::File.mtime(path).httpdate
       return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
 
-      headers = { "last-modified" => last_modified }
+      headers = Headers[ "last-modified" => last_modified ]
       mime_type = mime_type path, @default_mime
       headers[CONTENT_TYPE] = mime_type if mime_type
 

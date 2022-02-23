@@ -73,6 +73,15 @@ describe Rack::Files do
     res["last-modified"].must_equal File.mtime(path).httpdate
   end
 
+  it "supports case-insensitive header access" do
+    res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test")
+
+    path = File.join(DOCROOT, "/cgi/test")
+
+    res.must_be :ok?
+    res["Last-Modified"].must_equal File.mtime(path).httpdate
+  end
+
   it "return 304 if file isn't modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
     res = Rack::MockRequest.new(files(DOCROOT)).
