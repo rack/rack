@@ -2,7 +2,6 @@
 
 require 'strscan'
 
-require_relative '../auth/digest/params'
 require_relative '../utils'
 require_relative '../multipart' unless defined?(Rack::Multipart)
 
@@ -212,6 +211,12 @@ module Rack
 
       private
 
+      def dequote(str) # From WEBrick::HTTPUtils
+        ret = (/\A"(.*)"\Z/ =~ str) ? $1 : str.dup
+        ret.gsub!(/\\(.)/, "\\1")
+        ret
+      end
+
       def read_data(io, outbuf)
         content = io.read(@bufsize, outbuf)
         handle_empty_content!(content)
@@ -242,7 +247,7 @@ module Rack
           head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           if name = head[MULTIPART_CONTENT_DISPOSITION, 1]
-            name = Rack::Auth::Digest::Params::dequote(name)
+            name = dequote(name)
           else
             name = head[MULTIPART_CONTENT_ID, 1]
           end
