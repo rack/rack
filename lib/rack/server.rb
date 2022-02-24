@@ -435,7 +435,7 @@ module Rack
       def daemonize_app
         # Cannot be covered as it forks
         # :nocov:
-        Process.daemon(nil, options[:daemonize] == :noclose)
+        Process.daemon(true, options[:daemonize] == :noclose)
         # :nocov:
       end
 
