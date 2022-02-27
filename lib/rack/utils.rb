@@ -222,6 +222,21 @@ module Rack
       end
     end
 
+    def add_cookie_to_header(header, key, value)
+      warn("add_cookie_to_header is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
+      case header
+      when nil, ''
+        return set_cookie_header(key, value)
+      when String
+        [header, set_cookie_header(key, value)]
+      when Array
+        header + [set_cookie_header(key, value)]
+      else
+        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
+      end
+    end
+
     def set_cookie_header(key, value)
       case value
       when Hash
@@ -253,6 +268,8 @@ module Rack
     end
 
     def set_cookie_header!(headers, key, value)
+      warn("set_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
       if header = headers[SET_COOKIE]
         if header.is_a?(Array)
           header << set_cookie_header(key, value)
@@ -272,6 +289,26 @@ module Rack
         max_age: '0',
         expires: Time.at(0)
       }.merge(value))
+    end
+
+    def make_delete_cookie_header(header, key, value)
+      warn("make_delete_cookie_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
+
+      delete_set_cookie_header!(header, key, value)
+    end
+
+    def delete_cookie_header!(headers, key, value = {})
+      warn("delete_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
+      headers[SET_COOKIE] = delete_set_cookie_header!(headers[SET_COOKIE], key, value = {})
+
+      return nil
+    end
+
+    def add_remove_cookie_to_header(header, key, value = {})
+      warn("add_remove_cookie_to_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
+
+      delete_set_cookie_header!(header, key, value)
     end
 
     def delete_set_cookie_header!(header, key, value = {})
