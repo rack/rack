@@ -158,7 +158,7 @@ describe Rack::Handler::WEBrick do
         [
           401,
           { "content-type" => "text/plain",
-            "www-authenticate" => "Bar realm=X\nBaz realm=Y" },
+            "www-authenticate" => ["Bar realm=X", "Baz realm=Y"] },
           [""]
         ]
       })

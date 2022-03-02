@@ -223,6 +223,21 @@ module Rack
     end
 
     def add_cookie_to_header(header, key, value)
+      warn("add_cookie_to_header is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
+      case header
+      when nil, ''
+        return set_cookie_header(key, value)
+      when String
+        [header, set_cookie_header(key, value)]
+      when Array
+        header + [set_cookie_header(key, value)]
+      else
+        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
+      end
+    end
+
+    def set_cookie_header(key, value)
       case value
       when Hash
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
@@ -248,71 +263,81 @@ module Rack
       end
       value = [value] unless Array === value
 
-      cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
+      return "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
+    end
 
-      case header
-      when nil, ''
-        cookie
-      when String
-        [header, cookie].join("\n")
-      when Array
-        (header + [cookie]).join("\n")
+    def set_cookie_header!(headers, key, value)
+      warn("set_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
+      if header = headers[SET_COOKIE]
+        if header.is_a?(Array)
+          header << set_cookie_header(key, value)
+        else
+          headers[SET_COOKIE] = [header, set_cookie_header(key, value)]
+        end
       else
-        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
+        headers[SET_COOKIE] = set_cookie_header(key, value)
       end
-    end
-
-    def set_cookie_header!(header, key, value)
-      header[SET_COOKIE] = add_cookie_to_header(header[SET_COOKIE], key, value)
-      nil
-    end
-
-    def make_delete_cookie_header(header, key, value)
-      case header
-      when nil, ''
-        cookies = []
-      when String
-        cookies = header.split("\n")
-      when Array
-        cookies = header
-      end
-
-      key = escape(key)
-      domain = value[:domain]
-      path = value[:path]
-      regexp = if domain
-                 if path
-                   /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
-                 else
-                   /\A#{key}=.*domain=#{domain}(?:;|$)/
-                 end
-               elsif path
-                 /\A#{key}=.*path=#{path}(?:;|$)/
-               else
-                 /\A#{key}=/
-               end
-
-      cookies.reject! { |cookie| regexp.match? cookie }
-
-      cookies.join("\n")
-    end
-
-    def delete_cookie_header!(header, key, value = {})
-      header[SET_COOKIE] = add_remove_cookie_to_header(header[SET_COOKIE], key, value)
-      nil
     end
 
     # Adds a cookie that will *remove* a cookie from the client.  Hence the
     # strange method name.
+    def delete_set_cookie_header(key, value = {})
+      set_cookie_header(key, {
+        value: '', path: nil, domain: nil,
+        max_age: '0',
+        expires: Time.at(0)
+      }.merge(value))
+    end
+
+    def make_delete_cookie_header(header, key, value)
+      warn("make_delete_cookie_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
+
+      delete_set_cookie_header!(header, key, value)
+    end
+
+    def delete_cookie_header!(headers, key, value = {})
+      warn("delete_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
+
+      headers[SET_COOKIE] = delete_set_cookie_header!(headers[SET_COOKIE], key, value = {})
+
+      return nil
+    end
+
     def add_remove_cookie_to_header(header, key, value = {})
-      new_header = make_delete_cookie_header(header, key, value)
+      warn("add_remove_cookie_to_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
 
-      add_cookie_to_header(new_header, key,
-                 { value: '', path: nil, domain: nil,
-                   max_age: '0',
-                   expires: Time.at(0) }.merge(value))
+      delete_set_cookie_header!(header, key, value)
+    end
 
+    def delete_set_cookie_header!(header, key, value = {})
+      if header
+        header = Array(header)
+
+        key = escape(key)
+        domain = value[:domain]
+        path = value[:path]
+        regexp = if domain
+                   if path
+                     /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
+                   else
+                     /\A#{key}=.*domain=#{domain}(?:;|$)/
+                   end
+                 elsif path
+                   /\A#{key}=.*path=#{path}(?:;|$)/
+                 else
+                   /\A#{key}=/
+                 end
+
+        header.reject! { |cookie| regexp.match? cookie }
+
+        header << delete_set_cookie_header(key, value)
+      else
+        header = delete_set_cookie_header(key, value)
+      end
+
+      return header
     end
 
     def rfc2822(time)

@@ -258,10 +258,9 @@ The header must not contain a +Status+ key.
 Header keys must conform to RFC7230 token specification, i.e. cannot
 contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
 Header keys must not contain uppercase ASCII characters (A-Z).
-The values of the header must be Strings,
-consisting of lines (for multiple header values, e.g. multiple
-<tt>Set-Cookie</tt> values) separated by "\\n".
-The lines must not contain characters below 037.
+Header values must be either a String instance,
+or an Array of String instances,
+such that each String instance must not contain characters below 037.
 
 === The content-type
 
