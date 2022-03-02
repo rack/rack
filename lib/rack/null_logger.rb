@@ -26,7 +26,7 @@ module Rack
     def fatal? ; end
     def debug! ; end
     def error! ; end
-    def fatal ; end
+    def fatal! ; end
     def info! ; end
     def warn! ; end
     def level ; end

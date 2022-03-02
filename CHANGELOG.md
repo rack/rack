@@ -55,6 +55,7 @@ All notable changes to this project will be documented in this file. For info on
 - Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
 - Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
+- Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans](https://github.com/jeremyevans))
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
