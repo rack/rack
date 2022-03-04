@@ -158,15 +158,6 @@ describe Rack::Lock do
     lock.unlocked?.must_equal false
   end
 
-  it "not reset the environment while the body is proxied" do
-    proxy = Class.new do
-      attr_reader :env
-      def initialize(env) @env = env end
-    end
-    app = Rack::Lock.new lambda { |env| [200, { "content-type" => "text/plain" }, proxy.new(env)] }
-    response = app.call(Rack::MockRequest.env_for("/"))[2]
-  end
-
   it "unlock if an exception occurs before returning" do
     lock = Lock.new
     env  = Rack::MockRequest.env_for("/")

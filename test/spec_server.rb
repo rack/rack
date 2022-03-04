@@ -113,7 +113,7 @@ describe Rack::Server do
   def test_options_server(*args)
     SPEC_ARGV[0..-1] = args
     output = String.new
-    server = Class.new(Rack::Server) do
+    Class.new(Rack::Server) do
       define_method(:opt_parser) do
         Class.new(Rack::Server::Options) do
           define_method(:puts) do |*args|
@@ -163,6 +163,7 @@ describe Rack::Server do
   it "support -b option to specify inline rackup config" do
     SPEC_ARGV[0..-1] = ['-scgi', '-E', 'development', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}']
     server = Rack::Server.new
+    server.server.singleton_class.send(:remove_method, :run)
     def (server.server).run(app, **) app end
     s, h, b = server.start.call('rack.errors' => StringIO.new)
     s.must_equal 500
@@ -173,7 +174,7 @@ describe Rack::Server do
   it "support -e option to evaluate ruby code" do
     SPEC_ARGV[0..-1] = ['-scgi', '-e', 'Object::XYZ = 2']
     begin
-      server = Rack::Server.new
+      Rack::Server.new
       Object::XYZ.must_equal 2
     ensure
       Object.send(:remove_const, :XYZ)
@@ -194,6 +195,7 @@ describe Rack::Server do
     SPEC_ARGV[0..-1] = ['-scgi', '-Ifoo/bar', '-Itest/load', '-rrack-test-a', '-rrack-test-b']
     begin
       server = Rack::Server.new
+      server.server.singleton_class.send(:remove_method, :run)
       def (server.server).run(*) end
       def server.handle_profiling(*) end
       def server.app(*) end
@@ -216,6 +218,7 @@ describe Rack::Server do
     debug = $DEBUG
     begin
       server = Rack::Server.new
+      server.server.singleton_class.send(:remove_method, :run)
       def (server.server).run(*) end
       def server.handle_profiling(*) end
       def server.app(*) end
@@ -241,6 +244,7 @@ describe Rack::Server do
         begin
           SPEC_ARGV[0..-1] = ['-scgi', '--heap', t.path, '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
           server = Rack::Server.new
+          server.server.singleton_class.send(:remove_method, :run)
           def (server.server).run(*) end
           def server.exit; throw :exit end
           catch :exit do
@@ -307,6 +311,7 @@ describe Rack::Server do
   it "support exit for INT signal when server does not respond to shutdown" do
     SPEC_ARGV[0..-1] = ['-scgi']
     server = Rack::Server.new
+    server.server.singleton_class.send(:remove_method, :run)
     def (server.server).run(*) end
     def server.handle_profiling(*) end
     def server.app(*) end

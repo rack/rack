@@ -136,7 +136,7 @@ describe Rack::ShowStatus do
         [404, { "content-type" => "text/plain", "content-length" => "0" }, body]
     }))
 
-    response = req.get("/", lint: true)
+    req.get("/", lint: true)
     closed.must_equal true
   end
 end

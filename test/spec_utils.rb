@@ -610,50 +610,50 @@ describe Rack::Utils, "cookies" do
 
 end
 
-describe Rack::Utils, "byte_range" do
+describe Rack::Utils, "get_byte_ranges" do
   it "ignore missing or syntactically invalid byte ranges" do
-    Rack::Utils.byte_ranges({}, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "foobar" }, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "furlongs=123-456" }, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=" }, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-" }, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123,456" }, 500).must_be_nil
+    Rack::Utils.get_byte_ranges(nil, 500).must_be_nil
+    Rack::Utils.get_byte_ranges("foobar", 500).must_be_nil
+    Rack::Utils.get_byte_ranges("furlongs=123-456", 500).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=", 500).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=-", 500).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=123,456", 500).must_be_nil
     # A range of non-positive length is syntactically invalid and ignored:
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=456-123" }, 500).must_be_nil
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=456-455" }, 500).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=456-123", 500).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=456-455", 500).must_be_nil
   end
 
   it "parse simple byte ranges" do
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-" }, 500).must_equal [(123..499)]
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-100" }, 500).must_equal [(400..499)]
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-0" }, 500).must_equal [(0..0)]
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=499-499" }, 500).must_equal [(499..499)]
+    Rack::Utils.get_byte_ranges("bytes=123-456", 500).must_equal [(123..456)]
+    Rack::Utils.get_byte_ranges("bytes=123-", 500).must_equal [(123..499)]
+    Rack::Utils.get_byte_ranges("bytes=-100", 500).must_equal [(400..499)]
+    Rack::Utils.get_byte_ranges("bytes=0-0", 500).must_equal [(0..0)]
+    Rack::Utils.get_byte_ranges("bytes=499-499", 500).must_equal [(499..499)]
   end
 
   it "parse several byte ranges" do
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=500-600,601-999" }, 1000).must_equal [(500..600), (601..999)]
+    Rack::Utils.get_byte_ranges("bytes=500-600,601-999", 1000).must_equal [(500..600), (601..999)]
   end
 
   it "truncate byte ranges" do
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-999" }, 500).must_equal [(123..499)]
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=600-999" }, 500).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-999" }, 500).must_equal [(0..499)]
+    Rack::Utils.get_byte_ranges("bytes=123-999", 500).must_equal [(123..499)]
+    Rack::Utils.get_byte_ranges("bytes=600-999", 500).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=-999", 500).must_equal [(0..499)]
   end
 
   it "ignore unsatisfiable byte ranges" do
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=500-501" }, 500).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=500-" }, 500).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=999-" }, 500).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-0" }, 500).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=500-501", 500).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=500-", 500).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=999-", 500).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=-0", 500).must_equal []
   end
 
   it "handle byte ranges of empty files" do
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 0).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-" }, 0).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-100" }, 0).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-0" }, 0).must_equal []
-    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=-0" }, 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=123-456", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=0-", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=-100", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=-0", 0).must_equal []
   end
 end
 

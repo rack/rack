@@ -62,7 +62,7 @@ module Rack
       app = lambda { |env| events << [app, :call]; ret }
       se = EventMiddleware.new events
       e = Events.new app, [se]
-      triple = e.call({})
+      e.call({})
       assert_equal [[se, :on_start],
                     [app, :call],
                     [se, :on_commit],
@@ -122,7 +122,6 @@ module Rack
 
     def test_finish_is_called_if_there_is_an_exception
       events = []
-      ret = [200, {}, []]
       app = lambda { |env| raise }
       se = EventMiddleware.new events
       e = Events.new app, [se]
