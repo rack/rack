@@ -348,7 +348,7 @@ module Rack
     # Returns nil if the header is missing or syntactically invalid.
     # Returns an empty array if none of the ranges are satisfiable.
     def byte_ranges(env, size)
-      warn "`byte_ranges` is deprecated, please use `get_byte_ranges`" if $VERBOSE
+      warn("`byte_ranges` is deprecated and will be removed in Rack 3.1, please use `get_byte_ranges`", uplevel: 1)
       get_byte_ranges env['HTTP_RANGE'], size
     end
 
