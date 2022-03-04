@@ -268,8 +268,6 @@ module Rack
     end
 
     def set_cookie_header!(headers, key, value)
-      warn("set_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
-
       if header = headers[SET_COOKIE]
         if header.is_a?(Array)
           header << set_cookie_header(key, value)
@@ -298,8 +296,6 @@ module Rack
     end
 
     def delete_cookie_header!(headers, key, value = {})
-      warn("delete_cookie_header! is deprecated and will be removed in Rack 3.1", uplevel: 1)
-
       headers[SET_COOKIE] = delete_set_cookie_header!(headers[SET_COOKIE], key, value)
 
       return nil
