@@ -103,7 +103,7 @@ EOF
     Rack::MethodOverride.new(proc { [200, { "content-type" => "text/plain" }, []] }).call env
 
     env[Rack::RACK_ERRORS].rewind
-    env[Rack::RACK_ERRORS].read.must_match /Bad request content body/
+    env[Rack::RACK_ERRORS].read.must_include 'Bad request content body'
   end
 
   it "not modify REQUEST_METHOD for POST requests when the params are unparseable" do

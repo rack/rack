@@ -25,8 +25,7 @@ describe Rack::Files do
     )
 
     file_path = File.expand_path("cgi/test", __dir__)
-    status, headers, body = app.serving(request, file_path)
-    assert_equal 200, status
+    assert_equal 200, app.serving(request, file_path)[0]
   end
 
   it 'raises if you attempt to define response_body in subclass' do

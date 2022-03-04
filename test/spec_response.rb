@@ -348,25 +348,25 @@ describe Rack::Response do
   it "can do redirects" do
     response = Rack::Response.new
     response.redirect "/foo"
-    status, header, body = response.finish
+    status, header = response.finish
     status.must_equal 302
     header["Location"].must_equal "/foo"
 
     response = Rack::Response.new
     response.redirect "/foo", 307
-    status, header, body = response.finish
+    status, = response.finish
 
     status.must_equal 307
   end
 
   it "has a useful constructor" do
     r = Rack::Response.new("foo")
-    status, header, body = r.finish
+    body = r.finish[2]
     str = "".dup; body.each { |part| str << part }
     str.must_equal "foo"
 
     r = Rack::Response.new(["foo", "bar"])
-    status, header, body = r.finish
+    body = r.finish[2]
     str = "".dup; body.each { |part| str << part }
     str.must_equal "foobar"
 
@@ -377,7 +377,7 @@ describe Rack::Response do
     end
     r = Rack::Response.new(object_with_each)
     r.write "foo"
-    status, header, body = r.finish
+    body = r.finish[2]
     str = "".dup; body.each { |part| str << part }
     str.must_equal "foobarfoo"
 
@@ -615,7 +615,7 @@ describe Rack::Response do
 
     res.body = StringIO.new
     res.status = 205
-    _, _, b = res.finish
+    res.finish
     res.body.wont_be :closed?
   end
 
