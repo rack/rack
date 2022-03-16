@@ -359,7 +359,7 @@ module Rack
 
       def forwarded_authority
         if value = get_header(HTTP_X_FORWARDED_HOST)
-          wrap_ipv6(split_header(value).first)
+          wrap_ipv6(split_header(value).last)
         end
       end
 
