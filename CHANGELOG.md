@@ -21,6 +21,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Removed
 
 - Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix), [@jeremyevans](https://github.com/jeremyevans)))
+- Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans](https://github.com/jeremyevans))
 
 ### Added
 

@@ -33,10 +33,6 @@ module Rack
     self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
-    SCHEME_WHITELIST = ALLOWED_SCHEMES
-    if Object.respond_to?(:deprecate_constant)
-      deprecate_constant :SCHEME_WHITELIST
-    end
 
     def initialize(env)
       @env = env
