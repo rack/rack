@@ -27,7 +27,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Headers` added to support lower-case header keys. ([@jeremyevans](https://github.com/jeremyevans))
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
 - `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans](https://github.com/jeremyevans))
-- Rack::Session::Pool now accepts `:allow_fallback` option to disable fallback to public id. ([#1431](https://github.com/rack/rack/issues/1431), [@jeremyevans](https://github.com/jeremyevans))
+- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Changed
 
@@ -47,6 +47,8 @@ All notable changes to this project will be documented in this file. For info on
 - Explicitly deprecate `Rack::File` which was an alias for `Rack::Files`. ([#1811](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix)).
 - Moved `Rack::Session` into [separate gem](https://github.com/rack/rack-session). ([#1805](https://github.com/rack/rack/pull/1805), [@ioquatix](https://github.com/ioquatix))
 - rackup -D option to daemonizes no longer changes the working directory to the root. ([#1813](https://github.com/rack/rack/pull/1813), [@jeremyevans](https://github.com/jeremyevans))
+- The X-Forwarded-Proto header is now considered before the X-Forwarded-Scheme header for determining the forwarded protocol. `Rack::Request.x_forwarded_proto_priority` accessor has been added for configuring the priority of which header to check.  ([#1809](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
+- `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Fixed
 
