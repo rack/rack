@@ -16,7 +16,32 @@ module Rack
   class Request
     class << self
       attr_accessor :ip_filter
+
+      # The priority when checking forwarded headers. The default
+      # is <tt>[:forwarded, :x_forwarded]</tt>, which means, check the
+      # +Forwarded+ header first, followed by the appropriate
+      # <tt>X-Forwarded-*</tt> header.  You can revert the priority by
+      # reversing the priority, or remove checking of either
+      # or both headers by removing elements from the array.
+      #
+      # This should be set as appropriate in your environment
+      # based on what reverse proxies are in use.  If you are not
+      # using reverse proxies, you should probably use an empty
+      # array.
+      attr_accessor :forwarded_priority
+
+      # The priority when checking either the <tt>X-Forwarded-Proto</tt>
+      # or <tt>X-Forwarded-Scheme</tt> header for the forwarded protocol.
+      # The default is <tt>[:proto, :scheme]</tt>, to try the
+      # <tt>X-Forwarded-Proto</tt> header before the
+      # <tt>X-Forwarded-Scheme</tt> header.  Rack 2 had behavior
+      # similar to <tt>[:scheme, :proto]</tt>.  You can remove either or
+      # both of the entries in array to ignore that respective header.
+      attr_accessor :x_forwarded_proto_priority
     end
+
+    @forwarded_priority = [:forwarded, :x_forwarded]
+    @x_forwarded_proto_priority = [:proto, :scheme]
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
     
@@ -342,37 +367,60 @@ module Rack
       end
 
       def forwarded_for
-        if forwarded_for = get_http_forwarded(:for)
-          forwarded_for.map! do |authority|
-            split_authority(authority)[1]
+        forwarded_priority.each do |type|
+          case type
+          when :forwarded
+            if forwarded_for = get_http_forwarded(:for)
+              return(forwarded_for.map! do |authority|
+                split_authority(authority)[1]
+              end)
+            end
+          when :x_forwarded
+            if value = get_header(HTTP_X_FORWARDED_FOR)
+              return(split_header(value).map do |authority|
+                split_authority(wrap_ipv6(authority))[1]
+              end)
+            end
           end
         end
 
-        if value = get_header(HTTP_X_FORWARDED_FOR)
-          x_forwarded_for = split_header(value).map do |authority|
-            split_authority(wrap_ipv6(authority))[1]
-          end
-        end
-
-        forwarded_for || x_forwarded_for
+        nil
       end
 
       def forwarded_port
-        if forwarded = get_http_forwarded(:for)
-          forwarded.map do |authority|
-            split_authority(authority)[2]
-          end.compact!
-        elsif value = get_header(HTTP_X_FORWARDED_PORT)
-          split_header(value).map(&:to_i)
+        forwarded_priority.each do |type|
+          case type
+          when :forwarded
+            if forwarded = get_http_forwarded(:for)
+              return(forwarded.map do |authority|
+                split_authority(authority)[2]
+              end.compact)
+            end
+          when :x_forwarded
+            if value = get_header(HTTP_X_FORWARDED_PORT)
+              return split_header(value).map(&:to_i)
+            end
+          end
         end
+
+        nil
       end
 
       def forwarded_authority
-        if forwarded = get_http_forwarded(:host)
-          forwarded.last
-        elsif value = get_header(HTTP_X_FORWARDED_HOST)
-          wrap_ipv6(split_header(value).last)
+        forwarded_priority.each do |type|
+          case type
+          when :forwarded
+            if forwarded = get_http_forwarded(:host)
+              return forwarded.last
+            end
+          when :x_forwarded
+            if value = get_header(HTTP_X_FORWARDED_HOST)
+              return wrap_ipv6(split_header(value).last)
+            end
+          end
         end
+
+        nil
       end
 
       def ssl?
@@ -607,8 +655,7 @@ module Rack
 
       # Get an array of values set in the RFC 7239 `Forwarded` request header.
       def get_http_forwarded(token)
-        values = Utils.forwarded_values(get_header(HTTP_FORWARDED))
-        values[token] if values
+        Utils.forwarded_values(get_header(HTTP_FORWARDED))&.[](token)
       end
 
       def query_parser
@@ -676,11 +723,33 @@ module Rack
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
+      FORWARDED_SCHEME_HEADERS = {
+        proto: HTTP_X_FORWARDED_PROTO,
+        scheme: HTTP_X_FORWARDED_SCHEME
+      }.freeze
+      private_constant :FORWARDED_SCHEME_HEADERS
       def forwarded_scheme
-        forwarded_proto = get_http_forwarded(:proto)
-        (forwarded_proto && allowed_scheme(forwarded_proto.first)) ||
-        allowed_scheme(get_header(HTTP_X_FORWARDED_SCHEME)) ||
-        allowed_scheme(extract_proto_header(get_header(HTTP_X_FORWARDED_PROTO)))
+        forwarded_priority.each do |type|
+          case type
+          when :forwarded
+            if (forwarded_proto = get_http_forwarded(:proto)) &&
+               (scheme = allowed_scheme(forwarded_proto.last))
+              return scheme
+            end
+          when :x_forwarded
+            x_forwarded_proto_priority.each do |x_type|
+              if header = FORWARDED_SCHEME_HEADERS[x_type]
+                split_header(get_header(header)).reverse_each do |scheme|
+                  if allowed_scheme(scheme)
+                    return scheme
+                  end
+                end
+              end
+            end
+          end
+        end
+
+        nil
       end
 
       def allowed_scheme(header)
@@ -695,6 +764,14 @@ module Rack
             header
           end
         end
+      end
+
+      def forwarded_priority
+        Request.forwarded_priority
+      end
+
+      def x_forwarded_proto_priority
+        Request.x_forwarded_proto_priority
       end
     end
 
