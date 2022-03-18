@@ -140,15 +140,13 @@ module Rack
       end
     end
 
-    FORWARDED_PAIR_REGEX = /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
-
     def forwarded_values(forwarded_header)
       return nil unless forwarded_header
       forwarded_header = forwarded_header.to_s.gsub("\n", ";")
 
       forwarded_header.split(/\s*;\s*/).each_with_object({}) do |field, values|
         field.split(/\s*,\s*/).each do |pair|
-          return nil unless pair =~ FORWARDED_PAIR_REGEX
+          return nil unless pair =~ /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
           (values[$1.downcase.to_sym] ||= []) << $2
         end
       end
