@@ -158,6 +158,16 @@ class RackRequestTest < Minitest::Spec
     req.hostname.must_equal "technically_invalid.example.com"
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "trailing_newline.com\n")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "really\nbad\ninput")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.must_equal "example.org"
     req.hostname.must_equal "example.org"
@@ -176,6 +186,71 @@ class RackRequestTest < Minitest::Spec
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "2001:db8:cafe::17")
     req.host.must_equal "[2001:db8:cafe::17]"
     req.hostname.must_equal "2001:db8:cafe::17"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[::]:47011")
+    req.host.must_equal "[::]"
+    req.hostname.must_equal "::"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[1111:2222:3333:4444:5555:6666:123.123.123.123]")
+    req.host.must_equal "[1111:2222:3333:4444:5555:6666:123.123.123.123]"
+    req.hostname.must_equal "1111:2222:3333:4444:5555:6666:123.123.123.123"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[1111:2222:3333:4444:5555:6666:123.123.123.123]:47011")
+    req.host.must_equal "[1111:2222:3333:4444:5555:6666:123.123.123.123]"
+    req.hostname.must_equal "1111:2222:3333:4444:5555:6666:123.123.123.123"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "0.0.0.0")
+    req.host.must_equal "0.0.0.0"
+    req.hostname.must_equal "0.0.0.0"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "0.0.0.0:47011")
+    req.host.must_equal "0.0.0.0"
+    req.hostname.must_equal "0.0.0.0"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "255.255.255.255")
+    req.host.must_equal "255.255.255.255"
+    req.hostname.must_equal "255.255.255.255"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "255.255.255.255:47011")
+    req.host.must_equal "255.255.255.255"
+    req.hostname.must_equal "255.255.255.255"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "really\nbad\ninput")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[0]")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[:::]")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "[1111:2222:3333:4444:5555:6666:7777:88888]")
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "0.0..0.0")
+    req.host.must_equal '0.0..0.0'
+    req.hostname.must_equal '0.0..0.0'
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "255.255.255.0255")
+    req.host.must_equal "255.255.255.0255"
+    req.hostname.must_equal "255.255.255.0255"
 
     env = Rack::MockRequest.env_for("/")
     env.delete("SERVER_NAME")

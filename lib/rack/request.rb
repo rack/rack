@@ -605,28 +605,48 @@ module Rack
         value ? value.strip.split(/[,\s]+/) : []
       end
 
+      # ipv6 extracted from resolv stdlib, simplified
+      # to remove numbered match group creation.
+      ipv6 = Regexp.union(
+        /(?:[0-9A-Fa-f]{1,4}:){7}
+         [0-9A-Fa-f]{1,4}/x,
+        /(?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)? ::
+         (?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?/x,
+        /(?:[0-9A-Fa-f]{1,4}:){6,6}
+         \d+\.\d+\.\d+\.\d+/x,
+        /(?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)? ::
+         (?:[0-9A-Fa-f]{1,4}:)*
+         \d+\.\d+\.\d+\.\d+/x,
+        /[Ff][Ee]80
+         (?::[0-9A-Fa-f]{1,4}){7}
+         %[-0-9A-Za-z._~]+/x,
+        /[Ff][Ee]80:
+         (?:
+           (?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)? ::
+           (?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?
+           |
+           :(?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?
+         )?
+         :[0-9A-Fa-f]{1,4}%[-0-9A-Za-z._~]+/x)
+
       AUTHORITY = /
         \A
         (?<host>
           # Match IPv6 as a string of hex digits and colons in square brackets
-          \[(?<address>(?<ipv6>.*))\]
+          \[(?<address>#{ipv6})\]
           |
-          # Match IPv4 as four dot-separated groups of digits
-          (?<address>(?<ipv4>[\d.]{7,}))
-          |
-          # Match any other string as a hostname
-          (?<address>(?<hostname>.*?))
+          # Match any other printable string (except square brackets) as a hostname
+          (?<address>[[[:graph:]&&[^\[\]]]]*?)
         )
         (:(?<port>\d+))?
-        \Z
+        \z
       /x
 
       private_constant :AUTHORITY
 
       def split_authority(authority)
         return [] if authority.nil?
-
-        match = AUTHORITY.match(authority)
+        return [] unless match = AUTHORITY.match(authority)
         return match[:host], match[:address], match[:port]&.to_i
       end
 
