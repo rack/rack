@@ -240,6 +240,7 @@ module Rack
     def set_cookie_header(key, value)
       case value
       when Hash
+        key = escape(key) unless value[:escape_key] == false
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
@@ -260,10 +261,12 @@ module Rack
             raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
           end
         value = value[:value]
+      else
+        key = escape(key)
       end
       value = [value] unless Array === value
 
-      return "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
+      return "#{key}=#{value.map { |v| escape v }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
     end
 

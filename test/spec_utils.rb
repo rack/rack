@@ -599,6 +599,14 @@ describe Rack::Utils, "cookies" do
     headers['set-cookie'].must_equal ['name=value', 'name2=value2', 'name2=value3']
   end
 
+  it "encodes cookie key values by default" do
+    Rack::Utils.set_cookie_header('na e', 'value').must_equal 'na+e=value'
+  end
+
+  it "does not encode cookie key values if :escape_key is false" do
+    Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false).must_equal 'na e=value'
+  end
+
   it "deletes cookies in header field" do
     header = []
 
