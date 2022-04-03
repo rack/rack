@@ -92,12 +92,12 @@ describe Rack::Multipart do
     params['user_sid'].encoding.must_equal Encoding::UTF_8
   end
 
-  it "raise RangeError if the key space is exhausted" do
+  it "raise ParamsTooDeepError if the key space is exhausted" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
 
     old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
     begin
-      lambda { Rack::Multipart.parse_multipart(env) }.must_raise(RangeError)
+      lambda { Rack::Multipart.parse_multipart(env) }.must_raise(Rack::QueryParser::ParamsTooDeepError)
     ensure
       Rack::Utils.key_space_limit = old
     end

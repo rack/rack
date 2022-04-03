@@ -292,7 +292,7 @@ class RackRequestTest < Minitest::Spec
     old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
     begin
       req = make_request(env)
-      lambda { req.GET }.must_raise RangeError
+      lambda { req.GET }.must_raise Rack::QueryParser::ParamsTooDeepError
     ensure
       Rack::Utils.key_space_limit = old
     end
@@ -306,7 +306,7 @@ class RackRequestTest < Minitest::Spec
     begin
       exp = { "foo" => { "bar" => { "baz" => { "qux" => "1" } } } }
       make_request(nested_query).GET.must_equal exp
-      lambda { make_request(plain_query).GET  }.must_raise RangeError
+      lambda { make_request(plain_query).GET  }.must_raise Rack::QueryParser::ParamsTooDeepError
     ensure
       Rack::Utils.key_space_limit = old
     end
@@ -315,7 +315,7 @@ class RackRequestTest < Minitest::Spec
   it "limit the allowed parameter depth when parsing parameters" do
     env = Rack::MockRequest.env_for("/?a#{'[a]' * 110}=b")
     req = make_request(env)
-    lambda { req.GET }.must_raise RangeError
+    lambda { req.GET }.must_raise Rack::QueryParser::ParamsTooDeepError
 
     env = Rack::MockRequest.env_for("/?a#{'[a]' * 90}=b")
     req = make_request(env)
@@ -331,7 +331,7 @@ class RackRequestTest < Minitest::Spec
 
       env = Rack::MockRequest.env_for("/?a[a][a][a]=b")
       req = make_request(env)
-      lambda { make_request(env).GET  }.must_raise RangeError
+      lambda { make_request(env).GET  }.must_raise Rack::QueryParser::ParamsTooDeepError
     ensure
       Rack::Utils.param_depth_limit = old
     end
@@ -416,7 +416,7 @@ class RackRequestTest < Minitest::Spec
     old, Rack::Utils.key_space_limit = Rack::Utils.key_space_limit, 1
     begin
       req = make_request(env)
-      lambda { req.POST }.must_raise RangeError
+      lambda { req.POST }.must_raise Rack::QueryParser::ParamsTooDeepError
     ensure
       Rack::Utils.key_space_limit = old
     end

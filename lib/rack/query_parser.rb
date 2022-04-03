@@ -16,6 +16,10 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
+    # ParamsTooDeepError is the error that is raised when params are recursively
+    # nested over the specified limit.
+    class ParamsTooDeepError < RangeError; end
+
     def self.make_default(key_space_limit, param_depth_limit)
       new Params, key_space_limit, param_depth_limit
     end
@@ -81,7 +85,7 @@ module Rack
     # the structural types represented by two different parameter names are in
     # conflict, a ParameterTypeError is raised.
     def normalize_params(params, name, v, depth)
-      raise RangeError if depth <= 0
+      raise ParamsTooDeepError if depth <= 0
 
       name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
       k = $1 || ''
@@ -168,7 +172,7 @@ module Rack
 
       def []=(key, value)
         @size += key.size if key && !@params.key?(key)
-        raise RangeError, 'exceeded available parameter key space' if @size > @limit
+        raise ParamsTooDeepError, 'exceeded available parameter key space' if @size > @limit
         @params[key] = value
       end
 
