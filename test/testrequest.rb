@@ -42,7 +42,7 @@ class TestRequest
         http.request(get) { |response|
           @status = response.code.to_i
           begin
-            @response = YAML.load(response.body)
+            @response = YAML.unsafe_load(response.body)
           rescue TypeError, ArgumentError
             @response = nil
           end
@@ -60,7 +60,7 @@ class TestRequest
         post.basic_auth user, passwd  if user && passwd
         http.request(post) { |response|
           @status = response.code.to_i
-          @response = YAML.load(response.body)
+          @response = YAML.unsafe_load(response.body)
         }
       }
     end
