@@ -14,6 +14,10 @@ module Rack
     # sequence.
     class InvalidParameterError < ArgumentError; end
 
+    # ParamsTooDeepError is the error that is raised when params are recursively
+    # nested over the specified limit.
+    class ParamsTooDeepError < RangeError; end
+
     def self.make_default(_key_space_limit=(not_deprecated = true; nil), param_depth_limit)
       unless not_deprecated
         warn("`first argument `key_space limit` is deprecated and no longer has an effect. Please call with only one argument, which will be required in a future version of Rack", uplevel: 1)
@@ -91,7 +95,7 @@ module Rack
     end
 
     private def _normalize_params(params, name, v, depth)
-      raise RangeError if depth >= param_depth_limit
+      raise ParamsTooDeepError if depth >= param_depth_limit
 
       if !name
         # nil name, treat same as empty string (required by tests)
