@@ -22,6 +22,9 @@ module Rack
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
 
+    RFC2822_DAY_NAME = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]
+    RFC2822_MONTH_NAME = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+
     class << self
       attr_accessor :default_query_parser
     end
@@ -327,8 +330,8 @@ module Rack
     # weekday and month.
     #
     def rfc2109(time)
-      wday = Time::RFC2822_DAY_NAME[time.wday]
-      mon = Time::RFC2822_MONTH_NAME[time.mon - 1]
+      wday = RFC2822_DAY_NAME[time.wday]
+      mon = RFC2822_MONTH_NAME[time.mon - 1]
       time.strftime("#{wday}, %d-#{mon}-%Y %H:%M:%S GMT")
     end
 
