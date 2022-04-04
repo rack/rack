@@ -1,0 +1,36 @@
+name: Development
+
+on: [push, pull_request]
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-20.04]
+        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1]
+    runs-on: ${{matrix.os}}
+    steps:
+    - uses: actions/checkout@v2
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: ${{matrix.ruby}}
+
+    - uses: actions/cache@v1
+      with:
+        path: vendor/bundle
+        key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
+        restore-keys: |
+          bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-
+
+    - name: Installing packages
+      run: sudo apt-get install libfcgi-dev libmemcached-dev
+
+    - name: Bundle install...
+      run: |
+        gem update --system
+        bundle config path vendor/bundle
+        bundle install
+
+    - run: bundle exec rake
