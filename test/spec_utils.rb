@@ -128,7 +128,7 @@ describe Rack::Utils do
 
     lambda {
       Rack::Utils.parse_nested_query("foo#{"[a]" * len}=bar")
-    }.must_raise(RangeError)
+    }.must_raise(Rack::QueryParser::ParamsTooDeepError)
 
     Rack::Utils.parse_nested_query("foo#{"[a]" * (len - 1)}=bar")
   end
