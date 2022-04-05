@@ -720,7 +720,7 @@ describe Rack::Lint do
 
   it "pass valid rack.response_finished" do
     Rack::Lint.new(lambda { |env|
-                     [200, { "rack.response_finished" => [-> {}, lambda {}], "Content-length" => "3" }, ["foo"]]
+                     [200, { "rack.response_finished" => [-> {}, lambda {}], "content-length" => "3" }, ["foo"]]
                    }).call(env({})).first.must_equal 200
   end
 
