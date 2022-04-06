@@ -218,16 +218,13 @@ module Rack
       (encoding_candidates & available_encodings)[0]
     end
 
-    def parse_cookies(env)
-      parse_cookies_header env[HTTP_COOKIE]
-    end
-
+    # Parse cookies according to RFC6265.
+    # The syntax for cookie headers only supports semicolons.
+    # @parameter header [String] The serialised cookie string from the `cookie` header.
+    # @returns [Hash(String, String)] A map of cookie key to cookie value.
     def parse_cookies_header(header)
-      # According to RFC 6265:
-      # The syntax for cookie headers only supports semicolons
-      # User Agent -> Server ==
-      # Cookie: SID=31d4d96e407aad42; lang=en-US
       return {} unless header
+
       header.split(/[;] */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
@@ -235,21 +232,27 @@ module Rack
       end
     end
 
-    def add_cookie_to_header(header, key, value)
-      warn("add_cookie_to_header is deprecated and will be removed in Rack 3.1", uplevel: 1)
-
-      case header
-      when nil, ''
-        return set_cookie_header(key, value)
-      when String
-        [header, set_cookie_header(key, value)]
-      when Array
-        header + [set_cookie_header(key, value)]
-      else
-        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
-      end
+    # Parse cookies from the specified request environment.
+    # @parameter env [Hash] The rack `env` instance.
+    # @returns [Hash(String, String)] A map of cookie key to cookie value.
+    def parse_cookies(env)
+      parse_cookies_header env[HTTP_COOKIE]
     end
 
+    # Generate a set-cookie header string based on the given key and value.
+    #
+    # If the cookie value is a instance of Hash, it considers the following
+    # cookie attribute keys: `domain`, `max_age`, `expires`, `secure`,
+    # `http_only`, `same_site` and `value`. For more details about the
+    # interpretation of these fields, consult 
+    # [RFC6265 Section 5.2](https://datatracker.ietf.org/doc/html/rfc6265#section-5.2).
+    #
+    # An extra attribute `escape_key` can be provided to control whether or not
+    # the cookie key is url encoded. If explicitly set to false, the cookie key
+    # name will not be url encoded (escaped).
+    #
+    # @parameter key [String] The cookie key used to uniquely identify the cookie.
+    # @parameter value [String | Hash] The cookie value or attributes.
     def set_cookie_header(key, value)
       case value
       when Hash
@@ -258,7 +261,7 @@ module Rack
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
         expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
-        secure = "; secure"  if value[:secure]
+        secure = "; Secure"  if value[:secure]
         httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
           case value[:same_site]
@@ -277,12 +280,18 @@ module Rack
       else
         key = escape(key)
       end
+
       value = [value] unless Array === value
 
       return "#{key}=#{value.map { |v| escape v }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
     end
 
+    # Set a cookie in the specified headers with the given cookie key and value.
+    # @parameters headers [Hash] The response headers.
+    # @parameter key [String] The cookie key name.
+    # @parameter value [String | Hash] The cookie value or attributes.
+    # @returns [Hash] The request headers with the `set-cookie` header updated with the specified cookie.
     def set_cookie_header!(headers, key, value)
       if header = headers[SET_COOKIE]
         if header.is_a?(Array)
@@ -295,43 +304,30 @@ module Rack
       end
     end
 
-    # Adds a cookie that will *remove* a cookie from the client.  Hence the
-    # strange method name.
+    # Adds a cookie that will *remove* a cookie from the client. Hence the
+    # strange method name. It works by adding a cookie with the same name that
+    # expires in the past.
+    # @parameter key [String] The cookie key name.
+    # @parameter value [Hash] The cookie value or attributes.
     def delete_set_cookie_header(key, value = {})
-      set_cookie_header(key, {
-        value: '', path: nil, domain: nil,
-        max_age: '0',
-        expires: Time.at(0)
-      }.merge(value))
+      set_cookie_header(key, value.merge(max_age: '0', expires: Time.at(0), value: ''))
     end
 
-    def make_delete_cookie_header(header, key, value)
-      warn("make_delete_cookie_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
-
-      delete_set_cookie_header!(header, key, value)
-    end
-
+    # Set a cookie in the specified headers that will cause the cookie to be deleted.
+    # @parameters headers [Hash] The response headers.
+    # @parameter key [String] The cookie key name.
+    # @parameter value [String | Hash] The cookie value or attributes.
+    # @returns [Hash] The request headers with the `set-cookie` header updated with the specified cookie.
     def delete_cookie_header!(headers, key, value = {})
-      headers[SET_COOKIE] = delete_set_cookie_header!(headers[SET_COOKIE], key, value)
-
-      return nil
-    end
-
-    def add_remove_cookie_to_header(header, key, value = {})
-      warn("add_remove_cookie_to_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
-
-      delete_set_cookie_header!(header, key, value)
-    end
-
-    def delete_set_cookie_header!(header, key, value = {})
-      if header
-        header = Array(header)
-        header << delete_set_cookie_header(key, value)
+      if header = headers[SET_COOKIE]
+        if header.is_a?(Array)
+          header << delete_set_cookie_header(key, value)
+        else
+          headers[SET_COOKIE] = [header, delete_set_cookie_header(key, value)]
+        end
       else
-        header = delete_set_cookie_header(key, value)
+        headers[SET_COOKIE] = delete_set_cookie_header(key, value)
       end
-
-      return header
     end
 
     def rfc2822(time)
