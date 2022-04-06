@@ -648,9 +648,33 @@ describe Rack::Utils, "cookies" do
     header = []
 
     Rack::Utils.delete_set_cookie_header!(header, 'name2')
-    header.must_equal ["name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+    header.must_equal [
+      "name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
+
     Rack::Utils.delete_set_cookie_header!(header, 'name')
-    header.must_equal ["name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT", "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+    header.must_equal [
+      "name2=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
+  end
+
+  it "deletes cookies in header field with domain" do
+    header = []
+
+    Rack::Utils.delete_set_cookie_header!(header, 'name', {domain: "mydomain.com"})
+    header.must_equal [
+      "name=; domain=mydomain.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
+  end
+
+  it "deletes cookies in header field with path" do
+    header = []
+
+    Rack::Utils.delete_set_cookie_header!(header, 'name', {path: "/a/b"})
+    header.must_equal [
+      "name=; path=/a/b; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    ]
   end
 
   it "sets and deletes cookies in header hash" do

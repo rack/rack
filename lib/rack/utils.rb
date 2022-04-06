@@ -298,11 +298,7 @@ module Rack
     # Adds a cookie that will *remove* a cookie from the client.  Hence the
     # strange method name.
     def delete_set_cookie_header(key, value = {})
-      set_cookie_header(key, {
-        value: '', path: nil, domain: nil,
-        max_age: '0',
-        expires: Time.at(0)
-      }.merge(value))
+      set_cookie_header(key, value.merge(max_age: '0', expires: Time.at(0), value: ''))
     end
 
     def make_delete_cookie_header(header, key, value)
