@@ -74,15 +74,6 @@ module Rack
       self.default_query_parser = self.default_query_parser.new_depth_limit(v)
     end
 
-    def self.key_space_limit
-      warn("`Rack::Utils.key_space_limit` is deprecated as this value no longer has an effect. It will be removed in Rack 3.1", uplevel: 1)
-      65536
-    end
-
-    def self.key_space_limit=(v)
-      warn("`Rack::Utils.key_space_limit=` is deprecated and no longer has an effect. It will be removed in Rack 3.1", uplevel: 1)
-    end
-
     if defined?(Process::CLOCK_MONOTONIC)
       def clock_time
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
@@ -240,21 +231,6 @@ module Rack
       end
     end
 
-    def add_cookie_to_header(header, key, value)
-      warn("add_cookie_to_header is deprecated and will be removed in Rack 3.1", uplevel: 1)
-
-      case header
-      when nil, ''
-        return set_cookie_header(key, value)
-      when String
-        [header, set_cookie_header(key, value)]
-      when Array
-        header + [set_cookie_header(key, value)]
-      else
-        raise ArgumentError, "Unrecognized cookie header value. Expected String, Array, or nil, got #{header.inspect}"
-      end
-    end
-
     # :call-seq:
     #   parse_cookies(env) -> hash
     #
@@ -363,22 +339,10 @@ module Rack
       set_cookie_header(key, value.merge(max_age: '0', expires: Time.at(0), value: ''))
     end
 
-    def make_delete_cookie_header(header, key, value)
-      warn("make_delete_cookie_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
-
-      delete_set_cookie_header!(header, key, value)
-    end
-
     def delete_cookie_header!(headers, key, value = {})
       headers[SET_COOKIE] = delete_set_cookie_header!(headers[SET_COOKIE], key, value)
 
       return nil
-    end
-
-    def add_remove_cookie_to_header(header, key, value = {})
-      warn("add_remove_cookie_to_header is deprecated and will be removed in Rack 3.1, use delete_set_cookie_header! instead", uplevel: 1)
-
-      delete_set_cookie_header!(header, key, value)
     end
 
     # :call-seq:
@@ -498,34 +462,6 @@ module Rack
 
       def context(env, app = @app)
         recontext(app).call(env)
-      end
-    end
-
-    # A wrapper around Headers
-    # header when set.
-    #
-    # @api private
-    class HeaderHash < Hash # :nodoc:
-      def self.[](headers)
-        warn "Rack::Utils::HeaderHash is deprecated and will be removed in Rack 3.1, switch to Rack::Headers", uplevel: 1
-        if headers.is_a?(Headers) && !headers.frozen?
-          return headers
-        end
-
-        new_headers = Headers.new
-        headers.each{|k,v| new_headers[k] = v}
-        new_headers
-      end
-
-      def self.new(hash = {})
-        warn "Rack::Utils::HeaderHash is deprecated and will be removed in Rack 3.1, switch to Rack::Headers", uplevel: 1
-        headers = Headers.new
-        hash.each{|k,v| headers[k] = v}
-        headers
-      end
-
-      def self.allocate
-        raise TypeError, "cannot allocate HeaderHash"
       end
     end
 

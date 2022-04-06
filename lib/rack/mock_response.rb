@@ -80,20 +80,18 @@ module Rack
       cookies = Hash.new
       if headers.has_key? 'set-cookie'
         set_cookie_header = headers.fetch('set-cookie')
-        Array(set_cookie_header).each do |header_value|
-          header_value.split("\n").each do |cookie|
-            cookie_name, cookie_filling = cookie.split('=', 2)
-            cookie_attributes = identify_cookie_attributes cookie_filling
-            parsed_cookie = CGI::Cookie.new(
-              'name' => cookie_name.strip,
-              'value' => cookie_attributes.fetch('value'),
-              'path' => cookie_attributes.fetch('path', nil),
-              'domain' => cookie_attributes.fetch('domain', nil),
-              'expires' => cookie_attributes.fetch('expires', nil),
-              'secure' => cookie_attributes.fetch('secure', false)
-            )
-            cookies.store(cookie_name, parsed_cookie)
-          end
+        Array(set_cookie_header).each do |cookie|
+          cookie_name, cookie_filling = cookie.split('=', 2)
+          cookie_attributes = identify_cookie_attributes cookie_filling
+          parsed_cookie = CGI::Cookie.new(
+            'name' => cookie_name.strip,
+            'value' => cookie_attributes.fetch('value'),
+            'path' => cookie_attributes.fetch('path', nil),
+            'domain' => cookie_attributes.fetch('domain', nil),
+            'expires' => cookie_attributes.fetch('expires', nil),
+            'secure' => cookie_attributes.fetch('secure', false)
+          )
+          cookies.store(cookie_name, parsed_cookie)
         end
       end
       cookies

@@ -9,9 +9,6 @@ module Rack
   # status codes, return the last response.
 
   class Cascade
-    # deprecated, no longer used
-    NotFound = [404, { CONTENT_TYPE => "text/plain" }, []]
-
     # An array of applications to try in order.
     attr_reader :apps
 
