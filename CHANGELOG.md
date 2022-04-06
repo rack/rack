@@ -51,6 +51,7 @@ All notable changes to this project will be documented in this file. For info on
 - rackup -D option to daemonizes no longer changes the working directory to the root. ([#1813](https://github.com/rack/rack/pull/1813), [@jeremyevans](https://github.com/jeremyevans))
 - The X-Forwarded-Proto header is now considered before the X-Forwarded-Scheme header for determining the forwarded protocol. `Rack::Request.x_forwarded_proto_priority` accessor has been added for configuring the priority of which header to check.  ([#1809](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
 - `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
+- Prefer lower case handling of cookie attributes, including `secure` and `httponly`. ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix](https://github.com/ioquatix))
 
 ### Fixed
 
