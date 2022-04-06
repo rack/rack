@@ -259,7 +259,7 @@ module Rack
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
         expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
+        httponly = "; httponly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
           case value[:same_site]
           when false, nil

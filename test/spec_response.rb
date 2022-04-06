@@ -132,13 +132,13 @@ describe Rack::Response do
   it "can set http only cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", httponly: true }
-    response["Set-Cookie"].must_equal "foo=bar; HttpOnly"
+    response["Set-Cookie"].must_equal "foo=bar; httponly"
   end
 
   it "can set http only cookies with :http_only" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", http_only: true }
-    response["Set-Cookie"].must_equal "foo=bar; HttpOnly"
+    response["Set-Cookie"].must_equal "foo=bar; httponly"
   end
 
   it "can set prefers :httponly for http only cookie setting when :httponly and :http_only provided" do
