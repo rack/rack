@@ -26,7 +26,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Added
 
-- `Rack::Headers` added to support lower-case header keys. ([@jeremyevans], [@ioquatix])
+- `Rack::Headers` added to support lower-case header keys. ([@jeremyevans])
 - `Rack::Utils#set_cookie_header` now supports `escape_key: false` to avoid key escaping.  ([@jeremyevans])
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
 - `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans])
