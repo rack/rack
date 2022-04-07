@@ -266,7 +266,7 @@ module Rack
       cookie_bits.drop(1).each do |bit|
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=', 2)
-          cookie_attributes.store(cookie_attribute.strip, attribute_value.strip)
+          cookie_attributes.store(cookie_attribute.strip.downcase, attribute_value.strip)
         end
         if bit.include? 'secure'
           cookie_attributes.store('secure', true)
