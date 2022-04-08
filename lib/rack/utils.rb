@@ -259,7 +259,7 @@ module Rack
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
         expires = "; expires=#{value[:expires].httpdate}" if value[:expires]
         secure = "; secure"  if value[:secure]
-        httponly = "; HttpOnly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
+        httponly = "; httponly" if (value.key?(:httponly) ? value[:httponly] : value[:http_only])
         same_site =
           case value[:same_site]
           when false, nil
@@ -326,24 +326,6 @@ module Rack
     def delete_set_cookie_header!(header, key, value = {})
       if header
         header = Array(header)
-
-        key = escape(key)
-        domain = value[:domain]
-        path = value[:path]
-        regexp = if domain
-                   if path
-                     /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
-                   else
-                     /\A#{key}=.*domain=#{domain}(?:;|$)/
-                   end
-                 elsif path
-                   /\A#{key}=.*path=#{path}(?:;|$)/
-                 else
-                   /\A#{key}=/
-                 end
-
-        header.reject! { |cookie| regexp.match? cookie }
-
         header << delete_set_cookie_header(key, value)
       else
         header = delete_set_cookie_header(key, value)
