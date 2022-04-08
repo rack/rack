@@ -60,15 +60,14 @@ describe Rack::ContentLength do
   # end
 
   it "close bodies that need to be closed" do
-    body = Struct.new(:body) do
-      attr_reader :closed
+    body = Struct.new(:body, :closed) do
       def each; body.each {|b| yield b}; close; end
-      def close; @closed = true; end
+      def close; self.closed = true; end
       def to_ary; enum_for.to_a; end
     end.new(%w[one two three])
 
     app = lambda { |env| [200, { 'content-type' => 'text/plain' }, body] }
-    content_length(app).call(request)
+    response = content_length(app).call(request)
     body.closed.must_equal true
   end
 
