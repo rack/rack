@@ -10,20 +10,20 @@ All notable changes to this project will be documented in this file. For info on
 
 ### SPEC Changes
 
-- `rack.input` is no longer required to be rewindable.
-- `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
 - Response `status` must now be an integer greater than or equal to 100.
 - Response `headers` must now be an unfrozen hash.
 - Response header keys can no longer include uppercase characters.
 - Response header values can be an `Array` to handle multiple values (and no longer supports `\n` encoded headers).
 - Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
 - Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
+- `rack.input` is no longer required to be rewindable.
+- `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
 
 ### Removed
 
-- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix), [@jeremyevans](https://github.com/jeremyevans)))
-- Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans](https://github.com/jeremyevans))
-- Remove internal cookie deletion using pattern matching, there are very few pratical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix](https://github.com/ioquatix))
+- Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix], [@jeremyevans]))
+- Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans])
+- Remove internal cookie deletion using pattern matching, there are very few pratical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix])
 
 ### Added
 
@@ -48,12 +48,12 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Utils.secure_compare` uses OpenSSL's faster implementation if available. ([#1711](https://github.com/rack/rack/pull/1711), [@bdewater](https://github.com/bdewater))
 - `Rack::Request#POST` now caches an empty hash if input content type is not parseable. ([#749](https://github.com/rack/rack/pull/749), [@jeremyevans])
 - BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
-- Explicitly deprecate `Rack::File` which was an alias for `Rack::Files`. ([#1811](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix)).
-- Moved `Rack::Session` into [separate gem](https://github.com/rack/rack-session). ([#1805](https://github.com/rack/rack/pull/1805), [@ioquatix](https://github.com/ioquatix))
-- rackup -D option to daemonizes no longer changes the working directory to the root. ([#1813](https://github.com/rack/rack/pull/1813), [@jeremyevans](https://github.com/jeremyevans))
-- The X-Forwarded-Proto header is now considered before the X-Forwarded-Scheme header for determining the forwarded protocol. `Rack::Request.x_forwarded_proto_priority` accessor has been added for configuring the priority of which header to check.  ([#1809](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
-- `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans](https://github.com/jeremyevans))
-- Use lower case cookie attributes when creating cookies, and fold cookie attributes to lower case when reading cookies (specifically impacting `secure` and `httponly` attributes). ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix](https://github.com/ioquatix))
+- Explicitly deprecate `Rack::File` which was an alias for `Rack::Files`. ([#1811](https://github.com/rack/rack/pull/1720), [@ioquatix]).
+- Moved `Rack::Session` into [separate gem](https://github.com/rack/rack-session). ([#1805](https://github.com/rack/rack/pull/1805), [@ioquatix])
+- `rackup -D` option to daemonizes no longer changes the working directory to the root. ([#1813](https://github.com/rack/rack/pull/1813), [@jeremyevans])
+- The `x-forwarded-proto` header is now considered before the `x-forwarded-scheme` header for determining the forwarded protocol. `Rack::Request.x_forwarded_proto_priority` accessor has been added for configuring the priority of which header to check.  ([#1809](https://github.com/rack/rack/issues/1809), [@jeremyevans])
+- `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans])
+- Use lower case cookie attributes when creating cookies, and fold cookie attributes to lower case when reading cookies (specifically impacting `secure` and `httponly` attributes). ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix])
 
 ### Fixed
 
