@@ -334,6 +334,26 @@ describe Rack::Server do
     c.start.must_equal [c, :started]
   end
 
+  def start_server(server)
+    begin
+      ready = Thread::Queue.new
+      thread = Thread.new do
+        begin
+          server.start { |s| ready.push(true) }
+        ensure
+          ready.close
+        end
+      end
+
+      unless ready.pop
+        thread.join
+      end
+
+      return thread
+    ensure
+      ready.close
+    end
+  end
 
   it "run a server" do
     pidfile = Tempfile.open('pidfile') { |f| break f }
@@ -349,8 +369,9 @@ describe Rack::Server do
       daemonize: false,
       server: 'webrick'
     )
-    t = Thread.new { server.start { |s| Thread.current[:server] = s } }
-    t.join(0.01) until t[:server] && t[:server].status != :Stop
+
+    t = start_server(server)
+
     body = if URI.respond_to?(:open)
              URI.open("http://localhost:#{server.options[:Port]}/") { |f| f.read }
            else
@@ -366,6 +387,7 @@ describe Rack::Server do
   it "run a secure server" do
     pidfile = Tempfile.open('pidfile') { |f| break f }
     FileUtils.rm pidfile.path
+
     server = Rack::Server.new(
       app: app,
       environment: 'none',
@@ -379,8 +401,8 @@ describe Rack::Server do
       SSLEnable: true,
       SSLCertName: [['CN', 'nobody'], ['DC', 'example']]
     )
-    t = Thread.new { server.start { |s| Thread.current[:server] = s } }
-    t.join(0.01) until t[:server] && t[:server].status != :Stop
+
+    t = start_server(server)
 
     uri = URI.parse("https://localhost:#{server.options[:Port]}/")
 
