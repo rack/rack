@@ -5,9 +5,9 @@ require_relative 'utils'
 
 module Rack
 
-  # Sets the Content-Length header on responses that do not specify
-  # a Content-Length or Transfer-Encoding header.  Note that this
-  # does not fix responses that have an invalid Content-Length
+  # Sets the content-length header on responses that do not specify
+  # a content-length or transfer-encoding header.  Note that this
+  # does not fix responses that have an invalid content-length
   # header specified.
   class ContentLength
     include Rack::Utils

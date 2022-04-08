@@ -169,7 +169,7 @@ module Rack
     #
     #  Rack::Server.start(
     #    :app => lambda do |e|
-    #      [200, {'Content-Type' => 'text/html'}, ['hello world']]
+    #      [200, {'content-type' => 'text/html'}, ['hello world']]
     #    end,
     #    :server => 'cgi'
     #  )

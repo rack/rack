@@ -43,7 +43,7 @@ module Rack
           if str
             @cursor += str.bytesize
           else
-            # Raise an error for mismatching Content-Length and actual contents
+            # Raise an error for mismatching content-length and actual contents
             raise EOFError, "bad content body"
           end
 

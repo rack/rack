@@ -682,7 +682,7 @@ class RackRequestTest < Minitest::Spec
     lambda { req.POST }.must_raise RuntimeError
   end
 
-  it "parse POST data when method is POST and no Content-Type given" do
+  it "parse POST data when method is POST and no content-type given" do
     req = make_request \
       Rack::MockRequest.env_for("/?foo=quux",
         "REQUEST_METHOD" => 'POST',
@@ -1210,8 +1210,8 @@ content-disposition: form-data; name="reply"\r
 yes\r
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="dj.jpg"\r
-Content-Type: image/jpeg\r
-Content-Transfer-Encoding: base64\r
+content-type: image/jpeg\r
+content-transfer-encoding: base64\r
 \r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
@@ -1249,8 +1249,8 @@ content-disposition: form-data; name="reply"
 yes
 --AaB03x
 content-disposition: form-data; name="fileupload"; filename="dj.jpg"
-Content-Type: image/jpeg
-Content-Transfer-Encoding: base64
+content-type: image/jpeg
+content-transfer-encoding: base64
 
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg
 --AaB03x--
@@ -1273,8 +1273,8 @@ content-disposition: form-data; name="reply"\r
 yes\r
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="dj.jpg"\r
-Content-Type: image/jpeg\r
-Content-Transfer-Encoding: base64\r
+content-type: image/jpeg\r
+content-transfer-encoding: base64\r
 \r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
@@ -1305,7 +1305,7 @@ EOF
 
   it "MultipartPartLimitError when request has too many multipart parts if limit set" do
     begin
-      data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+      data = 10000.times.map { "--AaB03x\r\ncontent-type: text/plain\r\ncontent-disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
       data += "--AaB03x--\r"
 
       options = {
@@ -1321,7 +1321,7 @@ EOF
 
   it 'closes tempfiles it created in the case of too many created' do
     begin
-      data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+      data = 10000.times.map { "--AaB03x\r\ncontent-type: text/plain\r\ncontent-disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
       data += "--AaB03x--\r"
 
       files = []
@@ -1371,14 +1371,14 @@ EOF
     input = <<EOF
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="foo.jpg"\r
-Content-Type: image/jpeg\r
-Content-Transfer-Encoding: base64\r
+content-type: image/jpeg\r
+content-transfer-encoding: base64\r
 \r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="bar.jpg"\r
-Content-Type: image/jpeg\r
-Content-Transfer-Encoding: base64\r
+content-type: image/jpeg\r
+content-transfer-encoding: base64\r
 \r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r
@@ -1448,9 +1448,9 @@ EOF
   it "correctly parse the part name from Content-Id header" do
     input = <<EOF
 --AaB03x\r
-Content-Type: text/xml; charset=utf-8\r
+content-type: text/xml; charset=utf-8\r
 Content-Id: <soap-start>\r
-Content-Transfer-Encoding: 7bit\r
+content-transfer-encoding: 7bit\r
 \r
 foo\r
 --AaB03x--\r
@@ -1510,8 +1510,8 @@ content-disposition: form-data; name="reply"\r
 yes\r
 --AaB03x\r
 content-disposition: form-data; name="fileupload"; filename="dj.jpg"\r
-Content-Type: image/jpeg\r
-Content-Transfer-Encoding: base64\r
+content-type: image/jpeg\r
+content-transfer-encoding: base64\r
 \r
 /9j/4AAQSkZJRgABAQAAAQABAAD//gA+Q1JFQVRPUjogZ2QtanBlZyB2MS4wICh1c2luZyBJSkcg\r
 --AaB03x--\r

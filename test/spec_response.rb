@@ -31,7 +31,7 @@ describe Rack::Response do
     etag = 'foo'
     response.etag = etag
     assert_equal etag, response.etag
-    assert_equal etag, response.to_a[1]['ETag']
+    assert_equal etag, response.to_a[1]['etag']
   end
 
   it 'has a content-type method' do
@@ -39,7 +39,7 @@ describe Rack::Response do
     content_type = 'foo'
     response.content_type = content_type
     assert_equal content_type, response.content_type
-    assert_equal content_type, response.to_a[1]['Content-Type']
+    assert_equal content_type, response.to_a[1]['content-type']
   end
 
   it "have sensible default values" do
@@ -60,7 +60,7 @@ describe Rack::Response do
     }
   end
 
-  it "can be written to inside finish block, but does not update Content-Length" do
+  it "can be written to inside finish block, but does not update content-length" do
     response = Rack::Response.new('foo')
     response.write "bar"
 
@@ -72,139 +72,139 @@ describe Rack::Response do
     body.each { |part| parts << part }
 
     parts.must_equal ["foo", "bar", "baz"]
-    h['Content-Length'].must_equal '6'
+    h['content-length'].must_equal '6'
   end
 
   it "can set and read headers" do
     response = Rack::Response.new
-    response["Content-Type"].must_be_nil
-    response["Content-Type"] = "text/plain"
-    response["Content-Type"].must_equal "text/plain"
+    response["content-type"].must_be_nil
+    response["content-type"] = "text/plain"
+    response["content-type"].must_equal "text/plain"
   end
 
   it "doesn't mutate given headers" do
-    headers = {}
+    headers = {}.freeze
 
     response = Rack::Response.new([], 200, headers)
-    response.headers["Content-Type"] = "text/plain"
-    response.headers["Content-Type"].must_equal "text/plain"
+    response.headers["content-type"] = "text/plain"
+    response.headers["content-type"].must_equal "text/plain"
 
-    headers.wont_include("Content-Type")
+    headers.wont_include("content-type")
   end
 
-  it "can override the initial Content-Type with a different case" do
+  it "can override the initial content-type with a different case" do
     response = Rack::Response.new("", 200, "content-type" => "text/plain")
-    response["Content-Type"].must_equal "text/plain"
+    response["content-type"].must_equal "text/plain"
   end
 
   it "can set cookies" do
     response = Rack::Response.new
 
     response.set_cookie "foo", "bar"
-    response["Set-Cookie"].must_equal "foo=bar"
+    response["set-cookie"].must_equal "foo=bar"
     response.set_cookie "foo2", "bar2"
-    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2"]
+    response["set-cookie"].must_equal ["foo=bar", "foo2=bar2"]
     response.set_cookie "foo3", "bar3"
-    response["Set-Cookie"].must_equal ["foo=bar", "foo2=bar2", "foo3=bar3"]
+    response["set-cookie"].must_equal ["foo=bar", "foo2=bar2", "foo3=bar3"]
   end
 
   it "can set cookies with the same name for multiple domains" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "sample.example.com" }
     response.set_cookie "foo", { value: "bar", domain: ".example.com" }
-    response["Set-Cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"]
+    response["set-cookie"].must_equal ["foo=bar; domain=sample.example.com", "foo=bar; domain=.example.com"]
   end
 
   it "formats the Cookie expiration date accordingly to RFC 6265" do
     response = Rack::Response.new
 
     response.set_cookie "foo", { value: "bar", expires: Time.now + 10 }
-    response["Set-Cookie"].must_match(
+    response["set-cookie"].must_match(
       /expires=..., \d\d ... \d\d\d\d \d\d:\d\d:\d\d .../)
   end
 
   it "can set secure cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", secure: true }
-    response["Set-Cookie"].must_equal "foo=bar; secure"
+    response["set-cookie"].must_equal "foo=bar; secure"
   end
 
   it "can set http only cookies" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", httponly: true }
-    response["Set-Cookie"].must_equal "foo=bar; httponly"
+    response["set-cookie"].must_equal "foo=bar; httponly"
   end
 
   it "can set http only cookies with :http_only" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", http_only: true }
-    response["Set-Cookie"].must_equal "foo=bar; httponly"
+    response["set-cookie"].must_equal "foo=bar; httponly"
   end
 
   it "can set prefers :httponly for http only cookie setting when :httponly and :http_only provided" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", httponly: false, http_only: true }
-    response["Set-Cookie"].must_equal "foo=bar"
+    response["set-cookie"].must_equal "foo=bar"
   end
 
   it "can set SameSite cookies with symbol value :none" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :none }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; SameSite=None"
   end
 
   it "can set SameSite cookies with symbol value :None" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :None }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; SameSite=None"
   end
 
   it "can set SameSite cookies with string value 'None'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "None" }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; SameSite=None"
   end
 
   it "can set SameSite cookies with symbol value :lax" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :lax }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
   end
 
   it "can set SameSite cookies with symbol value :Lax" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :lax }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
   end
 
   it "can set SameSite cookies with string value 'Lax'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "Lax" }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
   end
 
   it "can set SameSite cookies with boolean value true" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: true }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
   end
 
   it "can set SameSite cookies with symbol value :strict" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :strict }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
   end
 
   it "can set SameSite cookies with symbol value :Strict" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :Strict }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
   end
 
   it "can set SameSite cookies with string value 'Strict'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "Strict" }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
   end
 
   it "validates the SameSite option value" do
@@ -218,14 +218,14 @@ describe Rack::Response do
   it "can set SameSite cookies with symbol value" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :Strict }
-    response["Set-Cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
   end
 
   [ nil, false ].each do |non_truthy|
     it "omits SameSite attribute given a #{non_truthy.inspect} value" do
       response = Rack::Response.new
       response.set_cookie "foo", { value: "bar", same_site: non_truthy }
-      response["Set-Cookie"].must_equal "foo=bar"
+      response["set-cookie"].must_equal "foo=bar"
     end
   end
 
@@ -234,7 +234,7 @@ describe Rack::Response do
     response.set_cookie "foo", "bar"
     response.set_cookie "foo2", "bar2"
     response.delete_cookie "foo"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar",
       "foo2=bar2",
       "foo=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -245,20 +245,20 @@ describe Rack::Response do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "sample.example.com" }
     response.set_cookie "foo", { value: "bar", domain: ".example.com" }
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=sample.example.com",
       "foo=bar; domain=.example.com"
     ]
 
     response.delete_cookie "foo", domain: ".example.com"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=sample.example.com",
       "foo=bar; domain=.example.com",
       "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     ]
 
     response.delete_cookie "foo", domain: "sample.example.com"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=sample.example.com",
       "foo=bar; domain=.example.com",
       "foo=; domain=.example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
@@ -270,20 +270,20 @@ describe Rack::Response do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", domain: "example.com.example.com" }
     response.set_cookie "foo", { value: "bar", domain: "example.com" }
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=example.com.example.com",
       "foo=bar; domain=example.com"
     ]
     
     response.delete_cookie "foo", { domain: "example.com" }
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=example.com.example.com",
       "foo=bar; domain=example.com",
       "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     ]
     
     response.delete_cookie "foo", { domain: "example.com.example.com" }
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; domain=example.com.example.com",
       "foo=bar; domain=example.com",
       "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
@@ -296,13 +296,13 @@ describe Rack::Response do
     response.set_cookie "foo", { value: "bar", path: "/" }
     response.set_cookie "foo", { value: "bar", path: "/path" }
 
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; path=/",
       "foo=bar; path=/path"
     ]
 
     response.delete_cookie "foo", path: "/path"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; path=/",
       "foo=bar; path=/path",
       "foo=; path=/path; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
@@ -312,12 +312,12 @@ describe Rack::Response do
   it "only delete cookies with the path specified" do
     response = Rack::Response.new
     response.set_cookie "foo", value: "bar", path: "/a/b"
-    response["Set-Cookie"].must_equal(
+    response["set-cookie"].must_equal(
       "foo=bar; path=/a/b"
     )
 
     response.delete_cookie "foo", path: "/a"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=bar; path=/a/b",
       "foo=; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     ]
@@ -326,12 +326,12 @@ describe Rack::Response do
   it "only delete cookies with the domain and path specified" do
     response = Rack::Response.new
     response.delete_cookie "foo", path: "/a", domain: "example.com"
-    response["Set-Cookie"].must_equal(
+    response["set-cookie"].must_equal(
       "foo=; domain=example.com; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
     )
 
     response.delete_cookie "foo", path: "/a/b", domain: "example.com"
-    response["Set-Cookie"].must_equal [
+    response["set-cookie"].must_equal [
       "foo=; domain=example.com; path=/a; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
       "foo=; domain=example.com; path=/a/b; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT",
     ]
@@ -342,7 +342,7 @@ describe Rack::Response do
     response.redirect "/foo"
     status, header = response.finish
     status.must_equal 302
-    header["Location"].must_equal "/foo"
+    header["location"].must_equal "/foo"
 
     response = Rack::Response.new
     response.redirect "/foo", 307
@@ -391,7 +391,7 @@ describe Rack::Response do
     status.must_equal 404
   end
 
-  it "correctly updates Content-Type when writing when not initialized with body" do
+  it "correctly updates content-type when writing when not initialized with body" do
     r = Rack::Response.new
     r.write('foo')
     r.write('bar')
@@ -399,10 +399,10 @@ describe Rack::Response do
     _, header, body = r.finish
     str = "".dup; body.each { |part| str << part }
     str.must_equal "foobarbaz"
-    header['Content-Length'].must_equal '9'
+    header['content-length'].must_equal '9'
   end
 
-  it "correctly updates Content-Type when writing when initialized with body" do
+  it "correctly updates content-type when writing when initialized with body" do
     obj = Object.new
     def obj.each
       yield 'foo'
@@ -414,7 +414,7 @@ describe Rack::Response do
       _, header, body = r.finish
       str = "".dup; body.each { |part| str << part }
       str.must_equal "foobarbaz"
-      header['Content-Length'].must_equal '9'
+      header['content-length'].must_equal '9'
     end
   end
 
@@ -423,8 +423,8 @@ describe Rack::Response do
     _, header, body = r.finish
     str = "".dup; body.each { |part| str << part }
     str.must_be :empty?
-    header["Content-Type"].must_be_nil
-    header['Content-Length'].must_be_nil
+    header["content-type"].must_be_nil
+    header['content-length'].must_be_nil
 
     lambda {
       Rack::Response.new(Object.new).each{}
@@ -520,11 +520,11 @@ describe Rack::Response do
 
   it "provide access to the HTTP headers" do
     res = Rack::Response.new
-    res["Content-Type"] = "text/yaml; charset=UTF-8"
+    res["content-type"] = "text/yaml; charset=UTF-8"
 
-    res.must_include "Content-Type"
-    res.headers["Content-Type"].must_equal "text/yaml; charset=UTF-8"
-    res["Content-Type"].must_equal "text/yaml; charset=UTF-8"
+    res.must_include "content-type"
+    res.headers["content-type"].must_equal "text/yaml; charset=UTF-8"
+    res["content-type"].must_equal "text/yaml; charset=UTF-8"
     res.content_type.must_equal "text/yaml; charset=UTF-8"
     res.media_type.must_equal "text/yaml"
     res.media_type_params.must_equal "charset" => "UTF-8"
@@ -532,27 +532,27 @@ describe Rack::Response do
     res.location.must_be_nil
   end
 
-  it "does not add or change Content-Length when #finish()ing" do
+  it "does not add or change content-length when #finish()ing" do
     res = Rack::Response.new
     res.status = 200
     res.finish
-    res.headers["Content-Length"].must_be_nil
+    res.headers["content-length"].must_be_nil
 
     res = Rack::Response.new
     res.status = 200
-    res.headers["Content-Length"] = "10"
+    res.headers["content-length"] = "10"
     res.finish
-    res.headers["Content-Length"].must_equal "10"
+    res.headers["content-length"].must_equal "10"
   end
 
-  it "updates Content-Length when body appended to using #write" do
+  it "updates content-length when body appended to using #write" do
     res = Rack::Response.new
     res.status = 200
-    res.headers["Content-Length"].must_be_nil
+    res.headers["content-length"].must_be_nil
     res.write "Hi"
-    res.headers["Content-Length"].must_equal "2"
+    res.headers["content-length"].must_equal "2"
     res.write " there"
-    res.headers["Content-Length"].must_equal "8"
+    res.headers["content-length"].must_equal "8"
   end
 
   it "does not wrap body" do
@@ -652,62 +652,59 @@ describe Rack::Response, 'headers' do
   it 'has_header?' do
     lambda { @response.has_header? nil }.must_raise ArgumentError
 
-    @response.has_header?('Foo').must_equal true
     @response.has_header?('foo').must_equal true
   end
 
   it 'get_header' do
     lambda { @response.get_header nil }.must_raise ArgumentError
 
-    @response.get_header('Foo').must_equal '1'
     @response.get_header('foo').must_equal '1'
   end
 
   it 'set_header' do
     lambda { @response.set_header nil, '1' }.must_raise ArgumentError
 
-    @response.set_header('Foo', '2').must_equal '2'
-    @response.has_header?('Foo').must_equal true
-    @response.get_header('Foo').must_equal('2')
+    @response.set_header('foo', '2').must_equal '2'
+    @response.has_header?('foo').must_equal true
+    @response.get_header('foo').must_equal('2')
 
-    @response.set_header('Foo', nil).must_be_nil
-    @response.has_header?('Foo').must_equal true
-    @response.get_header('Foo').must_be_nil
+    @response.set_header('foo', nil).must_be_nil
+    @response.get_header('foo').must_be_nil
   end
 
   it 'add_header' do
     lambda { @response.add_header nil, '1' }.must_raise ArgumentError
 
     # Add a value to an existing header
-    @response.add_header('Foo', '2').must_equal ["1", "2"]
-    @response.get_header('Foo').must_equal ["1", "2"]
+    @response.add_header('foo', '2').must_equal ["1", "2"]
+    @response.get_header('foo').must_equal ["1", "2"]
 
     # Add nil to an existing header
-    @response.add_header('Foo', nil).must_equal ["1", "2"]
-    @response.get_header('Foo').must_equal ["1", "2"]
+    @response.add_header('foo', nil).must_equal ["1", "2"]
+    @response.get_header('foo').must_equal ["1", "2"]
 
     # Add nil to a nonexistent header
-    @response.add_header('Bar', nil).must_be_nil
-    @response.has_header?('Bar').must_equal false
-    @response.get_header('Bar').must_be_nil
+    @response.add_header('bar', nil).must_be_nil
+    @response.has_header?('bar').must_equal false
+    @response.get_header('bar').must_be_nil
 
     # Add a value to a nonexistent header
-    @response.add_header('Bar', '1').must_equal '1'
-    @response.has_header?('Bar').must_equal true
-    @response.get_header('Bar').must_equal '1'
+    @response.add_header('bar', '1').must_equal '1'
+    @response.has_header?('bar').must_equal true
+    @response.get_header('bar').must_equal '1'
   end
 
   it 'delete_header' do
     lambda { @response.delete_header nil }.must_raise ArgumentError
 
-    @response.delete_header('Foo').must_equal '1'
-    (!!@response.has_header?('Foo')).must_equal false
+    @response.delete_header('foo').must_equal '1'
+    @response.has_header?('foo').must_equal false
 
-    @response.delete_header('Foo').must_be_nil
-    @response.has_header?('Foo').must_equal false
+    @response.delete_header('foo').must_be_nil
+    @response.has_header?('foo').must_equal false
 
-    @response.set_header('Foo', 1)
+    @response.set_header('foo', 1)
     @response.delete_header('foo').must_equal 1
-    @response.has_header?('Foo').must_equal false
+    @response.has_header?('foo').must_equal false
   end
 end

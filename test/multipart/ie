@@ -1,6 +1,6 @@
 --AaB03x
-Content-Disposition: form-data; name="files"; filename="C:\Documents and Settings\Administrator\Desktop\file1.txt"
-Content-Type: text/plain
+content-disposition: form-data; name="files"; filename="C:\Documents and Settings\Administrator\Desktop\file1.txt"
+content-type: text/plain
 
 contents
 --AaB03x--

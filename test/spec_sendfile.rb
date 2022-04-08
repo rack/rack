@@ -38,7 +38,7 @@ describe Rack::Sendfile do
     end.open(path, 'wb+')
   end
 
-  it "does nothing when no x-sendfile-Type header present" do
+  it "does nothing when no x-sendfile-type header present" do
     request do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
@@ -46,7 +46,7 @@ describe Rack::Sendfile do
     end
   end
 
-  it "does nothing and logs to rack.errors when incorrect x-sendfile-Type header present" do
+  it "does nothing and logs to rack.errors when incorrect x-sendfile-type header present" do
     io = StringIO.new
     request 'HTTP_X_SENDFILE_TYPE' => 'X-Banana', 'rack.errors' => io do |response|
       response.must_be :ok?
@@ -62,52 +62,52 @@ describe Rack::Sendfile do
     request 'HTTP_X_SENDFILE_TYPE' => 'x-sendfile' do |response|
       response.must_be :ok?
       response.body.must_be :empty?
-      response.headers['Content-Length'].must_equal '0'
+      response.headers['content-length'].must_equal '0'
       response.headers['x-sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
-  it "sets X-Lighttpd-Send-File response header and discards body" do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Lighttpd-Send-File' do |response|
+  it "sets x-lighttpd-send-file response header and discards body" do
+    request 'HTTP_X_SENDFILE_TYPE' => 'x-lighttpd-send-file' do |response|
       response.must_be :ok?
       response.body.must_be :empty?
-      response.headers['Content-Length'].must_equal '0'
-      response.headers['X-Lighttpd-Send-File'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-lighttpd-send-file'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
-  it "sets X-Accel-Redirect response header and discards body" do
+  it "sets x-accel-redirect response header and discards body" do
     headers = {
-      'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
+      'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect',
       'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar/"
     }
     request headers do |response|
       response.must_be :ok?
       response.body.must_be :empty?
-      response.headers['Content-Length'].must_equal '0'
-      response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal '/foo/bar/rack_sendfile'
     end
   end
 
-  it "sets X-Accel-Redirect response header to percent-encoded path" do
+  it "sets x-accel-redirect response header to percent-encoded path" do
     headers = {
-      'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
+      'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect',
       'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar%/"
     }
     request headers, sendfile_body('file_with_%_?_symbol') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
-      response.headers['Content-Length'].must_equal '0'
-      response.headers['X-Accel-Redirect'].must_equal '/foo/bar%25/file_with_%25_%3F_symbol'
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal '/foo/bar%25/file_with_%25_%3F_symbol'
     end
   end
 
-  it 'writes to rack.error when no X-Accel-Mapping is specified' do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' do |response|
+  it 'writes to rack.error when no x-accel-mapping is specified' do
+    request 'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect' do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
-      response.headers.wont_include 'X-Accel-Redirect'
-      response.errors.must_include 'X-Accel-Mapping'
+      response.headers.wont_include 'x-accel-redirect'
+      response.errors.must_include 'x-accel-mapping'
     end
   end
 
@@ -118,7 +118,7 @@ describe Rack::Sendfile do
     end
   end
 
-  it "sets X-Accel-Redirect response header and discards body when initialized with multiple mappings" do
+  it "sets x-accel-redirect response header and discards body when initialized with multiple mappings" do
     begin
       dir1 = Dir.mktmpdir
       dir2 = Dir.mktmpdir
@@ -134,18 +134,18 @@ describe Rack::Sendfile do
         ["#{dir2}/", '/wibble/']
       ]
 
-      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, first_body, mappings) do |response|
+      request({ 'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect' }, first_body, mappings) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
+        response.headers['content-length'].must_equal '0'
+        response.headers['x-accel-redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
-      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, second_body, mappings) do |response|
+      request({ 'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect' }, second_body, mappings) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
+        response.headers['content-length'].must_equal '0'
+        response.headers['x-accel-redirect'].must_equal '/wibble/rack_sendfile'
       end
     ensure
       FileUtils.remove_entry_secure dir1
@@ -153,7 +153,7 @@ describe Rack::Sendfile do
     end
   end
 
-  it "sets X-Accel-Redirect response header and discards body when initialized with multiple mappings via header" do
+  it "sets x-accel-redirect response header and discards body when initialized with multiple mappings via header" do
     begin
       dir1 = Dir.mktmpdir
       dir2 = Dir.mktmpdir
@@ -169,29 +169,29 @@ describe Rack::Sendfile do
       third_body.puts 'hello again world'
 
       headers = {
-        'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
+        'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect',
         'HTTP_X_ACCEL_MAPPING' => "#{dir1}/=/foo/bar/, #{dir2}/=/wibble/"
       }
 
       request(headers, first_body) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
+        response.headers['content-length'].must_equal '0'
+        response.headers['x-accel-redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
       request(headers, second_body) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
+        response.headers['content-length'].must_equal '0'
+        response.headers['x-accel-redirect'].must_equal '/wibble/rack_sendfile'
       end
 
       request(headers, third_body) do |response|
         response.must_be :ok?
         response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal "#{dir3}/rack_sendfile"
+        response.headers['content-length'].must_equal '0'
+        response.headers['x-accel-redirect'].must_equal "#{dir3}/rack_sendfile"
       end
     ensure
       FileUtils.remove_entry_secure dir1

@@ -121,7 +121,7 @@ describe Rack::Static do
   it "serves gzipped files if client accepts gzip encoding and gzip files are present" do
     res = @gzip_request.get("/cgi/test", 'HTTP_ACCEPT_ENCODING' => 'deflate, gzip')
     res.must_be :ok?
-    res.headers['Content-Encoding'].must_equal 'gzip'
+    res.headers['content-encoding'].must_equal 'gzip'
     res.headers['content-type'].must_equal 'text/plain'
     Zlib::GzipReader.wrap(StringIO.new(res.body), &:read).must_match(/ruby/)
   end
@@ -129,7 +129,7 @@ describe Rack::Static do
   it "serves regular files if client accepts gzip encoding and gzip files are not present" do
     res = @gzip_request.get("/cgi/rackup_stub.rb", 'HTTP_ACCEPT_ENCODING' => 'deflate, gzip')
     res.must_be :ok?
-    res.headers['Content-Encoding'].must_be_nil
+    res.headers['content-encoding'].must_be_nil
     res.headers['content-type'].must_equal 'text/x-script.ruby'
     res.body.must_match(/ruby/)
   end
@@ -137,7 +137,7 @@ describe Rack::Static do
   it "serves regular files if client does not accept gzip encoding" do
     res = @gzip_request.get("/cgi/test")
     res.must_be :ok?
-    res.headers['Content-Encoding'].must_be_nil
+    res.headers['content-encoding'].must_be_nil
     res.headers['content-type'].must_equal 'text/plain'
     res.body.must_match(/ruby/)
   end
@@ -147,7 +147,7 @@ describe Rack::Static do
     res = @gzip_request.get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
     res.status.must_equal 304
     res.body.must_be :empty?
-    res.headers['Content-Encoding'].must_be_nil
+    res.headers['content-encoding'].must_be_nil
     res.headers['content-type'].must_be_nil
   end
 

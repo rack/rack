@@ -389,7 +389,7 @@ describe Rack::Lint do
     #                    [200, {"content-length" => "0"}, []]
     #                  }).call(env({}))
     # }.must_raise(Rack::Lint::LintError).
-    #   message.must_match(/No content-Type/)
+    #   message.must_match(/No content-type/)
 
     [100, 101, 204, 304].each do |status|
       lambda {
@@ -519,7 +519,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].gets("\r\n")
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/gets called with arguments/)
@@ -528,7 +528,7 @@ describe Rack::Lint do
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].gets
                        env["rack.input"].read(1, 2, 3)
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with too many arguments/)
@@ -536,7 +536,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read("foo")
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with non-integer and non-nil length/)
@@ -544,7 +544,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(-1)
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with a negative length/)
@@ -552,7 +552,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(nil, nil)
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with non-String buffer/)
@@ -560,7 +560,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env["rack.input"].read(nil, 1)
-                       [201, { "Content-type" => "text/plain", "Content-length" => "0" }, []]
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read called with non-String buffer/)

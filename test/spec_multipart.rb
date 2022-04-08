@@ -69,7 +69,7 @@ describe Rack::Multipart do
     params["text"].encoding.must_equal Encoding::US_ASCII
 
     # I'm not 100% sure if making the param name encoding match the
-    # Content-Type charset is the right thing to do.  We should revisit this.
+    # content-type charset is the right thing to do.  We should revisit this.
     params.keys.each do |key|
       key.encoding.must_equal Encoding::US_ASCII
     end
@@ -134,9 +134,9 @@ describe Rack::Multipart do
         (1024 * 1024).times { wr.write(longer) }
 
         wr.write("\r\n")
-        wr.write('Content-Disposition: form-data; name="a"; filename="a.txt"')
+        wr.write('content-disposition: form-data; name="a"; filename="a.txt"')
         wr.write("\r\n")
-        wr.write("Content-Type: text/plain\r\n")
+        wr.write("content-type: text/plain\r\n")
         wr.write("\r\na")
         wr.write("--AaB03x--\r\n")
         wr.close
@@ -169,9 +169,9 @@ describe Rack::Multipart do
     data = StringIO.new
     data.write("--#{boundary}")
     data.write("\r\n")
-    data.write('Content-Disposition: form-data; name="a"; filename="a.pdf"')
+    data.write('content-disposition: form-data; name="a"; filename="a.pdf"')
     data.write("\r\n")
-    data.write("Content-Type:application/pdf\r\n")
+    data.write("content-type:application/pdf\r\n")
     data.write("\r\n")
     data.write("-" * (1024 * 1024))
     data.write("\r\n")
@@ -203,9 +203,9 @@ describe Rack::Multipart do
     params["submit-name-with-content"].must_equal "Berry"
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "file1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -234,9 +234,9 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["file1.txt"][:type].must_equal "text/plain"
     params["file1.txt"][:filename].must_equal "file1.txt"
-    params["file1.txt"][:head].must_equal "Content-Disposition: form-data; " +
+    params["file1.txt"][:head].must_equal "content-disposition: form-data; " +
       "filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["file1.txt"][:name].must_equal "file1.txt"
     params["file1.txt"][:tempfile].read.must_equal "contents"
   end
@@ -256,9 +256,9 @@ describe Rack::Multipart do
     params["foo"]["submit-name"].must_equal "Larry"
     params["foo"]["files"][:type].must_equal "text/plain"
     params["foo"]["files"][:filename].must_equal "file1.txt"
-    params["foo"]["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["foo"]["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"foo[files]\"; filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["foo"]["files"][:name].must_equal "foo[files]"
     params["foo"]["files"][:tempfile].read.must_equal "contents"
   end
@@ -270,9 +270,9 @@ describe Rack::Multipart do
 
     params["files"][:type].must_equal "image/png"
     params["files"][:filename].must_equal "rack-logo.png"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"rack-logo.png\"\r\n" +
-      "Content-Type: image/png\r\n"
+      "content-type: image/png\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.length.must_equal 26473
   end
@@ -283,9 +283,9 @@ describe Rack::Multipart do
     params["submit-name"].must_equal "Larry"
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "file1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal ""
   end
@@ -295,9 +295,9 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "fi;le1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"fi;le1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -309,9 +309,9 @@ describe Rack::Multipart do
     params["submit-name-with-content"].must_equal "Berry"
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "file1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -321,9 +321,9 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_match(/invalid/)
-    head = "Content-Disposition: form-data; " +
+    head = "content-disposition: form-data; " +
       "name=\"files\"; filename=\"invalid\xC3.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     head = head.force_encoding(Encoding::ASCII_8BIT)
     params["files"][:head].must_equal head
     params["files"][:name].must_equal "files"
@@ -348,7 +348,7 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "flowers.exe\u0000.jpg"
   end
 
-  it "is robust separating Content-Disposition fields" do
+  it "is robust separating content-disposition fields" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:robust_field_separation))
     params = Rack::Multipart.parse_multipart(env)
     params["text"].must_equal "contents"
@@ -375,10 +375,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "file1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; " +
       'filename="C:\Documents and Settings\Administrator\Desktop\file1.txt"' +
-      "\r\nContent-Type: text/plain\r\n"
+      "\r\ncontent-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -388,8 +388,8 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "image/jpeg"
     params["files"][:filename].must_equal "genome.jpeg"
-    params["files"][:head].must_equal "Content-Type: image/jpeg\r\n" +
-      "Content-Disposition: attachment; " +
+    params["files"][:head].must_equal "content-type: image/jpeg\r\n" +
+      "content-disposition: attachment; " +
       "name=\"files\"; " +
       "filename=genome.jpeg; " +
       "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
@@ -403,10 +403,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
     params["files"][:filename].must_equal "escape \"quotes"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; " +
       "filename=\"escape \\\"quotes\"\r\n" +
-      "Content-Type: application/octet-stream\r\n"
+      "content-type: application/octet-stream\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -416,10 +416,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
     params["files"][:filename].must_equal "foo+bar"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; " +
       "filename=\"foo+bar\"\r\n" +
-      "Content-Type: application/octet-stream\r\n"
+      "content-type: application/octet-stream\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -429,10 +429,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
     params["files"][:filename].must_equal "escape \"quotes"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; " +
       "filename=\"escape %22quotes\"\r\n" +
-      "Content-Type: application/octet-stream\r\n"
+      "content-type: application/octet-stream\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -442,10 +442,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
     params["files"][:filename].must_equal "escape \"quotes"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; " +
       "filename=\"escape \"quotes\"\r\n" +
-      "Content-Type: application/octet-stream\r\n"
+      "content-type: application/octet-stream\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -455,8 +455,8 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "image/jpeg"
     params["files"][:filename].must_equal "\"human\" genome.jpeg"
-    params["files"][:head].must_equal "Content-Type: image/jpeg\r\n" +
-      "Content-Disposition: attachment; " +
+    params["files"][:head].must_equal "content-type: image/jpeg\r\n" +
+      "content-disposition: attachment; " +
       "name=\"files\"; " +
       "filename=\"\"human\" genome.jpeg\"; " +
       "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
@@ -472,8 +472,8 @@ describe Rack::Multipart do
     files[:type].must_equal "image/jpeg"
     files[:filename].must_equal "100% of a photo.jpeg"
     files[:head].must_equal <<-MULTIPART
-Content-Disposition: form-data; name="document[attachment]"; filename="100% of a photo.jpeg"\r
-Content-Type: image/jpeg\r
+content-disposition: form-data; name="document[attachment]"; filename="100% of a photo.jpeg"\r
+content-type: image/jpeg\r
     MULTIPART
 
     files[:name].must_equal "document[attachment]"
@@ -487,8 +487,8 @@ Content-Type: image/jpeg\r
     files[:type].must_equal "image/jpeg"
     files[:filename].must_equal "100%a"
     files[:head].must_equal <<-MULTIPART
-Content-Disposition: form-data; name="document[attachment]"; filename="100%a"\r
-Content-Type: image/jpeg\r
+content-disposition: form-data; name="document[attachment]"; filename="100%a"\r
+content-type: image/jpeg\r
     MULTIPART
 
     files[:name].must_equal "document[attachment]"
@@ -502,8 +502,8 @@ Content-Type: image/jpeg\r
     files[:type].must_equal "image/jpeg"
     files[:filename].must_equal "100%"
     files[:head].must_equal <<-MULTIPART
-Content-Disposition: form-data; name="document[attachment]"; filename="100%"\r
-Content-Type: image/jpeg\r
+content-disposition: form-data; name="document[attachment]"; filename="100%"\r
+content-type: image/jpeg\r
     MULTIPART
 
     files[:name].must_equal "document[attachment]"
@@ -669,8 +669,8 @@ Content-Type: image/jpeg\r
   it "can parse fields with a content type" do
     data = <<-EOF
 --1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon\r
-Content-Disposition: form-data; name="description"\r
-Content-Type: text/plain"\r
+content-disposition: form-data; name="description"\r
+content-type: text/plain"\r
 \r
 Very very blue\r
 --1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon--\r
@@ -697,8 +697,8 @@ EOF
   it "parse very long unquoted multipart file names" do
     data = <<-EOF
 --AaB03x\r
-Content-Type: text/plain\r
-Content-Disposition: attachment; name=file; filename=#{'long' * 100}\r
+content-type: text/plain\r
+content-disposition: attachment; name=file; filename=#{'long' * 100}\r
 \r
 contents\r
 --AaB03x--\r
@@ -718,8 +718,8 @@ contents\r
   it "parse unquoted parameter values at end of line" do
     data = <<-EOF
 --AaB03x\r
-Content-Type: text/plain\r
-Content-Disposition: attachment; name=inline\r
+content-type: text/plain\r
+content-disposition: attachment; name=inline\r
 \r
 true\r
 --AaB03x--\r
@@ -738,8 +738,8 @@ true\r
   it "parse quoted chars in name parameter" do
     data = <<-EOF
 --AaB03x\r
-Content-Type: text/plain\r
-Content-Disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
+content-type: text/plain\r
+content-disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
 \r
 true\r
 --AaB03x--\r
@@ -772,9 +772,9 @@ true\r
     params["submit-name-with-content"].must_equal "Berry"
     params["files"][:type].must_equal "text/plain"
     params["files"][:filename].must_equal "file1.txt"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+    params["files"][:head].must_equal "content-disposition: form-data; " +
       "name=\"files\"; filename=\"file1.txt\"\r\n" +
-      "Content-Type: text/plain\r\n"
+      "content-type: text/plain\r\n"
     params["files"][:name].must_equal "files"
     params["files"][:tempfile].read.must_equal "contents"
   end
@@ -784,15 +784,15 @@ true\r
 
     data = <<-EOF.dup
 --AaB03x\r
-Content-Type: text/plain\r
+content-type: text/plain\r
 \r
 some text\r
 --AaB03x\r
 \r
 \r
-some more text (I didn't specify Content-Type)\r
+some more text (I didn't specify content-type)\r
 --AaB03x\r
-Content-Type: image/png\r
+content-type: image/png\r
 \r
 #{rack_logo}\r
 --AaB03x--\r
@@ -806,7 +806,7 @@ Content-Type: image/png\r
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
 
-    params["text/plain"].must_equal ["some text", "some more text (I didn't specify Content-Type)"]
+    params["text/plain"].must_equal ["some text", "some more text (I didn't specify content-type)"]
     params["image/png"].length.must_equal 1
 
     f = Tempfile.new("rack-logo")

@@ -251,7 +251,7 @@ content-range: bytes 60-80/209\r
 
     status.must_equal 200
     heads['cache-control'].must_be_nil
-    heads['Access-Control-Allow-Origin'].must_be_nil
+    heads['access-control-allow-origin'].must_be_nil
   end
 
   it "only support GET, HEAD, and OPTIONS requests" do

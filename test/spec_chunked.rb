@@ -30,18 +30,18 @@ describe Rack::Chunked do
     end
 
     def trailers
-      { "Expires" => "tomorrow" }
+      { "expires" => "tomorrow" }
     end
   end
 
   it 'yields trailer headers after the response' do
     app = lambda { |env|
-      [200, { "content-type" => "text/plain", "trailer" => "Expires" }, TrailerBody.new]
+      [200, { "content-type" => "text/plain", "trailer" => "expires" }, TrailerBody.new]
     }
     response = Rack::MockResponse.new(*chunked(app).call(@env))
     response.headers.wont_include 'content-length'
     response.headers['transfer-encoding'].must_equal 'chunked'
-    response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\nExpires: tomorrow\r\n\r\n"
+    response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\nexpires: tomorrow\r\n\r\n"
   end
 
   it 'chunk responses with no content-length' do

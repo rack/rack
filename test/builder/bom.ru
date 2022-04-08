@@ -1,1 +1,1 @@
-﻿run -> (env) { [200, { 'Content-Type' => 'text/plain' }, ['OK']] }
+﻿run -> (env) { [200, { 'content-type' => 'text/plain' }, ['OK']] }

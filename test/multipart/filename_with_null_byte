@@ -1,6 +1,6 @@
 --AaB03x
-Content-Type: image/jpeg
-Content-Disposition: attachment; name="files"; filename="flowers.exe%00.jpg"
+content-type: image/jpeg
+content-disposition: attachment; name="files"; filename="flowers.exe%00.jpg"
 Content-Description: a complete map of the human genome
 
 contents
