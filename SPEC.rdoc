@@ -138,6 +138,9 @@ There are the following restrictions:
   <tt>SCRIPT_NAME</tt> is empty.
   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
 <tt>rack.response_finished</tt>:: An array of callables run after the HTTP response has been sent.
+The array of callables should be called directly after the HTTP response has
+been closed. The callables should be called sequentially and synchronously.
+
 
 === The Input Stream
 
