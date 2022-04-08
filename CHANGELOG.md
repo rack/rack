@@ -6,17 +6,18 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
+- Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans])
 
 ### SPEC Changes
 
-- rack.input is no longer required to be rewindable.
-- rack.multithread/rack.multiprocess/rack.run_once are no longer required environment keys.
-- Response status must now be an integer greater than or equal to 100.
-- Response headers must now be an unfrozen hash.
+- `rack.input` is no longer required to be rewindable.
+- `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
+- Response `status` must now be an integer greater than or equal to 100.
+- Response `headers` must now be an unfrozen hash.
 - Response header keys can no longer include uppercase characters.
-- Response body can now respond to #call instead of #each, for the equivalent of response hijacking in previous versions.
-- Middleware must no longer call #each on the body, but they can call #to_ary on the body if it responds to #to_ary.
+- Response header values can be an `Array` to handle multiple values (and no longer supports `\n` encoded headers).
+- Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
+- Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 
 ### Removed
 
@@ -26,26 +27,26 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Added
 
-- `Rack::Headers` added to support lower-case header keys. ([@jeremyevans](https://github.com/jeremyevans))
-- `Rack::Utils#set_cookie_header` now supports `escape_key: false` to avoid key escaping.  ([@jeremyevans](https://github.com/jeremyevans))
+- `Rack::Headers` added to support lower-case header keys. ([@jeremyevans])
+- `Rack::Utils#set_cookie_header` now supports `escape_key: false` to avoid key escaping.  ([@jeremyevans])
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
-- `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans](https://github.com/jeremyevans))
-- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans](https://github.com/jeremyevans))
+- `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans])
+- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
+- Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
 
 ### Changed
 
 - BREAKING CHANGE: Require `status` to be an Integer. ([#1662](https://github.com/rack/rack/pull/1662), [@olleolleolle](https://github.com/olleolleolle))
-- BREAKING CHANGE: Query parsing now treats parameters without `=` as having the empty string value instead of nil value, to conform to the URL spec. ([#1696](https://github.com/rack/rack/issues/1696), [@jeremyevans](https://github.com/jeremyevans))
+- BREAKING CHANGE: Query parsing now treats parameters without `=` as having the empty string value instead of nil value, to conform to the URL spec. ([#1696](https://github.com/rack/rack/issues/1696), [@jeremyevans])
 - Relax validations around `Rack::Request#host` and `Rack::Request#hostname`. ([#1606](https://github.com/rack/rack/issues/1606), [@pvande](https://github.com/pvande))
-- Removed antiquated handlers: FCGI, LSWS, SCGI, Thin. ([#1658](https://github.com/rack/rack/pull/1658), [@ioquatix](https://github.com/ioquatix))
-- Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix](https://github.com/ioquatix))
-- HMAC argument for `Rack::Session::Cookie` doesn't accept a class constant anymore, but only a string recognized by OpenSSL (e.g. `"SHA256"`) or compatible instance (e.g. `OpenSSL::Digest.new("SHA256")`) ([#1676](https://github.com/rack/rack/pull/1676), [@bdewater](https://github.com/bdewater))
-- `Rack::HTTP_VERSION` has been removed and the `HTTP_VERSION` env setting is no longer set in the CGI and Webrick handlers . ([#970](https://github.com/rack/rack/issues/970), [@jeremyevans](https://github.com/jeremyevans))
-- `Rack::Request#[]` and `#[]=` now warn even in non-verbose mode. ([#1277](https://github.com/rack/rack/issues/1277), [@jeremyevans](https://github.com/jeremyevans))
-- Decrease default allowed parameter recursion level from 100 to 32. ([#1640](https://github.com/rack/rack/issues/1640), [@jeremyevans](https://github.com/jeremyevans))
-- Attempting to parse a multipart response with an empty body now raises Rack::Multipart::EmptyContentError. ([#1603](https://github.com/rack/rack/issues/1603), [@jeremyevans](https://github.com/jeremyevans))
+- Removed antiquated handlers: FCGI, LSWS, SCGI, Thin. ([#1658](https://github.com/rack/rack/pull/1658), [@ioquatix])
+- Removed options from `Rack::Builder.parse_file` and `Rack::Builder.load_file`. ([#1663](https://github.com/rack/rack/pull/1663), [@ioquatix])
+- `Rack::HTTP_VERSION` has been removed and the `HTTP_VERSION` env setting is no longer set in the CGI and Webrick handlers. ([#970](https://github.com/rack/rack/issues/970), [@jeremyevans])
+- `Rack::Request#[]` and `#[]=` now warn even in non-verbose mode. ([#1277](https://github.com/rack/rack/issues/1277), [@jeremyevans])
+- Decrease default allowed parameter recursion level from 100 to 32. ([#1640](https://github.com/rack/rack/issues/1640), [@jeremyevans])
+- Attempting to parse a multipart response with an empty body now raises Rack::Multipart::EmptyContentError. ([#1603](https://github.com/rack/rack/issues/1603), [@jeremyevans])
 - `Rack::Utils.secure_compare` uses OpenSSL's faster implementation if available. ([#1711](https://github.com/rack/rack/pull/1711), [@bdewater](https://github.com/bdewater))
-- `Rack::Request#POST` now caches an empty hash if input content type is not parseable. ([#749](https://github.com/rack/rack/pull/749), [@jeremyevans](https://github.com/jeremyevans))
+- `Rack::Request#POST` now caches an empty hash if input content type is not parseable. ([#749](https://github.com/rack/rack/pull/749), [@jeremyevans])
 - BREAKING CHANGE: Updated `trusted_proxy?` to match full 127.0.0.0/8 network. ([#1781](https://github.com/rack/rack/pull/1781), [@snbloch](https://github.com/snbloch))
 - Explicitly deprecate `Rack::File` which was an alias for `Rack::Files`. ([#1811](https://github.com/rack/rack/pull/1720), [@ioquatix](https://github.com/ioquatix)).
 - Moved `Rack::Session` into [separate gem](https://github.com/rack/rack-session). ([#1805](https://github.com/rack/rack/pull/1805), [@ioquatix](https://github.com/ioquatix))
@@ -56,12 +57,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
-- Make Rack::MockResponse handle non-hash headers. ([#1629](https://github.com/rack/rack/issues/1629), [@jeremyevans](https://github.com/jeremyevans))
-- TempfileReaper now deletes temp files if application raises an exception. ([#1679](https://github.com/rack/rack/issues/1679), [@jeremyevans](https://github.com/jeremyevans))
-- Fix using Rack::Session::Cookie with coder: Rack::Session::Cookie::Base64::{JSON,Zip}. ([#1666](https://github.com/rack/rack/issues/1666), [@jeremyevans](https://github.com/jeremyevans))
-- Avoid NoMethodError when accessing Rack::Session::Cookie without requiring delegate first. ([#1610](https://github.com/rack/rack/issues/1610), [@onigra](https://github.com/onigra))
+- Make Rack::MockResponse handle non-hash headers. ([#1629](https://github.com/rack/rack/issues/1629), [@jeremyevans])
+- TempfileReaper now deletes temp files if application raises an exception. ([#1679](https://github.com/rack/rack/issues/1679), [@jeremyevans])
 - Handle cookies with values that end in '=' ([#1645](https://github.com/rack/rack/pull/1645), [@lukaso](https://github.com/lukaso))
-- Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans](https://github.com/jeremyevans))
+- Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
@@ -75,8 +74,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
-- Fix incorrect `Rack::Request#host` value. ([#1591](https://github.com/rack/rack/pull/1591), [@ioquatix](https://github.com/ioquatix))
-- Revert `Rack::Handler::Thin` implementation. ([#1583](https://github.com/rack/rack/pull/1583), [@jeremyevans](https://github.com/jeremyevans))
+- Fix incorrect `Rack::Request#host` value. ([#1591](https://github.com/rack/rack/pull/1591), [@ioquatix])
+- Revert `Rack::Handler::Thin` implementation. ([#1583](https://github.com/rack/rack/pull/1583), [@jeremyevans])
 - Double assignment is still needed to prevent an "unused variable" warning. ([#1589](https://github.com/rack/rack/pull/1589), [@kamipo](https://github.com/kamipo))
 - Fix to handle same_site option for session pool. ([#1587](https://github.com/rack/rack/pull/1587), [@kamipo](https://github.com/kamipo))
 
@@ -84,86 +83,86 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
-- Rework `Rack::Request#ip` to handle empty `forwarded_for`. ([#1577](https://github.com/rack/rack/pull/1577), [@ioquatix](https://github.com/ioquatix))
+- Rework `Rack::Request#ip` to handle empty `forwarded_for`. ([#1577](https://github.com/rack/rack/pull/1577), [@ioquatix])
 
 ## [2.2.0] - 2020-02-08
 
 ### SPEC Changes
 
-- `rack.session` request environment entry must respond to `to_hash` and return unfrozen Hash. ([@jeremyevans](https://github.com/jeremyevans))
-- Request environment cannot be frozen. ([@jeremyevans](https://github.com/jeremyevans))
-- CGI values in the request environment with non-ASCII characters must use ASCII-8BIT encoding. ([@jeremyevans](https://github.com/jeremyevans))
-- Improve SPEC/lint relating to SERVER_NAME, SERVER_PORT and HTTP_HOST. ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix](https://github.com/ioquatix))
+- `rack.session` request environment entry must respond to `to_hash` and return unfrozen Hash. ([@jeremyevans])
+- Request environment cannot be frozen. ([@jeremyevans])
+- CGI values in the request environment with non-ASCII characters must use ASCII-8BIT encoding. ([@jeremyevans])
+- Improve SPEC/lint relating to SERVER_NAME, SERVER_PORT and HTTP_HOST. ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix])
 
 ### Added
 
-- `rackup` supports multiple `-r` options and will require all arguments. ([@jeremyevans](https://github.com/jeremyevans))
+- `rackup` supports multiple `-r` options and will require all arguments. ([@jeremyevans])
 - `Server` supports an array of paths to require for the `:require` option. ([@khotta](https://github.com/khotta))
 - `Files` supports multipart range requests. ([@fatkodima](https://github.com/fatkodima))
-- `Multipart::UploadedFile` supports an IO-like object instead of using the filesystem, using `:filename` and `:io` options. ([@jeremyevans](https://github.com/jeremyevans))
-- `Multipart::UploadedFile` supports keyword arguments `:path`, `:content_type`, and `:binary` in addition to positional arguments. ([@jeremyevans](https://github.com/jeremyevans))
-- `Static` supports a `:cascade` option for calling the app if there is no matching file. ([@jeremyevans](https://github.com/jeremyevans))
-- `Session::Abstract::SessionHash#dig`. ([@jeremyevans](https://github.com/jeremyevans))
-- `Response.[]` and `MockResponse.[]` for creating instances using status, headers, and body. ([@ioquatix](https://github.com/ioquatix))
-- Convenient cache and content type methods for `Rack::Response`. ([#1555](https://github.com/rack/rack/pull/1555), [@ioquatix](https://github.com/ioquatix))
+- `Multipart::UploadedFile` supports an IO-like object instead of using the filesystem, using `:filename` and `:io` options. ([@jeremyevans])
+- `Multipart::UploadedFile` supports keyword arguments `:path`, `:content_type`, and `:binary` in addition to positional arguments. ([@jeremyevans])
+- `Static` supports a `:cascade` option for calling the app if there is no matching file. ([@jeremyevans])
+- `Session::Abstract::SessionHash#dig`. ([@jeremyevans])
+- `Response.[]` and `MockResponse.[]` for creating instances using status, headers, and body. ([@ioquatix])
+- Convenient cache and content type methods for `Rack::Response`. ([#1555](https://github.com/rack/rack/pull/1555), [@ioquatix])
 
 ### Changed
 
-- `Request#params` no longer rescues EOFError. ([@jeremyevans](https://github.com/jeremyevans))
-- `Directory` uses a streaming approach, significantly improving time to first byte for large directories. ([@jeremyevans](https://github.com/jeremyevans))
-- `Directory` no longer includes a Parent directory link in the root directory index. ([@jeremyevans](https://github.com/jeremyevans))
-- `QueryParser#parse_nested_query` uses original backtrace when reraising exception with new class. ([@jeremyevans](https://github.com/jeremyevans))
-- `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans](https://github.com/jeremyevans))
+- `Request#params` no longer rescues EOFError. ([@jeremyevans])
+- `Directory` uses a streaming approach, significantly improving time to first byte for large directories. ([@jeremyevans])
+- `Directory` no longer includes a Parent directory link in the root directory index. ([@jeremyevans])
+- `QueryParser#parse_nested_query` uses original backtrace when reraising exception with new class. ([@jeremyevans])
+- `ConditionalGet` follows RFC 7232 precedence if both If-None-Match and If-Modified-Since headers are provided. ([@jeremyevans])
 - `.ru` files supports the `frozen-string-literal` magic comment. ([@eregon](https://github.com/eregon))
-- Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans](https://github.com/jeremyevans))
+- Rely on autoload to load constants instead of requiring internal files, make sure to require 'rack' and not just 'rack/...'. ([@jeremyevans])
 - BREAKING CHANGE: `Etag` will continue sending ETag even if the response should not be cached. Streaming no longer works without a workaround, see [#1619](https://github.com/rack/rack/issues/1619#issuecomment-848460528). ([@henm](https://github.com/henm))
 - `Request#host_with_port` no longer includes a colon for a missing or empty port. ([@AlexWayfer](https://github.com/AlexWayfer))
-- All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix](https://github.com/ioquatix))
-- `Files` handling of range requests no longer return a body that supports `to_path`, to ensure range requests are handled correctly. ([@jeremyevans](https://github.com/jeremyevans))
-- `Multipart::Generator` only includes `Content-Length` for files with paths, and `Content-Disposition` `filename` if the `UploadedFile` instance has one. ([@jeremyevans](https://github.com/jeremyevans))
-- `Request#ssl?` is true for the `wss` scheme (secure websockets). ([@jeremyevans](https://github.com/jeremyevans))
-- `Rack::HeaderHash` is memoized by default. ([#1549](https://github.com/rack/rack/pull/1549), [@ioquatix](https://github.com/ioquatix))
+- All handlers uses keywords arguments instead of an options hash argument. ([@ioquatix])
+- `Files` handling of range requests no longer return a body that supports `to_path`, to ensure range requests are handled correctly. ([@jeremyevans])
+- `Multipart::Generator` only includes `Content-Length` for files with paths, and `Content-Disposition` `filename` if the `UploadedFile` instance has one. ([@jeremyevans])
+- `Request#ssl?` is true for the `wss` scheme (secure websockets). ([@jeremyevans])
+- `Rack::HeaderHash` is memoized by default. ([#1549](https://github.com/rack/rack/pull/1549), [@ioquatix])
 - `Rack::Directory` allow directory traversal inside root directory. ([#1417](https://github.com/rack/rack/pull/1417), [@ThomasSevestre](https://github.com/ThomasSevestre))
-- Sort encodings by server preference. ([#1184](https://github.com/rack/rack/pull/1184), [@ioquatix](https://github.com/ioquatix), [@wjordan](https://github.com/wjordan))
-- Rework host/hostname/authority implementation in `Rack::Request`. `#host` and `#host_with_port` have been changed to correctly return IPv6 addresses formatted with square brackets, as defined by [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.2.2). ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix](https://github.com/ioquatix))
-- `Rack::Builder` parsing options on first `#\` line is deprecated. ([#1574](https://github.com/rack/rack/pull/1574), [@ioquatix](https://github.com/ioquatix))
+- Sort encodings by server preference. ([#1184](https://github.com/rack/rack/pull/1184), [@ioquatix], [@wjordan](https://github.com/wjordan))
+- Rework host/hostname/authority implementation in `Rack::Request`. `#host` and `#host_with_port` have been changed to correctly return IPv6 addresses formatted with square brackets, as defined by [RFC3986](https://tools.ietf.org/html/rfc3986#section-3.2.2). ([#1561](https://github.com/rack/rack/pull/1561), [@ioquatix])
+- `Rack::Builder` parsing options on first `#\` line is deprecated. ([#1574](https://github.com/rack/rack/pull/1574), [@ioquatix])
 
 ### Removed
 
-- `Directory#path` as it was not used and always returned nil. ([@jeremyevans](https://github.com/jeremyevans))
-- `BodyProxy#each` as it was only needed to work around a bug in Ruby <1.9.3. ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory#path` as it was not used and always returned nil. ([@jeremyevans])
+- `BodyProxy#each` as it was only needed to work around a bug in Ruby <1.9.3. ([@jeremyevans])
 - `URLMap::INFINITY` and `URLMap::NEGATIVE_INFINITY`, in favor of `Float::INFINITY`. ([@ch1c0t](https://github.com/ch1c0t))
 - Deprecation of `Rack::File`. It will be deprecated again in rack 2.2 or 3.0. ([@rafaelfranca](https://github.com/rafaelfranca))
-- Support for Ruby 2.2 as it is well past EOL. ([@ioquatix](https://github.com/ioquatix))
-- Remove `Rack::Files#response_body` as the implementation was broken. ([#1153](https://github.com/rack/rack/pull/1153), [@ioquatix](https://github.com/ioquatix))
-- Remove `SERVER_ADDR` which was never part of the original SPEC. ([#1573](https://github.com/rack/rack/pull/1573), [@ioquatix](https://github.com/ioquatix))
+- Support for Ruby 2.2 as it is well past EOL. ([@ioquatix])
+- Remove `Rack::Files#response_body` as the implementation was broken. ([#1153](https://github.com/rack/rack/pull/1153), [@ioquatix])
+- Remove `SERVER_ADDR` which was never part of the original SPEC. ([#1573](https://github.com/rack/rack/pull/1573), [@ioquatix])
 
 ### Fixed
 
-- `Directory` correctly handles root paths containing glob metacharacters. ([@jeremyevans](https://github.com/jeremyevans))
-- `Cascade` uses a new response object for each call if initialized with no apps. ([@jeremyevans](https://github.com/jeremyevans))
-- `BodyProxy` correctly delegates keyword arguments to the body object on Ruby 2.7+. ([@jeremyevans](https://github.com/jeremyevans))
-- `BodyProxy#method` correctly handles methods delegated to the body object. ([@jeremyevans](https://github.com/jeremyevans))
+- `Directory` correctly handles root paths containing glob metacharacters. ([@jeremyevans])
+- `Cascade` uses a new response object for each call if initialized with no apps. ([@jeremyevans])
+- `BodyProxy` correctly delegates keyword arguments to the body object on Ruby 2.7+. ([@jeremyevans])
+- `BodyProxy#method` correctly handles methods delegated to the body object. ([@jeremyevans])
 - `Request#host` and `Request#host_with_port` handle IPv6 addresses correctly. ([@AlexWayfer](https://github.com/AlexWayfer))
-- `Lint` checks when response hijacking that `rack.hijack` is called with a valid object. ([@jeremyevans](https://github.com/jeremyevans))
-- `Response#write` correctly updates `Content-Length` if initialized with a body. ([@jeremyevans](https://github.com/jeremyevans))
+- `Lint` checks when response hijacking that `rack.hijack` is called with a valid object. ([@jeremyevans])
+- `Response#write` correctly updates `Content-Length` if initialized with a body. ([@jeremyevans])
 - `CommonLogger` includes `SCRIPT_NAME` when logging. ([@Erol](https://github.com/Erol))
-- `Utils.parse_nested_query` correctly handles empty queries, using an empty instance of the params class instead of a hash. ([@jeremyevans](https://github.com/jeremyevans))
+- `Utils.parse_nested_query` correctly handles empty queries, using an empty instance of the params class instead of a hash. ([@jeremyevans])
 - `Directory` correctly escapes paths in links. ([@yous](https://github.com/yous))
-- `Request#delete_cookie` and related `Utils` methods handle `:domain` and `:path` options in same call. ([@jeremyevans](https://github.com/jeremyevans))
-- `Request#delete_cookie` and related `Utils` methods do an exact match on `:domain` and `:path` options. ([@jeremyevans](https://github.com/jeremyevans))
+- `Request#delete_cookie` and related `Utils` methods handle `:domain` and `:path` options in same call. ([@jeremyevans])
+- `Request#delete_cookie` and related `Utils` methods do an exact match on `:domain` and `:path` options. ([@jeremyevans])
 - `Static` no longer adds headers when a gzipped file request has a 304 response. ([@chooh](https://github.com/chooh))
-- `ContentLength` sets `Content-Length` response header even for bodies not responding to `to_ary`. ([@jeremyevans](https://github.com/jeremyevans))
-- Thin handler supports options passed directly to `Thin::Controllers::Controller`. ([@jeremyevans](https://github.com/jeremyevans))
-- WEBrick handler no longer ignores `:BindAddress` option. ([@jeremyevans](https://github.com/jeremyevans))
-- `ShowExceptions` handles invalid POST data. ([@jeremyevans](https://github.com/jeremyevans))
-- Basic authentication requires a password, even if the password is empty. ([@jeremyevans](https://github.com/jeremyevans))
-- `Lint` checks response is array with 3 elements, per SPEC. ([@jeremyevans](https://github.com/jeremyevans))
+- `ContentLength` sets `Content-Length` response header even for bodies not responding to `to_ary`. ([@jeremyevans])
+- Thin handler supports options passed directly to `Thin::Controllers::Controller`. ([@jeremyevans])
+- WEBrick handler no longer ignores `:BindAddress` option. ([@jeremyevans])
+- `ShowExceptions` handles invalid POST data. ([@jeremyevans])
+- Basic authentication requires a password, even if the password is empty. ([@jeremyevans])
+- `Lint` checks response is array with 3 elements, per SPEC. ([@jeremyevans])
 - Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
-- Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
+- Close response body after buffering it when buffering. ([@ioquatix])
 - Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
 - `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft))
-- Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
+- Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix])
 
 ### Documentation
 
@@ -172,23 +171,23 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.0.9] - 2020-02-08
 
-- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
-- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
+- Handle case where session id key is requested but missing ([@jeremyevans])
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans])
 - Add support for `SameSite=None` cookie value. ([@hennikul](https://github.com/hennikul))
 
 ## [2.1.2] - 2020-01-27
 
 - Fix multipart parser for some files to prevent denial of service ([@aiomaster](https://github.com/aiomaster))
 - Fix `Rack::Builder#use` with keyword arguments ([@kamipo](https://github.com/kamipo))
-- Skip deflating in Rack::Deflater if Content-Length is 0 ([@jeremyevans](https://github.com/jeremyevans))
+- Skip deflating in Rack::Deflater if Content-Length is 0 ([@jeremyevans])
 - Remove `SessionHash#transform_keys`, no longer needed ([@pavel](https://github.com/pavel))
 - Add to_hash to wrap Hash and Session classes ([@oleh-demyanyuk](https://github.com/oleh-demyanyuk))
-- Handle case where session id key is requested but missing ([@jeremyevans](https://github.com/jeremyevans))
+- Handle case where session id key is requested but missing ([@jeremyevans])
 
 ## [2.1.1] - 2020-01-12
 
-- Remove `Rack::Chunked` from `Rack::Server` default middleware. ([#1475](https://github.com/rack/rack/pull/1475), [@ioquatix](https://github.com/ioquatix))
-- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans](https://github.com/jeremyevans))
+- Remove `Rack::Chunked` from `Rack::Server` default middleware. ([#1475](https://github.com/rack/rack/pull/1475), [@ioquatix])
+- Restore support for code relying on `SessionId#to_s`. ([@jeremyevans])
 
 ## [2.1.0] - 2020-01-10
 
@@ -205,13 +204,13 @@ All notable changes to this project will be documented in this file. For info on
 - Add boot-time profiling capabilities to `rackup`. ([@tenderlove](https://github.com/tenderlove))
 - Add multi mapping support for `X-Accel-Mappings` header. ([@yoshuki](https://github.com/yoshuki))
 - Add `sync: false` option to `Rack::Deflater`. (Eric Wong)
-- Add `Builder#freeze_app` to freeze application and all middleware instances. ([@jeremyevans](https://github.com/jeremyevans))
+- Add `Builder#freeze_app` to freeze application and all middleware instances. ([@jeremyevans])
 - Add API to extract cookies from `Rack::MockResponse`. ([@petercline](https://github.com/petercline))
 
 ### Changed
 
-- Don't propagate nil values from middleware. ([@ioquatix](https://github.com/ioquatix))
-- Lazily initialize the response body and only buffer it if required. ([@ioquatix](https://github.com/ioquatix))
+- Don't propagate nil values from middleware. ([@ioquatix])
+- Lazily initialize the response body and only buffer it if required. ([@ioquatix])
 - Fix deflater zlib buffer errors on empty body part. ([@felixbuenemann](https://github.com/felixbuenemann))
 - Set `X-Accel-Redirect` to percent-encoded path. ([@diskkid](https://github.com/diskkid))
 - Remove unnecessary buffer growing when parsing multipart. ([@tainoe](https://github.com/tainoe))
@@ -224,11 +223,11 @@ All notable changes to this project will be documented in this file. For info on
 - Make `Utils.status_code` raise an error when the status symbol is invalid instead of `500`. ([@adambutler](https://github.com/adambutler))
 - Rename `Request::SCHEME_WHITELIST` to `Request::ALLOWED_SCHEMES`.
 - Make `Multipart::Parser.get_filename` accept files with `+` in their name. ([@lucaskanashiro](https://github.com/lucaskanashiro))
-- Add Falcon to the default handler fallbacks. ([@ioquatix](https://github.com/ioquatix))
+- Add Falcon to the default handler fallbacks. ([@ioquatix])
 - Update codebase to avoid string mutations in preparation for `frozen_string_literals`. ([@pat](https://github.com/pat))
 - Change `MockRequest#env_for` to rely on the input optionally responding to `#size` instead of `#length`. ([@janko](https://github.com/janko))
-- Rename `Rack::File` -> `Rack::Files` and add deprecation notice. ([@postmodern](https://github.com/postmodern)).
-- Prefer Base64 “strict encoding” for Base64 cookies. ([@ioquatix](https://github.com/ioquatix))
+- Rename `Rack::File` -> `Rack::Files` and add deprecation notice. ([@postmodern](https://github.com/postmodern))
+- Prefer Base64 “strict encoding” for Base64 cookies. ([@ioquatix])
 
 ### Removed
 
@@ -313,7 +312,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Added
 
 - Allow `Session::Abstract::SessionHash#fetch` to accept a block with a default value. ([@yannvanhalewyn](https://github.com/yannvanhalewyn))
-- Add `Builder#freeze_app` to freeze application and all middleware. ([@jeremyevans](https://github.com/jeremyevans))
+- Add `Builder#freeze_app` to freeze application and all middleware. ([@jeremyevans])
 
 ### Changed
 
@@ -325,7 +324,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - Handle `NULL` bytes in multipart filenames. ([@casperisfine](https://github.com/casperisfine))
-- Remove warnings due to miscapitalized global. ([@ioquatix](https://github.com/ioquatix))
+- Remove warnings due to miscapitalized global. ([@ioquatix])
 - Prevent exceptions caused by a race condition on multi-threaded servers. ([@sophiedeziel](https://github.com/sophiedeziel))
 - Add RDoc as an explicit dependency for `doc` group. ([@tonytonyjan](https://github.com/tonytonyjan))
 - Record errors originating from `Multipart::Parser` in the `MethodOverride` middleware instead of letting them bubble up. ([@carlzulauf](https://github.com/carlzulauf))
@@ -763,3 +762,6 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Removed Rails adapter, was too alpha.
 
 ## [0.1] 2007-03-03
+
+[@ioquatix]: https://github.com/ioquatix "Samuel Williams"
+[@jeremyevans]: https://github.com/jeremyevans "Jeremy Evans"
