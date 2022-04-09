@@ -16,7 +16,7 @@ gem "rubocop", require: false
 
 group :test do
   gem "webrick" # gemified in Ruby 3.1+
-  gem "psych", "~> 4.0" # using YAML#unsafe_load in tests which is 4.0+ only
+  gem "psych"
 end
 
 # Alternative solution that might work, but it has bad interactions with

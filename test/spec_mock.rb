@@ -2,6 +2,7 @@
 
 require_relative 'helper'
 require 'yaml'
+require_relative 'psych_fix'
 
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
