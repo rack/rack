@@ -283,7 +283,7 @@ module Rack
     # or not the cookie key is URL encoded. If explicitly set to +false+, the
     # cookie key name will not be url encoded (escaped). The default is +true+.
     #
-    #   Rack::Utils.set_cookie_header("myname", "myvalue")
+    #   set_cookie_header("myname", "myvalue")
     #   # => "myname=myvalue"
     #
     #   Rack::Utils.set_cookie_header("myname", {value: "myvalue", max_age: 10})
