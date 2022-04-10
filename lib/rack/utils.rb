@@ -286,7 +286,7 @@ module Rack
     #   set_cookie_header("myname", "myvalue")
     #   # => "myname=myvalue"
     #
-    #   Rack::Utils.set_cookie_header("myname", {value: "myvalue", max_age: 10})
+    #   set_cookie_header("myname", {value: "myvalue", max_age: 10})
     #   # => "myname=myvalue; max-age=10"
     #
     def set_cookie_header(key, value)
