@@ -31,23 +31,33 @@ module Rack
     attr_accessor :length, :status, :body
     attr_reader :headers
 
-    # @deprecated Use {#headers} instead.
+    # Deprecated, use headers instead.
     def header
       warn 'Rack::Response#header is deprecated and will be removed in Rack 3.1', uplevel: 1
 
       headers
     end
 
-    # Initialize the response object with the specified body, status
-    # and headers.
+    # Initialize the response object with the specified +body+, +status+
+    # and +headers+.
     #
-    # @param body [nil, #each, #call, #to_str] the response body.
-    # @param status [Integer] the integer status as defined by the
-    # HTTP protocol RFCs.
-    # @param headers [Hash] a hash of key-value header pairs which
-    # conform to the HTTP protocol RFCs.
+    # If the +body+ is +nil+, construct an empty response object with internal
+    # buffering.
+    # 
+    # If the +body+ responds to +to_str+, assume it's a string-like object and
+    # construct a buffered response object containing using that string as the
+    # initial contents of the buffer.
     #
-    # Providing a body which responds to #to_str is legacy behaviour.
+    # Otherwise it is expected +body+ conforms to the normal requiremnets of a
+    # Rack repsonse body, typically implementing one of +each+ (enumerable
+    # body) or +call+ (streaming body).
+    #
+    # The +status+ defaults to +200+ which is the "OK" HTTP status code. You
+    # can provide any other valid status code.
+    #
+    # The +headers+ must be a +Hash+ of key-value header pairs which conform to
+    # the Rack specification for response headers. The key must be a +String+
+    # instance and the value can be either a +String+ or +Array+ instance.
     def initialize(body = nil, status = 200, headers = {})
       @status = status.to_i
 
