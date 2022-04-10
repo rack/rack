@@ -31,28 +31,26 @@ module Rack
     attr_accessor :length, :status, :body
     attr_reader :headers
 
-    # @deprecated Use {#headers} instead.
+    # Deprecated, use headers instead.
     def header
       warn 'Rack::Response#header is deprecated and will be removed in Rack 3.1', uplevel: 1
 
       headers
     end
 
-    # :call-seq:
-    #   Response.new(body = nil, status = 200, headers = {}) => response
+    # Initialize the response object with the specified +body+, +status+
+    # and +headers+.
     #
-    # Initialize the response object with the specified body, status
-    # and headers.
-    #
-    # If the +body+ is nil, construct an empty response object with internal
+    # If the +body+ is +nil+, construct an empty response object with internal
     # buffering.
     # 
-    # If the body responds to +#to_str+, assume it's a string-like object and
-    # construct a buffered response object containing that string.
+    # If the +body+ responds to +to_str+, assume it's a string-like object and
+    # construct a buffered response object containing using that string as the
+    # initial contents of the buffer.
     #
     # Otherwise it is expected +body+ conforms to the normal requiremnets of a
-    # Rack repsonse body, typically implementing one of +#each+ (enumerable
-    # body) or +#call+ (streaming body).
+    # Rack repsonse body, typically implementing one of +each+ (enumerable
+    # body) or +call+ (streaming body).
     #
     # The +status+ defaults to +200+ which is the "OK" HTTP status code. You
     # can provide any other valid status code.
