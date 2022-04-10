@@ -10,6 +10,7 @@ require 'time'
 require_relative 'query_parser'
 require_relative 'mime'
 require_relative 'headers'
+require_relative 'constants'
 
 module Rack
   # Rack::Utils contains a grab-bag of useful methods for writing web
