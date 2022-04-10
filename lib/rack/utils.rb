@@ -219,17 +219,19 @@ module Rack
     end
 
     # :call-seq:
-    #   parse_cookies_header(header) -> hash
+    #   parse_cookies_header(value) -> hash
     #
-    # Parse cookies from the provided header value according to RFC6265.
+    # Parse cookies from the provided header +value+ according to RFC6265. The
+    # syntax for cookie headers only supports semicolons. Returns a map of
+    # cookie +key+ to cookie +value+.
     #
-    # The syntax for cookie headers only supports semicolons.
+    #   parse_cookies_header('myname=myvalue; max-age=0')
+    #   # => {"myname"=>"myvalue", "max-age"=>"0"}
     #
-    # Returns a map of cookie key to cookie value.
-    def parse_cookies_header(header)
-      return {} unless header
+    def parse_cookies_header(value)
+      return {} unless value
 
-      header.split(/[;] */n).each_with_object({}) do |cookie, cookies|
+      value.split(/[;] */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
         cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
@@ -254,30 +256,39 @@ module Rack
     # :call-seq:
     #   parse_cookies(env) -> hash
     #
-    # Parse cookies from the provided request environment.
+    # Parse cookies from the provided request environment using
+    # parse_cookies_header. Returns a map of cookie +key+ to cookie +value+.
     #
-    # Returns a map of cookie key to cookie value.
+    #   parse_cookies({'HTTP_COOKIE' => 'myname=myvalue'})
+    #   # => {'myname' => 'myvalue'}
+    #
     def parse_cookies(env)
       parse_cookies_header env[HTTP_COOKIE]
     end
 
     # :call-seq:
-    #   set_cookie_header(key, value) -> encoded String
-    #   set_cookie_header("session", "id") -> "session=id"
-    #   set_cookie_header("session", {value: "id", max_age: 3600}) -> "session=id; max-age=3600"
+    #   set_cookie_header(key, value) -> encoded string
     #
-    # Generate a set-cookie header string based on the given +key+ and +value+.
-    # The +value+ may be an instance of either String or Hash.
+    # Generate an encoded string using the provided +key+ and +value+ suitable
+    # for the +set-cookie+ header according to RFC6265. The +value+ may be an
+    # instance of either +String+ or +Hash+.
     #
-    # If the cookie +value+ is an instance of Hash, it considers the following
+    # If the cookie +value+ is an instance of +Hash+, it considers the following
     # cookie attribute keys: +domain+, +max_age+, +expires+ (must be instance
     # of +Time+), +secure+, +http_only+, +same_site+ and +value+. For more
     # details about the interpretation of these fields, consult 
     # [RFC6265 Section 5.2](https://datatracker.ietf.org/doc/html/rfc6265#section-5.2).
     #
     # An extra cookie attribute +escape_key+ can be provided to control whether
-    # or not the cookie key is url encoded. If explicitly set to +false+, the
+    # or not the cookie key is URL encoded. If explicitly set to +false+, the
     # cookie key name will not be url encoded (escaped). The default is +true+.
+    #
+    #   Rack::Utils.set_cookie_header("myname", "myvalue")
+    #   # => "myname=myvalue"
+    #
+    #   Rack::Utils.set_cookie_header("myname", {value: "myvalue", max_age: 10})
+    #   # => "myname=myvalue; max-age=10"
+    #
     def set_cookie_header(key, value)
       case value
       when Hash
@@ -315,11 +326,11 @@ module Rack
     # :call-seq:
     #   set_cookie_header!(headers, key, value) -> header value
     #
-    # Set a cookie in the specified headers with the given cookie +key+ and
-    # +value+ following the format outlined in RFC6265.
+    # Append a cookie in the specified headers with the given cookie +key+ and
+    # +value+ using set_cookie_header.
     #
     # If the headers already contains a +set-cookie+ key, it will be converted
-    # to an +Array+ and appended to.
+    # to an +Array+ if not already, and appended to.
     def set_cookie_header!(headers, key, value)
       if header = headers[SET_COOKIE]
         if header.is_a?(Array)
@@ -333,14 +344,19 @@ module Rack
     end
 
     # :call-seq:
-    #   delete_set_cookie_header(key, value = {}) -> encoded String
+    #   delete_set_cookie_header(key, value = {}) -> encoded string
     #
-    # Generate a set-cookie header string based on the given +key+ and +value+.
-    # The +value+ may be an instance of Hash. The cookie will cause the client
-    # to *remove* any matching cookie by forcing it to expire in the past.
+    # Generate an encoded string based on the given +key+ and +value+ using
+    # set_cookie_header for the purpose of causing the specified cookie to be
+    # deleted. The +value+ may be an instance of +Hash+ and can include
+    # attributes as outlined by set_cookie_header. The encoded cookie will have
+    # a +max_age+ of 0 seconds, an +expires+ date in the past and an empty
+    # +value+. When used with the +set-cookie+ header, it will cause the client
+    # to *remove* any matching cookie.
     #
-    # The cookie +value+ is an instance of Hash, see +set_cookie_header+ for
-    # what fields can be set and how they are interpreted.
+    #   delete_set_cookie_header("myname")
+    #   # => "myname=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    #
     def delete_set_cookie_header(key, value = {})
       set_cookie_header(key, {
         value: '', path: nil, domain: nil,
@@ -371,8 +387,20 @@ module Rack
     #   delete_set_cookie_header!(header, key, value = {}) -> header value
     #
     # Set an expired cookie in the specified headers with the given cookie
-    # +key+ and +value+ following the format outlined in RFC6265. This causes
+    # +key+ and +value+ using delete_set_cookie_header. This causes
     # the client to immediately delete the specified cookie.
+    #
+    #   delete_set_cookie_header!(nil, "mycookie")
+    #   # => "mycookie=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    #
+    # If the header is non-nil, it will be modified in place.
+    #
+    #   header = []
+    #   delete_set_cookie_header!(header, "mycookie")
+    #   # => ["mycookie=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+    #   header
+    #   # => ["mycookie=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"]
+    #
     def delete_set_cookie_header!(header, key, value = {})
       if header
         header = Array(header)
