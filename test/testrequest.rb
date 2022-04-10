@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'yaml'
+require_relative 'psych_fix'
 require 'net/http'
 require 'rack/lint'
 
