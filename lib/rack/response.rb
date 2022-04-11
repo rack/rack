@@ -133,7 +133,7 @@ module Rack
       end
     end
 
-    # Append to body and update Content-Length.
+    # Append to body and update content-length.
     #
     # NOTE: Do not mix #write and direct #body access!
     #
@@ -202,10 +202,10 @@ module Rack
       # Add a header that may have multiple values.
       #
       # Example:
-      #   response.add_header 'Vary', 'Accept-Encoding'
-      #   response.add_header 'Vary', 'Cookie'
+      #   response.add_header 'vary', 'accept-encoding'
+      #   response.add_header 'vary', 'cookie'
       #
-      #   assert_equal 'Accept-Encoding,Cookie', response.get_header('Vary')
+      #   assert_equal 'accept-encoding,cookie', response.get_header('vary')
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
       def add_header(key, value)

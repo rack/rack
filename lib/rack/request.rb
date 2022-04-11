@@ -478,13 +478,13 @@ module Rack
       end
 
       # Determine whether the request body contains form-data by checking
-      # the request Content-Type for one of the media-types:
+      # the request content-type for one of the media-types:
       # "application/x-www-form-urlencoded" or "multipart/form-data". The
       # list of form-data media types can be modified through the
       # +FORM_DATA_MEDIA_TYPES+ array.
       #
       # A request body is also assumed to contain form-data when no
-      # Content-Type header is provided and the request_method is POST.
+      # content-type header is provided and the request_method is POST.
       def form_data?
         type = media_type
         meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)

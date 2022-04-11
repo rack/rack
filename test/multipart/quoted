@@ -1,15 +1,15 @@
 --AaB:03x
-Content-Disposition: form-data; name="submit-name"
+content-disposition: form-data; name="submit-name"
 
 Larry
 --AaB:03x
-Content-Disposition: form-data; name="submit-name-with-content"
-Content-Type: text/plain
+content-disposition: form-data; name="submit-name-with-content"
+content-type: text/plain
 
 Berry
 --AaB:03x
-Content-Disposition: form-data; name="files"; filename="file1.txt"
-Content-Type: text/plain
+content-disposition: form-data; name="files"; filename="file1.txt"
+content-type: text/plain
 
 contents
 --AaB:03x--

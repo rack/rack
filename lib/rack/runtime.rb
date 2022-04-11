@@ -3,7 +3,7 @@
 require_relative 'utils'
 
 module Rack
-  # Sets an "X-Runtime" response header, indicating the response
+  # Sets an "x-runtime" response header, indicating the response
   # time of the request, in seconds
   #
   # You can put it right before the application to see the processing

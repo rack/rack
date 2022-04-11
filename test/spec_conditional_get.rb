@@ -14,7 +14,7 @@ describe Rack::ConditionalGet do
     Rack::Lint.new Rack::ConditionalGet.new(app)
   end
 
-  it "set a 304 status and truncate body when If-Modified-Since hits" do
+  it "set a 304 status and truncate body when if-modified-since hits" do
     timestamp = Time.now.httpdate
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => timestamp }, ['TEST']] })
@@ -26,7 +26,7 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
-  it "set a 304 status and truncate body when If-Modified-Since hits and is higher than current time" do
+  it "set a 304 status and truncate body when if-modified-since hits and is higher than current time" do
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => (Time.now - 3600).httpdate }, ['TEST']] })
 
@@ -37,7 +37,7 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
-  it "set a 304 status and truncate body when If-None-Match hits" do
+  it "set a 304 status and truncate body when if-none-match hits" do
     app = conditional_get(lambda { |env|
       [200, { 'etag' => '1234' }, ['TEST']] })
 
@@ -48,7 +48,7 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
-  it "set a 304 status and truncate body when If-None-Match hits but If-Modified-Since is after last-modified" do
+  it "set a 304 status and truncate body when if-none-match hits but if-modified-since is after last-modified" do
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => (Time.now + 3600).httpdate, 'etag' => '1234', 'content-type' => 'text/plain' }, ['TEST']] })
 
@@ -59,7 +59,7 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
-  it "not set a 304 status if If-Modified-Since hits but etag does not" do
+  it "not set a 304 status if if-modified-since hits but etag does not" do
     timestamp = Time.now.httpdate
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => timestamp, 'etag' => '1234', 'content-type' => 'text/plain' }, ['TEST']] })
@@ -71,7 +71,7 @@ describe Rack::ConditionalGet do
     response.body.must_equal 'TEST'
   end
 
-  it "set a 304 status and truncate body when both If-None-Match and If-Modified-Since hits" do
+  it "set a 304 status and truncate body when both if-none-match and if-modified-since hits" do
     timestamp = Time.now.httpdate
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => timestamp, 'etag' => '1234' }, ['TEST']] })

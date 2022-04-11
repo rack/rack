@@ -6,14 +6,14 @@ require_relative 'constants'
 require_relative 'utils'
 
 module Rack
-  # Automatically sets the ETag header on all String bodies.
+  # Automatically sets the etag header on all String bodies.
   #
-  # The ETag header is skipped if ETag or Last-Modified headers are sent or if
+  # The etag header is skipped if etag or last-modified headers are sent or if
   # a sendfile body (body.responds_to :to_path) is given (since such cases
   # should be handled by apache/nginx).
   #
-  # On initialization, you can pass two parameters: a Cache-Control directive
-  # used when Etag is absent and a directive when it is present. The first
+  # On initialization, you can pass two parameters: a cache-control directive
+  # used when etag is absent and a directive when it is present. The first
   # defaults to nil, while the second defaults to "max-age=0, private, must-revalidate"
   class ETag
     ETAG_STRING = Rack::ETAG

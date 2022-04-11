@@ -7,20 +7,20 @@ module Rack
   warn "Rack::Chunked is deprecated and will be removed in Rack 3.1", uplevel: 1
 
   # Middleware that applies chunked transfer encoding to response bodies
-  # when the response does not include a Content-Length header.
+  # when the response does not include a content-length header.
   #
-  # This supports the Trailer response header to allow the use of trailing
+  # This supports the trailer response header to allow the use of trailing
   # headers in the chunked encoding.  However, using this requires you manually
   # specify a response body that supports a +trailers+ method.  Example:
   #
-  #   [200, { 'Trailer' => 'Expires'}, ["Hello", "World"]]
+  #   [200, { 'trailer' => 'expires'}, ["Hello", "World"]]
   #   # error raised
   #
   #   body = ["Hello", "World"]
   #   def body.trailers
-  #     { 'Expires' => Time.now.to_s }
+  #     { 'expires' => Time.now.to_s }
   #   end
-  #   [200, { 'Trailer' => 'Expires'}, body]
+  #   [200, { 'trailer' => 'expires'}, body]
   #   # No exception raised
   class Chunked
     include Rack::Utils
@@ -96,8 +96,8 @@ module Rack
     end
 
     # If the rack app returns a response that should have a body,
-    # but does not have Content-Length or Transfer-Encoding headers,
-    # modify the response to use chunked Transfer-Encoding.
+    # but does not have content-length or transfer-encoding headers,
+    # modify the response to use chunked transfer-encoding.
     def call(env)
       status, headers, body = @app.call(env)
 

@@ -15,12 +15,12 @@ module Rack
     MULTIPART_BOUNDARY = "AaB03x"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
-    CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
+    CONDISP = /content-disposition:\s*#{TOKEN}\s*/i
     VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
     BROKEN_QUOTED = /^#{CONDISP}.*;\s*filename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
     BROKEN_UNQUOTED = /^#{CONDISP}.*;\s*filename=(#{TOKEN})/i
-    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*;\s*name=(#{VALUE})/ni
+    MULTIPART_CONTENT_TYPE = /content-type: (.*)#{EOL}/ni
+    MULTIPART_CONTENT_DISPOSITION = /content-disposition:.*;\s*name=(#{VALUE})/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
     # Updated definitions from RFC 2231
     ATTRIBUTE_CHAR = %r{[^ \t\v\n\r)(><@,;:\\"/\[\]?='*%]}

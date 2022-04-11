@@ -5,7 +5,7 @@ require_relative 'utils'
 
 module Rack
 
-  # Sets the Content-Type header on responses which don't have one.
+  # Sets the content-type header on responses which don't have one.
   #
   # Builder Usage:
   #   use Rack::ContentType, "text/plain"

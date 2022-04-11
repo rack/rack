@@ -69,8 +69,8 @@ middleware:
 * Rack::ConditionalGet, for returning not modified responses when the response
   has not changed.
 * Rack::Config, for modifying the environment before processing the request.
-* Rack::ContentLength, for setting Content-Length header based on body size.
-* Rack::ContentType, for setting default Content-Type header for responses.
+* Rack::ContentLength, for setting content-length header based on body size.
+* Rack::ContentType, for setting default content-type header for responses.
 * Rack::Deflater, for compressing responses with gzip.
 * Rack::ETag, for setting ETag header on string bodies.
 * Rack::Events, for providing easy hooks when a request is received
@@ -118,8 +118,8 @@ over:
   application returns a not found or method not supported response.
 * Rack::Directory, for serving files under a given directory, with
   directory indexes.
-* Rack::MediaType, for parsing Content-Type headers.
-* Rack::Mime, for determining Content-Type based on file extension.
+* Rack::MediaType, for parsing content-type headers.
+* Rack::Mime, for determining content-type based on file extension.
 * Rack::RewindableInput, for making any IO object rewindable, using
   a temporary file buffer.
 * Rack::URLMap, to route to multiple applications inside the same process.

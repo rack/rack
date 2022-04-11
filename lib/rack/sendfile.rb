@@ -9,28 +9,28 @@ module Rack
   # = Sendfile
   #
   # The Sendfile middleware intercepts responses whose body is being
-  # served from a file and replaces it with a server specific X-Sendfile
+  # served from a file and replaces it with a server specific x-sendfile
   # header. The web server is then responsible for writing the file contents
   # to the client. This can dramatically reduce the amount of work required
   # by the Ruby backend and takes advantage of the web server's optimized file
   # delivery code.
   #
   # In order to take advantage of this middleware, the response body must
-  # respond to +to_path+ and the request must include an X-Sendfile-Type
+  # respond to +to_path+ and the request must include an x-sendfile-type
   # header. Rack::Files and other components implement +to_path+ so there's
-  # rarely anything you need to do in your application. The X-Sendfile-Type
+  # rarely anything you need to do in your application. The x-sendfile-type
   # header is typically set in your web servers configuration. The following
   # sections attempt to document
   #
   # === Nginx
   #
-  # Nginx supports the X-Accel-Redirect header. This is similar to X-Sendfile
+  # Nginx supports the x-accel-redirect header. This is similar to x-sendfile
   # but requires parts of the filesystem to be mapped into a private URL
   # hierarchy.
   #
   # The following example shows the Nginx configuration required to create
-  # a private "/files/" area, enable X-Accel-Redirect, and pass the special
-  # X-Sendfile-Type and X-Accel-Mapping headers to the backend:
+  # a private "/files/" area, enable x-accel-redirect, and pass the special
+  # x-sendfile-type and x-accel-mapping headers to the backend:
   #
   #   location ~ /files/(.*) {
   #     internal;
@@ -44,14 +44,14 @@ module Rack
   #     proxy_set_header   X-Real-IP           $remote_addr;
   #     proxy_set_header   X-Forwarded-For     $proxy_add_x_forwarded_for;
   #
-  #     proxy_set_header   X-Sendfile-Type     X-Accel-Redirect;
-  #     proxy_set_header   X-Accel-Mapping     /var/www/=/files/;
+  #     proxy_set_header   x-sendfile-type     x-accel-redirect;
+  #     proxy_set_header   x-accel-mapping     /var/www/=/files/;
   #
   #     proxy_pass         http://127.0.0.1:8080/;
   #   }
   #
-  # Note that the X-Sendfile-Type header must be set exactly as shown above.
-  # The X-Accel-Mapping header should specify the location on the file system,
+  # Note that the x-sendfile-type header must be set exactly as shown above.
+  # The x-accel-mapping header should specify the location on the file system,
   # followed by an equals sign (=), followed name of the private URL pattern
   # that it maps to. The middleware performs a simple substitution on the
   # resulting path.
@@ -60,8 +60,8 @@ module Rack
   #
   # === lighttpd
   #
-  # Lighttpd has supported some variation of the X-Sendfile header for some
-  # time, although only recent version support X-Sendfile in a reverse proxy
+  # Lighttpd has supported some variation of the x-sendfile header for some
+  # time, although only recent version support x-sendfile in a reverse proxy
   # configuration.
   #
   #   $HTTP["host"] == "example.com" {
@@ -75,7 +75,7 @@ module Rack
   #
   #      proxy-core.allow-x-sendfile = "enable"
   #      proxy-core.rewrite-request = (
-  #        "X-Sendfile-Type" => (".*" => "X-Sendfile")
+  #        "x-sendfile-type" => (".*" => "x-sendfile")
   #      )
   #    }
   #
@@ -83,21 +83,21 @@ module Rack
   #
   # === Apache
   #
-  # X-Sendfile is supported under Apache 2.x using a separate module:
+  # x-sendfile is supported under Apache 2.x using a separate module:
   #
   # https://tn123.org/mod_xsendfile/
   #
   # Once the module is compiled and installed, you can enable it using
   # XSendFile config directive:
   #
-  #   RequestHeader Set X-Sendfile-Type X-Sendfile
+  #   RequestHeader Set x-sendfile-type x-sendfile
   #   ProxyPassReverse / http://localhost:8001/
   #   XSendFile on
   #
   # === Mapping parameter
   #
   # The third parameter allows for an overriding extension of the
-  # X-Accel-Mapping header. Mappings should be provided in tuples of internal to
+  # x-accel-mapping header. Mappings should be provided in tuples of internal to
   # external. The internal values may contain regular expression syntax, they
   # will be matched with case indifference.
 
@@ -126,7 +126,7 @@ module Rack
               obody.close if obody.respond_to?(:close)
             end
           else
-            env[RACK_ERRORS].puts "X-Accel-Mapping header missing"
+            env[RACK_ERRORS].puts "x-accel-mapping header missing"
           end
         when /x-sendfile|x-lighttpd-send-file/i
           path = ::File.expand_path(body.to_path)

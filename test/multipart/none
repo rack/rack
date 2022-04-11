@@ -1,9 +1,9 @@
 --AaB03x
-Content-Disposition: form-data; name="submit-name"
+content-disposition: form-data; name="submit-name"
 
 Larry
 --AaB03x
-Content-Disposition: form-data; name="files"; filename=""
+content-disposition: form-data; name="files"; filename=""
 
 
 --AaB03x--
