@@ -133,6 +133,12 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("foo#{"[a]" * (len - 1)}=bar")
   end
 
+  # ParamsTooDeepError was introduced in the middle of 2.2 releases
+  # and this test is here to ensure backwards compatibility
+  it "ParamsTooDeepError is inherited from originally used RangeError" do
+    (Rack::QueryParser::ParamsTooDeepError < RangeError).must_equal(true)
+  end
+
   it "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
       must_equal "foo" => nil
