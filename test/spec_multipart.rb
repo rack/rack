@@ -131,7 +131,11 @@ describe Rack::Multipart do
 
         # make the initial boundary a few gigs long
         longer = "0123456789" * 1024 * 1024
-        (1024 * 1024).times { wr.write(longer) }
+        (1024 * 1024).times do
+          while wr.write_nonblock(longer, exception: false) == :wait_writable
+            Thread.pass
+          end
+        end
 
         wr.write("\r\n")
         wr.write('content-disposition: form-data; name="a"; filename="a.txt"')
