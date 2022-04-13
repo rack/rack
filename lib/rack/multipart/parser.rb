@@ -3,7 +3,6 @@
 require 'strscan'
 
 require_relative '../utils'
-require_relative '../multipart' unless defined?(Rack::Multipart)
 
 module Rack
   module Multipart
@@ -13,7 +12,35 @@ module Rack
     # that ends early.
     class EmptyContentError < ::EOFError; end
 
+    EOL = "\r\n"
+    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
+    TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
+    CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
+    VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
+    BROKEN_QUOTED = /^#{CONDISP}.*;\s*filename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
+    BROKEN_UNQUOTED = /^#{CONDISP}.*;\s*filename=(#{TOKEN})/i
+    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
+    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*;\s*name=(#{VALUE})/ni
+    MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
+    # Updated definitions from RFC 2231
+    ATTRIBUTE_CHAR = %r{[^ \t\v\n\r)(><@,;:\\"/\[\]?='*%]}
+    ATTRIBUTE = /#{ATTRIBUTE_CHAR}+/
+    SECTION = /\*[0-9]+/
+    REGULAR_PARAMETER_NAME = /#{ATTRIBUTE}#{SECTION}?/
+    REGULAR_PARAMETER = /(#{REGULAR_PARAMETER_NAME})=(#{VALUE})/
+    EXTENDED_OTHER_NAME = /#{ATTRIBUTE}\*[1-9][0-9]*\*/
+    EXTENDED_OTHER_VALUE = /%[0-9a-fA-F]{2}|#{ATTRIBUTE_CHAR}/
+    EXTENDED_OTHER_PARAMETER = /(#{EXTENDED_OTHER_NAME})=(#{EXTENDED_OTHER_VALUE}*)/
+    EXTENDED_INITIAL_NAME = /#{ATTRIBUTE}(?:\*0)?\*/
+    EXTENDED_INITIAL_VALUE = /[a-zA-Z0-9\-]*'[a-zA-Z0-9\-]*'#{EXTENDED_OTHER_VALUE}*/
+    EXTENDED_INITIAL_PARAMETER = /(#{EXTENDED_INITIAL_NAME})=(#{EXTENDED_INITIAL_VALUE})/
+    EXTENDED_PARAMETER = /#{EXTENDED_INITIAL_PARAMETER}|#{EXTENDED_OTHER_PARAMETER}/
+    DISPPARM = /;\s*(?:#{REGULAR_PARAMETER}|#{EXTENDED_PARAMETER})\s*/
+    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
+
     class Parser
+      require_relative '../multipart' unless defined?(Rack::Multipart)
+
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|

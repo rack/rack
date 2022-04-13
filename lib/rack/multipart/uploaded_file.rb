@@ -2,11 +2,12 @@
 
 require 'tempfile'
 require 'fileutils'
-require_relative '../multipart'
 
 module Rack
   module Multipart
     class UploadedFile
+      require_relative '../multipart' unless defined?(Rack::Multipart)
+
       # The filename, *not* including the path, of the "uploaded" file
       attr_reader :original_filename
 
