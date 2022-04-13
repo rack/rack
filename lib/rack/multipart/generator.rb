@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
-require_relative '../multipart'
 
 module Rack
   module Multipart
     class Generator
+
+      require_relative '../multipart' unless defined?(Rack::Multipart)
+
       def initialize(params, first = true)
         @params, @first = params, first
 
