@@ -9,6 +9,8 @@ module Rack
   # A second optional hash can be passed to include server-specific
   # configuration.
   module Handler
+    @handlers = {}
+
     def self.get(server)
       return unless server
       server = server.to_s
@@ -79,11 +81,7 @@ module Rack
     end
 
     def self.register(server, klass)
-      @handlers ||= {}
       @handlers[server.to_s] = klass.to_s
     end
-
-    autoload :WEBrick, "rack/handler/webrick"
-    register 'webrick', 'Rack::Handler::WEBrick'
   end
 end

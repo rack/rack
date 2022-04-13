@@ -4,6 +4,7 @@ require 'webrick'
 require 'stringio'
 
 require_relative '../constants'
+require_relative '../handler'
 require_relative '../version'
 
 # This monkey patch allows for applications to perform their own chunking
@@ -124,5 +125,7 @@ module Rack
         end
       end
     end
+
+    register 'webrick', WEBrick
   end
 end
