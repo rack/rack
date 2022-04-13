@@ -3,6 +3,7 @@
 require_relative 'helper'
 require 'thread'
 require 'webrick'
+require 'rack/handler/webrick'
 require_relative 'test_request'
 
 separate_testing do
