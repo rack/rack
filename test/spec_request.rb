@@ -14,6 +14,11 @@ end
 class RackRequestTest < Minitest::Spec
   it "copies the env when duping" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+
+    if req.delegate?
+      skip "delegate requests don't dup environments"
+    end
+
     refute_same req.env, req.dup.env
   end
 
@@ -1857,7 +1862,7 @@ EOF
       include Rack::Request::Helpers
       extend Forwardable
 
-      def_delegators :@req, :has_header?, :get_header, :fetch_header,
+      def_delegators :@req, :env, :has_header?, :get_header, :fetch_header,
         :each_header, :set_header, :add_header, :delete_header
 
       def_delegators :@req, :[], :[]=, :values_at
@@ -1867,8 +1872,6 @@ EOF
       end
 
       def delegate?; true; end
-
-      def env; @req.env.dup; end
     end
 
     def make_request(env)

@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require_relative 'uploaded_file'
 
 module Rack
   module Multipart
