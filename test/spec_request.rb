@@ -1132,6 +1132,31 @@ EOF
     end
   end
 
+  it 'cuts long file extension' do
+    begin
+      long_extension = "a" * 1_000
+      filename= "testfile.#{long_extension}"
+      data = "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{filename}\r\n\r\ncontents\r\n"
+      data += "--AaB03x--\r"
+
+      file = nil
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.length.to_s,
+        Rack::RACK_MULTIPART_TEMPFILE_FACTORY => lambda { |filename, content_type|
+          file = Rack::Multipart::Parser::TEMPFILE_FACTORY.call(filename, content_type)
+        },
+        :input => StringIO.new(data)
+      }
+
+      request = make_request Rack::MockRequest.env_for("/", options)
+      request.POST
+
+      processed_extension = ::File.extname(file.path)
+      assert_equal Rack::Multipart::Parser::EXTENSION_SIZE_LIMIT + 1, processed_extension.size
+    end
+  end
+
   it "parse big multipart form data" do
     input = <<EOF
 --AaB03x\r

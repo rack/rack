@@ -15,9 +15,18 @@ module Rack
 
     class Parser
       BUFSIZE = 1_048_576
+      EXTENSION_SIZE_LIMIT = 20
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
-        Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0", '%00'))])
+        extension = ::File.extname(filename.gsub("\0", '%00'))
+
+        # filenames with long extensions can result into invalid tempfile name due to filename size
+        # to keep it safe only last 20 characters from filename are used to find extension
+        if extension.size > EXTENSION_SIZE_LIMIT
+          extension = "." + extension.slice(extension.size - EXTENSION_SIZE_LIMIT, EXTENSION_SIZE_LIMIT)
+        end
+
+        Tempfile.new(["RackMultipart", extension])
       }
 
       BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
