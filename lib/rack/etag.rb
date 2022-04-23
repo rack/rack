@@ -29,9 +29,10 @@ module Rack
       status, headers, body = @app.call(env)
 
       if etag_status?(status) && body.respond_to?(:to_ary) && !skip_caching?(headers)
-        body = body.to_ary
-        digest = digest_body(body)
-        headers[ETAG_STRING] = %(W/"#{digest}") if digest
+        if body = body.to_ary
+          digest = digest_body(body)
+          headers[ETAG_STRING] = %(W/"#{digest}") if digest
+        end
       end
 
       unless headers[CACHE_CONTROL]

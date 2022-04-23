@@ -76,6 +76,17 @@ describe Rack::ETag do
     response[1]['etag'].must_be_nil
   end
 
+  it "not cause error when body.to_ary is nil" do
+    body = Struct.new(:body) do
+      def to_ary; nil; end
+    end.new([])
+
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, body] }
+    response = etag(app).call(request)
+    response[0].must_equal(200)
+    response[1]['etag'].must_be_nil
+  end
+
   it "not set etag if last-modified is set" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain', 'last-modified' => Time.now.httpdate }, ["Hello, World!"]] }
     response = etag(app).call(request)
