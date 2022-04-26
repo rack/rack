@@ -9,6 +9,7 @@ separate_testing do
   require_relative '../lib/rack/mock'
   require_relative '../lib/rack/query_parser'
   require_relative '../lib/rack/utils'
+  require_relative '../lib/rack/request'
 end
 
 describe Rack::Multipart do
