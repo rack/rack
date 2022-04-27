@@ -258,32 +258,62 @@ module Rack
       # Another way for specifying https scheme was used.
       HTTP_X_FORWARDED_SSL = 'HTTP_X_FORWARDED_SSL'
 
-      def body;            get_header(RACK_INPUT)                         end
-      def script_name;     get_header(SCRIPT_NAME).to_s                   end
-      def script_name=(s); set_header(SCRIPT_NAME, s.to_s)                end
+      def body
+        env[RACK_INPUT]
+      end
 
-      def path_info;       get_header(PATH_INFO).to_s                     end
-      def path_info=(s);   set_header(PATH_INFO, s.to_s)                  end
+      def script_name
+        env[SCRIPT_NAME].to_s
+      end
 
-      def request_method;  get_header(REQUEST_METHOD)                     end
-      def query_string;    get_header(QUERY_STRING).to_s                  end
-      def content_length;  get_header('CONTENT_LENGTH')                   end
-      def logger;          get_header(RACK_LOGGER)                        end
-      def user_agent;      get_header('HTTP_USER_AGENT')                  end
+      def script_name=(value)
+        env[SCRIPT_NAME] = value.to_s
+      end
+
+      def path_info
+        env[PATH_INFO].to_s
+      end
+
+      def path_info=(value)
+        env[PATH_INFO] = value.to_s
+      end
+
+      def request_method
+        env[REQUEST_METHOD]
+      end
+
+      def query_string
+        env[QUERY_STRING].to_s
+      end
+
+      def content_length
+        env['CONTENT_LENGTH']
+      end
+
+      def logger
+        env[RACK_LOGGER]
+      end
+
+      def user_agent
+        env['HTTP_USER_AGENT']
+      end
 
       # the referer of the client
-      def referer;         get_header('HTTP_REFERER')                     end
+      def referer
+        env['HTTP_REFERER']
+      end
+
       alias referrer referer
 
       def session
-        fetch_header(RACK_SESSION) do |k|
-          set_header RACK_SESSION, default_session
+        env.fetch(RACK_SESSION) do |key|
+          env[key] = default_session
         end
       end
 
       def session_options
-        fetch_header(RACK_SESSION_OPTIONS) do |k|
-          set_header RACK_SESSION_OPTIONS, {}
+        env.fetch(RACK_SESSION_OPTIONS) do |key|
+          env[key] = {}
         end
       end
 
@@ -318,14 +348,14 @@ module Rack
       def unlink?;  request_method == UNLINK  end
 
       def scheme
-        if get_header(HTTPS) == 'on'
+        if env['HTTPS'] == 'on'
           'https'
-        elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
+        elsif env['HTTP_X_FORWARDED_SSL'] == 'on'
           'https'
         elsif forwarded_scheme
           forwarded_scheme
         else
-          get_header(RACK_URL_SCHEME)
+          env[RACK_URL_SCHEME]
         end
       end
 
@@ -354,32 +384,34 @@ module Rack
       end
 
       def server_name
-        get_header(SERVER_NAME)
+        env[SERVER_NAME]
       end
 
       def server_port
-        if port = get_header(SERVER_PORT)
+        if port = env[SERVER_PORT]
           Integer(port)
         end
       end
 
       def cookies
-        hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |key|
-          set_header(key, {})
+        env = self.env
+
+        hash = env.fetch(RACK_REQUEST_COOKIE_HASH) do |key|
+          env[key] = {}
         end
 
-        string = get_header(HTTP_COOKIE)
+        string = env[HTTP_COOKIE]
 
-        unless string == get_header(RACK_REQUEST_COOKIE_STRING)
+        unless string == env[RACK_REQUEST_COOKIE_STRING]
           hash.replace Utils.parse_cookies_header(string)
-          set_header(RACK_REQUEST_COOKIE_STRING, string)
+          env[RACK_REQUEST_COOKIE_STRING] = string
         end
 
         hash
       end
 
       def content_type
-        content_type = get_header('CONTENT_TYPE')
+        content_type = env['CONTENT_TYPE']
         content_type.nil? || content_type.empty? ? nil : content_type
       end
 
@@ -389,7 +421,7 @@ module Rack
 
       # The `HTTP_HOST` header.
       def host_authority
-        get_header(HTTP_HOST)
+        env[HTTP_HOST]
       end
 
       def host_with_port(authority = self.authority)
@@ -447,7 +479,7 @@ module Rack
               end)
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_FOR)
+            if value = env[HTTP_X_FORWARDED_FOR]
               return(split_header(value).map do |authority|
                 split_authority(wrap_ipv6(authority))[1]
               end)
@@ -468,7 +500,7 @@ module Rack
               end.compact)
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_PORT)
+            if value = env[HTTP_X_FORWARDED_PORT]
               return split_header(value).map(&:to_i)
             end
           end
@@ -485,7 +517,7 @@ module Rack
               return forwarded.last
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_HOST)
+            if value = env[HTTP_X_FORWARDED_HOST]
               return wrap_ipv6(split_header(value).last)
             end
           end
@@ -499,7 +531,7 @@ module Rack
       end
 
       def ip
-        remote_addresses = split_header(get_header('REMOTE_ADDR'))
+        remote_addresses = split_header(env['REMOTE_ADDR'])
         external_addresses = reject_trusted_ip_addresses(remote_addresses)
 
         unless external_addresses.empty?
@@ -558,7 +590,7 @@ module Rack
       # content-type header is provided and the request_method is POST.
       def form_data?
         type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+        meth = env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] || env[REQUEST_METHOD]
 
         (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
@@ -571,12 +603,14 @@ module Rack
 
       # Returns the data received in the query string.
       def GET
-        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          get_header(RACK_REQUEST_QUERY_HASH)
+        env = self.env
+
+        if env[RACK_REQUEST_QUERY_STRING] == query_string
+          env[RACK_REQUEST_QUERY_HASH]
         else
           query_hash = parse_query(query_string, '&')
-          set_header(RACK_REQUEST_QUERY_STRING, query_string)
-          set_header(RACK_REQUEST_QUERY_HASH, query_hash)
+          env[RACK_REQUEST_QUERY_STRING] = query_string
+          env[RACK_REQUEST_QUERY_HASH] = query_hash
         end
       end
 
@@ -585,27 +619,31 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if get_header(RACK_INPUT).nil?
+        env = self.env
+
+        if env[RACK_INPUT].nil?
           raise "Missing rack.input"
-        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-          get_header(RACK_REQUEST_FORM_HASH)
+        elsif env[RACK_REQUEST_FORM_INPUT] == env[RACK_INPUT]
+          env[RACK_REQUEST_FORM_INPUT]
         elsif form_data? || parseable_data?
-          unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
-            form_vars = get_header(RACK_INPUT).read
+          unless (env[RACK_REQUEST_FORM_HASH] = parse_multipart)
+            form_vars = env[RACK_INPUT].read
 
             # Fix for Safari Ajax postings that always append \0
             # form_vars.sub!(/\0\z/, '') # performance replacement:
             form_vars.slice!(-1) if form_vars.end_with?("\0")
 
-            set_header RACK_REQUEST_FORM_VARS, form_vars
-            set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+            env[RACK_REQUEST_FORM_VARS] = form_vars
+            env[RACK_REQUEST_FORM_HASH] = parse_query(form_vars, '&')
           end
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          get_header RACK_REQUEST_FORM_HASH
+
+          env[RACK_REQUEST_FORM_INPUT] = env[RACK_INPUT]
         else
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          set_header(RACK_REQUEST_FORM_HASH, {})
+          env[RACK_REQUEST_FORM_INPUT] = env[RACK_INPUT]
+          env[RACK_REQUEST_FORM_HASH] = {}
         end
+
+        return env[RACK_REQUEST_FORM_HASH]
       end
 
       # The union of GET and POST data.
@@ -663,11 +701,11 @@ module Rack
       end
 
       def accept_encoding
-        parse_http_accept_header(get_header("HTTP_ACCEPT_ENCODING"))
+        parse_http_accept_header(env["HTTP_ACCEPT_ENCODING"])
       end
 
       def accept_language
-        parse_http_accept_header(get_header("HTTP_ACCEPT_LANGUAGE"))
+        parse_http_accept_header(env["HTTP_ACCEPT_LANGUAGE"])
       end
 
       def trusted_proxy?(ip)
@@ -726,7 +764,7 @@ module Rack
 
       # Get an array of values set in the RFC 7239 `Forwarded` request header.
       def get_http_forwarded(token)
-        Utils.forwarded_values(get_header(HTTP_FORWARDED))&.[](token)
+        Utils.forwarded_values(env[HTTP_FORWARDED])&.[](token)
       end
 
       def query_parser
@@ -794,11 +832,13 @@ module Rack
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
-      FORWARDED_SCHEME_HEADERS = {
+      FORWARDED_SCHEME_KEYS = {
         proto: HTTP_X_FORWARDED_PROTO,
         scheme: HTTP_X_FORWARDED_SCHEME
       }.freeze
-      private_constant :FORWARDED_SCHEME_HEADERS
+
+      private_constant :FORWARDED_SCHEME_KEYS
+
       def forwarded_scheme
         forwarded_priority.each do |type|
           case type
@@ -809,8 +849,8 @@ module Rack
             end
           when :x_forwarded
             x_forwarded_proto_priority.each do |x_type|
-              if header = FORWARDED_SCHEME_HEADERS[x_type]
-                split_header(get_header(header)).reverse_each do |scheme|
+              if header = FORWARDED_SCHEME_KEYS[x_type]
+                split_header(env[header]).reverse_each do |scheme|
                   if allowed_scheme(scheme)
                     return scheme
                   end

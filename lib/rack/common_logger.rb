@@ -54,18 +54,18 @@ module Rack
 
       msg = FORMAT % [
         request.ip || "-",
-        request.get_header("REMOTE_USER") || "-",
+        request.env['REMOTE_USER'] || "-",
         Time.now.strftime("%d/%b/%Y:%H:%M:%S %z"),
         request.request_method,
         request.script_name,
         request.path_info,
         request.query_string.empty? ? "" : "?#{request.query_string}",
-        request.get_header(SERVER_PROTOCOL),
+        request.env[SERVER_PROTOCOL],
         status.to_s[0..3],
         length,
         Utils.clock_time - began_at ]
 
-      logger = @logger || request.get_header(RACK_ERRORS)
+      logger = @logger || request.env[RACK_ERRORS]
       # Standard library logger doesn't support write but it supports << which actually
       # calls to write on the log device without formatting
       if logger.respond_to?(:write)
