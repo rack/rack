@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 - Add `deflaters` option to `Rack::Deflater` to enable custom compression algorithms like zstd. ([#2168](https://github.com/rack/rack/issues/2168), [@alexanderadam](https://github.com/alexanderadam))
 - Add `Rack::Request#prefetch?` for identifying requests with `Sec-Purpose: prefetch` header set. ([#2405](https://github.com/rack/rack/pull/2405), [@glaszig](https://github.com/glaszig))
 - Add `rack.request.trusted_proxy` environment key to indicate whether the request is coming from a trusted proxy.
+- Add `Rack::Request#headers` for simpler access to request headers by header name. ([#1881](https://github.com/rack/rack/pull/1881), [@jeremyevans](https://github.com/jeremyevans))
 
 ### Changed
 
