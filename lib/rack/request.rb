@@ -93,28 +93,32 @@ module Rack
       # Predicate method to test to see if `name` has been set as request
       # specific data
       def has_header?(name)
-        @env.key? name
+        @env.key? env_key(name)
       end
 
       # Get a request specific value for `name`.
       def get_header(name)
-        @env[name]
+        @env[env_key(name)]
       end
 
       # If a block is given, it yields to the block if the value hasn't been set
       # on the request.
       def fetch_header(name, &block)
-        @env.fetch(name, &block)
+        @env.fetch(env_key(name), &block)
       end
 
       # Loops through each key / value pair in the request specific data.
       def each_header(&block)
-        @env.each(&block)
+        @env.each do |key, value|
+          if name = header_name(key)
+            yield name, value
+          end
+        end
       end
 
       # Set a request specific value for `name` to `v`
-      def set_header(name, v)
-        @env[name] = v
+      def set_header(name, value)
+        @env[env_key(name)] = value
       end
 
       # Add a header that may have multiple values.
@@ -126,23 +130,90 @@ module Rack
       #   assert_equal 'image/png,*/*', request.get_header('Accept')
       #
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-      def add_header(key, v)
-        if v.nil?
-          get_header key
-        elsif has_header? key
-          set_header key, "#{get_header key},#{v}"
+      def add_header(name, value)
+        key = env_key(name)
+
+        if value.nil?
+          @env[key]
+        elsif current = env[key]
+          case current
+          when Array
+            current << value
+          else
+            @env[key] = [current, value]
+          end
         else
-          set_header key, v
+          @env[key] = value
         end
       end
 
       # Delete a request specific value for `name`.
       def delete_header(name)
-        @env.delete name
+        @env.delete(env_key(name))
       end
 
       def initialize_copy(other)
         @env = other.env.dup
+      end
+
+      private
+
+      CGI_VARIABLES = Set.new(%W[
+        AUTH_TYPE
+        CONTENT_LENGTH
+        CONTENT_TYPE
+        GATEWAY_INTERFACE
+        HTTPS
+        PATH_INFO
+        PATH_TRANSLATED
+        QUERY_STRING
+        REMOTE_ADDR
+        REMOTE_HOST
+        REMOTE_IDENT
+        REMOTE_USER
+        REQUEST_METHOD
+        SCRIPT_NAME
+        SERVER_NAME
+        SERVER_PORT
+        SERVER_PROTOCOL
+        SERVER_SOFTWARE
+      ]).freeze
+
+      # According to https://tools.ietf.org/html/rfc7231#appendix-C
+      # But limited to lower case names.
+      HTTP_HEADER_PATTERN = /\A[!#$%&'*+\-^_`|~0-9a-z]+\z/
+
+      # Converts an HTTP header name to an environment variable name if it is
+      # not contained within the headers hash.
+      def env_key(name)
+        key = name.to_s
+
+        if HTTP_HEADER_PATTERN.match?(key)
+          key = key.upcase
+          key.tr!('-', '_')
+
+          unless CGI_VARIABLES.include?(key)
+            key.prepend('HTTP_')
+          else
+            warn "Using CGI variable keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+          end
+        else
+          warn "Using env keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+        end
+
+        return key
+      end
+
+      HEADER_KEY_PATTERN = /\AHTTP_(.+)\z/
+
+      def header_name(key)
+        if match = HEADER_KEY_PATTERN.match(key)
+          name = match[1]
+          name.tr!('_', '-')
+          name.downcase!
+
+          return name
+        end
       end
     end
 

@@ -59,7 +59,19 @@ class RackRequestTest < Minitest::Spec
     assert_equal "bar", req.get_header("FOO")
   end
 
-  it 'can iterate over values' do
+  it 'can set env headers (legacy)' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header 'HTTP_FOO', 'bar'
+    assert_equal "bar", req.get_header("foo")
+  end
+
+  it 'can set env variables (legacy)' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    req.set_header 'CONTENT_LENGTH', '42'
+    assert_equal '42', req.env['CONTENT_LENGTH']
+  end
+
+  it 'can iterate headers' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'
     hash = {}
@@ -69,7 +81,7 @@ class RackRequestTest < Minitest::Spec
     assert_equal 'bar', hash['foo']
   end
 
-  it 'can set values in the env' do
+  it 'can set headers in the env' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header("FOO", "BAR")
     assert_equal "BAR", req.get_header("FOO")
@@ -81,14 +93,14 @@ class RackRequestTest < Minitest::Spec
     assert_equal '1', req.add_header('FOO', '1')
     assert_equal '1', req.get_header('FOO')
 
-    assert_equal '1,2', req.add_header('FOO', '2')
-    assert_equal '1,2', req.get_header('FOO')
+    assert_equal ['1', '2'], req.add_header('FOO', '2')
+    assert_equal ['1', '2'], req.get_header('FOO')
 
-    assert_equal '1,2', req.add_header('FOO', nil)
-    assert_equal '1,2', req.get_header('FOO')
+    assert_equal ['1', '2'], req.add_header('FOO', nil)
+    assert_equal ['1', '2'], req.get_header('FOO')
   end
 
-  it 'can delete env values' do
+  it 'can delete headers' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'
     assert req.has_header? 'foo'
