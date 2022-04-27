@@ -1100,6 +1100,147 @@ class RackRequestTest < Minitest::Spec
     req2.params.must_equal({})
   end
 
+  it "allows access to specific HTTP header via headers[]" do
+    e = Rack::MockRequest.env_for("",
+      "HTTP_FOO_BAR" => "baz",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html")
+    req = make_request(e)
+
+    req.headers['foo-bar'].must_equal 'baz'
+    req.headers['FOO-BAR'].must_equal 'baz'
+    req.headers['content-type'].must_equal 'text/html'
+    req.headers['Content-Length'].must_equal '1'
+    req.headers['bar-foo'].must_be_nil
+  end
+
+  it "allows access to specific HTTP header via headers.fetch" do
+    e = Rack::MockRequest.env_for("",
+      "HTTP_FOO_BAR" => "baz",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html")
+    req = make_request(e)
+
+    req.headers.fetch('foo-bar').must_equal 'baz'
+    req.headers.fetch('FOO-BAR').must_equal 'baz'
+    req.headers.fetch('content-type').must_equal 'text/html'
+    req.headers.fetch('Content-Length').must_equal '1'
+
+    proc{req.headers.fetch('bar-foo')}.must_raise KeyError
+    req.headers.fetch('bar-foo'){'1'}.must_equal '1'
+  end
+
+  it "allows checking for specific HTTP header via headers.has_key?" do
+    e = Rack::MockRequest.env_for("",
+      "HTTP_FOO_BAR" => "baz",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html")
+    req = make_request(e)
+
+    req.headers.has_key?('foo-bar').must_equal true
+    req.headers.has_key?('FOO-BAR').must_equal true
+    req.headers.has_key?('content-type').must_equal true
+    req.headers.has_key?('Content-Length').must_equal true
+    req.headers.has_key?('bar-foo').must_equal false
+  end
+
+  it "allows deleting specific HTTP header via headers.delete" do
+    e = Rack::MockRequest.env_for("",
+      "HTTP_FOO_BAR" => "baz",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html")
+    req = make_request(e)
+
+    req.headers.delete('foo-bar').must_equal 'baz'
+    req.headers.delete('content-type').must_equal 'text/html'
+    req.headers.delete('Content-Length').must_equal '1'
+    req.headers.delete('bar-foo').must_be_nil
+
+    e.has_key?("HTTP_FOO_BAR").must_equal false
+    e.has_key?("CONTENT_LENGTH").must_equal false
+    e.has_key?("CONTENT_TYPE").must_equal false
+
+    req.headers.has_key?('foo-bar').must_equal false
+    req.headers.has_key?('content-type').must_equal false
+    req.headers.has_key?('Content-Length').must_equal false
+  end
+
+  it "set HTTP header in env via headers[]=" do
+    e = Rack::MockRequest.env_for("",
+      "CONTENT_LENGTH" => "12",
+      "CONTENT_TYPE" => "text/plain")
+    req = make_request(e)
+
+    req.headers['foo-bar'] = 'baz'
+    req.headers['Content-Type'] = 'text/html'
+    req.headers['content-length'] = '1'
+
+    e['HTTP_FOO_BAR'].must_equal 'baz'
+    e['CONTENT_TYPE'].must_equal 'text/html'
+    e['CONTENT_LENGTH'].must_equal '1'
+
+    req.headers['foo-bar'].must_equal 'baz'
+    req.headers['FOO-BAR'].must_equal 'baz'
+    req.headers['content-type'].must_equal 'text/html'
+    req.headers['Content-Length'].must_equal '1'
+  end
+
+  it "set or add HTTP header in env via headers.add" do
+    e = Rack::MockRequest.env_for("",
+      "CONTENT_LENGTH" => "12",
+      "CONTENT_TYPE" => "text/plain")
+    req = make_request(e)
+
+    req.headers.add('foo-bar', 'baz').must_equal 'baz'
+    req.headers.add('Content-Type', 'text/html').must_equal %w'text/plain text/html'
+    req.headers.add('content-length', '1').must_equal %w'12 1'
+
+    e['HTTP_FOO_BAR'].must_equal 'baz'
+    e['CONTENT_TYPE'].must_equal %w'text/plain text/html'
+    e['CONTENT_LENGTH'].must_equal %w'12 1'
+
+    req.headers.add('foo-bar', 'baz2').must_equal %w'baz baz2'
+    req.headers.add('Content-Type', 'text/html2').must_equal %w'text/plain text/html text/html2'
+    req.headers.add('content-length', '13').must_equal %w'12 1 13'
+
+    e['HTTP_FOO_BAR'].must_equal %w'baz baz2'
+    e['CONTENT_TYPE'].must_equal %w'text/plain text/html text/html2'
+    e['CONTENT_LENGTH'].must_equal %w'12 1 13'
+
+    req.headers['foo-bar'].must_equal %w'baz baz2'
+    req.headers['content-type'].must_equal %w'text/plain text/html text/html2'
+    req.headers['Content-Length'].must_equal %w'12 1 13'
+  end
+
+  it "allows iterating over HTTP headers via headers.each" do
+    e = Rack::MockRequest.env_for("",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html",
+      "HTTP_FOO_BAR" => "baz")
+    req = make_request(e)
+
+    a = req.headers.each
+    a.to_a.must_equal [
+      ['content-length', '1'],
+      ['content-type', 'text/html'],
+      ['foo-bar', 'baz'],
+    ]
+  end
+
+  it "allows retrieving a hash of HTTP headers via headers.to_h" do
+    e = Rack::MockRequest.env_for("",
+      "CONTENT_LENGTH" => "1",
+      "CONTENT_TYPE" => "text/html",
+      "HTTP_FOO_BAR" => "baz")
+    req = make_request(e)
+
+    req.headers.to_h.must_equal(
+      'content-length' => '1',
+      'content-type' => 'text/html',
+      'foo-bar' => 'baz',
+    )
+  end
+
   it "pass through non-uri escaped cookies as-is" do
     req = make_request Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%")
     req.cookies["foo"].must_equal "%"
@@ -1863,7 +2004,7 @@ EOF
       extend Forwardable
 
       def_delegators :@req, :env, :has_header?, :get_header, :fetch_header,
-        :each_header, :set_header, :add_header, :delete_header
+        :each_header, :set_header, :add_header, :delete_header, :headers
 
       def_delegators :@req, :[], :[]=, :values_at
 
