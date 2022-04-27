@@ -360,11 +360,7 @@ module Rack
     #   # => "myname=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     #
     def delete_set_cookie_header(key, value = {})
-      set_cookie_header(key, {
-        value: '', path: nil, domain: nil,
-        max_age: '0',
-        expires: Time.at(0)
-      }.merge(value))
+      set_cookie_header(key, value.merge(max_age: '0', expires: Time.at(0), value: ''))
     end
 
     def make_delete_cookie_header(header, key, value)
