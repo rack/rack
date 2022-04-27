@@ -190,6 +190,8 @@ module Rack
       def forbidden?;           status == 403;                        end
       def not_found?;           status == 404;                        end
       def method_not_allowed?;  status == 405;                        end
+      def not_acceptable?;      status == 406;                        end
+      def request_timeout?;     status == 408;                        end
       def precondition_failed?; status == 412;                        end
       def unprocessable?;       status == 422;                        end
 
