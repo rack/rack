@@ -71,6 +71,11 @@ class RackRequestTest < Minitest::Spec
     assert_equal '42', req.env['CONTENT_LENGTH']
   end
 
+  it 'can set path-info header' do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/", 'HTTP_PATH_INFO' => "/hello/world"))
+    assert_equal '/hello/world', req.get_header('path-info')
+  end
+
   it 'can iterate headers' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     req.set_header 'foo', 'bar'

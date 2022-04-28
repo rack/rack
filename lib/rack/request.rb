@@ -190,12 +190,12 @@ module Rack
 
         if HTTP_HEADER_PATTERN.match?(key)
           key = key.upcase
-          key.tr!('-', '_')
-
-          unless CGI_VARIABLES.include?(key)
-            key.prepend('HTTP_')
-          else
+          
+          if CGI_VARIABLES.include?(key)
             warn "Using CGI variable keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+          else
+            key.tr!('-', '_')
+            key.prepend('HTTP_')
           end
         else
           warn "Using env keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
