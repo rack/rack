@@ -98,11 +98,11 @@ class RackRequestTest < Minitest::Spec
     assert_equal '1', req.add_header('FOO', '1')
     assert_equal '1', req.get_header('FOO')
 
-    assert_equal ['1', '2'], req.add_header('FOO', '2')
-    assert_equal ['1', '2'], req.get_header('FOO')
+    assert_equal '1,2', req.add_header('FOO', '2')
+    assert_equal '1,2', req.get_header('FOO')
 
-    assert_equal ['1', '2'], req.add_header('FOO', nil)
-    assert_equal ['1', '2'], req.get_header('FOO')
+    assert_equal '1,2', req.add_header('FOO', nil)
+    assert_equal '1,2', req.get_header('FOO')
   end
 
   it 'can delete headers' do

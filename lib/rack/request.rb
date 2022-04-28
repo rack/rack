@@ -90,24 +90,65 @@ module Rack
         super()
       end
 
-      # Predicate method to test to see if `name` has been set as request
-      # specific data
+      # Predicate method to test to see if a header of the given +name+ exists.
       def has_header?(name)
         @env.key? env_key(name)
       end
 
-      # Get a request specific value for `name`.
+      # Get the value from the request environment with the specified +name+, returning +nil+ if it doesn't exist.
+      #
+      # When invoked with a lower case (canonical) header name, it will be
+      # access the HTTP header of that name from the request environment.
+      #
+      #   request.get_header('accept') # => '*/*'
+      #
+      # When invoked with a name which contains periods +.+ (e.g. 'rack.input'),
+      # it willm directly read from the request environment. This is considered
+      # legacy behaviour and you should use env directly.
+      #
+      #   # Legacy usage:
+      #   request.get_header('rack.input')
+      #
+      #   # Use env directly:
+      #   request.env['rack.input']
+      #
+      # Note that +rack.input+ is also valid HTTP header name and therefore at
+      # this time it's impossible to use headers that contain periods.
+      #
+      # When invoked with a name which matches a CGI variable (as defined in 
+      # RFC3875), it will be directly read from the request environment. This
+      # is considered legacy behaviour and you should access env directly.
+      #
+      #   # Legacy usage:
+      #   request.get_header('PATH_INFO')
+      #
+      #   # Use env directly:
+      #   request.env['PATH_INFO']
+      #
       def get_header(name)
         @env[env_key(name)]
       end
 
-      # If a block is given, it yields to the block if the value hasn't been set
-      # on the request.
+      # Fetch an HTTP header using using +Hash#fetch+. Yields the internal CGI
+      # variable key which you should use if you want to set the default
+      # value. See get_header details on how name lookup works.
       def fetch_header(name, &block)
         @env.fetch(env_key(name), &block)
       end
 
-      # Loops through each key / value pair in the request specific data.
+      # Loops through each key / value pair in the request HTTP headers. Yields
+      # header names in their canonical form.
+      #
+      #   request.each do |key, value|
+      #     [key, value] # => ["accept", "*/*"]
+      #   end
+      #
+      # Note that CGI style headers cannot represent all possible HTTP headers
+      # and thus the reconstruction of HTTP headers is intriniscally lossy.
+      # The actual behaviour will depend on your server configuration but
+      # generally, +_+ characters will be mapped to +-+ characters. Incoming
+      # headers with underscores (+_+) will thus be indistinguisable from those
+      # with dashes (+-+).
       def each_header(&block)
         @env.each do |key, value|
           if name = header_name(key)
@@ -116,38 +157,39 @@ module Rack
         end
       end
 
-      # Set a request specific value for `name` to `v`
+      # Set a request HTTP header value for +name+ to +value+ overwriting any
+      # existing value.
       def set_header(name, value)
         @env[env_key(name)] = value
       end
 
-      # Add a header that may have multiple values.
+      # Add a request HTTP header that may have multiple values.
       #
-      # Example:
-      #   request.add_header 'Accept', 'image/png'
-      #   request.add_header 'Accept', '*/*'
+      #   request.add_header 'accept', 'image/png'
+      #   request.add_header 'accept', '*/*'
       #
-      #   assert_equal 'image/png,*/*', request.get_header('Accept')
+      #   request.get_header('accept') 
+      #   # => 'image/png,*/*'
       #
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
+      # See get_header for details on name mapping.
       def add_header(name, value)
         key = env_key(name)
 
         if value.nil?
           @env[key]
         elsif current = env[key]
-          case current
-          when Array
-            current << value
+          if current.empty?
+            @env[key] = value
           else
-            @env[key] = [current, value]
+            @env[key] = "#{current},#{value}"
           end
         else
           @env[key] = value
         end
       end
 
-      # Delete a request specific value for `name`.
+      # Delete a request HTTP header with the specified +name+. See get_header
+      # for details on name mapping.
       def delete_header(name)
         @env.delete(env_key(name))
       end
@@ -158,45 +200,59 @@ module Rack
 
       private
 
-      CGI_VARIABLES = Set.new(%W[
-        AUTH_TYPE
-        CONTENT_LENGTH
-        CONTENT_TYPE
-        GATEWAY_INTERFACE
-        HTTPS
-        PATH_INFO
-        PATH_TRANSLATED
-        QUERY_STRING
-        REMOTE_ADDR
-        REMOTE_HOST
-        REMOTE_IDENT
-        REMOTE_USER
-        REQUEST_METHOD
-        SCRIPT_NAME
-        SERVER_NAME
-        SERVER_PORT
-        SERVER_PROTOCOL
-        SERVER_SOFTWARE
+      # These are CGI variables as defined by RFC3875.
+      # https://www.rfc-editor.org/rfc/rfc3875.html#section-4.1
+      # We explicitly use these to detect cases where someone
+      # uses get_header or set_header with one of the named
+      # variables.
+      CGI_VARIABLES = Set.new([
+        "AUTH_TYPE",
+        "CONTENT_LENGTH",
+        "CONTENT_TYPE",
+        "GATEWAY_INTERFACE",
+        "PATH_INFO",
+        "PATH_TRANSLATED",
+        "QUERY_STRING",
+        "REMOTE_ADDR",
+        "REMOTE_HOST",
+        "REMOTE_IDENT",
+        "REMOTE_USER",
+        "REQUEST_METHOD",
+        "SCRIPT_NAME",
+        "SERVER_NAME",
+        "SERVER_PORT",
+        "SERVER_PROTOCOL",
+        "SERVER_SOFTWARE"
       ]).freeze
 
-      # According to https://tools.ietf.org/html/rfc7231#appendix-C
-      # But limited to lower case names.
+      # This is the pattern for +token+ strings as defined by RFC7231 with extra
+      # limitations that the headers must be lower case (canonical form) and
+      # don't have a period character.
+      # https://tools.ietf.org/html/rfc7231#appendix-C
       HTTP_HEADER_PATTERN = /\A[!#$%&'*+\-^_`|~0-9a-z]+\z/
 
       # Converts an HTTP header name to an environment variable name if it is
-      # not contained within the headers hash.
+      # not contained within the headers hash. Considers several cases.
+      #
+      # 1. The name matches a known CGI variable e.g. +SERVER_NAME+: the name is
+      #    used directly. This is considered a legacy usage and a warning will
+      #    be issued.
+      # 2. The name matches a canonical header (lower case) without any periods
+      #    e.g. +accept+: This is considered normal usage.
+      # 3. The name isn't a CGI variable or a canonical header e.g.
+      #    +rack.input+: The name is used directly. This is considered legacy
+      #    usage and a warning will be issued.
+      #
+      # To avoid warnings.only use valid canoincal header names.
       def env_key(name)
         key = name.to_s
 
-        if HTTP_HEADER_PATTERN.match?(key)
+        if CGI_VARIABLES.include?(key)
+          warn "Using CGI variable keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+        elsif HTTP_HEADER_PATTERN.match?(key)
           key = key.upcase
-          
-          if CGI_VARIABLES.include?(key)
-            warn "Using CGI variable keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
-          else
-            key.tr!('-', '_')
-            key.prepend('HTTP_')
-          end
+          key.tr!('-', '_')
+          key.prepend('HTTP_')
         else
           warn "Using env keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
         end
@@ -204,8 +260,15 @@ module Rack
         return key
       end
 
+      # Matches CGI variables which represent HTTP headers.
       HEADER_KEY_PATTERN = /\AHTTP_(.+)\z/
 
+      # Map a CGI variable which represents an HTTP header into a canonical HTTP
+      # header name. Since the process of converting HTTP headers into CGI
+      # variables is lossy, we do best effort reconstruction.
+      #
+      # 1. Converting +_+ characters to +-+ characters.
+      # 2. Forcing lower case canonical form.
       def header_name(key)
         if match = HEADER_KEY_PATTERN.match(key)
           name = match[1]
