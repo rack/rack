@@ -503,6 +503,16 @@ describe Rack::Response do
     res.must_be :client_error?
     res.must_be :method_not_allowed?
 
+    res.status = 406
+    res.wont_be :successful?
+    res.must_be :client_error?
+    res.must_be :not_acceptable?
+
+    res.status = 408
+    res.wont_be :successful?
+    res.must_be :client_error?
+    res.must_be :request_timeout?
+
     res.status = 412
     res.wont_be :successful?
     res.must_be :client_error?
