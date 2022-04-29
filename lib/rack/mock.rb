@@ -101,6 +101,7 @@ module Rack
     # Options:
     # :fatal :: Whether to raise an exception if request outputs to rack.errors
     # :input :: The rack.input to set
+    # :http_version :: The SERVER_PROTOCOL to set
     # :method :: The HTTP request method to use
     # :params :: The params to use
     # :script_name :: The SCRIPT_NAME to set
@@ -113,6 +114,7 @@ module Rack
       env[REQUEST_METHOD]  = (opts[:method] ? opts[:method].to_s.upcase : GET).b
       env[SERVER_NAME]     = (uri.host || "example.org").b
       env[SERVER_PORT]     = (uri.port ? uri.port.to_s : "80").b
+      env[SERVER_PROTOCOL] = opts[:http_version] || 'HTTP/1.1'
       env[QUERY_STRING]    = (uri.query.to_s).b
       env[PATH_INFO]       = ((!uri.path || uri.path.empty?) ? "/" : uri.path).b
       env[RACK_URL_SCHEME] = (uri.scheme || "http").b

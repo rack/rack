@@ -18,6 +18,7 @@ All notable changes to this project will be documented in this file. For info on
 - Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 - `rack.input` is no longer required to be rewindable.
 - `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
+- `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
 
 ### Removed
 
