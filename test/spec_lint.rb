@@ -46,6 +46,26 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/missing required key SERVER_NAME/)
 
+    lambda {
+      e = env
+      e.delete("SERVER_PROTOCOL")
+      Rack::Lint.new(nil).call(e)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/missing required key SERVER_PROTOCOL/)
+
+    lambda {
+      e = env
+      e["SERVER_PROTOCOL"] = 'Foo'
+      Rack::Lint.new(nil).call(e)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/env\[SERVER_PROTOCOL\] does not match HTTP/)
+
+    lambda {
+      e = env
+      e["HTTP_VERSION"] = 'HTTP/1.0'
+      Rack::Lint.new(nil).call(e)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/env\[HTTP_VERSION\] does not equal env\[SERVER_PROTOCOL\]/)
 
     lambda {
       Rack::Lint.new(nil).call(env("HTTP_CONTENT_TYPE" => "text/plain"))

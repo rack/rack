@@ -143,6 +143,9 @@ module Rack
         ##                        server is running on. Should be specified if
         ##                        the server is running on a non-standard port.
 
+        ## <tt>SERVER_PROTOCOL</tt>:: A string representing the HTTP version used
+        ##                            for the request.
+
         ## <tt>HTTP_</tt> Variables:: Variables corresponding to the
         ##                            client-supplied HTTP request
         ##                            headers (i.e., variables whose
@@ -269,7 +272,7 @@ module Rack
         ## accepted specifications and must not be used otherwise.
         ##
 
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING
+        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL
            rack.version rack.input rack.errors].each { |header|
           raise LintError, "env missing required key #{header}" unless env.include? header
         }
@@ -288,6 +291,17 @@ module Rack
         ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
         unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
           raise LintError, "#{env[HTTP_HOST]} must be a valid authority"
+        end
+
+        ## The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
+        server_protocol = env['SERVER_PROTOCOL']
+        unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
+          raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
+        end
+
+        ## If the <tt>HTTP_VERSION</tt> is present, it must equal the <tt>SERVER_PROTOCOL</tt>.
+        if env['HTTP_VERSION'] && env['HTTP_VERSION'] != server_protocol
+          raise LintError, "env[HTTP_VERSION] does not equal env[SERVER_PROTOCOL]"
         end
 
         ## The environment must not contain the keys

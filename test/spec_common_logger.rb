@@ -30,14 +30,14 @@ describe Rack::CommonLogger do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/")
 
     res.errors.wont_be :empty?
-    res.errors.must_match(/"GET \/ " 200 #{length} /)
+    res.errors.must_match(/"GET \/ HTTP\/1\.1" 200 #{length} /)
   end
 
   it "log to anything with +write+" do
     log = StringIO.new
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
-    log.string.must_match(/"GET \/ " 200 #{length} /)
+    log.string.must_match(/"GET \/ HTTP\/1\.1" 200 #{length} /)
   end
 
   it "work with standard library logger" do
@@ -45,21 +45,21 @@ describe Rack::CommonLogger do
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
 
-    logdev.string.must_match(/"GET \/ " 200 #{length} /)
+    logdev.string.must_match(/"GET \/ HTTP\/1\.1" 200 #{length} /)
   end
 
   it "log - content length if header is missing" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app_without_length)).get("/")
 
     res.errors.wont_be :empty?
-    res.errors.must_match(/"GET \/ " 200 - /)
+    res.errors.must_match(/"GET \/ HTTP\/1\.1" 200 - /)
   end
 
   it "log - content length if header is zero" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app_with_zero_length)).get("/")
 
     res.errors.wont_be :empty?
-    res.errors.must_match(/"GET \/ " 200 - /)
+    res.errors.must_match(/"GET \/ HTTP\/1\.1" 200 - /)
   end
 
   it "log - records host from X-Forwarded-For header" do
@@ -94,7 +94,7 @@ describe Rack::CommonLogger do
       Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
     end
 
-    md = /- - - \[([^\]]+)\] "(\w+) \/ " (\d{3}) \d+ ([\d\.]+)/.match(log.string)
+    md = /- - - \[([^\]]+)\] "(\w+) \/ HTTP\/1\.1" (\d{3}) \d+ ([\d\.]+)/.match(log.string)
     md.wont_equal nil
     time, method, status, duration = *md.captures
     time.must_equal Time.at(0).strftime("%d/%b/%Y:%H:%M:%S %z")
@@ -108,7 +108,7 @@ describe Rack::CommonLogger do
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/hello")
 
-    logdev.string.must_match(/"GET \/hello " 200 #{length} /)
+    logdev.string.must_match(/"GET \/hello HTTP\/1\.1" 200 #{length} /)
   end
 
   it "log path with SCRIPT_NAME" do
@@ -116,7 +116,15 @@ describe Rack::CommonLogger do
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/path", script_name: "/script")
 
-    logdev.string.must_match(/"GET \/script\/path " 200 #{length} /)
+    logdev.string.must_match(/"GET \/script\/path HTTP\/1\.1" 200 #{length} /)
+  end
+
+  it "log path with SERVER_PROTOCOL" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/path", http_version: "HTTP/1.0")
+
+    logdev.string.must_match(/"GET \/path HTTP\/1\.0" 200 #{length} /)
   end
 
   def length

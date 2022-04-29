@@ -113,9 +113,6 @@ describe Rack::Chunked do
       body.join.must_equal 'Hello World!'
     end
 
-    @env.delete('SERVER_PROTOCOL') # unicorn will do this on pre-HTTP/1.0 requests
-    check.call
-
     @env['SERVER_PROTOCOL'] = 'HTTP/0.9' # not sure if this happens in practice
     check.call
   end

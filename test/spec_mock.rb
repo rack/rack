@@ -64,6 +64,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
+    env["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/"
     env["SCRIPT_NAME"].must_equal ""
@@ -170,6 +171,18 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).request(:get)
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
+  end
+
+  it "accept :script_name option to set SCRIPT_NAME" do
+    res = Rack::MockRequest.new(app).get("/", script_name: '/foo')
+    env = YAML.unsafe_load(res.body)
+    env["SCRIPT_NAME"].must_equal "/foo"
+  end
+
+  it "accept :http_version option to set SERVER_PROTOCOL" do
+    res = Rack::MockRequest.new(app).get("/", http_version: 'HTTP/1.0')
+    env = YAML.unsafe_load(res.body)
+    env["SERVER_PROTOCOL"].must_equal "HTTP/1.0"
   end
 
   it "accept params and build query string for GET requests" do
