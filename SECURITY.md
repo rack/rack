@@ -1,4 +1,4 @@
-# Rack maintenance
+# Security Policy
 
 ## Supported versions
 
