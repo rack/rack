@@ -155,6 +155,7 @@ def clone_and_test(url, name, command)
   # I tried using `bundle config --local local.async ../` but it simply doesn't work.
   File.open("#{path}/Gemfile", "a") do |file|
     file.puts("gem 'rack', path: '../../'")
+    file.puts("gem 'rack-session', github: 'rack/rack-session'") if name == 'rack-attack'
   end
 
   sh("cd #{path} && bundle install && #{command}")
