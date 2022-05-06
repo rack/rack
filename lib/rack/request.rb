@@ -287,9 +287,7 @@ module Rack
       end
 
       def server_port
-        if port = get_header(SERVER_PORT)
-          Integer(port)
-        end
+        get_header(SERVER_PORT)
       end
 
       def cookies
@@ -347,23 +345,9 @@ module Rack
       def port
         if authority = self.authority
           _, _, port = split_authority(authority)
-
-          if port
-            return port
-          end
         end
 
-        if forwarded_port = self.forwarded_port
-          return forwarded_port.last
-        end
-
-        if scheme = self.scheme
-          if port = DEFAULT_PORTS[scheme]
-            return port
-          end
-        end
-
-        self.server_port
+        port || forwarded_port&.last || DEFAULT_PORTS[scheme] || server_port
       end
 
       def forwarded_for
@@ -435,14 +419,12 @@ module Rack
           return external_addresses.last
         end
 
-        if forwarded_for = self.forwarded_for
-          unless forwarded_for.empty?
-            # The forwarded for addresses are ordered: client, proxy1, proxy2.
-            # So we reject all the trusted addresses (proxy*) and return the
-            # last client. Or if we trust everyone, we just return the first
-            # address.
-            return reject_trusted_ip_addresses(forwarded_for).last || forwarded_for.first
-          end
+        if (forwarded_for = self.forwarded_for) && !forwarded_for.empty?
+          # The forwarded for addresses are ordered: client, proxy1, proxy2.
+          # So we reject all the trusted addresses (proxy*) and return the
+          # last client. Or if we trust everyone, we just return the first
+          # address.
+          return reject_trusted_ip_addresses(forwarded_for).last || forwarded_for.first
         end
 
         # If all the addresses are trusted, and we aren't forwarded, just return
@@ -756,16 +738,6 @@ module Rack
         header if ALLOWED_SCHEMES.include?(header)
       end
 
-      def extract_proto_header(header)
-        if header
-          if (comma_index = header.index(','))
-            header[0, comma_index]
-          else
-            header
-          end
-        end
-      end
-
       def forwarded_priority
         Request.forwarded_priority
       end
@@ -780,4 +752,6 @@ module Rack
   end
 end
 
+# :nocov:
 require_relative 'multipart' unless defined?(Rack::Multipart)
+# :nocov:
