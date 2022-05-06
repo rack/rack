@@ -7,6 +7,10 @@ separate_testing do
 end
 
 describe Rack::Response do
+  deprecated "#header returns headers" do
+    Rack::Response[200, { "v" => "1" }, []].header['v'].must_equal '1'
+  end
+
   it 'has standard constructor' do
     headers = { "header" => "value" }
     body = ["body"]
@@ -47,7 +51,7 @@ describe Rack::Response do
     status, header, body = response.finish
     status.must_equal 200
     header.must_equal({})
-    body.each { |part|
+    response.each { |part|
       part.must_equal ""
     }
 
@@ -75,6 +79,15 @@ describe Rack::Response do
     h['content-length'].must_equal '6'
   end
 
+  it "#write calls #<< on non-iterable body" do
+    content = []
+    body = proc{|x| content << x}
+    body.singleton_class.class_eval{alias << call}
+    response = Rack::Response.new(body)
+    response.write "bar"
+    content.must_equal ["bar"]
+  end
+
   it "can set and read headers" do
     response = Rack::Response.new
     response["content-type"].must_be_nil
@@ -95,6 +108,14 @@ describe Rack::Response do
   it "can override the initial content-type with a different case" do
     response = Rack::Response.new("", 200, "content-type" => "text/plain")
     response["content-type"].must_equal "text/plain"
+  end
+
+  it "can get and set set-cookie header" do
+    response = Rack::Response.new
+    response.set_cookie_header.must_be_nil
+    response.set_cookie_header = 'v=1;'
+    response.set_cookie_header.must_equal 'v=1;'
+    response.headers['set-cookie'].must_equal 'v=1;'
   end
 
   it "can set cookies" do
@@ -640,6 +661,18 @@ describe Rack::Response do
     expect(expires_header).must_be :<=, Time.now
   end
 
+  it "should not cache content if calling cache! after do_not_cache!" do
+    response = Rack::Response.new
+
+    response.do_not_cache!
+    response.cache!(1000)
+
+    expect(response['cache-control']).must_equal "no-cache, must-revalidate"
+
+    expires_header = Time.parse(response['expires'])
+    expect(expires_header).must_be :<=, Time.now
+  end
+
   it "should specify to cache content" do
     response = Rack::Response.new
 
@@ -707,6 +740,47 @@ describe Rack::Response, 'headers' do
   it 'delete_header' do
     lambda { @response.delete_header nil }.must_raise ArgumentError
 
+    @response.delete_header('foo').must_equal '1'
+    @response.has_header?('foo').must_equal false
+
+    @response.delete_header('foo').must_be_nil
+    @response.has_header?('foo').must_equal false
+
+    @response.set_header('foo', 1)
+    @response.delete_header('foo').must_equal 1
+    @response.has_header?('foo').must_equal false
+  end
+end
+
+describe Rack::Response::Raw do
+  before do
+    @response = Rack::Response::Raw.new(200, { 'foo' => '1' })
+  end
+
+  it 'has_header?' do
+    @response.has_header?('foo').must_equal true
+    @response.has_header?(nil).must_equal false
+  end
+
+  it 'get_header' do
+    @response.get_header('foo').must_equal '1'
+    @response.get_header(nil).must_be_nil
+  end
+
+  it 'set_header' do
+
+    @response.set_header('foo', '2').must_equal '2'
+    @response.has_header?('foo').must_equal true
+    @response.get_header('foo').must_equal('2')
+
+    @response.set_header(nil, '1').must_equal '1'
+    @response.get_header(nil).must_equal '1'
+
+    @response.set_header('foo', nil).must_be_nil
+    @response.get_header('foo').must_be_nil
+  end
+
+  it 'delete_header' do
     @response.delete_header('foo').must_equal '1'
     @response.has_header?('foo').must_equal false
 
