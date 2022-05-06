@@ -47,6 +47,20 @@ class RackRequestTest < Minitest::Spec
     assert_equal "example.com:443", req.authority
   end
 
+  it 'can calculate the server authority' do
+    req = make_request('SERVER_NAME' => 'example.com')
+    assert_equal "example.com", req.server_authority
+    req = make_request('SERVER_NAME' => 'example.com', 'SERVER_PORT' => 8080)
+    assert_equal "example.com:8080", req.server_authority
+  end
+
+  it 'can calculate the port without an authority' do
+    req = make_request('SERVER_PORT' => 8080)
+    assert_equal 8080, req.port
+    req = make_request('HTTPS' => 'on')
+    assert_equal 443, req.port
+  end
+
   it 'yields to the block if no value has been set' do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
     yielded = false
@@ -376,7 +390,7 @@ class RackRequestTest < Minitest::Spec
       req("HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "http"
 
-      Rack::Request.forwarded_priority = [:x_forwarded, :forwarded]
+      Rack::Request.forwarded_priority = [nil, :x_forwarded, :forwarded]
 
       req("HTTP_FORWARDED"=>"for=1.2.3.4",
         "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
@@ -402,7 +416,7 @@ class RackRequestTest < Minitest::Spec
       req("HTTP_FORWARDED"=>"proto=https").
         forwarded_scheme.must_equal "https"
 
-      Rack::Request.x_forwarded_proto_priority = [:scheme, :proto]
+      Rack::Request.x_forwarded_proto_priority = [nil, :scheme, :proto]
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws",
@@ -1781,7 +1795,17 @@ EOF
 
   it "sets the default session to an empty hash" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
-    assert_equal Hash.new, req.session
+    session = req.session
+    assert_equal Hash.new, session
+    req.env['rack.session'].must_be_same_as session
+  end
+
+  it "sets the default session options to an empty hash" do
+    req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
+    session_options = req.session_options
+    assert_equal Hash.new, session_options
+    req.env['rack.session.options'].must_be_same_as session_options
+    assert_equal Hash.new, req.session_options
   end
 
   class MyRequest < Rack::Request
@@ -1847,6 +1871,14 @@ EOF
       keys.first.length.must_equal(length-1)
       keys.first.must_equal("\0"*(length-1))
     end
+  end
+
+  it "Env sets @env on initialization" do
+    c = Class.new do
+      include Rack::Request::Env
+    end
+    h = {}
+    c.new(h).env.must_be_same_as h
   end
 
   class NonDelegate < Rack::Request
