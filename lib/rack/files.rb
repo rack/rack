@@ -78,7 +78,7 @@ module Rack
         return [200, { 'allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
       end
       last_modified = ::File.mtime(path).httpdate
-      return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
+      return [304, {}, []] if request.get_header('if-modified-since') == last_modified
 
       headers = { "last-modified" => last_modified }
       mime_type = mime_type path, @default_mime
@@ -90,7 +90,7 @@ module Rack
       status = 200
       size = filesize path
 
-      ranges = Rack::Utils.get_byte_ranges(request.get_header('HTTP_RANGE'), size)
+      ranges = Rack::Utils.get_byte_ranges(request.get_header('range'), size)
       if ranges.nil?
         # No ranges:
         ranges = [0..size - 1]

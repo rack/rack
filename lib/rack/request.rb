@@ -90,59 +90,193 @@ module Rack
         super()
       end
 
-      # Predicate method to test to see if `name` has been set as request
-      # specific data
+      # Predicate method to test to see if a header of the given +name+ exists.
       def has_header?(name)
-        @env.key? name
+        @env.key? env_key(name)
       end
 
-      # Get a request specific value for `name`.
+      # Get the value from the request environment with the specified +name+, returning +nil+ if it doesn't exist.
+      #
+      # When invoked with a lower case (canonical) header name, it will be
+      # access the HTTP header of that name from the request environment.
+      #
+      #   request.get_header('accept') # => '*/*'
+      #
+      # When invoked with a name which contains periods +.+ (e.g. 'rack.input'),
+      # it willm directly read from the request environment. This is considered
+      # legacy behaviour and you should use env directly.
+      #
+      #   # Legacy usage:
+      #   request.get_header('rack.input')
+      #
+      #   # Use env directly:
+      #   request.env['rack.input']
+      #
+      # Note that +rack.input+ is also valid HTTP header name and therefore at
+      # this time it's impossible to use headers that contain periods.
+      #
+      # When invoked with a name which matches a CGI variable (as defined in 
+      # RFC3875), it will be directly read from the request environment. This
+      # is considered legacy behaviour and you should access env directly.
+      #
+      #   # Legacy usage:
+      #   request.get_header('PATH_INFO')
+      #
+      #   # Use env directly:
+      #   request.env['PATH_INFO']
+      #
       def get_header(name)
-        @env[name]
+        @env[env_key(name)]
       end
 
-      # If a block is given, it yields to the block if the value hasn't been set
-      # on the request.
+      # Fetch an HTTP header using using +Hash#fetch+. Yields the internal CGI
+      # variable key which you should use if you want to set the default
+      # value. See get_header details on how name lookup works.
       def fetch_header(name, &block)
-        @env.fetch(name, &block)
+        @env.fetch(env_key(name), &block)
       end
 
-      # Loops through each key / value pair in the request specific data.
+      # Loops through each key / value pair in the request HTTP headers. Yields
+      # header names in their canonical form.
+      #
+      #   request.each do |key, value|
+      #     [key, value] # => ["accept", "*/*"]
+      #   end
+      #
+      # Note that CGI style headers cannot represent all possible HTTP headers
+      # and thus the reconstruction of HTTP headers is intriniscally lossy.
+      # The actual behaviour will depend on your server configuration but
+      # generally, +_+ characters will be mapped to +-+ characters. Incoming
+      # headers with underscores (+_+) will thus be indistinguisable from those
+      # with dashes (+-+).
       def each_header(&block)
-        @env.each(&block)
-      end
-
-      # Set a request specific value for `name` to `v`
-      def set_header(name, v)
-        @env[name] = v
-      end
-
-      # Add a header that may have multiple values.
-      #
-      # Example:
-      #   request.add_header 'Accept', 'image/png'
-      #   request.add_header 'Accept', '*/*'
-      #
-      #   assert_equal 'image/png,*/*', request.get_header('Accept')
-      #
-      # http://www.w3.org/Protocols/rfc2616/rfc2616-sec4.html#sec4.2
-      def add_header(key, v)
-        if v.nil?
-          get_header key
-        elsif has_header? key
-          set_header key, "#{get_header key},#{v}"
-        else
-          set_header key, v
+        @env.each do |key, value|
+          if name = header_name(key)
+            yield name, value
+          end
         end
       end
 
-      # Delete a request specific value for `name`.
+      # Set a request HTTP header value for +name+ to +value+ overwriting any
+      # existing value.
+      def set_header(name, value)
+        @env[env_key(name)] = value
+      end
+
+      # Add a request HTTP header that may have multiple values.
+      #
+      #   request.add_header 'accept', 'image/png'
+      #   request.add_header 'accept', '*/*'
+      #
+      #   request.get_header('accept') 
+      #   # => 'image/png,*/*'
+      #
+      # See get_header for details on name mapping.
+      def add_header(name, value)
+        key = env_key(name)
+
+        if value.nil?
+          @env[key]
+        elsif current = env[key]
+          if current.empty?
+            @env[key] = value
+          else
+            @env[key] = "#{current},#{value}"
+          end
+        else
+          @env[key] = value
+        end
+      end
+
+      # Delete a request HTTP header with the specified +name+. See get_header
+      # for details on name mapping.
       def delete_header(name)
-        @env.delete name
+        @env.delete(env_key(name))
       end
 
       def initialize_copy(other)
         @env = other.env.dup
+      end
+
+      private
+
+      # These are CGI variables as defined by RFC3875.
+      # https://www.rfc-editor.org/rfc/rfc3875.html#section-4.1
+      # We explicitly use these to detect cases where someone
+      # uses get_header or set_header with one of the named
+      # variables.
+      CGI_VARIABLES = Set.new([
+        "AUTH_TYPE",
+        "CONTENT_LENGTH",
+        "CONTENT_TYPE",
+        "GATEWAY_INTERFACE",
+        "PATH_INFO",
+        "PATH_TRANSLATED",
+        "QUERY_STRING",
+        "REMOTE_ADDR",
+        "REMOTE_HOST",
+        "REMOTE_IDENT",
+        "REMOTE_USER",
+        "REQUEST_METHOD",
+        "SCRIPT_NAME",
+        "SERVER_NAME",
+        "SERVER_PORT",
+        "SERVER_PROTOCOL",
+        "SERVER_SOFTWARE"
+      ]).freeze
+
+      # This is the pattern for +token+ strings as defined by RFC7231 with extra
+      # limitations that the headers must be lower case (canonical form) and
+      # don't have a period character.
+      # https://tools.ietf.org/html/rfc7231#appendix-C
+      HTTP_HEADER_PATTERN = /\A[!#$%&'*+\-^_`|~0-9a-z]+\z/
+
+      # Converts an HTTP header name to an environment variable name if it is
+      # not contained within the headers hash. Considers several cases.
+      #
+      # 1. The name matches a known CGI variable e.g. +SERVER_NAME+: the name is
+      #    used directly. This is considered a legacy usage and a warning will
+      #    be issued.
+      # 2. The name matches a canonical header (lower case) without any periods
+      #    e.g. +accept+: This is considered normal usage.
+      # 3. The name isn't a CGI variable or a canonical header e.g.
+      #    +rack.input+: The name is used directly. This is considered legacy
+      #    usage and a warning will be issued.
+      #
+      # To avoid warnings.only use valid canoincal header names.
+      def env_key(name)
+        key = name.to_s
+
+        if CGI_VARIABLES.include?(key)
+          warn "Using CGI variable keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+        elsif HTTP_HEADER_PATTERN.match?(key)
+          key = key.upcase
+          key.tr!('-', '_')
+          key.prepend('HTTP_')
+        else
+          warn "Using env keys (#{key}) with header methods is deprecated and will be removed in Rack 3.1! Please use env directly.", uplevel: 2
+        end
+
+        return key
+      end
+
+      # Matches CGI variables which represent HTTP headers.
+      HEADER_KEY_PATTERN = /\AHTTP_(.+)\z/
+
+      # Map a CGI variable which represents an HTTP header into a canonical HTTP
+      # header name. Since the process of converting HTTP headers into CGI
+      # variables is lossy, we do best effort reconstruction.
+      #
+      # 1. Converting +_+ characters to +-+ characters.
+      # 2. Forcing lower case canonical form.
+      def header_name(key)
+        if match = HEADER_KEY_PATTERN.match(key)
+          name = match[1]
+          name.tr!('_', '-')
+          name.downcase!
+
+          return name
+        end
       end
     end
 
@@ -187,32 +321,62 @@ module Rack
       # Another way for specifying https scheme was used.
       HTTP_X_FORWARDED_SSL = 'HTTP_X_FORWARDED_SSL'
 
-      def body;            get_header(RACK_INPUT)                         end
-      def script_name;     get_header(SCRIPT_NAME).to_s                   end
-      def script_name=(s); set_header(SCRIPT_NAME, s.to_s)                end
+      def body
+        env[RACK_INPUT]
+      end
 
-      def path_info;       get_header(PATH_INFO).to_s                     end
-      def path_info=(s);   set_header(PATH_INFO, s.to_s)                  end
+      def script_name
+        env[SCRIPT_NAME].to_s
+      end
 
-      def request_method;  get_header(REQUEST_METHOD)                     end
-      def query_string;    get_header(QUERY_STRING).to_s                  end
-      def content_length;  get_header('CONTENT_LENGTH')                   end
-      def logger;          get_header(RACK_LOGGER)                        end
-      def user_agent;      get_header('HTTP_USER_AGENT')                  end
+      def script_name=(value)
+        env[SCRIPT_NAME] = value.to_s
+      end
+
+      def path_info
+        env[PATH_INFO].to_s
+      end
+
+      def path_info=(value)
+        env[PATH_INFO] = value.to_s
+      end
+
+      def request_method
+        env[REQUEST_METHOD]
+      end
+
+      def query_string
+        env[QUERY_STRING].to_s
+      end
+
+      def content_length
+        env['CONTENT_LENGTH']
+      end
+
+      def logger
+        env[RACK_LOGGER]
+      end
+
+      def user_agent
+        env['HTTP_USER_AGENT']
+      end
 
       # the referer of the client
-      def referer;         get_header('HTTP_REFERER')                     end
+      def referer
+        env['HTTP_REFERER']
+      end
+
       alias referrer referer
 
       def session
-        fetch_header(RACK_SESSION) do |k|
-          set_header RACK_SESSION, default_session
+        env.fetch(RACK_SESSION) do |key|
+          env[key] = default_session
         end
       end
 
       def session_options
-        fetch_header(RACK_SESSION_OPTIONS) do |k|
-          set_header RACK_SESSION_OPTIONS, {}
+        env.fetch(RACK_SESSION_OPTIONS) do |key|
+          env[key] = {}
         end
       end
 
@@ -247,14 +411,14 @@ module Rack
       def unlink?;  request_method == UNLINK  end
 
       def scheme
-        if get_header(HTTPS) == 'on'
+        if env['HTTPS'] == 'on'
           'https'
-        elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
+        elsif env['HTTP_X_FORWARDED_SSL'] == 'on'
           'https'
         elsif forwarded_scheme
           forwarded_scheme
         else
-          get_header(RACK_URL_SCHEME)
+          env[RACK_URL_SCHEME]
         end
       end
 
@@ -283,32 +447,34 @@ module Rack
       end
 
       def server_name
-        get_header(SERVER_NAME)
+        env[SERVER_NAME]
       end
 
       def server_port
-        if port = get_header(SERVER_PORT)
+        if port = env[SERVER_PORT]
           Integer(port)
         end
       end
 
       def cookies
-        hash = fetch_header(RACK_REQUEST_COOKIE_HASH) do |key|
-          set_header(key, {})
+        env = self.env
+
+        hash = env.fetch(RACK_REQUEST_COOKIE_HASH) do |key|
+          env[key] = {}
         end
 
-        string = get_header(HTTP_COOKIE)
+        string = env[HTTP_COOKIE]
 
-        unless string == get_header(RACK_REQUEST_COOKIE_STRING)
+        unless string == env[RACK_REQUEST_COOKIE_STRING]
           hash.replace Utils.parse_cookies_header(string)
-          set_header(RACK_REQUEST_COOKIE_STRING, string)
+          env[RACK_REQUEST_COOKIE_STRING] = string
         end
 
         hash
       end
 
       def content_type
-        content_type = get_header('CONTENT_TYPE')
+        content_type = env['CONTENT_TYPE']
         content_type.nil? || content_type.empty? ? nil : content_type
       end
 
@@ -318,7 +484,7 @@ module Rack
 
       # The `HTTP_HOST` header.
       def host_authority
-        get_header(HTTP_HOST)
+        env[HTTP_HOST]
       end
 
       def host_with_port(authority = self.authority)
@@ -376,7 +542,7 @@ module Rack
               end)
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_FOR)
+            if value = env[HTTP_X_FORWARDED_FOR]
               return(split_header(value).map do |authority|
                 split_authority(wrap_ipv6(authority))[1]
               end)
@@ -397,7 +563,7 @@ module Rack
               end.compact)
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_PORT)
+            if value = env[HTTP_X_FORWARDED_PORT]
               return split_header(value).map(&:to_i)
             end
           end
@@ -414,7 +580,7 @@ module Rack
               return forwarded.last
             end
           when :x_forwarded
-            if value = get_header(HTTP_X_FORWARDED_HOST)
+            if value = env[HTTP_X_FORWARDED_HOST]
               return wrap_ipv6(split_header(value).last)
             end
           end
@@ -428,7 +594,7 @@ module Rack
       end
 
       def ip
-        remote_addresses = split_header(get_header('REMOTE_ADDR'))
+        remote_addresses = split_header(env['REMOTE_ADDR'])
         external_addresses = reject_trusted_ip_addresses(remote_addresses)
 
         unless external_addresses.empty?
@@ -487,7 +653,7 @@ module Rack
       # content-type header is provided and the request_method is POST.
       def form_data?
         type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+        meth = env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] || env[REQUEST_METHOD]
 
         (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
@@ -500,12 +666,14 @@ module Rack
 
       # Returns the data received in the query string.
       def GET
-        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          get_header(RACK_REQUEST_QUERY_HASH)
+        env = self.env
+
+        if env[RACK_REQUEST_QUERY_STRING] == query_string
+          env[RACK_REQUEST_QUERY_HASH]
         else
           query_hash = parse_query(query_string, '&')
-          set_header(RACK_REQUEST_QUERY_STRING, query_string)
-          set_header(RACK_REQUEST_QUERY_HASH, query_hash)
+          env[RACK_REQUEST_QUERY_STRING] = query_string
+          env[RACK_REQUEST_QUERY_HASH] = query_hash
         end
       end
 
@@ -514,27 +682,31 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if get_header(RACK_INPUT).nil?
+        env = self.env
+
+        if env[RACK_INPUT].nil?
           raise "Missing rack.input"
-        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-          get_header(RACK_REQUEST_FORM_HASH)
+        elsif env[RACK_REQUEST_FORM_INPUT] == env[RACK_INPUT]
+          env[RACK_REQUEST_FORM_INPUT]
         elsif form_data? || parseable_data?
-          unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
-            form_vars = get_header(RACK_INPUT).read
+          unless (env[RACK_REQUEST_FORM_HASH] = parse_multipart)
+            form_vars = env[RACK_INPUT].read
 
             # Fix for Safari Ajax postings that always append \0
             # form_vars.sub!(/\0\z/, '') # performance replacement:
             form_vars.slice!(-1) if form_vars.end_with?("\0")
 
-            set_header RACK_REQUEST_FORM_VARS, form_vars
-            set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+            env[RACK_REQUEST_FORM_VARS] = form_vars
+            env[RACK_REQUEST_FORM_HASH] = parse_query(form_vars, '&')
           end
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          get_header RACK_REQUEST_FORM_HASH
+
+          env[RACK_REQUEST_FORM_INPUT] = env[RACK_INPUT]
         else
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          set_header(RACK_REQUEST_FORM_HASH, {})
+          env[RACK_REQUEST_FORM_INPUT] = env[RACK_INPUT]
+          env[RACK_REQUEST_FORM_HASH] = {}
         end
+
+        return env[RACK_REQUEST_FORM_HASH]
       end
 
       # The union of GET and POST data.
@@ -592,11 +764,11 @@ module Rack
       end
 
       def accept_encoding
-        parse_http_accept_header(get_header("HTTP_ACCEPT_ENCODING"))
+        parse_http_accept_header(env["HTTP_ACCEPT_ENCODING"])
       end
 
       def accept_language
-        parse_http_accept_header(get_header("HTTP_ACCEPT_LANGUAGE"))
+        parse_http_accept_header(env["HTTP_ACCEPT_LANGUAGE"])
       end
 
       def trusted_proxy?(ip)
@@ -655,7 +827,7 @@ module Rack
 
       # Get an array of values set in the RFC 7239 `Forwarded` request header.
       def get_http_forwarded(token)
-        Utils.forwarded_values(get_header(HTTP_FORWARDED))&.[](token)
+        Utils.forwarded_values(env[HTTP_FORWARDED])&.[](token)
       end
 
       def query_parser
@@ -723,11 +895,13 @@ module Rack
         ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
-      FORWARDED_SCHEME_HEADERS = {
+      FORWARDED_SCHEME_KEYS = {
         proto: HTTP_X_FORWARDED_PROTO,
         scheme: HTTP_X_FORWARDED_SCHEME
       }.freeze
-      private_constant :FORWARDED_SCHEME_HEADERS
+
+      private_constant :FORWARDED_SCHEME_KEYS
+
       def forwarded_scheme
         forwarded_priority.each do |type|
           case type
@@ -738,8 +912,8 @@ module Rack
             end
           when :x_forwarded
             x_forwarded_proto_priority.each do |x_type|
-              if header = FORWARDED_SCHEME_HEADERS[x_type]
-                split_header(get_header(header)).reverse_each do |scheme|
+              if header = FORWARDED_SCHEME_KEYS[x_type]
+                split_header(env[header]).reverse_each do |scheme|
                   if allowed_scheme(scheme)
                     return scheme
                   end
