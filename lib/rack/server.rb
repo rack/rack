@@ -79,7 +79,7 @@ module Rack
           }
 
           opts.on("-D", "--daemonize", "run daemonized in the background") { |d|
-            options[:daemonize] = d ? true : false
+            options[:daemonize] ||= true
           }
 
           opts.on("--daemonize-noclose", "run daemonized in the background without closing stdout/stderr") {
@@ -102,7 +102,7 @@ module Rack
           end
 
           opts.on("--profile-mode MODE", "Profile mode (cpu|wall|object)") do |e|
-            { cpu: true, wall: true, object: true }.fetch(e.to_sym) do
+            unless %w[cpu wall object].include?(e)
               raise OptionParser::InvalidOption, "unknown profile mode: #{e}"
             end
             options[:profile_mode] = e.to_sym
@@ -136,25 +136,23 @@ module Rack
       end
 
       def handler_opts(options)
-        begin
-          info = []
-          server = Rack::Handler.get(options[:server]) || Rack::Handler.default
-          if server && server.respond_to?(:valid_options)
-            info << ""
-            info << "Server-specific options for #{server.name}:"
+        info = []
+        server = Rack::Handler.get(options[:server]) || Rack::Handler.default
+        if server && server.respond_to?(:valid_options)
+          info << ""
+          info << "Server-specific options for #{server.name}:"
 
-            has_options = false
-            server.valid_options.each do |name, description|
-              next if /^(Host|Port)[^a-zA-Z]/.match?(name.to_s) # ignore handler's host and port options, we do our own.
-              info << "  -O %-21s %s" % [name, description]
-              has_options = true
-            end
-            return "" if !has_options
+          has_options = false
+          server.valid_options.each do |name, description|
+            next if /^(Host|Port)[^a-zA-Z]/.match?(name.to_s) # ignore handler's host and port options, we do our own.
+            info << "  -O %-21s %s" % [name, description]
+            has_options = true
           end
-          info.join("\n")
-        rescue NameError, LoadError
-          return "Warning: Could not find handler specified (#{options[:server] || 'default'}) to determine handler-specific options"
+          return "" if !has_options
         end
+        info.join("\n")
+      rescue NameError, LoadError
+        return "Warning: Could not find handler specified (#{options[:server] || 'default'}) to determine handler-specific options"
       end
     end
 
@@ -232,9 +230,8 @@ module Rack
         @options = options
         @app = options[:app] if options[:app]
       else
-        argv = defined?(SPEC_ARGV) ? SPEC_ARGV : ARGV
         @use_default_options = true
-        @options = parse_options(argv)
+        @options = parse_options(ARGV)
       end
     end
 
@@ -340,16 +337,7 @@ module Rack
     end
 
     def server
-      @_server ||= Rack::Handler.get(options[:server])
-
-      unless @_server
-        @_server = Rack::Handler.default
-
-        # We already speak FastCGI
-        @ignore_options = [:File, :Port] if @_server.to_s == 'Rack::Handler::FastCGI'
-      end
-
-      @_server
+      @_server ||= Rack::Handler.get(options[:server]) || Rack::Handler.default
     end
 
     private

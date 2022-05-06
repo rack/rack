@@ -8,6 +8,14 @@ require 'open-uri'
 require 'net/http'
 require 'net/https'
 
+begin
+  require 'stackprof'
+  require 'tmpdir'
+rescue LoadError
+else
+  test_profile = true
+end
+
 separate_testing do
   require_relative '../lib/rack/server'
   require_relative '../lib/rack/lint'
@@ -18,14 +26,11 @@ separate_testing do
   require_relative '../lib/rack/handler/cgi'
 end
 
-module Minitest::Spec::DSL
-  alias :should :it
-end
-
 describe Rack::Server do
-  SPEC_ARGV = []
+  argv = Rack::Server::ARGV = []
+  define_method(:argv) { argv }
 
-  before { SPEC_ARGV[0..-1] = [] }
+  before { argv.clear }
 
   def app
     lambda { |env| [200, { 'content-type' => 'text/plain' }, ['success']] }
@@ -41,6 +46,128 @@ describe Rack::Server do
   it "overrides :config if :app is passed in" do
     server = Rack::Server.new(app: "FOO")
     server.app.must_equal "FOO"
+  end
+
+  it "Options#parse parses -p and --port options into :Port" do
+    Rack::Server::Options.new.parse!(%w[-p 1234]).must_equal :Port => '1234'
+    Rack::Server::Options.new.parse!(%w[--port 1234]).must_equal :Port => '1234'
+  end
+
+  it "Options#parse parses -D and --daemonize option into :daemonize" do
+    Rack::Server::Options.new.parse!(%w[-D]).must_equal :daemonize => true
+    Rack::Server::Options.new.parse!(%w[--daemonize]).must_equal :daemonize => true
+  end
+
+  it "Options#parse parses --daemonize-noclose option into :daemonize => :noclose" do
+    Rack::Server::Options.new.parse!(%w[--daemonize-noclose]).must_equal :daemonize => :noclose
+    Rack::Server::Options.new.parse!(%w[-D --daemonize-noclose]).must_equal :daemonize => :noclose
+    Rack::Server::Options.new.parse!(%w[--daemonize-noclose -D]).must_equal :daemonize => :noclose
+  end
+
+  it "Options#parse parses --profile option into :profile" do
+    Rack::Server::Options.new.parse!(%w[--profile foo]).must_equal :profile_file => 'foo'
+  end
+
+  it "Options#parse parses --profile-mode option into :profile_mode" do
+    Rack::Server::Options.new.parse!(%w[--profile-mode cpu]).must_equal :profile_mode => :cpu
+  end
+
+  it "Options#parse parses argument into :config" do
+    Rack::Server::Options.new.parse!(%w[foo]).must_equal :config => 'foo'
+  end
+
+  it "Options#handler_opts doesn't include Host/Port options" do
+    tester = Object.new
+    def tester.valid_options
+      {'Host: ' => 'anything', 'Port: ' => 'anything'}
+    end
+    def tester.to_s
+      'HPOT'
+    end
+    def tester.name
+      'HPOT'
+    end
+    Rack::Handler.const_set(:HPOT, tester)
+    Rack::Handler.register(:host_port_option_tester, tester)
+    Rack::Server::Options.new.handler_opts(server: :host_port_option_tester).must_equal ""
+  end
+
+  it "logging_middleware will include common logger except for CGI" do
+    c = Class.new(Rack::Server)
+    def c.middleware
+      Hash.new{[logging_middleware]}
+    end
+
+    argv.replace(['-swebrick', '-b', 'run ->(env){[200, {}, []]}'])
+    c.new.send(:wrapped_app).must_be_kind_of Rack::CommonLogger
+
+    argv.replace(['-scgi', '-b', 'run ->(env){[200, {}, []]}'])
+    c.new.send(:wrapped_app).must_be_kind_of Proc
+  end
+
+  it "#app aborts when config.ru file does not exist" do
+    argv.replace(['-swebrick', 'non-existant.ru'])
+    c = Class.new(Rack::Server) do
+      alias abort raise
+    end
+    proc{c.new.app}.must_raise(RuntimeError).message.must_match(/\Aconfiguration .* not found\z/)
+  end
+
+  it "#app returns app when config.ru file exists" do
+    argv.replace(['-swebrick', 'test/builder/line.ru'])
+    Rack::Server.new.app.must_be_kind_of Proc
+  end
+
+  it "#start daemonizes if daemonize option is given" do
+    server = Rack::Server.new(daemonize: true, app: proc{}, server: :cgi)
+    def server.daemonize_app
+      throw :foo, :bar
+    end
+    catch(:foo){server.start}.must_equal :bar
+  end
+
+  if test_profile
+    it "#profiles to temp file if :profile_mode option is given and :profile_file option is not given" do
+      server = Rack::Server.new(app: proc{[200, {}, []]}, server: :cgi, profile_mode: :cpu)
+      output = String.new
+      server.define_singleton_method(:puts){|str| output << str}
+      def server.exit
+        throw :foo, :bar
+      end
+      catch(:foo){server.start}.must_equal :bar
+      filename = output.split.last
+      File.file?(filename).must_equal true
+      File.size(filename).must_be :>, 0
+      File.delete(filename)
+    end
+
+    it "#profiles to given file if :profile_mode and :profile_file options are given" do
+      Dir.mktmpdir('test-rack-') do |dir|
+        filename = File.join(dir, 'profile')
+        server = Rack::Server.new(app: proc{[200, {}, []]}, server: :cgi, profile_mode: :cpu, profile_file: filename)
+        output = String.new
+        server.define_singleton_method(:puts){|str| output << str}
+        def server.exit
+          throw :foo, :bar
+        end
+        catch(:foo){server.start}.must_equal :bar
+        output.split.last.must_include 'profile'
+        File.file?(filename).must_equal true
+        File.size(filename).must_be :>, 0
+        File.delete(filename)
+      end
+    end
+  end
+
+  it "clears arguments if ENV['REQUEST_METHOD'] is set" do
+    begin
+      ENV['REQUEST_METHOD'] = 'GET'
+      argv.replace(%w[-scgi config.ru])
+      Rack::Server.new
+      argv.must_be_empty
+    ensure
+      ENV.delete('REQUEST_METHOD')
+    end
   end
 
   it "prefer to use :builder when it is passed in" do
@@ -96,7 +223,7 @@ describe Rack::Server do
   end
 
   it "get options from ARGV" do
-    SPEC_ARGV[0..-1] = ['--debug', '-sthin', '--env', 'production', '-w', '-q', '-o', 'localhost', '-O', 'NAME=VALUE', '-ONAME2', '-D']
+    argv.replace(['--debug', '-sthin', '--env', 'production', '-w', '-q', '-o', 'localhost', '-O', 'NAME=VALUE', '-ONAME2', '-D'])
     server = Rack::Server.new
     server.options[:debug].must_equal true
     server.options[:server].must_equal 'thin'
@@ -110,7 +237,7 @@ describe Rack::Server do
   end
 
   def test_options_server(*args)
-    SPEC_ARGV[0..-1] = args
+    argv.replace(args)
     output = String.new
     Class.new(Rack::Server) do
       define_method(:opt_parser) do
@@ -160,7 +287,7 @@ describe Rack::Server do
   end
 
   it "support -b option to specify inline rackup config" do
-    SPEC_ARGV[0..-1] = ['-scgi', '-E', 'development', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}']
+    argv.replace(['-scgi', '-E', 'development', '-b', 'use Rack::ContentLength; run ->(env){[200, {}, []]}'])
     server = Rack::Server.new
     server.server.singleton_class.send(:remove_method, :run)
     def (server.server).run(app, **) app end
@@ -171,7 +298,7 @@ describe Rack::Server do
   end
 
   it "support -e option to evaluate ruby code" do
-    SPEC_ARGV[0..-1] = ['-scgi', '-e', 'Object::XYZ = 2']
+    argv.replace(['-scgi', '-e', 'Object::XYZ = 2'])
     begin
       Rack::Server.new
       Object::XYZ.must_equal 2
@@ -181,7 +308,7 @@ describe Rack::Server do
   end
 
   it "abort if config file does not exist" do
-    SPEC_ARGV[0..-1] = ['-scgi']
+    argv.replace(['-scgi'])
     server = Rack::Server.new
     def server.abort(s) throw :abort, s end
     message = catch(:abort) do
@@ -191,7 +318,7 @@ describe Rack::Server do
   end
 
   it "support -I option to change the load path and -r to require" do
-    SPEC_ARGV[0..-1] = ['-scgi', '-Ifoo/bar', '-Itest/load', '-rrack-test-a', '-rrack-test-b']
+    argv.replace(['-scgi', '-Ifoo/bar', '-Itest/load', '-rrack-test-a', '-rrack-test-b'])
     begin
       server = Rack::Server.new
       server.server.singleton_class.send(:remove_method, :run)
@@ -212,7 +339,7 @@ describe Rack::Server do
   end
 
   it "support -w option to warn and -d option to debug" do
-    SPEC_ARGV[0..-1] = ['-scgi', '-d', '-w']
+    argv.replace(['-scgi', '-d', '-w'])
     warn = $-w
     debug = $DEBUG
     begin
@@ -241,7 +368,7 @@ describe Rack::Server do
       else
         t = Tempfile.new
         begin
-          SPEC_ARGV[0..-1] = ['-scgi', '--heap', t.path, '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          argv.replace(['-scgi', '--heap', t.path, '-E', 'production', '-b', 'run ->(env){[200, {}, []]}'])
           server = Rack::Server.new
           server.server.singleton_class.send(:remove_method, :run)
           def (server.server).run(*) end
@@ -263,7 +390,7 @@ describe Rack::Server do
       else
         t = Tempfile.new
         begin
-          SPEC_ARGV[0..-1] = ['-scgi', '--profile', t.path, '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          argv.replace(['-scgi', '--profile', t.path, '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}'])
           server = Rack::Server.new
           def (server.server).run(*) end
           def server.puts(*) end
@@ -284,7 +411,7 @@ describe Rack::Server do
       rescue LoadError
       else
         begin
-          SPEC_ARGV[0..-1] = ['-scgi', '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}']
+          argv.replace(['-scgi', '--profile-mode', 'cpu', '-E', 'production', '-b', 'run ->(env){[200, {}, []]}'])
           server = Rack::Server.new
           def (server.server).run(*) end
           filename = nil
@@ -308,7 +435,7 @@ describe Rack::Server do
   end
 
   it "support exit for INT signal when server does not respond to shutdown" do
-    SPEC_ARGV[0..-1] = ['-scgi']
+    argv.replace(['-scgi'])
     server = Rack::Server.new
     server.server.singleton_class.send(:remove_method, :run)
     def (server.server).run(*) end
@@ -326,7 +453,7 @@ describe Rack::Server do
   end
 
   it "support support Server.start for starting" do
-    SPEC_ARGV[0..-1] = ['-scgi']
+    argv.replace(['-scgi'])
     c = Class.new(Rack::Server) do
       def start(*) [self.class, :started] end
     end
