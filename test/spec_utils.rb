@@ -452,6 +452,8 @@ describe Rack::Utils do
       for: [ '3.4.5.6', '1.2.3.4' ],
       proto: [ 'http', 'https' ]
     })
+
+    Rack::Utils.forwarded_values('for=3.4.5.6; foo=bar').must_be_nil
   end
 
   it "select best quality match" do
@@ -525,6 +527,7 @@ describe Rack::Utils do
   it "should perform constant time string comparison" do
     Rack::Utils.secure_compare('a', 'a').must_equal true
     Rack::Utils.secure_compare('a', 'b').must_equal false
+    Rack::Utils.secure_compare('a', 'bb').must_equal false
   end
 
   it "return status code for integer" do
@@ -571,6 +574,9 @@ end
 
 describe Rack::Utils, "cookies" do
   it "parses cookies" do
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "a=b; ; c=d")
+    Rack::Utils.parse_cookies(env).must_equal({ "a" => "b", "c" => "d" })
+
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "zoo=m")
     Rack::Utils.parse_cookies(env).must_equal({ "zoo" => "m" })
 
@@ -596,31 +602,33 @@ describe Rack::Utils, "cookies" do
 
   it "generates appropriate cookie header value" do
     Rack::Utils.set_cookie_header('name', 'value').must_equal 'name=value'
+    Rack::Utils.set_cookie_header('name', %w[value]).must_equal 'name=value'
+    Rack::Utils.set_cookie_header('name', %w[va ue]).must_equal 'name=va&ue'
   end
 
-  it "adds new cookies to nil header" do
+  deprecated "adds new cookies to nil header" do
     Rack::Utils.add_cookie_to_header(nil, 'name', 'value').must_equal 'name=value'
   end
 
-  it "adds new cookies to blank header" do
+  deprecated "adds new cookies to blank header" do
     header = ''
     Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal 'name=value'
     header.must_equal ''
   end
 
-  it "adds new cookies to string header" do
+  deprecated "adds new cookies to string header" do
     header = 'existing-cookie'
     Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal ["existing-cookie", "name=value"]
     header.must_equal 'existing-cookie'
   end
 
-  it "adds new cookies to array header" do
+  deprecated "adds new cookies to array header" do
     header = %w[ existing-cookie ]
     Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal ["existing-cookie", "name=value"]
     header.must_equal %w[ existing-cookie ]
   end
 
-  it "adds new cookies to an unrecognized header" do
+  deprecated "adds new cookies to an unrecognized header" do
     lambda {
       Rack::Utils.add_cookie_to_header(Object.new, 'name', 'value')
     }.must_raise ArgumentError
@@ -686,9 +694,20 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
     header['set-cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
   end
+
+  deprecated "sets deleted cookie" do
+    Rack::Utils.make_delete_cookie_header(nil, 'name', {}).
+      must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+    Rack::Utils.add_remove_cookie_to_header(nil, 'name').
+      must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
+  end
 end
 
 describe Rack::Utils, "get_byte_ranges" do
+  deprecated "pase simple byte ranges from env" do
+    Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
+  end
+
   it "ignore missing or syntactically invalid byte ranges" do
     Rack::Utils.get_byte_ranges(nil, 500).must_be_nil
     Rack::Utils.get_byte_ranges("foobar", 500).must_be_nil
@@ -736,6 +755,15 @@ describe Rack::Utils, "get_byte_ranges" do
 end
 
 describe Rack::Utils::HeaderHash do
+  deprecated ".[] returns Rack::Headers as is if not frozen" do
+    h1 = Rack::Headers["Content-MD5" => "d5ff4e2a0 ..."]
+    h2 = Rack::Utils::HeaderHash[h1]
+    h2.must_be_same_as h1
+    h3 = Rack::Utils::HeaderHash[h1.freeze]
+    h3.wont_be_same_as h1
+    h3.must_equal h1
+  end
+
   deprecated ".[] returns instance of Rack::Headers" do
     h = Rack::Utils::HeaderHash["Content-MD5" => "d5ff4e2a0 ..."]
     h.must_be_kind_of Rack::Headers
@@ -754,6 +782,10 @@ describe Rack::Utils::HeaderHash do
     h = Rack::Utils::HeaderHash.new([["Content-MD5","d5ff4e2a0 ..."]])
     h.must_be_kind_of Rack::Headers
     h['content-md5'].must_equal "d5ff4e2a0 ..."
+  end
+
+  it ".allocate raises" do
+    proc { Rack::Utils::HeaderHash.allocate }.must_raise TypeError
   end
 end
 
@@ -810,5 +842,11 @@ describe Rack::Utils::Context do
     r5 = Rack::MockRequest.new(a5).get('/')
     r5.status.must_equal 200
     r4.body.must_equal r5.body
+  end
+
+  it "raises for invalid context" do
+    proc do
+      Rack::Utils::Context.new(nil, test_target1)
+    end.must_raise RuntimeError
   end
 end
