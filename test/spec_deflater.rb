@@ -92,6 +92,7 @@ describe Rack::Deflater do
 
     # yield full response verification
     yield(status, headers, body) if block_given?
+    body.close if body.respond_to?(:close)
   end
 
   # automatic gzip detection (streamable)
@@ -113,6 +114,18 @@ describe Rack::Deflater do
         'vary' => 'Accept-Encoding',
         'content-type' => 'text/plain'
       })
+    end
+  end
+
+  it 'should not update vary response header if it includes * or accept-encoding' do
+    verify(200, 'foobar', deflate_or_gzip, 'response_headers' => { 'vary' => 'Accept-Encoding' } ) do |status, headers, body|
+      headers['vary'].must_equal 'Accept-Encoding'
+    end
+    verify(200, 'foobar', deflate_or_gzip, 'response_headers' => { 'vary' => '*' } ) do |status, headers, body|
+      headers['vary'].must_equal '*'
+    end
+    verify(200, 'foobar', deflate_or_gzip, 'response_headers' => { 'vary' => 'Do-Not-Accept-Encoding' } ) do |status, headers, body|
+      headers['vary'].must_equal 'Do-Not-Accept-Encoding,Accept-Encoding'
     end
   end
 
@@ -199,6 +212,16 @@ describe Rack::Deflater do
     end
   end
 
+  it 'be able to gzip files' do
+    verify(200, File.binread(__FILE__), 'gzip', { 'app_body' => File.open(__FILE__)}) do |status, headers, body|
+      headers.must_equal({
+        'content-encoding' => 'gzip',
+        'vary' => 'Accept-Encoding',
+        'content-type' => 'text/plain'
+      })
+    end
+  end
+
   it 'flush gzipped chunks to the client as they become ready' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
@@ -252,6 +275,17 @@ describe Rack::Deflater do
         'PATH_INFO' => '/foo/bar'
       }
     }
+    
+    app_body3 = [app_body]
+    closed = false
+    app_body3.define_singleton_method(:close){closed = true}
+    options3 = {
+      'app_status' => 200,
+      'app_body' => app_body3,
+      'request_headers' => {
+        'PATH_INFO' => '/'
+      }
+    }
 
     verify(406, not_found_body1, 'identity;q=0', options1) do |status, headers, body|
       headers.must_equal({
@@ -266,6 +300,14 @@ describe Rack::Deflater do
         'content-length' => not_found_body2.length.to_s
       })
     end
+
+    verify(406, not_found_body1, 'identity;q=0', options3) do |status, headers, body|
+      headers.must_equal({
+        'content-type' => 'text/plain',
+        'content-length' => not_found_body1.length.to_s
+      })
+    end
+    closed.must_equal true
   end
 
   it 'handle gzip response with last-modified header' do
@@ -439,6 +481,33 @@ describe Rack::Deflater do
       expect = "hello\n" * 21
       buf.must_equal expect
       raw_bytes.must_be(:<, expect.bytesize)
+    end
+  end
+
+  it 'will honor sync: false to avoid unnecessary flushing when deflating files' do
+    content = File.binread(__FILE__)
+    options = {
+      'deflater_options' => { sync: false },
+      'app_body' => File.open(__FILE__),
+      'skip_body_verify' => true,
+    }
+    verify(200, content, deflate_or_gzip, options) do |status, headers, body|
+      headers.must_equal({
+        'content-encoding' => 'gzip',
+        'vary' => 'Accept-Encoding',
+        'content-type' => 'text/plain'
+      })
+
+      buf = ''.dup
+      raw_bytes = 0
+      inflater = auto_inflater
+      body.each do |part|
+        raw_bytes += part.bytesize
+        buf << inflater.inflate(part)
+      end
+      buf << inflater.finish
+      buf.must_equal content
+      raw_bytes.must_be(:<, content.bytesize)
     end
   end
 end
