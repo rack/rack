@@ -57,7 +57,7 @@ module Rack
 
       # Set the Vary HTTP header.
       vary = headers["vary"].to_s.split(",").map(&:strip)
-      unless vary.include?("*") || vary.include?(/accept-encoding/i)
+      unless vary.include?("*") || vary.any?{|v| v.downcase == 'accept-encoding'}
         headers["vary"] = vary.push("Accept-Encoding").join(",")
       end
 
@@ -70,7 +70,8 @@ module Rack
         [status, headers, GzipStream.new(body, mtime, @sync)]
       when "identity"
         [status, headers, body]
-      when nil
+      else # when nil
+        # Only possible encoding values here are 'gzip', 'identity', and nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
         bp = Rack::BodyProxy.new([message]) { body.close if body.respond_to?(:close) }
         [406, { CONTENT_TYPE => "text/plain", CONTENT_LENGTH => message.length.to_s }, bp]
@@ -99,7 +100,7 @@ module Rack
         gzip = ::Zlib::GzipWriter.new(self)
         gzip.mtime = @mtime if @mtime
         # @body.each is equivalent to @body.gets (slow)
-        if @body.is_a? ::File
+        if @body.is_a? ::File # XXX: Should probably be ::IO
           while part = @body.read(BUFFER_LENGTH)
             gzip.write(part)
             gzip.flush if @sync
