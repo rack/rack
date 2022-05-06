@@ -816,7 +816,7 @@ module Rack
       end
 
       def respond_to?(sym, *)
-        if sym.to_s == :to_ary
+        if sym.to_s == 'to_ary'
           @body.respond_to? sym
         else
           super

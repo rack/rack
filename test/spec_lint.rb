@@ -9,14 +9,16 @@ separate_testing do
 end
 
 describe Rack::Lint do
+  valid_app = lambda do |env|
+    [200, { "content-type" => "test/plain", "content-length" => "3" }, ["foo"]]
+  end
+
   def env(*args)
     Rack::MockRequest.env_for("/", *args)
   end
 
   it "pass valid request" do
-    Rack::Lint.new(lambda { |env|
-                     [200, { "content-type" => "test/plain", "content-length" => "3" }, ["foo"]]
-                   }).call(env({})).first.must_equal 200
+    Rack::Lint.new(valid_app).call(env({})).first.must_equal 200
   end
 
   it "notice fatal errors" do
@@ -97,6 +99,8 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session [] must respond to store and []="
 
+    Rack::Lint.new(valid_app).call(env("rack.session" => {}))[0].must_equal 200
+
     lambda {
       Rack::Lint.new(nil).call(env("rack.session" => {}.freeze))
     }.must_raise(Rack::Lint::LintError).
@@ -158,10 +162,15 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to fatal"
 
+    def obj.fatal(*) end
+    Rack::Lint.new(valid_app).call(env("rack.logger" => obj))[0].must_equal 200
+
     lambda {
       Rack::Lint.new(nil).call(env("rack.multipart.buffer_size" => 0))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "rack.multipart.buffer_size must be an Integer > 0 if specified"
+
+    Rack::Lint.new(valid_app).call(env("rack.multipart.buffer_size" => 1))[0].must_equal 200
 
     lambda {
       Rack::Lint.new(nil).call(env("rack.multipart.tempfile_factory" => Tempfile))
@@ -182,6 +191,21 @@ describe Rack::Lint do
       }).call(env("rack.multipart.tempfile_factory" => lambda { |filename, content_type| String.new }))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "response array has 0 elements instead of 3"
+
+    lambda {
+      Rack::Lint.new(nil).call(env("SERVER_PORT" => "howdy"))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'env[SERVER_PORT] is not an Integer'
+
+    lambda {
+      Rack::Lint.new(nil).call(env("SERVER_NAME" => "\u1234"))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "\u1234 must be a valid authority"
+
+    lambda {
+      Rack::Lint.new(nil).call(env("HTTP_HOST" => "\u1234"))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "\u1234 must be a valid authority"
 
     lambda {
       Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
@@ -448,6 +472,24 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/yielded non-string/)
 
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "3" }, Object.new]
+                             }).call(env({}))[2]
+      body.respond_to?(:to_ary).must_equal false
+      body.each { |part| }
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Enumerable Body must respond to each'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                             }).call(env({}))[2]
+      body.each { |part| }
+      body.each { |part| }
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Response body must only be invoked once (each)'
+
     # Lint before and after the Rack middleware being tested.
     def stacked_lint(app)
       Rack::Lint.new(lambda do |env|
@@ -533,6 +575,42 @@ describe Rack::Lint do
       body.close
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/#to_ary not identical to contents produced by calling #each/)
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               to_path = Object.new
+                               def to_path.each; end
+                               def to_path.to_path; 'non-existent' end
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, to_path]
+                             }).call(env({}))[2]
+      body.each { |part| }
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'The file identified by body.to_path does not exist'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, Object.new]
+                             }).call(env({}))[2]
+      body.call(nil)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Streaming Body must respond to call'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, proc{}]
+                             }).call(env({}))[2]
+      body.call(StringIO.new)
+      body.call(nil)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Response body must only be invoked once (call)'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, proc{}]
+                             }).call(env({}))[2]
+      body.call(nil)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Stream must respond to read'
   end
 
   it "notice input handling errors" do
@@ -625,6 +703,14 @@ describe Rack::Lint do
 
     lambda {
       Rack::Lint.new(lambda { |env|
+                       env["rack.input"].each(1) { |x| }
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                     }).call(env("rack.input" => weirdio))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/rack.input#each called with arguments/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
                        env["rack.input"].each { |x| }
                        [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env("rack.input" => weirdio))
@@ -712,9 +798,47 @@ describe Rack::Lint do
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack'].call
                        [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                     }).call(env({ 'rack.hijack?' => false, 'rack.hijack' => Object.new }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack? is false, but rack.hijack is present'
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack'].call
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                     }).call(env({ 'rack.hijack?' => false, 'rack.hijack_io' => Object.new }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack? is false, but rack.hijack_io is present'
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack'].call
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => Object.new }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/rack.hijack must respond to call/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       env['rack.hijack'].call
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                      }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/rack.hijack_io must respond to read/)
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
+                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack header must respond to #call'
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack header must not be present if server does not support hijacking'
 
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack'].call
