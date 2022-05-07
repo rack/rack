@@ -21,7 +21,7 @@ module Rack
 
     def call(env)
       start_time = Utils.clock_time
-      status, headers, body = @app.call(env)
+      _, headers, _ = response = @app.call(env)
 
       request_time = Utils.clock_time - start_time
 
@@ -29,7 +29,7 @@ module Rack
         headers[@header_name] = FORMAT_STRING % request_time
       end
 
-      [status, headers, body]
+      response
     end
   end
 end

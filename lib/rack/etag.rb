@@ -26,7 +26,7 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
 
       if etag_status?(status) && body.respond_to?(:to_ary) && !skip_caching?(headers)
         body = body.to_ary
@@ -42,7 +42,7 @@ module Rack
         end
       end
 
-      [status, headers, body]
+      response
     end
 
     private

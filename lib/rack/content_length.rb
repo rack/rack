@@ -17,18 +17,18 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
 
       if !STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) &&
          !headers[CONTENT_LENGTH] &&
          !headers[TRANSFER_ENCODING] &&
          body.respond_to?(:to_ary)
 
-        body = body.to_ary
+        response[2] = body = body.to_ary
         headers[CONTENT_LENGTH] = body.sum(&:bytesize).to_s
       end
 
-      [status, headers, body]
+      response
     end
   end
 end
