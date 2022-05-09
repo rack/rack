@@ -88,7 +88,7 @@ module Rack
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
       if config[/^#\\(.*)/]
-        fail "Parsing options from the first comment line is deprecated: #{path}"
+        fail "Parsing options from the first comment line is no longer supported: #{path}"
       end
 
       config.sub!(/^__END__\n.*\Z/m, '')
@@ -147,7 +147,9 @@ module Rack
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
+    # :nocov:
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
+    # :nocov:
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
     # The simplest form of this is a lambda object:

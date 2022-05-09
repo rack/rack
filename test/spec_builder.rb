@@ -238,6 +238,13 @@ describe Rack::Builder do
       File.join(File.dirname(__FILE__), 'builder', name)
     end
 
+    it "raises if parses commented options" do
+      proc do
+        Rack::Builder.parse_file config_file('options.ru')
+      end.must_raise(RuntimeError).
+       message.must_include('Parsing options from the first comment line is no longer supported')
+    end
+
     it "removes __END__ before evaluating app" do
       app, _ = Rack::Builder.parse_file config_file('end.ru')
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
