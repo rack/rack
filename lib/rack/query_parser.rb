@@ -126,15 +126,9 @@ module Rack
         after = ''
       end
 
-      v ||= String.new
+      return if k.empty?
 
-      if k.empty?
-        if !v.nil? && name == "[]"
-          return Array(v)
-        else
-          return
-        end
-      end
+      v ||= String.new
 
       if after == ''
         if k == '[]' && depth != 0
