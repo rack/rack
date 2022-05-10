@@ -254,7 +254,6 @@ module Rack
         if consume_boundary
           @state = :MIME_HEAD
         else
-          raise EOFError, "bad content body" if @sbuf.rest_size >= @bufsize
           :want_read
         end
       end
