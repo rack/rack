@@ -28,14 +28,6 @@ describe Rack::Files do
     assert_equal 200, app.serving(request, file_path)[0]
   end
 
-  it 'raises if you attempt to define response_body in subclass' do
-    c = Class.new(Rack::Files)
-
-    lambda do
-      c.send(:define_method, :response_body){}
-    end.must_raise RuntimeError
-  end
-
   it 'serves files with + in the file name' do
     Dir.mktmpdir do |dir|
       File.write File.join(dir, "you+me.txt"), "hello world"
