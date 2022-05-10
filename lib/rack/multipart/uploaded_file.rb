@@ -6,7 +6,6 @@ require 'fileutils'
 module Rack
   module Multipart
     class UploadedFile
-      require_relative '../multipart' unless defined?(Rack::Multipart)
 
       # The filename, *not* including the path, of the "uploaded" file
       attr_reader :original_filename

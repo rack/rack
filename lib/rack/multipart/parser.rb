@@ -39,8 +39,6 @@ module Rack
     RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
 
     class Parser
-      require_relative '../multipart' unless defined?(Rack::Multipart)
-
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
