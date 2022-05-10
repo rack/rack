@@ -19,13 +19,14 @@ module Rack
       begin
         status, headers, body = @app.call(env)
       rescue Exception
-        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        env[RACK_TEMPFILES]&.each(&:close!)
         raise
       end
 
       body_proxy = BodyProxy.new(body) do
-        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        env[RACK_TEMPFILES]&.each(&:close!)
       end
+
       [status, headers, body_proxy]
     end
   end
