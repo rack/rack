@@ -5,9 +5,6 @@ require_relative 'uploaded_file'
 module Rack
   module Multipart
     class Generator
-
-      require_relative '../multipart' unless defined?(Rack::Multipart)
-
       def initialize(params, first = true)
         @params, @first = params, first
 
