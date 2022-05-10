@@ -145,7 +145,7 @@ module Rack
           has_options = false
           server.valid_options.each do |name, description|
             next if /^(Host|Port)[^a-zA-Z]/.match?(name.to_s) # ignore handler's host and port options, we do our own.
-            info << "  -O %-21s %s" % [name, description]
+            info << sprintf("  -O %-21s %s", name, description)
             has_options = true
           end
           return "" if !has_options
