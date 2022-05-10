@@ -115,7 +115,9 @@ module Rack
       keys.map{|key| self[key]}
     end
     
+    # :nocov:
     if RUBY_VERSION >= '2.5'
+    # :nocov:
       def slice(*a)
         h = self.class.new
         a.each{|k| h[k] = self[k] if has_key?(k)}
@@ -135,7 +137,9 @@ module Rack
       end
     end
 
+    # :nocov:
     if RUBY_VERSION >= '3.0'
+    # :nocov:
       def except(*a)
         super(*a.map!{|key| downcase_key(key)})
       end
