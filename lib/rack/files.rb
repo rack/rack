@@ -99,7 +99,7 @@ module Rack
         response = fail(416, "Byte range unsatisfiable")
         response[1]["content-range"] = "bytes */#{size}"
         return response
-      elsif ranges.size >= 1
+      else
         # Partial content
         partial_content = true
 
