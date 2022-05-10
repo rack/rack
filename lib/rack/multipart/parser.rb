@@ -355,6 +355,7 @@ module Rack
       end
 
       CHARSET = "charset"
+      deprecate_constant :CHARSET
 
       def tag_multipart_encoding(filename, content_type, name, body)
         name = name.to_s
@@ -375,7 +376,13 @@ module Rack
               k.strip!
               v.strip!
               v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
-              encoding = Encoding.find v if k == CHARSET
+              if k == "charset"
+                encoding = begin
+                  Encoding.find v
+                rescue ArgumentError
+                  Encoding::BINARY
+                end
+              end
             end
           end
         end

@@ -76,6 +76,18 @@ describe Rack::Multipart do
     end
   end
 
+  it "sets BINARY encoding for invalid charsets" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_unknown_charset))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text"].encoding.must_equal Encoding::BINARY
+
+    # I'm not 100% sure if making the param name encoding match the
+    # content-type charset is the right thing to do.  We should revisit this.
+    params.keys.each do |key|
+      key.encoding.must_equal Encoding::BINARY
+    end
+  end
+
   it "set BINARY encoding on things without content type" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
