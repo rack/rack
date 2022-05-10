@@ -216,7 +216,7 @@ module Rack
               handle_mime_head
             when :MIME_BODY
               handle_mime_body
-            when :DONE
+            else # when :DONE
               return
             end
 
