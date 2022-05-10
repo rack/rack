@@ -116,7 +116,7 @@ module Rack
       env[SERVER_PORT]     = (uri.port ? uri.port.to_s : "80").b
       env[SERVER_PROTOCOL] = opts[:http_version] || 'HTTP/1.1'
       env[QUERY_STRING]    = (uri.query.to_s).b
-      env[PATH_INFO]       = ((!uri.path || uri.path.empty?) ? "/" : uri.path).b
+      env[PATH_INFO]       = (uri.path).b
       env[RACK_URL_SCHEME] = (uri.scheme || "http").b
       env[HTTPS]           = (env[RACK_URL_SCHEME] == "https" ? "on" : "off").b
 
