@@ -10,6 +10,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1, jruby, truffleruby-head]
     runs-on: ${{matrix.os}}
+    env:
+      BUNDLE_GEMFILE: .ci.gemfile
     steps:
     - uses: actions/checkout@v2
 
@@ -26,12 +28,6 @@ jobs:
       if: matrix.os == 'macos-latest'
       run: brew install fcgi libmemcached
 
-    - name: Bundle install...
-      run: |
-        gem update --system
-        bundle config path vendor/bundle
-        bundle install
-
     - run: bundle exec rake
 
   external:
@@ -42,6 +38,8 @@ jobs:
         os: [ubuntu-latest, macos-latest]
         ruby: [2.6, 2.7]
     runs-on: ${{matrix.os}}
+    env:
+      BUNDLE_GEMFILE: .ci.gemfile
     steps:
     - uses: actions/checkout@v2
 
@@ -57,10 +55,5 @@ jobs:
     - name: Installing packages (macos)
       if: matrix.os == 'macos-latest'
       run: brew install libmemcached
-
-    - name: Bundle install...
-      run: |
-        bundle config path vendor/bundle
-        bundle install
 
     - run: bundle exec rake external
