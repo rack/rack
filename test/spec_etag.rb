@@ -76,6 +76,12 @@ describe Rack::ETag do
     response[1]['etag'].must_be_nil
   end
 
+  it "set handle empty body parts" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, ["Hello", "", ", World!"]] }
+    response = etag(app).call(request)
+    response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+  end
+
   it "not set etag if last-modified is set" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain', 'last-modified' => Time.now.httpdate }, ["Hello, World!"]] }
     response = etag(app).call(request)

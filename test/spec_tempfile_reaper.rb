@@ -84,4 +84,20 @@ describe Rack::TempfileReaper do
     tempfile1.closed.must_equal true
     tempfile2.closed.must_equal true
   end
+
+  it 'handle missing rack.tempfiles on normal response' do
+    app = lambda do |env|
+      env.delete('rack.tempfiles')
+      [200, {}, ['Hello, World!']]
+    end
+    call(app)[2].close
+  end
+
+  it 'handle missing rack.tempfiles on error' do
+    app = lambda do |env|
+      env.delete('rack.tempfiles')
+      raise 'Foo'
+    end
+    proc{call(app)}.must_raise RuntimeError
+  end
 end

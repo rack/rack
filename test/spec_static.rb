@@ -151,6 +151,14 @@ describe Rack::Static do
     res.headers['content-type'].must_be_nil
   end
 
+  it "return 304 if gzipped file isn't modified since last serve" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = @gzip_request.get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path+'.gz').httpdate, 'HTTP_ACCEPT_ENCODING' => 'deflate, gzip')
+
+    res.status.must_equal 304
+    res.body.must_be :empty?
+  end
+
   it "supports serving fixed cache-control (legacy option)" do
     opts = OPTIONS.merge(cache_control: 'public')
     request = Rack::MockRequest.new(static(DummyApp.new, opts))

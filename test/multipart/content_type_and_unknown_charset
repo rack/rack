@@ -1,0 +1,6 @@
+--AaB03x
+content-disposition: form-data; name="text"
+content-type: text/plain; charset=foo; bar=baz
+
+contents
+--AaB03x--
