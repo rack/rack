@@ -273,11 +273,16 @@ describe Rack::Auth::Digest::MD5 do
     req.respond_to?(:nonce).must_equal true
     req.respond_to?(:a).must_equal true
     req.a.must_equal 'b'
+    proc{req.missing}.must_raise NoMethodError
     lambda { req.a(2) }.must_raise ArgumentError
   end
 
   it 'Nonce#fresh? should be the opposite of stale?' do
     Rack::Auth::Digest::Nonce.new.fresh?.must_equal true
     Rack::Auth::Digest::Nonce.new.stale?.must_equal false
+  end
+
+  it 'Params.new can be called without a block' do
+    Rack::Auth::Digest::Params.new.must_be_instance_of(Rack::Auth::Digest::Params)
   end
 end

@@ -527,6 +527,15 @@ content-type: image/jpeg\r
     files[:tempfile].read.must_equal "contents"
   end
 
+  it "raises RuntimeError for invalid file path" do
+    proc{Rack::Multipart::UploadedFile.new('non-existant')}.must_raise RuntimeError
+  end
+
+  it "supports uploading files in binary mode" do
+    Rack::Multipart::UploadedFile.new(multipart_file("file1.txt")).wont_be :binmode?
+    Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"), binary: true).must_be :binmode?
+  end
+
   it "builds multipart body" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
     data  = Rack::Multipart.build_multipart("submit-name" => "Larry", "files" => files)
@@ -649,6 +658,21 @@ content-type: image/jpeg\r
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 4
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      params = Rack::Multipart.parse_multipart(env)
+      params['reply'].must_equal 'yes'
+      params['to'].must_equal 'people'
+      params['from'].must_equal 'others'
+    ensure
+      Rack::Utils.multipart_part_limit = previous_limit
+    end
+  end
+
+  it "treat a multipart limit of 0 as no limit" do
+    begin
+      previous_limit = Rack::Utils.multipart_part_limit
+      Rack::Utils.multipart_part_limit = 0
 
       env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
       params = Rack::Multipart.parse_multipart(env)

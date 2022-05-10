@@ -468,6 +468,7 @@ class RackHeadersTest < Minitest::Spec
     def test_slice
       assert_equal(Rack::Headers['Ab'=>'1', 'cD'=>'2', '3'=>'4'], @fh.slice('aB', 'Cd', '3'))
       assert_equal(Rack::Headers['AB'=>'1', 'CD'=>'2'], @fh.slice('Ab', 'CD'))
+      assert_equal(Rack::Headers[], @fh.slice('ad'))
       assert_equal('1', @fh.slice('AB', 'cd')['Ab'])
     end
 

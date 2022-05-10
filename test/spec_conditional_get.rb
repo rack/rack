@@ -37,6 +37,22 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
+  it "closes bodies" do
+    body = Object.new
+    def body.each; yield 'TEST' end
+    closed = false
+    body.define_singleton_method(:close){closed = true}
+    app = conditional_get(lambda { |env|
+      [200, { 'last-modified' => (Time.now - 3600).httpdate }, body] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_MODIFIED_SINCE' => Time.now.httpdate)
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+    closed.must_equal true
+  end
+
   it "set a 304 status and truncate body when if-none-match hits" do
     app = conditional_get(lambda { |env|
       [200, { 'etag' => '1234' }, ['TEST']] })
@@ -57,6 +73,17 @@ describe Rack::ConditionalGet do
 
     response.status.must_equal 304
     response.body.must_be :empty?
+  end
+
+  it "not set a 304 status if last-modified is too short" do
+    app = conditional_get(lambda { |env|
+      [200, { 'last-modified' => '1234', 'content-type' => 'text/plain' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_MODIFIED_SINCE' => Time.now.httpdate)
+
+    response.status.must_equal 200
+    response.body.must_equal 'TEST'
   end
 
   it "not set a 304 status if if-modified-since hits but etag does not" do

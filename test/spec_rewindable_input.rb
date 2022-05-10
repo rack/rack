@@ -13,10 +13,6 @@ module RewindableTest
     @rio = Rack::RewindableInput.new(@io)
   end
 
-  class << self # HACK to get this running w/ as few changes as possible
-    alias_method :should, :it
-  end
-
   it "be able to handle to read()" do
     @rio.read.must_equal "hello world"
   end
@@ -44,20 +40,33 @@ module RewindableTest
   end
 
   it "rewind to the beginning when #rewind is called" do
-    @rio.read(1)
+    @rio.rewind
+    @rio.read(1).must_equal 'h'
     @rio.rewind
     @rio.read.must_equal "hello world"
   end
 
   it "be able to handle gets" do
     @rio.gets.must_equal "hello world"
+    @rio.rewind
+    @rio.gets.must_equal "hello world"
   end
 
   it "be able to handle size" do
     @rio.size.must_equal "hello world".size
+    @rio.size.must_equal "hello world".size
+    @rio.rewind
+    @rio.gets.must_equal "hello world"
   end
 
   it "be able to handle each" do
+    array = []
+    @rio.each do |data|
+      array << data
+    end
+    array.must_equal ["hello world"]
+
+    @rio.rewind
     array = []
     @rio.each do |data|
       array << data
