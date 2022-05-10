@@ -22,14 +22,6 @@ module Rack
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
     MULTIPART_BOUNDARY = 'AaB03x'
 
-    # @todo remove in 3.0
-    def self.method_added(name)
-      if name == :response_body
-        raise "#{self.class}\#response_body is no longer supported."
-      end
-      super
-    end
-
     attr_reader :root
 
     def initialize(root, headers = {}, default_mime = 'text/plain')
