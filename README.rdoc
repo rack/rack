@@ -18,14 +18,10 @@ which all \Rack applications should conform to.
 
 == Supported web servers
 
-The included *handlers* connect all kinds of web servers to \Rack:
+The included *handlers* can connect these web servers to \Rack:
 
 * WEBrick[https://github.com/ruby/webrick]
-* FCGI
 * CGI
-* SCGI
-* LiteSpeed[https://www.litespeedtech.com/]
-* Thin[https://rubygems.org/gems/thin]
 
 These web servers include \Rack handlers in their distributions:
 
@@ -35,6 +31,7 @@ These web servers include \Rack handlers in their distributions:
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
+* Thin[https://rubygems.org/gems/thin]
 * Unicorn[https://yhbt.net/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
 * Lamby[https://lamby.custominktech.com] (for AWS Lambda)
