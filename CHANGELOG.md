@@ -645,7 +645,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Moved Auth::OpenID to rack-contrib.
   - SPEC change that relaxes Lint slightly to allow subclasses of the
     required types
-  - SPEC change to document rack.input binary mode in greator detail
+  - SPEC change to document rack.input binary mode in greater detail
   - SPEC define optional rack.logger specification
   - File servers support X-Cascade header
   - Imported Config middleware
