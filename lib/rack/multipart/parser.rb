@@ -48,8 +48,6 @@ module Rack
         Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0", '%00'))])
       }
 
-      BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
-
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -195,18 +193,15 @@ module Rack
       def initialize(boundary, tempfile, bufsize, query_parser)
         @query_parser   = query_parser
         @params         = query_parser.make_params
-        @boundary       = "--#{boundary}"
         @bufsize        = bufsize
 
-        @full_boundary = @boundary
-        @end_boundary = @boundary + '--'
         @state = :FAST_FORWARD
         @mime_index = 0
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".dup)
-        @body_regex = /(?:#{EOL})?#{Regexp.quote(@boundary)}(?:#{EOL}|--)/m
-        @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
+        @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
+        @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
@@ -257,11 +252,26 @@ module Rack
         @sbuf.concat(content)
       end
 
+      # This handles the initial parser state.  We read until we find the starting
+      # boundary, then we can transition to the next state. If we find the ending
+      # boundary, this is an invalid multipart upload, but keep scanning for opening
+      # boundary in that case. If no boundary found, we need to keep reading data
+      # and retry. It's highly unlikely the initial read will not consume the
+      # boundary.  The client would have to deliberately craft a response
+      # with the opening boundary beyond the buffer size for that to happen.
       def handle_fast_forward
-        if consume_boundary
-          @state = :MIME_HEAD
-        else
-          :want_read
+        while true
+          case consume_boundary
+          when :BOUNDARY
+            # found opening boundary, transition to next state
+            @state = :MIME_HEAD
+            return
+          when :END_BOUNDARY
+            # invalid multipart upload, but retry for opening boundary
+          else
+            # no boundary found, keep reading data
+            return :want_read
+          end
         end
       end
 
@@ -317,15 +327,16 @@ module Rack
         end
       end
 
-      def full_boundary; @full_boundary; end
-
+      # Scan until the we find the start or end of the boundary.
+      # If we find it, return the appropriate symbol for the start or
+      # end of the boundary.  If we don't find the start or end of the
+      # boundary, clear the buffer and return nil.
       def consume_boundary
-        while read_buffer = @sbuf.scan_until(BOUNDARY_REGEX)
-          case read_buffer.strip
-          when full_boundary then return :BOUNDARY
-          when @end_boundary then return :END_BOUNDARY
-          end
-          return if @sbuf.eos?
+        if read_buffer = @sbuf.scan_until(@body_regex)
+          read_buffer.end_with?(EOL) ? :BOUNDARY : :END_BOUNDARY
+        else
+          @sbuf.terminate
+          nil
         end
       end
 
