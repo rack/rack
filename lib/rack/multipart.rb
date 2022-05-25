@@ -16,19 +16,19 @@ module Rack
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
         io = env[RACK_INPUT]
-        
+
         if content_length = env['CONTENT_LENGTH']
           content_length = content_length.to_i
         end
-        
+
         content_type = env['CONTENT_TYPE']
-        
+
         tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || Parser::TEMPFILE_FACTORY
         bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || Parser::BUFSIZE
-        
+
         info = Parser.parse(io, content_length, content_type, tempfile, bufsize, params)
         env[RACK_TEMPFILES] = info.tmp_files
-        
+
         return info.params
       end
 
