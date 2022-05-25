@@ -31,7 +31,7 @@ describe Rack::Deflater do
   #
   # [expected_status] expected response status, e.g. 200, 304
   # [expected_body] expected response body
-  # [accept_encoing] what Accept-Encoding header to send and expect, e.g.
+  # [accept_encoding] what Accept-Encoding header to send and expect, e.g.
   #                  'deflate' - accepts and expects deflate encoding in response
   #                  { 'gzip' => nil } - accepts gzip but expects no encoding in response
   # [options] hash of request options, i.e.

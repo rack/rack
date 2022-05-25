@@ -48,8 +48,8 @@ module Rack
     # construct a buffered response object containing using that string as the
     # initial contents of the buffer.
     #
-    # Otherwise it is expected +body+ conforms to the normal requiremnets of a
-    # Rack repsonse body, typically implementing one of +each+ (enumerable
+    # Otherwise it is expected +body+ conforms to the normal requirements of a
+    # Rack response body, typically implementing one of +each+ (enumerable
     # body) or +call+ (streaming body).
     #
     # The +status+ defaults to +200+ which is the "OK" HTTP status code. You

@@ -193,7 +193,7 @@ describe Rack::Multipart do
     Timeout::timeout(10) { Rack::Multipart.parse_multipart(env) }
   end
 
-  it 'raises an EOF error on content-length mistmatch' do
+  it 'raises an EOF error on content-length mismatch' do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     env['rack.input'] = StringIO.new
     assert_raises(EOFError) do
