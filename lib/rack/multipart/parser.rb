@@ -12,6 +12,10 @@ module Rack
     # that ends early.
     class EmptyContentError < ::EOFError; end
 
+    # Base class for multipart exceptions that do not subclass from
+    # other exception classes for backwards compatibility.
+    class Error < StandardError; end
+
     EOL = "\r\n"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
@@ -91,6 +95,12 @@ module Rack
 
         boundary = parse_boundary content_type
         return EMPTY unless boundary
+
+        if boundary.length > 70
+          # RFC 1521 Section 7.2.1 imposes a 70 character maximum for the boundary.
+          # Most clients use no more than 55 characters.
+          raise Error, "multipart boundary size too large (#{boundary.length} characters)"
+        end
 
         io = BoundedIO.new(io, content_length) if content_length
 
