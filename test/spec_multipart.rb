@@ -35,6 +35,13 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
+  it "raises exception if boundary is too long" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename, "A"*71))
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::Multipart::Error
+  end
+
   it "parse multipart content when content type present but disposition is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
     params = Rack::Multipart.parse_multipart(env)
