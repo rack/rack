@@ -58,6 +58,19 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
+  it "raises for invalid data preceding the boundary" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:preceding_boundary)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::Multipart::EmptyContentError
+  end
+
+  it "ignores initial end boundaries" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:end_boundary_first)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "foo"
+  end
+
   it "parse multipart content with different filename and filename*" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
     params = Rack::Multipart.parse_multipart(env)
