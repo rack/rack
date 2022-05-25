@@ -118,7 +118,7 @@ module Rack
         gzip.close
       end
 
-      # Call the block passed to #each with the the gzipped data.
+      # Call the block passed to #each with the gzipped data.
       def write(data)
         @writer.call(data)
       end

@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Utils#set_cookie_header` now supports `escape_key: false` to avoid key escaping.  ([@jeremyevans])
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
 - `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans])
-- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
+- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
 - Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
 
 ### Changed
