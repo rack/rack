@@ -37,7 +37,7 @@ describe Rack::ShowExceptions do
 
     req = Rack::MockRequest.new(
       show_exceptions(
-        lambda{|env| raise RuntimeError, "foo", ["nonexistant.rb:2:in `a': adf (RuntimeError)", "bad-backtrace"] }
+        lambda{|env| raise RuntimeError, "foo", ["nonexistent.rb:2:in `a': adf (RuntimeError)", "bad-backtrace"] }
     ))
 
     res = req.get("/", "HTTP_ACCEPT" => "text/html")
@@ -49,7 +49,7 @@ describe Rack::ShowExceptions do
     assert_includes(res.body, 'ShowExceptions')
     assert_includes(res.body, 'No GET data')
     assert_includes(res.body, 'No POST data')
-    assert_includes(res.body, 'nonexistant.rb')
+    assert_includes(res.body, 'nonexistent.rb')
     refute_includes(res.body, 'bad-backtrace')
   end
 
