@@ -347,7 +347,7 @@ module Rack
 
         ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
         unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
-          raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD]}"
+          raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
         end
 
         ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
