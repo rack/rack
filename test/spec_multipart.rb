@@ -421,19 +421,6 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with unescaped quotes" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_quotes))
-    params = Rack::Multipart.parse_multipart(env)
-    params["files"][:type].must_equal "application/octet-stream"
-    params["files"][:filename].must_equal "escape \"quotes"
-    params["files"][:head].must_equal "Content-Disposition: form-data; " +
-      "name=\"files\"; " +
-      "filename=\"escape \"quotes\"\r\n" +
-      "Content-Type: application/octet-stream\r\n"
-    params["files"][:name].must_equal "files"
-    params["files"][:tempfile].read.must_equal "contents"
-  end
-
   it "parse filename with escaped quotes and modification param" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes_and_modification_param))
     params = Rack::Multipart.parse_multipart(env)
@@ -442,7 +429,7 @@ describe Rack::Multipart do
     params["files"][:head].must_equal "Content-Type: image/jpeg\r\n" +
       "Content-Disposition: attachment; " +
       "name=\"files\"; " +
-      "filename=\"\"human\" genome.jpeg\"; " +
+      "filename=\"\\\"human\\\" genome.jpeg\"; " +
       "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
       "Content-Description: a complete map of the human genome\r\n"
     params["files"][:name].must_equal "files"
