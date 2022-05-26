@@ -21,6 +21,10 @@ describe Rack::CommonLogger do
     [200,
      {"Content-Type" => "text/html", "Content-Length" => "0"},
      []]}
+  app_without_lint = lambda { |env|
+    [200,
+     { "content-type" => "text/html", "content-length" => length.to_s },
+     [obj]]}
 
   it "log to rack.errors by default" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/")
@@ -83,6 +87,14 @@ describe Rack::CommonLogger do
     method.must_equal "GET"
     status.must_equal "200"
     (0..1).must_include duration.to_f
+  end
+
+  it "escapes non printable characters except newline" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app_without_lint, log)).request("GET\b", "/hello")
+
+    logdev.string.must_match(/GET\\x8 \/hello/)
   end
 
   def length
