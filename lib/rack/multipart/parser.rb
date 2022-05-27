@@ -301,8 +301,9 @@ module Rack
           elsif filename = params['filename*']
             encoding, _, filename = filename.split("'", 3)
           end
-        when BROKEN_QUOTED, BROKEN_UNQUOTED
+        when BROKEN
           filename = $1
+          filename = $1 if filename =~ /^"(.*)"$/
         end
 
         return unless filename
