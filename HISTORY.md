@@ -1,3 +1,8 @@
+Fri May 27 08:27:04 2022  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* [CVE-2022-30123] Fix shell escaping issue in Common Logger
+	* [CVE-2022-30122] Restrict parsing of broken MIME attachments
+
 Sun Dec 4 18:48:03 2015  Jeremy Daer <jeremydaer@gmail.com>
 
 	* First-party "SameSite" cookies. Browsers omit SameSite cookies
