@@ -65,7 +65,7 @@ module Rack
         length,
         Utils.clock_time - began_at)
 
-      msg.gsub!(/[^[:print:]\n]/) { |c| "\\x#{c.ord}" }
+      msg.gsub!(/[^[:print:]\n]/) { |c| sprintf("\\x%x", c.ord) }
 
       logger = @logger || request.get_header(RACK_ERRORS)
       # Standard library logger doesn't support write but it supports << which actually

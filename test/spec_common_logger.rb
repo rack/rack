@@ -110,9 +110,9 @@ describe Rack::CommonLogger do
   it "escapes non printable characters except newline" do
     logdev = StringIO.new
     log = Logger.new(logdev)
-    Rack::MockRequest.new(Rack::CommonLogger.new(app_without_lint, log)).request("GET\b", "/hello")
+    Rack::MockRequest.new(Rack::CommonLogger.new(app_without_lint, log)).request("GET\x1f", "/hello")
 
-    logdev.string.must_match(/GET\\x8 \/hello HTTP\/1\.1/)
+    logdev.string.must_match(/GET\\x1f \/hello HTTP\/1\.1/)
   end
 
   it "log path with PATH_INFO" do
