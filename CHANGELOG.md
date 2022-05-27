@@ -1,3 +1,8 @@
+## [2.1.4.1] - 2022-05-27
+
+- [CVE-2022-30123] Fix shell escaping issue in Common Logger
+- [CVE-2022-30122] Restrict parsing of broken MIME attachments
+
 ## [2.1.4] - 2020-06-15
 
 - [CVE-2020-8184] When parsing cookies, only decode the value
