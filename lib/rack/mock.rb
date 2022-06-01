@@ -149,8 +149,7 @@ module Rack
         end
       end
 
-      empty_str = String.new
-      opts[:input] ||= empty_str
+      opts[:input] ||= String.new
       if String === opts[:input]
         rack_input = StringIO.new(opts[:input])
       else
