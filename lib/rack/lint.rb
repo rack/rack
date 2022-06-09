@@ -92,14 +92,14 @@ module Rack
       ##
       def check_environment(env)
         ## The environment must be an unfrozen instance of Hash that includes
-        ## CGI-like headers. The application is free to modify the
+        ## CGI-like headers. The Rack application is free to modify the
         ## environment.
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
         ##
         ## The environment is required to include these variables
-        ## (adopted from PEP333), except when they'd be empty, but see
+        ## (adopted from {PEP 333}[https://peps.python.org/pep-0333/]), except when they'd be empty, but see
         ## below.
 
         ## <tt>REQUEST_METHOD</tt>:: The HTTP request method, such as
@@ -178,7 +178,7 @@ module Rack
         ## <tt>rack.hijack</tt>:: an object responding to #call that must be
         ##                        called at least once before using
         ##                        rack.hijack_io.
-        ##                        It is recommended #call return rack.hijack_io
+        ##                        It is recommended #call returns rack.hijack_io
         ##                        as well as setting it in env if necessary.
 
         ## <tt>rack.hijack_io</tt>:: if rack.hijack? is true, and rack.hijack
@@ -189,7 +189,7 @@ module Rack
         ## standardized middleware APIs. None of these are required to
         ## be implemented by the server.
 
-        ## <tt>rack.session</tt>:: A hash like interface for storing
+        ## <tt>rack.session</tt>:: A hash-like interface for storing
         ##                         request session data.
         ##                         The store must implement:
         if session = env[RACK_SESSION]
@@ -922,7 +922,5 @@ end
 
 ##
 ## == Thanks
-## Some parts of this specification are adopted from PEP333: Python
-## Web Server Gateway Interface
-## v1.0 (http://www.python.org/dev/peps/pep-0333/). I'd like to thank
-## everyone involved in that effort.
+## Some parts of this specification are adopted from {PEP 333 – Python Web Server Gateway Interface v1.0}[https://peps.python.org/pep-0333/]
+## I'd like to thank everyone involved in that effort.
