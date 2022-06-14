@@ -65,6 +65,11 @@ All notable changes to this project will be documented in this file. For info on
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
+## [2.2.3.1] - 2022-05-27
+
+- [CVE-2022-30123] Fix shell escaping issue in Common Logger
+- [CVE-2022-30122] Restrict parsing of broken MIME attachments
+
 ## [2.2.3] - 2020-06-15
 
 ### Security
