@@ -4,10 +4,18 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.2.3.1] - 2022-05-27
 
+### Security
+
 - [CVE-2022-30123] Fix shell escaping issue in Common Logger
 - [CVE-2022-30122] Restrict parsing of broken MIME attachments
 
+### Changed
+
+- Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
+
 ## [2.2.3] - 2020-02-11
+
+### Security
 
 - [CVE-2020-8184] Only decode cookie values
 
