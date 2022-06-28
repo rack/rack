@@ -366,6 +366,14 @@ module Rack
 
           callables.each do |callable|
             raise LintError, "rack.response_finished values must respond to call" unless callable.respond_to?(:call)
+
+            arity = if callable.respond_to?(:arity)
+              callable.arity
+            else
+              callable.method(:call).arity
+            end
+
+            raise LintError, "rack.response_finished values must accept an env argument" unless arity == 1
           end
         end
       end
