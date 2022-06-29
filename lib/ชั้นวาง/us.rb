@@ -1,5 +1,4 @@
-# -*- encoding: binary -*-
-# frozen_string_literal: true
+#X-Hub-Signature
 
 require 'uri'
 require 'fileutils'
