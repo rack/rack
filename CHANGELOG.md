@@ -2,9 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## [2.2.4]
+## [2.2.4] - 2022-06-30
 
 - Better support for lower case headers in `Rack::ETag` middleware. ([#1919](https://github.com/rack/rack/pull/1919), [@ioquatix](https://github.com/ioquatix))
+- Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
 
 ## [2.2.3.1] - 2022-05-27
 
@@ -12,10 +13,6 @@ All notable changes to this project will be documented in this file. For info on
 
 - [CVE-2022-30123] Fix shell escaping issue in Common Logger
 - [CVE-2022-30122] Restrict parsing of broken MIME attachments
-
-### Changed
-
-- Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
 
 ## [2.2.3] - 2020-02-11
 
