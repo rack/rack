@@ -48,6 +48,12 @@ describe Rack::ETag do
     response[1]['Cache-Control'].must_equal 'no-cache'
   end
 
+  it "does not set a cache-control if it is already set" do
+    app = lambda { |env| [201, { 'Content-Type' => 'text/plain', 'cache-control' => 'public' }, ["Hello, World!"]] }
+    response = etag(app).call(request)
+    response[1]['cache-control'].must_equal 'public'
+  end
+
   it "not set Cache-Control if it is already set" do
     app = lambda { |env| [201, { 'Content-Type' => 'text/plain', 'Cache-Control' => 'public' }, ["Hello, World!"]] }
     response = etag(app).call(request)
