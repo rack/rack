@@ -10,7 +10,7 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-The exact details of this are described in the {\Rack specification}[rdoc-ref:SPEC.rdoc],
+The exact details of this are described in the {\Rack specification}[link:SPEC.rdoc],
 which all \Rack applications should conform to.
 
 == Supported web servers
@@ -207,11 +207,11 @@ No longer has an effect, deprecated.
 
 == Changelog
 
-See {CHANGELOG.md}[https://github.com/rack/rack/blob/master/CHANGELOG.md].
+See {CHANGELOG.md}[link:CHANGELOG.md].
 
 == Contributing
 
-See {CONTRIBUTING.md}[https://github.com/rack/rack/blob/master/CONTRIBUTING.md].
+See {CONTRIBUTING.md}[link:CONTRIBUTING.md].
 
 == Contact
 
