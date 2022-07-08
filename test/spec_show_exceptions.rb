@@ -177,4 +177,29 @@ describe Rack::ShowExceptions do
       assert_equal(expected, exc.prefers_plaintext?(env))
     end
   end
+
+  it "prefers Exception#detailed_message instead of Exception#message if available" do
+    res = nil
+
+    custom_exc_class = Class.new(RuntimeError) do
+      def detailed_message(highlight: false)
+        "detailed_message_test"
+      end
+    end
+
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise custom_exc_class }
+    ))
+
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_match(res, /detailed_message_test/)
+    assert_match(res, /ShowExceptions/)
+    assert_match(res, /No GET data/)
+    assert_match(res, /No POST data/)
+  end
 end
