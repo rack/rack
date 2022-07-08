@@ -163,7 +163,7 @@ module Rack
           div.commands { margin-left: 40px; }
           div.commands a { color:black; text-decoration:none; }
           #summary { background: #ffc; }
-          #summary h2 { font-weight: normal; color: #666; }
+          #summary h2 { font-family: monospace; font-weight: normal; color: #666; white-space: pre; }
           #summary ul#quicklinks { list-style-type: none; margin-bottom: 2em; }
           #summary ul#quicklinks li { float: left; padding: 0 1em; }
           #summary ul#quicklinks>li+li { border-left: 1px #666 solid; }
