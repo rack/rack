@@ -22,7 +22,7 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
       empty = headers[CONTENT_LENGTH].to_i <= 0
 
       # client or server error, or explicit message
@@ -40,15 +40,15 @@ module Rack
         html = @template.result(binding)
         size = html.bytesize
 
-        original_body = body
-        body = Rack::BodyProxy.new([html]) do
-          original_body.close if original_body.respond_to?(:close)
+        response[2] = Rack::BodyProxy.new([html]) do
+          body.close if body.respond_to?(:close)
         end
 
-        [status, headers.merge(CONTENT_TYPE => "text/html", CONTENT_LENGTH => size.to_s), body]
-      else
-        [status, headers, body]
+        headers[CONTENT_TYPE] = "text/html"
+        headers[CONTENT_LENGTH] = size.to_s
       end
+
+      response
     end
 
     def h(obj)                  # :nodoc:

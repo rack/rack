@@ -44,10 +44,10 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
 
       unless should_deflate?(env, status, headers, body)
-        return [status, headers, body]
+        return response
       end
 
       request = Request.new(env)
@@ -67,9 +67,10 @@ module Rack
         headers.delete(CONTENT_LENGTH)
         mtime = headers["last-modified"]
         mtime = Time.httpdate(mtime).to_i if mtime
-        [status, headers, GzipStream.new(body, mtime, @sync)]
+        response[2] = GzipStream.new(body, mtime, @sync)
+        response
       when "identity"
-        [status, headers, body]
+        response
       else # when nil
         # Only possible encoding values here are 'gzip', 'identity', and nil
         message = "An acceptable encoding for the requested resource #{request.fullpath} could not be found."
