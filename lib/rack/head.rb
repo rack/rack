@@ -12,17 +12,15 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      _, _, body = response = @app.call(env)
 
       if env[REQUEST_METHOD] == HEAD
-        [
-          status, headers, Rack::BodyProxy.new([]) do
-            body.close if body.respond_to? :close
-          end
-        ]
-      else
-        [status, headers, body]
+        response[2] = Rack::BodyProxy.new([]) do
+          body.close if body.respond_to? :close
+        end
       end
+
+      response
     end
   end
 end

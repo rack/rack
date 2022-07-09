@@ -111,7 +111,7 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
 
       if body.respond_to?(:to_path)
         case type = variation(env)
@@ -122,7 +122,7 @@ module Rack
             # '?' must be percent-encoded because it is not query string but a part of path
             headers[type.downcase] = ::Rack::Utils.escape_path(url).gsub('?', '%3F')
             obody = body
-            body = Rack::BodyProxy.new([]) do
+            response[2] = Rack::BodyProxy.new([]) do
               obody.close if obody.respond_to?(:close)
             end
           else
@@ -133,7 +133,7 @@ module Rack
           headers[CONTENT_LENGTH] = '0'
           headers[type.downcase] = path
           obody = body
-          body = Rack::BodyProxy.new([]) do
+          response[2] = Rack::BodyProxy.new([]) do
             obody.close if obody.respond_to?(:close)
           end
         when '', nil
@@ -141,7 +141,7 @@ module Rack
           env[RACK_ERRORS].puts "Unknown x-sendfile variation: '#{type}'.\n"
         end
       end
-      [status, headers, body]
+      response
     end
 
     private

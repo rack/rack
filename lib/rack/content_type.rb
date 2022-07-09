@@ -21,13 +21,13 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, _ = response = @app.call(env)
 
       unless STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i)
         headers[CONTENT_TYPE] ||= @content_type
       end
 
-      [status, headers, body]
+      response
     end
   end
 end

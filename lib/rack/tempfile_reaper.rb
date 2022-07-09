@@ -17,17 +17,17 @@ module Rack
       env[RACK_TEMPFILES] ||= []
 
       begin
-        status, headers, body = @app.call(env)
+        _, _, body = response = @app.call(env)
       rescue Exception
         env[RACK_TEMPFILES]&.each(&:close!)
         raise
       end
 
-      body_proxy = BodyProxy.new(body) do
+      response[2] = BodyProxy.new(body) do
         env[RACK_TEMPFILES]&.each(&:close!)
       end
 
-      [status, headers, body_proxy]
+      response
     end
   end
 end

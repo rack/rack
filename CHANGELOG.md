@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### SPEC Changes
 
+- Response array must now be non-frozen.
 - Response `status` must now be an integer greater than or equal to 100.
 - Response `headers` must now be an unfrozen hash.
 - Response header keys can no longer include uppercase characters.
@@ -56,6 +57,7 @@ All notable changes to this project will be documented in this file. For info on
 - The `x-forwarded-proto` header is now considered before the `x-forwarded-scheme` header for determining the forwarded protocol. `Rack::Request.x_forwarded_proto_priority` accessor has been added for configuring the priority of which header to check.  ([#1809](https://github.com/rack/rack/issues/1809), [@jeremyevans])
 - `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans])
 - Use lower case cookie attributes when creating cookies, and fold cookie attributes to lower case when reading cookies (specifically impacting `secure` and `httponly` attributes). ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix])
+- The response array must now be mutable (non-frozen) so middleware can modify it without allocating a new Array,therefore reducing object allocations. ([#1887](https://github.com/rack/rack/pull/1887), [#1927](https://github.com/rack/rack/pull/1927), [@amatsuda], [@ioquatix])
 
 ### Fixed
 
@@ -65,6 +67,11 @@ All notable changes to this project will be documented in this file. For info on
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.4] - 2022-06-30
+
+- Better support for lower case headers in `Rack::ETag` middleware. ([#1919](https://github.com/rack/rack/pull/1919), [@ioquatix](https://github.com/ioquatix))
+- Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
 
 ## [2.2.3.1] - 2022-05-27
 
@@ -772,4 +779,5 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 
 [@ioquatix]: https://github.com/ioquatix "Samuel Williams"
 [@jeremyevans]: https://github.com/jeremyevans "Jeremy Evans"
+[@amatsuda]: https://github.com/amatsuda "Akira Matsuda"
 [@wjordan]: https://github.com/wjordan "Will Jordan"

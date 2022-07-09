@@ -99,7 +99,7 @@ module Rack
     # but does not have content-length or transfer-encoding headers,
     # modify the response to use chunked transfer-encoding.
     def call(env)
-      status, headers, body = @app.call(env)
+      status, headers, body = response = @app.call(env)
 
       if chunkable_version?(env[SERVER_PROTOCOL]) &&
          !STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) &&
@@ -108,13 +108,13 @@ module Rack
 
         headers[TRANSFER_ENCODING] = 'chunked'
         if headers['trailer']
-          body = TrailerBody.new(body)
+          response[2] = TrailerBody.new(body)
         else
-          body = Body.new(body)
+          response[2] = Body.new(body)
         end
       end
 
-      [status, headers, body]
+      response
     end
   end
 end

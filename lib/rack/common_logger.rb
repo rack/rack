@@ -40,9 +40,10 @@ module Rack
     # cause the request not to be logged.
     def call(env)
       began_at = Utils.clock_time
-      status, headers, body = @app.call(env)
-      body = BodyProxy.new(body) { log(env, status, headers, began_at) }
-      [status, headers, body]
+      status, headers, body = response = @app.call(env)
+
+      response[2] = BodyProxy.new(body) { log(env, status, headers, began_at) }
+      response
     end
 
     private
@@ -65,7 +66,7 @@ module Rack
         length,
         Utils.clock_time - began_at)
 
-      msg.gsub!(/[^[:print:]\n]/) { |c| "\\x#{c.ord}" }
+      msg.gsub!(/[^[:print:]\n]/) { |c| sprintf("\\x%x", c.ord) }
 
       logger = @logger || request.get_header(RACK_ERRORS)
       # Standard library logger doesn't support write but it supports << which actually

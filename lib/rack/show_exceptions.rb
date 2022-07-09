@@ -59,7 +59,12 @@ module Rack
     private :accepts_html?
 
     def dump_exception(exception)
-      string = "#{exception.class}: #{exception.message}\n".dup
+      if exception.respond_to?(:detailed_message)
+        message = exception.detailed_message(highlight: false)
+      else
+        message = exception.message
+      end
+      string = "#{exception.class}: #{message}\n".dup
       string << exception.backtrace.map { |l| "\t#{l}" }.join("\n")
       string
     end
@@ -163,7 +168,7 @@ module Rack
           div.commands { margin-left: 40px; }
           div.commands a { color:black; text-decoration:none; }
           #summary { background: #ffc; }
-          #summary h2 { font-weight: normal; color: #666; }
+          #summary h2 { font-family: monospace; font-weight: normal; color: #666; white-space: pre-wrap; }
           #summary ul#quicklinks { list-style-type: none; margin-bottom: 2em; }
           #summary ul#quicklinks li { float: left; padding: 0 1em; }
           #summary ul#quicklinks>li+li { border-left: 1px #666 solid; }
@@ -231,7 +236,11 @@ module Rack
 
       <div id="summary">
         <h1><%=h exception.class %> at <%=h path %></h1>
+      <% if exception.respond_to?(:detailed_message) %>
+        <h2><%=h exception.detailed_message(highlight: false) %></h2>
+      <% else %>
         <h2><%=h exception.message %></h2>
+      <% end %>
         <table><tr>
           <th>Ruby</th>
           <td>
