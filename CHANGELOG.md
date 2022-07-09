@@ -15,7 +15,7 @@ All notable changes to this project will be documented in this file. For info on
 - Response header keys can no longer include uppercase characters.
 - Response header values can be an `Array` to handle multiple values (and no longer supports `\n` encoded headers).
 - Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
-- Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`. ([#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
+- Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 - `rack.input` is no longer required to be rewindable.
 - `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
 - `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans])
 - The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
 - Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
+- Support callable body for explicit streaming support and clarify streaming response body behaviour. ([#1745](https://github.com/rack/rack/pull/1745), [@ioquatix], [#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
 
 ### Changed
 
