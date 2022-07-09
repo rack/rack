@@ -56,9 +56,10 @@ module Rack
         @env[RACK_INPUT] = InputWrapper.new(@env[RACK_INPUT])
         @env[RACK_ERRORS] = ErrorWrapper.new(@env[RACK_ERRORS])
 
-        ## and returns an Array of exactly three values:
+        ## and returns a non-frozen Array of exactly three values:
         @response = @app.call(@env)
         raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
+        raise LintError, "response is frozen" if @response.frozen?
         raise LintError, "response array has #{@response.size} elements instead of 3" unless @response.size == 3
 
         @status, @headers, @body = @response
