@@ -16,7 +16,8 @@ module Rack
     include Rack::Utils
 
     def initialize(app, content_type = "text/html")
-      @app, @content_type = app, content_type
+      @app = app
+      @content_type = content_type
     end
 
     def call(env)

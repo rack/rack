@@ -5,7 +5,7 @@ Rack is work of [hundreds of contributors](https://github.com/rack/rack/graphs/c
 
 #### Fork the Project
 
-Fork the [project on Github](https://github.com/rack/rack) and check out your copy.
+Fork the [project on GitHub](https://github.com/rack/rack) and check out your copy.
 
 ```
 git clone https://github.com/contributor/rack.git

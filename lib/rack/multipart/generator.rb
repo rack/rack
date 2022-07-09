@@ -5,9 +5,6 @@ require_relative 'uploaded_file'
 module Rack
   module Multipart
     class Generator
-
-      require_relative '../multipart' unless defined?(Rack::Multipart)
-
       def initialize(params, first = true)
         @params, @first = params, first
 
@@ -79,7 +76,7 @@ module Rack
 
       def content_for_tempfile(io, file, name)
         length = ::File.stat(file.path).size if file.path
-        filename = "; filename=\"#{Utils.escape_path(file.original_filename)}\"" if file.original_filename
+        filename = "; filename=\"#{Utils.escape_path(file.original_filename)}\""
 <<-EOF
 --#{MULTIPART_BOUNDARY}\r
 content-disposition: form-data; name="#{name}"#{filename}\r

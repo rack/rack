@@ -19,13 +19,14 @@ module Rack
       begin
         _, _, body = response = @app.call(env)
       rescue Exception
-        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        env[RACK_TEMPFILES]&.each(&:close!)
         raise
       end
 
       response[2] = BodyProxy.new(body) do
-        env[RACK_TEMPFILES].each(&:close!) unless env[RACK_TEMPFILES].nil?
+        env[RACK_TEMPFILES]&.each(&:close!)
       end
+
       response
     end
   end

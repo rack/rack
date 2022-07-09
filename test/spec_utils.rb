@@ -131,6 +131,14 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query(nil).must_equal({})
   end
 
+  deprecated "should warn for deprecated QueryParser.make_default call with key_space_limit" do
+    Rack::QueryParser.make_default(1, 1).must_be_kind_of Rack::QueryParser
+  end
+
+  deprecated "should warn using deprecated QueryParser.new call with key_space_limit" do
+    Rack::QueryParser.new(Rack::QueryParser::Params, 1, 1).must_be_kind_of Rack::QueryParser
+  end
+
   deprecated "should warn using deprecated Rack::Util.key_space_limit=" do
     Rack::Utils.key_space_limit = 65536
   end

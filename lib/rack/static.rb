@@ -139,9 +139,7 @@ module Rack
           elsif response[0] == 304
             # Do nothing, leave headers as is
           else
-            if mime_type = Mime.mime_type(::File.extname(path), 'text/plain')
-              response[1][CONTENT_TYPE] = mime_type
-            end
+            response[1][CONTENT_TYPE] = Mime.mime_type(::File.extname(path), 'text/plain')
             response[1]['content-encoding'] = 'gzip'
           end
         end

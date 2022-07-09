@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix], [@jeremyevans]))
 - Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans])
-- Remove internal cookie deletion using pattern matching, there are very few pratical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix])
+- Remove internal cookie deletion using pattern matching, there are very few practical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix])
 
 ### Added
 
@@ -32,7 +32,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Utils#set_cookie_header` now supports `escape_key: false` to avoid key escaping.  ([@jeremyevans])
 - `Rack::RewindableInput` supports size. ([@ahorek](https://github.com/ahorek))
 - `Rack::RewindableInput::Middleware` added for making `rack.input` rewindable. ([@jeremyevans])
-- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
+- The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
 - Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
 
 ### Changed
@@ -64,6 +64,16 @@ All notable changes to this project will be documented in this file. For info on
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.4] - 2022-06-30
+
+- Better support for lower case headers in `Rack::ETag` middleware. ([#1919](https://github.com/rack/rack/pull/1919), [@ioquatix](https://github.com/ioquatix))
+- Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
+
+## [2.2.3.1] - 2022-05-27
+
+- [CVE-2022-30123] Fix shell escaping issue in Common Logger
+- [CVE-2022-30122] Restrict parsing of broken MIME attachments
 
 ## [2.2.3] - 2020-06-15
 
@@ -645,7 +655,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Moved Auth::OpenID to rack-contrib.
   - SPEC change that relaxes Lint slightly to allow subclasses of the
     required types
-  - SPEC change to document rack.input binary mode in greator detail
+  - SPEC change to document rack.input binary mode in greater detail
   - SPEC define optional rack.logger specification
   - File servers support X-Cascade header
   - Imported Config middleware

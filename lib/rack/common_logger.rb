@@ -53,7 +53,7 @@ module Rack
       request = Rack::Request.new(env)
       length = extract_content_length(response_headers)
 
-      msg = FORMAT % [
+      msg = sprintf(FORMAT,
         request.ip || "-",
         request.get_header("REMOTE_USER") || "-",
         Time.now.strftime("%d/%b/%Y:%H:%M:%S %z"),
@@ -64,7 +64,9 @@ module Rack
         request.get_header(SERVER_PROTOCOL),
         status.to_s[0..3],
         length,
-        Utils.clock_time - began_at ]
+        Utils.clock_time - began_at)
+
+      msg.gsub!(/[^[:print:]\n]/) { |c| sprintf("\\x%x", c.ord) }
 
       logger = @logger || request.get_header(RACK_ERRORS)
       # Standard library logger doesn't support write but it supports << which actually

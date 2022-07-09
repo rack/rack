@@ -25,6 +25,10 @@ describe Rack::CommonLogger do
     [200,
      { "content-type" => "text/html", "content-length" => "0" },
      []]}
+  app_without_lint = lambda { |env|
+    [200,
+     { "content-type" => "text/html", "content-length" => length.to_s },
+     [obj]]}
 
   it "log to rack.errors by default" do
     res = Rack::MockRequest.new(Rack::CommonLogger.new(app)).get("/")
@@ -91,16 +95,24 @@ describe Rack::CommonLogger do
   it "log in common log format" do
     log = StringIO.new
     with_mock_time do
-      Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/")
+      Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/", 'QUERY_STRING' => 'foo=bar')
     end
 
-    md = /- - - \[([^\]]+)\] "(\w+) \/ HTTP\/1\.1" (\d{3}) \d+ ([\d\.]+)/.match(log.string)
+    md = /- - - \[([^\]]+)\] "(\w+) \/\?foo=bar HTTP\/1\.1" (\d{3}) \d+ ([\d\.]+)/.match(log.string)
     md.wont_equal nil
     time, method, status, duration = *md.captures
     time.must_equal Time.at(0).strftime("%d/%b/%Y:%H:%M:%S %z")
     method.must_equal "GET"
     status.must_equal "200"
     (0..1).must_include duration.to_f
+  end
+
+  it "escapes non printable characters except newline" do
+    logdev = StringIO.new
+    log = Logger.new(logdev)
+    Rack::MockRequest.new(Rack::CommonLogger.new(app_without_lint, log)).request("GET\x1f", "/hello")
+
+    logdev.string.must_match(/GET\\x1f \/hello HTTP\/1\.1/)
   end
 
   it "log path with PATH_INFO" do

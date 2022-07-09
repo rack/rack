@@ -1,0 +1,8 @@
+--AaB03x--
+
+--AaB03x
+Content-Disposition: form-data; name="files"; filename="foo"
+Content-Type: application/octet-stream
+
+contents
+--AaB03x--

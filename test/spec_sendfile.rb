@@ -67,6 +67,19 @@ describe Rack::Sendfile do
     end
   end
 
+  it "closes body when x-sendfile used" do
+    body = sendfile_body
+    closed = false
+    body.define_singleton_method(:close){closed = true}
+    request({'HTTP_X_SENDFILE_TYPE' => 'x-sendfile'}, body) do |response|
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
+    end
+    closed.must_equal true
+  end
+
   it "sets x-lighttpd-send-file response header and discards body" do
     request 'HTTP_X_SENDFILE_TYPE' => 'x-lighttpd-send-file' do |response|
       response.must_be :ok?

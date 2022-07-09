@@ -37,7 +37,7 @@ describe Rack::ShowExceptions do
 
     req = Rack::MockRequest.new(
       show_exceptions(
-        lambda{|env| raise RuntimeError, "foo", ["nonexistant.rb:2:in `a': adf (RuntimeError)", "bad-backtrace"] }
+        lambda{|env| raise RuntimeError, "foo", ["nonexistent.rb:2:in `a': adf (RuntimeError)", "bad-backtrace"] }
     ))
 
     res = req.get("/", "HTTP_ACCEPT" => "text/html")
@@ -49,7 +49,7 @@ describe Rack::ShowExceptions do
     assert_includes(res.body, 'ShowExceptions')
     assert_includes(res.body, 'No GET data')
     assert_includes(res.body, 'No POST data')
-    assert_includes(res.body, 'nonexistant.rb')
+    assert_includes(res.body, 'nonexistent.rb')
     refute_includes(res.body, 'bad-backtrace')
   end
 
@@ -176,5 +176,30 @@ describe Rack::ShowExceptions do
     ].each do |env, expected|
       assert_equal(expected, exc.prefers_plaintext?(env))
     end
+  end
+
+  it "prefers Exception#detailed_message instead of Exception#message if available" do
+    res = nil
+
+    custom_exc_class = Class.new(RuntimeError) do
+      def detailed_message(highlight: false)
+        "detailed_message_test"
+      end
+    end
+
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda{|env| raise custom_exc_class }
+    ))
+
+    res = req.get("/", "HTTP_ACCEPT" => "text/html")
+
+    res.must_be :server_error?
+    res.status.must_equal 500
+
+    assert_match(res, /detailed_message_test/)
+    assert_match(res, /ShowExceptions/)
+    assert_match(res, /No GET data/)
+    assert_match(res, /No POST data/)
   end
 end

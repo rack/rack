@@ -22,14 +22,6 @@ module Rack
     ALLOW_HEADER = ALLOWED_VERBS.join(', ')
     MULTIPART_BOUNDARY = 'AaB03x'
 
-    # @todo remove in 3.0
-    def self.method_added(name)
-      if name == :response_body
-        raise "#{self.class}\#response_body is no longer supported."
-      end
-      super
-    end
-
     attr_reader :root
 
     def initialize(root, headers = {}, default_mime = 'text/plain')
@@ -99,7 +91,7 @@ module Rack
         response = fail(416, "Byte range unsatisfiable")
         response[1]["content-range"] = "bytes */#{size}"
         return response
-      elsif ranges.size >= 1
+      else
         # Partial content
         partial_content = true
 

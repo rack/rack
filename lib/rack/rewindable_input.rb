@@ -83,12 +83,14 @@ module Rack
       # access it because we have the file handle open.
       @rewindable_io = Tempfile.new('RackRewindableInput')
       @rewindable_io.chmod(0000)
-      @rewindable_io.set_encoding(Encoding::BINARY) if @rewindable_io.respond_to?(:set_encoding)
+      @rewindable_io.set_encoding(Encoding::BINARY)
       @rewindable_io.binmode
+      # :nocov:
       if filesystem_has_posix_semantics?
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
+      # :nocov:
 
       buffer = "".dup
       while @io.read(1024 * 4, buffer)

@@ -52,6 +52,22 @@ describe Rack::Chunked do
     response.body.must_equal "5\r\nHello\r\n1\r\n \r\n6\r\nWorld!\r\n0\r\n\r\n"
   end
 
+  it 'avoid empty chunks' do
+    app = lambda { |env| [200, { "content-type" => "text/plain" }, ['Hello', '', 'World!']] }
+    response = Rack::MockResponse.new(*chunked(app).call(@env))
+    response.headers.wont_include 'content-length'
+    response.headers['transfer-encoding'].must_equal 'chunked'
+    response.body.must_equal "5\r\nHello\r\n6\r\nWorld!\r\n0\r\n\r\n"
+  end
+
+  it 'handles unclosable bodies' do
+    app = lambda { |env| [200, { "content-type" => "text/plain" }, ['Hello', '', 'World!']] }
+    response = Rack::MockResponse.new(*Rack::Chunked.new(app).call(@env))
+    response.headers.wont_include 'content-length'
+    response.headers['transfer-encoding'].must_equal 'chunked'
+    response.body.must_equal "5\r\nHello\r\n6\r\nWorld!\r\n0\r\n\r\n"
+  end
+
   it 'chunks empty bodies properly' do
     app = lambda { |env| [200, { "content-type" => "text/plain" }, []] }
     response = Rack::MockResponse.new(*chunked(app).call(@env))

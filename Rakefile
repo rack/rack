@@ -135,16 +135,6 @@ task rdoc: %w[changelog spec] do
   cp "contrib/rdoc.css", "doc/rdoc.css"
 end
 
-task pushdoc: :rdoc do
-  sh "rsync -avz doc/ rack.rubyforge.org:/var/www/gforge-projects/rack/doc/"
-end
-
-task pushsite: :pushdoc do
-  sh "cd site && git gc"
-  sh "rsync -avz site/ rack.rubyforge.org:/var/www/gforge-projects/rack/"
-  sh "cd site && git push"
-end
-
 def clone_and_test(url, name, command)
   path = "external/#{name}"
   FileUtils.rm_rf path

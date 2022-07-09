@@ -88,7 +88,7 @@ module Rack
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
       if config[/^#\\(.*)/]
-        fail "Parsing options from the first comment line is deprecated: #{path}"
+        fail "Parsing options from the first comment line is no longer supported: #{path}"
       end
 
       config.sub!(/^__END__\n.*\Z/m, '')
@@ -111,7 +111,12 @@ module Rack
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluated in the context of the instance.
     def initialize(default_app = nil, &block)
-      @use, @map, @run, @warmup, @freeze_app = [], nil, default_app, nil, false
+      @use = []
+      @map = nil
+      @run = default_app
+      @warmup = nil
+      @freeze_app = false
+
       instance_eval(&block) if block_given?
     end
 
@@ -147,7 +152,9 @@ module Rack
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
+    # :nocov:
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
+    # :nocov:
 
     # Takes an argument that is an object that responds to #call and returns a Rack response.
     # The simplest form of this is a lambda object:

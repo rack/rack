@@ -1,10 +1,7 @@
-= \Rack, a modular Ruby webserver interface
-
-{<img src="https://rack.github.io/logo.png" width="400" alt="rack powers web applications" />}[https://rack.github.io/]
+= rdoc-image:contrib/logo.webp
 
 {<img src="https://github.com/rack/rack/workflows/Development/badge.svg" alt="GitHub Actions status" />}[https://github.com/rack/rack/actions?query=workflow%3ADevelopment]
 {<img src="https://badge.fury.io/rb/rack.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rack]
-{<img src="https://api.dependabot.com/badges/compatibility_score?dependency-name=rack&package-manager=bundler&version-scheme=semver" alt="SemVer Stability" />}[https://dependabot.com/compatibility-score.html?dependency-name=rack&package-manager=bundler&version-scheme=semver]
 {<img src="http://inch-ci.org/github/rack/rack.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/rack/rack]
 
 \Rack provides a minimal, modular, and adaptable interface for developing
@@ -13,19 +10,15 @@ the simplest way possible, it unifies and distills the API for web
 servers, web frameworks, and software in between (the so-called
 middleware) into a single method call.
 
-The exact details of this are described in the {\Rack specification}[rdoc-ref:SPEC.rdoc],
+The exact details of this are described in the {\Rack specification}[link:SPEC.rdoc],
 which all \Rack applications should conform to.
 
 == Supported web servers
 
-The included *handlers* connect all kinds of web servers to \Rack:
+The included *handlers* can connect these web servers to \Rack:
 
 * WEBrick[https://github.com/ruby/webrick]
-* FCGI
 * CGI
-* SCGI
-* LiteSpeed[https://www.litespeedtech.com/]
-* Thin[https://rubygems.org/gems/thin]
 
 These web servers include \Rack handlers in their distributions:
 
@@ -35,6 +28,7 @@ These web servers include \Rack handlers in their distributions:
 * {NGINX Unit}[https://unit.nginx.org/]
 * {Phusion Passenger}[https://www.phusionpassenger.com/] (which is mod_rack for Apache and for nginx)
 * Puma[https://puma.io/]
+* Thin[https://rubygems.org/gems/thin]
 * Unicorn[https://yhbt.net/unicorn/]
 * uWSGI[https://uwsgi-docs.readthedocs.io/en/latest/]
 * Lamby[https://lamby.custominktech.com] (for AWS Lambda)
@@ -213,11 +207,11 @@ No longer has an effect, deprecated.
 
 == Changelog
 
-See {CHANGELOG.md}[https://github.com/rack/rack/blob/master/CHANGELOG.md].
+See {CHANGELOG.md}[link:CHANGELOG.md].
 
 == Contributing
 
-See {CONTRIBUTING.md}[https://github.com/rack/rack/blob/master/CONTRIBUTING.md].
+See {CONTRIBUTING.md}[link:CONTRIBUTING.md].
 
 == Contact
 

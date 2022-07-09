@@ -49,6 +49,13 @@ describe Rack::MockRequest do
     env.must_include "rack.version"
   end
 
+  it "should handle a non-GET request with both :input and :params" do
+    env = Rack::MockRequest.env_for("/", method: :post, input: nil, params: {})
+    env["PATH_INFO"].must_equal "/"
+    env.must_be_kind_of Hash
+    env['rack.input'].read.must_equal ''
+  end
+
   it "return an environment with a path" do
     env = Rack::MockRequest.env_for("http://www.example.com/parse?location[]=1&location[]=2&age_group[]=2")
     env["QUERY_STRING"].must_equal "location[]=1&location[]=2&age_group[]=2"
@@ -427,6 +434,10 @@ describe Rack::MockResponse do
     res = Rack::MockResponse.new(200, {}, body)
     body.close if body.respond_to?(:close)
     res.body.must_equal 'hi'
+  end
+
+  it "ignores plain strings passed as errors" do
+    Rack::MockResponse.new(200, {}, [], 'e').errors.must_be_nil
   end
 
   it "optionally make Rack errors fatal" do

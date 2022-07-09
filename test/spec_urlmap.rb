@@ -44,6 +44,11 @@ describe Rack::URLMap do
     res["x-scriptname"].must_equal "/foo/bar"
     res["x-pathinfo"].must_equal ""
 
+    res = Rack::MockRequest.new(map).get("/foo/bard")
+    res.must_be :ok?
+    res["x-scriptname"].must_equal "/foo"
+    res["x-pathinfo"].must_equal "/bard"
+
     res = Rack::MockRequest.new(map).get("/foo/bar/")
     res.must_be :ok?
     res["x-scriptname"].must_equal "/foo/bar"

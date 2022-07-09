@@ -35,6 +35,13 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
+  it "raises exception if boundary is too long" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename, "A"*71))
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::Multipart::Error
+  end
+
   it "parse multipart content when content type present but disposition is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
     params = Rack::Multipart.parse_multipart(env)
@@ -58,6 +65,19 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
+  it "raises for invalid data preceding the boundary" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:preceding_boundary)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::Multipart::EmptyContentError
+  end
+
+  it "ignores initial end boundaries" do
+    env = Rack::MockRequest.env_for '/', multipart_fixture(:end_boundary_first)
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"][:filename].must_equal "foo"
+  end
+
   it "parse multipart content with different filename and filename*" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
     params = Rack::Multipart.parse_multipart(env)
@@ -73,6 +93,18 @@ describe Rack::Multipart do
     # content-type charset is the right thing to do.  We should revisit this.
     params.keys.each do |key|
       key.encoding.must_equal Encoding::US_ASCII
+    end
+  end
+
+  it "sets BINARY encoding for invalid charsets" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_unknown_charset))
+    params = Rack::Multipart.parse_multipart(env)
+    params["text"].encoding.must_equal Encoding::BINARY
+
+    # I'm not 100% sure if making the param name encoding match the
+    # content-type charset is the right thing to do.  We should revisit this.
+    params.keys.each do |key|
+      key.encoding.must_equal Encoding::BINARY
     end
   end
 
@@ -193,7 +225,7 @@ describe Rack::Multipart do
     Timeout::timeout(10) { Rack::Multipart.parse_multipart(env) }
   end
 
-  it 'raises an EOF error on content-length mistmatch' do
+  it 'raises an EOF error on content-length mismatch' do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     env['rack.input'] = StringIO.new
     assert_raises(EOFError) do
@@ -442,19 +474,6 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with unescaped quotes" do
-    env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_quotes))
-    params = Rack::Multipart.parse_multipart(env)
-    params["files"][:type].must_equal "application/octet-stream"
-    params["files"][:filename].must_equal "escape \"quotes"
-    params["files"][:head].must_equal "content-disposition: form-data; " +
-      "name=\"files\"; " +
-      "filename=\"escape \"quotes\"\r\n" +
-      "content-type: application/octet-stream\r\n"
-    params["files"][:name].must_equal "files"
-    params["files"][:tempfile].read.must_equal "contents"
-  end
-
   it "parse filename with escaped quotes and modification param" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes_and_modification_param))
     params = Rack::Multipart.parse_multipart(env)
@@ -463,7 +482,7 @@ describe Rack::Multipart do
     params["files"][:head].must_equal "content-type: image/jpeg\r\n" +
       "content-disposition: attachment; " +
       "name=\"files\"; " +
-      "filename=\"\"human\" genome.jpeg\"; " +
+      "filename=\"\\\"human\\\" genome.jpeg\"; " +
       "modification-date=\"Wed, 12 Feb 1997 16:29:51 -0500\";\r\n" +
       "Content-Description: a complete map of the human genome\r\n"
     params["files"][:name].must_equal "files"
@@ -513,6 +532,15 @@ content-type: image/jpeg\r
 
     files[:name].must_equal "document[attachment]"
     files[:tempfile].read.must_equal "contents"
+  end
+
+  it "raises RuntimeError for invalid file path" do
+    proc{Rack::Multipart::UploadedFile.new('non-existant')}.must_raise RuntimeError
+  end
+
+  it "supports uploading files in binary mode" do
+    Rack::Multipart::UploadedFile.new(multipart_file("file1.txt")).wont_be :binmode?
+    Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"), binary: true).must_be :binmode?
   end
 
   it "builds multipart body" do
@@ -637,6 +665,21 @@ content-type: image/jpeg\r
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 4
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      params = Rack::Multipart.parse_multipart(env)
+      params['reply'].must_equal 'yes'
+      params['to'].must_equal 'people'
+      params['from'].must_equal 'others'
+    ensure
+      Rack::Utils.multipart_part_limit = previous_limit
+    end
+  end
+
+  it "treat a multipart limit of 0 as no limit" do
+    begin
+      previous_limit = Rack::Utils.multipart_part_limit
+      Rack::Utils.multipart_part_limit = 0
 
       env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
       params = Rack::Multipart.parse_multipart(env)

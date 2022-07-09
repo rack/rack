@@ -40,12 +40,34 @@ describe Rack::Directory do
     end
   end
 
+  it "serve root directory index" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/")
+
+    res.must_be :ok?
+    assert_includes(res.body, '<html><head>')
+    assert_includes(res.body, "href='cgi")
+  end
+
   it "serve directory indices" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
       get("/cgi/")
 
     res.must_be :ok?
-    assert_match(res, /<html><head>/)
+    assert_includes(res.body, '<html><head>')
+    assert_includes(res.body, "rackup_stub.rb")
+  end
+
+  it "return 404 for pipes" do
+    begin
+      File.mkfifo('test/cgi/fifo')
+      res = Rack::MockRequest.new(Rack::Lint.new(app)).
+        get("/cgi/fifo")
+
+      res.status.must_equal 404
+    ensure
+      File.delete('test/cgi/fifo')
+    end
   end
 
   it "serve directory indices with bad symlinks" do

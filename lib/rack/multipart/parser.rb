@@ -12,13 +12,16 @@ module Rack
     # that ends early.
     class EmptyContentError < ::EOFError; end
 
+    # Base class for multipart exceptions that do not subclass from
+    # other exception classes for backwards compatibility.
+    class Error < StandardError; end
+
     EOL = "\r\n"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
     VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
-    BROKEN_QUOTED = /^#{CONDISP}.*;\s*filename="(.*?)"(?:\s*$|\s*;\s*#{TOKEN}=)/i
-    BROKEN_UNQUOTED = /^#{CONDISP}.*;\s*filename=(#{TOKEN})/i
+    BROKEN = /^#{CONDISP}.*;\s*filename=(#{VALUE})/i
     MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
     MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*;\s*name=(#{VALUE})/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
@@ -39,15 +42,11 @@ module Rack
     RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
 
     class Parser
-      require_relative '../multipart' unless defined?(Rack::Multipart)
-
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
         Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0", '%00'))])
       }
-
-      BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
 
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
@@ -93,6 +92,12 @@ module Rack
 
         boundary = parse_boundary content_type
         return EMPTY unless boundary
+
+        if boundary.length > 70
+          # RFC 1521 Section 7.2.1 imposes a 70 character maximum for the boundary.
+          # Most clients use no more than 55 characters.
+          raise Error, "multipart boundary size too large (#{boundary.length} characters)"
+        end
 
         io = BoundedIO.new(io, content_length) if content_length
 
@@ -188,18 +193,15 @@ module Rack
       def initialize(boundary, tempfile, bufsize, query_parser)
         @query_parser   = query_parser
         @params         = query_parser.make_params
-        @boundary       = "--#{boundary}"
         @bufsize        = bufsize
 
-        @full_boundary = @boundary
-        @end_boundary = @boundary + '--'
         @state = :FAST_FORWARD
         @mime_index = 0
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".dup)
-        @body_regex = /(?:#{EOL})?#{Regexp.quote(@boundary)}(?:#{EOL}|--)/m
-        @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
+        @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
+        @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
@@ -218,7 +220,7 @@ module Rack
               handle_mime_head
             when :MIME_BODY
               handle_mime_body
-            when :DONE
+            else # when :DONE
               return
             end
 
@@ -250,12 +252,26 @@ module Rack
         @sbuf.concat(content)
       end
 
+      # This handles the initial parser state.  We read until we find the starting
+      # boundary, then we can transition to the next state. If we find the ending
+      # boundary, this is an invalid multipart upload, but keep scanning for opening
+      # boundary in that case. If no boundary found, we need to keep reading data
+      # and retry. It's highly unlikely the initial read will not consume the
+      # boundary.  The client would have to deliberately craft a response
+      # with the opening boundary beyond the buffer size for that to happen.
       def handle_fast_forward
-        if consume_boundary
-          @state = :MIME_HEAD
-        else
-          raise EOFError, "bad content body" if @sbuf.rest_size >= @bufsize
-          :want_read
+        while true
+          case consume_boundary
+          when :BOUNDARY
+            # found opening boundary, transition to next state
+            @state = :MIME_HEAD
+            return
+          when :END_BOUNDARY
+            # invalid multipart upload, but retry for opening boundary
+          else
+            # no boundary found, keep reading data
+            return :want_read
+          end
         end
       end
 
@@ -311,15 +327,16 @@ module Rack
         end
       end
 
-      def full_boundary; @full_boundary; end
-
+      # Scan until the we find the start or end of the boundary.
+      # If we find it, return the appropriate symbol for the start or
+      # end of the boundary.  If we don't find the start or end of the
+      # boundary, clear the buffer and return nil.
       def consume_boundary
-        while read_buffer = @sbuf.scan_until(BOUNDARY_REGEX)
-          case read_buffer.strip
-          when full_boundary then return :BOUNDARY
-          when @end_boundary then return :END_BOUNDARY
-          end
-          return if @sbuf.eos?
+        if read_buffer = @sbuf.scan_until(@body_regex)
+          read_buffer.end_with?(EOL) ? :BOUNDARY : :END_BOUNDARY
+        else
+          @sbuf.terminate
+          nil
         end
       end
 
@@ -334,8 +351,9 @@ module Rack
           elsif filename = params['filename']
             filename = $1 if filename =~ /^"(.*)"$/
           end
-        when BROKEN_QUOTED, BROKEN_UNQUOTED
+        when BROKEN
           filename = $1
+          filename = $1 if filename =~ /^"(.*)"$/
         end
 
         return unless filename
@@ -358,6 +376,7 @@ module Rack
       end
 
       CHARSET = "charset"
+      deprecate_constant :CHARSET
 
       def tag_multipart_encoding(filename, content_type, name, body)
         name = name.to_s
@@ -378,7 +397,13 @@ module Rack
               k.strip!
               v.strip!
               v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
-              encoding = Encoding.find v if k == CHARSET
+              if k == "charset"
+                encoding = begin
+                  Encoding.find v
+                rescue ArgumentError
+                  Encoding::BINARY
+                end
+              end
             end
           end
         end
