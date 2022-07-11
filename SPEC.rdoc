@@ -137,12 +137,7 @@ There are the following restrictions:
   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
   <tt>SCRIPT_NAME</tt> is empty.
   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
-<tt>rack.response_finished</tt>:: An array of objects responding to #call with one argument, the env hash for the request, that will be called after the HTTP response has been sent to the client.
-The callables are called directly after the HTTP response has been sent to the
-client. The callables should be called sequentially and synchronously in the
-same execution context as the the response. If an exception is raised, it will
-be ignored and will not impact the execution of the other callables.
-
+<tt>rack.response.finished</tt>:: An array of callables run after the HTTP response has been sent.
 
 === The Input Stream
 

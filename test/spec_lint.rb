@@ -211,19 +211,19 @@ describe Rack::Lint do
       message.must_match(/cannot be .* make it ''/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => "not a callable"))
+      Rack::Lint.new(nil).call(env("rack.response.finished" => "not a callable"))
     }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished must be an array of callable objects/)
+    message.must_match(/rack.response.finished must be an array of callable objects/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
+      Rack::Lint.new(nil).call(env("rack.response.finished" => [-> (env) {}, "not a callable"]))
     }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished values must respond to call/)
+    message.must_match(/rack.response.finished values must respond to call/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => [-> () {}]))
+      Rack::Lint.new(nil).call(env("rack.response.finished" => [-> () {}]))
     }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished values must accept an env argument/)
+    message.must_match(/rack.response.finished values must accept an env argument/)
 
     callable_object = Class.new do
       def call
@@ -231,9 +231,9 @@ describe Rack::Lint do
     end.new
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => [callable_object]))
+      Rack::Lint.new(nil).call(env("rack.response.finished" => [callable_object]))
     }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished values must accept an env argument/)
+    message.must_match(/rack.response.finished values must accept an env argument/)
   end
 
   it "notice input errors" do
@@ -733,7 +733,7 @@ describe Rack::Lint do
                      }).call(env({}))[1]['rack.hijack'].call(StringIO.new).read.must_equal ''
   end
 
-  it "pass valid rack.response_finished" do
+  it "pass valid rack.response.finished" do
     callable_object = Class.new do
       def call(env)
       end
@@ -741,7 +741,7 @@ describe Rack::Lint do
 
     Rack::Lint.new(lambda { |env|
                      [200, {}, ["foo"]]
-                   }).call(env({ "rack.response_finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
+                   }).call(env({ "rack.response.finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
   end
 
 end

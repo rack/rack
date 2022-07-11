@@ -360,12 +360,12 @@ module Rack
           raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
 
-        ## <tt>rack.response_finished</tt>:: An array of callables run after the HTTP response has been sent.
+        ## <tt>rack.response.finished</tt>:: An array of callables run after the HTTP response has been sent.
         if callables = env[RACK_RESPONSE_FINISHED]
-          raise LintError, "rack.response_finished must be an array of callable objects" unless callables.is_a?(Array)
+          raise LintError, "rack.response.finished must be an array of callable objects" unless callables.is_a?(Array)
 
           callables.each do |callable|
-            raise LintError, "rack.response_finished values must respond to call" unless callable.respond_to?(:call)
+            raise LintError, "rack.response.finished values must respond to call" unless callable.respond_to?(:call)
 
             arity = if callable.respond_to?(:arity)
               callable.arity
@@ -373,7 +373,7 @@ module Rack
               callable.method(:call).arity
             end
 
-            raise LintError, "rack.response_finished values must accept an env argument" unless arity == 1
+            raise LintError, "rack.response.finished values must accept an env argument" unless arity == 1
           end
         end
       end
