@@ -3,7 +3,7 @@
 require_relative 'urlmap'
 
 module Rack
-  # Rack::Builder implements a small DSL to iteratively construct Rack
+  # Rack::Builder implements a small DSL to interactively construct Rack
   # applications.
   #
   # Example:
