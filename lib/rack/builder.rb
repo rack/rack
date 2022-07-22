@@ -3,8 +3,10 @@
 require_relative 'urlmap'
 
 module Rack
-  # Rack::Builder implements a small DSL to interactively construct Rack
-  # applications.
+  # Rack::Builder provides a domain-specific language (DSL) to construct Rack
+  # applications. It is primarily used to parse +config.ru+ files which
+  # instantiate several middleware and a final application which are hosted
+  # by a Rack-compatible web server.
   #
   # Example:
   #
@@ -31,7 +33,6 @@ module Rack
   #
   # +use+ adds middleware to the stack, +run+ dispatches to an application.
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
-
   class Builder
 
     # https://stackoverflow.com/questions/2223882/whats-the-difference-between-utf-8-and-utf-8-without-bom
