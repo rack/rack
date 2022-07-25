@@ -393,7 +393,6 @@ module Rack
 
       def parse_options(args)
         # Don't evaluate CGI ISINDEX parameters.
-        # http://www.meb.uni-bonn.de/docs/cgi/cl.html
         args.clear if ENV.include?(REQUEST_METHOD)
 
         @options = opt_parser.parse!(args)

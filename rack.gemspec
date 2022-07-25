@@ -34,7 +34,7 @@ Gem::Specification.new do |s|
 
   s.metadata = {
     "bug_tracker_uri" => "https://github.com/rack/rack/issues",
-    "changelog_uri" => "https://github.com/rack/rack/blob/master/CHANGELOG.md",
+    "changelog_uri" => "https://github.com/rack/rack/blob/main/CHANGELOG.md",
     "documentation_uri" => "https://rubydoc.info/github/rack/rack",
     "source_code_uri"   => "https://github.com/rack/rack"
   }

@@ -2,7 +2,7 @@
 
 {<img src="https://github.com/rack/rack/workflows/Development/badge.svg" alt="GitHub Actions status" />}[https://github.com/rack/rack/actions?query=workflow%3ADevelopment]
 {<img src="https://badge.fury.io/rb/rack.svg" alt="Gem Version" />}[http://badge.fury.io/rb/rack]
-{<img src="http://inch-ci.org/github/rack/rack.svg?branch=master" alt="Inline docs" />}[http://inch-ci.org/github/rack/rack]
+{<img src="http://inch-ci.org/github/rack/rack.svg?branch=main" alt="Inline docs" />}[http://inch-ci.org/github/rack/rack]
 
 \Rack provides a minimal, modular, and adaptable interface for developing
 web applications in Ruby. By wrapping HTTP requests and responses in
