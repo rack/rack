@@ -4,7 +4,7 @@
 
 ### New features
 
-New features will only be added to the master branch and will not be made available in point releases.
+New features will only be added to the main branch and will not be made available in point releases.
 
 ### Bug fixes
 
