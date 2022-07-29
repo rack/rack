@@ -116,7 +116,7 @@ module Rack
           }
         end
       ensure
-        gzip.close
+        gzip.finish
       end
 
       # Call the block passed to #each with the gzipped data.
