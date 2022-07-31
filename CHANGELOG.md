@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 - Response header keys can no longer include uppercase characters.
 - Response header values can be an `Array` to handle multiple values (and no longer supports `\n` encoded headers).
 - Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
+- Response body `#close(error = nil)` takes optional error argument which indicates a failure fully consume the body.
 - Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 - `rack.input` is no longer required to be rewindable.
 - `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.

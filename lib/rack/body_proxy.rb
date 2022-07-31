@@ -20,13 +20,13 @@ module Rack
 
     # If not already closed, close the wrapped body and
     # then call the block the proxy was initialized with.
-    def close
+    def close(error = nil)
       return if @closed
       @closed = true
       begin
-        @body.close if @body.respond_to? :close
+        @body.close(error) if @body.respond_to?(:close)
       ensure
-        @block.call
+        @block.call(error)
       end
     end
 

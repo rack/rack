@@ -282,26 +282,43 @@ The Body is typically an +Array+ of +String+ instances, an enumerable
 that yields +String+ instances, a +Proc+ instance, or a File-like
 object.
 
-The Body must respond to +each+ or +call+. It may optionally respond to
-+to_path+.
+The Body must respond to +each+ or +call+. It may optionally respond
+to +to_path+ or +to_ary+. A Body that responds to +each+ is considered
+to be an Enumerable Body. A Body that responds to +call+ is considered
+to be a Streaming Body.
 
-A Body that responds to +each+ is considered to be an Enumerable Body.
-
-A Body that responds to +call+ is considered to be a Streaming Body.
-
-A Body that responds to +to_path+ is expected to generate the same
-content as would be produced by reading a local file opened with the
-path returned by calling +to_path+.
-
-A body that responds to both +each+ and +call+ must be treated as an
+A Body that responds to both +each+ and +call+ must be treated as an
 Enumerable Body, not a Streaming Body. If it responds to +each+, you
-must call +each+ and not +call+. If the body doesn't respond to
+must call +each+ and not +call+. If the Body doesn't respond to
 +each+, then you can assume it responds to +call+.
+
+A Body must either be consumed or returned. The Body is consumed by
+optinally calling one of +each+, +call+, +to_path+, or +to_ary+.
+Then, if the Body responds to +close+, it must be called to release
+any resources associated with the generation of the body.
+
+When consuming the Body, if an error occurs (e.g. writing the data to
+the network), the +close+ method should be called as above with the
+error (e.g. +IOError+) given as the argument.
+
+After calling +close+, the Body is considered closed and should not
+be closed, used or consumed again.
+If the original Body is replaced by a new Body, the new Body must
+also consome the original Body.
+If the Body responds to both +to_ary+ and +close+, its
+implementation of +to_ary+ must call +close+.
+
+If the Body responds to +to_path+, it must return a +String+
+path for the local file system whose contents are identical
+to that produced by calling +each+; this may be used by the
+server as an alternative, possibly more efficient way to
+transport the response.
 
 ==== Enumerable Body
 
 The Enumerable Body must respond to +each+.
 It must only be called once.
+It must not be called after being closed.
 and must only yield String values.
 
 The Body itself should not be an instance of String, as this will
@@ -311,30 +328,16 @@ Middleware must not call +each+ directly on the Body.
 Instead, middleware can return a new Body that calls +each+ on the
 original Body, yielding at least once per iteration.
 
-If the Body responds to +to_ary+, it must return an Array whose
+If the Body responds to +to_ary+, it must return an +Array+ whose
 contents are identical to that produced by calling +each+.
 Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
 In other words, middleware can only process the Body directly if it responds to +to_ary+.
-
-If the Body responds to +close+, it will be called after iteration. If
-the original Body is replaced by a new Body, the new Body
-must close the original Body after iteration, if it responds to +close+.
-If the Body responds to both +to_ary+ and +close+, its
-implementation of +to_ary+ must call +close+ after iteration.
-
-If the Body responds to +to_path+, it must return a String
-identifying the location of a file whose contents are identical
-to that produced by calling +each+; this may be used by the
-server as an alternative, possibly more efficient way to
-transport the response.
-
-The Body commonly is an Array of Strings, the application
-instance itself, or a File-like object.
 
 ==== Streaming Body
 
 The Streaming Body must respond to +call+.
 It must only be called once.
+It must not be called after being closed.
 It takes a +stream+ argument.
 
 The +stream+ argument must implement:
