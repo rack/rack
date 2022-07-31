@@ -293,22 +293,22 @@ must call +each+ and not +call+. If the Body doesn't respond to
 +each+, then you can assume it responds to +call+.
 
 The Body must either be consumed or returned. The Body is consumed by
-optionally calling one of +each+, +call+, +to_path+, or +to_ary+.
+optionally calling one of +each+, +call+.
 Then, if the Body responds to +close+, it must be called to release
 any resources associated with the generation of the body.
+
 
 After calling +close+, the Body is considered closed and should not
 be consumed again.
 If the original Body is replaced by a new Body, the new Body must
-also consume the original Body.
-If the Body responds to both +to_ary+ and +close+, its
-implementation of +to_ary+ must call +close+.
+also consume the original Body by calling +close+ if possible.
 
 If the Body responds to +to_path+, it must return a +String+
 path for the local file system whose contents are identical
 to that produced by calling +each+; this may be used by the
 server as an alternative, possibly more efficient way to
-transport the response.
+transport the response. The +to_path+ method does not consume
+the body.
 
 ==== Enumerable Body
 
@@ -326,8 +326,11 @@ original Body, yielding at least once per iteration.
 
 If the Body responds to +to_ary+, it must return an +Array+ whose
 contents are identical to that produced by calling +each+.
-Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
-In other words, middleware can only process the Body directly if it responds to +to_ary+.
+Middleware may call +to_ary+ directly on the Body and return a new
+Body in its place. In other words, middleware can only process the
+Body directly if it responds to +to_ary+. If the Body responds to both
++to_ary+ and +close+, its implementation of +to_ary+ must call
++close+.
 
 ==== Streaming Body
 

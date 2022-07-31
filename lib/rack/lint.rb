@@ -769,23 +769,20 @@ module Rack
       ## +each+, then you can assume it responds to +call+.
       ##
       ## The Body must either be consumed or returned. The Body is consumed by
-      ## optionally calling one of +each+, +call+, +to_path+, or +to_ary+.
+      ## optionally calling one of +each+, +call+.
       ## Then, if the Body responds to +close+, it must be called to release
       ## any resources associated with the generation of the body.
+      ##
       def close
         ##
         ## After calling +close+, the Body is considered closed and should not
         ## be consumed again.
-        return if @closed
-
         @closed = true
 
         ## If the original Body is replaced by a new Body, the new Body must
-        ## also consume the original Body.
-        ## If the Body responds to both +to_ary+ and +close+, its
-        ## implementation of +to_ary+ must call +close+.
-
+        ## also consume the original Body by calling +close+ if possible.
         @body.close if @body.respond_to?(:close)
+
         index = @lint.index(self)
         unless @env['rack.lint'][0..index].all? {|lint| lint.instance_variable_get(:@closed)}
           raise LintError, "Body has not been closed"
@@ -798,7 +795,8 @@ module Rack
         ## path for the local file system whose contents are identical
         ## to that produced by calling +each+; this may be used by the
         ## server as an alternative, possibly more efficient way to
-        ## transport the response.
+        ## transport the response. The +to_path+ method does not consume
+        ## the body.
         if @body.respond_to?(:to_path)
           unless ::File.exist? @body.to_path
             raise LintError, "The file identified by body.to_path does not exist"
@@ -851,9 +849,9 @@ module Rack
         verify_to_path
       end
 
-      def respond_to?(sym, *)
-        if sym.to_s == 'to_ary'
-          @body.respond_to? sym
+      def respond_to?(name, *)
+        if name == :to_ary
+          @body.respond_to?(name)
         else
           super
         end
@@ -862,8 +860,11 @@ module Rack
       ##
       ## If the Body responds to +to_ary+, it must return an +Array+ whose
       ## contents are identical to that produced by calling +each+.
-      ## Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
-      ## In other words, middleware can only process the Body directly if it responds to +to_ary+.
+      ## Middleware may call +to_ary+ directly on the Body and return a new
+      ## Body in its place. In other words, middleware can only process the
+      ## Body directly if it responds to +to_ary+. If the Body responds to both
+      ## +to_ary+ and +close+, its implementation of +to_ary+ must call
+      ## +close+.
       def to_ary
         @body.to_ary.tap do |content|
           unless content == @body.enum_for.to_a
