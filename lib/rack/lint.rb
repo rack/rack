@@ -779,8 +779,9 @@ module Rack
       def close(error = nil)
         ##
         ## After calling +close+, the Body is considered closed and should not
-        ## be closed, used or consumed again.
-        raise LintError, "The body is already closed" if @closed
+        ## be consumed again.
+        return if @closed
+
         @closed = true
 
         ## If the original Body is replaced by a new Body, the new Body must
