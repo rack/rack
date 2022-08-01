@@ -55,11 +55,6 @@ describe Rack::Handler::WEBrick do
     response["SERVER_NAME"].must_equal "localhost"
   end
 
-  it "have rack headers" do
-    GET("/test")
-    response["rack.version"].must_equal [1, 3]
-  end
-
   it "have CGI headers on GET" do
     GET("/test")
     response["REQUEST_METHOD"].must_equal "GET"

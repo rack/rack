@@ -85,11 +85,6 @@ describe Rack::Lint do
       message.must_match(/non-string value/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.version" => "0.2"))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/must be an Array/)
-
-    lambda {
       Rack::Lint.new(nil).call(env("rack.url_scheme" => "gopher"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/url_scheme unknown/)

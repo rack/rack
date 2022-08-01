@@ -76,7 +76,6 @@ module Rack
         rack_input.set_encoding(Encoding::BINARY)
 
         env.update(
-          RACK_VERSION      => Rack::VERSION,
           RACK_INPUT        => rack_input,
           RACK_ERRORS       => $stderr,
           RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http",

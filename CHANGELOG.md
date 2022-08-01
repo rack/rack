@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. For info on
 - Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
 - Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 - `rack.input` is no longer required to be rewindable.
-- `rack.multithread/rack.multiprocess/rack.run_once` are no longer required environment keys.
+- `rack.multithread`/`rack.multiprocess`/`rack.run_once`/`rack.version` are no longer required environment keys.
 - `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
 
 ### Removed
@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For info on
 - Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix], [@jeremyevans]))
 - Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans])
 - Remove internal cookie deletion using pattern matching, there are very few practical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix])
+- Remove `rack.version` as it comes too late to be useful. ([#1938](https://gituhb.com/rack/rack/pull/1938), [@ioquatix])
 
 ### Added
 
