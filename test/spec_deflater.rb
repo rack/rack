@@ -512,8 +512,11 @@ describe Rack::Deflater do
   end
 
   it 'does not close the response body prematurely' do
-    app_body = Object.new
-    class << app_body; attr_reader :closed; def each; yield('foo'); yield('bar'); end; def close; @closed = true; end; end
+    app_body = Class.new do
+      attr_reader :closed;
+      def each; yield('foo'); yield('bar'); end;
+      def close; @closed = true; end;
+    end.new
 
     verify(200, 'foobar', deflate_or_gzip, { 'app_body' => app_body }) do |status, headers, body|
       assert_nil app_body.closed

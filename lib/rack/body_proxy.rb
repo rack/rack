@@ -24,7 +24,7 @@ module Rack
       return if @closed
       @closed = true
       begin
-        @body.close if @body.respond_to? :close
+        @body.close if @body.respond_to?(:close)
       ensure
         @block.call
       end
