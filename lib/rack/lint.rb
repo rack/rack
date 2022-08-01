@@ -771,10 +771,11 @@ module Rack
       ## The Body must either be consumed or returned. The Body is consumed by
       ## optionally calling either +each+ or +call+.
       ## Then, if the Body responds to +close+, it must be called to release
-      ## any resources associated with the generation of the body. In other
-      ## words, +close+ must always be called at least once, and typically
-      ## by the web server which is consuming the response as it sends it
-      ## to the client.
+      ## any resources associated with the generation of the body.
+      ## In other words, +close+ must always be called at least once; typically
+      ## after the web server has sent the response to the client, but also in
+      ## cases where the Rack application makes internal/virtual requests and
+      ## discards the response.
       ##
       def close
         ##
