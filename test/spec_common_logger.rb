@@ -6,7 +6,7 @@ require 'logger'
 separate_testing do
   require_relative '../lib/rack/common_logger'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
 end
 
 describe Rack::CommonLogger do

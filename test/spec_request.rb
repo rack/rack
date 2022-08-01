@@ -7,7 +7,7 @@ require 'securerandom'
 
 separate_testing do
   require_relative '../lib/rack/request'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/lint'
 end
 

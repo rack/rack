@@ -7,7 +7,7 @@ require 'fileutils'
 separate_testing do
   require_relative '../lib/rack/directory'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/utils'
   require_relative '../lib/rack/builder'
 end
