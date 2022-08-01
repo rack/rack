@@ -162,10 +162,6 @@ module Rack
         ## In addition to this, the Rack environment must include these
         ## Rack-specific variables:
 
-        ## <tt>rack.version</tt>:: The Array representing this version of Rack
-        ##                         See Rack::VERSION, that corresponds to
-        ##                         the version of this SPEC.
-
         ## <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the
         ##                            request URL.
 
@@ -274,7 +270,7 @@ module Rack
         ##
 
         %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL
-           rack.version rack.input rack.errors].each { |header|
+           rack.input rack.errors].each { |header|
           raise LintError, "env missing required key #{header}" unless env.include? header
         }
 
@@ -330,10 +326,6 @@ module Rack
 
         ## There are the following restrictions:
 
-        ## * <tt>rack.version</tt> must be an array of Integers.
-        unless env[RACK_VERSION].kind_of? Array
-          raise LintError, "rack.version must be an Array, was #{env[RACK_VERSION].class}"
-        end
         ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
         unless %w[http https].include?(env[RACK_URL_SCHEME])
           raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"

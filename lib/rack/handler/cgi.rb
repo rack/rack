@@ -15,7 +15,6 @@ module Rack
         env[SCRIPT_NAME] = ""  if env[SCRIPT_NAME] == "/"
 
         env.update(
-          RACK_VERSION      => Rack::VERSION,
           RACK_INPUT        => $stdin,
           RACK_ERRORS       => $stderr,
           RACK_URL_SCHEME   => ["yes", "on", "1"].include?(ENV[HTTPS]) ? "https" : "http"

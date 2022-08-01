@@ -46,7 +46,6 @@ describe Rack::MockRequest do
   it "be able to only return the environment" do
     env = Rack::MockRequest.env_for("")
     env.must_be_kind_of Hash
-    env.must_include "rack.version"
   end
 
   it "should handle a non-GET request with both :input and :params" do
@@ -61,7 +60,6 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].must_equal "location[]=1&location[]=2&age_group[]=2"
     env["PATH_INFO"].must_equal "/parse"
     env.must_be_kind_of Hash
-    env.must_include "rack.version"
   end
 
   it "provide sensible defaults" do
