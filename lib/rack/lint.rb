@@ -758,21 +758,55 @@ module Rack
       ## that yields +String+ instances, a +Proc+ instance, or a File-like
       ## object.
       ##
-      ## The Body must respond to +each+ or +call+. It may optionally respond to
-      ## +to_path+.
+      ## The Body must respond to +each+ or +call+. It may optionally respond
+      ## to +to_path+ or +to_ary+. A Body that responds to +each+ is considered
+      ## to be an Enumerable Body. A Body that responds to +call+ is considered
+      ## to be a Streaming Body.
       ##
-      ## A Body that responds to +each+ is considered to be an Enumerable Body.
-      ##
-      ## A Body that responds to +call+ is considered to be a Streaming Body.
-      ##
-      ## A Body that responds to +to_path+ is expected to generate the same
-      ## content as would be produced by reading a local file opened with the
-      ## path returned by calling +to_path+.
-      ##
-      ## A body that responds to both +each+ and +call+ must be treated as an
+      ## A Body that responds to both +each+ and +call+ must be treated as an
       ## Enumerable Body, not a Streaming Body. If it responds to +each+, you
-      ## must call +each+ and not +call+. If the body doesn't respond to
+      ## must call +each+ and not +call+. If the Body doesn't respond to
       ## +each+, then you can assume it responds to +call+.
+      ##
+      ## The Body must either be consumed or returned. The Body is consumed by
+      ## optionally calling either +each+ or +call+.
+      ## Then, if the Body responds to +close+, it must be called to release
+      ## any resources associated with the generation of the body.
+      ## In other words, +close+ must always be called at least once; typically
+      ## after the web server has sent the response to the client, but also in
+      ## cases where the Rack application makes internal/virtual requests and
+      ## discards the response.
+      ##
+      def close
+        ##
+        ## After calling +close+, the Body is considered closed and should not
+        ## be consumed again.
+        @closed = true
+
+        ## If the original Body is replaced by a new Body, the new Body must
+        ## also consume the original Body by calling +close+ if possible.
+        @body.close if @body.respond_to?(:close)
+
+        index = @lint.index(self)
+        unless @env['rack.lint'][0..index].all? {|lint| lint.instance_variable_get(:@closed)}
+          raise LintError, "Body has not been closed"
+        end
+      end
+
+      def verify_to_path
+        ##
+        ## If the Body responds to +to_path+, it must return a +String+
+        ## path for the local file system whose contents are identical
+        ## to that produced by calling +each+; this may be used by the
+        ## server as an alternative, possibly more efficient way to
+        ## transport the response. The +to_path+ method does not consume
+        ## the body.
+        if @body.respond_to?(:to_path)
+          unless ::File.exist? @body.to_path
+            raise LintError, "The file identified by body.to_path does not exist"
+          end
+        end
+      end
 
       ##
       ## ==== Enumerable Body
@@ -783,6 +817,9 @@ module Rack
 
         ## It must only be called once.
         raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+
+        ## It must not be called after being closed.
+        raise LintError, "Response body is already closed" if @closed
 
         @invoked = :each
 
@@ -816,19 +853,22 @@ module Rack
         verify_to_path
       end
 
-      def respond_to?(sym, *)
-        if sym.to_s == 'to_ary'
-          @body.respond_to? sym
+      def respond_to?(name, *)
+        if name == :to_ary
+          @body.respond_to?(name)
         else
           super
         end
       end
 
       ##
-      ## If the Body responds to +to_ary+, it must return an Array whose
+      ## If the Body responds to +to_ary+, it must return an +Array+ whose
       ## contents are identical to that produced by calling +each+.
-      ## Middleware may call +to_ary+ directly on the Body and return a new Body in its place.
-      ## In other words, middleware can only process the Body directly if it responds to +to_ary+.
+      ## Middleware may call +to_ary+ directly on the Body and return a new
+      ## Body in its place. In other words, middleware can only process the
+      ## Body directly if it responds to +to_ary+. If the Body responds to both
+      ## +to_ary+ and +close+, its implementation of +to_ary+ must call
+      ## +close+.
       def to_ary
         @body.to_ary.tap do |content|
           unless content == @body.enum_for.to_a
@@ -840,39 +880,6 @@ module Rack
       end
 
       ##
-      ## If the Body responds to +close+, it will be called after iteration. If
-      ## the original Body is replaced by a new Body, the new Body
-      ## must close the original Body after iteration, if it responds to +close+.
-      ## If the Body responds to both +to_ary+ and +close+, its
-      ## implementation of +to_ary+ must call +close+ after iteration.
-      def close
-        @closed = true
-        @body.close if @body.respond_to?(:close)
-        index = @lint.index(self)
-        unless @env['rack.lint'][0..index].all? {|lint| lint.instance_variable_get(:@closed)}
-          raise LintError, "Body has not been closed"
-        end
-      end
-
-      def verify_to_path
-        ##
-        ## If the Body responds to +to_path+, it must return a String
-        ## identifying the location of a file whose contents are identical
-        ## to that produced by calling +each+; this may be used by the
-        ## server as an alternative, possibly more efficient way to
-        ## transport the response.
-        if @body.respond_to?(:to_path)
-          unless ::File.exist? @body.to_path
-            raise LintError, "The file identified by body.to_path does not exist"
-          end
-        end
-
-        ##
-        ## The Body commonly is an Array of Strings, the application
-        ## instance itself, or a File-like object.
-      end
-
-      ##
       ## ==== Streaming Body
       ##
       def call(stream)
@@ -881,6 +888,9 @@ module Rack
 
         ## It must only be called once.
         raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+
+        ## It must not be called after being closed.
+        raise LintError, "Response body is already closed" if @closed
 
         @invoked = :call
 
