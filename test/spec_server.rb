@@ -275,7 +275,7 @@ describe Rack::Server do
   end
 
   it "support -v option to get version" do
-    test_options_server('-v').must_match(/\ARack \d\.\d \(Release: \d+\.\d+\.\d+\)\nexited\z/)
+    test_options_server('-v').must_match(/\ARack \d+\.\d+.\d+ \(Release: \d+\.\d+\.\d+\)\nexited\z/)
   end
 
   it "warn for invalid --profile-mode option" do
