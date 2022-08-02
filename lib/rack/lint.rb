@@ -534,7 +534,7 @@ module Rack
       ## connection.
       ##
       def check_hijack(env)
-        ## If +rack.hijack+ is present, it must respond to +call+
+        ## If +rack.hijack+ is present in +env+, it must respond to +call+
         if original_hijack = env[RACK_HIJACK]
           raise LintError, "rack.hijack must respond to call" unless original_hijack.respond_to?(:call)
 
@@ -563,7 +563,7 @@ module Rack
       ## streaming.
       ##
       def check_hijack_response(headers, env)
-        ## If +rack.hijack?+ is present,
+        ## If +rack.hijack?+ is present in +env+ and truthy,
         if env[RACK_IS_HIJACK]
           ## an application may set the special response header +rack.hijack+
           if original_hijack = headers[RACK_HIJACK]
