@@ -578,12 +578,10 @@ module Rack
           end
           ##
           ## After the response status and headers have been sent, this hijack
-          ## callback will be invoked and is responsible for calling +close+.
-          ## The application is also responsible for maintaining HTTP
-          ## semantics.
-          ##
-          ## Servers must ignore the +body+ part of the response tuple when
-          ## the +rack.hijack+ response API is in use. Using an empty +Array+
+          ## callback will be invoked with a +stream+ argument which follows the
+          ## same interface as outlined in "Streaming Body". Servers must
+          ## ignore the +body+ part of the response tuple when the
+          ## +rack.hijack+ response header is present. Using an empty +Array+
           ## instance is recommended.
         else       
           ##
