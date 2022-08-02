@@ -77,11 +77,11 @@ Rack-specific variables:
                            request URL.
 <tt>rack.input</tt>:: See below, the input stream.
 <tt>rack.errors</tt>:: See below, the error stream.
-<tt>rack.hijack?</tt>:: present and true if the server supports
-                        connection hijacking. See below, hijacking.
-<tt>rack.hijack</tt>:: See below, an object responding to #call that
-                       is used to hijack the current request,
-                       returning an IO-like stream object.
+<tt>rack.hijack?</tt>:: See below, if present and true, indicates
+                        that the server supports partial hijacking.
+<tt>rack.hijack</tt>:: See below, if present, an object responding
+                       to +call+ that is used to perform a full
+                       hijack.
 Additional environment specifications have approved to
 standardized middleware APIs. None of these are required to
 be implemented by the server.
