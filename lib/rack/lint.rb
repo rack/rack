@@ -515,7 +515,7 @@ module Rack
       ##
       ## The hijacking interfaces provides a means for an application to take
       ## control of the HTTP connection. There are two distinct hijack
-      ## interfaces: full hijacking where the application takes over the
+      ## interfaces: full hijacking where the application takes over the raw
       ## connection, and partial hijacking where the application takes over
       ## just the response body stream. In both cases, the application is
       ## responsible for closing the hijacked stream.
