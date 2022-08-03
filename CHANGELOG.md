@@ -20,6 +20,8 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.input` is no longer required to be rewindable.
 - `rack.multithread`/`rack.multiprocess`/`rack.run_once`/`rack.version` are no longer required environment keys.
 - `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
+- `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
+- `rack.hijack_io` has been removed completely.
 
 ### Removed
 
@@ -59,6 +61,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Request.forwarded_authority` (and methods that call it, such as `host`) now returns the last authority in the forwarded header, instead of the first, as earlier forwarded authorities can be forged by clients. This restores the Rack 2.1 behavior. ([#1829](https://github.com/rack/rack/issues/1809), [@jeremyevans])
 - Use lower case cookie attributes when creating cookies, and fold cookie attributes to lower case when reading cookies (specifically impacting `secure` and `httponly` attributes). ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix])
 - The response array must now be mutable (non-frozen) so middleware can modify it without allocating a new Array,therefore reducing object allocations. ([#1887](https://github.com/rack/rack/pull/1887), [#1927](https://github.com/rack/rack/pull/1927), [@amatsuda], [@ioquatix])
+- `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional. `rack.hijack_io` is no longer required/specified. ([#1939](https://github.com/rack/rack/pull/1939), [@ioquatix])
 
 ### Fixed
 

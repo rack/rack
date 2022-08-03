@@ -80,8 +80,6 @@ module Rack
           RACK_ERRORS       => $stderr,
           RACK_URL_SCHEME   => ["yes", "on", "1"].include?(env[HTTPS]) ? "https" : "http",
           RACK_IS_HIJACK    => true,
-          RACK_HIJACK       => lambda { raise NotImplementedError, "only partial hijack is supported."},
-          RACK_HIJACK_IO    => nil
         )
 
         env[QUERY_STRING] ||= ""

@@ -793,63 +793,22 @@ describe Rack::Lint do
     assert_lint 1, ''.dup
   end
 
-  it "notice hijack errors" do
+  it "notices when request env doesn't have a valid rack.hijack callback" do
     lambda {
       Rack::Lint.new(lambda { |env|
                        env['rack.hijack'].call
                        [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({ 'rack.hijack?' => false, 'rack.hijack' => Object.new }))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'rack.hijack? is false, but rack.hijack is present'
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env['rack.hijack'].call
-                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({ 'rack.hijack?' => false, 'rack.hijack_io' => Object.new }))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'rack.hijack? is false, but rack.hijack_io is present'
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env['rack.hijack'].call
-                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => Object.new }))
+                     }).call(env({ 'rack.hijack' => Object.new }))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/rack.hijack must respond to call/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env['rack.hijack'].call
-                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/rack.hijack_io must respond to read/)
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
-                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { Object.new } }))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'rack.hijack header must respond to #call'
-
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
-                     }).call(env({}))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'rack.hijack header must not be present if server does not support hijacking'
-
-      Rack::Lint.new(lambda { |env|
-                       env['rack.hijack'].call
-                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({ 'rack.hijack?' => true, 'rack.hijack' => lambda { StringIO.new }, 'rack.hijack_io' => StringIO.new })).
-        first.must_equal 201
-
-      Rack::Lint.new(lambda { |env|
-                       env['rack.hijack?'] = true
-                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' => lambda {|io| io }, 'rack.hijack_io' => StringIO.new }, []]
-                     }).call(env({}))[1]['rack.hijack'].call(StringIO.new).read.must_equal ''
   end
 
+  it "notices when the response headers don't have a valid rack.hijack callback" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
+                     }).call(env({ 'rack.hijack?' => true }))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack header must respond to #call'
+  end
 end
