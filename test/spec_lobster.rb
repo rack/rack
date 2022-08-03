@@ -5,7 +5,7 @@ require_relative 'helper'
 require_relative '../lib/rack/lobster'
 separate_testing do
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
 end
 
 module LobsterHelpers

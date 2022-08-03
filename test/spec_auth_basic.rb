@@ -4,7 +4,7 @@ require_relative 'helper'
 
 separate_testing do
   require_relative '../lib/rack/auth/basic'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/lint'
 end
 

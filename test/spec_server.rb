@@ -19,7 +19,7 @@ end
 separate_testing do
   require_relative '../lib/rack/server'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/show_exceptions'
   require_relative '../lib/rack/tempfile_reaper'
   require_relative '../lib/rack/handler'

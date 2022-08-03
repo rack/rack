@@ -6,7 +6,7 @@ require 'zlib'
 separate_testing do
   require_relative '../lib/rack/static'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
 end
 
 class DummyApp

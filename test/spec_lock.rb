@@ -4,7 +4,7 @@ require_relative 'helper'
 
 separate_testing do
   require_relative '../lib/rack/lock'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/lint'
 end
 
@@ -84,11 +84,11 @@ describe Rack::Lock do
 
   it 'call super on close' do
     env      = Rack::MockRequest.env_for("/")
-    response = Class.new {
+    response = Class.new do
       attr_accessor :close_called
       def initialize; @close_called = false; end
       def close; @close_called = true; end
-    }.new
+    end.new
 
     app = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, response] })
     app.call(env)

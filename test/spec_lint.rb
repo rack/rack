@@ -5,7 +5,7 @@ require 'tempfile'
 
 separate_testing do
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
 end
 
 describe Rack::Lint do

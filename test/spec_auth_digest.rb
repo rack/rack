@@ -7,7 +7,7 @@ separate_testing do
   require_relative '../lib/rack/auth/digest/nonce'
   require_relative '../lib/rack/auth/digest/params'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/urlmap'
   require_relative '../lib/rack/method_override'
 end

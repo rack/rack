@@ -55,8 +55,8 @@ module Rack
   autoload :Utils, "rack/utils"
   autoload :Multipart, "rack/multipart"
 
-  autoload :MockRequest, "rack/mock"
-  autoload :MockResponse, "rack/mock"
+  autoload :MockRequest, "rack/mock_request"
+  autoload :MockResponse, "rack/mock_response"
 
   autoload :Request, "rack/request"
   autoload :Response, "rack/response"

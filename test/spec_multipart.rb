@@ -6,7 +6,7 @@ require 'timeout'
 separate_testing do
   require_relative '../lib/rack/multipart'
   require_relative '../lib/rack/lint'
-  require_relative '../lib/rack/mock'
+  require_relative '../lib/rack/mock_request'
   require_relative '../lib/rack/query_parser'
   require_relative '../lib/rack/utils'
   require_relative '../lib/rack/request'
