@@ -8,8 +8,8 @@ end
 
 describe Rack do
   describe 'version' do
-    it 'defaults to a hard-coded api version' do
-      Rack.version.must_match(/\d+\.\d+\.\d+/)
+    it 'is a version string' do
+      Rack::RELEASE.must_match(/\d+\.\d+\.\d+/)
     end
   end
 end
