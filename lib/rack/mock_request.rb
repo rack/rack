@@ -2,14 +2,8 @@
 
 require 'uri'
 require 'stringio'
-require 'cgi/cookie'
-require 'time'
 
-require_relative 'response'
-require_relative 'version'
 require_relative 'constants'
-require_relative 'headers'
-
 require_relative 'mock_response'
 
 module Rack

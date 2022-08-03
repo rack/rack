@@ -1,14 +1,9 @@
 # frozen_string_literal: true
 
-require 'uri'
-require 'stringio'
 require 'cgi/cookie'
 require 'time'
 
 require_relative 'response'
-require_relative 'version'
-require_relative 'constants'
-require_relative 'headers'
 
 module Rack
   # Rack::MockResponse provides useful helpers for testing your apps.
