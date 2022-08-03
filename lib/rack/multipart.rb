@@ -19,7 +19,7 @@ module Rack
     MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*\s+name=(#{VALUE})/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
     # Updated definitions from RFC 2231
-    ATTRIBUTE_CHAR = %r{[^ \t\v\n\r)(><@,;:\\"/\[\]?='*%]}
+    ATTRIBUTE_CHAR = %r{[^ \x00-\x1f\x7f)(><@,;:\\"/\[\]?='*%]}
     ATTRIBUTE = /#{ATTRIBUTE_CHAR}+/
     SECTION = /\*[0-9]+/
     REGULAR_PARAMETER_NAME = /#{ATTRIBUTE}#{SECTION}?/
