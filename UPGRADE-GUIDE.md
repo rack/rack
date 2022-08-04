@@ -32,15 +32,15 @@ end
 
 Rack 3 requires the response Array `[status, headers, body]` to be mutable.
 
-## Response body ##
+## Response body might not respond to `#each`
 
-Rack 3 supports a streaming mode for the response body and has some additional requirements compared to previous versions which might lead to some issues while upgrading.
+Rack 3 has more strict requirements on response bodies. Previously, response body would only need to respond to `#each` and optionally `#close`. In addition, there was no way to determine whether it was safe to call `#each` and buffer the response.
 
-### Implementing `#to_ary` ###
+### Response bodies can be buffered if they expose `#to_ary`
 
 If your body responds to `#to_ary` then it must return an `Array` whose contents are identical to that produced by calling `#each`. If the body responds to both `#to_ary and `#close` then its implementation of `#to_ary` must also call `#close`.
 
-### Middleware ###
+### Middleware should not directly modify the response body 
 
 Be aware that the response body might not respond to `#each` and you must now check if the body responds to `#each` or not to determine if it is an enumerable or streaming body.
 
