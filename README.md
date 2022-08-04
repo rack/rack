@@ -28,7 +28,7 @@ run do |env|
 end
 ```
 
-Run this using the rackup gem or another [Supported web server](#supported-web-servers).
+Run this using the rackup gem or another [supported web server](#supported-web-servers).
 
 ```bash
 $ gem install rackup
