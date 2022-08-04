@@ -34,6 +34,6 @@ Rack 3 requires the response Array `[status, headers, body]` to be mutable.
 
 ## Response body might not respond to `#each`
 
-Rack 3 has more strict requirments on response bodies. Previously, response body would only need to respond to `#each` and optionally `#close`. In addition, there was no way to determine whether it was safe to call `#each` and buffer the response.
+Rack 3 has more strict requirements on response bodies. Previously, response body would only need to respond to `#each` and optionally `#close`. In addition, there was no way to determine whether it was safe to call `#each` and buffer the response.
 
 It is generally only safe to buffer a response body if it responds to `#to_ary`.
