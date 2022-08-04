@@ -174,7 +174,7 @@ Rack::Utils.multipart_part_limit = 128 # default
 ```
 
 The maximum number of parts a request can contain.
-Accepting too many part can lead to the server running out of file handles.
+Accepting too many parts can lead to the server running out of file handles.
 
 The default is 128, which means that a single request can't upload more than
 128 files at once. Set to 0 for no limit.
