@@ -28,7 +28,8 @@ All notable changes to this project will be documented in this file. For info on
 - Remove `rack.multithread`/`rack.multiprocess`/`rack.run_once`. These variables generally come too late to be useful. ([#1720](https://github.com/rack/rack/pull/1720), [@ioquatix], [@jeremyevans]))
 - Remove deprecated Rack::Request::SCHEME_WHITELIST. ([@jeremyevans])
 - Remove internal cookie deletion using pattern matching, there are very few practical cases where it would be useful and browsers handle it correctly without us doing anything special. ([#1844](https://github.com/rack/rack/pull/1844), [@ioquatix])
-- Remove `rack.version` as it comes too late to be useful. ([#1938](https://gituhb.com/rack/rack/pull/1938), [@ioquatix])
+- Remove `rack.version` as it comes too late to be useful. ([#1938](https://github.com/rack/rack/pull/1938), [@ioquatix])
+- Extract `rackup` command, `Rack::Server`, `Rack::Handler` and related code into a separate gem. ([#1937](https://github.com/rack/rack/pull/1937), [@ioquatix])
 
 ### Added
 
