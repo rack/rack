@@ -34,6 +34,13 @@ describe Rack::Builder do
     Rack::Lint.new Rack::Builder.new(&block).to_app
   end
 
+  it "supports run with block" do
+    app = builder_to_app do
+      run {|env| [200, { "content-type" => "text/plain" }, ["OK"]]}
+    end
+    Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
+  end
+
   it "supports mapping" do
     app = builder_to_app do
       map '/' do |outer_env|

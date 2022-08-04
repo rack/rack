@@ -157,22 +157,42 @@ module Rack
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
     # :nocov:
 
-    # Takes an argument that is an object that responds to #call and returns a Rack response.
-    # The simplest form of this is a lambda object:
+    # Takes a block or argument that is an object that responds to #call and
+    # returns a Rack response.
+    #
+    # You can use a block:
+    #
+    #   run do |env|
+    #     [200, { "content-type" => "text/plain" }, ["Hello World!"]]
+    #   end
+    #
+    # You can also provide a lambda:
     #
     #   run lambda { |env| [200, { "content-type" => "text/plain" }, ["OK"]] }
     #
-    # However this could also be a class:
+    # You can also provide a class instance:
     #
     #   class Heartbeat
-    #     def self.call(env)
+    #     def call(env)
     #      [200, { "content-type" => "text/plain" }, ["OK"]]
     #     end
     #   end
     #
-    #   run Heartbeat
-    def run(app)
-      @run = app
+    #   run Heartbeat.new
+    #
+    # It could also be a module:
+    #
+    #   module HelloWorld
+    #     def call(env)
+    #      [200, { "content-type" => "text/plain" }, ["Hello World"]]
+    #     end
+    #   end
+    #
+    #   run HelloWorld
+    def run(app = nil, &block)
+      raise ArgumentError, "Both app and block given!" if app && block_given?
+
+      @run = app || block
     end
 
     # Takes a lambda or block that is used to warm-up the application. This block is called
