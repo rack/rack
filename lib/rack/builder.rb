@@ -190,6 +190,8 @@ module Rack
     #
     #   run HelloWorld
     def run(app = nil, &block)
+      raise ArgumentError, "Both app and block given!" if app && block_given?
+
       @run = app || block
     end
 
