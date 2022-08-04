@@ -162,7 +162,7 @@ For example, if set to 3, this query string would be allowed:
 but this query string would not be allowed:
 
 ```
-?a](b]](c]](d]=e
+?a[b][c][d]=e
 ```
 
 Limiting the depth prevents a possible stack overflow when parsing parameters.
