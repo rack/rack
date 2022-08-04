@@ -83,7 +83,7 @@ applications needs using middleware. Rack itself ships with the following
 middleware:
 
 * `Rack::CommonLogger` for creating Apache-style logfiles.
-* `Rack::ConditionalGet` for returning not modified responses when the response
+* `Rack::ConditionalGet` for returning [Not Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304) responses when the response
   has not changed.
 * `Rack::Config` for modifying the environment before processing the request.
 * `Rack::ContentLength` for setting content-length header based on body size.
