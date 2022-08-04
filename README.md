@@ -86,8 +86,8 @@ middleware:
 * `Rack::ConditionalGet` for returning [Not Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304) responses when the response
   has not changed.
 * `Rack::Config` for modifying the environment before processing the request.
-* `Rack::ContentLength` for setting content-length header based on body size.
-* `Rack::ContentType` for setting default content-type header for responses.
+* `Rack::ContentLength` for setting a `content-length` header based on body size.
+* `Rack::ContentType` for setting a default `content-type` header for responses.
 * `Rack::Deflater` for compressing responses with gzip.
 * `Rack::ETag` for setting ETag header on string bodies.
 * `Rack::Events` for providing easy hooks when a request is received
