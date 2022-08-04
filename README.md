@@ -1,6 +1,6 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack 3 was recently released. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more details about migrating your existing severs, middlewares and applications. For detailed information on specific changes, check the [changelog](CHANGELOG.md).
+> **_NOTE:_** Rack 3 was recently released. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more details about migrating your existing servers, middlewares and applications. For detailed information on specific changes, check the [changelog](CHANGELOG.md).
 
 Rack provides a minimal, modular, and adaptable interface for developing
 web applications in Ruby. By wrapping HTTP requests and responses in
