@@ -211,7 +211,7 @@ add-on components for Rack and it is easy to contribute new modules.
 
 ### `rack-session`
 
-Provides convenient server side session management for Rack.
+Provides convenient session management for Rack.
 
 * https://github.com/rack/rack-session
 
