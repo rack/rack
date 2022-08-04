@@ -40,6 +40,7 @@ All notable changes to this project will be documented in this file. For info on
 - The RFC 7239 Forwarded header is now supported and considered by default when looking for information on forwarding, falling back to the X-Forwarded-* headers. `Rack::Request.forwarded_priority` accessor has been added for configuring the priority of which header to check.  ([#1423](https://github.com/rack/rack/issues/1423), [@jeremyevans])
 - Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
 - Support callable body for explicit streaming support and clarify streaming response body behaviour. ([#1745](https://github.com/rack/rack/pull/1745), [@ioquatix], [#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
+- Allow `Rack::Builder#run` to take a block instead of an argument. ([#1942](https://github.com/rack/rack/pull/1942), [@ioquatix])
 
 ### Changed
 
