@@ -194,19 +194,10 @@ Please post bugs, suggestions and patches to
 [GitHub Issues](https://github.com/rack/rack/issues).
 
 Please check our [Security Policy](https://github.com/rack/rack/security/policy)
-for responsible disclosure and security bug reporting process.
-
-Please post security related bugs and suggestions following our
-[Security Policy](https://github.com/rack/rack/security/policy#reporting-a-bug)
-Due to wide usage of the library, it is strongly preferred
-that we manage timing in order to provide viable patches at the time of
-disclosure. Your assistance in this matter is greatly appreciated.
-
-Git repository (send Git patches to the mailing list):
-
-* https://github.com/rack/rack
-
-You are also welcome to join the #rack channel on irc.freenode.net.
+for responsible disclosure and security bug reporting process. Due to wide
+usage of the library, it is strongly preferred that we manage timing in order
+to provide viable patches at the time of disclosure. Your assistance in this
+matter is greatly appreciated.
 
 ## See Also
 
