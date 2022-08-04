@@ -65,14 +65,14 @@ Rack provides a separate gem, [rackup](https://github.com/rack/rackup) which is 
 These frameworks and many others support the [Rack Specification]:
 
 * [Camping](http://www.ruby-camping.com/)
-* [Coset](http://leahneukirchen.org/repos/coset/)
+* [Coset](https://leahneukirchen.org/repos/coset/)
 * [Hanami](https://hanamirb.org/)
-* [Padrino](http://padrinorb.com/)
+* [Padrino](https://padrinorb.com/)
 * [Ramaze](http://ramaze.net/)
 * [Roda](https://github.com/jeremyevans/roda)
 * [Ruby on Rails](https://rubyonrails.org/)
 * [Rum](https://github.com/leahneukirchen/rum)
-* [Sinatra](http://sinatrarb.com/)
+* [Sinatra](https://sinatrarb.com/)
 * [Utopia](https://github.com/socketry/utopia)
 * [WABuR](https://github.com/ohler55/wabur)
 
