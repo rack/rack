@@ -85,11 +85,12 @@ Rack 3 requires all response headers to be lower case. This is to simplify fetch
 ```ruby
 def call(env)
 	response = @app.call(env)
+	# HeaderHash must allocate internal objects and compute lower case keys:
 	headers = Rack::Utils::HeaderHash[response[1]]
 
-	headers['ETag'] = compute_etag(response)
+	cache_response(headers['ETag'], response)
 
-	return [response[0], headers, response[2]]
+	...
 end
 ```
 
@@ -98,11 +99,12 @@ but now you must just use the normal form for HTTP header:
 ```ruby
 def call(env)
 	response = @app.call(env)
+	# A plain hash with lower case keys:
 	headers = response[1]
 
-	headers['etag'] = compute_etag(response)
+	cache_response(headers['etag'], response)
 
-	return response
+	...
 end
 ```
 
