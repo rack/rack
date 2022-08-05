@@ -127,7 +127,7 @@ git push origin my-feature-branch -f
 ## Check on Your Pull Request
 
 Go back to your pull request after a few minutes and see whether it passed
-muster with Travis-CI. Everything should look green, otherwise fix issues and
+tests with GitHub Actions. Everything should look green, otherwise fix issues and
 amend your commit as described above.
 
 ## Be Patient
