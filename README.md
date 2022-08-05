@@ -162,7 +162,7 @@ The maximum amount of nesting allowed in parameters.
 For example, if set to 3, this query string would be allowed:
 
 ```
-?a](b]](c]=d
+?a[b][c]=d
 ```
 
 but this query string would not be allowed:
