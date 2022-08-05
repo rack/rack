@@ -1,6 +1,6 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack v3.0.0rc1 was recently released. Please check the [Upgrade
+> **_NOTE:_** Rack v3.0.0beta1 was recently released. Please check the [Upgrade
 > Guide](UPGRADE-GUIDE.md) for more details about migrating your existing
 > servers, middlewares and applications. For detailed information on specific
 > changes, check the [Change Log](CHANGELOG.md).
