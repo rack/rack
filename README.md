@@ -15,6 +15,10 @@ which all Rack applications should conform to.
 Add the rack gem to your application bundle, or follow the instructions provided by a [supported web framework](#supported-web-frameworks):
 
 ```bash
+# Install it generally:
+$ gem install rack
+
+# or, add it to your current application gemfile:
 $ bundle add rack
 ```
 
@@ -42,12 +46,12 @@ Hello World
 Rack is supported by a wide range of servers, including:
 
 * [Agoo](https://github.com/ohler55/agoo)
-* [Falcon](https://github.com/socketry/falcon)
+* [Falcon](https://github.com/socketry/falcon) **(Rack 3 Compatible)**
 * [Iodine](https://github.com/boazsegev/iodine)
 * [NGINX Unit](https://unit.nginx.org/)
 * [Phusion Passenger](https://www.phusionpassenger.com/) (which is mod_rack for Apache and for nginx)
 * [Puma](https://puma.io/)
-* [Thin](https://rubygems.org/gems/thin)
+* [Thin](https://github.com/macournoyer/thin)
 * [Unicorn](https://yhbt.net/unicorn/)
 * [uWSGI](https://uwsgi-docs.readthedocs.io/en/latest/)
 * [Lamby](https://lamby.custominktech.com) (for AWS Lambda)
@@ -64,17 +68,19 @@ Rack provides a separate gem, [rackup](https://github.com/rack/rackup) which is 
 
 These frameworks and many others support the [Rack Specification]:
 
-* [Camping](http://www.ruby-camping.com/)
-* [Coset](https://leahneukirchen.org/repos/coset/)
+* [Camping](https://github.com/camping/camping)
 * [Hanami](https://hanamirb.org/)
 * [Padrino](https://padrinorb.com/)
-* [Ramaze](http://ramaze.net/)
-* [Roda](https://github.com/jeremyevans/roda)
+* [Roda](https://github.com/jeremyevans/roda) **(Rack 3 Compatible)**
 * [Ruby on Rails](https://rubyonrails.org/)
-* [Rum](https://github.com/leahneukirchen/rum)
 * [Sinatra](https://sinatrarb.com/)
-* [Utopia](https://github.com/socketry/utopia)
+* [Utopia](https://github.com/socketry/utopia) **(Rack 3 Compatible)**
 * [WABuR](https://github.com/ohler55/wabur)
+
+### Older (possibly unsupported) web frameworks
+
+* [Ramaze](http://ramaze.net/)
+* [Rum](https://github.com/leahneukirchen/rum)
 
 ## Available middleware shipped with Rack
 

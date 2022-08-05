@@ -39,7 +39,7 @@ NOT_FOUND = [404, {}, ["Not Found"]].freeze
 
 def call(env)
   ...
-	return NOT_FOUND
+  return NOT_FOUND
 end
 ```
 
@@ -47,12 +47,12 @@ should be rewritten as:
 
 ```ruby
 def not_found
-	[404, {}, ["Not Found"]]
+  [404, {}, ["Not Found"]]
 end
 
 def call(env)
   ...
-	return not_found
+  return not_found
 end
 ```
 
@@ -84,13 +84,13 @@ Rack 3 requires all response headers to be lower case. This is to simplify fetch
 
 ```ruby
 def call(env)
-	response = @app.call(env)
-	# HeaderHash must allocate internal objects and compute lower case keys:
-	headers = Rack::Utils::HeaderHash[response[1]]
+  response = @app.call(env)
+  # HeaderHash must allocate internal objects and compute lower case keys:
+  headers = Rack::Utils::HeaderHash[response[1]]
 
-	cache_response(headers['ETag'], response)
+  cache_response(headers['ETag'], response)
 
-	...
+  ...
 end
 ```
 
@@ -98,13 +98,13 @@ but now you must just use the normal form for HTTP header:
 
 ```ruby
 def call(env)
-	response = @app.call(env)
-	# A plain hash with lower case keys:
-	headers = response[1]
+  response = @app.call(env)
+  # A plain hash with lower case keys:
+  headers = response[1]
 
-	cache_response(headers['etag'], response)
+  cache_response(headers['etag'], response)
 
-	...
+  ...
 end
 ```
 
@@ -115,15 +115,15 @@ Response header values can be an Array to handle multiple values
 
 ```ruby
 def set_cookie_header!(headers, key, value)
-	if header = headers[SET_COOKIE]
-		if header.is_a?(Array)
-			header << set_cookie_header(key, value)
-		else
-			headers[SET_COOKIE] = [header, set_cookie_header(key, value)]
-		end
-	else
-		headers[SET_COOKIE] = set_cookie_header(key, value)
-	end
+  if header = headers[SET_COOKIE]
+    if header.is_a?(Array)
+      header << set_cookie_header(key, value)
+    else
+      headers[SET_COOKIE] = [header, set_cookie_header(key, value)]
+    end
+  else
+    headers[SET_COOKIE] = set_cookie_header(key, value)
+  end
 end
 ```
 
@@ -139,16 +139,16 @@ Previously, it was not possible to determine whether a response body was immedia
 
 ```ruby
 def call(env)
-	status, headers, body = @app.call(env)
+  status, headers, body = @app.call(env)
 
-	# Check if we can buffer the body into an Array, so we can compute a digest:
-	if body.respond_to?(:to_ary)
-		body = body.to_ary
-		digest = digest_body(body)
-		headers[ETAG_STRING] = %(W/"#{digest}") if digest
-	end
+  # Check if we can buffer the body into an Array, so we can compute a digest:
+  if body.respond_to?(:to_ary)
+    body = body.to_ary
+    digest = digest_body(body)
+    headers[ETAG_STRING] = %(W/"#{digest}") if digest
+  end
 
-	return [status, headers, body]
+  return [status, headers, body]  
 end
 ```
 
@@ -156,4 +156,4 @@ end
 
 Be aware that the response body might not respond to `#each` and you must now check if the body responds to `#each` or not to determine if it is an enumerable or streaming body.
 
-You must not call `#each` directly on the body and instead you should return a new body that calls `#each` on the original body and yields at least once per iteration.
+You must not call `#each` directly on the body and instead you should return a new body that calls `#each` on the original body.
