@@ -71,7 +71,6 @@ gem 'rack-session'
 ```
 
 
-
 ## Request Changes
 
 ### `rack.version` is no longer required
