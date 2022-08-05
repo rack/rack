@@ -105,7 +105,7 @@ middleware:
   size.
 * `Rack::ContentType` for setting a default `content-type` header for responses.
 * `Rack::Deflater` for compressing responses with gzip.
-* `Rack::ETag` for setting `etag` header on string bodies.
+* `Rack::ETag` for setting `etag` header on bodies that can be buffered.
 * `Rack::Events` for providing easy hooks when a request is received and when
   the response is sent.
 * `Rack::Files` for serving static files.
