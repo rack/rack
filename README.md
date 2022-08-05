@@ -121,7 +121,7 @@ middleware:
   request.
 
 All these components use the same interface, which is described in
-detail in the Rack specification.  These optional components can be
+detail in the [Rack Specification]. These optional components can be
 used in any way you wish.
 
 ### Convenience interfaces
