@@ -229,7 +229,7 @@ response.
 
 If your body responds to `#to_ary` then it must return an `Array` whose contents
 are identical to that produced by calling `#each`. If the body responds to both
-`#to_ary and `#close` then its implementation of `#to_ary` must also call
+`#to_ary` and `#close` then its implementation of `#to_ary` must also call
 `#close`.
 
 Previously, it was not possible to determine whether a response body was
