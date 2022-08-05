@@ -54,7 +54,7 @@ Rack is supported by a wide range of servers, including:
 
 You will need to consult the server documentation to find out what features and
 limitations they may have. In general, any valid Rack app will run the same on
-all these handlers, without changing anything.
+all these servers, without changing anything.
 
 ### Rackup
 
