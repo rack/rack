@@ -11,7 +11,7 @@ Fork the [project on GitHub](https://github.com/rack/rack) and check out your
 copy.
 
 ```
-git clone https://github.com/contributor/rack.git
+git clone https://github.com/(your-github-username)/rack.git
 cd rack
 git remote add upstream https://github.com/rack/rack.git
 ```
@@ -101,8 +101,8 @@ git push origin my-feature-branch
 
 ## Make a Pull Request
 
-Go to https://github.com/contributor/rack and select your feature branch. Click
-the 'Pull Request' button and fill out the form. Pull requests are usually
+Go to your fork of rack on GitHub and select your feature branch. Click the
+'Pull Request' button and fill out the form. Pull requests are usually
 reviewed within a few days.
 
 ## Rebase
@@ -133,7 +133,7 @@ amend your commit as described above.
 ## Be Patient
 
 It's likely that your change will not be merged and that the nitpicky
-maintainers will ask you to do more, or fix seemingly benign problems. Hang on
+maintainers will ask you to do more, or fix seemingly benign problems. Hang in
 there!
 
 ## Thank You
