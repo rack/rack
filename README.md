@@ -1,18 +1,22 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack v3.0.0rc1 was recently released. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more details about migrating your existing servers, middlewares and applications. For detailed information on specific changes, check the [changelog](CHANGELOG.md).
+> **_NOTE:_** Rack v3.0.0rc1 was recently released. Please check the [Upgrade
+> Guide](UPGRADE-GUIDE.md) for more details about migrating your existing
+> servers, middlewares and applications. For detailed information on specific
+> changes, check the [Change Log](CHANGELOG.md).
 
-Rack provides a minimal, modular, and adaptable interface for developing
-web applications in Ruby. By wrapping HTTP requests and responses in
-the simplest way possible, it unifies and distills the bridge between web
-servers, web frameworks, and web application into a single method call.
+Rack provides a minimal, modular, and adaptable interface for developing web
+applications in Ruby. By wrapping HTTP requests and responses in the simplest
+way possible, it unifies and distills the bridge between web servers, web
+frameworks, and web application into a single method call.
 
-The exact details of this are described in the [Rack Specification],
-which all Rack applications should conform to.
+The exact details of this are described in the [Rack Specification], which all
+Rack applications should conform to.
 
 ## Installation
 
-Add the rack gem to your application bundle, or follow the instructions provided by a [supported web framework](#supported-web-frameworks):
+Add the rack gem to your application bundle, or follow the instructions provided
+by a [supported web framework](#supported-web-frameworks):
 
 ```bash
 # Install it generally:
@@ -32,7 +36,8 @@ run do |env|
 end
 ```
 
-Run this using the rackup gem or another [supported web server](#supported-web-servers).
+Run this using the rackup gem or another [supported web
+server](#supported-web-servers).
 
 ```bash
 $ gem install rackup
@@ -49,7 +54,8 @@ Rack is supported by a wide range of servers, including:
 * [Falcon](https://github.com/socketry/falcon) **(Rack 3 Compatible)**
 * [Iodine](https://github.com/boazsegev/iodine)
 * [NGINX Unit](https://unit.nginx.org/)
-* [Phusion Passenger](https://www.phusionpassenger.com/) (which is mod_rack for Apache and for nginx)
+* [Phusion Passenger](https://www.phusionpassenger.com/) (which is mod_rack for
+  Apache and for nginx)
 * [Puma](https://puma.io/)
 * [Thin](https://github.com/macournoyer/thin)
 * [Unicorn](https://yhbt.net/unicorn/)
@@ -62,7 +68,9 @@ all these servers, without changing anything.
 
 ### Rackup
 
-Rack provides a separate gem, [rackup](https://github.com/rack/rackup) which is a generic interface for running a Rack application on supported servers, which include `WEBRick`, `Puma`, `Falcon` and others.
+Rack provides a separate gem, [rackup](https://github.com/rack/rackup) which is
+a generic interface for running a Rack application on supported servers, which
+include `WEBRick`, `Puma`, `Falcon` and others.
 
 ## Supported web frameworks
 
@@ -89,15 +97,17 @@ applications needs using middleware. Rack itself ships with the following
 middleware:
 
 * `Rack::CommonLogger` for creating Apache-style logfiles.
-* `Rack::ConditionalGet` for returning [Not Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304) responses when the response
-  has not changed.
+* `Rack::ConditionalGet` for returning [Not
+  Modified](https://developer.mozilla.org/en-US/docs/Web/HTTP/Status/304)
+  responses when the response has not changed.
 * `Rack::Config` for modifying the environment before processing the request.
-* `Rack::ContentLength` for setting a `content-length` header based on body size.
+* `Rack::ContentLength` for setting a `content-length` header based on body
+  size.
 * `Rack::ContentType` for setting a default `content-type` header for responses.
 * `Rack::Deflater` for compressing responses with gzip.
-* `Rack::ETag` for setting ETag header on string bodies.
-* `Rack::Events` for providing easy hooks when a request is received
-  and when the response is sent.
+* `Rack::ETag` for setting `etag` header on string bodies.
+* `Rack::Events` for providing easy hooks when a request is received and when
+  the response is sent.
 * `Rack::Files` for serving static files.
 * `Rack::Head` for returning an empty body for HEAD requests.
 * `Rack::Lint` for checking conformance to the [Rack Specification].
@@ -105,52 +115,49 @@ middleware:
 * `Rack::Logger` for setting a logger to handle logging errors.
 * `Rack::MethodOverride` for modifying the request method based on a submitted
   parameter.
-* `Rack::Recursive` for including data from other paths in the application,
-  and for performing internal redirects.
+* `Rack::Recursive` for including data from other paths in the application, and
+  for performing internal redirects.
 * `Rack::Reloader` for reloading files if they have been modified.
-* `Rack::Runtime` for including a response header with the time taken to
-  process the request.
-* `Rack::Sendfile` for working with web servers that can use optimized
-  file serving for file system paths.
-* `Rack::ShowException` for catching unhandled exceptions and
-  presenting them in a nice and helpful way with clickable backtrace.
+* `Rack::Runtime` for including a response header with the time taken to process
+  the request.
+* `Rack::Sendfile` for working with web servers that can use optimized file
+  serving for file system paths.
+* `Rack::ShowException` for catching unhandled exceptions and presenting them in
+  a nice and helpful way with clickable backtrace.
 * `Rack::ShowStatus` for using nice error pages for empty client error
   responses.
 * `Rack::Static` for more configurable serving of static files.
-* `Rack::TempfileReaper` for removing temporary files creating during a
-  request.
+* `Rack::TempfileReaper` for removing temporary files creating during a request.
 
-All these components use the same interface, which is described in
-detail in the [Rack Specification]. These optional components can be
-used in any way you wish.
+All these components use the same interface, which is described in detail in the
+[Rack Specification]. These optional components can be used in any way you wish.
 
 ### Convenience interfaces
 
-If you want to develop outside of existing frameworks, implement your
-own ones, or develop middleware, Rack provides many helpers to create
-Rack applications quickly and without doing the same web stuff all
-over:
+If you want to develop outside of existing frameworks, implement your own ones,
+or develop middleware, Rack provides many helpers to create Rack applications
+quickly and without doing the same web stuff all over:
 
-* `Rack::Request` which also provides query string parsing and
-  multipart handling.
-* `Rack::Response` for convenient generation of HTTP replies and
-  cookie handling.
-* `Rack::MockRequest` and `Rack::MockResponse` for efficient and quick
-  testing of Rack application without real HTTP round-trips.
-* `Rack::Cascade` for trying additional Rack applications if an
-  application returns a not found or method not supported response.
-* `Rack::Directory` for serving files under a given directory, with
-  directory indexes.
+* `Rack::Request` which also provides query string parsing and multipart
+  handling.
+* `Rack::Response` for convenient generation of HTTP replies and cookie
+  handling.
+* `Rack::MockRequest` and `Rack::MockResponse` for efficient and quick testing
+  of Rack application without real HTTP round-trips.
+* `Rack::Cascade` for trying additional Rack applications if an application
+  returns a not found or method not supported response.
+* `Rack::Directory` for serving files under a given directory, with directory
+  indexes.
 * `Rack::MediaType` for parsing content-type headers.
 * `Rack::Mime` for determining content-type based on file extension.
-* `Rack::RewindableInput` for making any IO object rewindable, using
-  a temporary file buffer.
+* `Rack::RewindableInput` for making any IO object rewindable, using a temporary
+  file buffer.
 * `Rack::URLMap` to route to multiple applications inside the same process.
 
 ## Configuration
 
-Rack exposes several configuration parameters to control various features of
-the implementation.
+Rack exposes several configuration parameters to control various features of the
+implementation.
 
 ### `param_depth_limit`
 
@@ -158,8 +165,8 @@ the implementation.
 Rack::Utils.param_depth_limit = 32 # default
 ```
 
-The maximum amount of nesting allowed in parameters.
-For example, if set to 3, this query string would be allowed:
+The maximum amount of nesting allowed in parameters. For example, if set to 3,
+this query string would be allowed:
 
 ```
 ?a[b][c]=d
@@ -179,11 +186,11 @@ Limiting the depth prevents a possible stack overflow when parsing parameters.
 Rack::Utils.multipart_part_limit = 128 # default
 ```
 
-The maximum number of parts a request can contain.
-Accepting too many parts can lead to the server running out of file handles.
+The maximum number of parts a request can contain. Accepting too many parts can
+lead to the server running out of file handles.
 
-The default is 128, which means that a single request can't upload more than
-128 files at once. Set to 0 for no limit.
+The default is 128, which means that a single request can't upload more than 128
+files at once. Set to 0 for no limit.
 
 Can also be set via the `RACK_MULTIPART_PART_LIMIT` environment variable.
 
@@ -196,22 +203,22 @@ See [CHANGELOG.md](CHANGELOG.md).
 See [CONTRIBUTING.md](CONTRIBUTING.md) for specific details about how to make a
 contribution to Rack.
 
-Please post bugs, suggestions and patches to
-[GitHub Issues](https://github.com/rack/rack/issues).
+Please post bugs, suggestions and patches to [GitHub
+Issues](https://github.com/rack/rack/issues).
 
 Please check our [Security Policy](https://github.com/rack/rack/security/policy)
-for responsible disclosure and security bug reporting process. Due to wide
-usage of the library, it is strongly preferred that we manage timing in order
-to provide viable patches at the time of disclosure. Your assistance in this
-matter is greatly appreciated.
+for responsible disclosure and security bug reporting process. Due to wide usage
+of the library, it is strongly preferred that we manage timing in order to
+provide viable patches at the time of disclosure. Your assistance in this matter
+is greatly appreciated.
 
 ## See Also
 
 ### `rack-contrib`
 
-The plethora of useful middleware created the need for a project that
-collects fresh Rack middleware. `rack-contrib` includes a variety of
-add-on components for Rack and it is easy to contribute new modules.
+The plethora of useful middleware created the need for a project that collects
+fresh Rack middleware. `rack-contrib` includes a variety of add-on components
+for Rack and it is easy to contribute new modules.
 
 * https://github.com/rack/rack-contrib
 
@@ -251,16 +258,15 @@ would like to thank:
 * Tim Fletcher, for the HTTP authentication code.
 * Luc Heinrich for the Cookie sessions, the static file handler and bugfixes.
 * Armin Ronacher, for the logo and racktools.
-* Alex Beregszaszi, Alexander Kahn, Anil Wadghule, Aredridel, Ben
-  Alpert, Dan Kubb, Daniel Roethlisberger, Matt Todd, Tom Robinson,
-  Phil Hagelberg, S. Brent Faulkner, Bosko Milekic, Daniel Rodríguez
-  Troitiño, Genki Takiuchi, Geoffrey Grosenbach, Julien Sanchez, Kamal
-  Fariz Mahyuddin, Masayoshi Takahashi, Patrick Aljordm, Mig, Kazuhiro
-  Nishiyama, Jon Bardin, Konstantin Haase, Larry Siden, Matias
-  Korhonen, Sam Ruby, Simon Chiang, Tim Connor, Timur Batyrshin, and
-  Zach Brock for bug fixing and other improvements.
-* Eric Wong, Hongli Lai, Jeremy Kemper for their continuous support
-  and API improvements.
+* Alex Beregszaszi, Alexander Kahn, Anil Wadghule, Aredridel, Ben Alpert, Dan
+  Kubb, Daniel Roethlisberger, Matt Todd, Tom Robinson, Phil Hagelberg, S. Brent
+  Faulkner, Bosko Milekic, Daniel Rodríguez Troitiño, Genki Takiuchi, Geoffrey
+  Grosenbach, Julien Sanchez, Kamal Fariz Mahyuddin, Masayoshi Takahashi,
+  Patrick Aljordm, Mig, Kazuhiro Nishiyama, Jon Bardin, Konstantin Haase, Larry
+  Siden, Matias Korhonen, Sam Ruby, Simon Chiang, Tim Connor, Timur Batyrshin,
+  and Zach Brock for bug fixing and other improvements.
+* Eric Wong, Hongli Lai, Jeremy Kemper for their continuous support and API
+  improvements.
 * Yehuda Katz and Carl Lerche for refactoring rackup.
 * Brian Candler, for `Rack::ContentType`.
 * Graham Batty, for improved handler loading.
@@ -270,8 +276,8 @@ would like to thank:
 * Armin Röhrl, for tracking down bugs in the Cookie generator.
 * Alexander Kellett for testing the Gem and reviewing the announcement.
 * Marcus Rückert, for help with configuring and debugging lighttpd.
-* The WSGI team for the well-done and documented work they've done and
-  Rack builds up on.
+* The WSGI team for the well-done and documented work they've done and Rack
+  builds up on.
 * All bug reporters and patch contributors not mentioned above.
 
 ## License
