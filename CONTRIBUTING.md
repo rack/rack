@@ -1,21 +1,25 @@
-Contributing to Rack
-=====================
+# Contributing to Rack
 
-Rack is work of [hundreds of contributors](https://github.com/rack/rack/graphs/contributors). You're encouraged to submit [pull requests](https://github.com/rack/rack/pulls), [propose features and discuss issues](https://github.com/rack/rack/issues). When in doubt, post to the [rack-devel](http://groups.google.com/group/rack-devel) mailing list.
+Rack is work of [hundreds of
+contributors](https://github.com/rack/rack/graphs/contributors). You're
+encouraged to submit [pull requests](https://github.com/rack/rack/pulls) and
+[propose features and discuss issues](https://github.com/rack/rack/issues).
 
-#### Fork the Project
+## Fork the Project
 
-Fork the [project on GitHub](https://github.com/rack/rack) and check out your copy.
+Fork the [project on GitHub](https://github.com/rack/rack) and check out your
+copy.
 
 ```
-git clone https://github.com/contributor/rack.git
+git clone https://github.com/(your-github-username)/rack.git
 cd rack
 git remote add upstream https://github.com/rack/rack.git
 ```
 
-#### Create a Topic Branch
+## Create a Topic Branch
 
-Make sure your fork is up-to-date and create a topic branch for your feature or bug fix.
+Make sure your fork is up-to-date and create a topic branch for your feature or
+bug fix.
 
 ```
 git checkout main
@@ -23,7 +27,7 @@ git pull upstream main
 git checkout -b my-feature-branch
 ```
 
-#### Bundle Install and Quick Test
+## Bundle Install and Quick Test
 
 Ensure that you can build the project and run quick tests.
 
@@ -32,7 +36,7 @@ bundle install --without extra
 bundle exec rake test
 ```
 
-#### Running All Tests
+## Running All Tests
 
 Install all dependencies.
 
@@ -46,25 +50,15 @@ Run all tests.
 rake test
 ```
 
-The test suite has no dependencies outside of the core Ruby installation and bacon.
+## Write Tests
 
-Some tests will be skipped if a dependency is not found.
+Try to write a test that reproduces the problem you're trying to fix or
+describes a feature that you want to build.
 
-To run the test suite completely, you need:
+We definitely appreciate pull requests that highlight or reproduce a problem,
+even without a fix.
 
-  * fcgi
-  * dalli
-  * thin
-
-To test Memcache sessions, you need memcached (will be run on port 11211) and dalli installed.
-
-#### Write Tests
-
-Try to write a test that reproduces the problem you're trying to fix or describes a feature that you want to build.
-
-We definitely appreciate pull requests that highlight or reproduce a problem, even without a fix.
-
-#### Write Code
+## Write Code
 
 Implement your feature or bug fix.
 
@@ -74,15 +68,15 @@ Make sure that all tests pass:
 bundle exec rake test
 ```
 
-#### Write Documentation
+## Write Documentation
 
-Document any external behavior in the [README](README.rdoc).
+Document any external behavior in the [README](README.md).
 
-#### Update Changelog
+## Update Changelog
 
 Add a line to [CHANGELOG](CHANGELOG.md).
 
-#### Commit Changes
+## Commit Changes
 
 Make sure git knows your name and email address:
 
@@ -91,24 +85,27 @@ git config --global user.name "Your Name"
 git config --global user.email "contributor@example.com"
 ```
 
-Writing good commit logs is important. A commit log should describe what changed and why.
+Writing good commit logs is important. A commit log should describe what changed
+and why.
 
 ```
 git add ...
 git commit
 ```
 
-#### Push
+## Push
 
 ```
 git push origin my-feature-branch
 ```
 
-#### Make a Pull Request
+## Make a Pull Request
 
-Go to https://github.com/contributor/rack and select your feature branch. Click the 'Pull Request' button and fill out the form. Pull requests are usually reviewed within a few days.
+Go to your fork of rack on GitHub and select your feature branch. Click the
+'Pull Request' button and fill out the form. Pull requests are usually
+reviewed within a few days.
 
-#### Rebase
+## Rebase
 
 If you've been working on a change for a while, rebase with upstream/main.
 
@@ -118,7 +115,7 @@ git rebase upstream/main
 git push origin my-feature-branch -f
 ```
 
-#### Make Required Changes
+## Make Required Changes
 
 Amend your previous commit and force push the changes.
 
@@ -127,14 +124,19 @@ git commit --amend
 git push origin my-feature-branch -f
 ```
 
-#### Check on Your Pull Request
+## Check on Your Pull Request
 
-Go back to your pull request after a few minutes and see whether it passed muster with Travis-CI. Everything should look green, otherwise fix issues and amend your commit as described above.
+Go back to your pull request after a few minutes and see whether it passed
+tests with GitHub Actions. Everything should look green, otherwise fix issues and
+amend your commit as described above.
 
-#### Be Patient
+## Be Patient
 
-It's likely that your change will not be merged and that the nitpicky maintainers will ask you to do more, or fix seemingly benign problems. Hang on there!
+It's likely that your change will not be merged and that the nitpicky
+maintainers will ask you to do more, or fix seemingly benign problems. Hang in
+there!
 
-#### Thank You
+## Thank You
 
-Please do know that we really appreciate and value your time and work. We love you, really.
+Please do know that we really appreciate and value your time and work. We love
+you, really.
