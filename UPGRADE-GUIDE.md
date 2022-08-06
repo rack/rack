@@ -87,8 +87,8 @@ requirement.
 ### `rack.hijack?` now only applies to partial hijack
 
 Previously, both full and partial hijiack were controlled by the presence and
-value of `rack.hijack?`. Now, it only applies to partial hijack (which itself
-has been effectively replaced by streaming bodies).
+value of `rack.hijack?`. Now, it only applies to partial hijack (which now can
+be replaced by streaming bodies).
 
 ### `rack.hijack` alone indicates that you can execute a full hijack
 
