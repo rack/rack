@@ -258,3 +258,9 @@ or streaming body.
 
 You must not call `#each` directly on the body and instead you should return a
 new body that calls `#each` on the original body.
+
+### Status needs to be an `Integer`
+
+The response status is now required to be an `Integer` with a value greater or equal to 100.
+
+Previously any object that responded to `#to_i` was allowed, so a response like `["200", {}, ""]` will need to be replaced with `[200, {}, ""]` and so on. This can be done by calling `#to_i` on the status object yourself.
