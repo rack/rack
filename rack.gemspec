@@ -18,12 +18,11 @@ Gem::Specification.new do |s|
   EOF
 
   s.files = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
-    %w(MIT-LICENSE rack.gemspec Rakefile README.rdoc SPEC.rdoc)
+    %w(MIT-LICENSE rack.gemspec Rakefile README.md SPEC.rdoc)
 
   s.bindir = 'bin'
-  s.executables << 'rackup'
   s.require_path = 'lib'
-  s.extra_rdoc_files = ['README.rdoc', 'CHANGELOG.md', 'CONTRIBUTING.md']
+  s.extra_rdoc_files = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md']
 
   s.author = 'Leah Neukirchen'
   s.email = 'leah@vuxu.org'
