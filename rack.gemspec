@@ -18,9 +18,6 @@ Gem::Specification.new do |s|
   EOF
 
   s.files = Dir['lib/**/*'] + %w(MIT-LICENSE README.md SPEC.rdoc)
-
-  s.bindir = 'bin'
-  s.require_path = 'lib'
   s.extra_rdoc_files = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md']
 
   s.author = 'Leah Neukirchen'
