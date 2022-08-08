@@ -1,6 +1,6 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack v3.0.0beta1 was recently released. Please check the [Upgrade
+> **_NOTE:_** Rack v3.0.0.beta1 was recently released. Please check the [Upgrade
 > Guide](UPGRADE-GUIDE.md) for more details about migrating your existing
 > servers, middlewares and applications. For detailed information on specific
 > changes, check the [Change Log](CHANGELOG.md).
@@ -20,10 +20,10 @@ by a [supported web framework](#supported-web-frameworks):
 
 ```bash
 # Install it generally:
-$ gem install rack
+$ gem install rack --version 3.0.0.beta1
 
 # or, add it to your current application gemfile:
-$ bundle add rack
+$ bundle add rack  --version 3.0.0.beta1
 ```
 
 ## Usage
