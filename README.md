@@ -20,10 +20,16 @@ by a [supported web framework](#supported-web-frameworks):
 
 ```bash
 # Install it generally:
-$ gem install rack --version 3.0.0.beta1
+$ gem install rack --pre
 
 # or, add it to your current application gemfile:
-$ bundle add rack  --version 3.0.0.beta1
+$ bundle add rack --version 3.0.0.beta1
+```
+
+If you need features from `Rack::Session` or `bin/rackup` please add those gems separately.
+
+```bash
+$ gem install rack-session rackup
 ```
 
 ## Usage
