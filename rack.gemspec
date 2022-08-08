@@ -17,11 +17,7 @@ Gem::Specification.new do |s|
     middleware) into a single method call.
   EOF
 
-  s.files = Dir['{bin/*,contrib/*,example/*,lib/**/*}'] +
-    %w(MIT-LICENSE rack.gemspec Rakefile README.md SPEC.rdoc)
-
-  s.bindir = 'bin'
-  s.require_path = 'lib'
+  s.files = Dir['lib/**/*'] + %w(MIT-LICENSE README.md SPEC.rdoc)
   s.extra_rdoc_files = ['README.md', 'CHANGELOG.md', 'CONTRIBUTING.md']
 
   s.author = 'Leah Neukirchen'
