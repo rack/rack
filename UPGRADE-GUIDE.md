@@ -83,7 +83,7 @@ def call(env)
 end
 ```
 
-### `Rack::Session` is now moved to an external gem
+### `Rack::Session` was moved to a separate gem.
 
 Previously, `Rack::Session` was part of the `rack` gem. Not every application
 needs it, and it increases the security surface area of the `rack`, so it was
@@ -99,7 +99,7 @@ gem 'rack-session'
 
 This provides all the previously available functionality.
 
-### `bin/rackup` was moved to separate gem.
+### `bin/rackup` was moved to a separate gem.
 
 Previously, the `rackup` executable was included with Rack. Because WEBrick is
 no longer a default gem with Ruby, we had to make a decision: either `rack`
@@ -111,7 +111,7 @@ more rapidly on the design and implementation of `rackup` separately from
 In Rack 3, you will need to include:
 
 ```ruby
-gem 'rackup`
+gem 'rackup'
 ```
 
 This provides all the previously available functionality.
@@ -239,6 +239,23 @@ def call(env)
 
   ...
 end
+```
+
+If you want your code to work with Rack 3 without having to manually lowercase
+each header key used, instead of using a plain hash for headers, you can use
+`Rack::Headers` on Rack 3.
+
+```ruby
+  headers = Rack.release >= '3' ? Rack::Headers.new : {}
+```
+
+`Rack::Headers` is a subclass of Hash that will automatically lowercase keys:
+
+```ruby
+  headers = Rack::Headers.new
+  headers['Foo'] = 'bar'
+  headers['FOO'] # => 'bar'
+  headers.keys   # => ['foo']
 ```
 
 ### Multiple response header values are encoded using an `Array`
