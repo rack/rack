@@ -6,6 +6,33 @@ and/or applications.
 
 ## Interface Changes
 
+### Rack 2 & Rack 3 compatibility
+
+Most applications can be compatible with Rack 2 and 3 by following the strict intersection of the Rack Specifications, notably:
+
+- Response array must now be non-frozen.
+- Response `status` must now be an integer greater than or equal to 100.
+- Response `headers` must now be an unfrozen hash.
+- Response header keys can no longer include uppercase characters.
+- `rack.input` is no longer required to be rewindable.
+- `rack.multithread`/`rack.multiprocess`/`rack.run_once`/`rack.version` are no longer required environment keys.
+- `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
+- `rack.hijack_io` has been removed completely.
+- `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
+- Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
+
+There is one changed feature in Rack 3 which is not backwards compatible:
+
+- Response header values can be an `Array` to handle multiple values (and no longer supports `\n` encoded headers).
+
+You can achieve compatibility by using `Rack::Response#add_header` which provides an interface for adding headers without concern for the underlying format.
+
+There is one new feature in Rack 3 which is not directly backwards compatible:
+
+- Response body can now respond to `#call` (streaming body) instead of `#each` (enumerable body), for the equivalent of response hijacking in previous versions.
+
+If supported by your server, you can use partial rack hijack instead (or wrap this behaviour in a middleware).
+
 ### `config.ru` `Rack::Builder#run` now accepts block
 
 Previously, `Rack::Builder#run` method would only accept a callable argument:
@@ -70,6 +97,24 @@ dependency:
 gem 'rack-session'
 ```
 
+This provides all the previously available functionality.
+
+### `bin/rackup` was moved to separate gem.
+
+Previously, the `rackup` executable was included with Rack. Because WEBrick is
+no longer a default gem with Ruby, we had to make a decision: either `rack`
+should depend on `webrick` or we should move that functionality into a
+separate gem. We chose the latter which will hopefully allow us to innovate
+more rapidly on the design and implementation of `rackup` separately from
+"rack the interface".
+
+In Rack 3, you will need to include:
+
+```ruby
+gem 'rackup`
+```
+
+This provides all the previously available functionality.
 
 ## Request Changes
 
