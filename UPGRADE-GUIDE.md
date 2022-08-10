@@ -246,7 +246,7 @@ each header key used, instead of using a plain hash for headers, you can use
 `Rack::Headers` on Rack 3.
 
 ```ruby
-  headers = Rack.release >= '3' ? Rack::Headers.new : {}
+  headers = defined?(Rack::Headers) ? Rack::Headers.new : {}
 ```
 
 `Rack::Headers` is a subclass of Hash that will automatically lowercase keys:
