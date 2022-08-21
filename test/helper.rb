@@ -12,12 +12,12 @@ if ENV.delete('COVERAGE')
   end
 end
 
-$:.unshift(File.expand_path('../lib', __dir__))
 if ENV['SEPARATE']
   def self.separate_testing
     yield
   end
 else
+  $:.unshift(File.expand_path('../lib', __dir__))
   require_relative '../lib/rack'
 
   def self.separate_testing
