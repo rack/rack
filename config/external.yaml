@@ -1,0 +1,3 @@
+protocol-rack:
+  url: https://github.com/socketry/protocol-rack
+  command: bundle exec bake test

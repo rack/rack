@@ -14,3 +14,8 @@ end
 group :doc do
   gem 'rdoc'
 end
+
+group :test do
+  gem 'minitest'
+  gem 'bake-test-external'
+end
