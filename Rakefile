@@ -134,30 +134,3 @@ task rdoc: %w[changelog spec] do
               `git ls-files lib/\*\*/\*.rb`.strip.split)
   cp "contrib/rdoc.css", "doc/rdoc.css"
 end
-
-def clone_and_test(url, name, command)
-  path = "external/#{name}"
-  FileUtils.rm_rf path
-  FileUtils.mkdir_p path
-
-  sh("git clone #{url} #{path}")
-
-  # I tried using `bundle config --local local.async ../` but it simply doesn't work.
-  File.open("#{path}/Gemfile", "a") do |file|
-    file.puts("gem 'rack', path: '../../'")
-    file.puts("gem 'rack-session', github: 'rack/rack-session'") if name == 'rack-attack'
-  end
-
-  sh("cd #{path} && bundle install && #{command}")
-end
-
-task :external do
-  # In order not to interfere with external tests: rename our config file
-  FileUtils.mv ".rubocop.yml", ".rack.rubocop.yml.disabled"
-
-  Bundler.with_clean_env do
-    clone_and_test("https://github.com/rack/rack-attack", "rack-attack", "bundle exec rake test")
-    clone_and_test("https://github.com/rack/rack-cache", "rack-cache", "bundle exec rake")
-    clone_and_test("https://github.com/socketry/falcon", "falcon", "bundle exec rspec")
-  end
-end
