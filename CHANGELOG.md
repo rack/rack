@@ -19,9 +19,10 @@ All notable changes to this project will be documented in this file. For info on
 - Middleware must no longer call `#each` on the body, but they can call `#to_ary` on the body if it responds to `#to_ary`.
 - `rack.input` is no longer required to be rewindable.
 - `rack.multithread`/`rack.multiprocess`/`rack.run_once`/`rack.version` are no longer required environment keys.
-- `SERVER_PROTOCOL` is now a required key, matching the HTTP protocol used in the request.
+- `SERVER_PROTOCOL` is now a required environment key, matching the HTTP protocol used in the request.
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
 - `rack.hijack_io` has been removed completely.
+- `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
 
 ### Removed
 
@@ -41,6 +42,7 @@ All notable changes to this project will be documented in this file. For info on
 - Allow response headers to contain array of values. ([#1598](https://github.com/rack/rack/issues/1598), [@ioquatix])
 - Support callable body for explicit streaming support and clarify streaming response body behaviour. ([#1745](https://github.com/rack/rack/pull/1745), [@ioquatix], [#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
 - Allow `Rack::Builder#run` to take a block instead of an argument. ([#1942](https://github.com/rack/rack/pull/1942), [@ioquatix])
+- Add `rack.response_finished` to `Rack::Lint`. ([#1802](https://github.com/rack/rack/pull/1802), [@BlakeWilliams], [#1952](https://github.com/rack/rack/pull/1952), [@ioquatix])
 
 ### Changed
 
@@ -787,3 +789,4 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 [@jeremyevans]: https://github.com/jeremyevans "Jeremy Evans"
 [@amatsuda]: https://github.com/amatsuda "Akira Matsuda"
 [@wjordan]: https://github.com/wjordan "Will Jordan"
+[@BlakeWilliams]: https://github.com/BlakeWilliams "Blake Williams"

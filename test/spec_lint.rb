@@ -253,6 +253,16 @@ describe Rack::Lint do
       Rack::Lint.new(nil).call(env("SCRIPT_NAME" => "/"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/cannot be .* make it ''/)
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.response_finished" => "not a callable"))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.response_finished must be an array of callable objects/)
+
+    lambda {
+      Rack::Lint.new(nil).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.response_finished values must respond to call/)
   end
 
   it "notice input errors" do
@@ -810,5 +820,16 @@ describe Rack::Lint do
                      }).call(env({ 'rack.hijack?' => true }))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal 'rack.hijack header must respond to #call'
+  end
+
+  it "pass valid rack.response_finished" do
+    callable_object = Class.new do
+      def call(env, status, headers, error)
+      end
+    end.new
+
+    Rack::Lint.new(lambda { |env|
+                     [200, {}, ["foo"]]
+                   }).call(env({ "rack.response_finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
   end
 end
