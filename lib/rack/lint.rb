@@ -364,10 +364,12 @@ module Rack
           raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
 
-        ## <tt>rack.response_finished</tt>:: An array of callables run after the HTTP response has been finished,
-        ## either normally or with an error (e.g. the client disconnected).
-        ## Invoked with <tt>(env, status, headers, error)</tt> arguments. If there is no error sending the response,
-        ## the error argument will be +nil+, otherwise you can expect an exception object, e.g. +IOError+.
+        ## <tt>rack.response_finished</tt>:: An array of callables run by the server after the response has been
+        ## processed. This would typically be invoked after sending the response to the client, but it could also be
+        ## invoked if an error occurs while generating the response or sending the response; in that case, the error
+        ## argument will be a subclass of +Exception+.
+        ## The callables are invoked with +env, status, headers, error+ arguments and should not raise any
+        ## exceptions. They should be invoked in reverse order of registration.
         if callables = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless callables.is_a?(Array)
 
