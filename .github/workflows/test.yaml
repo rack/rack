@@ -10,8 +10,20 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        os: [ubuntu-latest, macos-latest]
-        ruby: [2.4, 2.5, 2.6, 2.7, '3.0', 3.1, jruby, truffleruby-head]
+        os: 
+          - ubuntu-latest
+        ruby: 
+          - '2.4'
+          - '2.5'
+          - '2.6'
+          - '2.7'
+          - '3.0'
+          - '3.1'
+          - jruby
+          - truffleruby-head
+        include:
+          - os: macos-latest
+            ruby: '3.1'
     runs-on: ${{matrix.os}}
 
     steps:
