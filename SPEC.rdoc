@@ -82,6 +82,10 @@ Rack-specific variables:
 <tt>rack.hijack</tt>:: See below, if present, an object responding
                        to +call+ that is used to perform a full
                        hijack.
+<tt>rack.protocol</tt>:: An optional +Array+ of +String+, containing
+                         the protocols advertised by the client in
+                         the +upgrade+ header (HTTP/1) or the
+                         +:protocol+ pseudo-header (HTTP/2).
 Additional environment specifications have approved to
 standardized middleware APIs. None of these are required to
 be implemented by the server.
@@ -263,15 +267,25 @@ Header values must be either a String instance,
 or an Array of String instances,
 such that each String instance must not contain characters below 037.
 
-=== The content-type
+==== The +content-type+ Header
 
 There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
 204, or 304.
 
-=== The content-length
+==== The +content-length+ Header
 
 There must not be a <tt>content-length</tt> header key when the
 +Status+ is 1xx, 204, or 304.
+
+==== The +rack.protocol+ Header
+
+If the +rack.protocol+ header is present, it must be a +String+, and
+must be one of the values from the +rack.protocol+ array from the
+environment.
+
+Setting this value informs the server that it should perform a
+connection upgrade. In HTTP/1, this is done using the +upgrade+
+header. In HTTP/2, this is done by accepting the request.
 
 === The Body
 

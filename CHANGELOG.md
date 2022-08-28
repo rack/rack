@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
 - `PATH_INFO` is now validated according to the HTTP/1.1 specification. ([#2117](https://github.com/rack/rack/pull/2117), [@ioquatix])
+- `rack.protocol` is an optional environment key and response header for handling connection upgrades.
 
 ### Changed
 

@@ -948,4 +948,38 @@ describe Rack::Lint do
                      [200, {}, ["foo"]]
                    }).call(env({ "rack.response_finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
   end
+
+  it "notices when the response protocol is specified in the response but not in the request" do
+    app = Rack::Lint.new(lambda{|env|
+      [101, {'rack.protocol' => 'websocket'}, ["foo"]]
+    })
+
+    lambda do
+      app.call(env())
+    end
+      .must_raise(Rack::Lint::LintError)
+      .message.must_match(/rack.protocol header is "websocket", but rack.protocol was not set in request/)
+  end
+
+  it "notices when the response protocol is specified in the response but not in the request" do
+    app = Rack::Lint.new(lambda{|env|
+      [101, {'rack.protocol' => 'websocket'}, ["foo"]]
+    })
+
+    lambda do
+      app.call(env('rack.protocol' => ['smtp']))
+    end
+      .must_raise(Rack::Lint::LintError)
+      .message.must_match(/rack.protocol header is "websocket", but should be one of \["smtp"\] from the request!/)
+  end
+
+  it "pass valid rack.protocol" do
+    app = Rack::Lint.new(lambda{|env|
+      [101, {'rack.protocol' => 'websocket'}, ["foo"]]
+    })
+
+    response = app.call(env({'rack.protocol' => ['websocket']}))
+
+    response.first.must_equal 101
+  end
 end
