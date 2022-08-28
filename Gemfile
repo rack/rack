@@ -17,5 +17,5 @@ end
 
 group :test do
   gem 'minitest'
-  gem 'bake-test-external'
+  gem 'bake-test-external', '~> 0.1.3'
 end
