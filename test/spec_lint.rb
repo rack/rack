@@ -742,14 +742,17 @@ describe Rack::Lint do
                      }).call(env("rack.input" => eof_weirdio))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/read\(nil\) returned nil on EOF/)
+  end
 
-    lambda {
-      Rack::Lint.new(lambda { |env|
-                       env["rack.input"].close
-                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
-                     }).call(env({}))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/close must not be called/)
+  it "can call close" do
+    app = lambda do |env|
+      env["rack.input"].close
+      [201, {"content-type" => "text/plain", "content-length" => "0"}, []]
+    end
+
+    response = Rack::Lint.new(app).call(env({}))
+
+    response.first.must_equal 201
   end
 
   it "notice error handling errors" do

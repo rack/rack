@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
 - `rack.hijack_io` has been removed completely.
 - `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
+- It is okay to call `#close` on `rack.input` to indicate that you no longer need or care about the input.
 
 ### Removed
 
@@ -66,6 +67,7 @@ All notable changes to this project will be documented in this file. For info on
 - Use lower case cookie attributes when creating cookies, and fold cookie attributes to lower case when reading cookies (specifically impacting `secure` and `httponly` attributes). ([#1849](https://github.com/rack/rack/pull/1849), [@ioquatix])
 - The response array must now be mutable (non-frozen) so middleware can modify it without allocating a new Array,therefore reducing object allocations. ([#1887](https://github.com/rack/rack/pull/1887), [#1927](https://github.com/rack/rack/pull/1927), [@amatsuda], [@ioquatix])
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional. `rack.hijack_io` is no longer required/specified. ([#1939](https://github.com/rack/rack/pull/1939), [@ioquatix])
+- Allow calling close on `rack.input`. ([#1956](https://github.com/rack/rack/pull/1956), [@ioquatix])
 
 ### Fixed
 
