@@ -478,9 +478,10 @@ module Rack
           }
         end
 
-        ## * +close+ must never be called on the input stream.
+        ## * +close+ can be called on the input stream to indicate that the
+        ## any remaining input is not needed.
         def close(*args)
-          raise LintError, "rack.input#close must not be called"
+          @input.close(*args)
         end
       end
 

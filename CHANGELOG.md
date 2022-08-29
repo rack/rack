@@ -23,6 +23,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
 - `rack.hijack_io` has been removed completely.
 - `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
+- It is okay to call `#close` on `rack.input` to indicate that you no longer need or care about the input.
 
 ### Removed
 
