@@ -744,6 +744,17 @@ describe Rack::Lint do
       message.must_match(/read\(nil\) returned nil on EOF/)
   end
 
+  it "can call close" do
+    app = lambda do |env|
+      env["rack.input"].close
+      [201, {"content-type" => "text/plain", "content-length" => "0"}, []]
+    end
+
+    response = Rack::Lint.new(app).call(env({}))
+
+    response.first.must_equal 201
+  end
+
   it "notice error handling errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
