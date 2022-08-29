@@ -45,6 +45,8 @@ module Rack
     end
 
     def body
+      return @buffered_body if defined?(@buffered_body)
+
       # FIXME: apparently users of MockResponse expect the return value of
       # MockResponse#body to be a string.  However, the real response object
       # returns the body as a list.
@@ -55,9 +57,9 @@ module Rack
       #     ...
       #     res.body.should == "foo!"
       #   end
-      buffer = String.new
+      buffer = @buffered_body = String.new
 
-      super.each do |chunk|
+      @body.each do |chunk|
         buffer << chunk
       end
 
