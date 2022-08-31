@@ -861,7 +861,7 @@ module Rack
         ## It takes a +stream+ argument.
         ##
         ## The +stream+ argument must implement:
-        ## <tt>read, write, flush, close, close_read, close_write, closed?</tt>
+        ## <tt>read, write, <<, flush, close, close_read, close_write, closed?</tt>
         ##
         @body.call(StreamWrapper.new(stream))
       end
@@ -875,7 +875,7 @@ module Rack
         ## pass on real IO objects, although it is recognized that this approach
         ## is not directly compatible with HTTP/2.
         REQUIRED_METHODS = [
-          :read, :write, :flush, :close,
+          :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?
         ]
 
