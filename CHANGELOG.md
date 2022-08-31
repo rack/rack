@@ -24,6 +24,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.hijack_io` has been removed completely.
 - `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
 - It is okay to call `#close` on `rack.input` to indicate that you no longer need or care about the input.
+- The stream argument supplied to the streaming body and hijack must support `#<<` for writing output.
 
 ### Removed
 
@@ -44,6 +45,7 @@ All notable changes to this project will be documented in this file. For info on
 - Support callable body for explicit streaming support and clarify streaming response body behaviour. ([#1745](https://github.com/rack/rack/pull/1745), [@ioquatix], [#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
 - Allow `Rack::Builder#run` to take a block instead of an argument. ([#1942](https://github.com/rack/rack/pull/1942), [@ioquatix])
 - Add `rack.response_finished` to `Rack::Lint`. ([#1802](https://github.com/rack/rack/pull/1802), [@BlakeWilliams], [#1952](https://github.com/rack/rack/pull/1952), [@ioquatix])
+- The stream argument must implement `#<<`. ([#1959](https://github.com/rack/rack/pull/1959), [@ioquatix])
 
 ### Changed
 

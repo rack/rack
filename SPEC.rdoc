@@ -327,7 +327,7 @@ It must not be called after being closed.
 It takes a +stream+ argument.
 
 The +stream+ argument must implement:
-<tt>read, write, flush, close, close_read, close_write, closed?</tt>
+<tt>read, write, <<, flush, close, close_read, close_write, closed?</tt>
 
 The semantics of these IO methods must be a best effort match to
 those of a normal Ruby IO or Socket object, using standard arguments
