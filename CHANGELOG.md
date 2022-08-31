@@ -45,6 +45,7 @@ All notable changes to this project will be documented in this file. For info on
 - Support callable body for explicit streaming support and clarify streaming response body behaviour. ([#1745](https://github.com/rack/rack/pull/1745), [@ioquatix], [#1748](https://github.com/rack/rack/pull/1748), [@wjordan])
 - Allow `Rack::Builder#run` to take a block instead of an argument. ([#1942](https://github.com/rack/rack/pull/1942), [@ioquatix])
 - Add `rack.response_finished` to `Rack::Lint`. ([#1802](https://github.com/rack/rack/pull/1802), [@BlakeWilliams], [#1952](https://github.com/rack/rack/pull/1952), [@ioquatix])
+- The stream argument must implement `#<<`. ([#1959](https://github.com/rack/rack/pull/1959), [@ioquatix])
 
 ### Changed
 
