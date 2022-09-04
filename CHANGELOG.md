@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.0.0.rc1] - 2022-09-04
+
+### SPEC Changes
+
+- Stream argument must implement `<<` https://github.com/rack/rack/pull/1959
+- `close` may be called on `rack.input` https://github.com/rack/rack/pull/1956
+- `rack.response_finished` may be used for executing code after the response has been finished https://github.com/rack/rack/pull/1952
+
 ## [3.0.0.beta1] - 2022-08-08
 
 ### Security
