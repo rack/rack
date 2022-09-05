@@ -195,7 +195,7 @@ Previously, the following was acceptable:
 
 ```ruby
 def call(env)
-  return [200, [['content-type', 'text/plain']], ["Hello World]]
+  return [200, [['content-type', 'text/plain']], ["Hello World"]]
 end
 ```
 
@@ -203,7 +203,7 @@ Now you must use a hash instance:
 
 ```ruby
 def call(env)
-  return [200, {'content-type' => 'text/plain'}, ["Hello World]]
+  return [200, {'content-type' => 'text/plain'}, ["Hello World"]]
 end
 ```
 
