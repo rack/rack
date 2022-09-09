@@ -20,7 +20,7 @@ by a [supported web framework](#supported-web-frameworks):
 
 ```bash
 # Install it generally:
-$ gem install rack --pre
+$ gem install rack
 
 # or, add it to your current application gemfile:
 $ bundle add rack --version 3.0.0
