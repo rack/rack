@@ -131,22 +131,6 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query(nil).must_equal({})
   end
 
-  deprecated "should warn for deprecated QueryParser.make_default call with key_space_limit" do
-    Rack::QueryParser.make_default(1, 1).must_be_kind_of Rack::QueryParser
-  end
-
-  deprecated "should warn using deprecated QueryParser.new call with key_space_limit" do
-    Rack::QueryParser.new(Rack::QueryParser::Params, 1, 1).must_be_kind_of Rack::QueryParser
-  end
-
-  deprecated "should warn using deprecated Rack::Util.key_space_limit=" do
-    Rack::Utils.key_space_limit = 65536
-  end
-
-  deprecated "should warn using deprecated Rack::Util.key_space_limit" do
-    Rack::Utils.key_space_limit
-  end
-
   it "raise an exception if the params are too deep" do
     len = Rack::Utils.param_depth_limit
 
@@ -614,34 +598,6 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.set_cookie_header('name', %w[va ue]).must_equal 'name=va&ue'
   end
 
-  deprecated "adds new cookies to nil header" do
-    Rack::Utils.add_cookie_to_header(nil, 'name', 'value').must_equal 'name=value'
-  end
-
-  deprecated "adds new cookies to blank header" do
-    header = ''
-    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal 'name=value'
-    header.must_equal ''
-  end
-
-  deprecated "adds new cookies to string header" do
-    header = 'existing-cookie'
-    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal ["existing-cookie", "name=value"]
-    header.must_equal 'existing-cookie'
-  end
-
-  deprecated "adds new cookies to array header" do
-    header = %w[ existing-cookie ]
-    Rack::Utils.add_cookie_to_header(header, 'name', 'value').must_equal ["existing-cookie", "name=value"]
-    header.must_equal %w[ existing-cookie ]
-  end
-
-  deprecated "adds new cookies to an unrecognized header" do
-    lambda {
-      Rack::Utils.add_cookie_to_header(Object.new, 'name', 'value')
-    }.must_raise ArgumentError
-  end
-
   it "sets and deletes cookies in header hash" do
     headers = {}
     Rack::Utils.set_cookie_header!(headers, 'name', 'value')
@@ -702,17 +658,10 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.delete_cookie_header!(header, 'name').must_be_nil
     header['set-cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
   end
-
-  deprecated "sets deleted cookie" do
-    Rack::Utils.make_delete_cookie_header(nil, 'name', {}).
-      must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-    Rack::Utils.add_remove_cookie_to_header(nil, 'name').
-      must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
-  end
 end
 
 describe Rack::Utils, "get_byte_ranges" do
-  deprecated "pase simple byte ranges from env" do
+  it "parse simple byte ranges from env" do
     Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
   end
 
@@ -759,41 +708,6 @@ describe Rack::Utils, "get_byte_ranges" do
     Rack::Utils.get_byte_ranges("bytes=-100", 0).must_equal []
     Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_equal []
     Rack::Utils.get_byte_ranges("bytes=-0", 0).must_equal []
-  end
-end
-
-describe Rack::Utils::HeaderHash do
-  deprecated ".[] returns Rack::Headers as is if not frozen" do
-    h1 = Rack::Headers["Content-MD5" => "d5ff4e2a0 ..."]
-    h2 = Rack::Utils::HeaderHash[h1]
-    h2.must_be_same_as h1
-    h3 = Rack::Utils::HeaderHash[h1.freeze]
-    h3.wont_be_same_as h1
-    h3.must_equal h1
-  end
-
-  deprecated ".[] returns instance of Rack::Headers" do
-    h = Rack::Utils::HeaderHash["Content-MD5" => "d5ff4e2a0 ..."]
-    h.must_be_kind_of Rack::Headers
-    h['content-md5'].must_equal "d5ff4e2a0 ..."
-
-    h = Rack::Utils::HeaderHash[[["Content-MD5","d5ff4e2a0 ..."]]]
-    h.must_be_kind_of Rack::Headers
-    h['content-md5'].must_equal "d5ff4e2a0 ..."
-  end
-
-  deprecated ".new returns instance of Rack::Headers" do
-    h = Rack::Utils::HeaderHash.new("Content-MD5" => "d5ff4e2a0 ...")
-    h.must_be_kind_of Rack::Headers
-    h['content-md5'].must_equal "d5ff4e2a0 ..."
-
-    h = Rack::Utils::HeaderHash.new([["Content-MD5","d5ff4e2a0 ..."]])
-    h.must_be_kind_of Rack::Headers
-    h['content-md5'].must_equal "d5ff4e2a0 ..."
-  end
-
-  it ".allocate raises" do
-    proc { Rack::Utils::HeaderHash.allocate }.must_raise TypeError
   end
 end
 

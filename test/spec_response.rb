@@ -7,10 +7,6 @@ separate_testing do
 end
 
 describe Rack::Response do
-  deprecated "#header returns headers" do
-    Rack::Response[200, { "v" => "1" }, []].header['v'].must_equal '1'
-  end
-
   it 'has standard constructor' do
     headers = { "header" => "value" }
     body = ["body"]

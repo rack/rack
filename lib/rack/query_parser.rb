@@ -18,21 +18,13 @@ module Rack
     # nested over the specified limit.
     class ParamsTooDeepError < RangeError; end
 
-    def self.make_default(_key_space_limit=(not_deprecated = true; nil), param_depth_limit)
-      unless not_deprecated
-        warn("`first argument `key_space limit` is deprecated and no longer has an effect. Please call with only one argument, which will be required in a future version of Rack", uplevel: 1)
-      end
-
+    def self.make_default(param_depth_limit)
       new Params, param_depth_limit
     end
 
     attr_reader :param_depth_limit
 
-    def initialize(params_class, _key_space_limit=(not_deprecated = true; nil), param_depth_limit)
-      unless not_deprecated
-        warn("`second argument `key_space limit` is deprecated and no longer has an effect. Please call with only two arguments, which will be required in a future version of Rack", uplevel: 1)
-      end
-
+    def initialize(params_class, param_depth_limit)
       @params_class = params_class
       @param_depth_limit = param_depth_limit
     end
