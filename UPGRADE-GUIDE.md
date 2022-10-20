@@ -49,6 +49,22 @@ run do |env|
 end
 ```
 
+### `config.ru` autoloading is disabled unless `require 'rack'`
+
+Previously, rack modules like `rack/directory` was autoloaded. In Rack 3, you will need to write `require 'rack'` or require specific module explicitly.
+
+```diff
++require 'rack'
+run Rack::Directory.new '.'
+```
+
+or
+
+```diff
++require 'rack/directory'
+run Rack::Directory.new '.'
+```
+
 ### Response bodies can be used for bi-directional streaming
 
 Previously, the `rack.hijack` response header could be used for implementing
