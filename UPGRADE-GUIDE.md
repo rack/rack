@@ -116,6 +116,23 @@ gem 'rackup'
 
 This provides all the previously available functionality.
 
+
+#### `config.ru` autoloading is disabled unless `require 'rack'`
+
+Previously, rack modules like `rack/directory` were autoloaded because `rackup` did require 'rack'. In Rack 3, you will need to write `require 'rack'` or require specific module explicitly.
+
+```diff
++require 'rack'
+run Rack::Directory.new '.'
+```
+
+or
+
+```diff
++require 'rack/directory'
+run Rack::Directory.new '.'
+```
+
 ## Request Changes
 
 ### `rack.version` is no longer required
