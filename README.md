@@ -37,9 +37,9 @@ $ gem install rack-session rackup
 Create a file called `config.ru` with the following contents:
 
 ```ruby
-run do |env|
+run ->(env) {
   [200, {}, ["Hello World"]]
-end
+}
 ```
 
 Run this using the rackup gem or another [supported web
