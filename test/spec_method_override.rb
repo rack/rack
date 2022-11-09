@@ -112,4 +112,15 @@ EOF
 
     env["REQUEST_METHOD"].must_equal "POST"
   end
+
+  it "not set form input when the content type is JSON" do
+    env = Rack::MockRequest.env_for("/",
+            "CONTENT_TYPE" => "application/json",
+            method: "POST",
+            input: '{"_method":"options"}')
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env["rack.request.form_input"].must_be_nil
+  end
 end
