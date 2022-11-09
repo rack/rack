@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### Fixed
+
+- `MethodOverride` does not look for an override if a request does not include form/parseable data.
+
 ## [3.0.0] - 2022-09-06
 
 - No changes

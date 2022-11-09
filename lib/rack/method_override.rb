@@ -46,7 +46,7 @@ module Rack
     end
 
     def method_override_param(req)
-      req.POST[METHOD_OVERRIDE_PARAM_KEY]
+      req.POST[METHOD_OVERRIDE_PARAM_KEY] if req.form_data? || req.parseable_data?
     rescue Utils::InvalidParameterError, Utils::ParameterTypeError
       req.get_header(RACK_ERRORS).puts "Invalid or incomplete POST params"
     rescue EOFError
