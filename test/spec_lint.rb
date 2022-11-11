@@ -33,7 +33,6 @@ describe Rack::Lint do
     lambda { Rack::Lint.new(nil).call({}.freeze) }.must_raise(Rack::Lint::LintError).
       message.must_match(/env should not be frozen, but is/)
 
-
     lambda {
       e = env
       e.delete("REQUEST_METHOD")
@@ -471,6 +470,17 @@ describe Rack::Lint do
                      }).call(env({}))[2].each { }
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/content-length header was 1, but should be 0/)
+  end
+
+  it "responds to to_path" do
+    body = Object.new
+    def body.each; end
+    def body.to_path; __FILE__ end
+    app = lambda { |env| [200, {}, body] }
+
+    status, headers, body = Rack::Lint.new(app).call(env({}))
+    body.must_respond_to(:to_path)
+    body.to_path.must_equal __FILE__
   end
 
   it "notice body errors" do

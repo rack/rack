@@ -819,6 +819,10 @@ module Rack
 
       BODY_METHODS = {to_ary: true, each: true, to_path: true}
 
+      def to_path
+        @body.to_path
+      end
+
       def respond_to?(name, *)
         if BODY_METHODS.key?(name)
           @body.respond_to?(name)
