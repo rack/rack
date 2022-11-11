@@ -817,8 +817,10 @@ module Rack
         verify_to_path
       end
 
+      BODY_METHODS = {to_ary: true, each: true, to_path: true}
+
       def respond_to?(name, *)
-        if name == :to_ary
+        if BODY_METHODS.key?(name)
           @body.respond_to?(name)
         else
           super
