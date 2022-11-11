@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - `MethodOverride` does not look for an override if a request does not include form/parseable data.
+- `Rack::Lint::Wrapper` correctly handles `respond_to?` with `to_ary`, `each`, `call` and `to_path`, forwarding to the body. ([#1981](https://github.com/rack/rack/pull/1981), [@ioquatix])
 
 ## [3.0.0] - 2022-09-06
 
