@@ -817,7 +817,7 @@ module Rack
         verify_to_path
       end
 
-      BODY_METHODS = {to_ary: true, each: true, to_path: true}
+      BODY_METHODS = {to_ary: true, each: true, call: true, to_path: true}
 
       def to_path
         @body.to_path
