@@ -10,26 +10,23 @@ module Rack
   #
   # Example:
   #
-  #  require 'rack/lobster'
-  #  app = Rack::Builder.new do
-  #    use Rack::CommonLogger
-  #    use Rack::ShowExceptions
-  #    map "/lobster" do
-  #      use Rack::Lint
-  #      run Rack::Lobster.new
-  #    end
-  #  end
+  #   app = Rack::Builder.new do
+  #     use Rack::CommonLogger
+  #     map "/ok" do
+  #       run lambda { |env| [200, {'content-type' => 'text/plain'}, ['OK']] }
+  #     end
+  #   end
   #
-  #  run app
+  #   run app
   #
   # Or
   #
-  #  app = Rack::Builder.app do
-  #    use Rack::CommonLogger
-  #    run lambda { |env| [200, {'Content-Type' => 'text/plain'}, ['OK']] }
-  #  end
+  #   app = Rack::Builder.app do
+  #     use Rack::CommonLogger
+  #     run lambda { |env| [200, {'content-type' => 'text/plain'}, ['OK']] }
+  #   end
   #
-  #  run app
+  #   run app
   #
   # +use+ adds middleware to the stack, +run+ dispatches to an application.
   # You can use +map+ to construct a Rack::URLMap in a convenient way.
@@ -180,15 +177,6 @@ module Rack
     #
     #   run Heartbeat.new
     #
-    # It could also be a module:
-    #
-    #   module HelloWorld
-    #     def call(env)
-    #      [200, { "content-type" => "text/plain" }, ["Hello World"]]
-    #     end
-    #   end
-    #
-    #   run HelloWorld
     def run(app = nil, &block)
       raise ArgumentError, "Both app and block given!" if app && block_given?
 
@@ -213,21 +201,35 @@ module Rack
     # the Rack application specified by run inside the block.  Other requests will be sent to the
     # default application specified by run outside the block.
     #
-    #   Rack::Builder.app do
-    #     map '/heartbeat' do
-    #       run Heartbeat
+    #   class App
+    #     def call(env)
+    #       [200, {'content-type' => 'text/plain'}, ["Hello World"]]
     #     end
-    #     run App
     #   end
+    #
+    #   class Heartbeat
+    #     def call(env)
+    #       [200, { "content-type" => "text/plain" }, ["OK"]]
+    #     end
+    #   end
+    #
+    #   app = Rack::Builder.app do
+    #     map '/heartbeat' do
+    #       run Heartbeat.new
+    #     end
+    #     run App.new
+    #   end
+    #
+    #   run app
     #
     # The +use+ method can also be used inside the block to specify middleware to run under a specific path:
     #
-    #   Rack::Builder.app do
+    #   app = Rack::Builder.app do
     #     map '/heartbeat' do
     #       use Middleware
-    #       run Heartbeat
+    #       run Heartbeat.new
     #     end
-    #     run App
+    #     run App.new
     #   end
     #
     # This example includes a piece of middleware which will run before +/heartbeat+ requests hit +Heartbeat+.
