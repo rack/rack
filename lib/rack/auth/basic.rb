@@ -10,8 +10,6 @@ module Rack
     #
     # Initialize with the Rack application that you want protecting,
     # and a block that checks if a username and password pair are valid.
-    #
-    # See also: <tt>example/protectedlobster.rb</tt>
 
     class Basic < AbstractHandler
 
