@@ -537,7 +537,11 @@ module Rack
     }
 
     # Responses with HTTP status codes that should not have an entity body
-    STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])]
+    STATUS_WITH_NO_ENTITY_BODY = {
+      100 => true,
+      204 => true,
+      304 => true
+    }
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
       [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
