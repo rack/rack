@@ -26,8 +26,8 @@ app = Rack::Lint.new(lambda { |env|
     req.GET["status"] || 200,
     "content-type" => "text/yaml"
   )
-  response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
-  response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
+  response.set_cookie("session_test", { value: "session_test", domain: "test.com", path: "/" })
+  response.set_cookie("secure_test", { value: "secure_test", domain: "test.com",  path: "/", secure: true })
   response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
   response.set_cookie("persistent_with_expires_test", { value: "persistent_with_expires_test", expires: Time.httpdate("Thu, 31 Oct 2021 07:28:00 GMT"), path: "/" })
   response.set_cookie("expires_and_max-age_test", { value: "expires_and_max-age_test", expires: Time.now + 15552000 * 2, max_age: 15552000, path: "/" })
