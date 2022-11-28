@@ -114,7 +114,10 @@ module Rack
       end
     end
 
-    alias to_a finish           # For *response
+    # Generate a response array consistent with the requirements of the SPEC.
+    def to_a
+      [@status, @headers, @body]
+    end
 
     def each(&callback)
       @body.each(&callback)
