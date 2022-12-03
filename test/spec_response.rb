@@ -291,14 +291,14 @@ describe Rack::Response do
       "foo=bar; domain=example.com.example.com",
       "foo=bar; domain=example.com"
     ]
-    
+
     response.delete_cookie "foo", { domain: "example.com" }
     response["set-cookie"].must_equal [
       "foo=bar; domain=example.com.example.com",
       "foo=bar; domain=example.com",
       "foo=; domain=example.com; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
     ]
-    
+
     response.delete_cookie "foo", { domain: "example.com.example.com" }
     response["set-cookie"].must_equal [
       "foo=bar; domain=example.com.example.com",

@@ -18,7 +18,7 @@ class RackHeadersTest < Minitest::Spec
     assert_empty(headers_methods - hash_methods)
     assert_empty(hash_methods - headers_methods)
   end
-  
+
   def test_class_aref
     assert_equal Hash[], Rack::Headers[]
     assert_equal Hash['a'=>'2'], Rack::Headers['A'=>'2']
@@ -27,7 +27,7 @@ class RackHeadersTest < Minitest::Spec
     assert_raises(ArgumentError){Rack::Headers['A']}
     assert_raises(ArgumentError){Rack::Headers['A',2,'B']}
   end
-    
+
   def test_default_values
     h, ch = Hash.new, Rack::Headers.new
     assert_equal h, ch
@@ -48,29 +48,29 @@ class RackHeadersTest < Minitest::Spec
     assert_equal '3', Rack::Headers.new('3').default
     assert_nil Rack::Headers.new('3').default_proc
     assert_equal '3', Rack::Headers.new('3')['1']
-    
+
     @fh.default = '4'
     assert_equal '4', @fh.default
     assert_nil  @fh.default_proc
     assert_equal '4', @fh['55']
-    
+
     h = Rack::Headers.new('5')
     assert_equal '5', h.default
     assert_nil  h.default_proc
     assert_equal '5', h['55']
-    
+
     h = Rack::Headers.new{|hash, key| '1234'}
     assert_nil  h.default
     refute_equal nil, h.default_proc
     assert_equal '1234', h['55']
-    
+
     h = Rack::Headers.new{|hash, key| hash[key] = '1234'; nil}
     assert_nil  h.default
     refute_equal nil, h.default_proc
     assert_nil  h['Ac']
     assert_equal '1234', h['aC']
   end
-  
+
   def test_store_and_retrieve
     assert_nil  @h['a']
     @h['A'] = '2'
@@ -88,14 +88,14 @@ class RackHeadersTest < Minitest::Spec
     assert_equal '8', @h['c']
     assert_equal '8', @h['C']
   end
-  
+
   def test_clear
     assert_equal 3, @fh.length
     @fh.clear
     assert_equal Hash[], @fh
     assert_equal 0, @fh.length
   end
-  
+
   def test_delete
     assert_equal 3, @fh.length
     assert_equal '1', @fh.delete('aB')
@@ -103,7 +103,7 @@ class RackHeadersTest < Minitest::Spec
     assert_nil @fh.delete('Ab')
     assert_equal 2, @fh.length
   end
-  
+
   def test_delete_if_and_reject
     assert_equal 3, @fh.length
     hash = @fh.reject{|key, value| key == 'ab' || key == 'cd'}
@@ -135,49 +135,49 @@ class RackHeadersTest < Minitest::Spec
     assert_equal '2', h2['a']
     assert_equal '3', h3['b']
   end
-  
+
   def test_each
     i = 0
     @h.each{i+=1}
     assert_equal 0, i
     items = [['ab','1'], ['cd','2'], ['3','4']]
-    @fh.each do |k,v| 
+    @fh.each do |k,v|
       assert items.include?([k,v])
       items -= [[k,v]]
     end
     assert_equal [], items
   end
-  
+
   def test_each_key
     i = 0
     @h.each{i+=1}
     assert_equal 0, i
     keys = ['ab', 'cd', '3']
-    @fh.each_key do |k| 
+    @fh.each_key do |k|
       assert keys.include?(k)
       assert k.frozen?
       keys -= [k]
     end
     assert_equal [], keys
   end
-  
+
   def test_each_value
     i = 0
     @h.each{i+=1}
     assert_equal 0, i
     values = ['1', '2', '4']
-    @fh.each_value do |v| 
+    @fh.each_value do |v|
       assert values.include?(v)
       values -= [v]
     end
     assert_equal [], values
   end
-  
+
   def test_empty
     assert @h.empty?
     assert !@fh.empty?
   end
-  
+
   def test_fetch
     assert_raises(ArgumentError){@h.fetch(1,2,3)}
     assert_raises(ArgumentError){@h.fetch(1,2,3){4}}
@@ -194,7 +194,7 @@ class RackHeadersTest < Minitest::Spec
     assert_equal '4', @fh.fetch("3"){|k| k*3}
     assert_raises(IndexError){Rack::Headers.new{34}.fetch(1)}
   end
-  
+
   def test_has_key
     %i'include? has_key? key? member?'.each do |meth|
       assert !@h.send(meth,1)
@@ -207,7 +207,7 @@ class RackHeadersTest < Minitest::Spec
       assert !@fh.send(meth,1)
     end
   end
-  
+
   def test_has_value
     %i'value? has_value?'.each do |meth|
       assert !@h.send(meth,'1')
@@ -217,14 +217,14 @@ class RackHeadersTest < Minitest::Spec
       assert !@fh.send(meth,'3')
     end
   end
-  
+
   def test_inspect
     %i'inspect to_s'.each do |meth|
       assert_equal '{}', @h.send(meth)
       assert_equal '{"ab"=>"1", "cd"=>"2", "3"=>"4"}', @fh.send(meth)
     end
   end
-  
+
   def test_invert
     assert_kind_of(Rack::Headers, @h.invert)
     assert_equal({}, @h.invert)
@@ -232,19 +232,19 @@ class RackHeadersTest < Minitest::Spec
     assert_equal({'cd'=>'ab'}, Rack::Headers['AB'=>'CD'].invert)
     assert_equal({'cd'=>'xy'}, Rack::Headers['AB'=>'Cd', 'xY'=>'cD'].invert)
   end
-  
+
   def test_keys
     assert_equal [], @h.keys
     assert_equal %w'ab cd 3', @fh.keys
   end
-  
+
   def test_length
     %i'length size'.each do |meth|
       assert_equal 0, @h.send(meth)
       assert_equal 3, @fh.send(meth)
     end
   end
-  
+
   def test_merge_and_update
     assert_equal @h, @h.merge({})
     assert_equal @fh, @fh.merge({})
@@ -263,7 +263,7 @@ class RackHeadersTest < Minitest::Spec
     assert_equal Rack::Headers['ab'=>'abssabss55', 'cd'=>'2', '3'=>'4'], @fh.merge!({'ab'=>'ss'}){|k,ov,nv| [k,nv,ov].join}
     assert_equal Rack::Headers['ab'=>'abssabss55', 'cd'=>'2', '3'=>'4'], @fh
   end
-  
+
   def test_replace
     h = @h.dup
     fh = @fh.dup
@@ -278,7 +278,7 @@ class RackHeadersTest < Minitest::Spec
     assert_equal @h, fh.replace({})
     assert_equal @fh, h.replace('AB'=>'1', 'cd'=>'2', '3'=>'4')
   end
-  
+
   def test_select
     assert_equal({}, @h.select{true})
     assert_equal({}, @h.select{false})
@@ -287,7 +287,7 @@ class RackHeadersTest < Minitest::Spec
     assert_equal({'cd' => '2'}, @fh.select{|k,v| k.start_with?('c')})
     assert_equal({'3' => '4'}, @fh.select{|k,v| v == '4'})
   end
-  
+
   def test_shift
     assert_nil @h.shift
     array = @fh.to_a
@@ -307,29 +307,29 @@ class RackHeadersTest < Minitest::Spec
     assert_equal [], array
     assert_equal 0, i
   end
-  
+
   def test_sort
     assert_equal [], @h.sort
     assert_equal [], @h.sort{|a,b| a.to_s<=>b.to_s}
     assert_equal [['ab', '1'], ['cd', '4'], ['ef', '2']], Rack::Headers['CD','4','AB','1','EF','2'].sort
     assert_equal [['3', '4'], ['ab', '1'], ['cd', '2']], @fh.sort{|(ak,av),(bk,bv)| ak.to_s<=>bk.to_s}
   end
-  
+
   def test_to_a
     assert_equal [], @h.to_a
     assert_equal [['ab', '1'], ['cd', '2'], ['3', '4']], @fh.to_a
   end
-  
+
   def test_to_hash
     assert_equal Hash[], @h.to_hash
     assert_equal Hash['3','4','ab','1','cd','2'], @fh.to_hash
   end
-  
+
   def test_values
     assert_equal [], @h.values
     assert_equal ['f', 'c'], Rack::Headers['aB','f','1','c'].values
   end
-  
+
   def test_values_at
     assert_equal [], @h.values_at()
     assert_equal [nil], @h.values_at(1)

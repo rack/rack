@@ -275,7 +275,7 @@ describe Rack::Deflater do
         'PATH_INFO' => '/foo/bar'
       }
     }
-    
+
     app_body3 = [app_body]
     closed = false
     app_body3.define_singleton_method(:close){closed = true}

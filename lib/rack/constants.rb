@@ -14,7 +14,7 @@ module Rack
   SERVER_NAME       = 'SERVER_NAME'
   SERVER_PORT       = 'SERVER_PORT'
   HTTP_COOKIE       = 'HTTP_COOKIE'
-  
+
   # Response Header Keys
   CACHE_CONTROL     = 'cache-control'
   CONTENT_LENGTH    = 'content-length'

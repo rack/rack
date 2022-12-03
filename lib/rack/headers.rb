@@ -31,7 +31,7 @@ module Rack
       super(key.downcase.freeze, value)
     end
     alias store []=
-    
+
     def assoc(key)
       super(downcase_key(key))
     end
@@ -43,7 +43,7 @@ module Rack
     def delete(key)
       super(downcase_key(key))
     end
-    
+
     def dig(key, *a)
       super(downcase_key(key), *a)
     end
@@ -52,7 +52,7 @@ module Rack
       key = downcase_key(key)
       super
     end
-    
+
     def fetch_values(*a)
       super(*a.map!{|key| downcase_key(key)})
     end
@@ -63,34 +63,34 @@ module Rack
     alias include? has_key?
     alias key? has_key?
     alias member? has_key?
-    
+
     def invert
       hash = self.class.new
       each{|key, value| hash[value] = key}
       hash
     end
-    
+
     def merge(hash, &block)
       dup.merge!(hash, &block)
     end
-    
+
     def reject(&block)
       hash = dup
       hash.reject!(&block)
       hash
     end
-    
+
     def replace(hash)
       clear
       update(hash)
     end
-    
+
     def select(&block)
       hash = dup
       hash.select!(&block)
       hash
     end
-    
+
     def to_proc
       lambda{|x| self[x]}
     end
@@ -100,10 +100,10 @@ module Rack
     end
 
     def update(hash, &block)
-      hash.each do |key, value| 
+      hash.each do |key, value|
         self[key] = if block_given? && include?(key)
           block.call(key, self[key], value)
-        else 
+        else
           value
         end
       end
@@ -114,7 +114,7 @@ module Rack
     def values_at(*keys)
       keys.map{|key| self[key]}
     end
-    
+
     # :nocov:
     if RUBY_VERSION >= '2.5'
     # :nocov:

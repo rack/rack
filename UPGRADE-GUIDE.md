@@ -167,7 +167,7 @@ dropped entirely.
 
 ### `rack.input` is no longer required to be rewindable
 
-Previosuly, `rack.input` was required to be rewindable, i.e. `io.seek(0)` but
+Previously, `rack.input` was required to be rewindable, i.e. `io.seek(0)` but
 this was only generally possible with a file based backing, which prevented
 efficient streaming of request bodies. Now, `rack.input` is not required to be
 rewindable.
@@ -325,11 +325,11 @@ def call(env)
     headers[ETAG_STRING] = %(W/"#{digest}") if digest
   end
 
-  return [status, headers, body]  
+  return [status, headers, body]
 end
 ```
 
-### Middleware should not directly modify the response body 
+### Middleware should not directly modify the response body
 
 Be aware that the response body might not respond to `#each` and you must now
 check if the body responds to `#each` or not to determine if it is an enumerable
