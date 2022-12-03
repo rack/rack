@@ -43,7 +43,7 @@ module Rack
     #
     # If the +body+ is +nil+, construct an empty response object with internal
     # buffering.
-    # 
+    #
     # If the +body+ responds to +to_str+, assume it's a string-like object and
     # construct a buffered response object containing using that string as the
     # initial contents of the buffer.
@@ -333,7 +333,7 @@ module Rack
             end
 
             body.close if body.respond_to?(:close)
-            
+
             @buffered = true
           else
             @buffered = false

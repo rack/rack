@@ -308,11 +308,11 @@ def call(env)
     headers[ETAG_STRING] = %(W/"#{digest}") if digest
   end
 
-  return [status, headers, body]  
+  return [status, headers, body]
 end
 ```
 
-### Middleware should not directly modify the response body 
+### Middleware should not directly modify the response body
 
 Be aware that the response body might not respond to `#each` and you must now
 check if the body responds to `#each` or not to determine if it is an enumerable
