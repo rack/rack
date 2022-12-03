@@ -150,7 +150,7 @@ dropped entirely.
 
 ### `rack.input` is no longer required to be rewindable
 
-Previosuly, `rack.input` was required to be rewindable, i.e. `io.seek(0)` but
+Previously, `rack.input` was required to be rewindable, i.e. `io.seek(0)` but
 this was only generally possible with a file based backing, which prevented
 efficient streaming of request bodies. Now, `rack.input` is not required to be
 rewindable.

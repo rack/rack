@@ -41,7 +41,7 @@ All notable changes to this project will be documented in this file. For info on
 - `SERVER_PROTOCOL` is now a required environment key, matching the HTTP protocol used in the request.
 - `rack.hijack?` (partial hijack) and `rack.hijack` (full hijack) are now independently optional.
 - `rack.hijack_io` has been removed completely.
-- `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsucessfully).
+- `rack.response_finished` is an optional environment key which contains an array of callable objects that must accept `#call(env, status, headers, error)` and are invoked after the response is finished (either successfully or unsuccessfully).
 - It is okay to call `#close` on `rack.input` to indicate that you no longer need or care about the input.
 - The stream argument supplied to the streaming body and hijack must support `#<<` for writing output.
 
