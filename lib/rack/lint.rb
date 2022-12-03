@@ -629,7 +629,7 @@ module Rack
         unless headers.kind_of?(Hash)
           raise LintError, "headers object should be a hash, but isn't (got #{headers.class} as headers)"
         end
-        
+
         if headers.frozen?
           raise LintError, "headers object should not be frozen, but is"
         end
@@ -889,7 +889,7 @@ module Rack
 
         def initialize(stream)
           @stream = stream
-          
+
           REQUIRED_METHODS.each do |method_name|
             raise LintError, "Stream must respond to #{method_name}" unless stream.respond_to?(method_name)
           end

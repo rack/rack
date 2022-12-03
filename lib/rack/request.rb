@@ -44,7 +44,7 @@ module Rack
     @x_forwarded_proto_priority = [:proto, :scheme]
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
-    
+
     trusted_proxies = Regexp.union(
       /\A127#{valid_ipv4_octet}{3}\z/,                          # localhost IPv4 range 127.x.x.x, per RFC-3330
       /\A::1\z/,                                                # localhost IPv6 ::1
@@ -54,7 +54,7 @@ module Rack
       /\A192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
       /\Alocalhost\z|\Aunix(\z|:)/i,                            # localhost hostname, and unix domain sockets
     )
-    
+
     self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
