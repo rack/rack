@@ -121,13 +121,13 @@ module Rack
         }.join("&")
       when Hash
         value.map { |k, v|
-          build_nested_query(v, prefix ? "#{prefix}[#{escape(k)}]" : escape(k))
+          build_nested_query(v, prefix ? "#{prefix}[#{k}]" : k)
         }.delete_if(&:empty?).join('&')
       when nil
-        prefix
+        escape(prefix)
       else
         raise ArgumentError, "value must be a Hash" if prefix.nil?
-        "#{prefix}=#{escape(value)}"
+        "#{escape(prefix)}=#{escape(value)}"
       end
     end
 
