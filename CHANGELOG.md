@@ -4,11 +4,19 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [Unreleased]
 
+## [3.0.2] -2022-12-05
+
+### Fixed
+
+- `Utils.build_nested_query` URL-encodes nested field names including the square brackets.
+- Allow `Rack::Response` to pass through streaming bodies. ([#1993](https://github.com/rack/rack/pull/1993), [@ioquatix])
+
+## [3.0.1] - 2022-11-18
+
 ### Fixed
 
 - `MethodOverride` does not look for an override if a request does not include form/parseable data.
 - `Rack::Lint::Wrapper` correctly handles `respond_to?` with `to_ary`, `each`, `call` and `to_path`, forwarding to the body. ([#1981](https://github.com/rack/rack/pull/1981), [@ioquatix])
-- `Utils.build_nested_query` URL-encodes nested field names including the square brackets.
 
 ## [3.0.0] - 2022-09-06
 
