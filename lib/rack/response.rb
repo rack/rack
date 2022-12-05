@@ -102,11 +102,16 @@ module Rack
       CHUNKED == get_header(TRANSFER_ENCODING)
     end
 
+    def no_entity_body?
+      # The response body is an enumerable body and it is not allowed to have an entity body.
+      @body.respond_to?(:each) && STATUS_WITH_NO_ENTITY_BODY[@status]
+    end
+    
     # Generate a response array consistent with the requirements of the SPEC.
     # @return [Array] a 3-tuple suitable of `[status, headers, body]`
     # which is suitable to be returned from the middleware `#call(env)` method.
     def finish(&block)
-      if STATUS_WITH_NO_ENTITY_BODY[@status]
+      if no_entity_body?
         delete_header CONTENT_TYPE
         delete_header CONTENT_LENGTH
         close
