@@ -96,7 +96,7 @@ module Rack
     end
 
     def no_entity_body?
-      # The response body is an enumerable body and it is not allowed to have an entity body.,
+      # The response body is an enumerable body and it is not allowed to have an entity body.
       @body.respond_to?(:each) && STATUS_WITH_NO_ENTITY_BODY[@status]
     end
     
