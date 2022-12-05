@@ -95,16 +95,9 @@ module Rack
       CHUNKED == get_header(TRANSFER_ENCODING)
     end
 
-    def enumerable_body?
-      @body.respond_to?(:each)
-    end
-
-    def streaming_body?
-      !enumerable_body?
-    end
-
     def no_entity_body?
-      enumerable_body? && STATUS_WITH_NO_ENTITY_BODY[@status]
+      # The response body is an enumerable body and it is not allowed to have an entity body.,
+      @body.respond_to?(:each) && STATUS_WITH_NO_ENTITY_BODY[@status]
     end
     
     # Generate a response array consistent with the requirements of the SPEC.
