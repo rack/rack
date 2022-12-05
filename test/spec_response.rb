@@ -638,6 +638,16 @@ describe Rack::Response do
     res.body.wont_be :closed?
   end
 
+  it "doesn't clear #body when 101 and streaming" do
+    res = Rack::Response.new
+
+    streaming_body = proc{|stream| stream.close}
+    res.body = streaming_body
+    res.status = 101
+    res.finish
+    res.body.must_equal streaming_body
+  end
+
   it "flatten doesn't cause infinite loop" do
     # https://github.com/rack/rack/issues/419
     res = Rack::Response.new("Hello World")
