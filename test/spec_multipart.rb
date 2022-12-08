@@ -632,6 +632,18 @@ Content-Type: image/jpeg\r
     end
   end
 
+  it "reach a multipart total limit" do
+    begin
+      previous_limit = Rack::Utils.multipart_total_part_limit
+      Rack::Utils.multipart_total_part_limit = 5
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      lambda { Rack::Multipart.parse_multipart(env) }.must_raise Rack::Multipart::MultipartTotalPartLimitError
+    ensure
+      Rack::Utils.multipart_total_part_limit = previous_limit
+    end
+  end
+
   it "return nil if no UploadedFiles were used" do
     data = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => "contents" }])
     data.must_be_nil

@@ -58,13 +58,24 @@ module Rack
     end
 
     class << self
-      attr_accessor :multipart_part_limit
+      attr_accessor :multipart_total_part_limit
+
+      attr_accessor :multipart_file_limit
+
+      # multipart_part_limit is the original name of multipart_file_limit, but
+      # the limit only counts parts with filenames.
+      alias multipart_part_limit multipart_file_limit
+      alias multipart_part_limit= multipart_file_limit=
     end
 
-    # The maximum number of parts a request can contain. Accepting too many part
-    # can lead to the server running out of file handles.
+    # The maximum number of file parts a request can contain. Accepting too
+    # many parts can lead to the server running out of file handles.
     # Set to `0` for no limit.
-    self.multipart_part_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || 128).to_i
+    self.multipart_file_limit = (ENV['RACK_MULTIPART_PART_LIMIT'] || ENV['RACK_MULTIPART_FILE_LIMIT'] || 128).to_i
+
+    # The maximum total number of parts a request can contain. Accepting too
+    # many can lead to excessive memory use and parsing time.
+    self.multipart_total_part_limit = (ENV['RACK_MULTIPART_TOTAL_PART_LIMIT'] || 4096).to_i
 
     def self.param_depth_limit
       default_query_parser.param_depth_limit
