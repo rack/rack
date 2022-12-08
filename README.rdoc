@@ -189,16 +189,30 @@ This helps prevent a rogue client from flooding a Request.
 
 Default to 65536 characters (4 kiB in worst case).
 
-=== multipart_part_limit
+=== multipart_file_limit
 
-The maximum number of parts a request can contain.
+The maximum number of parts with a filename a request can contain.
 Accepting too many part can lead to the server running out of file handles.
 
 The default is 128, which means that a single request can't upload more than 128 files at once.
 
 Set to 0 for no limit.
 
-Can also be set via the RACK_MULTIPART_PART_LIMIT environment variable.
+Can also be set via the +RACK_MULTIPART_FILE_LIMIT+ environment variable.
+
+(This is also aliased as +multipart_part_limit+ and +RACK_MULTIPART_PART_LIMIT+ for compatibility)
+
+=== multipart_total_part_limit
+
+The maximum total number of parts a request can contain of any type, including
+both file and non-file form fields.
+
+The default is 4096, which means that a single request can't contain more than
+4096 parts.
+
+Set to 0 for no limit.
+
+Can also be set via the +RACK_MULTIPART_TOTAL_PART_LIMIT+ environment variable.
 
 == History
 
