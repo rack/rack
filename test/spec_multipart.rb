@@ -696,7 +696,7 @@ content-type: image/jpeg\r
     end
   end
 
-  it "reach a multipart limit" do
+  it "reach a multipart file limit" do
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 3
@@ -705,6 +705,18 @@ content-type: image/jpeg\r
       lambda { Rack::Multipart.parse_multipart(env) }.must_raise Rack::Multipart::MultipartPartLimitError
     ensure
       Rack::Utils.multipart_part_limit = previous_limit
+    end
+  end
+
+  it "reach a multipart total limit" do
+    begin
+      previous_limit = Rack::Utils.multipart_total_part_limit
+      Rack::Utils.multipart_total_part_limit = 5
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      lambda { Rack::Multipart.parse_multipart(env) }.must_raise Rack::Multipart::MultipartTotalPartLimitError
+    ensure
+      Rack::Utils.multipart_total_part_limit = previous_limit
     end
   end
 
