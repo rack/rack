@@ -7,6 +7,7 @@ require 'rack/core_ext/regexp'
 module Rack
   module Multipart
     class MultipartPartLimitError < Errno::EMFILE; end
+    class MultipartTotalPartLimitError < StandardError; end
 
     class Parser
       using ::Rack::RegexpExtensions
@@ -148,7 +149,7 @@ module Rack
 
           @mime_parts[mime_index] = klass.new(body, head, filename, content_type, name)
 
-          check_open_files
+          check_part_limits
         end
 
         def on_mime_body mime_index, content
@@ -160,11 +161,21 @@ module Rack
 
         private
 
-        def check_open_files
-          if Utils.multipart_part_limit > 0
-            if @open_files >= Utils.multipart_part_limit
+        def check_part_limits
+          file_limit = Utils.multipart_file_limit
+          part_limit = Utils.multipart_total_part_limit
+
+          if file_limit && file_limit > 0
+            if @open_files >= file_limit
               @mime_parts.each(&:close)
               raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
+            end
+          end
+
+          if part_limit && part_limit > 0
+            if @mime_parts.size >= part_limit
+              @mime_parts.each(&:close)
+              raise MultipartTotalPartLimitError, 'Maximum total multiparts in content reached'
             end
           end
         end
