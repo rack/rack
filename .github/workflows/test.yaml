@@ -19,6 +19,7 @@ jobs:
           - '2.7'
           - '3.0'
           - '3.1'
+          - '3.2'
           - jruby
           - truffleruby-head
         include:
@@ -33,6 +34,5 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-        rubygems: latest
 
     - run: bundle exec rake
