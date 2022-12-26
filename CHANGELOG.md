@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.5] - 2022-12-27
+
+### Fixed
+
+- `Rack::URLMap` uses non-deprecated form of `Regexp.new`. ([#1998](https://github.com/rack/rack/pull/1998), [@weizheheng](https://github.com/weizheheng))
+
 ## [2.2.4] - 2022-06-30
 
 - Better support for lower case headers in `Rack::ETag` middleware. ([#1919](https://github.com/rack/rack/pull/1919), [@ioquatix](https://github.com/ioquatix))
