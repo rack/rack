@@ -19,8 +19,8 @@ app = Rack::Lint.new(lambda { |env|
     req.GET["status"] || 200,
     "Content-Type" => "text/yaml"
   )
-  response.set_cookie("session_test", { value: "session_test", domain: ".test.com", path: "/" })
-  response.set_cookie("secure_test", { value: "secure_test", domain: ".test.com",  path: "/", secure: true })
+  response.set_cookie("session_test", { value: "session_test", domain: "test.com", path: "/" })
+  response.set_cookie("secure_test", { value: "secure_test", domain: "test.com",  path: "/", secure: true })
   response.set_cookie("persistent_test", { value: "persistent_test", max_age: 15552000, path: "/" })
   response.finish
 })
@@ -293,7 +293,7 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("")
     session_cookie = res.cookie("session_test")
     session_cookie.value[0].must_equal "session_test"
-    session_cookie.domain.must_equal ".test.com"
+    session_cookie.domain.must_equal "test.com"
     session_cookie.path.must_equal "/"
     session_cookie.secure.must_equal false
     session_cookie.expires.must_be_nil
@@ -314,7 +314,7 @@ describe Rack::MockResponse do
     res = Rack::MockRequest.new(app).get("")
     secure_cookie = res.cookie("secure_test")
     secure_cookie.value[0].must_equal "secure_test"
-    secure_cookie.domain.must_equal ".test.com"
+    secure_cookie.domain.must_equal "test.com"
     secure_cookie.path.must_equal "/"
     secure_cookie.secure.must_equal true
     secure_cookie.expires.must_be_nil
