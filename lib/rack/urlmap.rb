@@ -37,7 +37,7 @@ module Rack
         end
 
         location = location.chomp('/')
-        match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", nil, 'n')
+        match = Regexp.new("^#{Regexp.quote(location).gsub('/', '/+')}(.*)", Regexp::NOENCODING)
 
         [host, location, match, app]
       }.sort_by do |(host, location, _, _)|
