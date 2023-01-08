@@ -99,7 +99,7 @@ gem 'rack-session'
 
 This provides all the previously available functionality.
 
-### `bin/rackup` was moved to a separate gem.
+### `bin/rackup`, `Rack::Server`, `Rack::Handler`and  `Rack::Lobster` were moved to a separate gem.
 
 Previously, the `rackup` executable was included with Rack. Because WEBrick is
 no longer a default gem with Ruby, we had to make a decision: either `rack`
@@ -116,6 +116,14 @@ gem 'rackup'
 
 This provides all the previously available functionality.
 
+The classes `Rack::Server`, `Rack::Handler` and  `Rack::Lobster` have been moved to the rackup gem too and renamed to `Rackup::Server`, `Rackup::Handler` and  `Rackup::Lobster` respectively.
+
+To start an app with `Rackup::Server` with Rack 3 :
+
+```ruby
+require 'rackup'
+Rackup::Server.start app: app, Port: 3000
+```
 
 #### `config.ru` autoloading is disabled unless `require 'rack'`
 
