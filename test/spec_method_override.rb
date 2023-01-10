@@ -107,6 +107,13 @@ EOF
   end
 
   it "not modify REQUEST_METHOD for POST requests when the params are unparseable" do
+    env = Rack::MockRequest.env_for("/", method: "POST", input: ("[a]" * 36) + "=1")
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+  end
+
+  it "not modify REQUEST_METHOD for POST requests when the params are unparseable because too deep" do
     env = Rack::MockRequest.env_for("/", method: "POST", input: "(%bad-params%)")
     app.call env
 
