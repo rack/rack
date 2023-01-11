@@ -303,7 +303,7 @@ module Rack
         ## (use the versions without <tt>HTTP_</tt>).
         %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
           if env.include? header
-            raise LintError, "env contains #{header}, must use #{header[5, -1]}"
+            raise LintError, "env contains #{header}, must use #{header[5..-1]}"
           end
         }
 
