@@ -164,82 +164,82 @@ describe Rack::Response do
     response["set-cookie"].must_equal "foo=bar"
   end
 
-  it "can set SameSite cookies with symbol value :none" do
+  it "can set same site cookies with symbol value :none" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :none }
-    response["set-cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; samesite=none"
   end
 
-  it "can set SameSite cookies with symbol value :None" do
+  it "can set same site cookies with symbol value :None" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :None }
-    response["set-cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; samesite=none"
   end
 
-  it "can set SameSite cookies with string value 'None'" do
+  it "can set same site cookies with string value 'None'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "None" }
-    response["set-cookie"].must_equal "foo=bar; SameSite=None"
+    response["set-cookie"].must_equal "foo=bar; samesite=none"
   end
 
-  it "can set SameSite cookies with symbol value :lax" do
+  it "can set same site cookies with symbol value :lax" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :lax }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; samesite=lax"
   end
 
-  it "can set SameSite cookies with symbol value :Lax" do
+  it "can set same site cookies with symbol value :Lax" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :lax }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; samesite=lax"
   end
 
-  it "can set SameSite cookies with string value 'Lax'" do
+  it "can set same site cookies with string value 'Lax'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "Lax" }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Lax"
+    response["set-cookie"].must_equal "foo=bar; samesite=lax"
   end
 
-  it "can set SameSite cookies with boolean value true" do
+  it "can set same site cookies with boolean value true" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: true }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; samesite=strict"
   end
 
-  it "can set SameSite cookies with symbol value :strict" do
+  it "can set same site cookies with symbol value :strict" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :strict }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; samesite=strict"
   end
 
-  it "can set SameSite cookies with symbol value :Strict" do
+  it "can set same site cookies with symbol value :Strict" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :Strict }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; samesite=strict"
   end
 
-  it "can set SameSite cookies with string value 'Strict'" do
+  it "can set same site cookies with string value 'Strict'" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: "Strict" }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; samesite=strict"
   end
 
-  it "validates the SameSite option value" do
+  it "validates the same site option value" do
     response = Rack::Response.new
     lambda {
       response.set_cookie "foo", { value: "bar", same_site: "Foo" }
     }.must_raise(ArgumentError).
-      message.must_match(/Invalid SameSite value: "Foo"/)
+      message.must_match(/Invalid :same_site value: "Foo"/)
   end
 
-  it "can set SameSite cookies with symbol value" do
+  it "can set same site cookies with symbol value" do
     response = Rack::Response.new
     response.set_cookie "foo", { value: "bar", same_site: :Strict }
-    response["set-cookie"].must_equal "foo=bar; SameSite=Strict"
+    response["set-cookie"].must_equal "foo=bar; samesite=strict"
   end
 
   [ nil, false ].each do |non_truthy|
-    it "omits SameSite attribute given a #{non_truthy.inspect} value" do
+    it "omits same site attribute given a #{non_truthy.inspect} value" do
       response = Rack::Response.new
       response.set_cookie "foo", { value: "bar", same_site: non_truthy }
       response["set-cookie"].must_equal "foo=bar"

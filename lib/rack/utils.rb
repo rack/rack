@@ -282,13 +282,13 @@ module Rack
           when false, nil
             nil
           when :none, 'None', :None
-            '; SameSite=None'
+            '; samesite=none'
           when :lax, 'Lax', :Lax
-            '; SameSite=Lax'
+            '; samesite=lax'
           when true, :strict, 'Strict', :Strict
-            '; SameSite=Strict'
+            '; samesite=strict'
           else
-            raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
+            raise ArgumentError, "Invalid :same_site value: #{value[:same_site].inspect}"
           end
         value = value[:value]
       else
