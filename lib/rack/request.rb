@@ -497,7 +497,7 @@ module Rack
       # multipart/form-data.
       def POST
         if error = get_header(RACK_REQUEST_FORM_ERROR)
-          raise error
+          raise error.class, error.message, cause: error
         end
 
         begin
