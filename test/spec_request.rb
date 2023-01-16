@@ -1218,6 +1218,22 @@ class RackRequestTest < Minitest::Spec
       req.media_type_params['weird'].must_equal 'lol"'
   end
 
+  it "returns the same error for invalid post inputs" do
+    env = {
+      'REQUEST_METHOD' => 'POST',
+      'PATH_INFO' => '/foo',
+      'rack.input' => StringIO.new('invalid=bar&invalid[foo]=bar'),
+      'HTTP_CONTENT_TYPE' => "application/x-www-form-urlencoded",
+    }
+    
+    2.times do
+      # The actual exception type here is unimportant - just that it fails.
+      assert_raises(Rack::Utils::ParameterTypeError) do
+        Rack::Request.new(env).POST
+      end
+    end
+  end
+
   it "parse with junk before boundary" do
     # Adapted from RFC 1867.
     input = <<EOF
