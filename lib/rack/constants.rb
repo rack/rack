@@ -55,6 +55,7 @@ module Rack
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'
   RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'
   RACK_REQUEST_FORM_VARS              = 'rack.request.form_vars'
+  RACK_REQUEST_FORM_ERROR             = 'rack.request.form_error'
   RACK_REQUEST_COOKIE_HASH            = 'rack.request.cookie_hash'
   RACK_REQUEST_COOKIE_STRING          = 'rack.request.cookie_string'
   RACK_REQUEST_QUERY_HASH             = 'rack.request.query_hash'

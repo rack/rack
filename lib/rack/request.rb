@@ -496,26 +496,35 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if get_header(RACK_INPUT).nil?
-          raise "Missing rack.input"
-        elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-          get_header(RACK_REQUEST_FORM_HASH)
-        elsif form_data? || parseable_data?
-          unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
-            form_vars = get_header(RACK_INPUT).read
+        if error = get_header(RACK_REQUEST_FORM_ERROR)
+          raise error.class, error.message, cause: error.cause
+        end
 
-            # Fix for Safari Ajax postings that always append \0
-            # form_vars.sub!(/\0\z/, '') # performance replacement:
-            form_vars.slice!(-1) if form_vars.end_with?("\0")
+        begin
+          if get_header(RACK_INPUT).nil?
+            raise "Missing rack.input"
+          elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
+            get_header(RACK_REQUEST_FORM_HASH)
+          elsif form_data? || parseable_data?
+            unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
+              form_vars = get_header(RACK_INPUT).read
 
-            set_header RACK_REQUEST_FORM_VARS, form_vars
-            set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+              # Fix for Safari Ajax postings that always append \0
+              # form_vars.sub!(/\0\z/, '') # performance replacement:
+              form_vars.slice!(-1) if form_vars.end_with?("\0")
+
+              set_header RACK_REQUEST_FORM_VARS, form_vars
+              set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+            end
+            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
+            get_header RACK_REQUEST_FORM_HASH
+          else
+            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
+            set_header(RACK_REQUEST_FORM_HASH, {})
           end
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          get_header RACK_REQUEST_FORM_HASH
-        else
-          set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-          set_header(RACK_REQUEST_FORM_HASH, {})
+        rescue => error
+          set_header(RACK_REQUEST_FORM_ERROR, error)
+          raise
         end
       end
 
