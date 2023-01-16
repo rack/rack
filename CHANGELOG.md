@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.0.4] - 2022-01-17
+
+- `Rack::Request#POST` should consistently raise errors. Cache errors that occur when invoking `Rack::Request#POST` so they can be raised again later. ([#2010](https://github.com/rack/rack/pull/2010), [@ioquatix])
+- Fix `Rack::Lint` error message for `HTTP_CONTENT_TYPE` and `HTTP_CONTENT_LENGTH`. ([#2007](https://github.com/rack/rack/pull/2007), [@byroot](https://github.com/byroot))
+- Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2006](https://github.com/rack/rack/pull/2006), [@byroot](https://github.com/byroot))
+
 ## [3.0.3] - 2022-12-27
 
 ### Fixed
