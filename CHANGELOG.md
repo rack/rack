@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.6] - 2022-01-17
+
+- Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2011](https://github.com/rack/rack/pull/2011), [@byroot](https://github.com/byroot))
+
 ## [2.2.5] - 2022-12-27
 
 ### Fixed
