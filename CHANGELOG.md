@@ -1,3 +1,9 @@
+## [2.1.4.2] - 2022-01-17
+
+- [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
+- [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
+- [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
+
 ## [2.1.4.1] - 2022-05-27
 
 - [CVE-2022-30123] Fix shell escaping issue in Common Logger
