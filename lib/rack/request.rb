@@ -459,11 +459,6 @@ module Rack
         media_type_params['charset']
       end
 
-      # Whether the request potentially has input.
-      def input?
-        !!get_header(RACK_INPUT)
-      end
-
       # Determine whether the request body contains form-data by checking
       # the request content-type for one of the media-types:
       # "application/x-www-form-urlencoded" or "multipart/form-data". The
@@ -507,13 +502,21 @@ module Rack
         end
 
         begin
-          # If the form input was already memoized:
-          if get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-            return get_header(RACK_REQUEST_FORM_HASH)
+          rack_input = get_header(RACK_INPUT)
+
+          # If the form hash was already memoized:
+          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
+            # And it was memoized from the same input:
+            if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
+              return form_hash 
+            end
           end
 
           # Otherwise, figure out how to parse the input:
-          if input? && (form_data? || parseable_data?)
+          if rack_input.nil?
+            set_header RACK_REQUEST_FORM_INPUT, nil
+            set_header(RACK_REQUEST_FORM_HASH, {})
+          elsif form_data? || parseable_data?
             unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
               form_vars = get_header(RACK_INPUT).read
 
