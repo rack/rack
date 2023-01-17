@@ -240,9 +240,10 @@ describe Rack::Utils do
     lambda { Rack::Utils.parse_nested_query("x[y]=1&x[y][][w]=2") }.
       must_raise(Rack::Utils::ParameterTypeError).
       message.must_equal "expected Array (got String) for param `y'"
+  end
 
-    Rack::Utils.parse_nested_query("foo%81E=1").
-      must_equal "foo\x81E"=>"1"
+  it "can parse a query string with a key that has invalid UTF-8 encoded bytes" do
+    Rack::Utils.parse_nested_query("foo%81E=1").must_equal "foo\x81E"=>"1"
   end
 
   it "only moves to a new array when the full key has been seen" do
