@@ -1,3 +1,9 @@
+Tue Jan 17 12:27:04 2023  Aaron Patterson <tenderlove@ruby-lang.org>
+
+        * [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
+        * [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
+        * [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
+
 Fri May 27 08:27:04 2022  Aaron Patterson <tenderlove@ruby-lang.org>
 
 	* [CVE-2022-30123] Fix shell escaping issue in Common Logger
