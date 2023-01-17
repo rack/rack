@@ -18,7 +18,7 @@ module Rack
     VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
     BROKEN = /^#{CONDISP}.*;\s*filename=(#{VALUE})/i
     MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:.*;\s*name=(#{VALUE})/ni
+    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:[^:]*;\s*name=(#{VALUE})/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
     # Updated definitions from RFC 2231
     ATTRIBUTE_CHAR = %r{[^ \x00-\x1f\x7f)(><@,;:\\"/\[\]?='*%]}
