@@ -572,11 +572,27 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "parse the query string" do
-    req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
-    req.query_string.must_equal "foo=bar&quux=bla"
-    req.GET.must_equal "foo" => "bar", "quux" => "bla"
-    req.POST.must_be :empty?
-    req.params.must_equal "foo" => "bar", "quux" => "bla"
+    request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    request.query_string.must_equal "foo=bar&quux=bla"
+    request.GET.must_equal "foo" => "bar", "quux" => "bla"
+    request.POST.must_be :empty?
+    request.params.must_equal "foo" => "bar", "quux" => "bla"
+  end
+
+  it "handles invalid unicode in query string value" do
+    request = make_request(Rack::MockRequest.env_for(qs = "/?foo=%81E"))
+    request.query_string.must_equal "foo=%81E"
+    request.GET.must_equal "foo" => "\x81E"
+    request.POST.must_be :empty?
+    request.params.must_equal "foo" => "\x81E"
+  end
+
+  it "handles invalid unicode in query string key" do
+    request = make_request(Rack::MockRequest.env_for("/?foo%81E=1"))
+    request.query_string.must_equal "foo%81E=1"
+    request.GET.must_equal "foo\x81E" => "1"
+    request.POST.must_be :empty?
+    request.params.must_equal "foo\x81E" => "1"
   end
 
   it "not truncate query strings containing semi-colons #543 only in POST" do
