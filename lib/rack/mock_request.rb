@@ -41,11 +41,6 @@ module Rack
       end
     end
 
-    DEFAULT_ENV = {
-      RACK_INPUT        => StringIO.new,
-      RACK_ERRORS       => StringIO.new,
-    }.freeze
-
     def initialize(app)
       @app = app
     end
@@ -104,7 +99,7 @@ module Rack
       uri = parse_uri_rfc2396(uri)
       uri.path = "/#{uri.path}" unless uri.path[0] == ?/
 
-      env = DEFAULT_ENV.dup
+      env = {}
 
       env[REQUEST_METHOD]  = (opts[:method] ? opts[:method].to_s.upcase : GET).b
       env[SERVER_NAME]     = (uri.host || "example.org").b
@@ -144,20 +139,21 @@ module Rack
         end
       end
 
-      opts[:input] ||= String.new
       if String === opts[:input]
         rack_input = StringIO.new(opts[:input])
       else
         rack_input = opts[:input]
       end
 
-      rack_input.set_encoding(Encoding::BINARY)
-      env[RACK_INPUT] = rack_input
+      if rack_input
+        rack_input.set_encoding(Encoding::BINARY)
+        env[RACK_INPUT] = rack_input
 
-      env["CONTENT_LENGTH"] ||= env[RACK_INPUT].size.to_s if env[RACK_INPUT].respond_to?(:size)
+        env["CONTENT_LENGTH"] ||= env[RACK_INPUT].size.to_s if env[RACK_INPUT].respond_to?(:size)
+      end
 
       opts.each { |field, value|
-        env[field] = value  if String === field
+        env[field] = value if String === field
       }
 
       env

@@ -6,6 +6,8 @@ require_relative 'utils'
 require_relative 'multipart/parser'
 require_relative 'multipart/generator'
 
+require_relative 'bad_request'
+
 module Rack
   # A multipart form data parser, adapted from IOWA.
   #
@@ -13,9 +15,15 @@ module Rack
   module Multipart
     MULTIPART_BOUNDARY = "AaB03x"
 
+    class MissingInputError < StandardError
+      include BadRequest
+    end
+
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
-        io = env[RACK_INPUT]
+        unless io = env[RACK_INPUT]
+          raise MissingInputError, "Missing input stream!"
+        end
 
         if content_length = env['CONTENT_LENGTH']
           content_length = content_length.to_i

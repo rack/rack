@@ -14,7 +14,10 @@ end
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
 
-  env["mock.postdata"] = env["rack.input"].read
+  if input = env["rack.input"]
+    env["mock.postdata"] = input.read
+  end
+
   if req.GET["error"]
     env["rack.errors"].puts req.GET["error"]
     env["rack.errors"].flush

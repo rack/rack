@@ -14,7 +14,10 @@ end
 app = Rack::Lint.new(lambda { |env|
   req = Rack::Request.new(env)
 
-  env["mock.postdata"] = env["rack.input"].read
+  if input = env["rack.input"]
+    env["mock.postdata"] = input.read
+  end
+
   if req.GET["error"]
     env["rack.errors"].puts req.GET["error"]
     env["rack.errors"].flush
@@ -46,7 +49,7 @@ describe Rack::MockRequest do
   end
 
   it "should handle a non-GET request with both :input and :params" do
-    env = Rack::MockRequest.env_for("/", method: :post, input: nil, params: {})
+    env = Rack::MockRequest.env_for("/", method: :post, input: "", params: {})
     env["PATH_INFO"].must_equal "/"
     env.must_be_kind_of Hash
     env['rack.input'].read.must_equal ''
@@ -71,7 +74,7 @@ describe Rack::MockRequest do
     env["PATH_INFO"].must_equal "/"
     env["SCRIPT_NAME"].must_equal ""
     env["rack.url_scheme"].must_equal "http"
-    env["mock.postdata"].must_be :empty?
+    env["mock.postdata"].must_be_nil
   end
 
   it "allow GET/POST/PUT/DELETE/HEAD" do
@@ -194,7 +197,7 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo%5Bbar%5D=1"
     env["PATH_INFO"].must_equal "/foo"
-    env["mock.postdata"].must_equal ""
+    env["mock.postdata"].must_be_nil
   end
 
   it "accept raw input in params for GET requests" do
@@ -204,7 +207,7 @@ describe Rack::MockRequest do
     env["QUERY_STRING"].must_include "baz=2"
     env["QUERY_STRING"].must_include "foo%5Bbar%5D=1"
     env["PATH_INFO"].must_equal "/foo"
-    env["mock.postdata"].must_equal ""
+    env["mock.postdata"].must_be_nil
   end
 
   it "accept params and build url encoded params for POST requests" do

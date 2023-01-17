@@ -459,6 +459,11 @@ module Rack
         media_type_params['charset']
       end
 
+      # Whether the request potentially has input.
+      def input?
+        !!get_header(RACK_INPUT)
+      end
+
       # Determine whether the request body contains form-data by checking
       # the request content-type for one of the media-types:
       # "application/x-www-form-urlencoded" or "multipart/form-data". The
@@ -469,9 +474,10 @@ module Rack
       # content-type header is provided and the request_method is POST.
       def form_data?
         type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
 
-        (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+        request_method = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+
+        (request_method == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 
       # Determine whether the request body contains data by checking
@@ -501,11 +507,13 @@ module Rack
         end
 
         begin
-          if get_header(RACK_INPUT).nil?
-            raise "Missing rack.input"
-          elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-            get_header(RACK_REQUEST_FORM_HASH)
-          elsif form_data? || parseable_data?
+          # If the form input was already memoized:
+          if get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
+            return get_header(RACK_REQUEST_FORM_HASH)
+          end
+
+          # Otherwise, figure out how to parse the input:
+          if input? && (form_data? || parseable_data?)
             unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
               form_vars = get_header(RACK_INPUT).read
 
@@ -516,6 +524,7 @@ module Rack
               set_header RACK_REQUEST_FORM_VARS, form_vars
               set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
             end
+
             set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
             get_header RACK_REQUEST_FORM_HASH
           else

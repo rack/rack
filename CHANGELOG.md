@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [Unreleased]
+
+### SPEC Changes
+
+- `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+
+### Changed
+
+- Improved handling of multipart requests. `rack.input` is now optional, and if missing, will raise an error which includes `module Rack::BadRequest`. Several other exceptions also include this module. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+
 ## [3.0.3] - 2022-12-07
 
 ### Fixed

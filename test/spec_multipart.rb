@@ -30,8 +30,7 @@ describe Rack::Multipart do
   end
 
   it "return nil if content type is not multipart" do
-    env = Rack::MockRequest.env_for("/",
-            "CONTENT_TYPE" => 'application/x-www-form-urlencoded')
+    env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "")
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
@@ -39,7 +38,14 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename, "A"*71))
     lambda {
       Rack::Multipart.parse_multipart(env)
-    }.must_raise Rack::Multipart::Error
+    }.must_raise Rack::Multipart::BoundaryTooLongError
+  end
+
+  it "raises a bad request exception if no body is given but content type indicates a multipart body" do
+    env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'multipart/form-data; boundary=BurgerBurger', :input => nil)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
   end
 
   it "parse multipart content when content type present but disposition is not" do

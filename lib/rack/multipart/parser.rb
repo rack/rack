@@ -3,18 +3,28 @@
 require 'strscan'
 
 require_relative '../utils'
+require_relative '../bad_request'
 
 module Rack
   module Multipart
-    class MultipartPartLimitError < Errno::EMFILE; end
+    class MultipartPartLimitError < Errno::EMFILE
+      include BadRequest
+    end
 
     # Use specific error class when parsing multipart request
     # that ends early.
-    class EmptyContentError < ::EOFError; end
+    class EmptyContentError < ::EOFError
+      include BadRequest
+    end
 
     # Base class for multipart exceptions that do not subclass from
     # other exception classes for backwards compatibility.
-    class Error < StandardError; end
+    class BoundaryTooLongError < StandardError
+      include BadRequest
+    end
+
+    Error = BoundaryTooLongError
+    deprecate_constant :Error
 
     EOL = "\r\n"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
@@ -96,7 +106,7 @@ module Rack
         if boundary.length > 70
           # RFC 1521 Section 7.2.1 imposes a 70 character maximum for the boundary.
           # Most clients use no more than 55 characters.
-          raise Error, "multipart boundary size too large (#{boundary.length} characters)"
+          raise BoundaryTooLongError, "multipart boundary size too large (#{boundary.length} characters)"
         end
 
         io = BoundedIO.new(io, content_length) if content_length
