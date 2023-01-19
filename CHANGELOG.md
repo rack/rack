@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. For info on
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
 
+### Changed
+
+- Improved handling of multipart requests. `rack.input` is now optional, and if missing, will raise an error which includes `module Rack::BadRequest`. Several other exceptions also include this module. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+
 ## [3.0.3] - 2022-12-07
 
 ### Fixed

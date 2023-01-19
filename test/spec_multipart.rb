@@ -38,7 +38,7 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename, "A"*71))
     lambda {
       Rack::Multipart.parse_multipart(env)
-    }.must_raise Rack::Multipart::Error
+    }.must_raise Rack::Multipart::BoundaryTooLongError
   end
 
   it "raises a bad request exception if no body is given but content type indicates a multipart body" do
