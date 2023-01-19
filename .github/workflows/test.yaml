@@ -34,6 +34,7 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
+      continue-on-error: ${{ startsWith(matrix.ruby, '2.4') || startsWith(matrix.ruby, '2.5') }}
 
     - run: bundle exec rake
       continue-on-error: ${{ startsWith(matrix.ruby, '2.4') || startsWith(matrix.ruby, '2.5') }}
