@@ -18,4 +18,7 @@ end
 group :test do
   gem 'minitest'
   gem 'bake-test-external', '~> 0.1.3'
+  if RUBY_VERSION >= '2.5' && RUBY_VERSION < '2.6'
+    gem 'psych', '< 3'
+  end
 end
