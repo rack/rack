@@ -26,6 +26,8 @@ jobs:
           - os: macos-latest
             ruby: '3.1'
     runs-on: ${{matrix.os}}
+    env:
+      CI: spec
 
     steps:
     - uses: actions/checkout@v3
