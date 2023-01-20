@@ -56,9 +56,6 @@ module Rack
         raise LintError, "No env given" unless @env
         check_environment(@env)
 
-        @env[RACK_INPUT] = InputWrapper.new(@env[RACK_INPUT])
-        @env[RACK_ERRORS] = ErrorWrapper.new(@env[RACK_ERRORS])
-
         ## and returns a non-frozen Array of exactly three values:
         @response = @app.call(@env)
         raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
@@ -265,11 +262,9 @@ module Rack
         ## is reserved for use with the Rack core distribution and other
         ## accepted specifications and must not be used otherwise.
         ##
-
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL
-           rack.input rack.errors].each { |header|
+        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL rack.errors].each do |header|
           raise LintError, "env missing required key #{header}" unless env.include? header
-        }
+        end
 
         ## The <tt>SERVER_PORT</tt> must be an Integer if set.
         server_port = env["SERVER_PORT"]
@@ -328,10 +323,17 @@ module Rack
           raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
         end
 
-        ## * There must be a valid input stream in <tt>rack.input</tt>.
-        check_input env[RACK_INPUT]
+        ## * There may be a valid input stream in <tt>rack.input</tt>.
+        if rack_input = env[RACK_INPUT]
+          check_input_stream(rack_input)
+          @env[RACK_INPUT] = InputWrapper.new(rack_input)
+        end
+
         ## * There must be a valid error stream in <tt>rack.errors</tt>.
-        check_error env[RACK_ERRORS]
+        rack_errors = env[RACK_ERRORS]
+        check_error_stream(rack_errors)
+        @env[RACK_ERRORS] = ErrorWrapper.new(rack_errors)
+
         ## * There may be a valid hijack callback in <tt>rack.hijack</tt>
         check_hijack env
 
@@ -384,7 +386,7 @@ module Rack
       ##
       ## The input stream is an IO-like object which contains the raw HTTP
       ## POST data.
-      def check_input(input)
+      def check_input_stream(input)
         ## When applicable, its external encoding must be "ASCII-8BIT" and it
         ## must be opened in binary mode, for Ruby 1.9 compatibility.
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
@@ -488,7 +490,7 @@ module Rack
       ##
       ## === The Error Stream
       ##
-      def check_error(error)
+      def check_error_stream(error)
         ## The error stream must respond to +puts+, +write+ and +flush+.
         [:puts, :write, :flush].each { |method|
           unless error.respond_to? method

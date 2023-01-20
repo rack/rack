@@ -501,10 +501,20 @@ module Rack
         end
 
         begin
-          if get_header(RACK_INPUT).nil?
-            raise "Missing rack.input"
-          elsif get_header(RACK_REQUEST_FORM_INPUT) == get_header(RACK_INPUT)
-            get_header(RACK_REQUEST_FORM_HASH)
+          rack_input = get_header(RACK_INPUT)
+
+          # If the form hash was already memoized:
+          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
+            # And it was memoized from the same input:
+            if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
+              return form_hash
+            end
+          end
+
+          # Otherwise, figure out how to parse the input:
+          if rack_input.nil?
+            set_header RACK_REQUEST_FORM_INPUT, nil
+            set_header(RACK_REQUEST_FORM_HASH, {})
           elsif form_data? || parseable_data?
             unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
               form_vars = get_header(RACK_INPUT).read
@@ -516,6 +526,7 @@ module Rack
               set_header RACK_REQUEST_FORM_VARS, form_vars
               set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
             end
+
             set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
             get_header RACK_REQUEST_FORM_HASH
           else

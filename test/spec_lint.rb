@@ -13,8 +13,12 @@ describe Rack::Lint do
     [200, { "content-type" => "test/plain", "content-length" => "3" }, ["foo"]]
   end
 
-  def env(*args)
-    Rack::MockRequest.env_for("/", *args)
+  def env(options = {})
+    unless options.key?(:input)
+      options[:input] = String.new
+    end
+
+    Rack::MockRequest.env_for("/", options)
   end
 
   it "pass valid request" do

@@ -113,7 +113,7 @@ class RackRequestTest < Minitest::Spec
   it "wrap the rack variables" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
 
-    req.body.must_respond_to :gets
+    req.body.must_be_nil
     req.scheme.must_equal "http"
     req.request_method.must_equal "GET"
 
@@ -131,7 +131,7 @@ class RackRequestTest < Minitest::Spec
     req.host.must_equal "example.com"
     req.port.must_equal 8080
 
-    req.content_length.must_equal "0"
+    req.content_length.must_be_nil
     req.content_type.must_be_nil
   end
 
@@ -712,9 +712,9 @@ class RackRequestTest < Minitest::Spec
       message.must_equal "invalid %-encoding (a%)"
   end
 
-  it "raise if rack.input is missing" do
+  it "return empty POST data if rack.input is missing" do
     req = make_request({})
-    lambda { req.POST }.must_raise RuntimeError
+    req.POST.must_be_empty
   end
 
   it "parse POST data when method is POST and no content-type given" do
