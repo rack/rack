@@ -10,9 +10,22 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
-- Improved handling of multipart requests. `rack.input` is now optional, and if missing, will raise an error which includes `module Rack::BadRequest`. Several other exceptions also include this module. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+- `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
+- Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
 
-## [3.0.3] - 2022-12-07
+## [3.0.4.1] - 2023-01-17
+
+- [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
+- [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
+- [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
+
+## [3.0.4] - 2023-01-17
+
+- `Rack::Request#POST` should consistently raise errors. Cache errors that occur when invoking `Rack::Request#POST` so they can be raised again later. ([#2010](https://github.com/rack/rack/pull/2010), [@ioquatix])
+- Fix `Rack::Lint` error message for `HTTP_CONTENT_TYPE` and `HTTP_CONTENT_LENGTH`. ([#2007](https://github.com/rack/rack/pull/2007), [@byroot](https://github.com/byroot))
+- Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2006](https://github.com/rack/rack/pull/2006), [@byroot](https://github.com/byroot))
+
+## [3.0.3] - 2022-12-27
 
 ### Fixed
 
