@@ -6,6 +6,8 @@ require_relative 'utils'
 require_relative 'multipart/parser'
 require_relative 'multipart/generator'
 
+require_relative 'bad_request'
+
 module Rack
   # A multipart form data parser, adapted from IOWA.
   #
@@ -14,6 +16,7 @@ module Rack
     MULTIPART_BOUNDARY = "AaB03x"
 
     class MissingInputError < StandardError
+      include BadRequest
     end
 
     class << self

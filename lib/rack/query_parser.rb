@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require_relative 'bad_request'
+
 module Rack
   class QueryParser
     DEFAULT_SEP = /[&] */n
@@ -7,16 +9,22 @@ module Rack
 
     # ParameterTypeError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain conflicting types.
-    class ParameterTypeError < TypeError; end
+    class ParameterTypeError < TypeError
+      include BadRequest
+    end
 
     # InvalidParameterError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain invalid format or byte
     # sequence.
-    class InvalidParameterError < ArgumentError; end
+    class InvalidParameterError < ArgumentError
+      include BadRequest
+    end
 
     # ParamsTooDeepError is the error that is raised when params are recursively
     # nested over the specified limit.
-    class ParamsTooDeepError < RangeError; end
+    class ParamsTooDeepError < RangeError
+      include BadRequest
+    end
 
     def self.make_default(param_depth_limit)
       new Params, param_depth_limit

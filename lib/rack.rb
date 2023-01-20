@@ -15,6 +15,7 @@ require_relative 'rack/version'
 require_relative 'rack/constants'
 
 module Rack
+  autoload :BadRequest, "rack/bad_request"
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
