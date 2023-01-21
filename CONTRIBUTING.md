@@ -27,15 +27,6 @@ git pull upstream main
 git checkout -b my-feature-branch
 ```
 
-## Bundle Install and Quick Test
-
-Ensure that you can build the project and run quick tests.
-
-```
-bundle install --without extra
-bundle exec rake test
-```
-
 ## Running All Tests
 
 Install all dependencies.
