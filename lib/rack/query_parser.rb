@@ -4,8 +4,8 @@ require_relative 'bad_request'
 
 module Rack
   class QueryParser
-    DEFAULT_SEP = /[&] */n
-    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
+    DEFAULT_SEP = /& */n
+    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n }
 
     # ParameterTypeError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain conflicting types.
