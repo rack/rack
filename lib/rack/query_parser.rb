@@ -194,59 +194,7 @@ module Rack
       Utils.unescape(s)
     end
 
-    class Params
-      def initialize
-        @size   = 0
-        @params = {}
-      end
-
-      def [](key)
-        @params[key]
-      end
-
-      def []=(key, value)
-        @params[key] = value
-      end
-
-      def key?(key)
-        @params.key?(key)
-      end
-
-      # Recursively unwraps nested `Params` objects and constructs an object
-      # of the same shape, but using the objects' internal representations
-      # (Ruby hashes) in place of the objects. The result is a hash consisting
-      # purely of Ruby primitives.
-      #
-      #   Mutation warning!
-      #
-      #   1. This method mutates the internal representation of the `Params`
-      #      objects in order to save object allocations.
-      #
-      #   2. The value you get back is a reference to the internal hash
-      #      representation, not a copy.
-      #
-      #   3. Because the `Params` object's internal representation is mutable
-      #      through the `#[]=` method, it is not thread safe. The result of
-      #      getting the hash representation while another thread is adding a
-      #      key to it is non-deterministic.
-      #
-      def to_h
-        @params.each do |key, value|
-          case value
-          when self
-            # Handle circular references gracefully.
-            @params[key] = @params
-          when Params
-            @params[key] = value.to_h
-          when Array
-            value.map! { |v| v.kind_of?(Params) ? v.to_h : v }
-          else
-            # Ignore anything that is not a `Params` object or
-            # a collection that can contain one.
-          end
-        end
-        @params
-      end
+    class Params < Hash
       alias_method :to_params_hash, :to_h
     end
   end

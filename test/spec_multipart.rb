@@ -256,8 +256,7 @@ describe Rack::Multipart do
   it "accept the params hash class to use for multipart parsing" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
-        super
-        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
+        super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     query_parser = Rack::QueryParser.new c, 100

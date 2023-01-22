@@ -609,8 +609,7 @@ class RackRequestTest < Minitest::Spec
   it "should use the query_parser for query parsing" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
-        super
-        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
+        super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 100)
@@ -676,8 +675,7 @@ class RackRequestTest < Minitest::Spec
   it "use the query_parser's params_class for multipart params" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
-        super
-        @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
+        super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
     parser = Rack::QueryParser.new(c, 100)
