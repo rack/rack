@@ -119,12 +119,10 @@ describe Rack::Utils do
   end
 
   it "not create infinite loops with cycle structures" do
-    ex = { "foo" => nil }
-    ex["foo"] = ex
-
     params = Rack::Utils::KeySpaceConstrainedParams.new
     params['foo'] = params
-    params.to_params_hash.to_s.must_equal ex.to_s
+    h = params.to_params_hash
+    h['foo'].to_s.must_equal h['foo']['foo'].to_s
   end
 
   it "parse nil as an empty query string" do
@@ -277,8 +275,7 @@ describe Rack::Utils do
       default_parser = Rack::Utils.default_query_parser
       param_parser_class = Class.new(Rack::QueryParser::Params) do
         def initialize(*)
-          super
-          @params = Hash.new{|h, k| h[k.to_s] if k.is_a?(Symbol)}
+          super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
         end
       end
       Rack::Utils.default_query_parser = Rack::QueryParser.new(param_parser_class, 100)
