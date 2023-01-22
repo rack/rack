@@ -111,7 +111,7 @@ module Rack
     end
 
     def call(env)
-      status, headers, body = response = @app.call(env)
+      _, headers, body = response = @app.call(env)
 
       if body.respond_to?(:to_path)
         case type = variation(env)
