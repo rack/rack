@@ -225,6 +225,7 @@ module Rack
 
         @sbuf = StringScanner.new("".dup)
         @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
+        @body_regex_at_end = /#{@body_regex}\z/m
         @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
@@ -334,7 +335,7 @@ module Rack
 
       def handle_mime_body
         if (body_with_boundary = @sbuf.check_until(@body_regex)) # check but do not advance the pointer yet
-          body = body_with_boundary.sub(/#{@body_regex}\z/m, '') # remove the boundary from the string
+          body = body_with_boundary.sub(@body_regex_at_end, '') # remove the boundary from the string
           @collector.on_mime_body @mime_index, body
           @sbuf.pos += body.length + 2 # skip \r\n after the content
           @state = :CONSUME_TOKEN
