@@ -483,11 +483,22 @@ module Rack
       # Returns the data received in the query string.
       def GET
         if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          get_header(RACK_REQUEST_QUERY_HASH)
+          if query_hash = get_header(RACK_REQUEST_QUERY_HASH)
+            return query_hash
+          end
+        end
+
+        set_header(RACK_REQUEST_QUERY_HASH, expand_params(query_param_list))
+      end
+
+      def query_param_list
+        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
+          get_header(RACK_REQUEST_QUERY_PAIRS)
         else
-          query_hash = parse_query(query_string, '&')
-          set_header(RACK_REQUEST_QUERY_STRING, query_string)
-          set_header(RACK_REQUEST_QUERY_HASH, query_hash)
+          query_data = split_query(query_string, '&')
+          set_header RACK_REQUEST_QUERY_STRING, query_string
+          set_header RACK_REQUEST_QUERY_HASH, nil
+          set_header(RACK_REQUEST_QUERY_PAIRS, query_data)
         end
       end
 
@@ -496,6 +507,16 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
+        if get_header(RACK_REQUEST_FORM_INPUT).equal?(get_header(RACK_INPUT))
+          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
+            return form_hash
+          end
+        end
+
+        set_header(RACK_REQUEST_FORM_HASH, expand_params(body_param_list))
+      end
+
+      def body_param_list
         if error = get_header(RACK_REQUEST_FORM_ERROR)
           raise error.class, error.message, cause: error.cause
         end
@@ -503,36 +524,36 @@ module Rack
         begin
           rack_input = get_header(RACK_INPUT)
 
-          # If the form hash was already memoized:
-          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
-            # And it was memoized from the same input:
-            if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
-              return form_hash
+          form_pairs = nil
+
+          # If the form data has already been memoized from the same
+          # input:
+          if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
+            if form_pairs = get_header(RACK_REQUEST_FORM_PAIRS)
+              return form_pairs
             end
           end
 
-          # Otherwise, figure out how to parse the input:
           if rack_input.nil?
-            set_header RACK_REQUEST_FORM_INPUT, nil
-            set_header(RACK_REQUEST_FORM_HASH, {})
+            form_pairs = []
           elsif form_data? || parseable_data?
-            unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
-              form_vars = get_header(RACK_INPUT).read
+            unless form_pairs = Rack::Multipart.extract_multipart(self, Rack::Multipart::ParamList)
+              form_vars = rack_input.read
 
               # Fix for Safari Ajax postings that always append \0
               # form_vars.sub!(/\0\z/, '') # performance replacement:
               form_vars.slice!(-1) if form_vars.end_with?("\0")
 
               set_header RACK_REQUEST_FORM_VARS, form_vars
-              set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
+              form_pairs = split_query(form_vars, '&')
             end
-
-            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-            get_header RACK_REQUEST_FORM_HASH
           else
-            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-            set_header(RACK_REQUEST_FORM_HASH, {})
+            form_pairs = []
           end
+
+          set_header RACK_REQUEST_FORM_INPUT, rack_input
+          set_header RACK_REQUEST_FORM_HASH, nil
+          set_header(RACK_REQUEST_FORM_PAIRS, form_pairs)
         rescue => error
           set_header(RACK_REQUEST_FORM_ERROR, error)
           raise
@@ -670,6 +691,28 @@ module Rack
 
       def parse_multipart
         Rack::Multipart.extract_multipart(self, query_parser)
+      end
+
+      def split_query(query, d = '&')
+        query_parser = query_parser()
+        unless query_parser.respond_to?(:split_query)
+          query_parser = Utils.default_query_parser
+          unless query_parser.respond_to?(:split_query)
+            query_parser = QueryParser.make_default(0)
+          end
+        end
+
+        query_parser.split_query(query, d)
+      end
+
+      def expand_params(pairs, query_parser = query_parser())
+        params = query_parser.make_params
+
+        pairs.each do |key, value|
+          query_parser.normalize_params(params, key, value)
+        end
+
+        params.to_params_hash
       end
 
       def split_header(value)
