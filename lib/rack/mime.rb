@@ -290,7 +290,7 @@ module Rack
       ".jpg"       => "image/jpeg",
       ".jpgv"      => "video/jpeg",
       ".jpm"       => "video/jpm",
-      ".js"        => "application/javascript",
+      ".js"        => "text/javascript",
       ".json"      => "application/json",
       ".karbon"    => "application/vnd.kde.karbon",
       ".kfo"       => "application/vnd.kde.kformula",
