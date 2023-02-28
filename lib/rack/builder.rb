@@ -53,12 +53,12 @@ module Rack
     #   Rack::Builder.parse_file('app.rb')
     #   # requires app.rb, which can be anywhere in Ruby's
     #   # load path. After requiring, assumes App constant
-    #   # contains Rack application
+    #   # is a Rack application
     #
     #   Rack::Builder.parse_file('./my_app.rb')
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
-    #   # assumes MyApp constant contains Rack application
+    #   # assumes MyApp constant is a Rack application
     def self.parse_file(path)
       if path.end_with?('.ru')
         return self.load_file(path)
