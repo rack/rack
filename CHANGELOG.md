@@ -1,3 +1,7 @@
+## [2.1.4.3] - 2023-03-02
+
+- [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
+
 ## [2.1.4.2] - 2022-01-17
 
 - [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
