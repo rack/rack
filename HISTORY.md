@@ -1,3 +1,7 @@
+Thu Mar  2 14:50:46 2023  Aaron Patterson <tenderlove@ruby-lang.org>
+
+	* [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
+
 Tue Jan 17 12:27:04 2023  Aaron Patterson <tenderlove@ruby-lang.org>
 
         * [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
