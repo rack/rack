@@ -1000,7 +1000,7 @@ EOF
     f[:tempfile].size.must_equal 76
   end
 
-  it "MultipartPartLimitError when request has too many multipart parts if limit set" do
+  it "MultipartPartLimitError when request has too many multipart file parts if limit set" do
     begin
       data = 10000.times.map { "--AaB03x\r\nContent-Type: text/plain\r\nContent-Disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
       data += "--AaB03x--\r"
@@ -1013,6 +1013,22 @@ EOF
 
       request = make_request Rack::MockRequest.env_for("/", options)
       lambda { request.POST }.must_raise Rack::Multipart::MultipartPartLimitError
+    end
+  end
+
+  it "MultipartPartLimitError when request has too many multipart total parts if limit set" do
+    begin
+      data = 10000.times.map { "--AaB03x\r\ncontent-type: text/plain\r\ncontent-disposition: attachment; name=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
+      data += "--AaB03x--\r"
+
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.length.to_s,
+        :input => StringIO.new(data)
+      }
+
+      request = make_request Rack::MockRequest.env_for("/", options)
+      lambda { request.POST }.must_raise Rack::Multipart::MultipartTotalPartLimitError
     end
   end
 
