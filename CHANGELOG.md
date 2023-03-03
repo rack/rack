@@ -10,16 +10,16 @@ All notable changes to this project will be documented in this file. For info on
 
 - [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
 
-## [2.2.6.2] - 2022-01-17
+## [2.2.6.2] - 2023-01-17
 
 - [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
 
-## [2.2.6.1] - 2022-01-17
+## [2.2.6.1] - 2023-01-17
 
 - [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
 - [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
 
-## [2.2.6] - 2022-01-17
+## [2.2.6] - 2023-01-17
 
 - Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2011](https://github.com/rack/rack/pull/2011), [@byroot](https://github.com/byroot))
 
