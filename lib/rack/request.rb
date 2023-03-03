@@ -427,7 +427,7 @@ module Rack
         if get_header(RACK_REQUEST_QUERY_STRING) == query_string
           get_header(RACK_REQUEST_QUERY_HASH)
         else
-          query_hash = parse_query(query_string, '&;')
+          query_hash = parse_query(query_string, '&')
           set_header(RACK_REQUEST_QUERY_STRING, query_string)
           set_header(RACK_REQUEST_QUERY_HASH, query_hash)
         end

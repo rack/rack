@@ -4,7 +4,7 @@ module Rack
   class QueryParser
     (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
-    DEFAULT_SEP = /[&;] */n
+    DEFAULT_SEP = /[&] */n
     COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
 
     # ParameterTypeError is the error that is raised when incoming structural
@@ -33,16 +33,15 @@ module Rack
     end
 
     # Stolen from Mongrel, with some small modifications:
-    # Parses a query string by breaking it up at the '&'
-    # and ';' characters.  You can also use this to parse
-    # cookies by changing the characters used in the second
-    # parameter (which defaults to '&;').
-    def parse_query(qs, d = nil, &unescaper)
+    # Parses a query string by breaking it up at the '&'.  You can also use this
+    # to parse cookies by changing the characters used in the second parameter
+    # (which defaults to '&').
+    def parse_query(qs, separator = nil, &unescaper)
       unescaper ||= method(:unescape)
 
       params = make_params
 
-      (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+      (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
         k, v = p.split('=', 2).map!(&unescaper)
 
@@ -65,11 +64,11 @@ module Rack
     # query strings with parameters of conflicting types, in this case a
     # ParameterTypeError is raised. Users are encouraged to return a 400 in this
     # case.
-    def parse_nested_query(qs, d = nil)
+    def parse_nested_query(qs, separator = nil)
       params = make_params
 
       unless qs.nil? || qs.empty?
-        (qs || '').split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+        (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
           normalize_params(params, k, v, param_depth_limit)

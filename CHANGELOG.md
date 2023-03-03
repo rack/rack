@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+### Security
+
+- Do not use semicolon as GET parameter separator. ([#1733](https://github.com/rack/rack/pull/1733), [@jeremyevans](https://github.com/jeremyevans))
+
 ## [2.2.6.3] - 2023-03-02
 
 - [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
@@ -134,7 +138,7 @@ All notable changes to this project will be documented in this file. For info on
 - Support for using `:SSLEnable` option when using WEBrick handler. (Gregor Melhorn)
 - Close response body after buffering it when buffering. ([@ioquatix](https://github.com/ioquatix))
 - Only accept `;` as delimiter when parsing cookies. ([@mrageh](https://github.com/mrageh))
-- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft)) 
+- `Utils::HeaderHash#clear` clears the name mapping as well. ([@raxoft](https://github.com/raxoft))
 - Support for passing `nil` `Rack::Files.new`, which notably fixes Rails' current `ActiveStorage::FileServer` implementation. ([@ioquatix](https://github.com/ioquatix))
 
 ### Documentation
