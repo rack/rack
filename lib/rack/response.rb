@@ -342,6 +342,7 @@ module Rack
       end
 
       def append(chunk)
+        chunk = chunk.dup unless chunk.frozen?
         @body << chunk
 
         unless chunked?
