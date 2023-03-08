@@ -1,3 +1,5 @@
+# frozen_string_literal: true
+
 module Rack
   # Rack::Headers is a Hash subclass that downcases all keys.  It's designed
   # to be used by rack applications that don't implement the Rack 3 SPEC
