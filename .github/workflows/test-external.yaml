@@ -20,19 +20,11 @@ jobs:
     steps:
     - uses: actions/checkout@v3
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby-pkgs@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-
-    - name: Installing packages (ubuntu)
-      if: matrix.os == 'ubuntu-latest'
-      run: |
-        sudo apt-get update
-        sudo apt-get install libfcgi-dev libmemcached-dev
-
-    - name: Installing packages (macos)
-      if: matrix.os == 'macos-latest'
-      run: brew install fcgi libmemcached
+        apt-get: _update_ libfcgi-dev libmemcached-dev
+        brew: fcgi libmemcached
 
     - run: bundle exec bake test:external
