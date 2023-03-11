@@ -495,10 +495,10 @@ module Rack
         if get_header(RACK_REQUEST_QUERY_STRING) == query_string
           get_header(RACK_REQUEST_QUERY_PAIRS)
         else
-          query_data = split_query(query_string, '&')
+          query_pairs = split_query(query_string, '&')
           set_header RACK_REQUEST_QUERY_STRING, query_string
           set_header RACK_REQUEST_QUERY_HASH, nil
-          set_header(RACK_REQUEST_QUERY_PAIRS, query_data)
+          set_header(RACK_REQUEST_QUERY_PAIRS, query_pairs)
         end
       end
 
