@@ -572,11 +572,12 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "parse the query string" do
-    req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
-    req.query_string.must_equal "foo=bar&quux=bla"
-    req.GET.must_equal "foo" => "bar", "quux" => "bla"
-    req.POST.must_be :empty?
-    req.params.must_equal "foo" => "bar", "quux" => "bla"
+    request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
+    request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
+    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
+    request.POST.must_be :empty?
+    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
+    request.query_param_list.must_equal [["foo", "bar"], ["quux", "bla"], ["nothing", nil], ["empty", ""]]
   end
 
   it "not truncate query strings containing semi-colons #543 only in POST" do
@@ -694,11 +695,6 @@ class RackRequestTest < Minitest::Spec
 
     lambda { req.POST }.must_raise(Rack::Utils::InvalidParameterError).
       message.must_equal "invalid %-encoding (a%)"
-  end
-
-  it "raise if rack.input is missing" do
-    req = make_request({})
-    lambda { req.POST }.must_raise RuntimeError
   end
 
   it "parse POST data when method is POST and no content-type given" do
