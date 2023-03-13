@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.6.4] - 2023-03-13
+
+- [CVE-2023-27539] Avoid ReDoS in header parsing
+
 ## [2.2.6.3] - 2023-03-02
 
 - [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
