@@ -1554,12 +1554,19 @@ EOF
     rack_input.write(input)
     rack_input.rewind
 
-    req = make_request Rack::MockRequest.env_for("/",
-                      "rack.request.form_hash" => { 'foo' => 'bar' },
-                      "rack.request.form_input" => rack_input,
-                      :input => rack_input)
+    form_hash_cache = {}
 
-    req.POST.must_equal req.env['rack.request.form_hash']
+    req = make_request Rack::MockRequest.env_for(
+      "/",
+      "rack.request.form_hash" => form_hash_cache,
+      "rack.request.form_input" => rack_input,
+      :input => rack_input
+    )
+
+    form_hash = {'foo' => 'bar'}.freeze
+    form_hash_cache[req.class] = form_hash
+
+    req.POST.must_equal form_hash
   end
 
   it "conform to the Rack spec" do

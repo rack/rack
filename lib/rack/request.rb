@@ -480,25 +480,69 @@ module Rack
         PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
       end
 
-      # Returns the data received in the query string.
-      def GET
-        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          if query_hash = get_header(RACK_REQUEST_QUERY_HASH)
-            return query_hash
+      private def cache_for(key, validity_key, current_value)
+        if get_header(validity_key).equal?(current_value)
+          if has_header?(key)
+            value = get_header(key)
+            if value.is_a?(Exception)
+              raise value.class, value.message, cause: value.cause
+            else
+              return value
+            end
           end
         end
 
-        set_header(RACK_REQUEST_QUERY_HASH, expand_params(query_param_list))
+        value = yield(current_value)
+
+        set_header(validity_key, current_value)
+        set_header(key, value)
+      rescue => error
+        set_header(key, error)
+        raise
+      end
+
+      private def class_cache_for(key, validity_key, current_value)
+        if get_header(validity_key).equal?(current_value)
+          if cache = get_header(key)
+            if cache.key?(self.class)
+              value = cache[self.class]
+              if value.is_a?(Exception)
+                raise value.class, value.message, cause: value.cause
+              else
+                return value
+              end
+            end
+          end
+        end
+
+        unless cache
+          set_header(key, cache = {})
+        end
+
+        cache.fetch(self.class) do
+          value = yield(current_value)
+
+          # Only set this after generating the value, so that if an error or other cache depending on the same key, it will be invalidated correctly:
+          set_header(validity_key, current_value)
+
+          return cache[self.class] = value
+        rescue => error
+          cache[self.class] = error
+          raise
+        end
+      end
+
+      # Returns the data received in the query string.
+      def GET
+        class_cache_for(RACK_REQUEST_QUERY_HASH, RACK_REQUEST_QUERY_STRING, query_string) do
+          expand_params(query_param_list)
+        end
       end
 
       def query_param_list
-        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
-          get_header(RACK_REQUEST_QUERY_PAIRS)
-        else
-          query_pairs = split_query(query_string, '&')
-          set_header RACK_REQUEST_QUERY_STRING, query_string
-          set_header RACK_REQUEST_QUERY_HASH, nil
-          set_header(RACK_REQUEST_QUERY_PAIRS, query_pairs)
+        cache_for(RACK_REQUEST_QUERY_PAIRS, RACK_REQUEST_QUERY_STRING, query_string) do
+          set_header(RACK_REQUEST_QUERY_HASH, nil)
+          split_query(query_string, '&')
         end
       end
 
@@ -507,33 +551,13 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if get_header(RACK_REQUEST_FORM_INPUT).equal?(get_header(RACK_INPUT))
-          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
-            return form_hash
-          end
+        class_cache_for(RACK_REQUEST_FORM_HASH, RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)) do
+          expand_params(body_param_list)
         end
-
-        set_header(RACK_REQUEST_FORM_HASH, expand_params(body_param_list))
       end
 
       def body_param_list
-        if error = get_header(RACK_REQUEST_FORM_ERROR)
-          raise error.class, error.message, cause: error.cause
-        end
-
-        begin
-          rack_input = get_header(RACK_INPUT)
-
-          form_pairs = nil
-
-          # If the form data has already been memoized from the same
-          # input:
-          if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
-            if form_pairs = get_header(RACK_REQUEST_FORM_PAIRS)
-              return form_pairs
-            end
-          end
-
+        cache_for(RACK_REQUEST_FORM_PAIRS, RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)) do |rack_input|
           if rack_input.nil?
             form_pairs = []
           elsif form_data? || parseable_data?
@@ -544,19 +568,16 @@ module Rack
               # form_vars.sub!(/\0\z/, '') # performance replacement:
               form_vars.slice!(-1) if form_vars.end_with?("\0")
 
-              set_header RACK_REQUEST_FORM_VARS, form_vars
+              # Removing this line breaks Rail test "test_filters_rack_request_form_vars"!
+              set_header(RACK_REQUEST_FORM_VARS, form_vars)
+
               form_pairs = split_query(form_vars, '&')
             end
           else
             form_pairs = []
           end
-
-          set_header RACK_REQUEST_FORM_INPUT, rack_input
-          set_header RACK_REQUEST_FORM_HASH, nil
-          set_header(RACK_REQUEST_FORM_PAIRS, form_pairs)
-        rescue => error
-          set_header(RACK_REQUEST_FORM_ERROR, error)
-          raise
+          
+          form_pairs
         end
       end
 
