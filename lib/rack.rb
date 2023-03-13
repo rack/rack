@@ -41,6 +41,7 @@ module Rack
   autoload :MethodOverride, "rack/method_override"
   autoload :Mime, "rack/mime"
   autoload :NullLogger, "rack/null_logger"
+  autoload :QueryParser, "rack/query_parser"
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :RewindableInput, "rack/rewindable_input"
