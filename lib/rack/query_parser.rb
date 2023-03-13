@@ -1,5 +1,7 @@
 # frozen_string_literal: true
 
+require 'uri'
+
 module Rack
   class QueryParser
     DEFAULT_SEP = /[&] */n
@@ -111,6 +113,14 @@ module Rack
       _normalize_params(params, name, v, 0)
     end
 
+    # This value is used by default when a parameter is missing (nil). This
+    # usually happens when a parameter is specified without an `=value` part.
+    # The default value is an empty string, but this can be overridden by
+    # subclasses.
+    def missing_value
+      String.new
+    end
+
     private def _normalize_params(params, name, v, depth)
       raise ParamsTooDeepError if depth >= param_depth_limit
 
@@ -145,7 +155,7 @@ module Rack
 
       return if k.empty?
 
-      v ||= String.new
+      v ||= missing_value
 
       if after == ''
         if k == '[]' && depth != 0
@@ -207,8 +217,8 @@ module Rack
       true
     end
 
-    def unescape(s)
-      Utils.unescape(s)
+    def unescape(string, encoding = Encoding::UTF_8)
+      URI.decode_www_form_component(string, encoding)
     end
 
     class Params
