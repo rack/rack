@@ -6,6 +6,89 @@ module Rack
   # (by using non-lowercase response header keys), automatically handling
   # the downcasing of keys.
   class Headers < Hash
+    KNOWN_HEADERS = {}
+    %w(
+      Accept-CH
+      Accept-Patch
+      Accept-Ranges
+      Access-Control-Allow-Credentials
+      Access-Control-Allow-Headers
+      Access-Control-Allow-Methods
+      Access-Control-Allow-Origin
+      Access-Control-Expose-Headers
+      Access-Control-Max-Age
+      Age
+      Allow
+      Alt-Svc
+      Cache-Control
+      Connection
+      Content-Disposition
+      Content-Encoding
+      Content-Language
+      Content-Length
+      Content-Location
+      Content-MD5
+      Content-Range
+      Content-Security-Policy
+      Content-Security-Policy-Report-Only
+      Content-Type
+      Date
+      Delta-Base
+      ETag
+      Expect-CT
+      Expires
+      Feature-Policy
+      IM
+      Last-Modified
+      Link
+      Location
+      NEL
+      P3P
+      Permissions-Policy
+      Pragma
+      Preference-Applied
+      Proxy-Authenticate
+      Public-Key-Pins
+      Referrer-Policy
+      Refresh
+      Report-To
+      Retry-After
+      Server
+      Set-Cookie
+      Status
+      Strict-Transport-Security
+      Timing-Allow-Origin
+      Tk
+      Trailer
+      Transfer-Encoding
+      Upgrade
+      Vary
+      Via
+      WWW-Authenticate
+      Warning
+      X-Cascade
+      X-Content-Duration
+      X-Content-Security-Policy
+      X-Content-Type-Options
+      X-Correlation-ID
+      X-Correlation-Id
+      X-Download-Options
+      X-Frame-Options
+      X-Frame-Options
+      X-Permitted-Cross-Domain-Policies
+      X-Powered-By
+      X-Redirect-By
+      X-Request-ID
+      X-Request-Id
+      X-Runtime
+      X-UA-Compatible
+      X-WebKit-CS
+      X-XSS-Protection
+    ).each do |str|
+      downcased = str.downcase.freeze
+      KNOWN_HEADERS[str] = KNOWN_HEADERS[downcased] = downcased
+    end
+
     def self.[](*items)
       if items.length % 2 != 0
         if items.length == 1 && items.first.is_a?(Hash)
@@ -30,7 +113,7 @@ module Rack
     end
 
     def []=(key, value)
-      super(key.downcase.freeze, value)
+      super(KNOWN_HEADERS[key] || key.downcase.freeze, value)
     end
     alias store []=
 
@@ -150,7 +233,7 @@ module Rack
     private
 
     def downcase_key(key)
-      key.is_a?(String) ? key.downcase : key
+      key.is_a?(String) ? KNOWN_HEADERS[key] || key.downcase : key
     end
   end
 end
