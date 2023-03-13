@@ -572,8 +572,8 @@ module Rack
       end
 
       def parse_http_accept_header(header)
-        header.to_s.split(/\s*,\s*/).map do |part|
-          attribute, parameters = part.split(/\s*;\s*/, 2)
+        header.to_s.split(",").each(&:strip!).map do |part|
+          attribute, parameters = part.split(";", 2).each(&:strip!)
           quality = 1.0
           if parameters and /\Aq=([\d.]+)/ =~ parameters
             quality = $1.to_f
