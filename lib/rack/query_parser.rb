@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'bad_request'
-require 'uri'
 
 module Rack
   class QueryParser
@@ -216,8 +215,8 @@ module Rack
       true
     end
 
-    def unescape(string, encoding = Encoding::UTF_8)
-      URI.decode_www_form_component(string, encoding)
+    def unescape(s)
+      Utils.unescape(s) 
     end
 
     class Params < Hash
@@ -225,3 +224,5 @@ module Rack
     end
   end
 end
+
+require_relative 'utils' unless defined?(Rack::Utils)

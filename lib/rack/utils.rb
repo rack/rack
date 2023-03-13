@@ -7,7 +7,6 @@ require 'set'
 require 'tempfile'
 require 'time'
 
-require_relative 'query_parser'
 require_relative 'mime'
 require_relative 'headers'
 require_relative 'constants'
@@ -17,6 +16,8 @@ module Rack
   # applications adopted from all kinds of Ruby libraries.
 
   module Utils
+    require_relative 'query_parser' unless defined?(QueryParser)
+
     ParameterTypeError = QueryParser::ParameterTypeError
     InvalidParameterError = QueryParser::InvalidParameterError
     ParamsTooDeepError = QueryParser::ParamsTooDeepError
