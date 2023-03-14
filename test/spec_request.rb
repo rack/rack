@@ -1564,7 +1564,7 @@ EOF
     )
 
     form_hash = {'foo' => 'bar'}.freeze
-    form_hash_cache[req.class] = form_hash
+    form_hash_cache[req.cache_key] = form_hash
 
     req.POST.must_equal form_hash
   end
