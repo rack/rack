@@ -480,23 +480,39 @@ module Rack
         PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
       end
 
+      # Given a current input value, and a validity key, check if the cache
+      # is valid, and if so, return the cached value. If not, yield the
+      # current value to the block, and set the cache to the result.
+      #
+      # This method does not use cache_key, so it is shared between all
+      # instance of Rack::Request and it's sub-classes.
       private def cache_for(key, validity_key, current_value)
+        # Get the current value of the validity key and compare it with the input value:
         if get_header(validity_key).equal?(current_value)
+          # If the values are the same, then the cache is valid, so return the cached value.
           if has_header?(key)
             value = get_header(key)
+            # If the cached value is an exception, then re-raise it.
             if value.is_a?(Exception)
               raise value.class, value.message, cause: value.cause
             else
+              # Otherwise, return the cached value.
               return value
             end
           end
         end
 
+        # If the cache is not valid, then yield the current value to the block:
         value = yield(current_value)
 
+        # Set the validity key to the current value so that we can detect changes:
         set_header(validity_key, current_value)
+
+        # Set the cache to the result of the block, and return the result:
         set_header(key, value)
       rescue => error
+        # If an exception is raised, then set the cache to the exception, and re-raise it:
+        set_header(validity_key, current_value)
         set_header(key, error)
         raise
       end
@@ -510,34 +526,52 @@ module Rack
         :rack
       end
 
+      # Given a current input value, and a validity key, check if the cache
+      # is valid, and if so, return the cached value. If not, yield the
+      # current value to the block, and set the cache to the result.
+      #
+      # This method uses cache_key to ensure that the cache is not shared
+      # between instances of different classes which have different
+      # behaviour of the cached operations.
       private def class_cache_for(key, validity_key, current_value)
+        # The cache is organised in the env as:
+        # env[key][cache_key] = value
+        # and is valid as long as env[validity_key].equal?(current_value)
+
         cache_key = self.cache_key
 
+        # Get the current value of the validity key and compare it with the input value:
         if get_header(validity_key).equal?(current_value)
+          # Lookup the cache for the current cache key:
           if cache = get_header(key)
             if cache.key?(cache_key)
+              # If the cache is valid, then return the cached value.
               value = cache[cache_key]
               if value.is_a?(Exception)
+                # If the cached value is an exception, then re-raise it.
                 raise value.class, value.message, cause: value.cause
               else
+                # Otherwise, return the cached value.
                 return value
               end
             end
           end
         end
 
+        # If the cache was not defined for this cache key, then create a new cache:
         unless cache
           set_header(key, cache = {})
         end
 
-        cache.fetch(cache_key) do
+        begin
+          # Yield the current value to the block to generate an updated value:
           value = yield(current_value)
 
           # Only set this after generating the value, so that if an error or other cache depending on the same key, it will be invalidated correctly:
           set_header(validity_key, current_value)
-
           return cache[cache_key] = value
         rescue => error
+          set_header(validity_key, current_value)
           cache[cache_key] = error
           raise
         end

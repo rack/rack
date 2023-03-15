@@ -1964,4 +1964,53 @@ EOF
       DelegateRequest.new super(env)
     end
   end
+
+  class UpperRequest < Rack::Request
+    def expand_params(parameters)
+      parameters.map do |(key, value)|
+        [key.upcase, value]
+      end.to_h
+    end
+
+    # If this is not specified, the behaviour becomes order dependent.
+    def cache_key
+      :my_request
+    end
+  end
+
+  it "correctly expands parameters" do
+    env = {"QUERY_STRING" => "foo=bar"}
+
+    request = Rack::Request.new(env)
+    request.query_param_list.must_equal [["foo", "bar"]]
+    request.GET.must_equal "foo" => "bar"
+
+    upper_request = UpperRequest.new(env)
+    upper_request.query_param_list.must_equal [["foo", "bar"]]
+    upper_request.GET.must_equal "FOO" => "bar"
+
+    env['QUERY_STRING'] = "foo=bar&bar=baz"
+
+    request.GET.must_equal "foo" => "bar", "bar" => "baz"
+    upper_request.GET.must_equal "FOO" => "bar", "BAR" => "baz"
+  end
+
+  class BrokenRequest < Rack::Request
+    def expand_params(parameters)
+      raise "boom"
+    end
+  end
+
+  it "raises an error if expand_params raises an error" do
+    env = {"QUERY_STRING" => "foo=bar"}
+
+    request = Rack::Request.new(env)
+    request.GET.must_equal "foo" => "bar"
+
+    broken_request = BrokenRequest.new(env)
+    lambda { broken_request.GET }.must_raise RuntimeError
+
+    # Subsequnt calls also raise an error:
+    lambda { broken_request.GET }.must_raise RuntimeError
+  end
 end
