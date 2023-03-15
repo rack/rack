@@ -523,7 +523,7 @@ module Rack
       # behaviour. This includes sub-classes that override query_parser or
       # expand_params.
       def cache_key
-        :rack
+        query_parser.class
       end
 
       # Given a current input value, and a validity key, check if the cache
