@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For info on
 - `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
 - Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
+- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 
 ## [3.0.4.1] - 2023-01-17
 
