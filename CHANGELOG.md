@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.0.7] - 2023-03-16
+
+- Make query parameters without `=` have `nil` values. ([#2059](https://github.com/rack/rack/pull/2059), [@jeremyevans])
+
 ## [3.0.6.1] - 2023-03-13
 
 - [CVE-2023-27539] Avoid ReDoS in header parsing
