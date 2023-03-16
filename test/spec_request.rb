@@ -574,10 +574,9 @@ class RackRequestTest < Minitest::Spec
   it "parse the query string" do
     request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
     request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
-    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
+    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
     request.POST.must_be :empty?
-    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
-    request.query_param_list.must_equal [["foo", "bar"], ["quux", "bla"], ["nothing", nil], ["empty", ""]]
+    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
   end
 
   it "not truncate query strings containing semi-colons #543 only in POST" do
@@ -1535,12 +1534,16 @@ EOF
     rack_input.write(input)
     rack_input.rewind
 
-    req = make_request Rack::MockRequest.env_for("/",
-                      "rack.request.form_hash" => { 'foo' => 'bar' },
-                      "rack.request.form_input" => rack_input,
-                      :input => rack_input)
+    form_hash = {}
 
-    req.POST.must_equal req.env['rack.request.form_hash']
+    req = make_request Rack::MockRequest.env_for(
+      "/",
+      "rack.request.form_hash" => form_hash,
+      "rack.request.form_input" => rack_input,
+      :input => rack_input
+    )
+
+    req.POST.must_be_same_as form_hash
   end
 
   it "conform to the Rack spec" do
