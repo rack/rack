@@ -7,25 +7,9 @@ separate_testing do
 end
 
 describe Rack::QueryParser do
-  def query_parser
-    @query_parser ||= Rack::QueryParser.new(Rack::QueryParser::Params, 8)
-  end
-
-  it "has a default value" do
-    assert_equal "", query_parser.missing_value
-  end
+  query_parser ||= Rack::QueryParser.make_default(8)
 
   it "can normalize values with missing values" do
-    query_parser.parse_nested_query("a=a").must_equal({"a" => "a"})
-    query_parser.parse_nested_query("a=").must_equal({"a" => ""})
-    query_parser.parse_nested_query("a").must_equal({"a" => ""})
-  end
-
-  it "can override default missing value" do
-    def query_parser.missing_value
-      nil
-    end
-
     query_parser.parse_nested_query("a=a").must_equal({"a" => "a"})
     query_parser.parse_nested_query("a=").must_equal({"a" => ""})
     query_parser.parse_nested_query("a").must_equal({"a" => nil})

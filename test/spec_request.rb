@@ -574,10 +574,9 @@ class RackRequestTest < Minitest::Spec
   it "parse the query string" do
     request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
     request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
-    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
+    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
     request.POST.must_be :empty?
-    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
-    request.query_param_list.must_equal [["foo", "bar"], ["quux", "bla"], ["nothing", nil], ["empty", ""]]
+    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
   end
 
   it "handles invalid unicode in query string value" do
@@ -1554,19 +1553,16 @@ EOF
     rack_input.write(input)
     rack_input.rewind
 
-    form_hash_cache = {}
+    form_hash = {}
 
     req = make_request Rack::MockRequest.env_for(
       "/",
-      "rack.request.form_hash" => form_hash_cache,
+      "rack.request.form_hash" => form_hash,
       "rack.request.form_input" => rack_input,
       :input => rack_input
     )
 
-    form_hash = {'foo' => 'bar'}.freeze
-    form_hash_cache[req.cache_key] = form_hash
-
-    req.POST.must_equal form_hash
+    req.POST.must_be_same_as form_hash
   end
 
   it "conform to the Rack spec" do
@@ -1963,54 +1959,5 @@ EOF
     def make_request(env)
       DelegateRequest.new super(env)
     end
-  end
-
-  class UpperRequest < Rack::Request
-    def expand_params(parameters)
-      parameters.map do |(key, value)|
-        [key.upcase, value]
-      end.to_h
-    end
-
-    # If this is not specified, the behaviour becomes order dependent.
-    def cache_key
-      :my_request
-    end
-  end
-
-  it "correctly expands parameters" do
-    env = {"QUERY_STRING" => "foo=bar"}
-
-    request = Rack::Request.new(env)
-    request.query_param_list.must_equal [["foo", "bar"]]
-    request.GET.must_equal "foo" => "bar"
-
-    upper_request = UpperRequest.new(env)
-    upper_request.query_param_list.must_equal [["foo", "bar"]]
-    upper_request.GET.must_equal "FOO" => "bar"
-
-    env['QUERY_STRING'] = "foo=bar&bar=baz"
-
-    request.GET.must_equal "foo" => "bar", "bar" => "baz"
-    upper_request.GET.must_equal "FOO" => "bar", "BAR" => "baz"
-  end
-
-  class BrokenRequest < Rack::Request
-    def expand_params(parameters)
-      raise "boom"
-    end
-  end
-
-  it "raises an error if expand_params raises an error" do
-    env = {"QUERY_STRING" => "foo=bar"}
-
-    request = Rack::Request.new(env)
-    request.GET.must_equal "foo" => "bar"
-
-    broken_request = BrokenRequest.new(env)
-    lambda { broken_request.GET }.must_raise RuntimeError
-
-    # Subsequnt calls also raise an error:
-    lambda { broken_request.GET }.must_raise RuntimeError
   end
 end
