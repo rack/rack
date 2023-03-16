@@ -523,7 +523,7 @@ module Rack
       # behaviour. This includes sub-classes that override query_parser or
       # expand_params.
       def cache_key
-        query_parser.class
+        query_parser
       end
 
       # Given a current input value, and a validity key, check if the cache
@@ -560,7 +560,8 @@ module Rack
 
         # If the cache was not defined for this cache key, then create a new cache:
         unless cache
-          set_header(key, cache = {})
+          cache = Hash.new.compare_by_identity
+          set_header(key, cache)
         end
 
         begin
