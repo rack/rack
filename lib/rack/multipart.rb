@@ -13,31 +13,6 @@ module Rack
   module Multipart
     MULTIPART_BOUNDARY = "AaB03x"
 
-    # Accumulator for multipart form data, conforming to the QueryParser API.
-    # In future, the Parser could return the pair list directly, but that would
-    # change its API.
-    class ParamList # :nodoc:
-      def self.make_params
-        new
-      end
-
-      def self.normalize_params(params, key, value)
-        params << [key, value]
-      end
-
-      def initialize
-        @pairs = []
-      end
-
-      def <<(pair)
-        @pairs << pair
-      end
-
-      def to_params_hash
-        @pairs
-      end
-    end
-
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
         io = env[RACK_INPUT]

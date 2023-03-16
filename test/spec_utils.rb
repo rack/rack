@@ -159,7 +159,7 @@ describe Rack::Utils do
 
   it "parse nested query strings correctly" do
     Rack::Utils.parse_nested_query("foo").
-      must_equal "foo" => ""
+      must_equal "foo" => nil
     Rack::Utils.parse_nested_query("foo=").
       must_equal "foo" => ""
     Rack::Utils.parse_nested_query("foo=bar").
@@ -176,7 +176,7 @@ describe Rack::Utils do
     Rack::Utils.parse_nested_query("&foo=1&&bar=2").
       must_equal "foo" => "1", "bar" => "2"
     Rack::Utils.parse_nested_query("foo&bar=").
-      must_equal "foo" => "", "bar" => ""
+      must_equal "foo" => nil, "bar" => ""
     Rack::Utils.parse_nested_query("foo=bar&baz=").
       must_equal "foo" => "bar", "baz" => ""
     Rack::Utils.parse_nested_query("my+weird+field=q1%212%22%27w%245%267%2Fz8%29%3F").
@@ -186,19 +186,19 @@ describe Rack::Utils do
       must_equal "pid=1234" => "1023", "a" => "b"
 
     Rack::Utils.parse_nested_query("foo[]").
-      must_equal "foo" => [""]
+      must_equal "foo" => [nil]
     Rack::Utils.parse_nested_query("foo[]=").
       must_equal "foo" => [""]
     Rack::Utils.parse_nested_query("foo[]=bar").
       must_equal "foo" => ["bar"]
     Rack::Utils.parse_nested_query("foo[]=bar&foo").
-      must_equal "foo" => ""
+      must_equal "foo" => nil
     Rack::Utils.parse_nested_query("foo[]=bar&foo[").
-      must_equal "foo" => ["bar"], "foo[" => ""
+      must_equal "foo" => ["bar"], "foo[" => nil
     Rack::Utils.parse_nested_query("foo[]=bar&foo[=baz").
       must_equal "foo" => ["bar"], "foo[" => "baz"
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]").
-      must_equal "foo" => ["bar", ""]
+      must_equal "foo" => ["bar", nil]
     Rack::Utils.parse_nested_query("foo[]=bar&foo[]=").
       must_equal "foo" => ["bar", ""]
 
@@ -210,7 +210,7 @@ describe Rack::Utils do
       must_equal "foo" => ["bar"], "baz" => ["1", "2", "3"]
 
     Rack::Utils.parse_nested_query("x[y][z]").
-      must_equal "x" => { "y" => { "z" => "" } }
+      must_equal "x" => { "y" => { "z" => nil } }
     Rack::Utils.parse_nested_query("x[y][z]=1").
       must_equal "x" => { "y" => { "z" => "1" } }
     Rack::Utils.parse_nested_query("x[y][z][]=1").
