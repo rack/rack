@@ -37,42 +37,19 @@ module Rack
       @param_depth_limit = param_depth_limit
     end
 
-    # Originally stolen from Mongrel, now with some modifications:
+    # Stolen from Mongrel, with some small modifications:
     # Parses a query string by breaking it up at the '&'.  You can also use this
     # to parse cookies by changing the characters used in the second parameter
     # (which defaults to '&').
-    #
-    # Returns an array of 2-element arrays, where the first element is the
-    # key and the second element is the value.
-    def split_query(qs, separator = nil, &unescaper)
-      pairs = []
-
-      if qs && !qs.empty?
-        unescaper ||= method(:unescape)
-
-        qs.split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
-          next if p.empty?
-          pair = p.split('=', 2).map!(&unescaper)
-          pair << nil if pair.length == 1
-          pairs << pair
-        end
-      end
-
-      pairs
-    rescue ArgumentError => e
-      raise InvalidParameterError, e.message, e.backtrace
-    end
-
-    # Parses a query string by breaking it up at the '&'.  You can also use this
-    # to parse cookies by changing the characters used in the second parameter
-    # (which defaults to '&').
-    #
-    # Returns a hash where each value is a string (when a key only appears once)
-    # or an array of strings (when a key appears more than once).
     def parse_query(qs, separator = nil, &unescaper)
+      unescaper ||= method(:unescape)
+
       params = make_params
 
-      split_query(qs, separator, &unescaper).each do |k, v|
+      (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
+        next if p.empty?
+        k, v = p.split('=', 2).map!(&unescaper)
+
         if cur = params[k]
           if cur.class == Array
             params[k] << v
@@ -84,7 +61,7 @@ module Rack
         end
       end
 
-      params.to_h
+      return params.to_h
     end
 
     # parse_nested_query expands a query string into structural types. Supported
@@ -95,11 +72,17 @@ module Rack
     def parse_nested_query(qs, separator = nil)
       params = make_params
 
-      split_query(qs, separator).each do |k, v|
-        _normalize_params(params, k, v, 0)
+      unless qs.nil? || qs.empty?
+        (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
+          k, v = p.split('=', 2).map! { |s| unescape(s) }
+
+          _normalize_params(params, k, v, 0)
+        end
       end
 
-      params.to_h
+      return params.to_h
+    rescue ArgumentError => e
+      raise InvalidParameterError, e.message, e.backtrace
     end
 
     # normalize_params recursively expands parameters into structural types. If

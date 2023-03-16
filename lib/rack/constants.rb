@@ -54,13 +54,11 @@ module Rack
   RACK_RESPONSE_FINISHED              = 'rack.response_finished'
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'
   RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'
-  RACK_REQUEST_FORM_PAIRS             = 'rack.request.form_pairs'
   RACK_REQUEST_FORM_VARS              = 'rack.request.form_vars'
   RACK_REQUEST_FORM_ERROR             = 'rack.request.form_error'
   RACK_REQUEST_COOKIE_HASH            = 'rack.request.cookie_hash'
   RACK_REQUEST_COOKIE_STRING          = 'rack.request.cookie_string'
   RACK_REQUEST_QUERY_HASH             = 'rack.request.query_hash'
-  RACK_REQUEST_QUERY_PAIRS            = 'rack.request.query_pairs'
   RACK_REQUEST_QUERY_STRING           = 'rack.request.query_string'
   RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'
 end
