@@ -74,8 +74,17 @@ describe Rack::BodyProxy do
     proxy.banana(foo: 1).must_equal 1
   end
 
-  it 'not respond to :to_ary' do
-    proxy = Rack::BodyProxy.new([]) { }
+  it 'respond to :to_ary if body does responds to it, and have to_ary call close' do
+    proxy_closed = false
+    proxy = Rack::BodyProxy.new([]) { proxy_closed = true }
+    proxy.respond_to?(:to_ary).must_equal true
+    proxy_closed.must_equal false
+    proxy.to_ary.must_equal []
+    proxy_closed.must_equal true
+  end
+
+  it 'not respond to :to_ary if body does not respond to it' do
+    proxy = Rack::BodyProxy.new([].map) { }
     proxy.respond_to?(:to_ary).must_equal false
     proc do
       proxy.to_ary
