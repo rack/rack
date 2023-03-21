@@ -74,13 +74,37 @@ describe Rack::BodyProxy do
     proxy.banana(foo: 1).must_equal 1
   end
 
-  it 'not respond to :to_ary' do
-    body = Object.new.tap { |o| def o.to_ary() end }
-    body.respond_to?(:to_ary).must_equal true
+  it 'respond to :to_ary if body does responds to it, and have to_ary call close' do
+    proxy_closed = false
+    proxy = Rack::BodyProxy.new([]) { proxy_closed = true }
+    proxy.respond_to?(:to_ary).must_equal true
+    proxy_closed.must_equal false
+    proxy.to_ary.must_equal []
+    proxy_closed.must_equal true
+  end
 
-    proxy = Rack::BodyProxy.new(body) { }
-    x = [proxy]
-    assert_equal x, x.flatten
+  it 'not respond to :to_ary if body does not respond to it' do
+    proxy = Rack::BodyProxy.new([].map) { }
+    proxy.respond_to?(:to_ary).must_equal false
+    proc do
+      proxy.to_ary
+    end.must_raise NoMethodError
+  end
+
+  it 'not respond to :to_str' do
+    proxy = Rack::BodyProxy.new("string body") { }
+    proxy.respond_to?(:to_str).must_equal false
+    proc do
+      proxy.to_str
+    end.must_raise NoMethodError
+  end
+
+  it 'not respond to :to_path if body does not respond to it' do
+    proxy = Rack::BodyProxy.new("string body") { }
+    proxy.respond_to?(:to_path).must_equal false
+    proc do
+      proxy.to_path
+    end.must_raise NoMethodError
   end
 
   it 'not close more than one time' do
