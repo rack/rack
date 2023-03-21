@@ -15,7 +15,12 @@ module Rack
 
     # Return whether the wrapped body responds to the method.
     def respond_to_missing?(method_name, include_all = false)
-      super or @body.respond_to?(method_name, include_all)
+      case method_name
+      when :to_str
+        false
+      else
+        super or @body.respond_to?(method_name, include_all)
+      end
     end
 
     # If not already closed, close the wrapped body and
@@ -38,7 +43,18 @@ module Rack
 
     # Delegate missing methods to the wrapped body.
     def method_missing(method_name, *args, &block)
-      @body.__send__(method_name, *args, &block)
+      case method_name
+      when :to_str
+        super
+      when :to_ary
+        begin
+          @body.__send__(method_name, *args, &block)
+        ensure
+          close
+        end
+      else
+        @body.__send__(method_name, *args, &block)
+      end
     end
     # :nocov:
     ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
