@@ -2,6 +2,19 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### SPEC Changes
+
+- `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+
+### Changed
+
+- `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
+- Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
+- MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
+- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
+
 ## [3.0.7] - 2023-03-16
 
 - Make query parameters without `=` have `nil` values. ([#2059](https://github.com/rack/rack/pull/2059), [@jeremyevans])
@@ -20,16 +33,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.0.4.2] - 2023-03-02
 
-### SPEC Changes
-
-- `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
-
-### Changed
-
-- `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
-- Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
-- MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
-- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
+- [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
 
 ## [3.0.4.1] - 2023-01-17
 
