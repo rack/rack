@@ -18,7 +18,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Split form/query parsing into two steps. ([#2038](https://github.com/rack/rack/pull/2038), [@matthewd](https://github.com/matthewd))
 
-## [3.0.4.1] - 2023-03-02
+## [3.0.4.2] - 2023-03-02
 
 ### SPEC Changes
 
