@@ -604,6 +604,26 @@ describe Rack::Response do
     res.finish.last.must_equal ["Foo", "Bar"]
   end
 
+  it "handles string reuse in existing body when calling #write" do
+    body_class = Class.new do
+      def initialize(file)
+        @file = file
+      end
+
+      def each
+        buffer = String.new
+
+        while @file.read(5, buffer)
+          yield(buffer)
+        end
+      end
+    end
+    body = body_class.new(StringIO.new('Large large file content'))
+    res = Rack::Response.new(body)
+    res.write(" written")
+    res.finish.last.must_equal ["Large", " larg", "e fil", "e con", "tent", " written"]
+  end
+
   it "calls close on #body" do
     res = Rack::Response.new
     res.body = StringIO.new
