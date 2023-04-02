@@ -410,7 +410,7 @@ module Rack
       ".ogx"       => "application/ogg",
       ".org"       => "application/vnd.lotus-organizer",
       ".otc"       => "application/vnd.oasis.opendocument.chart-template",
-      ".otf"       => "application/vnd.oasis.opendocument.formula-template",
+      ".otf"       => "font/otf",
       ".otg"       => "application/vnd.oasis.opendocument.graphics-template",
       ".oth"       => "application/vnd.oasis.opendocument.text-web",
       ".oti"       => "application/vnd.oasis.opendocument.image-template",
