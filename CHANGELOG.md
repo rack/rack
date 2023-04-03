@@ -14,6 +14,7 @@ All notable changes to this project will be documented in this file. For info on
 - Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
+- Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
 
 ## [3.0.7] - 2023-03-16
 
@@ -871,3 +872,4 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 [@amatsuda]: https://github.com/amatsuda "Akira Matsuda"
 [@wjordan]: https://github.com/wjordan "Will Jordan"
 [@BlakeWilliams]: https://github.com/BlakeWilliams "Blake Williams"
+[@davidstosik]: https://github.com/davidstosik "David Stosik"
