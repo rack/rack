@@ -608,7 +608,7 @@ module Rack
           (?<ip4>[\d\.]+)
           |
           # A hostname:
-          (?<name>[a-zA-Z0-9\.\-]+)
+          (?<name>[a-zA-Z0-9\.\-_]+)
         )
         # The optional port:
         (:(?<port>\d+))?
