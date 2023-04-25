@@ -704,6 +704,28 @@ contents\r
     params["file"][:filename].must_equal 'long' * 100
   end
 
+  it "limits very long file name extensions in multipart tempfiles" do
+    data = <<-EOF
+--AaB03x\r
+content-type: text/plain\r
+content-disposition: attachment; name=file; filename=foo.#{'a' * 1000}\r
+\r
+contents\r
+--AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+
+    params["file"][:filename].must_equal "foo.#{'a' * 1000}"
+    File.extname(env["rack.tempfiles"][0]).must_equal ".#{'a' * 128}"
+  end
+
   it "parse unquoted parameter values at end of line" do
     data = <<-EOF
 --AaB03x\r

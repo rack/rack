@@ -13,7 +13,9 @@ module Rack
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
       TEMPFILE_FACTORY = lambda { |filename, content_type|
-        Tempfile.new(["RackMultipart", ::File.extname(filename.gsub("\0", '%00'))])
+        extension = ::File.extname(filename.gsub("\0", '%00'))[0, 129]
+
+        Tempfile.new(["RackMultipart", extension])
       }
 
       BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
