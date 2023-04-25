@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For info on
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
+- Deprecate automatic cache invalidation in `Request#{GET,POST}` and add `Request#clear_{GET,POST}` for manual cache invalidation ([@jeremyevans])
 
 ## [3.0.7] - 2023-03-16
 
