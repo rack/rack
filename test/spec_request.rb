@@ -187,6 +187,11 @@ class RackRequestTest < Minitest::Spec
     req.hostname.must_be_nil
 
     req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "some_service:3001")
+    req.host.must_equal "some_service"
+    req.hostname.must_equal "some_service"
+
+    req = make_request \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
     req.host.must_equal "example.org"
     req.hostname.must_equal "example.org"
@@ -302,6 +307,10 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org:81")
     req.port.must_equal 81
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "some_service:3001")
+    req.port.must_equal 3001
 
     req = make_request \
       Rack::MockRequest.env_for("/", "SERVER_NAME" => "example.org", "SERVER_PORT" => "9292")
