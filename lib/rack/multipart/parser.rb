@@ -375,7 +375,7 @@ module Rack
           if filename_star
             encoding, _, filename = filename_star.split("'", 3)
             filename = normalize_filename(filename || '')
-            filename.force_encoding(::Encoding.find(encoding))
+            filename.force_encoding(find_encoding(encoding))
           elsif filename
             filename = $1 if filename =~ /^"(.*)"$/
             filename = normalize_filename(filename)
@@ -457,11 +457,7 @@ module Rack
               v.strip!
               v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
               if k == "charset"
-                encoding = begin
-                  Encoding.find v
-                rescue ArgumentError
-                  Encoding::BINARY
-                end
+                encoding = find_encoding(v)
               end
             end
           end
@@ -469,6 +465,15 @@ module Rack
 
         name.force_encoding(encoding)
         body.force_encoding(encoding)
+      end
+
+      # Return the related Encoding object. However, because
+      # enc is submitted by the user, it may be invalid, so
+      # use a binary encoding in that case.
+      def find_encoding(enc)
+        Encoding.find enc
+      rescue ArgumentError
+        Encoding::BINARY
       end
 
       def handle_empty_content!(content)
