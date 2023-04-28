@@ -32,28 +32,9 @@ module Rack
 
     EOL = "\r\n"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
-    TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
-    CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
-    VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
-    BROKEN = /^#{CONDISP}.*;\s*filename=(#{VALUE})/i
     MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:[^:]*;\s*name=(#{VALUE})/ni
+    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:(.*)(?=#{EOL}(\S|\z))/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
-    # Updated definitions from RFC 2231
-    ATTRIBUTE_CHAR = %r{[^ \x00-\x1f\x7f)(><@,;:\\"/\[\]?='*%]}
-    ATTRIBUTE = /#{ATTRIBUTE_CHAR}+/
-    SECTION = /\*[0-9]+/
-    REGULAR_PARAMETER_NAME = /#{ATTRIBUTE}#{SECTION}?/
-    REGULAR_PARAMETER = /(#{REGULAR_PARAMETER_NAME})=(#{VALUE})/
-    EXTENDED_OTHER_NAME = /#{ATTRIBUTE}\*[1-9][0-9]*\*/
-    EXTENDED_OTHER_VALUE = /%[0-9a-fA-F][0-9a-fA-F]|#{ATTRIBUTE_CHAR}/
-    EXTENDED_OTHER_PARAMETER = /(#{EXTENDED_OTHER_NAME})=(#{EXTENDED_OTHER_VALUE}*)/
-    EXTENDED_INITIAL_NAME = /#{ATTRIBUTE}(?:\*0)?\*/
-    EXTENDED_INITIAL_VALUE = /[a-zA-Z0-9\-]*'[a-zA-Z0-9\-]*'#{EXTENDED_OTHER_VALUE}*/
-    EXTENDED_INITIAL_PARAMETER = /(#{EXTENDED_INITIAL_NAME})=(#{EXTENDED_INITIAL_VALUE})/
-    EXTENDED_PARAMETER = /#{EXTENDED_INITIAL_PARAMETER}|#{EXTENDED_OTHER_PARAMETER}/
-    DISPPARM = /;\s*(?:#{REGULAR_PARAMETER}|#{EXTENDED_PARAMETER})\s*/
-    RFC2183 = /^#{CONDISP}(#{DISPPARM})+$/i
 
     class Parser
       BUFSIZE = 1_048_576
@@ -316,13 +297,89 @@ module Rack
         if @sbuf.scan_until(@head_regex)
           head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
-          if name = head[MULTIPART_CONTENT_DISPOSITION, 1]
-            name = dequote(name)
+          if disposition = head[MULTIPART_CONTENT_DISPOSITION, 1]
+            # ignore actual content-disposition value (should always be form-data)
+            i = disposition.index(';')
+            disposition.slice!(0, i+1)
+            param = nil
+
+            # Parse parameter list
+            while i = disposition.index('=')
+              # Found end of parameter name, ensure forward progress in loop
+              param = disposition.slice!(0, i+1)
+
+              # Remove ending equals and preceding whitespace from parameter name
+              param.chomp!('=')
+              param.lstrip!
+
+              if disposition[0] == '"'
+                # Parameter value is quoted, parse it, handling backslash escapes
+                disposition.slice!(0, 1)
+                value = String.new
+
+                while i = disposition.index(/(["\\])/)
+                  c = $1
+
+                  # Append all content until ending quote or escape
+                  value << disposition.slice!(0, i)
+
+                  # Remove either backslash or ending quote,
+                  # ensures forward progress in loop
+                  disposition.slice!(0, 1)
+
+                  # stop parsing parameter value if found ending quote
+                  break if c == '"'
+
+                  escaped_char = disposition.slice!(0, 1)
+                  if param == 'filename' && escaped_char != '"'
+                    # Possible IE uploaded filename, append both escape backslash and value
+                    value << c << escaped_char
+                  else
+                    # Other only append escaped value
+                    value << escaped_char
+                  end
+                end
+              else
+                if i = disposition.index(';')
+                  # Parameter value unquoted (which may be invalid), value ends at semicolon
+                  value = disposition.slice!(0, i)
+                else
+                  # If no ending semicolon, assume remainder of line is value and stop
+                  # parsing
+                  disposition.strip!
+                  value = disposition
+                  disposition = ''
+                end
+              end
+
+              case param
+              when 'name'
+                name = value
+              when 'filename'
+                filename = value
+              when 'filename*'
+                filename_star = value
+              # else
+              # ignore other parameters
+              end
+
+              # skip trailing semicolon, to proceed to next parameter
+              if i = disposition.index(';')
+                disposition.slice!(0, i+1)
+              end
+            end
           else
             name = head[MULTIPART_CONTENT_ID, 1]
           end
 
-          filename = get_filename(head)
+          if filename_star
+            encoding, _, filename = filename_star.split("'", 3)
+            filename = normalize_filename(filename || '')
+            filename.force_encoding(::Encoding.find(encoding))
+          elsif filename
+            filename = $1 if filename =~ /^"(.*)"$/
+            filename = normalize_filename(filename)
+          end
 
           if name.nil? || name.empty?
             name = filename || "#{content_type || TEXT_PLAIN}[]".dup
@@ -367,39 +424,14 @@ module Rack
         end
       end
 
-      def get_filename(head)
-        filename = nil
-        case head
-        when RFC2183
-          params = Hash[*head.scan(DISPPARM).flat_map(&:compact)]
-
-          if filename = params['filename*']
-            encoding, _, filename = filename.split("'", 3)
-          elsif filename = params['filename']
-            filename = $1 if filename =~ /^"(.*)"$/
-          end
-        when BROKEN
-          filename = $1
-          filename = $1 if filename =~ /^"(.*)"$/
-        end
-
-        return unless filename
-
+      def normalize_filename(filename)
         if filename.scan(/%.?.?/).all? { |s| /%[0-9a-fA-F]{2}/.match?(s) }
           filename = Utils.unescape_path(filename)
         end
 
         filename.scrub!
 
-        if filename !~ /\\[^\\"]/
-          filename = filename.gsub(/\\(.)/, '\1')
-        end
-
-        if encoding
-          filename.force_encoding ::Encoding.find(encoding)
-        end
-
-        filename
+        filename.split(/[\/\\]/).last || String.new
       end
 
       CHARSET = "charset"
