@@ -231,6 +231,86 @@ describe Rack::Multipart do
     Timeout::timeout(10) { Rack::Multipart.parse_multipart(env) }
   end
 
+  content_disposition_parse = lambda do |params|
+    boundary = '---------------------------932620571087722842402766118'
+
+    data = StringIO.new
+    data.write("--#{boundary}")
+    data.write("\r\n")
+    data.write("Content-Disposition: form-data;#{params}")
+    data.write("\r\n")
+    data.write("content-type:application/pdf\r\n")
+    data.write("\r\n")
+    data.write("--#{boundary}--\r\n")
+    data.rewind
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => data,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    Rack::Multipart.parse_multipart(env)
+  end
+
+  # see https://github.com/rack/rack/issues/2076
+  it "parse content-disposition with modification date before name parameter" do
+    x = content_disposition_parse.call(' filename="sample.sql"; modification-date="Wed, 26 Apr 2023 11:01:34 GMT"; size=24; name="file"')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "sample.sql"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with colon in parameter value before name parameter" do
+    x = content_disposition_parse.call(' filename="sam:ple.sql"; name="file"')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "sam:ple.sql"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with name= in parameter value before name parameter" do
+    x = content_disposition_parse.call('filename="name=bar"; name="file"')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "name=bar"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with unquoted parameter values" do
+    x = content_disposition_parse.call('filename=sam:ple.sql; name=file')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "sam:ple.sql"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with backslash escaped parameter values" do
+    x = content_disposition_parse.call('filename="foo\"bar"; name=file')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "foo\"bar"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with IE full paths in filename" do
+    x = content_disposition_parse.call('filename="c:\foo\bar"; name=file;')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "bar"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "parse content-disposition with escaped parameter values in name" do
+    x = content_disposition_parse.call('filename="bar"; name="file\\\\-\\xfoo"')
+    x.keys.must_equal ["file\\-xfoo"]
+    x["file\\-xfoo"][:filename].must_equal "bar"
+    x["file\\-xfoo"][:name].must_equal "file\\-xfoo"
+  end
+
+  it "parse content-disposition with escaped parameter values in name" do
+    x = content_disposition_parse.call('filename="bar"; name="file\\\\-\\xfoo"')
+    x.keys.must_equal ["file\\-xfoo"]
+    x["file\\-xfoo"][:filename].must_equal "bar"
+    x["file\\-xfoo"][:name].must_equal "file\\-xfoo"
+  end
+
   it 'raises an EOF error on content-length mismatch' do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     env['rack.input'] = StringIO.new
