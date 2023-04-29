@@ -310,7 +310,7 @@ module Rack
 
             # Parse parameter list
             while i = disposition.index('=')
-              # Only parse up to 32 parameters, to avoid potential denial of service
+              # Only parse up to max parameters, to avoid potential denial of service
               num_params += 1
               break if num_params > CONTENT_DISPOSITION_MAX_PARAMS
 
