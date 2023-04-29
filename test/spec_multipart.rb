@@ -311,6 +311,32 @@ describe Rack::Multipart do
     x["file\\-xfoo"][:name].must_equal "file\\-xfoo"
   end
 
+  it "parse up to 16 content-disposition params" do
+    x = content_disposition_parse.call("#{14.times.map{|x| "a#{x}=b;"}.join} filename=\"bar\"; name=\"file\"")
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "bar"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "stop parsing content-disposition after 16 params" do
+    x = content_disposition_parse.call("#{15.times.map{|x| "a#{x}=b;"}.join} filename=\"bar\"; name=\"file\"")
+    x.keys.must_equal ["bar"]
+    x["bar"][:filename].must_equal "bar"
+    x["bar"][:name].must_equal "bar"
+  end
+
+  it "allow content-disposition values up to 1536 bytes" do
+    x = content_disposition_parse.call("a=#{'a'*1480}; filename=\"bar\"; name=\"file\"")
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "bar"
+    x["file"][:name].must_equal "file"
+  end
+
+  it "ignore content-disposition values over to 1536 bytes" do
+    x = content_disposition_parse.call("a=#{'a'*1510}; filename=\"bar\"; name=\"file\"")
+    x.must_equal "text/plain"=>[""]
+  end
+
   it 'raises an EOF error on content-length mismatch' do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     env['rack.input'] = StringIO.new

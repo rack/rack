@@ -293,18 +293,27 @@ module Rack
         end
       end
 
+      CONTENT_DISPOSITION_MAX_PARAMS = 16
+      CONTENT_DISPOSITION_MAX_BYTES = 1536
       def handle_mime_head
         if @sbuf.scan_until(@head_regex)
           head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
-          if disposition = head[MULTIPART_CONTENT_DISPOSITION, 1]
+          if (disposition = head[MULTIPART_CONTENT_DISPOSITION, 1]) &&
+              disposition.bytesize <= CONTENT_DISPOSITION_MAX_BYTES
+
             # ignore actual content-disposition value (should always be form-data)
             i = disposition.index(';')
             disposition.slice!(0, i+1)
             param = nil
+            num_params = 0
 
             # Parse parameter list
             while i = disposition.index('=')
+              # Only parse up to 32 parameters, to avoid potential denial of service
+              num_params += 1
+              break if num_params > CONTENT_DISPOSITION_MAX_PARAMS
+
               # Found end of parameter name, ensure forward progress in loop
               param = disposition.slice!(0, i+1)
 
