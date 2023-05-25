@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.7] - 2023-03-13
+
+- Correct the year number in the changelog ([#2015](https://github.com/rack/rack/pull/2015), [@kimulab](https://github.com/kimulab))
+- Support underscore in host names for Rack 2.2 (Fixes [#2070](https://github.com/rack/rack/issues/2070)) ([#2015](https://github.com/rack/rack/pull/2071), [@jeremyevans](https://github.com/jeremyevans))
+
 ## [2.2.6.4] - 2023-03-13
 
 - [CVE-2023-27539] Avoid ReDoS in header parsing
