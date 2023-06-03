@@ -420,7 +420,7 @@ module Rack
           v
         end
 
-        ## * +read+ behaves like IO#read.
+        ## * +read+ behaves like <tt>IO#read</tt>.
         ##   Its signature is <tt>read([length, [buffer]])</tt>.
         ##
         ##   If given, +length+ must be a non-negative Integer (>= 0) or +nil+,

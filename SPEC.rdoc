@@ -148,7 +148,7 @@ must be opened in binary mode, for Ruby 1.9 compatibility.
 The input stream must respond to +gets+, +each+, and +read+.
 * +gets+ must be called without arguments and return a string,
   or +nil+ on EOF.
-* +read+ behaves like IO#read.
+* +read+ behaves like <tt>IO#read</tt>.
   Its signature is <tt>read([length, [buffer]])</tt>.
 
   If given, +length+ must be a non-negative Integer (>= 0) or +nil+,
