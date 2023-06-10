@@ -50,6 +50,7 @@ module Rack
   autoload :RewindableInput, "rack/rewindable_input"
   autoload :Runtime, "rack/runtime"
   autoload :Sendfile, "rack/sendfile"
+  autoload :SetXForwardedProtoHeader, "rack/set_x_forwarded_proto_header"
   autoload :ShowExceptions, "rack/show_exceptions"
   autoload :ShowStatus, "rack/show_status"
   autoload :Static, "rack/static"
