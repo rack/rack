@@ -19,6 +19,7 @@ module Rack
   autoload :Builder, "rack/builder"
   autoload :BodyProxy, "rack/body_proxy"
   autoload :Cascade, "rack/cascade"
+  autoload :CloudfrontHttpsHeader, "rack/cloudfront_https_header"
   autoload :CommonLogger, "rack/common_logger"
   autoload :ConditionalGet, "rack/conditional_get"
   autoload :Config, "rack/config"
