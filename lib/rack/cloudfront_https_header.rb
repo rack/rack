@@ -1,7 +1,5 @@
 # frozen_string_literal: true
 
-require 'json'
-
 module Rack
 
   # Middleware to set the X-Forwarded-Proto header to the value
@@ -16,9 +14,9 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless env['CloudFront-Forwarded-Proto']
+      return @app.call(env) unless env['HTTP_CloudFront-Forwarded-Proto']
 
-      env['HTTP_X_FORWARDED_PROTO'] = env['CloudFront-Forwarded-Proto']
+      env['HTTP_X_FORWARDED_PROTO'] = env['HTTP_CloudFront-Forwarded-Proto']
 
       @app.call(env)
     end
