@@ -7,14 +7,10 @@ separate_testing do
   require_relative '../lib/rack/mock_request'
 end
 
-describe Rack::CloudfrontHttpsHeader do
-  def cloudfront_https_header(app)
-    Rack::Lint.new Rack::CloudfrontHttpsHeader.new(app)
-  end
-
+describe Rack::ForwardedProtoHeader do
   def app
-    Rack::Lint.new(Rack::CloudfrontHttpsHeader.new(lambda {|e|
-      [200, { "content-type" => "text/plain" }, []]
+    Rack::Lint.new(Rack::ForwardedProtoHeader.new(lambda {|e|
+      [200, {}, []]
     }))
   end
 
@@ -25,8 +21,7 @@ describe Rack::CloudfrontHttpsHeader do
   end
 
   it "copies the Cloudfront header value to X-Forwarded-Proto" do
-
-    env = Rack::MockRequest.env_for("/", "CloudFront-Forwarded-Proto" => "https")
+    env = Rack::MockRequest.env_for("/", "HTTP_CloudFront-Forwarded-Proto" => "https")
     app.call env
     env["HTTP_X_FORWARDED_PROTO"].must_equal "https"
   end

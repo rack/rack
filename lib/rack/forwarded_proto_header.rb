@@ -8,7 +8,7 @@ module Rack
   # AWS Cloudfront sets this header for you https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-cloudfront-headers.html#cloudfront-headers-other
   # and it can be used to ensure the scheme matches when comparing
   # request.origin and request.base_url for CSRF checking.
-  class CloudfrontHttpsHeader
+  class ForwardedProtoHeader
     def initialize(app)
       @app = app
     end
