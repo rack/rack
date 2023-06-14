@@ -16,6 +16,10 @@ All notable changes to this project will be documented in this file. For info on
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
 
+## [3.0.8] - 2023-06-14
+
+- Fix some unused variable verbose warnings. ([#2084](https://github.com/rack/rack/pull/2084), [@jeremyevans], [@skipkayhil](https://github.com/skipkayhil))
+
 ## [3.0.7] - 2023-03-16
 
 - Make query parameters without `=` have `nil` values. ([#2059](https://github.com/rack/rack/pull/2059), [@jeremyevans])
