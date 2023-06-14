@@ -478,7 +478,7 @@ describe Rack::Lint do
     def body.to_path; __FILE__ end
     app = lambda { |env| [200, {}, body] }
 
-    status, headers, body = Rack::Lint.new(app).call(env({}))
+    body = Rack::Lint.new(app).call(env({}))[2]
     body.must_respond_to(:to_path)
     body.to_path.must_equal __FILE__
   end
