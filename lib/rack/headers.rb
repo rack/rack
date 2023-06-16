@@ -74,7 +74,6 @@ module Rack
       X-Correlation-Id
       X-Download-Options
       X-Frame-Options
-      X-Frame-Options
       X-Permitted-Cross-Domain-Policies
       X-Powered-By
       X-Redirect-By
