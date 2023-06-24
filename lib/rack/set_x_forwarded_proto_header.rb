@@ -14,7 +14,7 @@ module Rack
   class SetXForwardedProtoHeader
     def initialize(app, vendor_forwarded_header)
       @app = app
-      @vendor_forwarded_header = "HTTP_#{vendor_forwarded_header}"
+      @vendor_forwarded_header = "HTTP_#{vendor_forwarded_header.upcase}"
     end
 
     def call(env)
