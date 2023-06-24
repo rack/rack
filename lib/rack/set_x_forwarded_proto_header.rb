@@ -5,12 +5,18 @@ module Rack
   # Middleware to set the X-Forwarded-Proto header to the value
   # of another header.
   #
-  # For example, AWS Cloudfront sets a CloudFront-Forwarded-Proto header
-  # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-cloudfront-headers.html#cloudfront-headers-other
-  
   # This header can be used to ensure the scheme matches when comparing
   # request.origin and request.base_url for CSRF checking, but Rack
   # expects that value to be in the X_FORWARDED_PROTO header.
+  #
+  # For example, AWS Cloudfront sets a CloudFront-Forwarded-Proto header
+  # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-cloudfront-headers.html#cloudfront-headers-other
+  #
+  # Rails usage:
+  # In this AWS example, add 
+  #`config.middleware.use Rack::SetXForwardedProtoHeader, 'CloudFront-Forwarded-Proto'`
+  # to your application.rb file
+  
   class SetXForwardedProtoHeader
     def initialize(app, vendor_forwarded_header)
       @app = app
