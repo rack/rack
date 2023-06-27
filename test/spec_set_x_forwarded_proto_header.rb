@@ -39,5 +39,13 @@ describe Rack::SetXForwardedProtoHeader do
     env["HTTP_X_FORWARDED_PROTO"].must_equal "https"
   end
 
+  it "copies the value of the header to X-Forwarded-Proto overwriting an existing X-Forwarded-Proto" do
+    env = Rack::MockRequest.env_for("/", "HTTP_VENDOR_FORWARDED_PROTO_HEADER" => "https", "HTTP_X_FORWARDED_PROTO" => "http")
+
+    Rack::Lint.new(Rack::SetXForwardedProtoHeader.new(response, "Vendor-Forwarded-Proto-Header")).call env
+
+    env["HTTP_X_FORWARDED_PROTO"].must_equal "https"
+  end
+
   
 end
