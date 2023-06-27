@@ -9,12 +9,9 @@ module Rack
   # request.origin and request.base_url for CSRF checking, but Rack
   # expects that value to be in the X_FORWARDED_PROTO header.
   #
-  # For example, AWS Cloudfront sets a CloudFront-Forwarded-Proto header
-  # https://docs.aws.amazon.com/AmazonCloudFront/latest/DeveloperGuide/adding-cloudfront-headers.html#cloudfront-headers-other
-  #
-  # Example Rails usage with AWS Cloudfront:
-  # In this AWS example, add 
-  #`config.middleware.use Rack::SetXForwardedProtoHeader, 'CloudFront-Forwarded-Proto'`
+  # Example Rails usage:
+  # If you use a vendor managed proxy or CDN which sends the proto in a header add 
+  #`config.middleware.use Rack::SetXForwardedProtoHeader, 'Vendor-Forwarded-Proto-Header'`
   # to your application.rb file
   
   class SetXForwardedProtoHeader
