@@ -19,15 +19,10 @@ describe Rack::SetXForwardedProtoHeader do
     vendor_forwarded_header = "not passed in the request"
     env = Rack::MockRequest.env_for("/", "FOO" => "bar")
 
-    header_middleware = Rack::SetXForwardedProtoHeader.new(response, vendor_forwarded_header)
-    # Patch to ensure we return early and do not call `copy_header_value`
-    def header_middleware.copy_header_value
-      raise NoMethodError, "should never be called when vendor_forwarded_header is not in the request"
-    end
-
-    Rack::Lint.new(header_middleware).call env
+    Rack::Lint.new(Rack::SetXForwardedProtoHeader.new(response, vendor_forwarded_header)).call env
 
     env["FOO"].must_equal "bar"
+    env["HTTP_X_FORWARDED_PROTO"].must_equal nil
   end
 
 
