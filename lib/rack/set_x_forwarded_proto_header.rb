@@ -22,15 +22,10 @@ module Rack
     end
 
     def call(env)
-      return @app.call(env) unless env[@vendor_forwarded_header]
-      copy_header_value(env)
+      if value = env[@vendor_forwarded_header]
+        env["HTTP_X_FORWARDED_PROTO"] = value
+      end
       @app.call(env)
-    end
-
-    protected
-
-    def copy_header_value(env)
-      env["HTTP_X_FORWARDED_PROTO"] = env[@vendor_forwarded_header]
     end
 
   end
