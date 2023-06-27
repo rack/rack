@@ -15,7 +15,7 @@ describe Rack::SetXForwardedProtoHeader do
     env["HTTP_X_FORWARDED_PROTO"].must_equal "http"
   end
 
-  it "returns early when there is no vendor header passed in the request" do
+  it "does not set X-Forwarded-Proto when there is no vendor header passed in the request" do
     vendor_forwarded_header = "not passed in the request"
     env = Rack::MockRequest.env_for("/", "FOO" => "bar")
 
