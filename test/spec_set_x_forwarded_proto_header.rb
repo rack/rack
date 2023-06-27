@@ -32,9 +32,9 @@ describe Rack::SetXForwardedProtoHeader do
 
 
   it "copies the value of the header to X-Forwarded-Proto" do
-    env = Rack::MockRequest.env_for("/", "HTTP_CLOUDFRONT_FORWARDED_PROTO" => "https")
+    env = Rack::MockRequest.env_for("/", "HTTP_VENDOR_FORWARDED_PROTO_HEADER" => "https")
 
-    Rack::Lint.new(Rack::SetXForwardedProtoHeader.new(response, "CloudFront-Forwarded-Proto")).call env
+    Rack::Lint.new(Rack::SetXForwardedProtoHeader.new(response, "Vendor-Forwarded-Proto-Header")).call env
 
     env["HTTP_X_FORWARDED_PROTO"].must_equal "https"
   end
