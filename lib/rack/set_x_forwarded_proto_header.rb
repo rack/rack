@@ -17,7 +17,8 @@ module Rack
   class SetXForwardedProtoHeader
     def initialize(app, vendor_forwarded_header)
       @app = app
-      @vendor_forwarded_header = standard_header vendor_forwarded_header
+      # Rack expects to see UPPER_UNDERSCORED_HEADERS, never SnakeCased-Dashed-Headers
+      @vendor_forwarded_header = "HTTP_#{vendor_forwarded_header.upcase.gsub "-", "_"}"
     end
 
     def call(env)
@@ -32,10 +33,5 @@ module Rack
       env["HTTP_X_FORWARDED_PROTO"] = env[@vendor_forwarded_header]
     end
 
-    def standard_header(header)
-      # Rack expects to see UPPER_UNDERSCORED_HEADERS, never SnakeCased-Dashed-Headers
-      upper_underscored = header.upcase.gsub "-", "_"
-      return "HTTP_#{upper_underscored}"
-    end
   end
 end
