@@ -1359,6 +1359,8 @@ EOF
     f[:filename].must_equal "dj.jpg"
     f.must_include :tempfile
     f[:tempfile].size.must_equal 76
+
+    req.env['rack.request.form_pairs'].must_equal [["reply", "yes"], ["fileupload", f]]
   end
 
   it "MultipartPartLimitError when request has too many multipart file parts if limit set" do
