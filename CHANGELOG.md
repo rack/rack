@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### SPEC Changes
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+- `Rack::Utils.escape_html` doesn't escape forward slash (`/`) now. ([#2097](https://github.com/rack/rack/pull/2097), [@JunichiIto])
 
 ### Changed
 

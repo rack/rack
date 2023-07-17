@@ -477,8 +477,7 @@ describe Rack::Utils do
     Rack::Utils.escape_html("f>o").must_equal "f&gt;o"
     Rack::Utils.escape_html("f'o").must_equal "f&#x27;o"
     Rack::Utils.escape_html('f"o').must_equal "f&quot;o"
-    Rack::Utils.escape_html("f/o").must_equal "f&#x2F;o"
-    Rack::Utils.escape_html("<foo></foo>").must_equal "&lt;foo&gt;&lt;&#x2F;foo&gt;"
+    Rack::Utils.escape_html("<foo></foo>").must_equal "&lt;foo&gt;&lt;/foo&gt;"
   end
 
   it "escape html entities even on MRI when it's bugged" do
