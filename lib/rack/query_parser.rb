@@ -129,6 +129,8 @@ module Rack
 
       return if k.empty?
 
+      v ||= String.new
+
       if after == ''
         if k == '[]' && depth != 0
           return [v]

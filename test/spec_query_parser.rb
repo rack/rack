@@ -12,6 +12,6 @@ describe Rack::QueryParser do
   it "can normalize values with missing values" do
     query_parser.parse_nested_query("a=a").must_equal({"a" => "a"})
     query_parser.parse_nested_query("a=").must_equal({"a" => ""})
-    query_parser.parse_nested_query("a").must_equal({"a" => nil})
+    query_parser.parse_nested_query("a").must_equal({"a" => ""})
   end
 end

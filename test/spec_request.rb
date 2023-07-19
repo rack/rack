@@ -583,9 +583,9 @@ class RackRequestTest < Minitest::Spec
   it "parse the query string" do
     request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
     request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
-    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
+    request.GET.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
     request.POST.must_be :empty?
-    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => nil, "empty" => ""
+    request.params.must_equal "foo" => "bar", "quux" => "bla", "nothing" => "", "empty" => ""
   end
 
   it "handles invalid unicode in query string value" do
