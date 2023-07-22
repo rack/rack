@@ -475,17 +475,10 @@ describe Rack::Utils do
     Rack::Utils.escape_html("f&o").must_equal "f&amp;o"
     Rack::Utils.escape_html("f<o").must_equal "f&lt;o"
     Rack::Utils.escape_html("f>o").must_equal "f&gt;o"
-    Rack::Utils.escape_html("f'o").must_equal "f&#x27;o"
+    Rack::Utils.escape_html("f'o").must_equal "f&#39;o"
     Rack::Utils.escape_html('f"o').must_equal "f&quot;o"
     Rack::Utils.escape_html("<foo></foo>").must_equal "&lt;foo&gt;&lt;/foo&gt;"
-  end
-
-  it "escape html entities even on MRI when it's bugged" do
-    test_escape = lambda do
-      Rack::Utils.escape_html("\300<").must_equal "\300&lt;"
-    end
-
-    test_escape.must_raise ArgumentError
+    Rack::Utils.escape_html("\300<").must_equal "\300&lt;"
   end
 
   it "escape html entities in unicode strings" do
