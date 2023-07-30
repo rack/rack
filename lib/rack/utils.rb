@@ -6,6 +6,7 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'time'
+require 'cgi/escape'
 
 require_relative 'query_parser'
 require_relative 'mime'
@@ -174,20 +175,8 @@ module Rack
       matches&.first
     end
 
-    ESCAPE_HTML = {
-      "&" => "&amp;",
-      "<" => "&lt;",
-      ">" => "&gt;",
-      "'" => "&#x27;",
-      '"' => "&quot;"
-    }
-
-    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
-    def escape_html(string)
-      string.to_s.gsub(ESCAPE_HTML_PATTERN, ESCAPE_HTML)
-    end
+    define_method(:escape_html, CGI.method(:escapeHTML))
 
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
