@@ -20,7 +20,7 @@ module Rack
     VERSION.join(".")
   end
 
-  RELEASE = "2.2.7"
+  RELEASE = "2.2.8"
 
   # Return the Rack release as a dotted string.
   def self.release
