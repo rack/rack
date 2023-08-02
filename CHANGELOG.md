@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+- Return empty when parsing a multi-part POST with only one end delimiter. ([#2104](https://github.com/rack/rack/pull/2104), [@alpaca-tc])
+
 ## [2.2.8] - 2023-07-31
 
 - Regenerate SPEC ([#2102](https://github.com/rack/rack/pull/2102), [@skipkayhil](https://github.com/skipkayhil))

@@ -191,6 +191,7 @@ module Rack
 
         @sbuf = StringScanner.new("".dup)
         @body_regex = /(?:#{EOL})?#{Regexp.quote(@boundary)}(?:#{EOL}|--)/m
+        @end_boundary_size = boundary.bytesize + 6 # (-- at start, -- at finish, EOL at end)
         @rx_max_size = EOL.size + @boundary.bytesize + [EOL.size, '--'.size].max
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
@@ -231,7 +232,12 @@ module Rack
       end
 
       def handle_fast_forward
-        if consume_boundary
+        tok = consume_boundary
+
+        if tok == :END_BOUNDARY && @sbuf.pos == @end_boundary_size && @sbuf.eos?
+          # stop parsing a buffer if a buffer is only an end boundary.
+          @state = :DONE
+        elsif tok
           @state = :MIME_HEAD
         else
           raise EOFError, "bad content body" if @sbuf.rest_size >= @bufsize
