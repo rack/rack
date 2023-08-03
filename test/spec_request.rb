@@ -1363,6 +1363,24 @@ EOF
     req.env['rack.request.form_pairs'].must_equal [["reply", "yes"], ["fileupload", f]]
   end
 
+  it "parse multipart delimiter-only boundary" do
+    input = <<EOF
+--AaB03x--\r
+EOF
+    mr = Rack::MockRequest.env_for(
+      "/",
+      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+      "CONTENT_LENGTH" => input.size,
+      :input => input
+    )
+
+    req = make_request mr
+    req.query_string.must_equal ""
+    req.GET.must_be :empty?
+    req.POST.must_be :empty?
+    req.params.must_equal({})
+  end
+
   it "MultipartPartLimitError when request has too many multipart file parts if limit set" do
     begin
       data = 10000.times.map { "--AaB03x\r\ncontent-type: text/plain\r\ncontent-disposition: attachment; name=#{SecureRandom.hex(10)}; filename=#{SecureRandom.hex(10)}\r\n\r\ncontents\r\n" }.join("\r\n")
