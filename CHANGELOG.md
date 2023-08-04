@@ -6,6 +6,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Regenerate SPEC ([#2102](https://github.com/rack/rack/pull/2102), [@skipkayhil](https://github.com/skipkayhil))
 - Limit file extension length of multipart tempfiles ([#2015](https://github.com/rack/rack/pull/2015), [@dentarg](https://github.com/dentarg))
+- Fix "undefined method DelegateClass for Rack::Session::Cookie:Class" ([#2092](https://github.com/rack/rack/pull/2092), [@onigra](https://github.com/onigra) [@dchandekstark](https://github.com/dchandekstark))
 
 ## [2.2.7] - 2023-03-13
 
