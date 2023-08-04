@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.8] - 2023-07-31
+
+- Regenerate SPEC ([#2102](https://github.com/rack/rack/pull/2102), [@skipkayhil](https://github.com/skipkayhil))
+- Limit file extension length of multipart tempfiles ([#2015](https://github.com/rack/rack/pull/2015), [@dentarg](https://github.com/dentarg))
+
 ## [2.2.7] - 2023-03-13
 
 - Correct the year number in the changelog ([#2015](https://github.com/rack/rack/pull/2015), [@kimulab](https://github.com/kimulab))
