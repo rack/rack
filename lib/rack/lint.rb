@@ -485,6 +485,11 @@ module Rack
         def close(*args)
           @input.close(*args)
         end
+
+        ## * +set_encoding+ just passes through to the underlying object.
+        def set_encoding(*args)
+          @input.set_encoding(*args) if @input.respond_to?(:set_encoding)
+        end
       end
 
       ##

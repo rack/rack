@@ -257,6 +257,10 @@ describe Rack::MockRequest do
     called.must_equal true
   end
 
+  it "doesn't complain if the input can't #set_encoding" do
+    env = Rack::MockRequest.env_for('/foo', input: Object.new)
+  end
+
   it "defaults encoding to ASCII 8BIT" do
     req = Rack::MockRequest.env_for("/foo")
 
