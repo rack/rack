@@ -225,6 +225,11 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/must start with/)
 
+    # XXX not actually sure what *should* happen in an OPTIONS * request.
+    lambda {
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => ?*))
+    }.must_be_kind_of Proc
+
     lambda {
       Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))
     }.must_raise(Rack::Lint::LintError).

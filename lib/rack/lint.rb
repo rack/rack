@@ -346,8 +346,9 @@ module Rack
         if env.include?(SCRIPT_NAME) && env[SCRIPT_NAME] != "" && env[SCRIPT_NAME] !~ /\A\//
           raise LintError, "SCRIPT_NAME must start with /"
         end
-        ## * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
-        if env.include?(PATH_INFO) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
+
+        ## * The <tt>PATH_INFO</tt>, if non-empty (or not <tt>OPTIONS *</tt>), must start with <tt>/</tt>
+        if env.include?(PATH_INFO) && !(env[REQUEST_METHOD] == OPTIONS && env[PATH_INFO] == ?*) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
           raise LintError, "PATH_INFO must start with /"
         end
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
