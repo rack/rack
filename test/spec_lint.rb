@@ -225,10 +225,13 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/must start with/)
 
-    # XXX not actually sure what *should* happen in an OPTIONS * request.
-    lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => ?*))
-    }.must_be_kind_of Proc
+    # A non-empty PATH_INFO starting with something other than / has
+    # implications for Rack::Request#path and methods downstream from
+    # it. Note that RFC3875 does not actually anticipate dealing with
+    # `OPTIONS *`; that should be considered a bug in the spec.
+    Rack::Lint.new(
+      lambda { |_| [200, {}, []] }
+    ).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => ?*)).first.must_equal 200
 
     lambda {
       Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))
