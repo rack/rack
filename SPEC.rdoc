@@ -126,7 +126,7 @@ There are the following restrictions:
 * There may be a valid hijack callback in <tt>rack.hijack</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-* The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
+* The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
 * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
 * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
