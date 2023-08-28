@@ -347,7 +347,7 @@ module Rack
           raise LintError, "SCRIPT_NAME must start with /"
         end
 
-        ## * The <tt>PATH_INFO</tt>, if non-empty (or not <tt>OPTIONS *</tt>), must start with <tt>/</tt>
+        ## * The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
         if env.include?(PATH_INFO) && !(env[REQUEST_METHOD] == OPTIONS && env[PATH_INFO] == ?*) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
           raise LintError, "PATH_INFO must start with /"
         end
