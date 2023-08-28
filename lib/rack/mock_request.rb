@@ -145,7 +145,12 @@ module Rack
         rack_input.set_encoding(Encoding::BINARY)
       else
         if input.respond_to?(:encoding) && input.encoding != Encoding::BINARY
-          raise ArgumentError, "input must be binary"
+          warn "input encoding not binary", uplevel: 1
+          if input.respond_to?(:set_encoding)
+            input.set_encoding(Encoding::BINARY)
+          else
+            raise ArgumentError, "could not coerce input to binary encoding"
+          end
         end
         rack_input = input
       end
