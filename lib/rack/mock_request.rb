@@ -139,11 +139,15 @@ module Rack
         end
       end
 
-      if String === opts[:input]
-        rack_input = StringIO.new(opts[:input])
+      input = opts[:input]
+      if String === input
+        rack_input = StringIO.new(input)
         rack_input.set_encoding(Encoding::BINARY)
       else
-        rack_input = opts[:input]
+        if input.respond_to?(:encoding) && input.encoding != Encoding::BINARY
+          raise ArgumentError, "input must be binary"
+        end
+        rack_input = input
       end
 
       if rack_input
