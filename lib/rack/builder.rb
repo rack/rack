@@ -151,9 +151,14 @@ module Rack
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
     def use(middleware, *args, &block)
-      if @map
-        mapping, @map = @map, nil
-        @use << proc { |app| generate_map(app, mapping) }
+      opts = args.detect{|a|a.is_a?(Hash)}
+      if opts && opts[:provider_replace]
+        @use.delete_if {|v| v.call.class.eql?(middleware)}
+      else
+        if @map
+          mapping, @map = @map, nil
+          @use << proc { |app| generate_map(app, mapping) }
+        end
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
     end
