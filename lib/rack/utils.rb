@@ -289,11 +289,7 @@ module Rack
           else
             raise ArgumentError, "Invalid :same_site value: #{value[:same_site].inspect}"
           end
-        partitioned =
-          if value[:partitioned]
-            raise ArgumentError, 'Partitioned cookies must be set with `secure`' unless value[:secure]
-            "; partitioned"
-          end
+        partitioned = "; partitioned" if value[:partitioned]
         value = value[:value]
       else
         key = escape(key)
