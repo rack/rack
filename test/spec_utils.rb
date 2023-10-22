@@ -611,12 +611,7 @@ describe Rack::Utils, "cookies" do
   end
 
   it "sets partitioned cookie attribute" do
-    assert_raises(ArgumentError, 'Partitioned cookies must be set with `secure`') do
-      Rack::Utils.set_cookie_header('name', {value: 'value', partitioned: true})
-    end
-
-    Rack::Utils.set_cookie_header('name', {value: 'value', secure: true, partitioned: true})
-               .must_equal 'name=value; secure; partitioned'
+    Rack::Utils.set_cookie_header('name', {value: 'value', partitioned: true}).must_equal 'name=value; partitioned'
   end
 
   it "deletes cookies in header field" do
