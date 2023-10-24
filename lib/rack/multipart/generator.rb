@@ -79,8 +79,8 @@ module Rack
         filename = "; filename=\"#{Utils.escape_path(file.original_filename)}\""
 <<-EOF
 --#{MULTIPART_BOUNDARY}\r
-content-disposition: form-data; name="#{name}"#{filename}\r
-content-type: #{file.content_type}\r
+#{CONTENT_DISPOSITION}: form-data; name="#{name}"#{filename}\r
+#{CONTENT_TYPE}: #{file.content_type}\r
 #{"content-length: #{length}\r\n" if length}\r
 #{io.read}\r
 EOF
@@ -89,7 +89,7 @@ EOF
       def content_for_other(file, name)
 <<-EOF
 --#{MULTIPART_BOUNDARY}\r
-content-disposition: form-data; name="#{name}"\r
+#{CONTENT_DISPOSITION}: form-data; name="#{name}"\r
 \r
 #{file}\r
 EOF

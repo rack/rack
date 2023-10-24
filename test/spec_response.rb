@@ -359,7 +359,7 @@ describe Rack::Response do
     response.redirect "/foo"
     status, header = response.finish
     status.must_equal 302
-    header["location"].must_equal "/foo"
+    header[LOCATION].must_equal "/foo"
 
     response = Rack::Response.new
     response.redirect "/foo", 307

@@ -252,11 +252,11 @@ module Rack
       end
 
       def location
-        get_header "location"
+        get_header LOCATION
       end
 
       def location=(location)
-        set_header "location", location
+        set_header LOCATION, location
       end
 
       def set_cookie(key, value)

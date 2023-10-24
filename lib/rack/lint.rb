@@ -683,7 +683,7 @@ module Rack
           ## 204, or 304.
           if key == "content-type"
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
-              raise LintError, "content-type header found in #{status} response, not allowed"
+              raise LintError, "#{CONTENT_TYPE} header found in #{status} response, not allowed"
             end
             return
           end
@@ -695,11 +695,11 @@ module Rack
       ##
       def check_content_length(status, headers)
         headers.each { |key, value|
-          if key == 'content-length'
+          if key == CONTENT_LENGTH
             ## There must not be a <tt>content-length</tt> header key when the
             ## +Status+ is 1xx, 204, or 304.
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
-              raise LintError, "content-length header found in #{status} response, not allowed"
+              raise LintError, "#{CONTENT_LENGTH} header found in #{status} response, not allowed"
             end
             @content_length = value
           end

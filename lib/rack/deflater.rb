@@ -56,16 +56,16 @@ module Rack
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["vary"].to_s.split(",").map(&:strip)
-      unless vary.include?("*") || vary.any?{|v| v.downcase == 'accept-encoding'}
-        headers["vary"] = vary.push("Accept-Encoding").join(",")
+      vary = headers[VARY].to_s.split(",").map(&:strip)
+      unless vary.include?("*") || vary.any?{|v| v.downcase == ACCEPT_ENCODING}
+        headers[VARY] = vary.push("Accept-Encoding").join(",")
       end
 
       case encoding
       when "gzip"
-        headers['content-encoding'] = "gzip"
+        headers[CONTENT_ENCODING] = "gzip"
         headers.delete(CONTENT_LENGTH)
-        mtime = headers["last-modified"]
+        mtime = headers[LAST_MODIFIED]
         mtime = Time.httpdate(mtime).to_i if mtime
         response[2] = GzipStream.new(body, mtime, @sync)
         response
@@ -138,7 +138,7 @@ module Rack
       # no-transform set.
       if Utils::STATUS_WITH_NO_ENTITY_BODY.key?(status.to_i) ||
           /\bno-transform\b/.match?(headers[CACHE_CONTROL].to_s) ||
-          headers['content-encoding']&.!~(/\bidentity\b/)
+          headers[CONTENT_ENCODING]&.!~(/\bidentity\b/)
         return false
       end
 
