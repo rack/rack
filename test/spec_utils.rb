@@ -610,6 +610,10 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false).must_equal 'na e=value'
   end
 
+  it "sets partitioned cookie attribute" do
+    Rack::Utils.set_cookie_header('name', {value: 'value', partitioned: true}).must_equal 'name=value; partitioned'
+  end
+
   it "deletes cookies in header field" do
     header = []
 

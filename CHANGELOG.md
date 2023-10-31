@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
+- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
 
 ## [3.0.8] - 2023-06-14
 
