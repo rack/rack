@@ -301,7 +301,7 @@ the body.
 
 The Enumerable Body must respond to +each+.
 It must only be called once.
-It must not be called after being closed.
+It must not be called after being closed,
 and must only yield String values.
 
 The Body itself should not be an instance of String, as this will
