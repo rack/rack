@@ -785,7 +785,7 @@ module Rack
         ## It must only be called once.
         raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
 
-        ## It must not be called after being closed.
+        ## It must not be called after being closed,
         raise LintError, "Response body is already closed" if @closed
 
         @invoked = :each
