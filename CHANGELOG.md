@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
 - `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
+- Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 
 ## [3.0.8] - 2023-06-14
 

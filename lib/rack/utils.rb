@@ -468,9 +468,10 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
-    #     ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
-    #               puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
+    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv \
+    #     | ruby -rcsv -e "puts CSV.parse(STDIN, headers: true) \
+    #     .reject {|v| v['Description'] == 'Unassigned' or v['Description'].include? '(' } \
+    #     .map {|v| %Q/#{v['Value']} => '#{v['Description']}'/ }.join(','+?\n)"
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
@@ -492,7 +493,6 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
-      306 => '(Unused)',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
@@ -508,13 +508,13 @@ module Rack
       410 => 'Gone',
       411 => 'Length Required',
       412 => 'Precondition Failed',
-      413 => 'Payload Too Large',
+      413 => 'Content Too Large',
       414 => 'URI Too Long',
       415 => 'Unsupported Media Type',
       416 => 'Range Not Satisfiable',
       417 => 'Expectation Failed',
       421 => 'Misdirected Request',
-      422 => 'Unprocessable Entity',
+      422 => 'Unprocessable Content',
       423 => 'Locked',
       424 => 'Failed Dependency',
       425 => 'Too Early',
@@ -522,7 +522,7 @@ module Rack
       428 => 'Precondition Required',
       429 => 'Too Many Requests',
       431 => 'Request Header Fields Too Large',
-      451 => 'Unavailable for Legal Reasons',
+      451 => 'Unavailable For Legal Reasons',
       500 => 'Internal Server Error',
       501 => 'Not Implemented',
       502 => 'Bad Gateway',
@@ -532,8 +532,6 @@ module Rack
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
-      509 => 'Bandwidth Limit Exceeded',
-      510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
 
