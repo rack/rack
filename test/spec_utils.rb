@@ -529,9 +529,10 @@ describe Rack::Utils do
   end
 
   it "raise an error for an invalid symbol" do
-    assert_raises(ArgumentError, "Unrecognized status code :foobar") do
+    error = assert_raises(ArgumentError) do
       Rack::Utils.status_code(:foobar)
     end
+    error.message.must_equal "Unrecognized status code :foobar"
   end
 
   it "return rfc2822 format from rfc2822 helper" do
