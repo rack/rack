@@ -4,7 +4,7 @@ module Rack
   # Rack::MediaType parse media type and parameters out of content_type string
 
   class MediaType
-    SPLIT_PATTERN = %r{\s*[;,]\s*}
+    SPLIT_PATTERN = /[;,]/
 
     class << self
       # The media type (type/subtype) portion of the CONTENT_TYPE header
@@ -15,7 +15,11 @@ module Rack
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
       def type(content_type)
         return nil unless content_type
-        content_type.split(SPLIT_PATTERN, 2).first.tap &:downcase!
+        if type = content_type.split(SPLIT_PATTERN, 2).first
+          type.rstrip!
+          type.downcase!
+          type
+        end
       end
 
       # The media type parameters provided in CONTENT_TYPE as a Hash, or
@@ -27,9 +31,10 @@ module Rack
         return {} if content_type.nil?
 
         content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
+          s.strip!
           k, v = s.split('=', 2)
-
-          hsh[k.tap(&:downcase!)] = strip_doublequotes(v)
+          k.downcase!
+          hsh[k] = strip_doublequotes(v)
         end
       end
 
