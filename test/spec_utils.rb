@@ -528,10 +528,38 @@ describe Rack::Utils do
     Rack::Utils.status_code(:ok).must_equal 200
   end
 
+  it "return status code and give deprecation warning for obsolete symbols" do
+    replaced_statuses = {
+      payload_too_large: {status_code: 413, standard_symbol: :content_too_large},
+      unprocessable_entity: {status_code: 422, standard_symbol: :unprocessable_content}
+    }
+    dropped_statuses = {bandwidth_limit_exceeded: 509, not_extended: 510}
+    verbose = $VERBOSE
+    warn_arg = nil
+    Rack::Utils.define_singleton_method(:warn) do |*args|
+      warn_arg = args
+    end
+    begin
+      $VERBOSE = true
+      replaced_statuses.each do |symbol, value_hash|
+        Rack::Utils.status_code(symbol).must_equal value_hash[:status_code]
+        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack. Please use #{value_hash[:standard_symbol].inspect} instead.", { uplevel: 1 }]
+      end
+      dropped_statuses.each do |symbol, code|
+        Rack::Utils.status_code(symbol).must_equal code
+        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 1 }]
+      end
+    ensure
+      $VERBOSE = verbose
+      Rack::Utils.singleton_class.remove_method :warn
+    end
+  end
+
   it "raise an error for an invalid symbol" do
-    assert_raises(ArgumentError, "Unrecognized status code :foobar") do
+    error = assert_raises(ArgumentError) do
       Rack::Utils.status_code(:foobar)
     end
+    error.message.must_equal "Unrecognized status code :foobar"
   end
 
   it "return rfc2822 format from rfc2822 helper" do
