@@ -254,37 +254,42 @@ module Rack
         get_header ETAG
       end
 
-      def etag=(v)
-        set_header ETAG, v
+      def etag=(value)
+        set_header ETAG, value
       end
 
     protected
 
       def buffered_body!
-        return if @buffered
+        if @buffered.nil?
+          if @body.is_a?(Array)
+            # The user supplied body was an array:
+            @body = @body.compact
+            @body.each do |part|
+              @length += part.to_s.bytesize
+            end
+          elsif @body.respond_to?(:each)
+            # Turn the user supplied body into a buffered array:
+            body = @body
+            @body = Array.new
 
-        if @body.is_a?(Array)
-          # The user supplied body was an array:
-          @body = @body.compact
-          @body.each do |part|
-            @length += part.to_s.bytesize
+            body.each do |part|
+              @writer.call(part.to_s)
+            end
+
+            body.close if body.respond_to?(:close)
+
+            @buffered = true
+          else
+            @buffered = false
           end
-        else
-          # Turn the user supplied body into a buffered array:
-          body = @body
-          @body = Array.new
-
-          body.each do |part|
-            @writer.call(part.to_s)
-          end
-
-          body.close if body.respond_to?(:close)
         end
 
-        @buffered = true
+        return @buffered
       end
 
       def append(chunk)
+        chunk = chunk.dup unless chunk.frozen?
         @body << chunk
 
         unless chunked?
