@@ -216,11 +216,11 @@ module Rack
       body = body.body if body.respond_to?(:body)
 
       if body.respond_to?(:each)
-         body.each do |chunk|
-            buffer << chunk
-         end
+        body.each do |chunk|
+          buffer << chunk
+        end
       else
-         buffer = body.to_s
+        buffer = body.to_s
       end
 
       return buffer
