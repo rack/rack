@@ -551,7 +551,7 @@ describe Rack::Utils do
       end
     ensure
       $VERBOSE = verbose
-      Rack::Utils.singleton_class.remove_method :warn
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
     end
   end
 
