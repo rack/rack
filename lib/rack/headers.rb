@@ -88,6 +88,11 @@ module Rack
       KNOWN_HEADERS[str] = KNOWN_HEADERS[downcased] = downcased
     end
 
+    def initialize(hash = {})
+      super()
+      hash.each { |k, v| self[k] = v }
+    end
+
     def self.[](*items)
       if items.length % 2 != 0
         if items.length == 1 && items.first.is_a?(Hash)
