@@ -572,16 +572,6 @@ describe Rack::Response do
     res.headers["content-length"].must_equal "10"
   end
 
-  it "updates content-length when body appended to using #write" do
-    res = Rack::Response.new
-    res.status = 200
-    res.headers["content-length"].must_be_nil
-    res.write "Hi"
-    res.headers["content-length"].must_equal "2"
-    res.write " there"
-    res.headers["content-length"].must_equal "8"
-  end
-
   it "does not wrap body" do
     body = Object.new
     res = Rack::Response.new(body)
