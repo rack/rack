@@ -288,11 +288,6 @@ module Rack
           raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
         end
 
-        ## If the <tt>HTTP_VERSION</tt> is present, it must equal the <tt>SERVER_PROTOCOL</tt>.
-        if env['HTTP_VERSION'] && env['HTTP_VERSION'] != server_protocol
-          raise LintError, "env[HTTP_VERSION] does not equal env[SERVER_PROTOCOL]"
-        end
-
         ## The environment must not contain the keys
         ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
         ## (use the versions without <tt>HTTP_</tt>).
