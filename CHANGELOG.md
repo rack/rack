@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Changed
+
+- Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson])
+
 ## [3.0.8] - 2023-06-14
 
 - Fix some unused variable verbose warnings. ([#2084](https://github.com/rack/rack/pull/2084), [@jeremyevans], [@skipkayhil](https://github.com/skipkayhil))

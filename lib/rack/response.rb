@@ -328,6 +328,8 @@ module Rack
             @body.each do |part|
               @length += part.to_s.bytesize
             end
+
+            @buffered = true
           elsif @body.respond_to?(:each)
             # Turn the user supplied body into a buffered array:
             body = @body
