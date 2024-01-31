@@ -112,7 +112,6 @@ The <tt>SERVER_PORT</tt> must be an Integer if set.
 The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
 The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
 The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
-If the <tt>HTTP_VERSION</tt> is present, it must equal the <tt>SERVER_PROTOCOL</tt>.
 The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
 (use the versions without <tt>HTTP_</tt>).

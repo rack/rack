@@ -66,13 +66,6 @@ describe Rack::Lint do
       message.must_match(/env\[SERVER_PROTOCOL\] does not match HTTP/)
 
     lambda {
-      e = env
-      e["HTTP_VERSION"] = 'HTTP/1.0'
-      Rack::Lint.new(nil).call(e)
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/env\[HTTP_VERSION\] does not equal env\[SERVER_PROTOCOL\]/)
-
-    lambda {
       Rack::Lint.new(nil).call(env("HTTP_CONTENT_TYPE" => "text/plain"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/contains HTTP_CONTENT_TYPE/)
