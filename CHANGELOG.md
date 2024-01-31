@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-### Changed
+## [3.0.9] - 2024-01-31
 
 - Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson])
 
