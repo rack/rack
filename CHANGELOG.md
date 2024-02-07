@@ -19,6 +19,9 @@ All notable changes to this project will be documented in this file. For info on
 - `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
 - Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
+
+## [3.0.9] - 2024-01-31
+
 - Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson])
 
 ## [3.0.8] - 2023-06-14
