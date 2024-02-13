@@ -412,6 +412,9 @@ module Rack
         end
         ranges << (r0..r1)  if r0 <= r1
       end
+
+      return [] if ranges.map(&:size).sum > size
+
       ranges
     end
 
