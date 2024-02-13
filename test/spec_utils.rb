@@ -716,6 +716,10 @@ describe Rack::Utils, "cookies" do
 end
 
 describe Rack::Utils, "get_byte_ranges" do
+  it "returns an empty list if the sum of the ranges is too large" do
+    assert_equal [], Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-20,0-500" }, 500)
+  end
+
   deprecated "pase simple byte ranges from env" do
     Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
   end
