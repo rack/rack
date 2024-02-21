@@ -142,8 +142,8 @@ module Rack
     end
 
     def q_values(q_value_header)
-      q_value_header.to_s.split(/\s*,\s*/).map do |part|
-        value, parameters = part.split(/\s*;\s*/, 2)
+      q_value_header.to_s.split(',').map do |part|
+        value, parameters = part.split(';', 2).map(&:strip)
         quality = 1.0
         if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
@@ -380,6 +380,9 @@ module Rack
         end
         ranges << (r0..r1)  if r0 <= r1
       end
+
+      return [] if ranges.map(&:size).sum > size
+
       ranges
     end
 
