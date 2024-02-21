@@ -135,8 +135,8 @@ module Rack
     end
 
     def q_values(q_value_header)
-      q_value_header.to_s.split(/\s*,\s*/).map do |part|
-        value, parameters = part.split(/\s*;\s*/, 2)
+      q_value_header.to_s.split(',').map do |part|
+        value, parameters = part.split(';', 2).map(&:strip)
         quality = 1.0
         if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
@@ -149,9 +149,10 @@ module Rack
       return nil unless forwarded_header
       forwarded_header = forwarded_header.to_s.gsub("\n", ";")
 
-      forwarded_header.split(/\s*;\s*/).each_with_object({}) do |field, values|
-        field.split(/\s*,\s*/).each do |pair|
-          return nil unless pair =~ /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
+      forwarded_header.split(';').each_with_object({}) do |field, values|
+        field.split(',').each do |pair|
+          pair = pair.split('=').map(&:strip).join('=')
+          return nil unless pair =~ /\A(by|for|host|proto)="?([^"]+)"?\Z/i
           (values[$1.downcase.to_sym] ||= []) << $2
         end
       end
