@@ -142,8 +142,8 @@ module Rack
     end
 
     def q_values(q_value_header)
-      q_value_header.to_s.split(/\s*,\s*/).map do |part|
-        value, parameters = part.split(/\s*;\s*/, 2)
+      q_value_header.to_s.split(',').map do |part|
+        value, parameters = part.split(';', 2).map(&:strip)
         quality = 1.0
         if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
