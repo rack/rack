@@ -29,12 +29,12 @@ describe Rack::Multipart do
     File.join(File.dirname(__FILE__), "multipart", name.to_s)
   end
 
-  it "return nil if content type is not multipart" do
+  it "returns nil if the content type is not multipart" do
     env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "")
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
-  it "raises exception if boundary is too long" do
+  it "raises an exception if boundary is too long" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename, "A"*71))
     lambda {
       Rack::Multipart.parse_multipart(env)
@@ -48,13 +48,13 @@ describe Rack::Multipart do
     }.must_raise Rack::Multipart::MissingInputError
   end
 
-  it "parse multipart content when content type present but disposition is not" do
+  it "parses multipart content when content type is present but disposition is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
     params = Rack::Multipart.parse_multipart(env)
     params["text/plain; charset=US-ASCII"].must_equal ["contents"]
   end
 
-  it "parse multipart content when content type present but disposition is not when using IO" do
+  it "parses multipart content when content type is present but disposition is not when using IO" do
     read, write = IO.pipe
     env = multipart_fixture(:content_type_and_no_disposition)
     write.write(env[:input].read)
@@ -65,7 +65,7 @@ describe Rack::Multipart do
     params["text/plain; charset=US-ASCII"].must_equal ["contents"]
   end
 
-  it "parse multipart content when content type present but filename is not" do
+  it "parses multipart content when content type present but filename is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
     params["text"].must_equal "contents"
@@ -84,13 +84,13 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "foo"
   end
 
-  it "parse multipart content with different filename and filename*" do
+  it "parses multipart content with different filename and filename*" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:filename].must_equal "bar"
   end
 
-  it "set US_ASCII encoding based on charset" do
+  it "sets US_ASCII encoding based on charset" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
     params = Rack::Multipart.parse_multipart(env)
     params["text"].encoding.must_equal Encoding::US_ASCII
@@ -114,13 +114,13 @@ describe Rack::Multipart do
     end
   end
 
-  it "set BINARY encoding on things without content type" do
+  it "sets BINARY encoding on things without content type" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].encoding.must_equal Encoding::UTF_8
   end
 
-  it "set UTF8 encoding on names of things without content type" do
+  it "sets UTF8 encoding on names of things without a content type" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params.keys.each do |key|
@@ -128,7 +128,7 @@ describe Rack::Multipart do
     end
   end
 
-  it "default text to UTF8" do
+  it "sets default text to UTF8" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
     params['submit-name'].encoding.must_equal Encoding::UTF_8
@@ -145,7 +145,7 @@ describe Rack::Multipart do
     params['user_sid'].encoding.must_equal Encoding::UTF_8
   end
 
-  it "parse multipart form webkit style" do
+  it "parses multipart form webkit style" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
     params = Rack::Multipart.parse_multipart(env)
@@ -153,7 +153,7 @@ describe Rack::Multipart do
     params['profile'].keys.must_include 'public_email'
   end
 
-  it "reject insanely long boundaries" do
+  it "rejects insanely long boundaries" do
     # using a pipe since a tempfile can use up too much space
     rd, wr = IO.pipe
 
@@ -206,7 +206,7 @@ describe Rack::Multipart do
   end
 
   # see https://github.com/rack/rack/pull/1309
-  it "parse strange multipart pdf" do
+  it "parses strange multipart pdf" do
     boundary = '---------------------------932620571087722842402766118'
 
     data = StringIO.new
@@ -255,84 +255,84 @@ describe Rack::Multipart do
   end
 
   # see https://github.com/rack/rack/issues/2076
-  it "parse content-disposition with modification date before name parameter" do
+  it "parses content-disposition with modification date before the name parameter" do
     x = content_disposition_parse.call(' filename="sample.sql"; modification-date="Wed, 26 Apr 2023 11:01:34 GMT"; size=24; name="file"')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "sample.sql"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with colon in parameter value before name parameter" do
+  it "parses content-disposition with colon in parameter value before the name parameter" do
     x = content_disposition_parse.call(' filename="sam:ple.sql"; name="file"')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "sam:ple.sql"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with name= in parameter value before name parameter" do
+  it "parses content-disposition with name= in parameter value before the name parameter" do
     x = content_disposition_parse.call('filename="name=bar"; name="file"')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "name=bar"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with unquoted parameter values" do
+  it "parses content-disposition with unquoted parameter values" do
     x = content_disposition_parse.call('filename=sam:ple.sql; name=file')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "sam:ple.sql"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with backslash escaped parameter values" do
+  it "parses content-disposition with backslash escaped parameter values" do
     x = content_disposition_parse.call('filename="foo\"bar"; name=file')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "foo\"bar"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with IE full paths in filename" do
+  it "parses content-disposition with IE full paths in filename" do
     x = content_disposition_parse.call('filename="c:\foo\bar"; name=file;')
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "bar"
     x["file"][:name].must_equal "file"
   end
 
-  it "parse content-disposition with escaped parameter values in name" do
+  it "parses content-disposition with escaped parameter values in name" do
     x = content_disposition_parse.call('filename="bar"; name="file\\\\-\\xfoo"')
     x.keys.must_equal ["file\\-xfoo"]
     x["file\\-xfoo"][:filename].must_equal "bar"
     x["file\\-xfoo"][:name].must_equal "file\\-xfoo"
   end
 
-  it "parse content-disposition with escaped parameter values in name" do
+  it "parses content-disposition with escaped parameter values in name" do
     x = content_disposition_parse.call('filename="bar"; name="file\\\\-\\xfoo"')
     x.keys.must_equal ["file\\-xfoo"]
     x["file\\-xfoo"][:filename].must_equal "bar"
     x["file\\-xfoo"][:name].must_equal "file\\-xfoo"
   end
 
-  it "parse up to 16 content-disposition params" do
+  it "parses up to 16 content-disposition params" do
     x = content_disposition_parse.call("#{14.times.map{|x| "a#{x}=b;"}.join} filename=\"bar\"; name=\"file\"")
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "bar"
     x["file"][:name].must_equal "file"
   end
 
-  it "stop parsing content-disposition after 16 params" do
+  it "stops parsing content-disposition after 16 params" do
     x = content_disposition_parse.call("#{15.times.map{|x| "a#{x}=b;"}.join} filename=\"bar\"; name=\"file\"")
     x.keys.must_equal ["bar"]
     x["bar"][:filename].must_equal "bar"
     x["bar"][:name].must_equal "bar"
   end
 
-  it "allow content-disposition values up to 1536 bytes" do
+  it "allows content-disposition values up to 1536 bytes" do
     x = content_disposition_parse.call("a=#{'a'*1480}; filename=\"bar\"; name=\"file\"")
     x.keys.must_equal ["file"]
     x["file"][:filename].must_equal "bar"
     x["file"][:name].must_equal "file"
   end
 
-  it "ignore content-disposition values over to 1536 bytes" do
+  it "ignores content-disposition values over to 1536 bytes" do
     x = content_disposition_parse.call("a=#{'a'*1510}; filename=\"bar\"; name=\"file\"")
     x.must_equal "text/plain"=>[""]
   end
@@ -345,7 +345,7 @@ describe Rack::Multipart do
     end
   end
 
-  it "parse multipart upload with text file" do
+  it "parses multipart upload with text file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
@@ -359,7 +359,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "accept the params hash class to use for multipart parsing" do
+  it "accepts the params hash class to use for multipart parsing" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
@@ -371,13 +371,13 @@ describe Rack::Multipart do
     params[:files][:type].must_equal "text/plain"
   end
 
-  it "preserve extension in the created tempfile" do
+  it "preserves extension in the created tempfile" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     params = Rack::Multipart.parse_multipart(env)
     File.extname(params["files"][:tempfile].path).must_equal ".txt"
   end
 
-  it "parse multipart upload with text file with no name field" do
+  it "parses multipart upload with text file with a no name field" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_and_no_name))
     params = Rack::Multipart.parse_multipart(env)
     params["file1.txt"][:type].must_equal "text/plain"
@@ -389,7 +389,7 @@ describe Rack::Multipart do
     params["file1.txt"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse multipart upload file using custom tempfile class" do
+  it "parses multipart upload file using custom tempfile class" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
     my_tempfile = "".dup
     env['rack.multipart.tempfile_factory'] = lambda { |filename, content_type| my_tempfile }
@@ -398,7 +398,7 @@ describe Rack::Multipart do
     my_tempfile.must_equal "contents"
   end
 
-  it "parse multipart upload with nested parameters" do
+  it "parses multipart upload with nested parameters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:nested))
     params = Rack::Multipart.parse_multipart(env)
     params["foo"]["submit-name"].must_equal "Larry"
@@ -411,7 +411,7 @@ describe Rack::Multipart do
     params["foo"]["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse multipart upload with binary file" do
+  it "parses multipart upload with binary file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:binary))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
@@ -425,7 +425,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.length.must_equal 26473
   end
 
-  it "parse multipart upload with empty file" do
+  it "parses multipart upload with an empty file" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
@@ -438,7 +438,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal ""
   end
 
-  it "parse multipart upload with filename with semicolons" do
+  it "parses multipart upload with a filename containing semicolons" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:semicolon))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
@@ -450,7 +450,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse multipart upload with quoted boundary" do
+  it "parses multipart upload with quoted boundary" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:quoted, %("AaB:03x")))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
@@ -464,7 +464,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse multipart upload with filename with invalid characters" do
+  it "parses multipart upload with a filename containing invalid characters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:invalid_character))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
@@ -478,19 +478,19 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse multipart form with an encoded word filename" do
+  it "parses multipart form with an encoded word filename" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_encoded_words)
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:filename].must_equal "файл"
   end
 
-  it "parse multipart form with a single quote in the filename" do
+  it "parses multipart form with a single quote in the filename" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_single_quote)
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:filename].must_equal "bob's flowers.jpg"
   end
 
-  it "parse multipart form with a null byte in the filename" do
+  it "parses multipart form with a null byte in the filename" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_with_null_byte)
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:filename].must_equal "flowers.exe\u0000.jpg"
@@ -502,7 +502,7 @@ describe Rack::Multipart do
     params["text"].must_equal "contents"
   end
 
-  it "not include file params if no file was selected" do
+  it "does not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
     params["submit-name"].must_equal "Larry"
@@ -510,7 +510,7 @@ describe Rack::Multipart do
     params.keys.wont_include "files"
   end
 
-  it "parse multipart/mixed" do
+  it "parses multipart/mixed" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:mixed_files))
     params = Rack::Multipart.parse_multipart(env)
     params["foo"].must_equal "bar"
@@ -518,7 +518,7 @@ describe Rack::Multipart do
     params["files"].size.must_equal 252
   end
 
-  it "parse IE multipart upload and clean up filename" do
+  it "parses IE multipart upload and cleans up the filename" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:ie))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "text/plain"
@@ -531,7 +531,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename and modification param" do
+  it "parses filename and modification param" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_and_modification_param))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "image/jpeg"
@@ -546,7 +546,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with escaped quotes" do
+  it "parses filename with escaped quotes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
@@ -559,7 +559,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with plus character" do
+  it "parses filename with plus character" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_plus))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
@@ -572,7 +572,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with percent escaped quotes" do
+  it "parses filename with percent escaped quotes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_percent_escaped_quotes))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "application/octet-stream"
@@ -585,7 +585,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with escaped quotes and modification param" do
+  it "parses filename with escaped quotes and modification param" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_escaped_quotes_and_modification_param))
     params = Rack::Multipart.parse_multipart(env)
     params["files"][:type].must_equal "image/jpeg"
@@ -600,7 +600,7 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with unescaped percentage characters" do
+  it "parses filename with unescaped percentage characters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
     params = Rack::Multipart.parse_multipart(env)
     files = params["document"]["attachment"]
@@ -615,7 +615,7 @@ content-type: image/jpeg\r
     files[:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with unescaped percentage characters that look like partial hex escapes" do
+  it "parses filename with unescaped percentage characters that look like partial hex escapes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages2, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
     params = Rack::Multipart.parse_multipart(env)
     files = params["document"]["attachment"]
@@ -630,7 +630,7 @@ content-type: image/jpeg\r
     files[:tempfile].read.must_equal "contents"
   end
 
-  it "parse filename with unescaped percentage characters that look like partial hex escapes" do
+  it "parses filename with unescaped percentage characters that look like partial hex escapes" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:filename_with_unescaped_percentages3, "----WebKitFormBoundary2NHc7OhsgU68l3Al"))
     params = Rack::Multipart.parse_multipart(env)
     files = params["document"]["attachment"]
@@ -645,7 +645,7 @@ content-type: image/jpeg\r
     files[:tempfile].read.must_equal "contents"
   end
 
-  it "raises RuntimeError for invalid file path" do
+  it "raises a RuntimeError for invalid file path" do
     proc{Rack::Multipart::UploadedFile.new('non-existant')}.must_raise RuntimeError
   end
 
@@ -772,7 +772,7 @@ content-type: image/jpeg\r
     end
   end
 
-  it "not reach a multi-part limit" do
+  it "does not reach a multi-part limit" do
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 4
@@ -787,7 +787,7 @@ content-type: image/jpeg\r
     end
   end
 
-  it "treat a multipart limit of 0 as no limit" do
+  it "treats a multipart limit of 0 as no limit" do
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 0
@@ -802,7 +802,7 @@ content-type: image/jpeg\r
     end
   end
 
-  it "reach a multipart file limit" do
+  it "reaches a multipart file limit" do
     begin
       previous_limit = Rack::Utils.multipart_part_limit
       Rack::Utils.multipart_part_limit = 3
@@ -814,7 +814,7 @@ content-type: image/jpeg\r
     end
   end
 
-  it "reach a multipart total limit" do
+  it "reaches a multipart total limit" do
     begin
       previous_limit = Rack::Utils.multipart_total_part_limit
       Rack::Utils.multipart_total_part_limit = 5
@@ -826,18 +826,18 @@ content-type: image/jpeg\r
     end
   end
 
-  it "return nil if no UploadedFiles were used" do
+  it "returns nil if no UploadedFiles were used" do
     data = Rack::Multipart.build_multipart("people" => [{ "submit-name" => "Larry", "files" => "contents" }])
     data.must_be_nil
   end
 
-  it "raise ArgumentError if params is not a Hash" do
+  it "raises ArgumentError if params is not a Hash" do
     lambda {
       Rack::Multipart.build_multipart("foo=bar")
     }.must_raise(ArgumentError).message.must_equal "value must be a Hash"
   end
 
-  it "can parse fields with a content type" do
+  it "is able to parse fields with a content type" do
     data = <<-EOF
 --1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon\r
 content-disposition: form-data; name="description"\r
@@ -857,7 +857,7 @@ EOF
     params.must_equal "description" => "Very very blue"
   end
 
-  it "parse multipart upload with no content-length header" do
+  it "parses multipart upload with no content-length header" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
     env.delete 'CONTENT_LENGTH'
@@ -865,7 +865,7 @@ EOF
     params['profile']['bio'].must_include 'hello'
   end
 
-  it "parse very long unquoted multipart file names" do
+  it "parses very long unquoted multipart file names" do
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
@@ -908,7 +908,7 @@ contents\r
     File.extname(env["rack.tempfiles"][0]).must_equal ".#{'a' * 128}"
   end
 
-  it "parse unquoted parameter values at end of line" do
+  it "parses unquoted parameter values at end of line" do
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
@@ -928,7 +928,7 @@ true\r
     params["inline"].must_equal 'true'
   end
 
-  it "parse quoted chars in name parameter" do
+  it "parses quoted chars in name parameter" do
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
@@ -948,7 +948,7 @@ true\r
     params["quoted\\chars\"in\rname"].must_equal 'true'
   end
 
-  it "support mixed case metadata" do
+  it "supports mixed case metadata" do
     file = multipart_file(:text)
     data = File.open(file, 'rb') { |io| io.read }
 
@@ -972,7 +972,7 @@ true\r
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "fallback to content-type for name" do
+  it "fallbacks to content-type for the name" do
     rack_logo = File.read(multipart_file("rack-logo.png"))
 
     data = <<-EOF.dup
