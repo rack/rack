@@ -733,11 +733,11 @@ describe Rack::Utils, "get_byte_ranges" do
   end
 
   it "handle byte ranges of empty files" do
-    Rack::Utils.get_byte_ranges("bytes=123-456", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=0-", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=-100", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=-0", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=123-456", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=0-", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=-100", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=-0", 0).must_be_nil
   end
 end
 

@@ -388,6 +388,8 @@ module Rack
 
     def get_byte_ranges(http_range, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
+      # Ignore Range when file size is 0 to avoid a 416 error.
+      return nil if size.zero?
       return nil unless http_range && http_range =~ /bytes=([^;]+)/
       ranges = []
       $1.split(/,\s*/).each do |range_spec|
