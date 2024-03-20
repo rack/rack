@@ -972,7 +972,7 @@ true\r
     params["files"][:tempfile].read.must_equal "contents"
   end
 
-  it "fallbacks to content-type for the name" do
+  it "falls back to content-type for the name" do
     rack_logo = File.read(multipart_file("rack-logo.png"))
 
     data = <<-EOF.dup
