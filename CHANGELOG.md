@@ -21,9 +21,13 @@ All notable changes to this project will be documented in this file. For info on
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
 
+## [3.0.10] - 2024-03-21
+
+- Backport #2104 to 3-0-stable: Return empty when parsing a multi-part POST with only one end delimiter. ([#2164](https://github.com/rack/rack/pull/2164), [@JoeDupuis](https://github.com/JoeDupuis))
+
 ## [3.0.9] - 2024-01-31
 
-- Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson])
+- Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson](https://github.com/mattbrictson))
 
 ## [3.0.8] - 2023-06-14
 
