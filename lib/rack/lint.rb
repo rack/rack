@@ -288,11 +288,6 @@ module Rack
           raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
         end
 
-        ## If the <tt>HTTP_VERSION</tt> is present, it must equal the <tt>SERVER_PROTOCOL</tt>.
-        if env['HTTP_VERSION'] && env['HTTP_VERSION'] != server_protocol
-          raise LintError, "env[HTTP_VERSION] does not equal env[SERVER_PROTOCOL]"
-        end
-
         ## The environment must not contain the keys
         ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
         ## (use the versions without <tt>HTTP_</tt>).
@@ -346,8 +341,9 @@ module Rack
         if env.include?(SCRIPT_NAME) && env[SCRIPT_NAME] != "" && env[SCRIPT_NAME] !~ /\A\//
           raise LintError, "SCRIPT_NAME must start with /"
         end
-        ## * The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
-        if env.include?(PATH_INFO) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
+
+        ## * The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
+        if env.include?(PATH_INFO) && !(env[REQUEST_METHOD] == OPTIONS && env[PATH_INFO] == ?*) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
           raise LintError, "PATH_INFO must start with /"
         end
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
@@ -784,7 +780,7 @@ module Rack
         ## It must only be called once.
         raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
 
-        ## It must not be called after being closed.
+        ## It must not be called after being closed,
         raise LintError, "Response body is already closed" if @closed
 
         @invoked = :each

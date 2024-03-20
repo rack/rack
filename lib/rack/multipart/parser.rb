@@ -209,6 +209,7 @@ module Rack
         @sbuf = StringScanner.new("".dup)
         @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
         @body_regex_at_end = /#{@body_regex}\z/m
+        @end_boundary_size = boundary.bytesize + 4 # (-- at start, -- at finish)
         @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
@@ -275,7 +276,14 @@ module Rack
             @state = :MIME_HEAD
             return
           when :END_BOUNDARY
-            # invalid multipart upload, but retry for opening boundary
+            # invalid multipart upload
+            if @sbuf.pos == @end_boundary_size && @sbuf.rest == EOL
+              # stop parsing a buffer if a buffer is only an end boundary.
+              @state = :DONE
+              return
+            end
+
+            # retry for opening boundary
           else
             # no boundary found, keep reading data
             return :want_read

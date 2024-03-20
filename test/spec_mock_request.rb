@@ -124,7 +124,7 @@ describe Rack::MockRequest do
     env = YAML.unsafe_load(res.body)
     env["mock.postdata"].must_equal "foo"
 
-    res = Rack::MockRequest.new(app).post("", input: StringIO.new("foo"))
+    res = Rack::MockRequest.new(app).post("", input: StringIO.new("foo".b))
     env = YAML.unsafe_load(res.body)
     env["mock.postdata"].must_equal "foo"
   end

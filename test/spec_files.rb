@@ -241,6 +241,15 @@ content-range: bytes 60-80/209\r
     res["content-range"].must_equal "bytes */209"
   end
 
+  it "ignores range when file is 0 bytes" do
+    env = Rack::MockRequest.env_for("/cgi/assets/images/favicon.ico")
+    env["HTTP_RANGE"] = "bytes=0-1234"
+    res = Rack::MockResponse.new(*files(DOCROOT).call(env))
+
+    res.status.must_equal 200
+    res["content-range"].must_be_nil
+  end
+
   it "support custom http headers" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = files(DOCROOT, 'cache-control' => 'public, max-age=38',

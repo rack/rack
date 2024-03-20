@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### SPEC Changes
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
+- `Rack::Utils.escape_html` is now delegated to `CGI.escapeHTML`. `'` is escaped to `#39;` instead of `#x27;`. (decimal vs hexadecimal) ([#2099](https://github.com/rack/rack/pull/2099), [@JunichiIto](https://github.com/JunichiIto))
 
 ### Changed
 
@@ -15,7 +16,23 @@ All notable changes to this project will be documented in this file. For info on
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
+- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
+- Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
+- Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
+- In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
 - Add `Rack::SetXForwardedProtoHeader` middleware ([#2089](https://github.com/rack/rack/pull/2089), [@tomharvey])
+
+## [3.0.10] - 2024-03-21
+
+- Backport #2104 to 3-0-stable: Return empty when parsing a multi-part POST with only one end delimiter. ([#2164](https://github.com/rack/rack/pull/2164), [@JoeDupuis](https://github.com/JoeDupuis))
+
+## [3.0.9] - 2024-01-31
+
+- Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson](https://github.com/mattbrictson))
+
+## [3.0.8] - 2023-06-14
+
+- Fix some unused variable verbose warnings. ([#2084](https://github.com/rack/rack/pull/2084), [@jeremyevans], [@skipkayhil](https://github.com/skipkayhil))
 
 ## [3.0.7] - 2023-03-16
 

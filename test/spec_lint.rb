@@ -66,13 +66,6 @@ describe Rack::Lint do
       message.must_match(/env\[SERVER_PROTOCOL\] does not match HTTP/)
 
     lambda {
-      e = env
-      e["HTTP_VERSION"] = 'HTTP/1.0'
-      Rack::Lint.new(nil).call(e)
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/env\[HTTP_VERSION\] does not equal env\[SERVER_PROTOCOL\]/)
-
-    lambda {
       Rack::Lint.new(nil).call(env("HTTP_CONTENT_TYPE" => "text/plain"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/contains HTTP_CONTENT_TYPE/)
@@ -224,6 +217,14 @@ describe Rack::Lint do
       Rack::Lint.new(nil).call(env("PATH_INFO" => "../foo"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/must start with/)
+
+    # A non-empty PATH_INFO starting with something other than / has
+    # implications for Rack::Request#path and methods downstream from
+    # it. Note that RFC3875 does not actually anticipate dealing with
+    # `OPTIONS *`; that should be considered a bug in the spec.
+    Rack::Lint.new(
+      lambda { |_| [200, {}, []] }
+    ).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => ?*)).first.must_equal 200
 
     lambda {
       Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))

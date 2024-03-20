@@ -475,18 +475,10 @@ describe Rack::Utils do
     Rack::Utils.escape_html("f&o").must_equal "f&amp;o"
     Rack::Utils.escape_html("f<o").must_equal "f&lt;o"
     Rack::Utils.escape_html("f>o").must_equal "f&gt;o"
-    Rack::Utils.escape_html("f'o").must_equal "f&#x27;o"
+    Rack::Utils.escape_html("f'o").must_equal "f&#39;o"
     Rack::Utils.escape_html('f"o').must_equal "f&quot;o"
-    Rack::Utils.escape_html("f/o").must_equal "f&#x2F;o"
-    Rack::Utils.escape_html("<foo></foo>").must_equal "&lt;foo&gt;&lt;&#x2F;foo&gt;"
-  end
-
-  it "escape html entities even on MRI when it's bugged" do
-    test_escape = lambda do
-      Rack::Utils.escape_html("\300<").must_equal "\300&lt;"
-    end
-
-    test_escape.must_raise ArgumentError
+    Rack::Utils.escape_html("<foo></foo>").must_equal "&lt;foo&gt;&lt;/foo&gt;"
+    Rack::Utils.escape_html("\300<").must_equal "\300&lt;"
   end
 
   it "escape html entities in unicode strings" do
@@ -536,10 +528,38 @@ describe Rack::Utils do
     Rack::Utils.status_code(:ok).must_equal 200
   end
 
+  it "return status code and give deprecation warning for obsolete symbols" do
+    replaced_statuses = {
+      payload_too_large: {status_code: 413, standard_symbol: :content_too_large},
+      unprocessable_entity: {status_code: 422, standard_symbol: :unprocessable_content}
+    }
+    dropped_statuses = {bandwidth_limit_exceeded: 509, not_extended: 510}
+    verbose = $VERBOSE
+    warn_arg = nil
+    Rack::Utils.define_singleton_method(:warn) do |*args|
+      warn_arg = args
+    end
+    begin
+      $VERBOSE = true
+      replaced_statuses.each do |symbol, value_hash|
+        Rack::Utils.status_code(symbol).must_equal value_hash[:status_code]
+        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack. Please use #{value_hash[:standard_symbol].inspect} instead.", { uplevel: 1 }]
+      end
+      dropped_statuses.each do |symbol, code|
+        Rack::Utils.status_code(symbol).must_equal code
+        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 1 }]
+      end
+    ensure
+      $VERBOSE = verbose
+      Rack::Utils.singleton_class.send(:remove_method, :warn)
+    end
+  end
+
   it "raise an error for an invalid symbol" do
-    assert_raises(ArgumentError, "Unrecognized status code :foobar") do
+    error = assert_raises(ArgumentError) do
       Rack::Utils.status_code(:foobar)
     end
+    error.message.must_equal "Unrecognized status code :foobar"
   end
 
   it "return rfc2822 format from rfc2822 helper" do
@@ -618,6 +638,10 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false).must_equal 'na e=value'
   end
 
+  it "sets partitioned cookie attribute" do
+    Rack::Utils.set_cookie_header('name', {value: 'value', partitioned: true}).must_equal 'name=value; partitioned'
+  end
+
   it "deletes cookies in header field" do
     header = []
 
@@ -663,6 +687,10 @@ describe Rack::Utils, "cookies" do
 end
 
 describe Rack::Utils, "get_byte_ranges" do
+  it "returns an empty list if the sum of the ranges is too large" do
+    assert_equal [], Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-20,0-500" }, 500)
+  end
+
   it "parse simple byte ranges from env" do
     Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
   end
@@ -705,11 +733,11 @@ describe Rack::Utils, "get_byte_ranges" do
   end
 
   it "handle byte ranges of empty files" do
-    Rack::Utils.get_byte_ranges("bytes=123-456", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=0-", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=-100", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_equal []
-    Rack::Utils.get_byte_ranges("bytes=-0", 0).must_equal []
+    Rack::Utils.get_byte_ranges("bytes=123-456", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=0-", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=-100", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=0-0", 0).must_be_nil
+    Rack::Utils.get_byte_ranges("bytes=-0", 0).must_be_nil
   end
 end
 

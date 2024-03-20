@@ -408,7 +408,7 @@ describe Rack::Response do
     status.must_equal 404
   end
 
-  it "correctly updates content-type when writing when not initialized with body" do
+  it "correctly updates content-length when writing when initialized without body" do
     r = Rack::Response.new
     r.write('foo')
     r.write('bar')
@@ -419,20 +419,39 @@ describe Rack::Response do
     header['content-length'].must_equal '9'
   end
 
-  it "correctly updates content-type when writing when initialized with body" do
+  it "correctly updates content-length when writing when initialized with Array body" do
+    r = Rack::Response.new(["foo"])
+    r.write('bar')
+    r.write('baz')
+    _, header, body = r.finish
+    str = "".dup; body.each { |part| str << part }
+    str.must_equal "foobarbaz"
+    header['content-length'].must_equal '9'
+  end
+
+  it "correctly updates content-length when writing when initialized with String body" do
+    r = Rack::Response.new("foo")
+    r.write('bar')
+    r.write('baz')
+    _, header, body = r.finish
+    str = "".dup; body.each { |part| str << part }
+    str.must_equal "foobarbaz"
+    header['content-length'].must_equal '9'
+  end
+
+  it "correctly updates content-length when writing when initialized with object body that responds to #each" do
     obj = Object.new
     def obj.each
       yield 'foo'
       yield 'bar'
     end
-    ["foobar", ["foo", "bar"], obj].each do
-      r = Rack::Response.new(["foo", "bar"])
-      r.write('baz')
-      _, header, body = r.finish
-      str = "".dup; body.each { |part| str << part }
-      str.must_equal "foobarbaz"
-      header['content-length'].must_equal '9'
-    end
+    r = Rack::Response.new(obj)
+    r.write('baz')
+    r.write('baz')
+    _, header, body = r.finish
+    str = "".dup; body.each { |part| str << part }
+    str.must_equal "foobarbazbaz"
+    header['content-length'].must_equal '12'
   end
 
   it "doesn't return invalid responses" do

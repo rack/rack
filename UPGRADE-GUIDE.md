@@ -180,6 +180,12 @@ this was only generally possible with a file based backing, which prevented
 efficient streaming of request bodies. Now, `rack.input` is not required to be
 rewindable.
 
+### `rack.input` is no longer rewound after consuming form and multipart data
+
+Previously `.rewind` was called after consuming form and multipart data. Use
+`Rack::RewindableInput::Middleware` to make the body rewindable, and call
+`.rewind` explicitly to match this behavior.
+
 ## Response Changes
 
 ### Response must be mutable

@@ -139,14 +139,23 @@ module Rack
         end
       end
 
-      if String === opts[:input]
-        rack_input = StringIO.new(opts[:input])
+      input = opts[:input]
+      if String === input
+        rack_input = StringIO.new(input)
+        rack_input.set_encoding(Encoding::BINARY)
       else
-        rack_input = opts[:input]
+        if input.respond_to?(:encoding) && input.encoding != Encoding::BINARY
+          warn "input encoding not binary", uplevel: 1
+          if input.respond_to?(:set_encoding)
+            input.set_encoding(Encoding::BINARY)
+          else
+            raise ArgumentError, "could not coerce input to binary encoding"
+          end
+        end
+        rack_input = input
       end
 
       if rack_input
-        rack_input.set_encoding(Encoding::BINARY)
         env[RACK_INPUT] = rack_input
 
         env["CONTENT_LENGTH"] ||= env[RACK_INPUT].size.to_s if env[RACK_INPUT].respond_to?(:size)

@@ -34,6 +34,11 @@ describe Rack::Builder do
     Rack::Lint.new Rack::Builder.new(&block).to_app
   end
 
+  it "can provide options" do
+    builder = Rack::Builder.new(foo: :bar)
+    builder.options[:foo].must_equal :bar
+  end
+
   it "supports run with block" do
     app = builder_to_app do
       run {|env| [200, { "content-type" => "text/plain" }, ["OK"]]}

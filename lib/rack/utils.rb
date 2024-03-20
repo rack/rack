@@ -6,6 +6,7 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'time'
+require 'cgi/escape'
 
 require_relative 'query_parser'
 require_relative 'mime'
@@ -134,8 +135,8 @@ module Rack
     end
 
     def q_values(q_value_header)
-      q_value_header.to_s.split(/\s*,\s*/).map do |part|
-        value, parameters = part.split(/\s*;\s*/, 2)
+      q_value_header.to_s.split(',').map do |part|
+        value, parameters = part.split(';', 2).map(&:strip)
         quality = 1.0
         if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
@@ -148,9 +149,10 @@ module Rack
       return nil unless forwarded_header
       forwarded_header = forwarded_header.to_s.gsub("\n", ";")
 
-      forwarded_header.split(/\s*;\s*/).each_with_object({}) do |field, values|
-        field.split(/\s*,\s*/).each do |pair|
-          return nil unless pair =~ /\A\s*(by|for|host|proto)\s*=\s*"?([^"]+)"?\s*\Z/i
+      forwarded_header.split(';').each_with_object({}) do |field, values|
+        field.split(',').each do |pair|
+          pair = pair.split('=').map(&:strip).join('=')
+          return nil unless pair =~ /\A(by|for|host|proto)="?([^"]+)"?\Z/i
           (values[$1.downcase.to_sym] ||= []) << $2
         end
       end
@@ -174,21 +176,8 @@ module Rack
       matches&.first
     end
 
-    ESCAPE_HTML = {
-      "&" => "&amp;",
-      "<" => "&lt;",
-      ">" => "&gt;",
-      "'" => "&#x27;",
-      '"' => "&quot;",
-      "/" => "&#x2F;"
-    }
-
-    ESCAPE_HTML_PATTERN = Regexp.union(*ESCAPE_HTML.keys)
-
     # Escape ampersands, brackets and quotes to their HTML/XML entities.
-    def escape_html(string)
-      string.to_s.gsub(ESCAPE_HTML_PATTERN){|c| ESCAPE_HTML[c] }
-    end
+    define_method(:escape_html, CGI.method(:escapeHTML))
 
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
@@ -301,6 +290,7 @@ module Rack
           else
             raise ArgumentError, "Invalid :same_site value: #{value[:same_site].inspect}"
           end
+        partitioned = "; partitioned" if value[:partitioned]
         value = value[:value]
       else
         key = escape(key)
@@ -309,7 +299,7 @@ module Rack
       value = [value] unless Array === value
 
       return "#{key}=#{value.map { |v| escape v }.join('&')}#{domain}" \
-        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
+        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}#{partitioned}"
     end
 
     # :call-seq:
@@ -398,6 +388,8 @@ module Rack
 
     def get_byte_ranges(http_range, size)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
+      # Ignore Range when file size is 0 to avoid a 416 error.
+      return nil if size.zero?
       return nil unless http_range && http_range =~ /bytes=([^;]+)/
       ranges = []
       $1.split(/,\s*/).each do |range_spec|
@@ -422,6 +414,9 @@ module Rack
         end
         ranges << (r0..r1)  if r0 <= r1
       end
+
+      return [] if ranges.map(&:size).sum > size
+
       ranges
     end
 
@@ -479,9 +474,10 @@ module Rack
 
     # Every standard HTTP code mapped to the appropriate message.
     # Generated with:
-    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv | \
-    #     ruby -ne 'm = /^(\d{3}),(?!Unassigned|\(Unused\))([^,]+)/.match($_) and \
-    #               puts "#{m[1]} => \x27#{m[2].strip}\x27,"'
+    #   curl -s https://www.iana.org/assignments/http-status-codes/http-status-codes-1.csv \
+    #     | ruby -rcsv -e "puts CSV.parse(STDIN, headers: true) \
+    #     .reject {|v| v['Description'] == 'Unassigned' or v['Description'].include? '(' } \
+    #     .map {|v| %Q/#{v['Value']} => '#{v['Description']}'/ }.join(','+?\n)"
     HTTP_STATUS_CODES = {
       100 => 'Continue',
       101 => 'Switching Protocols',
@@ -503,7 +499,6 @@ module Rack
       303 => 'See Other',
       304 => 'Not Modified',
       305 => 'Use Proxy',
-      306 => '(Unused)',
       307 => 'Temporary Redirect',
       308 => 'Permanent Redirect',
       400 => 'Bad Request',
@@ -519,13 +514,13 @@ module Rack
       410 => 'Gone',
       411 => 'Length Required',
       412 => 'Precondition Failed',
-      413 => 'Payload Too Large',
+      413 => 'Content Too Large',
       414 => 'URI Too Long',
       415 => 'Unsupported Media Type',
       416 => 'Range Not Satisfiable',
       417 => 'Expectation Failed',
       421 => 'Misdirected Request',
-      422 => 'Unprocessable Entity',
+      422 => 'Unprocessable Content',
       423 => 'Locked',
       424 => 'Failed Dependency',
       425 => 'Too Early',
@@ -533,7 +528,7 @@ module Rack
       428 => 'Precondition Required',
       429 => 'Too Many Requests',
       431 => 'Request Header Fields Too Large',
-      451 => 'Unavailable for Legal Reasons',
+      451 => 'Unavailable For Legal Reasons',
       500 => 'Internal Server Error',
       501 => 'Not Implemented',
       502 => 'Bad Gateway',
@@ -543,8 +538,6 @@ module Rack
       506 => 'Variant Also Negotiates',
       507 => 'Insufficient Storage',
       508 => 'Loop Detected',
-      509 => 'Bandwidth Limit Exceeded',
-      510 => 'Not Extended',
       511 => 'Network Authentication Required'
     }
 
@@ -552,12 +545,34 @@ module Rack
     STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])]
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
-      [message.downcase.gsub(/\s|-|'/, '_').to_sym, code]
+      [message.downcase.gsub(/\s|-/, '_').to_sym, code]
     }.flatten]
+
+    OBSOLETE_SYMBOLS_TO_STATUS_CODES = {
+      payload_too_large: 413,
+      unprocessable_entity: 422,
+      bandwidth_limit_exceeded: 509,
+      not_extended: 510
+    }.freeze
+    private_constant :OBSOLETE_SYMBOLS_TO_STATUS_CODES
+
+    OBSOLETE_SYMBOL_MAPPINGS = {
+      payload_too_large: :content_too_large,
+      unprocessable_entity: :unprocessable_content
+    }.freeze
+    private_constant :OBSOLETE_SYMBOL_MAPPINGS
 
     def status_code(status)
       if status.is_a?(Symbol)
-        SYMBOL_TO_STATUS_CODE.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
+        SYMBOL_TO_STATUS_CODE.fetch(status) do
+          fallback_code = OBSOLETE_SYMBOLS_TO_STATUS_CODES.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
+          message = "Status code #{status.inspect} is deprecated and will be removed in a future version of Rack."
+          if canonical_symbol = OBSOLETE_SYMBOL_MAPPINGS[status]
+            message = "#{message} Please use #{canonical_symbol.inspect} instead."
+          end
+          warn message, uplevel: 1
+          fallback_code
+        end
       else
         status.to_i
       end

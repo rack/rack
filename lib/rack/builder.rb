@@ -2,6 +2,9 @@
 
 require_relative 'urlmap'
 
+module Rack; end
+Rack::BUILDER_TOPLEVEL_BINDING = ->(builder){builder.instance_eval{binding}}
+
 module Rack
   # Rack::Builder provides a domain-specific language (DSL) to construct Rack
   # applications. It is primarily used to parse +config.ru+ files which
@@ -59,9 +62,9 @@ module Rack
     #   # requires ./my_app.rb, which should be in the
     #   # process's current directory.  After requiring,
     #   # assumes MyApp constant is a Rack application
-    def self.parse_file(path)
+    def self.parse_file(path, **options)
       if path.end_with?('.ru')
-        return self.load_file(path)
+        return self.load_file(path, **options)
       else
         require path
         return Object.const_get(::File.basename(path, '.rb').split('_').map(&:capitalize).join(''))
@@ -81,7 +84,7 @@ module Rack
     #   use Rack::ContentLength
     #   require './app.rb'
     #   run App
-    def self.load_file(path)
+    def self.load_file(path, **options)
       config = ::File.read(path)
       config.slice!(/\A#{UTF_8_BOM}/) if config.encoding == Encoding::UTF_8
 
@@ -91,16 +94,18 @@ module Rack
 
       config.sub!(/^__END__\n.*\Z/m, '')
 
-      return new_from_string(config, path)
+      return new_from_string(config, path, **options)
     end
 
     # Evaluate the given +builder_script+ string in the context of
     # a Rack::Builder block, returning a Rack application.
-    def self.new_from_string(builder_script, file = "(rackup)")
+    def self.new_from_string(builder_script, path = "(rackup)", **options)
+      builder = self.new(**options)
+
       # We want to build a variant of TOPLEVEL_BINDING with self as a Rack::Builder instance.
       # We cannot use instance_eval(String) as that would resolve constants differently.
-      binding, builder = TOPLEVEL_BINDING.eval('Rack::Builder.new.instance_eval { [binding, self] }')
-      eval builder_script, binding, file
+      binding = BUILDER_TOPLEVEL_BINDING.call(builder)
+      eval(builder_script, binding, path)
 
       return builder.to_app
     end
@@ -108,15 +113,23 @@ module Rack
     # Initialize a new Rack::Builder instance.  +default_app+ specifies the
     # default application if +run+ is not called later.  If a block
     # is given, it is evaluated in the context of the instance.
-    def initialize(default_app = nil, &block)
+    def initialize(default_app = nil, **options, &block)
       @use = []
       @map = nil
       @run = default_app
       @warmup = nil
       @freeze_app = false
+      @options = options
 
       instance_eval(&block) if block_given?
     end
+
+    # Any options provided to the Rack::Builder instance at initialization.
+    # These options can be server-specific. Some general options are:
+    #
+    # * +:isolation+: One of +process+, +thread+ or +fiber+. The execution
+    #   isolation model to use.
+    attr :options
 
     # Create a new Rack::Builder instance and return the Rack application
     # generated from it.

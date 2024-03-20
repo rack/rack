@@ -516,7 +516,10 @@ module Rack
             set_header RACK_REQUEST_FORM_INPUT, nil
             set_header(RACK_REQUEST_FORM_HASH, {})
           elsif form_data? || parseable_data?
-            unless set_header(RACK_REQUEST_FORM_HASH, parse_multipart)
+            if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
+              set_header RACK_REQUEST_FORM_PAIRS, pairs
+              set_header RACK_REQUEST_FORM_HASH, expand_param_pairs(pairs)
+            else
               form_vars = get_header(RACK_INPUT).read
 
               # Fix for Safari Ajax postings that always append \0
@@ -670,6 +673,16 @@ module Rack
 
       def parse_multipart
         Rack::Multipart.extract_multipart(self, query_parser)
+      end
+
+      def expand_param_pairs(pairs, query_parser = query_parser())
+        params = query_parser.make_params
+
+        pairs.each do |k, v|
+          query_parser.normalize_params(params, k, v)
+        end
+
+        params.to_params_hash
       end
 
       def split_header(value)

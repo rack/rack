@@ -112,7 +112,6 @@ The <tt>SERVER_PORT</tt> must be an Integer if set.
 The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
 The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
 The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
-If the <tt>HTTP_VERSION</tt> is present, it must equal the <tt>SERVER_PROTOCOL</tt>.
 The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
 (use the versions without <tt>HTTP_</tt>).
@@ -126,7 +125,7 @@ There are the following restrictions:
 * There may be a valid hijack callback in <tt>rack.hijack</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-* The <tt>PATH_INFO</tt>, if non-empty, must start with <tt>/</tt>
+* The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
 * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
 * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
@@ -301,7 +300,7 @@ the body.
 
 The Enumerable Body must respond to +each+.
 It must only be called once.
-It must not be called after being closed.
+It must not be called after being closed,
 and must only yield String values.
 
 The Body itself should not be an instance of String, as this will
