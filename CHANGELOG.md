@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [2.2.9] - 2023-03-21
+
 - Return empty when parsing a multi-part POST with only one end delimiter. ([#2104](https://github.com/rack/rack/pull/2104), [@alpaca-tc])
 
 ## [2.2.8] - 2023-07-31
