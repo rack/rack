@@ -57,7 +57,7 @@ Hello World
 Rack is supported by a wide range of servers, including:
 
 * [Agoo](https://github.com/ohler55/agoo)
-* [Falcon](https://github.com/socketry/falcon) **(Rack 3 Compatible)**
+* [Falcon](https://github.com/socketry/falcon)
 * [Iodine](https://github.com/boazsegev/iodine)
 * [NGINX Unit](https://unit.nginx.org/)
 * [Phusion Passenger](https://www.phusionpassenger.com/) (which is mod_rack for
@@ -84,17 +84,14 @@ These frameworks and many others support the [Rack Specification]:
 
 * [Camping](https://github.com/camping/camping)
 * [Hanami](https://hanamirb.org/)
+* [Ramaze](https://github.com/ramaze/ramaze)
 * [Padrino](https://padrinorb.com/)
-* [Roda](https://github.com/jeremyevans/roda) **(Rack 3 Compatible)**
+* [Roda](https://github.com/jeremyevans/roda)
 * [Ruby on Rails](https://rubyonrails.org/)
-* [Sinatra](https://sinatrarb.com/)
-* [Utopia](https://github.com/socketry/utopia) **(Rack 3 Compatible)**
-* [WABuR](https://github.com/ohler55/wabur)
-
-### Older (possibly unsupported) web frameworks
-
-* [Ramaze](http://ramaze.net/)
 * [Rum](https://github.com/leahneukirchen/rum)
+* [Sinatra](https://sinatrarb.com/)
+* [Utopia](https://github.com/socketry/utopia)
+* [WABuR](https://github.com/ohler55/wabur)
 
 ## Available middleware shipped with Rack
 
