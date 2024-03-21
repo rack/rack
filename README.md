@@ -125,6 +125,8 @@ middleware:
   the request.
 * `Rack::Sendfile` for working with web servers that can use optimized file
   serving for file system paths.
+* `Rack::SetXForwardedProtoHeader` for using a vendor managed proxy which provides
+  X-Forwarded-Proto like headers.
 * `Rack::ShowException` for catching unhandled exceptions and presenting them in
   a nice and helpful way with clickable backtrace.
 * `Rack::ShowStatus` for using nice error pages for empty client error
