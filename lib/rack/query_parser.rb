@@ -132,6 +132,12 @@ module Rack
       if after == ''
         if k == '[]' && depth != 0
           return [v]
+        elsif !params[k].nil? && !v.nil? && depth == 0
+          if params[k].is_a?(Array)
+            params[k] << v
+          else
+            params[k] = [params[k], v]
+          end
         else
           params[k] = v
         end

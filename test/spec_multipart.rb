@@ -518,6 +518,18 @@ describe Rack::Multipart do
     params["files"].size.must_equal 252
   end
 
+  it "parses multiple files with same name" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:multiple_files))
+    params = Rack::Multipart.parse_multipart(env)
+    params["files"].must_be_instance_of Array
+    params["files"][0][:filename].must_equal "file1.txt"
+    params["files"][0][:tempfile].read.must_equal "foo"
+    params["files"][1][:filename].must_equal "file2.txt"
+    params["files"][1][:tempfile].read.must_equal "bar"
+    params["files"][2][:filename].must_equal "file3.txt"
+    params["files"][2][:tempfile].read.must_equal "quux"
+  end
+
   it "parses IE multipart upload and cleans up the filename" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:ie))
     params = Rack::Multipart.parse_multipart(env)

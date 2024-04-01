@@ -1,0 +1,16 @@
+--AaB03x
+content-disposition: form-data; name="files"; filename="file1.txt"
+content-type: text/plain
+
+foo
+--AaB03x
+content-disposition: form-data; name="files"; filename="file2.txt"
+content-type: text/plain
+
+bar
+--AaB03x
+content-disposition: form-data; name="files"; filename="file3.txt"
+content-type: text/plain
+
+quux
+--AaB03x--

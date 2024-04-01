@@ -150,7 +150,7 @@ describe Rack::Utils do
       must_equal "foo" => "\"bar\""
 
     Rack::Utils.parse_nested_query("foo=bar&foo=quux").
-      must_equal "foo" => "quux"
+      must_equal "foo" => ["bar", "quux"]
     Rack::Utils.parse_nested_query("foo&foo=").
       must_equal "foo" => ""
     Rack::Utils.parse_nested_query("foo=1&bar=2").
