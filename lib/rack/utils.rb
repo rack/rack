@@ -259,12 +259,13 @@ module Rack
           else
             raise ArgumentError, "Invalid SameSite value: #{value[:same_site].inspect}"
           end
+        partitioned = "; partitioned" if value[:partitioned]  
         value = value[:value]
       end
       value = [value] unless Array === value
 
       cookie = "#{escape(key)}=#{value.map { |v| escape v }.join('&')}#{domain}" \
-        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}"
+        "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}#{partitioned}"
 
       case header
       when nil, ''
