@@ -33,7 +33,7 @@ module Rack
 
     # Deprecated, use headers instead.
     def header
-      warn 'Rack::Response#header is deprecated and will be removed in Rack 3.1', uplevel: 1
+      warn 'Rack::Response#header is deprecated and will be removed in Rack 3.1, use #headers instead', uplevel: 1
 
       headers
     end
