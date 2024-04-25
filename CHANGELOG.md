@@ -25,6 +25,18 @@ All notable changes to this project will be documented in this file. For info on
 
 - Backport #2104 to 3-0-stable: Return empty when parsing a multi-part POST with only one end delimiter. ([#2164](https://github.com/rack/rack/pull/2164), [@JoeDupuis](https://github.com/JoeDupuis))
 
+## [3.0.9.1] - 2024-02-21
+
+### Security
+
+* [CVE-2024-26146] Fixed ReDoS in Accept header parsing
+* [CVE-2024-25126] Fixed ReDoS in Content Type header parsing
+* [CVE-2024-26141] Reject Range headers which are too large
+
+[CVE-2024-26146]: https://github.com/advisories/GHSA-54rr-7fvw-6x8f
+[CVE-2024-25126]: https://github.com/advisories/GHSA-22f2-v57c-j9cx
+[CVE-2024-26141]: https://github.com/advisories/GHSA-xj5v-6v4g-jfw6
+
 ## [3.0.9] - 2024-01-31
 
 - Fix incorrect content-length header that was emitted when `Rack::Response#write` was used in some situations. ([#2150](https://github.com/rack/rack/pull/2150), [@mattbrictson](https://github.com/mattbrictson))
@@ -39,6 +51,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.0.6.1] - 2023-03-13
 
+### Security
+
 - [CVE-2023-27539] Avoid ReDoS in header parsing
 
 ## [3.0.6] - 2023-03-13
@@ -51,9 +65,13 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.0.4.2] - 2023-03-02
 
+### Security
+
 - [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
 
 ## [3.0.4.1] - 2023-01-17
+
+### Security
 
 - [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
 - [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
@@ -181,6 +199,8 @@ All notable changes to this project will be documented in this file. For info on
 - Use custom exception on params too deep error. ([#1838](https://github.com/rack/rack/pull/1838), [@simi](https://github.com/simi))
 
 ## [2.2.3.1] - 2022-05-27
+
+### Security
 
 - [CVE-2022-30123] Fix shell escaping issue in Common Logger
 - [CVE-2022-30122] Restrict parsing of broken MIME attachments
