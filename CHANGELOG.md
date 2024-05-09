@@ -21,6 +21,10 @@ All notable changes to this project will be documented in this file. For info on
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
 
+## [3.0.11] - 2024-05-10
+
+- Backport #2062 to 3-0-stable: Do not allow `BodyProxy` to respond to `to_str`, make `to_ary` call close . ([#2062](https://github.com/rack/rack/pull/2062), [@jeremyevans](https://github.com/jeremyevans))
+
 ## [3.0.10] - 2024-03-21
 
 - Backport #2104 to 3-0-stable: Return empty when parsing a multi-part POST with only one end delimiter. ([#2164](https://github.com/rack/rack/pull/2164), [@JoeDupuis](https://github.com/JoeDupuis))
