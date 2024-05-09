@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [3.0.11] - 2024-05-10
 
 - Backport #2062 to 3-0-stable: Do not allow `BodyProxy` to respond to `to_str`, make `to_ary` call close . ([#2062](https://github.com/rack/rack/pull/2062), [@jeremyevans](https://github.com/jeremyevans))
 
