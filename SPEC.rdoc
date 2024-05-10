@@ -165,8 +165,8 @@ The input stream must respond to +gets+, +each+, and +read+.
   If +buffer+ is given, then the read data will be placed
   into +buffer+ instead of a newly created String object.
 * +each+ must be called without arguments and only yield Strings.
-* +close+ can be called on the input stream to indicate that the
-any remaining input is not needed.
+* +close+ can be called on the input stream to indicate that
+  any remaining input is not needed.
 
 === The Error Stream
 
