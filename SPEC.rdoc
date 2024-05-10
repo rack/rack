@@ -143,7 +143,7 @@ exceptions. They should be invoked in reverse order of registration.
 The input stream is an IO-like object which contains the raw HTTP
 POST data.
 When applicable, its external encoding must be "ASCII-8BIT" and it
-must be opened in binary mode, for Ruby 1.9 compatibility.
+must be opened in binary mode.
 The input stream must respond to +gets+, +each+, and +read+.
 * +gets+ must be called without arguments and return a string,
   or +nil+ on EOF.
@@ -302,9 +302,6 @@ The Enumerable Body must respond to +each+.
 It must only be called once.
 It must not be called after being closed,
 and must only yield String values.
-
-The Body itself should not be an instance of String, as this will
-break in Ruby 1.9.
 
 Middleware must not call +each+ directly on the Body.
 Instead, middleware can return a new Body that calls +each+ on the
