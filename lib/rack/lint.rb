@@ -384,7 +384,7 @@ module Rack
       ## POST data.
       def check_input_stream(input)
         ## When applicable, its external encoding must be "ASCII-8BIT" and it
-        ## must be opened in binary mode, for Ruby 1.9 compatibility.
+        ## must be opened in binary mode.
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
           raise LintError, "rack.input #{input} does not have ASCII-8BIT as its external encoding"
         end
@@ -791,9 +791,6 @@ module Rack
             raise LintError, "Body yielded non-string value #{chunk.inspect}"
           end
 
-          ##
-          ## The Body itself should not be an instance of String, as this will
-          ## break in Ruby 1.9.
           ##
           ## Middleware must not call +each+ directly on the Body.
           ## Instead, middleware can return a new Body that calls +each+ on the
