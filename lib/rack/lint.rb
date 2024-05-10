@@ -476,8 +476,8 @@ module Rack
           }
         end
 
-        ## * +close+ can be called on the input stream to indicate that the
-        ## any remaining input is not needed.
+        ## * +close+ can be called on the input stream to indicate that
+        ##   any remaining input is not needed.
         def close(*args)
           @input.close(*args)
         end
