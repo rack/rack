@@ -14,7 +14,7 @@ module Rack
     REQUEST_PATH_ORIGIN_FORM = /\A\/[^?]*\??[^#]*\z/
     REQUEST_PATH_ABSOLUTE_FORM = /\A#{URI::regexp}\z/
     REQUEST_PATH_AUTHORITY_FORM = /\A(.*?)(:\d*)\z/
-    REQUEST_PATH_ASTERISK_FORM = /\A\*\z/
+    REQUEST_PATH_ASTERISK_FORM = '*'
 
     def initialize(app)
       @app = app
