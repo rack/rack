@@ -7,7 +7,6 @@ All notable changes to this project will be documented in this file. For info on
 ### SPEC Changes
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
-- `Rack::Utils.escape_html` is now delegated to `CGI.escapeHTML`. `'` is escaped to `#39;` instead of `#x27;`. (decimal vs hexadecimal) ([#2099](https://github.com/rack/rack/pull/2099), [@JunichiIto](https://github.com/JunichiIto))
 
 ### Changed
 
@@ -16,6 +15,7 @@ All notable changes to this project will be documented in this file. For info on
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
 - Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
+- `Rack::Utils.escape_html` is now delegated to `CGI.escapeHTML`. `'` is escaped to `#39;` instead of `#x27;`. (decimal vs hexadecimal) ([#2099](https://github.com/rack/rack/pull/2099), [@JunichiIto](https://github.com/JunichiIto))
 - `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
 - Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
