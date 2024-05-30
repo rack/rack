@@ -32,6 +32,7 @@ module Rack
   DELETE  = 'DELETE'
   HEAD    = 'HEAD'
   OPTIONS = 'OPTIONS'
+  CONNECT = 'CONNECT'
   LINK    = 'LINK'
   UNLINK  = 'UNLINK'
   TRACE   = 'TRACE'

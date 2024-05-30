@@ -216,7 +216,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(nil).call(env("PATH_INFO" => "../foo"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_match(/must start with/)
+      message.must_match(/must be a valid request target/)
 
     # A non-empty PATH_INFO starting with something other than / has
     # implications for Rack::Request#path and methods downstream from
