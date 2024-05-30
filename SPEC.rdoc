@@ -128,9 +128,9 @@ There are the following restrictions:
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>PATH_INFO</tt>, if provided, must be a valid request target.
   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
-  * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form).
+  * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
-  * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
+  * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
 * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
 * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if

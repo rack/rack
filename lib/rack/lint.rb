@@ -11,7 +11,7 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
-    REQUEST_PATH_ORIGIN_FORM = /\A\/[^?]*\??[^#]*\z/
+    REQUEST_PATH_ORIGIN_FORM = /\A\/[^#]*\z/
     REQUEST_PATH_ABSOLUTE_FORM = /\A#{URI::regexp}\z/
     REQUEST_PATH_AUTHORITY_FORM = /\A(.*?)(:\d*)\z/
     REQUEST_PATH_ASTERISK_FORM = '*'
@@ -356,10 +356,10 @@ module Rack
           when REQUEST_PATH_ASTERISK_FORM
             ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
             unless env[REQUEST_METHOD] == OPTIONS
-              raise LintError, "Only OPTIONS requests may have PATH_INFO set to * (asterisk-form)"
+              raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
             end
           when REQUEST_PATH_AUTHORITY_FORM
-            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form).
+            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
             unless env[REQUEST_METHOD] == CONNECT
               raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
             end
@@ -369,12 +369,9 @@ module Rack
               raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
             end
           when REQUEST_PATH_ORIGIN_FORM
-            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
-            unless env[PATH_INFO].start_with?("/")
-              raise LintError, "PATH_INFO must start with a '/' (origin-form)"
-            end
+            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
           else
-            raise LintError, "PATH_INFO must be a valid request target"
+            raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
           end
         end
 
