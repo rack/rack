@@ -127,10 +127,10 @@ There are the following restrictions:
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
 * The <tt>PATH_INFO</tt>, if provided, must be a valid request target.
-  - Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to * (asterisk-form).
-  - <tt>CONNECT</tt> requests must have <tt>PATH_INFO</tt> set to an authority (authority-form).
-  - <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
-  - Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
+  * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
+  * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form).
+  * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+  * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
 * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
 * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if

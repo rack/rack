@@ -354,22 +354,22 @@ module Rack
         if env.include?(PATH_INFO)
           case env[PATH_INFO]
           when REQUEST_PATH_ASTERISK_FORM
-            ##   - Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to * (asterisk-form).
+            ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
             unless env[REQUEST_METHOD] == OPTIONS
               raise LintError, "Only OPTIONS requests may have PATH_INFO set to * (asterisk-form)"
             end
           when REQUEST_PATH_AUTHORITY_FORM
-            ##   - <tt>CONNECT</tt> requests must have <tt>PATH_INFO</tt> set to an authority (authority-form).
+            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form).
             unless env[REQUEST_METHOD] == CONNECT
               raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
             end
           when REQUEST_PATH_ABSOLUTE_FORM
-            ##   - <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+            ##   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
             if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
               raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
             end
           when REQUEST_PATH_ORIGIN_FORM
-            ##   - Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
+            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> (origin-form).
             unless env[PATH_INFO].start_with?("/")
               raise LintError, "PATH_INFO must start with a '/' (origin-form)"
             end
