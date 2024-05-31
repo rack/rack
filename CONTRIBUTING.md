@@ -5,6 +5,15 @@ contributors](https://github.com/rack/rack/graphs/contributors). You're
 encouraged to submit [pull requests](https://github.com/rack/rack/pulls) and
 [propose features and discuss issues](https://github.com/rack/rack/issues).
 
+## Backports
+
+Only security patches are ideal for backporting to non-main release versions. If
+you're not sure if your bug fix is backportable, you should open a discussion to
+discuss it first.
+
+The [Security Policy] documents which release versions will receive security
+backports.
+
 ## Fork the Project
 
 Fork the [project on GitHub](https://github.com/rack/rack) and check out your
@@ -131,3 +140,5 @@ there!
 
 Please do know that we really appreciate and value your time and work. We love
 you, really.
+
+[Security Policy]: SECURITY.md
