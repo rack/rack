@@ -13,6 +13,16 @@ frameworks, and web application into a single method call.
 The exact details of this are described in the [Rack Specification], which all
 Rack applications should conform to.
 
+## Version support
+
+| Version  | Support                            |
+|----------|------------------------------------|
+|    3.0.x | Bug fixes and security patches.    |
+|    2.2.x | Security patches only.             |
+| <= 2.1.x | End of support.                    |
+
+Please see the [Security Policy] for more information.
+
 ## Installation
 
 Add the rack gem to your application bundle, or follow the instructions provided
@@ -306,3 +316,4 @@ would like to thank:
 Rack is released under the [MIT License](MIT-LICENSE).
 
 [Rack Specification]: SPEC.rdoc
+[Security Policy]: SECURITY.md
