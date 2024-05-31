@@ -1,6 +1,7 @@
 # frozen_string_literal: true
 
 require 'forwardable'
+require 'uri'
 
 require_relative 'constants'
 require_relative 'utils'
@@ -10,6 +11,11 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
+    REQUEST_PATH_ORIGIN_FORM = /\A\/[^#]*\z/
+    REQUEST_PATH_ABSOLUTE_FORM = /\A#{URI::regexp}\z/
+    REQUEST_PATH_AUTHORITY_FORM = /\A(.*?)(:\d*)\z/
+    REQUEST_PATH_ASTERISK_FORM = '*'
+
     def initialize(app)
       @app = app
     end
@@ -344,10 +350,31 @@ module Rack
           raise LintError, "SCRIPT_NAME must start with /"
         end
 
-        ## * The <tt>PATH_INFO</tt>, if non-empty (or the request is something other than <tt>OPTIONS *</tt>), must start with <tt>/</tt>
-        if env.include?(PATH_INFO) && !(env[REQUEST_METHOD] == OPTIONS && env[PATH_INFO] == ?*) && env[PATH_INFO] != "" && env[PATH_INFO] !~ /\A\//
-          raise LintError, "PATH_INFO must start with /"
+        ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target.
+        if env.include?(PATH_INFO)
+          case env[PATH_INFO]
+          when REQUEST_PATH_ASTERISK_FORM
+            ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
+            unless env[REQUEST_METHOD] == OPTIONS
+              raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
+            end
+          when REQUEST_PATH_AUTHORITY_FORM
+            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
+            unless env[REQUEST_METHOD] == CONNECT
+              raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
+            end
+          when REQUEST_PATH_ABSOLUTE_FORM
+            ##   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+            if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
+              raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
+            end
+          when REQUEST_PATH_ORIGIN_FORM
+            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
+          else
+            raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
+          end
         end
+
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
         if env.include?("CONTENT_LENGTH") && env["CONTENT_LENGTH"] !~ /\A\d+\z/
           raise LintError, "Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}"

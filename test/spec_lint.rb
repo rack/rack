@@ -214,19 +214,6 @@ describe Rack::Lint do
       message.must_match(/must start with/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("PATH_INFO" => "../foo"))
-    }.must_raise(Rack::Lint::LintError).
-      message.must_match(/must start with/)
-
-    # A non-empty PATH_INFO starting with something other than / has
-    # implications for Rack::Request#path and methods downstream from
-    # it. Note that RFC3875 does not actually anticipate dealing with
-    # `OPTIONS *`; that should be considered a bug in the spec.
-    Rack::Lint.new(
-      lambda { |_| [200, {}, []] }
-    ).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => ?*)).first.must_equal 200
-
-    lambda {
       Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/Invalid CONTENT_LENGTH/)
@@ -321,6 +308,65 @@ describe Rack::Lint do
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
       message.must_include('response array has 4 elements instead of 3')
+  end
+
+  it "notices request-target asterisk form errors" do
+    # A non-empty PATH_INFO starting with something other than / has
+    # implications for Rack::Request#path and methods downstream from
+    # it. Note that RFC3875 does not actually anticipate dealing with
+    # `OPTIONS *`; that should be considered a bug in the spec.
+    Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => '*')).
+      first.must_equal 200
+
+    lambda do
+      Rack::Lint.new(nil).call(env("PATH_INFO" => "*"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/Only OPTIONS requests may have PATH_INFO set to '\*'/)
+  end
+
+  it "notices request-target authority form errors" do
+    Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "CONNECT", "PATH_INFO" => "example.com:80")).
+      first.must_equal 200
+
+    lambda do
+      Rack::Lint.new(nil).call(env("PATH_INFO" => "example.com:80"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/Only CONNECT requests may have PATH_INFO set to an authority/)
+  end
+
+  it "notices request-target absolute-form errors" do
+    Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "http://foo/bar")).
+      first.must_equal 200
+
+    lambda do
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "CONNECT", "PATH_INFO" => "http://foo/bar"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/CONNECT and OPTIONS requests must not have PATH_INFO set to a URI/)
+
+    lambda do
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => "http://foo/bar"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/CONNECT and OPTIONS requests must not have PATH_INFO set to a URI/)
+  end
+
+  it "notices request-target origin-form errors" do
+    Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar")).
+      first.must_equal 200
+
+    lambda do
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "../etc/passwd"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/PATH_INFO must start with a '\/'/)
+
+    lambda do
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar#qux"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/PATH_INFO.*must not include a fragment/)
+
+    lambda do
+      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar?baz#qux"))
+    end.must_raise(Rack::Lint::LintError).
+      message.must_match(/PATH_INFO.*must not include a fragment/)
   end
 
   it "notice status errors" do
