@@ -608,24 +608,10 @@ module Rack
         Rack::Request.ip_filter.call(ip)
       end
 
-      # shortcut for <tt>request.params[key]</tt>
-      def [](key)
-        warn("Request#[] is deprecated and will be removed in a future version of Rack. Please use request.params[] instead", uplevel: 1)
-
-        params[key.to_s]
-      end
-
-      # shortcut for <tt>request.params[key] = value</tt>
-      #
-      # Note that modifications will not be persisted in the env. Use update_param or delete_param if you want to destructively modify params.
-      def []=(key, value)
-        warn("Request#[]= is deprecated and will be removed in a future version of Rack. Please use request.params[]= instead", uplevel: 1)
-
-        params[key.to_s] = value
-      end
-
       # like Hash#values_at
       def values_at(*keys)
+        warn("Request#values_at is deprecated and will be removed in a future version of Rack. Please use request.params.values_at instead", uplevel: 1)
+        
         keys.map { |key| params[key] }
       end
 
