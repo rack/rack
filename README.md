@@ -1,10 +1,5 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack v3.0.0 was recently released. Please check the [Upgrade
-> Guide](UPGRADE-GUIDE.md) for more details about migrating your existing
-> servers, middlewares and applications. For detailed information on specific
-> changes, check the [Change Log](CHANGELOG.md).
-
 Rack provides a minimal, modular, and adaptable interface for developing web
 applications in Ruby. By wrapping HTTP requests and responses in the simplest
 way possible, it unifies and distills the bridge between web servers, web
@@ -22,6 +17,22 @@ Rack applications should conform to.
 | <= 2.1.x | End of support.                    |
 
 Please see the [Security Policy] for more information.
+
+## Rack 3.0
+
+This is the latest version of Rack. It contains API improvements but also some
+breaking changes. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more
+details about migrating servers, middlewares and applications designed for Rack 2
+to Rack 3. For detailed information on specific changes, check the [Change Log](CHANGELOG.md).
+
+## Rack 2.2
+
+This version of Rack is receiving security patches only, and effort should be
+made to move to Rack 3.
+
+Starting in Ruby 3.4 the `base64` dependency will no longer be a default gem,
+and may cause a warning or error about `base64` being missing. To correct this,
+add `base64` as a dependency to your project.
 
 ## Installation
 
