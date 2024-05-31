@@ -44,7 +44,7 @@ by a [supported web framework](#supported-web-frameworks):
 $ gem install rack
 
 # or, add it to your current application gemfile:
-$ bundle add rack --version 3.0.0
+$ bundle add rack
 ```
 
 If you need features from `Rack::Session` or `bin/rackup` please add those gems separately.
