@@ -1,10 +1,5 @@
 # ![Rack](contrib/logo.webp)
 
-> **_NOTE:_** Rack v3.0.0 was recently released. Please check the [Upgrade
-> Guide](UPGRADE-GUIDE.md) for more details about migrating your existing
-> servers, middlewares and applications. For detailed information on specific
-> changes, check the [Change Log](CHANGELOG.md).
-
 Rack provides a minimal, modular, and adaptable interface for developing web
 applications in Ruby. By wrapping HTTP requests and responses in the simplest
 way possible, it unifies and distills the bridge between web servers, web
@@ -12,6 +7,32 @@ frameworks, and web application into a single method call.
 
 The exact details of this are described in the [Rack Specification], which all
 Rack applications should conform to.
+
+## Version support
+
+| Version  | Support                            |
+|----------|------------------------------------|
+|    3.0.x | Bug fixes and security patches.    |
+|    2.2.x | Security patches only.             |
+| <= 2.1.x | End of support.                    |
+
+Please see the [Security Policy] for more information.
+
+## Rack 3.0
+
+This is the latest version of Rack. It contains API improvements but also some
+breaking changes. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more
+details about migrating servers, middlewares and applications designed for Rack 2
+to Rack 3. For detailed information on specific changes, check the [Change Log](CHANGELOG.md).
+
+## Rack 2.2
+
+This version of Rack is receiving security patches only, and effort should be
+made to move to Rack 3.
+
+Starting in Ruby 3.4 the `base64` dependency will no longer be a default gem,
+and may cause a warning or error about `base64` being missing. To correct this,
+add `base64` as a dependency to your project.
 
 ## Installation
 
@@ -23,7 +44,7 @@ by a [supported web framework](#supported-web-frameworks):
 $ gem install rack
 
 # or, add it to your current application gemfile:
-$ bundle add rack --version 3.0.0
+$ bundle add rack
 ```
 
 If you need features from `Rack::Session` or `bin/rackup` please add those gems separately.
@@ -306,3 +327,4 @@ would like to thank:
 Rack is released under the [MIT License](MIT-LICENSE).
 
 [Rack Specification]: SPEC.rdoc
+[Security Policy]: SECURITY.md
