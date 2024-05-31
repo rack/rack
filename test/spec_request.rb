@@ -929,29 +929,6 @@ class RackRequestTest < Minitest::Spec
     req.POST.must_equal "foo" => "bla", "quux" => "bar"
   end
 
-  it "support manual cache invalidation via clear_GET and clear_POST" do
-    req = make_request \
-      Rack::MockRequest.env_for("/?foo=quux",
-        "CONTENT_TYPE" => "application/x-www-form-urlencoded",
-        :input => "foo=bar&quux=bla")
-    req.GET.must_equal "foo" => "quux"
-    req.GET.must_equal "foo" => "quux"
-    req.POST.must_equal "foo" => "bar", "quux" => "bla"
-    req.POST.must_equal "foo" => "bar", "quux" => "bla"
-
-    req.set_header("QUERY_STRING", "bla=foo")
-    req.clear_GET
-    req.GET.must_equal "bla" => "foo"
-    req.GET.must_equal "bla" => "foo"
-    req.params.must_equal "bla" => "foo", "foo" => "bar", "quux" => "bla"
-
-    req.set_header("rack.input", StringIO.new("foo=bla&quux=bar"))
-    req.clear_POST
-    req.POST.must_equal "foo" => "bla", "quux" => "bar"
-    req.POST.must_equal "foo" => "bla", "quux" => "bar"
-    req.params.must_equal "bla" => "foo", "foo" => "bla", "quux" => "bar"
-  end
-
   it "figure out if called via XHR" do
     req = make_request(Rack::MockRequest.env_for(""))
     req.wont_be :xhr?

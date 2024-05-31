@@ -480,24 +480,6 @@ module Rack
         PARSEABLE_DATA_MEDIA_TYPES.include?(media_type)
       end
 
-      # Clear cached data related to GET/query string parameters.
-      # Should be called if modifying env["QUERY_STRING"].
-      def clear_GET
-        env.delete(RACK_REQUEST_QUERY_STRING) # Remove in Rack 3.2
-        env.delete(RACK_REQUEST_QUERY_HASH)
-        @params = nil
-      end
-
-      # Clear cached data related to POST/request body parameters.
-      # Should be called if modifying env["rack.input"].
-      def clear_POST
-        env.delete(RACK_REQUEST_FORM_INPUT) # Remove in Rack 3.2
-        env.delete(RACK_REQUEST_FORM_VARS)
-        env.delete(RACK_REQUEST_FORM_HASH)
-        env.delete(RACK_REQUEST_FORM_ERROR)
-        @params = nil
-      end
-
       # Returns the data received in the query string.
       def GET
         rr_query_string = get_header(RACK_REQUEST_QUERY_STRING)
@@ -506,7 +488,7 @@ module Rack
           get_header(RACK_REQUEST_QUERY_HASH)
         else
           if rr_query_string
-            warn "Cached query string different from current query string. Starting in Rack 3.2, you must call clear_GET when modifying env[\"QUERY_STRING\"]", uplevel: 1
+            warn "query string used for GET parsing different from current query string. Starting in Rack 3.2, Rack will used the cached GET value instead of parsing the current query string.", uplevel: 1
           end
           query_hash = parse_query(query_string, '&')
           set_header(RACK_REQUEST_QUERY_STRING, query_string)
@@ -533,7 +515,7 @@ module Rack
             if form_input.equal?(rack_input)
               return form_hash
             elsif form_input
-              warn "Cached input stream value different from current input stream. Starting in Rack 3.2, you must call clear_POST when modifying env[\"#{RACK_INPUT}\"]", uplevel: 1
+              warn "input stream used for POST parsing different from current input stream. Starting in Rack 3.2, Rack will used the cached POST value instead of parsing the current input stream.", uplevel: 1
             end
           end
 
