@@ -81,8 +81,9 @@ module Rack
         end
 
         ## and the *body*.
-        check_content_type(@status, @headers)
-        check_content_length(@status, @headers)
+        check_content_type_header(@status, @headers)
+        check_content_length_header(@status, @headers)
+        check_rack_protocol_header(@status, @headers)
         @head_request = @env[REQUEST_METHOD] == HEAD
 
         @lint = (@env['rack.lint'] ||= []) << self
@@ -181,6 +182,16 @@ module Rack
         ## <tt>rack.hijack</tt>:: See below, if present, an object responding
         ##                        to +call+ that is used to perform a full
         ##                        hijack.
+
+        ## <tt>rack.protocol</tt>:: An optional +Array+ of +String+, containing
+        ##                          the protocols advertised by the client in
+        ##                          the +upgrade+ header (HTTP/1) or the
+        ##                          +:protocol+ pseudo-header (HTTP/2).
+        if protocols = @env['rack.protocol']
+          unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
+            raise LintError, "rack.protocol must be an Array of Strings"
+          end
+        end
 
         ## Additional environment specifications have approved to
         ## standardized middleware APIs. None of these are required to
@@ -723,9 +734,9 @@ module Rack
       end
 
       ##
-      ## === The content-type
+      ## ==== The +content-type+ Header
       ##
-      def check_content_type(status, headers)
+      def check_content_type_header(status, headers)
         headers.each { |key, value|
           ## There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
           ## 204, or 304.
@@ -739,9 +750,9 @@ module Rack
       end
 
       ##
-      ## === The content-length
+      ## ==== The +content-length+ Header
       ##
-      def check_content_length(status, headers)
+      def check_content_length_header(status, headers)
         headers.each { |key, value|
           if key == 'content-length'
             ## There must not be a <tt>content-length</tt> header key when the
@@ -766,6 +777,29 @@ module Rack
         end
       end
 
+      ## 
+      ## ==== The +rack.protocol+ Header
+      ##
+      def check_rack_protocol_header(status, headers)
+        ## If the +rack.protocol+ header is present, it must be a +String+, and
+        ## must be one of the values from the +rack.protocol+ array from the
+        ## environment.
+        protocol = headers['rack.protocol']
+
+        if protocol
+          request_protocols = @env['rack.protocol']
+
+          if request_protocols.nil?
+            raise LintError, "rack.protocol header is #{protocol.inspect}, but rack.protocol was not set in request!"
+          elsif !request_protocols.include?(protocol)
+            raise LintError, "rack.protocol header is #{protocol.inspect}, but should be one of #{request_protocols.inspect} from the request!"
+          end
+        end
+      end
+      ##
+      ## Setting this value informs the server that it should perform a
+      ## connection upgrade. In HTTP/1, this is done using the +upgrade+
+      ## header. In HTTP/2, this is done by accepting the request.
       ##
       ## === The Body
       ##
