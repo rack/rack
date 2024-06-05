@@ -611,7 +611,23 @@ describe Rack::Utils, "cookies" do
 
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "%66oo=baz;foo=bar")
     cookies = Rack::Utils.parse_cookies(env)
-    cookies.must_equal({ "%66oo" => "baz", "foo" => "bar" })
+    cookies.must_equal({ "foo" => "baz" })
+  end
+
+  it "round trips cookie keys" do
+    Rack::Utils.set_cookie_header('"foo"', 'bar').must_equal '%22foo%22=bar'
+    Rack::Utils.parse_cookies_header('%22foo%22=bar').must_equal({ '"foo"' => 'bar' })
+
+    Rack::Utils.set_cookie_header('__Secure-"foo"', 'bar').must_equal '__Secure-%22foo%22=bar'
+    Rack::Utils.parse_cookies_header('__Secure-%22foo%22=bar').must_equal({ '__Secure-"foo"' => 'bar' })
+
+    Rack::Utils.set_cookie_header('__Host-"foo"', 'bar').must_equal '__Host-%22foo%22=bar'
+    Rack::Utils.parse_cookies_header('__Host-%22foo%22=bar').must_equal({ '__Host-"foo"' => 'bar' })
+  end
+
+  it "doesn't round-trip escaped secure cookies" do
+    Rack::Utils.parse_cookies_header('__%53ecure-%22foo%22=bar').must_equal({ '__%53ecure-%22foo%22' => 'bar' })
+    Rack::Utils.parse_cookies_header('__%48ost-%22foo%22=bar').must_equal({ '__%48ost-%22foo%22' => 'bar' })
   end
 
   it "generates appropriate cookie header value" do

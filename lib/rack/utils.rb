@@ -211,6 +211,24 @@ module Rack
       (encoding_candidates & available_encodings)[0]
     end
 
+    # A <cookie-name> can be any US-ASCII characters, except control characters, spaces, or tabs. It also must not contain a separator character like the following: ( ) < > @ , ; : \ " / [ ] ? = { }.
+    # Cookies names starting with __Secure- (dash is part of the prefix) must be set with the secure flag from a secure page (HTTPS).
+    # Cookies with names starting with __Host- must be set with the secure flag, must be from a secure page (HTTPS), must not have a domain specified (and therefore aren't sent to subdomains) and the path must be /
+    PARSE_COOKIES_SECURE_PREFIX = /\A(__Secure-)|(__Host)/i.freeze
+
+    def unescape_cookie_key(key)
+      if key =~ PARSE_COOKIES_SECURE_PREFIX
+        return unescape(key)
+      else
+        unescaped_key = unescape(key)
+        if unescaped_key =~ PARSE_COOKIES_SECURE_PREFIX
+          return key
+        else
+          return unescaped_key
+        end
+      end
+    end
+
     # :call-seq:
     #   parse_cookies_header(value) -> hash
     #
@@ -227,6 +245,8 @@ module Rack
       value.split(/; */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
+        
+        key = unescape_cookie_key(key)
         cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
       end
     end
