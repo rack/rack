@@ -611,18 +611,15 @@ describe Rack::Utils, "cookies" do
 
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "%66oo=baz;foo=bar")
     cookies = Rack::Utils.parse_cookies(env)
-    cookies.must_equal({ "foo" => "baz" })
+    cookies.must_equal({ "%66oo" => "baz", "foo" => "bar" })
   end
 
   it "round trips cookie keys" do
-    Rack::Utils.set_cookie_header('"foo"', 'bar').must_equal '%22foo%22=bar'
-    Rack::Utils.parse_cookies_header('%22foo%22=bar').must_equal({ '"foo"' => 'bar' })
+    Rack::Utils.set_cookie_header('__Secure-%foo', 'bar').must_equal '__Secure-%foo=bar'
+    Rack::Utils.parse_cookies_header('__Secure-%foo=bar').must_equal({ '__Secure-%foo' => 'bar' })
 
-    Rack::Utils.set_cookie_header('__Secure-"foo"', 'bar').must_equal '__Secure-%22foo%22=bar'
-    Rack::Utils.parse_cookies_header('__Secure-%22foo%22=bar').must_equal({ '__Secure-"foo"' => 'bar' })
-
-    Rack::Utils.set_cookie_header('__Host-"foo"', 'bar').must_equal '__Host-%22foo%22=bar'
-    Rack::Utils.parse_cookies_header('__Host-%22foo%22=bar').must_equal({ '__Host-"foo"' => 'bar' })
+    Rack::Utils.set_cookie_header('__Host-%foo', 'bar').must_equal '__Host-%foo=bar'
+    Rack::Utils.parse_cookies_header('__Host-%foo=bar').must_equal({ '__Host-%foo' => 'bar' })
   end
 
   it "doesn't round-trip escaped secure cookies" do
@@ -646,12 +643,10 @@ describe Rack::Utils, "cookies" do
     headers['set-cookie'].must_equal ['name=value', 'name2=value2', 'name2=value3']
   end
 
-  it "encodes cookie key values by default" do
-    Rack::Utils.set_cookie_header('na e', 'value').must_equal 'na+e=value'
-  end
-
-  it "does not encode cookie key values if :escape_key is false" do
-    Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false).must_equal 'na e=value'
+  it "fails if the provided key is not a valid token" do
+    lambda do
+      Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false)
+    end.must_raise(ArgumentError, /Invalid cookie key/)
   end
 
   it "sets partitioned cookie attribute" do

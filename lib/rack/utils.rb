@@ -211,24 +211,6 @@ module Rack
       (encoding_candidates & available_encodings)[0]
     end
 
-    # A <cookie-name> can be any US-ASCII characters, except control characters, spaces, or tabs. It also must not contain a separator character like the following: ( ) < > @ , ; : \ " / [ ] ? = { }.
-    # Cookies names starting with __Secure- (dash is part of the prefix) must be set with the secure flag from a secure page (HTTPS).
-    # Cookies with names starting with __Host- must be set with the secure flag, must be from a secure page (HTTPS), must not have a domain specified (and therefore aren't sent to subdomains) and the path must be /
-    PARSE_COOKIES_SECURE_PREFIX = /\A(__Secure-)|(__Host)/i.freeze
-
-    def unescape_cookie_key(key)
-      if key =~ PARSE_COOKIES_SECURE_PREFIX
-        return unescape(key)
-      else
-        unescaped_key = unescape(key)
-        if unescaped_key =~ PARSE_COOKIES_SECURE_PREFIX
-          return key
-        else
-          return unescaped_key
-        end
-      end
-    end
-
     # :call-seq:
     #   parse_cookies_header(value) -> hash
     #
@@ -245,8 +227,6 @@ module Rack
       value.split(/; */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
-        
-        key = unescape_cookie_key(key)
         cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
       end
     end
@@ -264,6 +244,9 @@ module Rack
       parse_cookies_header env[HTTP_COOKIE]
     end
 
+    # A valid token according to RFC2616.
+    VALID_COOKIE_KEY = /\A[!#$%&'*+\-\.\^_`|~0-9a-zA-Z]+\z/.freeze
+
     # :call-seq:
     #   set_cookie_header(key, value) -> encoded string
     #
@@ -277,20 +260,22 @@ module Rack
     # details about the interpretation of these fields, consult
     # [RFC6265 Section 5.2](https://datatracker.ietf.org/doc/html/rfc6265#section-5.2).
     #
-    # An extra cookie attribute +escape_key+ can be provided to control whether
-    # or not the cookie key is URL encoded. If explicitly set to +false+, the
-    # cookie key name will not be url encoded (escaped). The default is +true+.
-    #
     #   set_cookie_header("myname", "myvalue")
     #   # => "myname=myvalue"
     #
     #   set_cookie_header("myname", {value: "myvalue", max_age: 10})
     #   # => "myname=myvalue; max-age=10"
     #
+    #   set_cookie_header('"foo"', "bar")
+    #   # => ArgumentError: Invalid cookie key: "\"foo\""
+    #
     def set_cookie_header(key, value)
+      if VALID_COOKIE_KEY !~ key
+        raise ArgumentError, "Invalid cookie key: #{key.inspect}"
+      end
+
       case value
       when Hash
-        key = escape(key) unless value[:escape_key] == false
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
@@ -312,8 +297,6 @@ module Rack
           end
         partitioned = "; partitioned" if value[:partitioned]
         value = value[:value]
-      else
-        key = escape(key)
       end
 
       value = [value] unless Array === value
