@@ -631,7 +631,10 @@ describe Rack::Utils, "cookies" do
   end
 
   it "encodes cookie key values by default" do
-    Rack::Utils.set_cookie_header('na e', 'value').must_equal 'na+e=value'
+    capture_warnings(Rack::Utils) do |warnings|
+      Rack::Utils.set_cookie_header('na e', 'value').must_equal 'na+e=value'
+      warnings.pop.first.must_match(/Cookie key "na e" is not valid/)
+    end
   end
 
   it "does not encode cookie key values if :escape_key is false" do

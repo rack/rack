@@ -38,4 +38,19 @@ class Minitest::Spec
       end
     end
   end
+  
+  def capture_warnings(target)
+    verbose = $VERBOSE
+    warnings = Thread::Queue.new
+    target.define_singleton_method(:warn) do |*args|
+      warnings << args
+    end
+    begin
+      $VERBOSE = true
+      yield warnings
+    ensure
+      $VERBOSE = verbose
+      target.singleton_class.send(:remove_method, :warn)
+    end
+  end
 end
