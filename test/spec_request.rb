@@ -797,8 +797,8 @@ class RackRequestTest < Minitest::Spec
   end
 
   it "return values for the keys in the order given from values_at" do
-    req = make_request \
-      Rack::MockRequest.env_for("?foo=baz&wun=der&bar=ful")
+    req = make_request Rack::MockRequest.env_for("?foo=baz&wun=der&bar=ful")
+
     assert_output(nil, /deprecated/) do
       req.values_at('foo').must_equal ['baz']
       req.values_at('foo', 'wun').must_equal ['baz', 'der']
@@ -806,17 +806,10 @@ class RackRequestTest < Minitest::Spec
     end
 
     next if self.class == TestProxyRequest
-    verbose = $VERBOSE
-    warn_arg = nil
-    req.define_singleton_method(:warn) do |*args|
-      warn_arg = args
-    end
-    begin
-      $VERBOSE = true
+
+    capture_warnings(req) do |warnings|
       req.values_at('foo').must_equal ['baz']
-      warn_arg.must_equal ["Request#values_at is deprecated and will be removed in a future version of Rack. Please use request.params.values_at instead", { uplevel: 1 }]
-    ensure
-      $VERBOSE = verbose
+      warnings.pop.must_equal ["Request#values_at is deprecated and will be removed in a future version of Rack. Please use request.params.values_at instead", { uplevel: 1 }]
     end
   end
 
