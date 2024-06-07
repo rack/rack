@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
 - `PATH_INFO` is now validated according to the HTTP/1.1 specification. ([#2117](https://github.com/rack/rack/pull/2117), [@ioquatix])
+- `rack.protocol` is an optional environment key and response header for handling connection upgrades.
 
 ### Changed
 
@@ -22,8 +23,8 @@ All notable changes to this project will be documented in this file. For info on
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
 - rack.early_hints is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon). ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine, @jeremyevans])
-- Add `Rack::SetXForwardedProtoHeader` middleware ([#2089](https://github.com/rack/rack/pull/2089), [@tomharvey])
-- Deprecate automatic cache invalidation in `Request#{GET,POST}` and add `Request#clear_{GET,POST}` for manual cache invalidation ([@jeremyevans])
+- Deprecate automatic cache invalidation in `Request#{GET,POST}` ([#2073](https://github.com/rack/rack/pull/2073) ([@jeremyevans])
+- Only cookie keys that are not valid according to the HTTP specifications are escaped. We are planning to deprecate this behaviour, so now a deprecation message will be emitted in this case. In the future, invalid cookie keys may not be accepted. ([#2191](https://github.com/rack/rack/pull/2191), [@ioquatix])
 
 ## [3.0.11] - 2024-05-10
 

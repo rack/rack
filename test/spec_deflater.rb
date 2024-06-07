@@ -11,10 +11,6 @@ separate_testing do
 end
 
 describe Rack::Deflater do
-  if RUBY_ENGINE == 'jruby'
-    warn "skipping Rack::Deflater tests on JRuby until JRuby is fixed"
-    next
-  end
 
   def build_response(status, body, accept_encoding, options = {})
     body = [body] if body.respond_to? :to_str
