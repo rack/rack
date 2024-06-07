@@ -851,7 +851,7 @@ class RackRequestTest < Minitest::Spec
     req.media_type.must_be_nil
   end
 
-  it "cache, but invalidates the cache" do
+  deprecated "cache, but invalidates the cache" do
     req = make_request \
       Rack::MockRequest.env_for("/?foo=quux",
         "CONTENT_TYPE" => "application/x-www-form-urlencoded",

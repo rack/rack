@@ -482,9 +482,14 @@ module Rack
 
       # Returns the data received in the query string.
       def GET
-        if get_header(RACK_REQUEST_QUERY_STRING) == query_string
+        rr_query_string = get_header(RACK_REQUEST_QUERY_STRING)
+        query_string = self.query_string
+        if rr_query_string == query_string
           get_header(RACK_REQUEST_QUERY_HASH)
         else
+          if rr_query_string
+            warn "query string used for GET parsing different from current query string. Starting in Rack 3.2, Rack will used the cached GET value instead of parsing the current query string.", uplevel: 1
+          end
           query_hash = parse_query(query_string, '&')
           set_header(RACK_REQUEST_QUERY_STRING, query_string)
           set_header(RACK_REQUEST_QUERY_HASH, query_hash)
@@ -505,9 +510,12 @@ module Rack
 
           # If the form hash was already memoized:
           if form_hash = get_header(RACK_REQUEST_FORM_HASH)
+            form_input = get_header(RACK_REQUEST_FORM_INPUT)
             # And it was memoized from the same input:
-            if get_header(RACK_REQUEST_FORM_INPUT).equal?(rack_input)
+            if form_input.equal?(rack_input)
               return form_hash
+            elsif form_input
+              warn "input stream used for POST parsing different from current input stream. Starting in Rack 3.2, Rack will used the cached POST value instead of parsing the current input stream.", uplevel: 1
             end
           end
 
