@@ -244,6 +244,20 @@ module Rack
       parse_cookies_header env[HTTP_COOKIE]
     end
 
+    # A valid cookie key according to RFC2616.
+    # A <cookie-name> can be any US-ASCII characters, except control characters, spaces, or tabs. It also must not contain a separator character like the following: ( ) < > @ , ; : \ " / [ ] ? = { }.
+    VALID_COOKIE_KEY = /\A[!#$%&'*+\-\.\^_`|~0-9a-zA-Z]+\z/.freeze
+    private_constant :VALID_COOKIE_KEY
+
+    private def escape_cookie_key(key)
+      if key =~ VALID_COOKIE_KEY
+        key
+      else
+        warn "Cookie key #{key.inspect} is not valid according to RFC2616; it will be escaped. This behaviour is deprecated and will be removed in a future version of Rack.", uplevel: 2
+        escape(key)
+      end
+    end
+
     # :call-seq:
     #   set_cookie_header(key, value) -> encoded string
     #
@@ -270,7 +284,7 @@ module Rack
     def set_cookie_header(key, value)
       case value
       when Hash
-        key = escape(key) unless value[:escape_key] == false
+        key = escape_cookie_key(key) unless value[:escape_key] == false
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
@@ -293,7 +307,7 @@ module Rack
         partitioned = "; partitioned" if value[:partitioned]
         value = value[:value]
       else
-        key = escape(key)
+        key = escape_cookie_key(key)
       end
 
       value = [value] unless Array === value
