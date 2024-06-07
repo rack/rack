@@ -534,24 +534,17 @@ describe Rack::Utils do
       unprocessable_entity: {status_code: 422, standard_symbol: :unprocessable_content}
     }
     dropped_statuses = {bandwidth_limit_exceeded: 509, not_extended: 510}
-    verbose = $VERBOSE
-    warn_arg = nil
-    Rack::Utils.define_singleton_method(:warn) do |*args|
-      warn_arg = args
-    end
-    begin
-      $VERBOSE = true
+
+    capture_warnings(Rack::Utils) do |warnings|
       replaced_statuses.each do |symbol, value_hash|
         Rack::Utils.status_code(symbol).must_equal value_hash[:status_code]
-        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack. Please use #{value_hash[:standard_symbol].inspect} instead.", { uplevel: 1 }]
+        warnings.pop.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack. Please use #{value_hash[:standard_symbol].inspect} instead.", { uplevel: 1 }]
       end
+
       dropped_statuses.each do |symbol, code|
         Rack::Utils.status_code(symbol).must_equal code
-        warn_arg.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 1 }]
+        warnings.pop.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 1 }]
       end
-    ensure
-      $VERBOSE = verbose
-      Rack::Utils.singleton_class.send(:remove_method, :warn)
     end
   end
 
