@@ -25,7 +25,6 @@ module Rack
       self.new(body, status, headers)
     end
 
-    CHUNKED = 'chunked'
     STATUS_WITH_NO_ENTITY_BODY = Utils::STATUS_WITH_NO_ENTITY_BODY
 
     attr_accessor :length, :status, :body
@@ -90,11 +89,7 @@ module Rack
       self.status = status
       self.location = target
     end
-
-    def chunked?
-      CHUNKED == get_header(TRANSFER_ENCODING)
-    end
-
+ 
     def no_entity_body?
       # The response body is an enumerable body and it is not allowed to have an entity body.
       @body.respond_to?(:each) && STATUS_WITH_NO_ENTITY_BODY[@status]
@@ -110,7 +105,7 @@ module Rack
         close
         return [@status, @headers, []]
       else
-        if @length && @length > 0 && !chunked?
+        if @length && @length > 0
           set_header CONTENT_LENGTH, @length.to_s
         end
 
