@@ -22,7 +22,6 @@ module Rack
   ETAG              = 'etag'
   EXPIRES           = 'expires'
   SET_COOKIE        = 'set-cookie'
-  TRANSFER_ENCODING = 'transfer-encoding'
 
   # HTTP method verbs
   GET     = 'GET'
