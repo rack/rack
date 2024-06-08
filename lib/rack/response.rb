@@ -99,7 +99,7 @@ module Rack
       # The response body is an enumerable body and it is not allowed to have an entity body.
       @body.respond_to?(:each) && STATUS_WITH_NO_ENTITY_BODY[@status]
     end
-    
+
     # Generate a response array consistent with the requirements of the SPEC.
     # @return [Array] a 3-tuple suitable of `[status, headers, body]`
     # which is suitable to be returned from the middleware `#call(env)` method.
@@ -110,6 +110,10 @@ module Rack
         close
         return [@status, @headers, []]
       else
+        if @length && @length > 0 && !chunked?
+          set_header CONTENT_LENGTH, @length.to_s
+        end
+
         if block_given?
           @block = block
           return [@status, @headers, self]
@@ -313,20 +317,26 @@ module Rack
 
     protected
 
+      # Convert the body of this response into an internally buffered Array if possible.
+      #
+      # `@buffered` is a ternary value which indicates whether the body is buffered. It can be:
+      # * `nil` - The body has not been buffered yet.
+      # * `true` - The body is buffered as an Array instance.
+      # * `false` - The body is not buffered and cannot be buffered.
+      #
+      # @return [Boolean] whether the body is buffered as an Array instance.
       def buffered_body!
         if @buffered.nil?
           if @body.is_a?(Array)
             # The user supplied body was an array:
             @body = @body.compact
-            @body.each do |part|
-              @length += part.to_s.bytesize
-            end
-
+            @length = @body.sum{|part| part.bytesize}
             @buffered = true
           elsif @body.respond_to?(:each)
             # Turn the user supplied body into a buffered array:
             body = @body
             @body = Array.new
+            @length = 0
 
             body.each do |part|
               @writer.call(part.to_s)
@@ -334,8 +344,10 @@ module Rack
 
             body.close if body.respond_to?(:close)
 
+            # We have converted the body into an Array:
             @buffered = true
           else
+            # We don't know how to buffer the user-supplied body:
             @buffered = false
           end
         end
@@ -347,10 +359,7 @@ module Rack
         chunk = chunk.dup unless chunk.frozen?
         @body << chunk
 
-        unless chunked?
-          @length += chunk.bytesize
-          set_header(CONTENT_LENGTH, @length.to_s)
-        end
+        @length += chunk.bytesize
 
         return chunk
       end

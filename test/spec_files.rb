@@ -200,8 +200,10 @@ describe Rack::Files do
     end.new(DOCROOT)
 
     res = Rack::MockResponse.new(*files.call(env))
-
     res.status.must_equal 206
+    res.length.must_equal 209
+    res.finish
+
     res["content-length"].must_equal "209"
     res["content-range"].must_equal "bytes 0-3300/10000"
   end
