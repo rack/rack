@@ -573,7 +573,7 @@ module Rack
           if canonical_symbol = OBSOLETE_SYMBOL_MAPPINGS[status]
             message = "#{message} Please use #{canonical_symbol.inspect} instead."
           end
-          warn message, uplevel: 1
+          warn message, uplevel: 3
           fallback_code
         end
       else
