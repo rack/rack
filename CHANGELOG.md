@@ -15,6 +15,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Removed
 
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
+- `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 
 ## [3.1.0] - 2024-06-11
 
