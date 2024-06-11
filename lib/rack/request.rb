@@ -616,13 +616,6 @@ module Rack
         Rack::Request.ip_filter.call(ip)
       end
 
-      # like Hash#values_at
-      def values_at(*keys)
-        warn("Request#values_at is deprecated and will be removed in a future version of Rack. Please use request.params.values_at instead", uplevel: 1)
-        
-        keys.map { |key| params[key] }
-      end
-
       private
 
       def default_session; {}; end

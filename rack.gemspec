@@ -4,7 +4,7 @@ require_relative 'lib/rack/version'
 
 Gem::Specification.new do |s|
   s.name = "rack"
-  s.version = Rack::RELEASE
+  s.version = Rack::VERSION
   s.platform = Gem::Platform::RUBY
   s.summary = "A modular Ruby webserver interface."
   s.license = "MIT"

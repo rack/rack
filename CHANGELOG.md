@@ -4,39 +4,65 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Added
+
+- Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
+
+### Changed
+
+- Invalid cookie keys will now raise an error. ([#2192](https://github.com/rack/rack/pull/2192), [@ioquatix])
+
 ### Removed
 
+- `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 
 ## [3.1.0] - 2024-06-11
 
+Rack v3.1 is primarily a maintenance release that removes features deprecated in Rack v3.0. Alongside these removals, there are several improvements to the Rack SPEC, mainly focused on enhancing input and output handling. These changes aim to make Rack more efficient and align better with the requirements of server implementations and relevant HTTP specifications.
+
 ### SPEC Changes
 
-- `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [@ioquatix])
-- `PATH_INFO` is now validated according to the HTTP/1.1 specification. ([#2117](https://github.com/rack/rack/pull/2117), [@ioquatix])
-- `rack.protocol` is an optional environment key and response header for handling connection upgrades.
+- `rack.input` is now optional. ([#1997](https://github.com/rack/rack/pull/1997), [#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
+- `PATH_INFO` is now validated according to the HTTP/1.1 specification. ([#2117](https://github.com/rack/rack/pull/2117), [#2181](https://github.com/rack/rack/pull/2181), [@ioquatix])
+  - `OPTIONS *` is now accepted. ([#2114](https://github.com/rack/rack/pull/2114), [@doriantaylor](https://github.com/doriantaylor))
+- Introduce optional `rack.protocol` request and response header for handling connection upgrades. ([#1954](https://github.com/rack/rack/pull/1954), [@ioquatix])
 
 ### Added
 
+- Introduce `Rack::Multipart::MissingInputError` for improved handling of missing input in `#parse_multipart`. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
 - Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
-- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
-- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
-- `rack.early_hints` is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon). ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine, @jeremyevans])
+- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas](https://github.com/axilleas))
+- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b](https://github.com/flavio-b))
+- Introduce `rack.early_hints` for sending `103 Early Hints` informational responses. ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine](https://github.com/casperisfine), [@jeremyevans])
 
 ### Changed
 
-- `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
-- MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
+- MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8), [@ioquatix])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
 - `Rack::Utils.escape_html` is now delegated to `CGI.escapeHTML`. `'` is escaped to `#39;` instead of `#x27;`. (decimal vs hexadecimal) ([#2099](https://github.com/rack/rack/pull/2099), [@JunichiIto](https://github.com/JunichiIto))
+- Clarify use of `@buffered` and only update `content-length` when `Rack::Response#finish` is invoked. ([#2149](https://github.com/rack/rack/pull/2149), [@ioquatix])
+
+### Deprecated
+
+- Deprecate automatic cache invalidation in `Request#{GET,POST}` ([#2073](https://github.com/rack/rack/pull/2073), [@jeremyevans])
 - Only cookie keys that are not valid according to the HTTP specifications are escaped. We are planning to deprecate this behaviour, so now a deprecation message will be emitted in this case. In the future, invalid cookie keys may not be accepted. ([#2191](https://github.com/rack/rack/pull/2191), [@ioquatix])
+- `Rack::Logger` is deprecated. ([#2197](https://github.com/rack/rack/pull/2197), [@ioquatix])
+- Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn](https://github.com/wtn))
 
 ### Removed
 
-- Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
-- Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
-- Deprecate automatic cache invalidation in `Request#{GET,POST}` ([#2073](https://github.com/rack/rack/pull/2073) ([@jeremyevans])
-- `Rack::Logger` is deprecated. ([#2197](https://github.com/rack/rack/pull/2197), [@ioquatix])
+- Remove deprecated `Rack::Auth::Digest` with no replacement. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::Cascade::NotFound` with no replacement. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::Chunked` with no replacement. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::File`, use `Rack::Files` instead. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::QueryParser` `key_space_limit` parameter with no replacement. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::Response#header`, use `Rack::Response#headers` instead. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated cookie methods from `Rack::Utils`: `add_cookie_to_header`, `make_delete_cookie_header`, `add_remove_cookie_to_header`. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::Utils::HeaderHash`. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove deprecated `Rack::VERSION`, `Rack::VERSION_STRING`, `Rack.version`, use `Rack.release` instead. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
+- Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn](https://github.com/wtn))
+- Remove any dependency on `transfer-encoding: chunked`. ([#2195](https://github.com/rack/rack/pull/2195), [@ioquatix])
 
 ### Fixed
 
