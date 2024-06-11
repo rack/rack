@@ -623,15 +623,10 @@ describe Rack::Utils, "cookies" do
     headers['set-cookie'].must_equal ['name=value', 'name2=value2', 'name2=value3']
   end
 
-  it "encodes cookie key values by default" do
-    capture_warnings(Rack::Utils) do |warnings|
-      Rack::Utils.set_cookie_header('na e', 'value').must_equal 'na+e=value'
-      warnings.pop.first.must_match(/Cookie key "na e" is not valid/)
-    end
-  end
-
-  it "does not encode cookie key values if :escape_key is false" do
-    Rack::Utils.set_cookie_header('na e', value: 'value', escape_key: false).must_equal 'na e=value'
+  it "raises an error if the cookie key is invalid" do
+    lambda do
+      Rack::Utils.set_cookie_header('na e', 'value')
+    end.must_raise(ArgumentError, /invalid cookie key/)
   end
 
   it "sets partitioned cookie attribute" do
