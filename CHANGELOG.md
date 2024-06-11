@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Changed
+
+- Invalid cookie keys will now raise an error. ([#2192](https://github.com/rack/rack/pull/2192), [@ioquatix])
+
 ### Removed
 
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
