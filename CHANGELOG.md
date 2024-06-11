@@ -10,7 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
-- Invalid cookie keys will now raise an error. ([#2192](https://github.com/rack/rack/pull/2192), [@ioquatix])
+- Invalid cookie keys will now raise an error. ([#2193](https://github.com/rack/rack/pull/2193), [@ioquatix])
 
 ### Removed
 
