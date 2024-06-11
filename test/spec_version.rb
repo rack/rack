@@ -9,7 +9,7 @@ end
 describe Rack do
   describe 'version' do
     it 'is a version string' do
-      Rack::RELEASE.must_match(/\d+\.\d+\.\d+/)
+      Rack::VERSION.must_match(/\d+\.\d+\.\d+/)
     end
   end
 end

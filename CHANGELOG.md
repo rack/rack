@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Added
+
+- Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
+
 ### Changed
 
 - Invalid cookie keys will now raise an error. ([#2192](https://github.com/rack/rack/pull/2192), [@ioquatix])
