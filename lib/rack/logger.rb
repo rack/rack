@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require 'logger'
-
 require_relative 'constants'
+
+warn "Rack::Logger is deprecated and will be removed in Rack 3.2.", uplevel: 1
 
 module Rack
   # Sets up rack.logger to write to rack.errors stream
