@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [3.1.0] - 2024-06-11
 
 ### SPEC Changes
 
@@ -10,22 +10,31 @@ All notable changes to this project will be documented in this file. For info on
 - `PATH_INFO` is now validated according to the HTTP/1.1 specification. ([#2117](https://github.com/rack/rack/pull/2117), [@ioquatix])
 - `rack.protocol` is an optional environment key and response header for handling connection upgrades.
 
+### Added
+
+- Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
+- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
+- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
+- `rack.early_hints` is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon). ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine, @jeremyevans])
+
 ### Changed
 
 - `rack.input` is now optional, and if missing, will raise an error. Use this to fail on multipart parsing a request without an input body. ([#2018](https://github.com/rack/rack/pull/2018), [@ioquatix])
-- Introduce `module Rack::BadRequest` which is included in multipart and query parser errors. ([#2019](https://github.com/rack/rack/pull/2019), [@ioquatix])
 - MIME type for JavaScript files (`.js`) changed from `application/javascript` to `text/javascript` ([`1bd0f15`](https://github.com/rack/rack/commit/1bd0f1597d8f4a90d47115f3e156a8ce7870c9c8))
-- Add `.mjs` MIME type ([#2057](https://github.com/rack/rack/pull/2057), [@axilleas])
 - Update MIME types associated to `.ttf`, `.woff`, `.woff2` and `.otf` extensions to use mondern `font/*` types. ([#2065](https://github.com/rack/rack/pull/2065), [@davidstosik])
 - `Rack::Utils.escape_html` is now delegated to `CGI.escapeHTML`. `'` is escaped to `#39;` instead of `#x27;`. (decimal vs hexadecimal) ([#2099](https://github.com/rack/rack/pull/2099), [@JunichiIto](https://github.com/JunichiIto))
-- `set_cookie_header` utility now supports the `partitioned` cookie attribute. This is required by Chrome in some embedded contexts. ([#2131](https://github.com/rack/rack/pull/2131), [@flavio-b])
+- Only cookie keys that are not valid according to the HTTP specifications are escaped. We are planning to deprecate this behaviour, so now a deprecation message will be emitted in this case. In the future, invalid cookie keys may not be accepted. ([#2191](https://github.com/rack/rack/pull/2191), [@ioquatix])
+
+### Removed
+
 - Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn])
-- In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
-- rack.early_hints is now officially supported as an optional feature (already implemented by Unicorn, Puma, and Falcon). ([#1831](https://github.com/rack/rack/pull/1831), [@casperisfine, @jeremyevans])
 - Deprecate automatic cache invalidation in `Request#{GET,POST}` ([#2073](https://github.com/rack/rack/pull/2073) ([@jeremyevans])
-- Only cookie keys that are not valid according to the HTTP specifications are escaped. We are planning to deprecate this behaviour, so now a deprecation message will be emitted in this case. In the future, invalid cookie keys may not be accepted. ([#2191](https://github.com/rack/rack/pull/2191), [@ioquatix])
 - `Rack::Logger` is deprecated. ([#2197](https://github.com/rack/rack/pull/2197), [@ioquatix])
+
+### Fixed
+
+- In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
 
 ## [3.0.11] - 2024-05-10
 
