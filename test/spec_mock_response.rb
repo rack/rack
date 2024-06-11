@@ -49,7 +49,7 @@ describe Rack::MockResponse do
     response.body.must_equal body.join
   end
 
-  it "provide access to the HTTP status" do
+  it "provides access to the HTTP status" do
     res = Rack::MockRequest.new(app).get("")
     res.must_be :successful?
     res.must_be :ok?
@@ -70,7 +70,7 @@ describe Rack::MockResponse do
     res.must_be :empty?
   end
 
-  it "provide access to the HTTP headers" do
+  it "provides access to the HTTP headers" do
     res = Rack::MockRequest.new(app).get("")
     res.must_include "content-type"
     res.headers["content-type"].must_equal "text/yaml"
@@ -81,7 +81,7 @@ describe Rack::MockResponse do
     res.location.must_be_nil
   end
 
-  it "provide access to session cookies" do
+  it "provides access to session cookies" do
     res = Rack::MockRequest.new(app).get("")
     session_cookie = res.cookie("session_test")
     session_cookie.value[0].must_equal "session_test"
@@ -121,7 +121,7 @@ describe Rack::MockResponse do
     persistent_cookie.expires.must_be :<, (Time.now + 15552000)
   end
 
-  it "provide access to secure cookies" do
+  it "provides access to secure cookies" do
     res = Rack::MockRequest.new(app).get("")
     secure_cookie = res.cookie("secure_test")
     secure_cookie.value[0].must_equal "secure_test"
@@ -137,8 +137,13 @@ describe Rack::MockResponse do
     cookie.value[0].must_equal "_somebase64encodedstringwithequalsatthened="
   end
 
-  it "return nil if a non existent cookie is requested" do
+  it "returns nil if a non existent cookie is requested" do
     res = Rack::MockRequest.new(app).get("")
+    res.cookie("i_dont_exist").must_be_nil
+  end
+
+  it "handles an empty cookie" do
+    res = Rack::MockRequest.new(->(env) { [200, { "Set-Cookie" => "" }, [""]] }).get("")
     res.cookie("i_dont_exist").must_be_nil
   end
 
@@ -151,7 +156,7 @@ describe Rack::MockResponse do
     second_cookie.value[0].must_equal "times"
   end
 
-  it "provide access to the HTTP body" do
+  it "provides access to the HTTP body" do
     res = Rack::MockRequest.new(app).get("")
     res.body.must_match(/rack/)
     assert_match(res, /rack/)
@@ -160,14 +165,14 @@ describe Rack::MockResponse do
     res.match('banana').must_be_nil
   end
 
-  it "provide access to the Rack errors" do
+  it "provides access to the Rack errors" do
     res = Rack::MockRequest.new(app).get("/?error=foo", lint: true)
     res.must_be :ok?
     res.errors.wont_be :empty?
     res.errors.must_include "foo"
   end
 
-  it "allow calling body.close afterwards" do
+  it "allows calling body.close afterwards" do
     # this is exactly what rack-test does
     body = StringIO.new("hi")
     res = Rack::MockResponse.new(200, {}, body)
@@ -179,7 +184,7 @@ describe Rack::MockResponse do
     Rack::MockResponse.new(200, {}, [], 'e').errors.must_be_nil
   end
 
-  it "optionally make Rack errors fatal" do
+  it "optionally makes Rack errors fatal" do
     lambda {
       Rack::MockRequest.new(app).get("/?error=foo", fatal: true)
     }.must_raise Rack::MockRequest::FatalWarning
