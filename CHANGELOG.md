@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Removed
+
+- `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
+
 ## [3.1.0] - 2024-06-11
 
 ### SPEC Changes
