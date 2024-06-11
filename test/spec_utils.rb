@@ -486,6 +486,11 @@ describe Rack::Utils do
     Rack::Utils.escape_html("☃").must_equal "☃"
   end
 
+  it 'escape_html handles non-strings' do
+    Rack::Utils.escape_html(nil).must_equal ""
+    Rack::Utils.escape_html(123).must_equal "123"
+  end
+
   it "figure out which encodings are acceptable" do
     helper = lambda do |a, b|
       Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
