@@ -188,6 +188,42 @@ describe Rack::MockResponse do
       Rack::MockRequest.new(lambda { |env| env['rack.errors'].write(env['rack.errors'].string) }).get("/", fatal: true)
     }.must_raise(Rack::MockRequest::FatalWarning).message.must_equal ''
   end
+
+  class ChunkedBody # :nodoc:
+    TERM = "\r\n"
+    TAIL = "0#{TERM}"
+
+    # Store the response body to be chunked.
+    def initialize(body)
+      @body = body
+    end
+
+    # For each element yielded by the response body, yield the element in chunked
+    # encoding.
+    def each(&block)
+      term = TERM
+      @body.each do |chunk|
+        size = chunk.bytesize
+        next if size == 0
+
+        yield [size.to_s(16), term, chunk.b, term].join
+      end
+      yield TAIL
+      yield term
+    end
+
+    # Close the response body if the response body supports it.
+    def close
+      @body.close if @body.respond_to?(:close)
+    end
+  end
+
+  it "does not calculate content length for streaming body" do
+    body = ChunkedBody.new(["a" * 96])
+    res = Rack::MockResponse.new(200, { "transfer-encoding" => "chunked" }, body).to_a
+    headers = res[1]
+    refute headers.key?("content-length")
+  end
 end
 
 describe Rack::MockResponse, 'headers' do

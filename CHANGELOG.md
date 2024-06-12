@@ -4,13 +4,31 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+
 ### Fixed
 
 - Fix passing non-strings to `Rack::Utils.escape_html`. ([#2202](https://github.com/rack/rack/pull/2202), [@earlopain])
 
+### Added
+
+- Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
+
+### Changed
+
+- Invalid cookie keys will now raise an error. ([#2193](https://github.com/rack/rack/pull/2193), [@ioquatix])
+
 ### Removed
 
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
+- `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
+
+## [3.1.2] - 2024-06-11
+
+- `Rack::Response` will take in to consideration chunked encoding responses ([#2204](https://github.com/rack/rack/pull/2204), [@tenderlove])
+
+## [3.1.1] - 2024-06-11
+
+- Oops! I shouldn't have shipped that
 
 ## [3.1.0] - 2024-06-11
 

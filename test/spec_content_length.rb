@@ -44,6 +44,21 @@ describe Rack::ContentLength do
     response[1]['content-length'].must_be_nil
   end
 
+  it "not set content-length when transfer-encoding is chunked" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'transfer-encoding' => 'chunked' }, []] }
+    response = content_length(app).call(request)
+    response[1]['content-length'].must_be_nil
+  end
+
+  # Using "Connection: close" for this is fairly contended. It might be useful
+  # to have some other way to signal this.
+  #
+  # should "not force a content-length when Connection:close" do
+  #   app = lambda { |env| [200, {'Connection' => 'close'}, []] }
+  #   response = content_length(app).call({})
+  #   response[1]['content-length'].must_be_nil
+  # end
+
   it "close bodies that need to be closed" do
     body = Struct.new(:body) do
       attr_reader :closed

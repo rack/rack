@@ -253,36 +253,24 @@ module Rack
       parse_cookies_header env[HTTP_COOKIE]
     end
 
-    # A valid cookie key according to RFC2616.
+    # A valid cookie key according to RFC6265 and RFC2616.
     # A <cookie-name> can be any US-ASCII characters, except control characters, spaces, or tabs. It also must not contain a separator character like the following: ( ) < > @ , ; : \ " / [ ] ? = { }.
     VALID_COOKIE_KEY = /\A[!#$%&'*+\-\.\^_`|~0-9a-zA-Z]+\z/.freeze
     private_constant :VALID_COOKIE_KEY
-
-    private def escape_cookie_key(key)
-      if key =~ VALID_COOKIE_KEY
-        key
-      else
-        warn "Cookie key #{key.inspect} is not valid according to RFC2616; it will be escaped. This behaviour is deprecated and will be removed in a future version of Rack.", uplevel: 2
-        escape(key)
-      end
-    end
 
     # :call-seq:
     #   set_cookie_header(key, value) -> encoded string
     #
     # Generate an encoded string using the provided +key+ and +value+ suitable
     # for the +set-cookie+ header according to RFC6265. The +value+ may be an
-    # instance of either +String+ or +Hash+.
+    # instance of either +String+ or +Hash+. If the cookie key is invalid (as
+    # defined by RFC6265), an +ArgumentError+ will be raised.
     #
     # If the cookie +value+ is an instance of +Hash+, it considers the following
     # cookie attribute keys: +domain+, +max_age+, +expires+ (must be instance
     # of +Time+), +secure+, +http_only+, +same_site+ and +value+. For more
     # details about the interpretation of these fields, consult
     # [RFC6265 Section 5.2](https://datatracker.ietf.org/doc/html/rfc6265#section-5.2).
-    #
-    # An extra cookie attribute +escape_key+ can be provided to control whether
-    # or not the cookie key is URL encoded. If explicitly set to +false+, the
-    # cookie key name will not be url encoded (escaped). The default is +true+.
     #
     #   set_cookie_header("myname", "myvalue")
     #   # => "myname=myvalue"
@@ -291,9 +279,12 @@ module Rack
     #   # => "myname=myvalue; max-age=10"
     #
     def set_cookie_header(key, value)
+      unless key =~ VALID_COOKIE_KEY
+        raise ArgumentError, "invalid cookie key: #{key.inspect}"
+      end
+
       case value
       when Hash
-        key = escape_cookie_key(key) unless value[:escape_key] == false
         domain  = "; domain=#{value[:domain]}"   if value[:domain]
         path    = "; path=#{value[:path]}"       if value[:path]
         max_age = "; max-age=#{value[:max_age]}" if value[:max_age]
@@ -315,8 +306,6 @@ module Rack
           end
         partitioned = "; partitioned" if value[:partitioned]
         value = value[:value]
-      else
-        key = escape_cookie_key(key)
       end
 
       value = [value] unless Array === value
@@ -593,7 +582,7 @@ module Rack
           if canonical_symbol = OBSOLETE_SYMBOL_MAPPINGS[status]
             message = "#{message} Please use #{canonical_symbol.inspect} instead."
           end
-          warn message, uplevel: 1
+          warn message, uplevel: 3
           fallback_code
         end
       else
