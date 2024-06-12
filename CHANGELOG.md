@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - Fix passing non-strings to `Rack::Utils.escape_html`. ([#2202](https://github.com/rack/rack/pull/2202), [@earlopain])
+- `Rack::MockResponse` gracefully handles empty cookies ([#2203](https://github.com/rack/rack/pull/2203) [@wynksaiddestroy](https://github.com/wynksaiddestroy))
 
 ### Added
 
