@@ -538,12 +538,12 @@ describe Rack::Utils do
     capture_warnings(Rack::Utils) do |warnings|
       replaced_statuses.each do |symbol, value_hash|
         Rack::Utils.status_code(symbol).must_equal value_hash[:status_code]
-        warnings.pop.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack. Please use #{value_hash[:standard_symbol].inspect} instead.", { uplevel: 1 }]
+        warnings.must_be_empty
       end
 
       dropped_statuses.each do |symbol, code|
         Rack::Utils.status_code(symbol).must_equal code
-        warnings.pop.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 1 }]
+        warnings.pop.must_equal ["Status code #{symbol.inspect} is deprecated and will be removed in a future version of Rack.", { uplevel: 3 }]
       end
     end
   end

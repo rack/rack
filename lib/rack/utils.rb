@@ -582,9 +582,11 @@ module Rack
           fallback_code = OBSOLETE_SYMBOLS_TO_STATUS_CODES.fetch(status) { raise ArgumentError, "Unrecognized status code #{status.inspect}" }
           message = "Status code #{status.inspect} is deprecated and will be removed in a future version of Rack."
           if canonical_symbol = OBSOLETE_SYMBOL_MAPPINGS[status]
-            message = "#{message} Please use #{canonical_symbol.inspect} instead."
+            # message = "#{message} Please use #{canonical_symbol.inspect} instead."
+            # For now, let's not emit any warning when there is a mapping.
+          else
+            warn message, uplevel: 3
           end
-          warn message, uplevel: 1
           fallback_code
         end
       else
