@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+
+### Fixed
+
+- Fix passing non-strings to `Rack::Utils.escape_html`. ([#2202](https://github.com/rack/rack/pull/2202), [@earlopain])
+
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
