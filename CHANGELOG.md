@@ -31,7 +31,6 @@ All notable changes to this project will be documented in this file. For info on
 
 - Oops! I shouldn't have shipped that
 
-
 ## [3.1.0] - 2024-06-11
 
 Rack v3.1 is primarily a maintenance release that removes features deprecated in Rack v3.0. Alongside these removals, there are several improvements to the Rack SPEC, mainly focused on enhancing input and output handling. These changes aim to make Rack more efficient and align better with the requirements of server implementations and relevant HTTP specifications.
