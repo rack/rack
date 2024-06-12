@@ -6,7 +6,7 @@ require 'fileutils'
 require 'set'
 require 'tempfile'
 require 'time'
-require 'cgi/escape'
+require 'erb'
 
 require_relative 'query_parser'
 require_relative 'mime'
@@ -176,8 +176,17 @@ module Rack
       matches&.first
     end
 
-    # Escape ampersands, brackets and quotes to their HTML/XML entities.
-    define_method(:escape_html, CGI.method(:escapeHTML))
+    # Introduced in ERB 4.0. ERB::Escape is an alias for ERB::Utils which
+    # doesn't get monkey-patched by rails
+    if defined?(ERB::Escape) && ERB::Escape.instance_method(:html_escape)
+      define_method(:escape_html, ERB::Escape.instance_method(:html_escape))
+    else
+      require 'cgi/escape'
+      # Escape ampersands, brackets and quotes to their HTML/XML entities.
+      def escape_html(string)
+        CGI.escapeHTML(string.to_s)
+      end
+    end
 
     def select_best_encoding(available_encodings, accept_encoding)
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html
