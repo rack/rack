@@ -19,6 +19,6 @@ group :test do
   gem "webrick"
 
   unless ENV['CI'] == 'spec'
-    gem 'bake-test-external', '~> 0.1.3'
+    gem 'bake-test-external'
   end
 end
