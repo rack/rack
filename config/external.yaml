@@ -4,3 +4,7 @@ protocol-rack:
 rails:
   url: https://github.com/rails/rails
   command: bash -c "cd actionpack && bundle exec rake test"
+roda:
+  url: https://github.com/jeremyevans/roda
+  command: bundle exec rake spec spec_lint
+  gemfile: .ci.gemfile
