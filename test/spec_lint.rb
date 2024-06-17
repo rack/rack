@@ -310,6 +310,10 @@ describe Rack::Lint do
       message.must_include('response array has 4 elements instead of 3')
   end
 
+  it "accepts empty PATH_INFO" do
+    Rack::Lint.new(valid_app).call(env("PATH_INFO" => "")).first.must_equal 200
+  end
+
   it "notices request-target asterisk form errors" do
     # A non-empty PATH_INFO starting with something other than / has
     # implications for Rack::Request#path and methods downstream from

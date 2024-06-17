@@ -130,7 +130,7 @@ There are the following restrictions:
 * There may be a valid early hints callback in <tt>rack.early_hints</tt>
 * The <tt>REQUEST_METHOD</tt> must be a valid token.
 * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-* The <tt>PATH_INFO</tt>, if provided, must be a valid request target.
+* The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string.
   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
