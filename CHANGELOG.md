@@ -33,6 +33,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.1.0] - 2024-06-11
 
+:warning: **This release includes several breaking changes.** Refer to the **Removed** section below for the list of deprecated methods that have been removed in this release.
+
 Rack v3.1 is primarily a maintenance release that removes features deprecated in Rack v3.0. Alongside these removals, there are several improvements to the Rack SPEC, mainly focused on enhancing input and output handling. These changes aim to make Rack more efficient and align better with the requirements of server implementations and relevant HTTP specifications.
 
 ### SPEC Changes
@@ -63,6 +65,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Only cookie keys that are not valid according to the HTTP specifications are escaped. We are planning to deprecate this behaviour, so now a deprecation message will be emitted in this case. In the future, invalid cookie keys may not be accepted. ([#2191](https://github.com/rack/rack/pull/2191), [@ioquatix])
 - `Rack::Logger` is deprecated. ([#2197](https://github.com/rack/rack/pull/2197), [@ioquatix])
 - Add fallback lookup and deprecation warning for obsolete status symbols. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn](https://github.com/wtn))
+- Deprecate `Rack::Request#values_at`, use `request.params.values_at` instead ([#2183](https://github.com/rack/rack/pull/2183), [@ioquatix])
 
 ### Removed
 
@@ -77,6 +80,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Remove deprecated `Rack::VERSION`, `Rack::VERSION_STRING`, `Rack.version`, use `Rack.release` instead. ([#1966](https://github.com/rack/rack/pull/1966), [@ioquatix])
 - Remove non-standard status codes 306, 509, & 510 and update descriptions for 413, 422, & 451. ([#2137](https://github.com/rack/rack/pull/2137), [@wtn](https://github.com/wtn))
 - Remove any dependency on `transfer-encoding: chunked`. ([#2195](https://github.com/rack/rack/pull/2195), [@ioquatix])
+- Remove deprecated `Rack::Request#[]`, use `request.params[key]` instead ([#2183](https://github.com/rack/rack/pull/2183), [@ioquatix])
 
 ### Fixed
 
