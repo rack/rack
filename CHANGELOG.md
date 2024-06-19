@@ -4,12 +4,6 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-
-### Fixed
-
-- Fix passing non-strings to `Rack::Utils.escape_html`. ([#2202](https://github.com/rack/rack/pull/2202), [@earlopain])
-- `Rack::MockResponse` gracefully handles empty cookies ([#2203](https://github.com/rack/rack/pull/2203) [@wynksaiddestroy](https://github.com/wynksaiddestroy))
-
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
@@ -22,6 +16,13 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
+
+## [3.1.3] - 2024-06-12
+
+### Fixed
+
+- Fix passing non-strings to `Rack::Utils.escape_html`. ([#2202](https://github.com/rack/rack/pull/2202), [@earlopain])
+- `Rack::MockResponse` gracefully handles empty cookies ([#2203](https://github.com/rack/rack/pull/2203) [@wynksaiddestroy])
 
 ## [3.1.2] - 2024-06-11
 
@@ -979,3 +980,5 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 [@wjordan]: https://github.com/wjordan "Will Jordan"
 [@BlakeWilliams]: https://github.com/BlakeWilliams "Blake Williams"
 [@davidstosik]: https://github.com/davidstosik "David Stosik"
+[@earlopain]: https://github.com/earlopain
+[@wynksaiddestroy]: https://github.com/wynksaiddestroy
