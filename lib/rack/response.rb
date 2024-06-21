@@ -80,7 +80,7 @@ module Rack
       else
         @body = body
         @buffered = nil # undetermined as of yet.
-        @length = 0
+        @length = nil
       end
 
       yield self if block_given?
@@ -110,14 +110,13 @@ module Rack
         close
         return [@status, @headers, []]
       else
-        if @length && @length > 0 && !chunked?
-          set_header CONTENT_LENGTH, @length.to_s
-        end
-
         if block_given?
           @block = block
           return [@status, @headers, self]
         else
+          if @length && !chunked?
+            set_header CONTENT_LENGTH, @length.to_s
+          end
           return [@status, @headers, @body]
         end
       end
@@ -359,7 +358,9 @@ module Rack
         chunk = chunk.dup unless chunk.frozen?
         @body << chunk
 
-        @length += chunk.bytesize
+        if @length
+          @length += chunk.bytesize
+        end
 
         return chunk
       end
