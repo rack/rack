@@ -336,6 +336,10 @@ describe Rack::Lint do
       Rack::Lint.new(nil).call(env("PATH_INFO" => "example.com:80"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/Only CONNECT requests may have PATH_INFO set to an authority/)
+
+    lambda do
+      Rack::Lint.new(nil).call(env("PATH_INFO" => "/:80")).first.must_equal 200
+    end
   end
 
   it "notices request-target absolute-form errors" do
