@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 
+## [3.1.4] - 2024-06-22
+
+### Fixed
+
+- Fix `Rack::Lint` matching some paths incorrectly as authority form. ([#2220](https://github.com/rack/rack/pull/2220), [@ioquatix])
+
 ## [3.1.3] - 2024-06-12
 
 ### Fixed
