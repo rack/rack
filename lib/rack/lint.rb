@@ -13,7 +13,7 @@ module Rack
   class Lint
     REQUEST_PATH_ORIGIN_FORM = /\A\/[^#]*\z/
     REQUEST_PATH_ABSOLUTE_FORM = /\A#{URI::DEFAULT_PARSER.make_regexp}\z/
-    REQUEST_PATH_AUTHORITY_FORM = /\A(.*?)(:\d*)\z/
+    REQUEST_PATH_AUTHORITY_FORM = /\A[^\/:]+:\d+\z/
     REQUEST_PATH_ASTERISK_FORM = '*'
 
     def initialize(app)
