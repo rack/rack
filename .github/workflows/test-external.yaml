@@ -27,4 +27,7 @@ jobs:
         apt-get: _update_ libfcgi-dev libmemcached-dev
         brew: fcgi libmemcached
 
+    # Install pandoc:
+    - run: sudo apt-get install -y pandoc
+
     - run: bundle exec bake test:external
