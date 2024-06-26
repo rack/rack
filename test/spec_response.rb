@@ -44,23 +44,23 @@ describe Rack::Response do
 
   it "have sensible default values" do
     response = Rack::Response.new
-    status, header, body = response.finish
+    status, headers, body = response.finish
     status.must_equal 200
-    header.must_equal({})
+    headers.must_equal({'content-length' => '0'})
     response.each { |part|
       part.must_equal ""
     }
 
     response = Rack::Response.new
-    status, header, body = *response
+    status, headers, body = *response
     status.must_equal 200
-    header.must_equal({})
+    headers.must_equal({'content-length' => '0'})
     body.each { |part|
       part.must_equal ""
     }
   end
 
-  it "can be written to inside finish block, but does not update content-length" do
+  it "can be written to inside finish block and it does not generate a content-length header" do
     response = Rack::Response.new('foo')
     response.write "bar"
 
@@ -72,7 +72,7 @@ describe Rack::Response do
     body.each { |part| parts << part }
 
     parts.must_equal ["foo", "bar", "baz"]
-    h['content-length'].must_equal '6'
+    h['content-length'].must_be_nil
   end
 
   it "#write calls #<< on non-iterable body" do
@@ -578,17 +578,17 @@ describe Rack::Response do
     res.location.must_be_nil
   end
 
-  it "does not add or change content-length when #finish()ing" do
+  it "assigns content-length when #finish()ing" do
     res = Rack::Response.new
     res.status = 200
     res.finish
-    res.headers["content-length"].must_be_nil
+    res.headers["content-length"].must_equal "0"
 
     res = Rack::Response.new
     res.status = 200
     res.headers["content-length"] = "10"
     res.finish
-    res.headers["content-length"].must_equal "10"
+    res.headers["content-length"].must_equal "0"
   end
 
   it "updates length when body appended to using #write" do
