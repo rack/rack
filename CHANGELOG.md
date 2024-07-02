@@ -74,7 +74,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::URLMap` uses non-deprecated form of `Regexp.new`. ([#1998](https://github.com/rack/rack/pull/1998), [@weizheheng](https://github.com/weizheheng))
 
-## [3.0.2] -2022-12-05
+## [3.0.2] - 2022-12-05
 
 ### Fixed
 
