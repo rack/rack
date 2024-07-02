@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.6] - 2024-07-03
+
+- Fix several edge cases in `Rack::Request#parse_http_accept_header`'s implementation. ([#2226](https://github.com/rack/rack/pull/2226), [@ioquatix])
+
 ## [3.1.5] - 2024-07-02
 
 ### Security
