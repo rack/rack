@@ -17,6 +17,12 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 
+## [3.1.5] - 2024-07-02
+
+### Security
+
+- Fix potential ReDoS attack in `Rack::Request#parse_http_accept_header`. ([GHSA-cj83-2ww7-mvq7](https://github.com/rack/rack/security/advisories/GHSA-cj83-2ww7-mvq7), [@dwisiswant0](https://github.com/dwisiswant0))
+
 ## [3.1.4] - 2024-06-22
 
 ### Fixed
