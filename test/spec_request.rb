@@ -1560,6 +1560,10 @@ EOF
 
     parser.call("gzip ; q=0.9").must_equal [["gzip", 0.9]]
     parser.call("gzip ; deflate").must_equal [["gzip", 1.0]]
+
+    parser.call(", ").must_equal []
+    parser.call(", gzip").must_equal [["gzip", 1.0]]
+    parser.call("gzip, ").must_equal [["gzip", 1.0]]
   end
 
   it "parse Accept-Language correctly" do
@@ -1577,6 +1581,10 @@ EOF
 
     parser.call("fr ; q=0.9").must_equal [["fr", 0.9]]
     parser.call("fr").must_equal [["fr", 1.0]]
+
+    parser.call(", ").must_equal []
+    parser.call(", en").must_equal [["en", 1.0]]
+    parser.call("en, ").must_equal [["en", 1.0]]
   end
 
   def ip_app

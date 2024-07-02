@@ -635,7 +635,13 @@ module Rack
       end
 
       def parse_http_accept_header(header)
-        header.to_s.split(',').map do |part|
+        # It would be nice to use filter_map here, but it's Ruby 2.7+
+        parts = header.to_s.split(',')
+
+        parts.map! do |part|
+          part.strip!
+          next if part.empty?
+
           attribute, parameters = part.split(';', 2)
           attribute.strip!
           parameters&.strip!
@@ -645,6 +651,10 @@ module Rack
           end
           [attribute, quality]
         end
+
+        parts.compact!
+
+        parts
       end
 
       # Get an array of values set in the RFC 7239 `Forwarded` request header.
