@@ -635,7 +635,10 @@ module Rack
       end
 
       def parse_http_accept_header(header)
-        header.to_s.split(',').map do |part|
+        header.to_s.split(',').filter_map do |part|
+          part.strip!
+          next if part.empty?
+
           attribute, parameters = part.split(';', 2)
           attribute.strip!
           parameters&.strip!
