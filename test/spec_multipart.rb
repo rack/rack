@@ -865,11 +865,34 @@ EOF
     params['profile']['bio'].must_include 'hello'
   end
 
-  it "parses very long unquoted multipart file names" do
+  ['', '"'].each do |quote_char|
+    it "parses very long #{'un' if quote_char.empty?}quoted multipart file names" do
+      data = <<-EOF
+--AaB03x\r
+content-type: text/plain\r
+content-disposition: attachment; name=file; filename=#{quote_char}#{'long' * 100}#{quote_char}\r
+\r
+contents\r
+--AaB03x--\r
+      EOF
+
+      options = {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.length.to_s,
+        :input => StringIO.new(data)
+      }
+      env = Rack::MockRequest.env_for("/", options)
+      params = Rack::Multipart.parse_multipart(env)
+
+      params["file"][:filename].must_equal 'long' * 100
+    end
+  end
+
+  it "does not remove escaped quotes in filenames" do
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
-content-disposition: attachment; name=file; filename=#{'long' * 100}\r
+content-disposition: attachment; name=file; filename="\\"#{'long' * 100}\\""\r
 \r
 contents\r
 --AaB03x--\r
@@ -883,7 +906,7 @@ contents\r
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
 
-    params["file"][:filename].must_equal 'long' * 100
+    params["file"][:filename].must_equal "\"#{'long' * 100}\""
   end
 
   it "limits very long file name extensions in multipart tempfiles" do
