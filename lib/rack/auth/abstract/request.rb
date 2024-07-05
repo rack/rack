@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+# XXX: Remove when removing AbstractRequest#request
 require_relative '../../request'
 
 module Rack
@@ -11,6 +12,7 @@ module Rack
       end
 
       def request
+        warn "Rack::Auth::AbstractRequest#request is deprecated and will be removed in a future version of rack.", uplevel: 1
         @request ||= Request.new(@env)
       end
 
