@@ -180,12 +180,16 @@ module Rack
     # doesn't get monkey-patched by rails
     if defined?(ERB::Escape) && ERB::Escape.instance_method(:html_escape)
       define_method(:escape_html, ERB::Escape.instance_method(:html_escape))
+    # :nocov:
+    # Ruby 3.2/ERB 4.0 added ERB::Escape#html_escape, so the else
+    # branch cannot be hit on the current Ruby version.
     else
       require 'cgi/escape'
       # Escape ampersands, brackets and quotes to their HTML/XML entities.
       def escape_html(string)
         CGI.escapeHTML(string.to_s)
       end
+    # :nocov:
     end
 
     def select_best_encoding(available_encodings, accept_encoding)

@@ -56,12 +56,21 @@ describe Rack::MockRequest do
   end
 
   it "should convert :input IO object to binary encoding" do
-    f = File.open(__FILE__, :encoding=>'UTF-8')
+    begin
+      f = File.open(__FILE__, :encoding=>'UTF-8')
+      env = Rack::MockRequest.env_for("/", method: :post, input: f)
+      f.external_encoding.must_equal Encoding::BINARY
+      env['rack.input'].read.must_equal File.binread(__FILE__)
+    ensure
+      f&.close
+    end
+  end
+
+  it "should handle :input object that does not respond to set_encoding" do
+    f = Object.new
+    f.define_singleton_method(:read) { File.binread(__FILE__) }
     env = Rack::MockRequest.env_for("/", method: :post, input: f)
-    f.external_encoding.must_equal Encoding::BINARY
     env['rack.input'].read.must_equal File.binread(__FILE__)
-  ensure
-    f&.close
   end
 
   it "return an environment with a path" do

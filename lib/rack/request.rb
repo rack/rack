@@ -482,18 +482,7 @@ module Rack
 
       # Returns the data received in the query string.
       def GET
-        rr_query_string = get_header(RACK_REQUEST_QUERY_STRING)
-        query_string = self.query_string
-        if rr_query_string == query_string
-          get_header(RACK_REQUEST_QUERY_HASH)
-        else
-          if rr_query_string
-            warn "query string used for GET parsing different from current query string. Starting in Rack 3.2, Rack will used the cached GET value instead of parsing the current query string.", uplevel: 1
-          end
-          query_hash = parse_query(query_string, '&')
-          set_header(RACK_REQUEST_QUERY_STRING, query_string)
-          set_header(RACK_REQUEST_QUERY_HASH, query_hash)
-        end
+        get_header(RACK_REQUEST_QUERY_HASH) || set_header(RACK_REQUEST_QUERY_HASH, parse_query(query_string, '&'))
       end
 
       # Returns the data received in the request body.
@@ -501,27 +490,17 @@ module Rack
       # This method support both application/x-www-form-urlencoded and
       # multipart/form-data.
       def POST
-        if error = get_header(RACK_REQUEST_FORM_ERROR)
+        if form_hash = get_header(RACK_REQUEST_FORM_HASH)
+          return form_hash
+        elsif error = get_header(RACK_REQUEST_FORM_ERROR)
           raise error.class, error.message, cause: error.cause
         end
 
         begin
           rack_input = get_header(RACK_INPUT)
 
-          # If the form hash was already memoized:
-          if form_hash = get_header(RACK_REQUEST_FORM_HASH)
-            form_input = get_header(RACK_REQUEST_FORM_INPUT)
-            # And it was memoized from the same input:
-            if form_input.equal?(rack_input)
-              return form_hash
-            elsif form_input
-              warn "input stream used for POST parsing different from current input stream. Starting in Rack 3.2, Rack will used the cached POST value instead of parsing the current input stream.", uplevel: 1
-            end
-          end
-
           # Otherwise, figure out how to parse the input:
           if rack_input.nil?
-            set_header RACK_REQUEST_FORM_INPUT, nil
             set_header(RACK_REQUEST_FORM_HASH, {})
           elsif form_data? || parseable_data?
             if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
@@ -537,11 +516,7 @@ module Rack
               set_header RACK_REQUEST_FORM_VARS, form_vars
               set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
             end
-
-            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
-            get_header RACK_REQUEST_FORM_HASH
           else
-            set_header RACK_REQUEST_FORM_INPUT, get_header(RACK_INPUT)
             set_header(RACK_REQUEST_FORM_HASH, {})
           end
         rescue => error
@@ -671,6 +646,7 @@ module Rack
       end
 
       def parse_multipart
+        warn "Rack::Request#parse_multipart is deprecated and will be removed in a future version of Rack.", uplevel: 1
         Rack::Multipart.extract_multipart(self, query_parser)
       end
 

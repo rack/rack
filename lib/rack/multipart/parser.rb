@@ -249,12 +249,6 @@ module Rack
 
       private
 
-      def dequote(str) # From WEBrick::HTTPUtils
-        ret = (/\A"(.*)"\Z/ =~ str) ? $1 : str.dup
-        ret.gsub!(/\\(.)/, "\\1")
-        ret
-      end
-
       def read_data(io, outbuf)
         content = io.read(@bufsize, outbuf)
         handle_empty_content!(content)
@@ -394,7 +388,6 @@ module Rack
             filename = normalize_filename(filename || '')
             filename.force_encoding(find_encoding(encoding))
           elsif filename
-            filename = $1 if filename =~ /^"(.*)"$/
             filename = normalize_filename(filename)
           end
 

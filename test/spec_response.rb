@@ -18,6 +18,12 @@ describe Rack::Response do
     response.body.must_equal body
   end
 
+  it 'raises ArgumentError unless headers is a hash' do
+    lambda {
+      Rack::Response.new(nil, 200, Object.new)
+    }.must_raise(ArgumentError)
+  end
+
   it 'has cache-control methods' do
     response = Rack::Response.new
     cc = 'foo'

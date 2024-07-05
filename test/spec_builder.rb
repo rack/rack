@@ -46,6 +46,14 @@ describe Rack::Builder do
     Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
   end
 
+  it "raises if #run provided both app and block" do
+    proc {
+      app = builder_to_app do
+        run(Object.new) {|env| [200, { "content-type" => "text/plain" }, ["OK"]]}
+      end
+    }.must_raise(ArgumentError)
+  end
+
   it "supports mapping" do
     app = builder_to_app do
       map '/' do |outer_env|

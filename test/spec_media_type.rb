@@ -21,6 +21,18 @@ describe Rack::MediaType do
     end
   end
 
+  describe 'when content_type is empty string' do
+    before { @content_type = '' }
+
+    it '#type is nil' do
+      Rack::MediaType.type(@content_type).must_be_nil
+    end
+
+    it '#params is empty' do
+      Rack::MediaType.params(@content_type).must_equal @empty_hash
+    end
+  end
+
   describe 'when content_type contains only media_type' do
     before { @content_type = 'application/text' }
 

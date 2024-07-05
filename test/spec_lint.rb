@@ -297,6 +297,13 @@ describe Rack::Lint do
   it "notice response errors" do
     lambda {
       Rack::Lint.new(lambda { |env|
+                       [200, {}, []].freeze
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_include('response is frozen')
+
+    lambda {
+      Rack::Lint.new(lambda { |env|
                        ""
                      }).call(env({}))
     }.must_raise(Rack::Lint::LintError).
@@ -499,13 +506,16 @@ describe Rack::Lint do
     def self.env(arg={})
       super(arg.merge("rack.early_hints" => proc{}))
     end
-    def self.app(value)
+    def self.app(value, env={})
       app = Rack::Lint.new(lambda { |env|
                              env['rack.early_hints'].call(value)
                              [200, {}, []]
                            })
-      lambda { app.call(env) }
+      lambda { app.call(self.env.merge(env)) }
     end
+
+    app({}, { 'rack.early_hints' => Object.new }).must_raise(Rack::Lint::LintError).
+      message.must_equal "rack.early_hints must respond to call"
 
     app(Object.new).must_raise(Rack::Lint::LintError).
       message.must_equal "headers object should be a hash, but isn't (got Object as headers)"
@@ -621,6 +631,15 @@ describe Rack::Lint do
     }.must_raise(Rack::Lint::LintError).
       message.must_equal 'Response body must only be invoked once (each)'
 
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                             }).call(env({}))[2]
+      body.close
+      body.each { |part| }
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Response body is already closed'
+
     # Lint before and after the Rack middleware being tested.
     def stacked_lint(app)
       Rack::Lint.new(lambda do |env|
@@ -734,6 +753,15 @@ describe Rack::Lint do
       body.call(nil)
     }.must_raise(Rack::Lint::LintError).
       message.must_equal 'Response body must only be invoked once (call)'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, proc{}]
+                             }).call(env({}))[2]
+      body.close
+      body.call(StringIO.new)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'Response body is already closed'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|
@@ -937,6 +965,60 @@ describe Rack::Lint do
       message.must_match(/rack.hijack must respond to call/)
   end
 
+  it "handles valid rack.hijack env" do
+    begin
+      hijack_called = false
+      s = File.open(__FILE__, 'rb')
+      env = env({ 'rack.hijack' => proc { |io| hijack_called = true; s } })
+      res = Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0"}, []]
+                     }).call(env)
+      hijack_called.must_equal false
+      env['rack.hijack'].call.must_be_same_as s
+      hijack_called.must_equal true
+    ensure
+      s&.close
+    end
+  end
+
+  it "notices when rack.hijack env entry does not respond to #call" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                     }).call(env({ 'rack.hijack' => Object.new}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack must respond to call'
+  end
+
+  it "notices when rack.hijack env entry does not return an IO" do
+    env = env({ 'rack.hijack' => proc { Object.new } })
+    app = Rack::Lint.new(lambda { |env|
+                          [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
+                         }).call(env)
+    env['rack.hijack'].must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack must return an IO instance'
+  end
+
+  it "handles valid rack.hijack response header" do
+    hijack_called = false
+    res = Rack::Lint.new(lambda { |env|
+                     [201, { "content-type" => "text/plain", "content-length" => "0",
+                             'rack.hijack' =>  proc { |io| hijack_called = true; io.write('1') }}, []]
+                   }).call(env({ 'rack.hijack?' => true }))
+    hijack_called.must_equal false
+    s = StringIO.new
+    res[1]['rack.hijack'].call(s)
+    s.rewind
+    s.read.must_equal '1'
+    hijack_called.must_equal true
+  end
+
+  it "allows non-hijack responses when server supports hijacking" do
+    Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0"}, []]
+                     }).call(env({ 'rack.hijack?' => true }))
+  end
+
   it "notices when the response headers don't have a valid rack.hijack callback" do
     lambda {
       Rack::Lint.new(lambda { |env|
@@ -944,6 +1026,15 @@ describe Rack::Lint do
                      }).call(env({ 'rack.hijack?' => true }))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal 'rack.hijack header must respond to #call'
+  end
+
+  it "notices when the response headers has a rack.hijack callback with hijacking being supported" do
+    lambda {
+      Rack::Lint.new(lambda { |env|
+                       [201, { "content-type" => "text/plain", "content-length" => "0", 'rack.hijack' =>  Object.new }, []]
+                     }).call(env({}))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'rack.hijack header must not be present if server does not support hijacking'
   end
 
   it "pass valid rack.response_finished" do
@@ -955,6 +1046,18 @@ describe Rack::Lint do
     Rack::Lint.new(lambda { |env|
                      [200, {}, ["foo"]]
                    }).call(env({ "rack.response_finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
+  end
+
+  it "notices when the response protocol is not an array of strings" do
+    app = Rack::Lint.new(lambda{|env|
+      [101, {'rack.protocol' => 'websocket'}, ["foo"]]
+    })
+
+    lambda do
+      response = app.call(env({'rack.protocol' => 'websocket'}))
+    end
+      .must_raise(Rack::Lint::LintError)
+      .message.must_equal("rack.protocol must be an Array of Strings")
   end
 
   it "notices when the response protocol is specified in the response but not in the request" do

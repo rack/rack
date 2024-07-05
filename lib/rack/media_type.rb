@@ -14,12 +14,11 @@ module Rack
       # For more information on the use of media types in HTTP, see:
       # http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.7
       def type(content_type)
-        return nil unless content_type
-        if type = content_type.split(SPLIT_PATTERN, 2).first
-          type.rstrip!
-          type.downcase!
-          type
-        end
+        return nil unless content_type && !content_type.empty?
+        type = content_type.split(SPLIT_PATTERN, 2).first
+        type.rstrip!
+        type.downcase!
+        type
       end
 
       # The media type parameters provided in CONTENT_TYPE as a Hash, or
@@ -28,7 +27,7 @@ module Rack
       # this method responds with the following Hash:
       #   { 'charset' => 'utf-8' }
       def params(content_type)
-        return {} if content_type.nil?
+        return {} if content_type.nil? || content_type.empty?
 
         content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
           s.strip!
