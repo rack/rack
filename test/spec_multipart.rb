@@ -808,6 +808,21 @@ content-type: image/jpeg\r
     end
   end
 
+  it "treats a multipart limit of 0 as no limit" do
+    begin
+      previous_limit = Rack::Utils.multipart_total_part_limit
+      Rack::Utils.multipart_total_part_limit = 0
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      params = Rack::Multipart.parse_multipart(env)
+      params['reply'].must_equal 'yes'
+      params['to'].must_equal 'people'
+      params['from'].must_equal 'others'
+    ensure
+      Rack::Utils.multipart_total_part_limit = previous_limit
+    end
+  end
+
   it "reaches a multipart file limit" do
     begin
       previous_limit = Rack::Utils.multipart_part_limit
