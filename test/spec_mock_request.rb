@@ -66,6 +66,13 @@ describe Rack::MockRequest do
     end
   end
 
+  it "should handle :input object that does not respond to set_encoding" do
+    f = Object.new
+    f.define_singleton_method(:read) { File.binread(__FILE__) }
+    env = Rack::MockRequest.env_for("/", method: :post, input: f)
+    env['rack.input'].read.must_equal File.binread(__FILE__)
+  end
+
   it "return an environment with a path" do
     env = Rack::MockRequest.env_for("http://www.example.com/parse?location[]=1&location[]=2&age_group[]=2")
     env["QUERY_STRING"].must_equal "location[]=1&location[]=2&age_group[]=2"
