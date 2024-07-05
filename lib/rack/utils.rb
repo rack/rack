@@ -404,7 +404,7 @@ module Rack
       return nil if size.zero?
       return nil unless http_range && http_range =~ /bytes=([^;]+)/
       ranges = []
-      $1.split(/,\s*/).each do |range_spec|
+      $1.split(/,[ \t]*/).each do |range_spec|
         return nil unless range_spec.include?('-')
         range = range_spec.split('-')
         r0, r1 = range[0], range[1]

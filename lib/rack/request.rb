@@ -685,7 +685,7 @@ module Rack
       end
 
       def split_header(value)
-        value ? value.strip.split(/[,\s]+/) : []
+        value ? value.strip.split(/[, \t]+/) : []
       end
 
       # ipv6 extracted from resolv stdlib, simplified
