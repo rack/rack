@@ -100,4 +100,8 @@ describe Rack::Auth::Basic do
     app = Rack::Auth::Basic.new(unprotected_app, realm) { true }
     realm.must_equal app.realm
   end
+
+  deprecated "supports #request for a Rack::Request object" do
+    Rack::Auth::Basic::Request.new({}).request.must_be_kind_of Rack::Request
+  end
 end
