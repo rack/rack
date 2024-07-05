@@ -388,7 +388,6 @@ module Rack
             filename = normalize_filename(filename || '')
             filename.force_encoding(find_encoding(encoding))
           elsif filename
-            filename = $1 if filename =~ /^"(.*)"$/
             filename = normalize_filename(filename)
           end
 
