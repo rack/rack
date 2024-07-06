@@ -32,9 +32,9 @@ module Rack
 
     EOL = "\r\n"
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
-    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
+    MULTIPART_CONTENT_TYPE = /Content-Type:[ \t]*(.*)#{EOL}/ni
     MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:(.*)(?=#{EOL}(\S|\z))/ni
-    MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
+    MULTIPART_CONTENT_ID = /Content-ID:[ \t]*([^#{EOL}]*)/ni
 
     class Parser
       BUFSIZE = 1_048_576
