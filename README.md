@@ -12,7 +12,7 @@ Rack applications should conform to.
 
 | Version  | Support                            |
 |----------|------------------------------------|
-|    3.1.x | Bug fixes and security patches.    | 
+|    3.1.x | Bug fixes and security patches.    |
 |    3.0.x | Security patches only.             |
 |    2.2.x | Security patches only.             |
 | <= 2.1.x | End of support.                    |
