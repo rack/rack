@@ -4,6 +4,8 @@ require_relative 'constants'
 require_relative 'utils'
 require_relative 'media_type'
 
+require 'forwardable'
+
 module Rack
   # Rack::Request provides a convenient interface to a Rack
   # environment.  It is stateless, the environment +env+ passed to the
@@ -38,6 +40,14 @@ module Rack
       # similar to <tt>[:scheme, :proto]</tt>.  You can remove either or
       # both of the entries in array to ignore that respective header.
       attr_accessor :x_forwarded_proto_priority
+      
+      def [](env)
+        unless env.is_a?(self)
+          env = new(env)
+        end
+
+        env
+      end
     end
 
     @forwarded_priority = [:forwarded, :x_forwarded]
@@ -80,6 +90,8 @@ module Rack
     end
 
     module Env
+      extend Forwardable
+
       # The environment of the request.
       attr_reader :env
 
@@ -88,6 +100,23 @@ module Rack
         # This module is included at least in `ActionDispatch::Request`
         # The call to `super()` allows additional mixed-in initializers are called
         super()
+      end
+
+      def_delegators :@env, :[], :[]=, :keys, :key?, :include?, :has_key?,
+        :fetch, :delete, :clear, :empty?, :to_hash,
+        :each, :each_key, :each_value, :each_pair, :sort_by, :map,
+        :merge, :update, :slice
+
+      def freeze
+        return self if frozen?
+
+        @env.freeze
+
+        super
+      end
+
+      def is_a?(klass)
+        klass == Hash || super
       end
 
       # Predicate method to test to see if `name` has been set as request

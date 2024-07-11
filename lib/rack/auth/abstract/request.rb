@@ -42,7 +42,7 @@ module Rack
       AUTHORIZATION_KEYS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION']
 
       def authorization_key
-        @authorization_key ||= AUTHORIZATION_KEYS.detect { |key| @env.has_key?(key) }
+        @authorization_key ||= AUTHORIZATION_KEYS.detect { |key| @env.key?(key) }
       end
 
     end

@@ -16,9 +16,7 @@ and the *body*.
 
 == The Environment
 
-The environment must be an unfrozen instance of Hash that includes
-CGI-like headers. The Rack application is free to modify the
-environment.
+The environment must be an unfrozen Hash or Hash-like instance which implements the following methods with equivalent behaviour to the methods of a Hash instance: #[], #[]=, #keys, #key?, #include?, #fetch, #delete, #clear, #to_hash, #each, #each_key, #each_value, #each_pair, #merge, #update, #frozen?, #inspect.
 
 The environment is required to include these variables
 (adopted from {PEP 333}[https://peps.python.org/pep-0333/]), except when they'd be empty, but see
