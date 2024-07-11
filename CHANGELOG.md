@@ -11,6 +11,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Changed
 
 - Invalid cookie keys will now raise an error. ([#2193](https://github.com/rack/rack/pull/2193), [@ioquatix])
+- Allow empty PATH_INFO. ([#2214](https://github.com/rack/rack/pull/2214), [@ioquatix])
 
 ### Removed
 
