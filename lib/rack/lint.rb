@@ -361,7 +361,7 @@ module Rack
           raise LintError, "SCRIPT_NAME must start with /"
         end
 
-        ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target.
+        ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string.
         if env.include?(PATH_INFO)
           case env[PATH_INFO]
           when REQUEST_PATH_ASTERISK_FORM
@@ -381,6 +381,8 @@ module Rack
             end
           when REQUEST_PATH_ORIGIN_FORM
             ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
+          when ""
+            # Empty string is okay.
           else
             raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
           end
