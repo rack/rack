@@ -11,3 +11,4 @@ doc
 /.bundle
 /.yardoc
 /coverage
+/external
