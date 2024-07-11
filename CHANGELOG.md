@@ -12,11 +12,18 @@ All notable changes to this project will be documented in this file. For info on
 
 - Invalid cookie keys will now raise an error. ([#2193](https://github.com/rack/rack/pull/2193), [@ioquatix])
 - Allow empty PATH_INFO. ([#2214](https://github.com/rack/rack/pull/2214), [@ioquatix])
+- `Rack::MediaType#params` now handles empty strings. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
+
+### Deprecated
+
+- `Rack::Auth::AbstractRequest#request` is deprecated without replacement. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
+- `Rack::Request#parse_multipart` (private method designed to be overridden in subclasses) is deprecated without replacement. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
 
 ### Removed
 
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
+- Automatic cache invalidation in `Rack::Request#{GET,POST}` has been removed. ([#2230](https://github.com/rack/rack/pull/2230), [@jeremyevans])
 
 ## [3.1.6] - 2024-07-03
 
