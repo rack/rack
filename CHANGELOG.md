@@ -2,7 +2,18 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.7] - 2024-07-11
+
+### Fixed
+
+- Do not remove escaped opening/closing quotes for content-disposition filenames. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
+- Fix encoding setting for non-binary IO-like objects in MockRequest#env_for. ([#2227](https://github.com/rack/rack/pull/2227), [@jeremyevans])
+- `Rack::Response` should not generate invalid `content-length` header. ([#2219](https://github.com/rack/rack/pull/2219), [@ioquatix])
+- Allow empty PATH_INFO. ([#2214](https://github.com/rack/rack/pull/2214), [@ioquatix])
+
 ## [3.1.6] - 2024-07-03
+
+### Fixed
 
 - Fix several edge cases in `Rack::Request#parse_http_accept_header`'s implementation. ([#2226](https://github.com/rack/rack/pull/2226), [@ioquatix])
 
