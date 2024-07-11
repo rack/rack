@@ -12,18 +12,24 @@ Rack applications should conform to.
 
 | Version  | Support                            |
 |----------|------------------------------------|
-|    3.0.x | Bug fixes and security patches.    |
+|    3.1.x | Bug fixes and security patches.    | 
+|    3.0.x | Security patches only.             |
 |    2.2.x | Security patches only.             |
 | <= 2.1.x | End of support.                    |
 
 Please see the [Security Policy] for more information.
 
+## Rack 3.1
+
+This is the latest version of Rack. It contains bug fixes and security patches.
+Please check the [Change Log](CHANGELOG.md) for detailed information on specific
+changes.
+
 ## Rack 3.0
 
-This is the latest version of Rack. It contains API improvements but also some
-breaking changes. Please check the [Upgrade Guide](UPGRADE-GUIDE.md) for more
-details about migrating servers, middlewares and applications designed for Rack 2
-to Rack 3. For detailed information on specific changes, check the [Change Log](CHANGELOG.md).
+This version of rack contains significant changes which are detailed in the
+[Upgrade Guide](UPGRADE-GUIDE.md). It is recommended to upgrade to Rack 3 as soon
+as possible to receive the latest features and security patches.
 
 ## Rack 2.2
 
@@ -69,6 +75,8 @@ server](#supported-web-servers).
 ```bash
 $ gem install rackup
 $ rackup
+
+# In another shell:
 $ curl http://localhost:9292
 Hello World
 ```
@@ -83,6 +91,7 @@ Rack is supported by a wide range of servers, including:
 * [NGINX Unit](https://unit.nginx.org/)
 * [Phusion Passenger](https://www.phusionpassenger.com/) (which is mod_rack for
   Apache and for nginx)
+* [Pitchfork](https://github.com/Shopify/pitchfork)
 * [Puma](https://puma.io/)
 * [Thin](https://github.com/macournoyer/thin)
 * [Unicorn](https://yhbt.net/unicorn/)
@@ -136,7 +145,6 @@ middleware:
 * `Rack::Head` for returning an empty body for HEAD requests.
 * `Rack::Lint` for checking conformance to the [Rack Specification].
 * `Rack::Lock` for serializing requests using a mutex.
-* `Rack::Logger` for setting a logger to handle logging errors.
 * `Rack::MethodOverride` for modifying the request method based on a submitted
   parameter.
 * `Rack::Recursive` for including data from other paths in the application, and
@@ -220,7 +228,6 @@ Can also be set via the `RACK_MULTIPART_FILE_LIMIT` environment variable.
 
 (This is also aliased as `multipart_part_limit` and `RACK_MULTIPART_PART_LIMIT` for compatibility)
 
-
 ### `multipart_total_part_limit`
 
 The maximum total number of parts a request can contain of any type, including
@@ -232,7 +239,6 @@ The default is 4096, which means that a single request can't contain more than
 Set to 0 for no limit.
 
 Can also be set via the `RACK_MULTIPART_TOTAL_PART_LIMIT` environment variable.
-
 
 ## Changelog
 
