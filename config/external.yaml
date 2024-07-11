@@ -1,3 +1,13 @@
 protocol-rack:
   url: https://github.com/socketry/protocol-rack
   command: bundle exec bake test
+rails:
+  url: https://github.com/rails/rails
+  command: bash -c "cd actionpack && bundle exec rake test"
+roda:
+  url: https://github.com/jeremyevans/roda
+  command: bundle exec rake spec spec_lint
+  gemfile: .ci.gemfile
+grape:
+  url: https://github.com/ruby-grape/grape
+  command: bundle exec rspec --exclude-pattern=spec/integration/**/*_spec.rb
