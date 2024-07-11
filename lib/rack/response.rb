@@ -72,7 +72,8 @@ module Rack
       if body.nil?
         @body = []
         @buffered = true
-        @length = 0
+        # Body is unspecified - it may be a buffered response, or it may be a HEAD response.
+        @length = nil
       elsif body.respond_to?(:to_str)
         @body = [body]
         @buffered = true
@@ -80,7 +81,7 @@ module Rack
       else
         @body = body
         @buffered = nil # undetermined as of yet.
-        @length = 0
+        @length = nil
       end
 
       yield self if block_given?
@@ -110,14 +111,15 @@ module Rack
         close
         return [@status, @headers, []]
       else
-        if @length && @length > 0 && !chunked?
-          set_header CONTENT_LENGTH, @length.to_s
-        end
-
         if block_given?
+          # We don't add the content-length here as the user has provided a block that can #write additional chunks to the body.
           @block = block
           return [@status, @headers, self]
         else
+          # If we know the length of the body, set the content-length header... except if we are chunked? which is a legacy special case where the body might already be encoded and thus the actual encoded body length and the content-length are likely to be different.
+          if @length && !chunked?
+            @headers[CONTENT_LENGTH] = @length.to_s
+          end
           return [@status, @headers, @body]
         end
       end
@@ -135,7 +137,9 @@ module Rack
       end
     end
 
-    # Append to body and update content-length.
+    # Append a chunk to the response body.
+    #
+    # Converts the response into a buffered response if it wasn't already.
     #
     # NOTE: Do not mix #write and direct #body access!
     #
@@ -336,16 +340,13 @@ module Rack
             # Turn the user supplied body into a buffered array:
             body = @body
             @body = Array.new
-            @length = 0
+            @buffered = true
 
             body.each do |part|
               @writer.call(part.to_s)
             end
 
             body.close if body.respond_to?(:close)
-
-            # We have converted the body into an Array:
-            @buffered = true
           else
             # We don't know how to buffer the user-supplied body:
             @buffered = false
@@ -359,7 +360,11 @@ module Rack
         chunk = chunk.dup unless chunk.frozen?
         @body << chunk
 
-        @length += chunk.bytesize
+        if @length
+          @length += chunk.bytesize
+        elsif @buffered
+          @length = chunk.bytesize
+        end
 
         return chunk
       end

@@ -60,7 +60,7 @@ describe Rack::Response do
     }
   end
 
-  it "can be written to inside finish block, but does not update content-length" do
+  it "can be written to inside finish block and it does not generate a content-length header" do
     response = Rack::Response.new('foo')
     response.write "bar"
 
@@ -72,7 +72,7 @@ describe Rack::Response do
     body.each { |part| parts << part }
 
     parts.must_equal ["foo", "bar", "baz"]
-    h['content-length'].must_equal '6'
+    h['content-length'].must_be_nil
   end
 
   it "#write calls #<< on non-iterable body" do
@@ -588,13 +588,14 @@ describe Rack::Response do
     res.status = 200
     res.headers["content-length"] = "10"
     res.finish
+    # We don't overwrite the content-length if it's already set - e.g. HEAD response may not have a body...
     res.headers["content-length"].must_equal "10"
   end
 
   it "updates length when body appended to using #write" do
     res = Rack::Response.new
     res.status = 200
-    res.length.must_equal 0
+    res.length.must_be_nil
     res.write "Hi"
     res.length.must_equal 2
     res.write " there"
