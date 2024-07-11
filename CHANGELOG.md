@@ -11,7 +11,6 @@ All notable changes to this project will be documented in this file. For info on
 ### Changed
 
 - Invalid cookie keys will now raise an error. ([#2193](https://github.com/rack/rack/pull/2193), [@ioquatix])
-- Allow empty PATH_INFO. ([#2214](https://github.com/rack/rack/pull/2214), [@ioquatix])
 - `Rack::MediaType#params` now handles empty strings. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
 
 ### Deprecated
@@ -25,7 +24,18 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 - Automatic cache invalidation in `Rack::Request#{GET,POST}` has been removed. ([#2230](https://github.com/rack/rack/pull/2230), [@jeremyevans])
 
+## [3.1.7] - 2024-07-11
+
+### Fixed
+
+- Do not remove escaped opening/closing quotes for content-disposition filenames. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
+- Fix encoding setting for non-binary IO-like objects in MockRequest#env_for. ([#2227](https://github.com/rack/rack/pull/2227), [@jeremyevans])
+- `Rack::Response` should not generate invalid `content-length` header. ([#2219](https://github.com/rack/rack/pull/2219), [@ioquatix])
+- Allow empty PATH_INFO. ([#2214](https://github.com/rack/rack/pull/2214), [@ioquatix])
+
 ## [3.1.6] - 2024-07-03
+
+### Fixed
 
 - Fix several edge cases in `Rack::Request#parse_http_accept_header`'s implementation. ([#2226](https://github.com/rack/rack/pull/2226), [@ioquatix])
 
