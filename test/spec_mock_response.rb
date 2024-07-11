@@ -296,4 +296,15 @@ describe Rack::MockResponse, 'headers' do
     @res.has_header?('Foo').must_equal false
     @res.delete_header('Foo').must_be_nil
   end
+
+  it 'does not add extra headers' do
+    # Force the body to be "enumerable" only:
+    enumerable_app = lambda { |env| [200, {}, [""].to_enum] }
+
+    response = Rack::MockRequest.new(enumerable_app).get('/')
+    response.status.must_equal 200
+    # This fails in Rack < 3.1 as it incorrectly adds a content-length header:
+    response.headers.must_equal({})
+    response.body.must_equal ""
+  end
 end
