@@ -43,7 +43,7 @@ describe Rack::Files do
     end
   end
 
-  it "serve files" do
+  it "serves the correct file content for a GET request" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test")
 
     res.must_be :ok?
@@ -55,7 +55,7 @@ describe Rack::Files do
     res.status.must_equal 404
   end
 
-  it "set last-modified header" do
+  it "sets header to last-modified" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test")
 
     path = File.join(DOCROOT, "/cgi/test")
@@ -64,7 +64,7 @@ describe Rack::Files do
     res["last-modified"].must_equal File.mtime(path).httpdate
   end
 
-  it "return 304 if file isn't modified since last serve" do
+  it "returns 304 if file isn't modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
     res = Rack::MockRequest.new(files(DOCROOT)).
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate)
@@ -73,7 +73,7 @@ describe Rack::Files do
     res.body.must_be :empty?
   end
 
-  it "return the file if it's modified since last serve" do
+  it "returns the file if it has been modified since last serve" do
     path = File.join(DOCROOT, "/cgi/test")
     res = Rack::MockRequest.new(files(DOCROOT)).
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => (File.mtime(path) - 100).httpdate)
@@ -81,7 +81,7 @@ describe Rack::Files do
     res.must_be :ok?
   end
 
-  it "serve files with URL encoded filenames" do
+  it "serves files with URL encoded filenames" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/%74%65%73%74") # "/cgi/test"
 
     res.must_be :ok?
@@ -91,12 +91,12 @@ describe Rack::Files do
     assert_match(res, /ruby/)
   end
 
-  it "serve uri with URL encoded null byte (%00) in filenames" do
+  it "serves uri with URL encoded null byte (%00) in filenames" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test%00")
     res.must_be :bad_request?
   end
 
-  it "allow safe directory traversal" do
+  it "allows safe directory traversal" do
     req = Rack::MockRequest.new(files(DOCROOT))
 
     res = req.get('/cgi/../cgi/test')
@@ -109,7 +109,7 @@ describe Rack::Files do
     res.must_be :not_found?
   end
 
-  it "not allow unsafe directory traversal" do
+  it "does not allow unsafe directory traversal" do
     req = Rack::MockRequest.new(files(DOCROOT))
 
     res = req.get("/../README.rdoc")
@@ -124,7 +124,7 @@ describe Rack::Files do
     res.must_be :not_found?
   end
 
-  it "allow files with .. in their name" do
+  it "allows files with .. in their name" do
     req = Rack::MockRequest.new(files(DOCROOT))
     res = req.get("/cgi/..test")
     res.must_be :not_found?
@@ -136,32 +136,32 @@ describe Rack::Files do
     res.must_be :not_found?
   end
 
-  it "not allow unsafe directory traversal with encoded periods" do
+  it "does not allow unsafe directory traversal with encoded periods" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/%2E%2E/README")
 
     res.must_be :client_error?
     res.must_be :not_found?
   end
 
-  it "allow safe directory traversal with encoded periods" do
+  it "allows safe directory traversal with encoded periods" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/%2E%2E/cgi/test")
 
     res.must_be :successful?
   end
 
-  it "404 if it can't find the file" do
+  it "returns 404 if it can't find the file" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/blubb")
 
     res.must_be :not_found?
   end
 
-  it "detect SystemCallErrors" do
+  it "detects SystemCallErrors" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi")
 
     res.must_be :not_found?
   end
 
-  it "return bodies that respond to #to_path" do
+  it "returns bodies that respond to #to_path" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, _, body = Rack::Files.new(DOCROOT).call(env)
 
@@ -172,7 +172,7 @@ describe Rack::Files do
     body.to_path.must_equal path
   end
 
-  it "return bodies that do not respond to #to_path if a byte range is requested" do
+  it "returns bodies that do not respond to #to_path if a byte range is requested" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=22-33"
     status, _, body = Rack::Files.new(DOCROOT).call(env)
@@ -181,7 +181,7 @@ describe Rack::Files do
     body.wont_respond_to :to_path
   end
 
-  it "return correct byte range in body" do
+  it "returns correct byte range in body" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=22-33"
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
@@ -192,7 +192,7 @@ describe Rack::Files do
     res.body.must_equal "IS FILE! ***"
   end
 
-  it "handle case where file is truncated during request" do
+  it "handles cases where the file is truncated during request" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=0-3300"
     files = Class.new(Rack::Files) do
@@ -208,7 +208,7 @@ describe Rack::Files do
     res["content-range"].must_equal "bytes 0-3300/10000"
   end
 
-  it "return correct multiple byte ranges in body" do
+  it "returns correct multiple byte ranges in body" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=22-33, 60-80"
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
@@ -234,7 +234,7 @@ content-range: bytes 60-80/209\r
     res.body.must_equal expected_body
   end
 
-  it "return error for unsatisfiable byte range" do
+  it "returns 416 error and correct Content-Range for unsatisfiable byte range" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=1234-5678"
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
@@ -243,7 +243,7 @@ content-range: bytes 60-80/209\r
     res["content-range"].must_equal "bytes */209"
   end
 
-  it "ignores range when file is 0 bytes" do
+  it "ignores range when file size is 0 bytes" do
     env = Rack::MockRequest.env_for("/cgi/assets/images/favicon.ico")
     env["HTTP_RANGE"] = "bytes=0-1234"
     res = Rack::MockResponse.new(*files(DOCROOT).call(env))
@@ -252,7 +252,7 @@ content-range: bytes 60-80/209\r
     res["content-range"].must_be_nil
   end
 
-  it "support custom http headers" do
+  it "supports custom http headers" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = files(DOCROOT, 'cache-control' => 'public, max-age=38',
      'access-control-allow-origin' => '*').call(env)
@@ -262,7 +262,7 @@ content-range: bytes 60-80/209\r
     heads['access-control-allow-origin'].must_equal '*'
   end
 
-  it "support not add custom http headers if none are supplied" do
+  it "does not add custom HTTP headers when none are supplied" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = files(DOCROOT).call(env)
 
@@ -271,7 +271,7 @@ content-range: bytes 60-80/209\r
     heads['access-control-allow-origin'].must_be_nil
   end
 
-  it "only support GET, HEAD, and OPTIONS requests" do
+  it "only supports GET, HEAD, and OPTIONS requests" do
     req = Rack::MockRequest.new(files(DOCROOT))
 
     forbidden = %w[post put patch delete]
@@ -289,7 +289,7 @@ content-range: bytes 60-80/209\r
     end
   end
 
-  it "set Allow correctly for OPTIONS requests" do
+  it "sets Allow correctly for OPTIONS requests" do
     req = Rack::MockRequest.new(files(DOCROOT))
     res = req.options('/cgi/test')
     res.must_be :successful?
@@ -297,35 +297,35 @@ content-range: bytes 60-80/209\r
     res.headers['allow'].split(/, */).sort.must_equal %w(GET HEAD OPTIONS)
   end
 
-  it "set content-length correctly for HEAD requests" do
+  it "sets content-length correctly for HEAD requests" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::Files.new(DOCROOT)))
     res = req.head "/cgi/test"
     res.must_be :successful?
     res['content-length'].must_equal "209"
   end
 
-  it "default to a mime type of text/plain" do
+  it "defaults to a MIME type of text/plain" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::Files.new(DOCROOT)))
     res = req.get "/cgi/test"
     res.must_be :successful?
     res['content-type'].must_equal "text/plain"
   end
 
-  it "allow the default mime type to be set" do
+  it "allows the default MIME type to be set" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::Files.new(DOCROOT, nil, 'application/octet-stream')))
     res = req.get "/cgi/test"
     res.must_be :successful?
     res['content-type'].must_equal "application/octet-stream"
   end
 
-  it "not set content-type if the mime type is not set" do
+  it "does not set the content-type header if the MIME type is not specified" do
     req = Rack::MockRequest.new(Rack::Lint.new(Rack::Files.new(DOCROOT, nil, nil)))
     res = req.get "/cgi/test"
     res.must_be :successful?
     res['content-type'].must_be_nil
   end
 
-  it "return error when file not found for head request" do
+  it "returns 404 and empty body for a HEAD request when the file is not found" do
     res = Rack::MockRequest.new(files(DOCROOT)).head("/cgi/missing")
     res.must_be :not_found?
     res.body.must_be :empty?
