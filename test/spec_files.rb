@@ -55,7 +55,7 @@ describe Rack::Files do
     res.status.must_equal 404
   end
 
-  it "sets header to last-modified" do
+  it "sets the last-modified header" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/test")
 
     path = File.join(DOCROOT, "/cgi/test")
