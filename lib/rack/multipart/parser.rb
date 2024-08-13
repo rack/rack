@@ -31,10 +31,12 @@ module Rack
     Error = BoundaryTooLongError
 
     EOL = "\r\n"
+    FWS = /[ \t]+(?:\r\n[ \t]+)?/ # whitespace with optional folding
+    HEADER_VALUE = "(?:[^\r\n]|\r\n[ \t])*" # anything but a non-folding CRLF
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
-    MULTIPART_CONTENT_TYPE = /Content-Type:[ \t]*(.*)#{EOL}/ni
-    MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:(.*)(?=#{EOL}(\S|\z))/ni
-    MULTIPART_CONTENT_ID = /Content-ID:[ \t]*([^#{EOL}]*)/ni
+    MULTIPART_CONTENT_TYPE = /^Content-Type:#{FWS}?(#{HEADER_VALUE})/ni
+    MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
+    MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
 
     class Parser
       BUFSIZE = 1_048_576
