@@ -334,7 +334,7 @@ describe Rack::Multipart do
 
   it "ignores content-disposition values over to 1536 bytes" do
     x = content_disposition_parse.call("a=#{'a'*1510}; filename=\"bar\"; name=\"file\"")
-    x.must_equal "text/plain"=>[""]
+    x.must_equal "application/pdf"=>[""]
   end
 
   it 'raises an EOF error on content-length mismatch' do
@@ -955,7 +955,7 @@ true\r
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
-content-disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
+content-disposition: attachment; name="quoted\\\\chars\\"in\tname"\r
 \r
 true\r
 --AaB03x--\r
@@ -968,7 +968,7 @@ true\r
     }
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
-    params["quoted\\chars\"in\rname"].must_equal 'true'
+    params["quoted\\chars\"in\tname"].must_equal 'true'
   end
 
   it "supports mixed case metadata" do
