@@ -24,6 +24,7 @@ module Rack
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
+    URI_PARSER = defined?(::URI::RFC2396_PARSER) ? ::URI::RFC2396_PARSER : ::URI::DEFAULT_PARSER
 
     class << self
       attr_accessor :default_query_parser
@@ -43,13 +44,13 @@ module Rack
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
     # true URI escaping.
     def escape_path(s)
-      ::URI::DEFAULT_PARSER.escape s
+      URI_PARSER.escape s
     end
 
     # Unescapes the **path** component of a URI.  See Rack::Utils.unescape for
     # unescaping query parameters or form components.
     def unescape_path(s)
-      ::URI::DEFAULT_PARSER.unescape s
+      URI_PARSER.unescape s
     end
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
