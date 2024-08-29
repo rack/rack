@@ -27,7 +27,10 @@ jobs:
         apt-get: _update_ libfcgi-dev libmemcached-dev
         brew: fcgi libmemcached
 
-    # Install pandoc:
+        # Install pandoc:
     - run: sudo apt-get install -y pandoc
+
+    - name: Change permissions
+      run: chmod -R o-w /opt/hostedtoolcache/Ruby
 
     - run: bundle exec bake test:external
