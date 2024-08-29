@@ -16,6 +16,7 @@ unless ENV['CI']
 end
 
 group :test do
+  gem "logger"
   gem "webrick"
 
   unless ENV['CI'] == 'spec'
