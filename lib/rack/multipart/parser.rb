@@ -241,7 +241,8 @@ module Rack
         @collector.each do |part|
           part.get_data do |data|
             tag_multipart_encoding(part.filename, part.content_type, part.name, data)
-            @query_parser.normalize_params(@params, part.name, data)
+            name, data = handle_dummy_encoding(part.name, data)
+            @query_parser.normalize_params(@params, name, data)
           end
         end
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
@@ -484,6 +485,19 @@ module Rack
         Encoding.find enc
       rescue ArgumentError
         Encoding::BINARY
+      end
+
+      def handle_dummy_encoding(name, body)
+        # 'dummy' encodings are not properly implemented in Ruby MRI
+        if name.encoding.dummy?
+          # ISO-2022-JP is a legacy but still widely used encoding in Japan
+          # Here we properly convert ISO-2022-JP to UTF-8
+          if name.encoding == Encoding::ISO_2022_JP
+            name = name.encode(Encoding::UTF_8)
+            body = body.encode(Encoding::UTF_8)
+          end
+        end
+        return name, body
       end
 
       def handle_empty_content!(content)
