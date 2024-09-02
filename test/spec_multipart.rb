@@ -1050,4 +1050,16 @@ content-type: image/png\r
     f.write(params["image/png"][0])
     f.length.must_equal 26473
   end
+
+  it "supports ISO-2022-JP-encoded part" do
+    unless defined?(NKF)
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:multiple_encodings))
+      params = Rack::Multipart.parse_multipart(env)
+      params["us-ascii"].must_equal("Alice")
+      params["iso-2022-jp"].must_equal("アリス")
+    else
+      # rod
+      pass
+    end
+  end
 end

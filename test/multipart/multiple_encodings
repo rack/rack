@@ -1,0 +1,10 @@
+--AaB03x
+content-disposition: form-data; name="us-ascii"
+
+Alice
+--AaB03x
+content-disposition: form-data; name="iso-2022-jp"
+content-type: text/plain; charset=iso-2022-jp
+
+アリス
+--AaB03x--
