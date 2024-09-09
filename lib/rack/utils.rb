@@ -382,7 +382,7 @@ module Rack
         ranges << (r0..r1)  if r0 <= r1
       end
 
-      return [] if ranges.map(&:size).sum > size
+      return [] if ranges.map(&:size).inject(0, :+) > size
 
       ranges
     end
