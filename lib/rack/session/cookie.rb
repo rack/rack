@@ -4,7 +4,6 @@ require 'openssl'
 require 'zlib'
 require_relative 'abstract/id'
 require 'json'
-require 'base64'
 require 'delegate'
 
 module Rack
@@ -51,11 +50,11 @@ module Rack
       # Encode session cookies as Base64
       class Base64
         def encode(str)
-          ::Base64.strict_encode64(str)
+          [str].pack("m0")
         end
 
         def decode(str)
-          ::Base64.decode64(str)
+          str.unpack("m").first
         end
 
         # Encode session cookies as Marshaled Base64 data

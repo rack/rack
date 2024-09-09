@@ -2,7 +2,6 @@
 
 require_relative 'abstract/handler'
 require_relative 'abstract/request'
-require 'base64'
 
 module Rack
   module Auth
@@ -48,7 +47,7 @@ module Rack
         end
 
         def credentials
-          @credentials ||= Base64.decode64(params).split(':', 2)
+          @credentials ||= params.unpack("m").first.split(':', 2)
         end
 
         def username

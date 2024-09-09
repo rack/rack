@@ -24,6 +24,7 @@ module Rack
 
     RFC2822_DAY_NAME = [ 'Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat' ]
     RFC2822_MONTH_NAME = [ 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec' ]
+    RFC2396_PARSER = defined?(URI::RFC2396_PARSER) ? URI::RFC2396_PARSER : URI::RFC2396_Parser.new
 
     class << self
       attr_accessor :default_query_parser
@@ -42,13 +43,13 @@ module Rack
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
     # true URI escaping.
     def escape_path(s)
-      ::URI::DEFAULT_PARSER.escape s
+      RFC2396_PARSER.escape s
     end
 
     # Unescapes the **path** component of a URI.  See Rack::Utils.unescape for
     # unescaping query parameters or form components.
     def unescape_path(s)
-      ::URI::DEFAULT_PARSER.unescape s
+      RFC2396_PARSER.unescape s
     end
 
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
@@ -381,7 +382,7 @@ module Rack
         ranges << (r0..r1)  if r0 <= r1
       end
 
-      return [] if ranges.map(&:size).sum > size
+      return [] if ranges.map(&:size).inject(0, :+) > size
 
       ranges
     end
