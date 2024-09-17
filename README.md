@@ -260,6 +260,13 @@ is greatly appreciated.
 
 ## See Also
 
+### `rackup`
+
+A useful tool for running Rack applications from the command line, including
+`Rackup::Server` (previously `Rack::Server`) for scripting servers.
+
+* https://github.com/rack/rackup
+
 ### `rack-contrib`
 
 The plethora of useful middleware created the need for a project that collects
