@@ -46,6 +46,7 @@ module Rack
   autoload :Recursive, "rack/recursive"
   autoload :Reloader, "rack/reloader"
   autoload :Request, "rack/request"
+  autoload :RequestWrapper, "rack/request_wrapper"
   autoload :Response, "rack/response"
   autoload :RewindableInput, "rack/rewindable_input"
   autoload :Runtime, "rack/runtime"

@@ -60,10 +60,10 @@ module Rack
       def response
         ## It takes exactly one argument, the *environment*
         raise LintError, "No env given" unless @env
-        check_environment(@env)
+        environment_wrapper = check_environment(@env)
 
         ## and returns a non-frozen Array of exactly three values:
-        @response = @app.call(@env)
+        @response = @app.call(environment_wrapper)
         raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
         raise LintError, "response is frozen" if @response.frozen?
         raise LintError, "response array has #{@response.size} elements instead of 3" unless @response.size == 3
@@ -95,14 +95,40 @@ module Rack
         return [@status, @headers, self]
       end
 
+      class EnvironmentWrapper
+        extend Forwardable
+
+        def initialize(env)
+          @env = env
+        end
+
+        REQUIRED_METHODS = [
+          :[], :[]=, :keys, :key?, :include?, :has_key?,
+          :fetch, :delete, :clear, :empty?, :to_hash,
+          :each, :each_key, :each_value, :each_pair, :sort_by, :map,
+          :merge, :update, :slice,
+          :frozen?, :inspect
+        ]
+
+        def_delegators :@env, *REQUIRED_METHODS
+
+        # There is many code that assumes env is a Hash, so we report it as such.
+        def is_a?(klass)
+          klass == Hash || super
+        end
+      end
+
       ##
       ## == The Environment
       ##
       def check_environment(env)
-        ## The environment must be an unfrozen instance of Hash that includes
-        ## CGI-like headers. The Rack application is free to modify the
-        ## environment.
-        raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
+        ## The environment must be an unfrozen Hash or Hash-like instance which implements the following methods with equivalent behaviour to the methods of a Hash instance: #[], #[]=, #keys, #key?, #include?, #fetch, #delete, #clear, #to_hash, #each, #each_key, #each_value, #each_pair, #merge, #update, #frozen?, #inspect.
+        EnvironmentWrapper::REQUIRED_METHODS.each do |method|
+          unless env.respond_to?(method)
+            raise LintError, "env does not respond to #{method}"
+          end
+        end
+
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
         ##
@@ -417,6 +443,10 @@ module Rack
             raise LintError, "rack.response_finished values must respond to call(env, status, headers, error)" unless callable.respond_to?(:call)
           end
         end
+
+        return env
+        # Currently leaning away from this as it prevents rich interfaces from propagating through.
+        # return EnvironmentWrapper.new(env)
       end
 
       ##

@@ -32,7 +32,7 @@ describe Rack::Lint do
 
   it "notice environment errors" do
     lambda { Rack::Lint.new(nil).call 5 }.must_raise(Rack::Lint::LintError).
-      message.must_match(/not a Hash/)
+      message.must_match(/env does not respond to/)
 
     lambda { Rack::Lint.new(nil).call({}.freeze) }.must_raise(Rack::Lint::LintError).
       message.must_match(/env should not be frozen, but is/)
