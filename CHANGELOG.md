@@ -24,6 +24,12 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 - Automatic cache invalidation in `Rack::Request#{GET,POST}` has been removed. ([#2230](https://github.com/rack/rack/pull/2230), [@jeremyevans])
 
+## [3.1.8] - 2024-10-14
+
+## Fixed
+
+- Resolve deprecation warnings about uri `DEFAULT_PARSER`. ([#2249](https://github.com/rack/rack/pull/2249), [@earlopain])
+
 ## [3.1.7] - 2024-07-11
 
 ### Fixed
@@ -296,6 +302,52 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.10] - 2024-10-14
+
+- Fix compatibility issues with Ruby v3.4.0. ([#2248](https://github.com/rack/rack/pull/2248), [@byroot](https://github.com/byroot))
+
+## [2.2.9] - 2023-03-21
+
+- Return empty when parsing a multi-part POST with only one end delimiter. ([#2104](https://github.com/rack/rack/pull/2104), [@alpaca-tc])
+
+## [2.2.8] - 2023-07-31
+
+- Regenerate SPEC ([#2102](https://github.com/rack/rack/pull/2102), [@skipkayhil](https://github.com/skipkayhil))
+- Limit file extension length of multipart tempfiles ([#2015](https://github.com/rack/rack/pull/2015), [@dentarg](https://github.com/dentarg))
+- Fix "undefined method DelegateClass for Rack::Session::Cookie:Class" ([#2092](https://github.com/rack/rack/pull/2092), [@onigra](https://github.com/onigra) [@dchandekstark](https://github.com/dchandekstark))
+
+## [2.2.7] - 2023-03-13
+
+- Correct the year number in the changelog ([#2015](https://github.com/rack/rack/pull/2015), [@kimulab](https://github.com/kimulab))
+- Support underscore in host names for Rack 2.2 (Fixes [#2070](https://github.com/rack/rack/issues/2070)) ([#2015](https://github.com/rack/rack/pull/2071), [@jeremyevans](https://github.com/jeremyevans))
+
+## [2.2.6.4] - 2023-03-13
+
+- [CVE-2023-27539] Avoid ReDoS in header parsing
+
+## [2.2.6.3] - 2023-03-02
+
+- [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
+
+## [2.2.6.2] - 2023-01-17
+
+- [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
+
+## [2.2.6.1] - 2023-01-17
+
+- [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
+- [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
+
+## [2.2.6] - 2023-01-17
+
+- Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2011](https://github.com/rack/rack/pull/2011), [@byroot](https://github.com/byroot))
+
+## [2.2.5] - 2022-12-27
+
+### Fixed
+
+- `Rack::URLMap` uses non-deprecated form of `Regexp.new`. ([#1998](https://github.com/rack/rack/pull/1998), [@weizheheng](https://github.com/weizheheng))
 
 ## [2.2.4] - 2022-06-30
 
