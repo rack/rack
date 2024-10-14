@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [2.2.10] - 2024-10-14
+
+- Fix compatibility issues with Ruby v3.4.0. ([#2248](https://github.com/rack/rack/pull/2248), [@byroot](https://github.com/byroot))
+
 ## [2.2.9] - 2023-03-21
 
 - Return empty when parsing a multi-part POST with only one end delimiter. ([#2104](https://github.com/rack/rack/pull/2104), [@alpaca-tc])
