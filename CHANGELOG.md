@@ -4,6 +4,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.1.8] - 2024-10-14
 
+## Fixed
+
 - Resolve deprecation warnings about uri `DEFAULT_PARSER`. ([#2249](https://github.com/rack/rack/pull/2249), [@earlopain])
 
 ## [3.1.7] - 2024-07-11
