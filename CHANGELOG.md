@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.8] - 2024-10-14
+
+- Resolve deprecation warnings about uri `DEFAULT_PARSER`. ([#2249](https://github.com/rack/rack/pull/2249), [@earlopain])
+
 ## [3.1.7] - 2024-07-11
 
 ### Fixed
