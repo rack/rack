@@ -168,7 +168,8 @@ describe Rack::Lock do
 
   it "not replace the environment" do
     env  = Rack::MockRequest.env_for("/")
-    app  = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, [inner_env.object_id.to_s]] })
+    # We call to_hash to get the underlying hash, not the environment wrapper of Rack::Lint.
+    app  = lock_app(lambda { |inner_env| [200, { "content-type" => "text/plain" }, [inner_env.to_hash.object_id.to_s]] })
 
     _, _, body = app.call(env)
 
