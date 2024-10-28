@@ -25,4 +25,7 @@ jobs:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
 
+    - name: Change permissions
+      run: chmod -R o-w /opt/hostedtoolcache/Ruby
+
     - run: bundle exec bake test:external
