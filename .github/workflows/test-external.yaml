@@ -20,17 +20,9 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ruby/setup-ruby-pkgs@v1
+    - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
-        apt-get: _update_ libfcgi-dev libmemcached-dev
-        brew: fcgi libmemcached
-
-        # Install pandoc:
-    - run: sudo apt-get install -y pandoc
-
-    - name: Change permissions
-      run: chmod -R o-w /opt/hostedtoolcache/Ruby
 
     - run: bundle exec bake test:external
