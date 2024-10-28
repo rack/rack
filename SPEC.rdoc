@@ -44,8 +44,8 @@ below.
                      percent-encoded when originating from
                      a URL.
 <tt>QUERY_STRING</tt>:: The portion of the request URL that
-                        follows the <tt>?</tt>, if any. May be
-                        empty, but is always required!
+                        follows the <tt>?</tt>, if any. If no <tt>?</tt>
+                        is present, this value is <tt>nil</tt>.
 <tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
                        <tt>PATH_INFO</tt>, these variables can be
                        used to complete the URL. Note, however,

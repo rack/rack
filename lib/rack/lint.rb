@@ -134,8 +134,8 @@ module Rack
         ##                      a URL.
 
         ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
-        ##                         follows the <tt>?</tt>, if any. May be
-        ##                         empty, but is always required!
+        ##                         follows the <tt>?</tt>, if any. If no <tt>?</tt>
+        ##                         is present, this value is <tt>nil</tt>.
 
         ## <tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
         ##                        <tt>PATH_INFO</tt>, these variables can be
@@ -279,7 +279,7 @@ module Rack
         ## is reserved for use with the Rack core distribution and other
         ## accepted specifications and must not be used otherwise.
         ##
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL rack.errors].each do |header|
+        %w[REQUEST_METHOD SERVER_NAME SERVER_PROTOCOL rack.errors].each do |header|
           raise LintError, "env missing required key #{header}" unless env.include? header
         end
 
@@ -386,6 +386,12 @@ module Rack
           else
             raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
           end
+        end
+
+        # * The <tt>QUERY_STRING</tt>, if provided, must be a valid query string or <tt>nil</tt>. The query string is the part of the request target that follows the first <tt>?</tt> character, and may be an empty string. If the request target does not include a query string, <tt>env[QUERY_STRING]</tt> must be <tt>nil</tt>.
+        query_string = env['QUERY_STRING']
+        unless query_string.kind_of?(String) || query_string.nil?
+          raise LintError, "QUERY_STRING must be a String or nil"
         end
 
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.

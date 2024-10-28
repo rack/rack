@@ -88,7 +88,7 @@ describe Rack::MockRequest do
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
     env["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/"
     env["SCRIPT_NAME"].must_equal ""
     env["rack.url_scheme"].must_equal "http"
@@ -170,7 +170,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "443"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/foo"
     env["rack.url_scheme"].must_equal "https"
     env["HTTPS"].must_equal "on"
@@ -185,7 +185,7 @@ describe Rack::MockRequest do
     env["REQUEST_METHOD"].must_equal "GET"
     env["SERVER_NAME"].must_equal "example.org"
     env["SERVER_PORT"].must_equal "80"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/foo"
     env["rack.url_scheme"].must_equal "http"
   end
@@ -232,7 +232,7 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).post("/foo", params: { foo: { bar: "1" } })
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/foo"
     env["CONTENT_TYPE"].must_equal "application/x-www-form-urlencoded"
     env["mock.postdata"].must_equal "foo%5Bbar%5D=1"
@@ -242,7 +242,7 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).post("/foo", params: "foo%5Bbar%5D=1")
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/foo"
     env["CONTENT_TYPE"].must_equal "application/x-www-form-urlencoded"
     env["mock.postdata"].must_equal "foo%5Bbar%5D=1"
@@ -253,7 +253,7 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).post("/foo", params: { "submit-name" => "Larry", "files" => files })
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
-    env["QUERY_STRING"].must_equal ""
+    env["QUERY_STRING"].must_be_nil
     env["PATH_INFO"].must_equal "/foo"
     env["CONTENT_TYPE"].must_equal "multipart/form-data; boundary=AaB03x"
     # The gsub accounts for differences in YAMLs affect on the data.
@@ -276,7 +276,7 @@ describe Rack::MockRequest do
   end
 
   it "defaults encoding to ASCII 8BIT" do
-    req = Rack::MockRequest.env_for("/foo")
+    req = Rack::MockRequest.env_for("/foo?x=10")
 
     keys = [
       Rack::REQUEST_METHOD,

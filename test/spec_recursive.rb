@@ -14,7 +14,7 @@ describe Rack::Recursive do
   @app1 = lambda { |env|
     res = Rack::Response.new
     res["x-path-info"] = env["PATH_INFO"]
-    res["x-query-string"] = env["QUERY_STRING"]
+    res["x-query-string"] = env["QUERY_STRING"].to_s
     res.finish do |inner_res|
       inner_res.write "App1"
     end
