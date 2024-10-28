@@ -20,10 +20,12 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
-    - uses: ruby/setup-ruby@v1
+    - uses: ruby/setup-ruby-pkgs@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
+        apt-get: pandoc
+        brew: pandoc
 
     - name: Change permissions
       run: chmod -R o-w /opt/hostedtoolcache/Ruby

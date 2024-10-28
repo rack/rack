@@ -11,3 +11,9 @@ roda:
 grape:
   url: https://github.com/ruby-grape/grape
   command: bundle exec rspec --exclude-pattern=spec/integration/**/*_spec.rb
+sinatra:
+  url: https://github.com/sinatra/sinatra
+  command: bundle exec rake test
+  # This causes some integration tests taht would otherwise fail, to be skipped:
+  env:
+    rack: head
