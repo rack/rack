@@ -63,7 +63,7 @@ describe Rack::Lint do
       e["SERVER_PROTOCOL"] = 'Foo'
       Rack::Lint.new(nil).call(e)
     }.must_raise(Rack::Lint::LintError).
-      message.must_match(/env\[SERVER_PROTOCOL\] does not match HTTP/)
+      message.must_match(/"Foo" does not match HTTP/)
 
     lambda {
       Rack::Lint.new(nil).call(env("HTTP_CONTENT_TYPE" => "text/plain"))
@@ -186,17 +186,17 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(nil).call(env("SERVER_PORT" => "howdy"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'env[SERVER_PORT] is not an Integer'
+      message.must_match(/env\[SERVER_PORT\] is not an Integer/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("SERVER_NAME" => "\u1234"))
+      Rack::Lint.new(nil).call(env("SERVER_NAME" => "A server"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "\u1234 must be a valid authority"
+      message.must_equal "\"A server\" must be a valid authority"
 
     lambda {
-      Rack::Lint.new(nil).call(env("HTTP_HOST" => "\u1234"))
+      Rack::Lint.new(nil).call(env("HTTP_HOST" => "A host"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "\u1234 must be a valid authority"
+      message.must_equal "\"A host\" must be a valid authority"
 
     lambda {
       Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
@@ -216,7 +216,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_match(/Invalid CONTENT_LENGTH/)
+      message.must_match(/env\[CONTENT_LENGTH\] is not an Integer/)
 
     lambda {
       Rack::Lint.new(nil).call(env("QUERY_STRING" => nil))
@@ -248,7 +248,7 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(nil).call(env("rack.response_finished" => "not a callable"))
     }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished must be an array of callable objects/)
+    message.must_match(/rack.response_finished must be an array/)
 
     lambda {
       Rack::Lint.new(nil).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
