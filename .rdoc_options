@@ -1,0 +1,26 @@
+---
+encoding: UTF-8
+static_path: []
+rdoc_include: []
+page_dir:
+apply_default_exclude: true
+autolink_excluded_words:
+- Rack
+charset: UTF-8
+embed_mixins: false
+exclude: []
+hyperlink_all: false
+line_numbers: false
+locale_dir: locale
+locale_name:
+main_page:
+markup: rdoc
+output_decoration: true
+show_hash: false
+skip_tests: true
+tab_width: 8
+template_stylesheets: []
+title:
+visibility: :protected
+warn_missing_rdoc_ref: true
+webcvs:
