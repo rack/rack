@@ -607,9 +607,7 @@ module Rack
         part == '..' ? clean.pop : clean << part
       end
 
-      clean_path = clean.join(::File::SEPARATOR)
-      clean_path.prepend("/") if parts.empty? || parts.first.empty?
-      clean_path
+      "#{::File::SEPARATOR}#{clean.join(::File::SEPARATOR)}"
     end
 
     NULL_BYTE = "\0"
