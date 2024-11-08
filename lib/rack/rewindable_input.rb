@@ -21,7 +21,10 @@ module Rack
       end
 
       def call(env)
-        env[RACK_INPUT] = RewindableInput.new(env[RACK_INPUT])
+        if (input = env[RACK_INPUT])
+          env[RACK_INPUT] = RewindableInput.new(input)
+        end
+
         @app.call(env)
       end
     end
