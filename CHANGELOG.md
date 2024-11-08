@@ -24,6 +24,10 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 - Automatic cache invalidation in `Rack::Request#{GET,POST}` has been removed. ([#2230](https://github.com/rack/rack/pull/2230), [@jeremyevans])
 
+### Fixed
+
+- `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
+
 ## [3.1.8] - 2024-10-14
 
 ### Fixed
