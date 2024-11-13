@@ -186,13 +186,14 @@ Previously `.rewind` was called after consuming form and multipart data. Use
 `Rack::RewindableInput::Middleware` to make the body rewindable, and call
 `.rewind` explicitly to match this behavior.
 
-### Invalid nested query parsing syntax `a[b[c]]=x` no longer works the same as valid syntax `a[b][c]=x`
+### Invalid nested query parsing syntax
 
-This invalid syntax was never officially supported.  However, some libraries
-and applications used it anyway.  Due to implementation details, Rack 2
-ended up parsing it the same as the correct syntax. The implementation
-was changed in Rack 3, and this invalid syntax is no longer parsed the same
-way as the correct syntax:
+Previously, Rack 2 was able to parse the query string `a[b[c]]=x` in the same
+way as `a[b][c]=x`. This invalid syntax was never officially supported. However,
+some libraries and applications used it anyway. Due to implementation details,
+Rack 2 ended up parsing it the same as the correct syntax. The implementation
+was changed in Rack 3, and this invalid syntax is no longer parsed the same way
+as the correct syntax:
 
 ```ruby
 Rack::Utils.parse_nested_query("a[b[c]]=x")
