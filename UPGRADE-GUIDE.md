@@ -186,6 +186,31 @@ Previously `.rewind` was called after consuming form and multipart data. Use
 `Rack::RewindableInput::Middleware` to make the body rewindable, and call
 `.rewind` explicitly to match this behavior.
 
+### Nested query parsing does not accept the `a[b[c]]=x` syntax any more
+
+Despite being non-standard, this syntax is sometimes used by Rails
+applications because Rack 2 was (involuntarily) parsing it correctly.
+
+This syntax is no longer supported by Rack 3 and will lead to
+incorrect results:
+
+```ruby
+Rack::Utils.parse_nested_query("a[b[c]]=x")
+# Rack 3 => {"a"=>{"b[c"=>{"]"=>"x"}}} ❌
+# Rack 2 => {"a"=>{"b"=>{"c"=>"x"}}} ✅
+```
+
+The correct syntax for nested parameters is `a[b][c]=x` and you'll need
+to change that in your application code to be compatible with Rack 3:
+
+```ruby
+Rack::Utils.parse_nested_query("a[b][c]=x")
+# Rack 3 => {"a"=>{"b"=>{"c"=>"x"}}} ✅
+# Rack 2 => {"a"=>{"b"=>{"c"=>"x"}}} ✅
+```
+
+See https://github.com/rack/rack/issues/2128
+
 ## Response Changes
 
 ### Response must be mutable
