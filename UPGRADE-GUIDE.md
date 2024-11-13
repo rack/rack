@@ -210,7 +210,7 @@ Rack::Utils.parse_nested_query("a[b][c]=x")
 # Rack 2 => {"a"=>{"b"=>{"c"=>"x"}}} ✅
 ```
 
-See https://github.com/rack/rack/issues/2128
+See <https://github.com/rack/rack/issues/2128> for more context.
 
 ## Response Changes
 
