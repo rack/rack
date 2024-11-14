@@ -93,61 +93,167 @@ module Rack
         return [@status, @headers, self]
       end
 
+      private def assert_required(env, key)
+        raise LintError, "env missing required key #{key}" unless env.include? key
+        yield env[key] if block_given?
+      end
+
+      private def assert_optional(env, key)
+        yield env[key] if env.include? key && block_given?
+      end
       ##
       ## == The Environment
       ##
       def check_environment(env)
         ## The environment must be an unfrozen instance of Hash that includes CGI-like headers. The Rack application is
-        ## free to modify the environment.
+        ## free to modify the environment, but should follow the rules set out in the Rack specification.
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
-        ##
-        ## The environment is required to include these variables (adopted from {The Common Gateway Interface (CGI)}
-        ## [https://datatracker.ietf.org/doc/html/rfc3875]), except when they'd be empty, but see below.
-
-        ## === +REQUEST_METHOD+
+        ## 
+        ## === CGI Variables
+        ## 
+        ## The environment is required to include these variables (adopted from
+        ## {The Common Gateway Interface (CGI)}[https://datatracker.ietf.org/doc/html/rfc3875]), except when they'd be
+        ## empty, but see below.
+        ## 
+        ## ==== +REQUEST_METHOD+
         ## The HTTP request method, such as "GET" or "POST". This cannot ever be an empty string, and so is always
         ## required.
+        ## 
+        assert_required(env, REQUEST_METHOD) do |request_method|
+          unless request_method =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
+            raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
+          end
+        end
 
-        ## === +SCRIPT_NAME+
+        ## ==== +SCRIPT_NAME+
         ## The initial portion of the request URL's "path" that corresponds to the application object, so that the
         ## application knows its virtual "location". This may be an empty string, if the application corresponds to the
-        ## "root" of the server.
+        ## "root" of the server. If non-empty, the string must start with <tt>/</tt>.
+        ## 
+        assert_required(env, SCRIPT_NAME) do |script_name|
+          if script_name != "" && script_name !~ /\A\//
+            raise LintError, "SCRIPT_NAME must start with /"
+          end
+        end
 
-        ## === +PATH_INFO+
+        ## ==== +PATH_INFO+
         ## The remainder of the request URL's "path", designating the virtual "location" of the request's target within
         ## the application. This may be an empty string, if the request URL targets the application root and does not
         ## have a trailing slash. This value may be percent-encoded when originating from a URL.
+        ## 
+        ## The +PATH_INFO+, if provided, must be a valid request target or an empty string, as defined by
+        ## {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#target.resource].
+        assert_optional(env, PATH_INFO) do |path_info|
+          case env[PATH_INFO]
+          when REQUEST_PATH_ASTERISK_FORM
+            ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
+            unless env[REQUEST_METHOD] == OPTIONS
+              raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
+            end
+          when REQUEST_PATH_AUTHORITY_FORM
+            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
+            unless env[REQUEST_METHOD] == CONNECT
+              raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
+            end
+          when REQUEST_PATH_ABSOLUTE_FORM
+            ##   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+            if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
+              raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
+            end
+          when REQUEST_PATH_ORIGIN_FORM
+            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
+          when ""
+            # Empty string is okay.
+          else
+            raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
+          end
+        end
 
-        ## === +QUERY_STRING+
+        ## 
+        ## ==== +QUERY_STRING+
         ## The portion of the request URL that follows the <tt>?</tt>, if any. May be empty, but is always required!
+        ## 
+        assert_required(env, QUERY_STRING)
+        
+        ## 
+        ## ==== +SERVER_NAME+
+        ## When combined with <tt>SCRIPT_NAME</tt>, <tt>PATH_INFO</tt> and <tt>QUERY_STRING</tt>, these variables can
+        ## be used to reconstruct the original the request URL. Note, however, that <tt>HTTP_HOST</tt>, if present,
+        ## should be used in preference to <tt>SERVER_NAME</tt> for reconstructing the request URL.
+        ## <tt>SERVER_NAME</tt> can never be an empty string, and so is always required.
+        ## 
+        ## See {RFC 9110}[https://datatracker.ietf.org/doc/html/rfc9110#name-host-and-authority] for more details.
+        ## 
+        assert_required(env, SERVER_NAME) do |server_name|
+          unless (URI.parse("http://#{server_name}/") rescue false)
+            raise LintError, "#{env[SERVER_NAME]} must be a valid authority"
+          end
+        end
 
-        ## === +SERVER_NAME+
-        ## When combined with <tt>SCRIPT_NAME</tt> and <tt>PATH_INFO</tt>, these variables can be used to complete the
-        ## URL. Note, however, that <tt>HTTP_HOST</tt>, if present, should be used in preference to
-        ## <tt>SERVER_NAME</tt> for reconstructing the request URL. <tt>SERVER_NAME</tt> can never be an empty string,
-        ## and so is always required.
+        ## ==== +SERVER_PROTOCOL+
+        ## A string representing the HTTP version used for the request. It must match the regexp
+        ## <tt>HTTP/\d(\.\d)?</tt>.
+        ## 
+        assert_required(env, SERVER_PROTOCOL) do |server_protocol|
+          unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
+            raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
+          end
+        end
 
-        ## === +SERVER_PORT+
-        ## An optional +Integer+ which is the port the server is running on. Should be specified if the server is
-        ## running on a non-standard port.
+        ## ==== +SERVER_PORT+
+        ## An optional <tt>Integer</tt> which is the port the server is running on. Should be specified if the server
+        ## is running on a non-standard port.
+        ## 
+        assert_optional(env, SERVER_PORT) do |server_port|
+          unless (Integer(server_port) rescue false)
+            raise LintError, "env[SERVER_PORT] is not an Integer"
+          end
+        end
 
-        ## === +SERVER_PROTOCOL+
-        ## A string representing the HTTP version used for the request.
+        ## ==== +HTTP_HOST+
+        ## An optional string, representing the HTTP authority, as defined by
+        ## {RFC 9110}[https://datatracker.ietf.org/doc/html/rfc9110#name-host-and-authority]
+        ##
+        assert_optional(env, HTTP_HOST) do |http_host|
+          unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
+            raise LintError, "#{env[HTTP_HOST]} must be a valid authority"
+          end
+        end
 
-        ## === +HTTP_+ Variables
+        ## ==== +HTTP_+ Variables
         ## Variables corresponding to the client-supplied HTTP request headers (i.e., variables whose names begin with
         ## <tt>HTTP_</tt>). The presence or absence of these variables should correspond with the presence or absence
         ## of the appropriate HTTP header in the request. See {RFC3875 section 4.1.18}
         ## [https://tools.ietf.org/html/rfc3875#section-4.1.18] for specific behavior.
 
-        ## In addition to this, the Rack environment must include these
-        ## Rack-specific variables:
+        
+        ## ==== +HTTP_CONTENT_TYPE+ and +HTTP_CONTENT_LENGTH+
+        ## The environment must not contain the keys <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
+        ## (use the versions without <tt>HTTP_</tt>).
+        ## 
+        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each do |header|
+          if env.include? header
+            raise LintError, "env contains #{header}, must use #{header[5..-1]}"
+          end
+        end
 
-        ## <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the
-        ##                            request URL.
+        ## 
+        ## === Rack-specific Variables
+        ## In addition to this, the Rack environment must include these Rack-specific variables:
+        ## 
 
+        ## ==== +rack.url_scheme+
+        ## The URL scheme, as "http" or "https". This can never be an empty string, and so is always required.
+        ## 
+        assert_required(env, RACK_URL_SCHEME) do |rack_url_scheme|
+          unless %w[http https].include?(rack_url_scheme)
+            raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
+          end
+        end
+
+        ## ==== +rack.input+
         ## <tt>rack.input</tt>:: See below, the input stream.
 
         ## <tt>rack.errors</tt>:: See below, the error stream.
@@ -255,40 +361,6 @@ module Rack
         ## is reserved for use with the Rack core distribution and other
         ## accepted specifications and must not be used otherwise.
         ##
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL rack.errors].each do |header|
-          raise LintError, "env missing required key #{header}" unless env.include? header
-        end
-
-        ## The <tt>SERVER_PORT</tt> must be an Integer if set.
-        server_port = env["SERVER_PORT"]
-        unless server_port.nil? || (Integer(server_port) rescue false)
-          raise LintError, "env[SERVER_PORT] is not an Integer"
-        end
-
-        ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[SERVER_NAME]}/") rescue false)
-          raise LintError, "#{env[SERVER_NAME]} must be a valid authority"
-        end
-
-        ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
-          raise LintError, "#{env[HTTP_HOST]} must be a valid authority"
-        end
-
-        ## The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
-        server_protocol = env['SERVER_PROTOCOL']
-        unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
-          raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
-        end
-
-        ## The environment must not contain the keys
-        ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
-        ## (use the versions without <tt>HTTP_</tt>).
-        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
-          if env.include? header
-            raise LintError, "env contains #{header}, must use #{header[5..-1]}"
-          end
-        }
 
         ## The CGI keys (named without a period) must have String values.
         ## If the string values for CGI keys contain non-ASCII characters,
@@ -306,10 +378,6 @@ module Rack
 
         ## There are the following restrictions:
 
-        ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-        unless %w[http https].include?(env[RACK_URL_SCHEME])
-          raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
-        end
 
         ## * There may be a valid input stream in <tt>rack.input</tt>.
         if rack_input = env[RACK_INPUT]
@@ -327,42 +395,8 @@ module Rack
         ## * There may be a valid early hints callback in <tt>rack.early_hints</tt>
         check_early_hints env
 
-        ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-        unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
-          raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
-        end
 
-        ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-        if env.include?(SCRIPT_NAME) && env[SCRIPT_NAME] != "" && env[SCRIPT_NAME] !~ /\A\//
-          raise LintError, "SCRIPT_NAME must start with /"
-        end
 
-        ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string.
-        if env.include?(PATH_INFO)
-          case env[PATH_INFO]
-          when REQUEST_PATH_ASTERISK_FORM
-            ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
-            unless env[REQUEST_METHOD] == OPTIONS
-              raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
-            end
-          when REQUEST_PATH_AUTHORITY_FORM
-            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
-            unless env[REQUEST_METHOD] == CONNECT
-              raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
-            end
-          when REQUEST_PATH_ABSOLUTE_FORM
-            ##   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
-            if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
-              raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
-            end
-          when REQUEST_PATH_ORIGIN_FORM
-            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
-          when ""
-            # Empty string is okay.
-          else
-            raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
-          end
-        end
 
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
         if env.include?("CONTENT_LENGTH") && env["CONTENT_LENGTH"] !~ /\A\d+\z/
