@@ -487,15 +487,21 @@ module Rack
         Encoding::BINARY
       end
 
+      REENCODE_DUMMY_ENCODINGS = {
+        # ISO-2022-JP is a legacy but still widely used encoding in Japan
+        # Here we convert ISO-2022-JP to UTF-8 so that it can be handled.
+        Encoding::ISO_2022_JP => true
+
+        # Other dummy encodings are rarely used and have not been supported yet.
+        # Adding support for them will require careful considerations.
+      }
+
       def handle_dummy_encoding(name, body)
-        # 'dummy' encodings are not properly implemented in Ruby MRI
-        if name.encoding.dummy?
-          # ISO-2022-JP is a legacy but still widely used encoding in Japan
-          # Here we properly convert ISO-2022-JP to UTF-8
-          if name.encoding == Encoding::ISO_2022_JP
-            name = name.encode(Encoding::UTF_8)
-            body = body.encode(Encoding::UTF_8)
-          end
+        # A string object with a 'dummy' encoding does not have full functionality and can cause errors.
+        # So here we covert it to UTF-8 so that it can be handled properly.
+        if name.encoding.dummy? && REENCODE_DUMMY_ENCODINGS[name.encoding]
+          name = name.encode(Encoding::UTF_8)
+          body = body.encode(Encoding::UTF_8)
         end
         return name, body
       end

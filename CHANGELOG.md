@@ -7,7 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
-- Add support for ISO-2022-JP in Multipart Requests. ([#2245](https://github.com/rack/rack/pull/2245), [@nappa])
+- ISO-2022-JP encoded parts within MIME Multipart sections of an HTTP request body will now be converted to UTF-8. ([#2245](https://github.com/rack/rack/pull/2245), [@nappa])
 
 ### Changed
 
