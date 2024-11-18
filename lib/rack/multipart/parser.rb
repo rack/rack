@@ -241,7 +241,8 @@ module Rack
         @collector.each do |part|
           part.get_data do |data|
             tag_multipart_encoding(part.filename, part.content_type, part.name, data)
-            @query_parser.normalize_params(@params, part.name, data)
+            name, data = handle_dummy_encoding(part.name, data)
+            @query_parser.normalize_params(@params, name, data)
           end
         end
         MultipartInfo.new @params.to_params_hash, @collector.find_all(&:file?).map(&:body)
@@ -484,6 +485,25 @@ module Rack
         Encoding.find enc
       rescue ArgumentError
         Encoding::BINARY
+      end
+
+      REENCODE_DUMMY_ENCODINGS = {
+        # ISO-2022-JP is a legacy but still widely used encoding in Japan
+        # Here we convert ISO-2022-JP to UTF-8 so that it can be handled.
+        Encoding::ISO_2022_JP => true
+
+        # Other dummy encodings are rarely used and have not been supported yet.
+        # Adding support for them will require careful considerations.
+      }
+
+      def handle_dummy_encoding(name, body)
+        # A string object with a 'dummy' encoding does not have full functionality and can cause errors.
+        # So here we covert it to UTF-8 so that it can be handled properly.
+        if name.encoding.dummy? && REENCODE_DUMMY_ENCODINGS[name.encoding]
+          name = name.encode(Encoding::UTF_8)
+          body = body.encode(Encoding::UTF_8)
+        end
+        return name, body
       end
 
       def handle_empty_content!(content)
