@@ -26,6 +26,11 @@ module Rack
       # provided.  e.g., when the CONTENT_TYPE is "text/plain;charset=utf-8",
       # this method responds with the following Hash:
       #   { 'charset' => 'utf-8' }
+      #
+      # This will pass back parameters with empty strings in the hash if they
+      # lack a value (e.g., "text/plain;charset=" will return { 'charset' => '' },
+      # and "text/plain;charset" will return { 'charset' => '' }, similarly to 
+      # the query params parser (barring the latter case, which returns nil instead)).
       def params(content_type)
         return {} if content_type.nil? || content_type.empty?
 
@@ -39,9 +44,9 @@ module Rack
 
       private
 
-        def strip_doublequotes(str)
-          (str.start_with?('"') && str.end_with?('"')) ? str[1..-2] : str
-        end
+      def strip_doublequotes(str)
+        (str && str.start_with?('"') && str.end_with?('"')) ? str[1..-2] : str || ''
+      end
     end
   end
 end
