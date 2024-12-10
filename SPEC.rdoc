@@ -73,8 +73,8 @@ below.
                            for specific behavior.
 In addition to this, the Rack environment must include these
 Rack-specific variables:
-<tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the
-                           request URL.
+<tt>rack.url_scheme</tt>:: The scheme of the incoming request, must
+                           be one of +http+, +https+, +ws+ or +wss+.
 <tt>rack.input</tt>:: See below, the input stream.
 <tt>rack.errors</tt>:: See below, the error stream.
 <tt>rack.hijack?</tt>:: See below, if present and true, indicates
