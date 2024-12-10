@@ -11,6 +11,8 @@ module Rack
   # responses according to the Rack spec.
 
   class Lint
+    ALLOWED_SCHEMES = %w(https http wss ws).freeze
+
     REQUEST_PATH_ORIGIN_FORM = /\A\/[^#]*\z/
     REQUEST_PATH_ABSOLUTE_FORM = /\A#{Utils::URI_PARSER.make_regexp}\z/
     REQUEST_PATH_AUTHORITY_FORM = /\A[^\/:]+:\d+\z/
@@ -169,8 +171,8 @@ module Rack
         ## In addition to this, the Rack environment must include these
         ## Rack-specific variables:
 
-        ## <tt>rack.url_scheme</tt>:: +http+ or +https+, depending on the
-        ##                            request URL.
+        ## <tt>rack.url_scheme</tt>:: The scheme of the incoming request, must
+        ##                            be one of +http+, +https+, +ws+ or +wss+.
 
         ## <tt>rack.input</tt>:: See below, the input stream.
 
@@ -331,7 +333,7 @@ module Rack
         ## There are the following restrictions:
 
         ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-        unless %w[http https].include?(env[RACK_URL_SCHEME])
+        unless ALLOWED_SCHEMES.include?(env[RACK_URL_SCHEME])
           raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
         end
 
