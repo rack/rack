@@ -18,8 +18,6 @@ module Rack
     REQUEST_PATH_AUTHORITY_FORM = /\A[^\/:]+:\d+\z/
     REQUEST_PATH_ASTERISK_FORM = '*'
 
-    MIME_TYPE_PATTERN = /\A[\w.-]+\/[\w.-]+(?:\s*;\s*[\w.-]+\s*=\s*[\w.-]+)*\z/
-
     # :stopdoc:
 
     class LintError < RuntimeError; end
@@ -260,8 +258,8 @@ module Rack
         ##
         ## The optional MIME type of the request body, if any.
         assert_optional(env, "CONTENT_TYPE") do |content_type|
-          unless content_type =~ MIME_TYPE_PATTERN
-            raise LintError, "env[CONTENT_TYPE] does not match MIME type: #{content_type.inspect}"
+          unless content_type.is_a?(String)
+            raise LintError, "env[CONTENT_TYPE] is not a String: #{content_type.inspect}"
           end
         end
 
