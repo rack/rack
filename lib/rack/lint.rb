@@ -18,10 +18,6 @@ module Rack
     REQUEST_PATH_AUTHORITY_FORM = /\A[^\/:]+:\d+\z/
     REQUEST_PATH_ASTERISK_FORM = '*'
 
-    def initialize(app)
-      @app = app
-    end
-
     # :stopdoc:
 
     class LintError < RuntimeError; end
@@ -39,6 +35,12 @@ module Rack
     ##
     ## A Rack application is a Ruby object (not a class) that
     ## responds to +call+.
+    def initialize(app)
+      raise LintError, "app must respond to call" unless app.respond_to?(:call)
+
+      @app = app
+    end
+
     def call(env = nil)
       Wrapper.new(@app, env).response
     end
