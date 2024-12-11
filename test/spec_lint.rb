@@ -26,130 +26,130 @@ describe Rack::Lint do
   end
 
   it "notice fatal errors" do
-    lambda { Rack::Lint.new(nil).call }.must_raise(Rack::Lint::LintError).
+    lambda { Rack::Lint.new(valid_app).call }.must_raise(Rack::Lint::LintError).
       message.must_match(/No env given/)
   end
 
   it "notice environment errors" do
-    lambda { Rack::Lint.new(nil).call 5 }.must_raise(Rack::Lint::LintError).
+    lambda { Rack::Lint.new(valid_app).call 5 }.must_raise(Rack::Lint::LintError).
       message.must_match(/not a Hash/)
 
-    lambda { Rack::Lint.new(nil).call({}.freeze) }.must_raise(Rack::Lint::LintError).
+    lambda { Rack::Lint.new(valid_app).call({}.freeze) }.must_raise(Rack::Lint::LintError).
       message.must_match(/env should not be frozen, but is/)
 
     lambda {
       e = env
       e.delete("REQUEST_METHOD")
-      Rack::Lint.new(nil).call(e)
+      Rack::Lint.new(valid_app).call(e)
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/missing required key REQUEST_METHOD/)
 
     lambda {
       e = env
       e.delete("SERVER_NAME")
-      Rack::Lint.new(nil).call(e)
+      Rack::Lint.new(valid_app).call(e)
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/missing required key SERVER_NAME/)
 
     lambda {
       e = env
       e.delete("SERVER_PROTOCOL")
-      Rack::Lint.new(nil).call(e)
+      Rack::Lint.new(valid_app).call(e)
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/missing required key SERVER_PROTOCOL/)
 
     lambda {
       e = env
       e["SERVER_PROTOCOL"] = 'Foo'
-      Rack::Lint.new(nil).call(e)
+      Rack::Lint.new(valid_app).call(e)
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/env\[SERVER_PROTOCOL\] does not match HTTP/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("HTTP_CONTENT_TYPE" => "text/plain"))
+      Rack::Lint.new(valid_app).call(env("HTTP_CONTENT_TYPE" => "text/plain"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/contains HTTP_CONTENT_TYPE/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("HTTP_CONTENT_LENGTH" => "42"))
+      Rack::Lint.new(valid_app).call(env("HTTP_CONTENT_LENGTH" => "42"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/contains HTTP_CONTENT_LENGTH/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("FOO" => Object.new))
+      Rack::Lint.new(valid_app).call(env("FOO" => Object.new))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/non-string value/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.url_scheme" => "gopher"))
+      Rack::Lint.new(valid_app).call(env("rack.url_scheme" => "gopher"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/url_scheme unknown/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => []))
+      Rack::Lint.new(valid_app).call(env("rack.session" => []))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session [] must respond to store and []="
 
     Rack::Lint.new(valid_app).call(env("rack.session" => {}))[0].must_equal 200
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => {}.freeze))
+      Rack::Lint.new(valid_app).call(env("rack.session" => {}.freeze))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to to_hash and return unfrozen Hash instance"
 
     obj = {}
     obj.singleton_class.send(:undef_method, :to_hash)
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.session" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to to_hash and return unfrozen Hash instance"
 
     obj.singleton_class.send(:undef_method, :clear)
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.session" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to clear"
 
     obj.singleton_class.send(:undef_method, :delete)
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.session" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to delete"
 
     obj.singleton_class.send(:undef_method, :fetch)
     lambda {
-      Rack::Lint.new(nil).call(env("rack.session" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.session" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "session {} must respond to fetch and []"
 
     obj = Object.new
     def obj.inspect; '[]' end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to info"
 
     def obj.info(*) end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to debug"
 
     def obj.debug(*) end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to warn"
 
     def obj.warn(*) end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to error"
 
     def obj.error(*) end
     lambda {
-      Rack::Lint.new(nil).call(env("rack.logger" => obj))
+      Rack::Lint.new(valid_app).call(env("rack.logger" => obj))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "logger [] must respond to fatal"
 
@@ -157,14 +157,14 @@ describe Rack::Lint do
     Rack::Lint.new(valid_app).call(env("rack.logger" => obj))[0].must_equal 200
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.multipart.buffer_size" => 0))
+      Rack::Lint.new(valid_app).call(env("rack.multipart.buffer_size" => 0))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "rack.multipart.buffer_size must be an Integer > 0 if specified"
 
     Rack::Lint.new(valid_app).call(env("rack.multipart.buffer_size" => 1))[0].must_equal 200
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.multipart.tempfile_factory" => Tempfile))
+      Rack::Lint.new(valid_app).call(env("rack.multipart.tempfile_factory" => Tempfile))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "rack.multipart.tempfile_factory must respond to #call"
 
@@ -184,47 +184,47 @@ describe Rack::Lint do
       message.must_equal "response array has 0 elements instead of 3"
 
     lambda {
-      Rack::Lint.new(nil).call(env("SERVER_PORT" => "howdy"))
+      Rack::Lint.new(valid_app).call(env("SERVER_PORT" => "howdy"))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal 'env[SERVER_PORT] is not an Integer'
 
     lambda {
-      Rack::Lint.new(nil).call(env("SERVER_NAME" => "\u1234"))
+      Rack::Lint.new(valid_app).call(env("SERVER_NAME" => "\u1234"))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "\u1234 must be a valid authority"
 
     lambda {
-      Rack::Lint.new(nil).call(env("HTTP_HOST" => "\u1234"))
+      Rack::Lint.new(valid_app).call(env("HTTP_HOST" => "\u1234"))
     }.must_raise(Rack::Lint::LintError).
       message.must_equal "\u1234 must be a valid authority"
 
     lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "FUCKUP?"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "FUCKUP?"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/REQUEST_METHOD/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "OOPS?\b!"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "OOPS?\b!"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/OOPS\?\\/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("SCRIPT_NAME" => "howdy"))
+      Rack::Lint.new(valid_app).call(env("SCRIPT_NAME" => "howdy"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/must start with/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("CONTENT_LENGTH" => "xcii"))
+      Rack::Lint.new(valid_app).call(env("CONTENT_LENGTH" => "xcii"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/Invalid CONTENT_LENGTH/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("QUERY_STRING" => nil))
+      Rack::Lint.new(valid_app).call(env("QUERY_STRING" => nil))
     }.must_raise(Rack::Lint::LintError).
       message.must_include('env variable QUERY_STRING has non-string value nil')
 
     lambda {
-      Rack::Lint.new(nil).call(env("QUERY_STRING" => "\u1234"))
+      Rack::Lint.new(valid_app).call(env("QUERY_STRING" => "\u1234"))
     }.must_raise(Rack::Lint::LintError).
       message.must_include('env variable QUERY_STRING has value containing non-ASCII characters and has non-ASCII-8BIT encoding')
 
@@ -236,29 +236,29 @@ describe Rack::Lint do
       e = env
       e.delete("PATH_INFO")
       e.delete("SCRIPT_NAME")
-      Rack::Lint.new(nil).call(e)
+      Rack::Lint.new(valid_app).call(e)
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/One of .* must be set/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("SCRIPT_NAME" => "/"))
+      Rack::Lint.new(valid_app).call(env("SCRIPT_NAME" => "/"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/cannot be .* make it ''/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => "not a callable"))
+      Rack::Lint.new(valid_app).call(env("rack.response_finished" => "not a callable"))
     }.must_raise(Rack::Lint::LintError).
     message.must_match(/rack.response_finished must be an array of callable objects/)
 
     lambda {
-      Rack::Lint.new(nil).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
+      Rack::Lint.new(valid_app).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
     }.must_raise(Rack::Lint::LintError).
     message.must_match(/rack.response_finished values must respond to call/)
   end
 
   it "notice input errors" do
     lambda {
-      Rack::Lint.new(nil).call(env("rack.input" => ""))
+      Rack::Lint.new(valid_app).call(env("rack.input" => ""))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/does not respond to #gets/)
 
@@ -267,7 +267,7 @@ describe Rack::Lint do
       def input.binmode?
         false
       end
-      Rack::Lint.new(nil).call(env("rack.input" => input))
+      Rack::Lint.new(valid_app).call(env("rack.input" => input))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/is not opened in binary mode/)
 
@@ -280,7 +280,7 @@ describe Rack::Lint do
         end
         result
       end
-      Rack::Lint.new(nil).call(env("rack.input" => input))
+      Rack::Lint.new(valid_app).call(env("rack.input" => input))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/does not have ASCII-8BIT as its external encoding/)
   end
@@ -289,7 +289,7 @@ describe Rack::Lint do
     lambda {
       io = StringIO.new
       io.binmode
-      Rack::Lint.new(nil).call(env("rack.errors" => "", "rack.input" => io))
+      Rack::Lint.new(valid_app).call(env("rack.errors" => "", "rack.input" => io))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/does not respond to #puts/)
   end
@@ -330,7 +330,7 @@ describe Rack::Lint do
       first.must_equal 200
 
     lambda do
-      Rack::Lint.new(nil).call(env("PATH_INFO" => "*"))
+      Rack::Lint.new(valid_app).call(env("PATH_INFO" => "*"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/Only OPTIONS requests may have PATH_INFO set to '\*'/)
   end
@@ -340,12 +340,12 @@ describe Rack::Lint do
       first.must_equal 200
 
     lambda do
-      Rack::Lint.new(nil).call(env("PATH_INFO" => "example.com:80"))
+      Rack::Lint.new(valid_app).call(env("PATH_INFO" => "example.com:80"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/Only CONNECT requests may have PATH_INFO set to an authority/)
 
     lambda do
-      Rack::Lint.new(nil).call(env("PATH_INFO" => "/:80")).first.must_equal 200
+      Rack::Lint.new(valid_app).call(env("PATH_INFO" => "/:80")).first.must_equal 200
     end
   end
 
@@ -354,12 +354,12 @@ describe Rack::Lint do
       first.must_equal 200
 
     lambda do
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "CONNECT", "PATH_INFO" => "http://foo/bar"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "CONNECT", "PATH_INFO" => "http://foo/bar"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/CONNECT and OPTIONS requests must not have PATH_INFO set to a URI/)
 
     lambda do
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => "http://foo/bar"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "OPTIONS", "PATH_INFO" => "http://foo/bar"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/CONNECT and OPTIONS requests must not have PATH_INFO set to a URI/)
   end
@@ -369,17 +369,17 @@ describe Rack::Lint do
       first.must_equal 200
 
     lambda do
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "../etc/passwd"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "../etc/passwd"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/PATH_INFO must start with a '\/'/)
 
     lambda do
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar#qux"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar#qux"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/PATH_INFO.*must not include a fragment/)
 
     lambda do
-      Rack::Lint.new(nil).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar?baz#qux"))
+      Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "GET", "PATH_INFO" => "/foo/bar?baz#qux"))
     end.must_raise(Rack::Lint::LintError).
       message.must_match(/PATH_INFO.*must not include a fragment/)
   end
