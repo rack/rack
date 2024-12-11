@@ -744,7 +744,7 @@ content-type: image/jpeg\r
     input = File.read(multipart_file("bad_robots"))
 
     req = Rack::Request.new Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
