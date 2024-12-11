@@ -4,7 +4,7 @@ content-disposition: form-data; name="foo"
 bar
 --AaB03x
 content-disposition: form-data; name="files"
-content-type: multipart/mixed, boundary=BbC04y
+content-type: multipart/mixed; boundary=BbC04y
 
 --BbC04y
 content-disposition: attachment; filename="file.txt"
