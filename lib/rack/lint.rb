@@ -36,7 +36,7 @@ module Rack
     ##
     ## A Rack application is a Ruby object that responds to +call+.
     def initialize(app)
-      # raise LintError, "app must respond to call" unless app.respond_to?(:call)
+      raise LintError, "app must respond to call" unless app.respond_to?(:call)
 
       @app = app
     end
