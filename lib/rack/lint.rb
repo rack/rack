@@ -21,20 +21,18 @@ module Rack
     # :stopdoc:
 
     class LintError < RuntimeError; end
+
     # AUTHORS: n.b. The trailing whitespace between paragraphs is important and
     # should not be removed. The whitespace creates paragraphs in the RDoc
     # output.
     #
-    ## This specification aims to formalize the Rack protocol. You
-    ## can (and should) use Rack::Lint to enforce it.
+    ## = Rack Specification
     ##
-    ## When you develop middleware, be sure to add a Lint before and
-    ## after to catch all mistakes.
+    ## This specification aims to formalize the Rack protocol. You can (and should) use +Rack::Lint+ to enforce it. When you develop middleware, be sure to add a lint wrapper to catch all mistakes.
     ##
-    ## = Rack applications
+    ## == The Application
     ##
-    ## A Rack application is a Ruby object (not a class) that
-    ## responds to +call+.
+    ## A Rack application is a Ruby object that responds to +call+.
     def initialize(app)
       raise LintError, "app must respond to call" unless app.respond_to?(:call)
 
@@ -62,21 +60,22 @@ module Rack
       end
 
       def response
-        ## It takes exactly one argument, the *environment*
+        ## It takes exactly one argument, the +environment+
         raise LintError, "No env given" unless @env
         check_environment(@env)
 
-        ## and returns a non-frozen Array of exactly three values:
+        ## and returns a non-frozen +Array+ of exactly three values:
         @response = @app.call(@env)
+
         raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
         raise LintError, "response is frozen" if @response.frozen?
         raise LintError, "response array has #{@response.size} elements instead of 3" unless @response.size == 3
 
         @status, @headers, @body = @response
-        ## The *status*,
+        ## The +status+,
         check_status(@status)
 
-        ## the *headers*,
+        ## the +headers+,
         check_headers(@headers)
 
         hijack_proc = check_hijack_response(@headers, @env)
@@ -84,7 +83,7 @@ module Rack
           @headers[RACK_HIJACK] = hijack_proc
         end
 
-        ## and the *body*.
+        ## and the +body+.
         check_content_type_header(@status, @headers)
         check_content_length_header(@status, @headers)
         check_rack_protocol_header(@status, @headers)
@@ -99,292 +98,112 @@ module Rack
         return [@status, @headers, self]
       end
 
+      private def assert_required(env, key)
+        raise LintError, "env missing required key #{key}" unless env.include?(key)
+        yield env[key] if block_given?
+      end
+
+      private def assert_optional(env, key)
+        yield env[key] if env.include?(key) && block_given?
+      end
+
       ##
-      ## == The Environment
+      ## A Rack application is typically invoked by a Rack compatible server, which constructs an environment from the incoming HTTP request and calls the application with the environment. The application then processes the request and returns a response. The server translates the response into an HTTP response and sends it back to the client.
       ##
+      ##   run do |env|
+      ##     [200, {'content-type' => 'text/plain'}, ['Hello Rack']]
+      ##   end
+      ##
+      ## Conceptually, the Rack application functions as an HTTP proxy: it accepts an HTTP request, forwards it to an application, and then returns the application's response to the client.
+      ##
+      ## == The Request
+      ##
+      ## Incoming HTTP requests are represented using an environment.
       def check_environment(env)
-        ## The environment must be an unfrozen instance of Hash that includes
-        ## CGI-like headers. The Rack application is free to modify the
-        ## environment.
+        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but should follow the rules set out in the Rack specification.
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
         ##
-        ## The environment is required to include these variables
-        ## (adopted from {PEP 333}[https://peps.python.org/pep-0333/]), except when they'd be empty, but see
-        ## below.
-
-        ## <tt>REQUEST_METHOD</tt>:: The HTTP request method, such as
-        ##                           "GET" or "POST". This cannot ever
-        ##                           be an empty string, and so is
-        ##                           always required.
-
-        ## <tt>SCRIPT_NAME</tt>:: The initial portion of the request
-        ##                        URL's "path" that corresponds to the
-        ##                        application object, so that the
-        ##                        application knows its virtual
-        ##                        "location". This may be an empty
-        ##                        string, if the application corresponds
-        ##                        to the "root" of the server.
-
-        ## <tt>PATH_INFO</tt>:: The remainder of the request URL's
-        ##                      "path", designating the virtual
-        ##                      "location" of the request's target
-        ##                      within the application. This may be an
-        ##                      empty string, if the request URL targets
-        ##                      the application root and does not have a
-        ##                      trailing slash. This value may be
-        ##                      percent-encoded when originating from
-        ##                      a URL.
-
-        ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
-        ##                         follows the <tt>?</tt>, if any. May be
-        ##                         empty, but is always required!
-
-        ## <tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
-        ##                        <tt>PATH_INFO</tt>, these variables can be
-        ##                        used to complete the URL. Note, however,
-        ##                        that <tt>HTTP_HOST</tt>, if present,
-        ##                        should be used in preference to
-        ##                        <tt>SERVER_NAME</tt> for reconstructing
-        ##                        the request URL.
-        ##                        <tt>SERVER_NAME</tt> can never be an empty
-        ##                        string, and so is always required.
-
-        ## <tt>SERVER_PORT</tt>:: An optional +Integer+ which is the port the
-        ##                        server is running on. Should be specified if
-        ##                        the server is running on a non-standard port.
-
-        ## <tt>SERVER_PROTOCOL</tt>:: A string representing the HTTP version used
-        ##                            for the request.
-
-        ## <tt>HTTP_</tt> Variables:: Variables corresponding to the
-        ##                            client-supplied HTTP request
-        ##                            headers (i.e., variables whose
-        ##                            names begin with <tt>HTTP_</tt>). The
-        ##                            presence or absence of these
-        ##                            variables should correspond with
-        ##                            the presence or absence of the
-        ##                            appropriate HTTP header in the
-        ##                            request. See
-        ##                            {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18]
-        ##                            for specific behavior.
-
-        ## In addition to this, the Rack environment must include these
-        ## Rack-specific variables:
-
-        ## <tt>rack.url_scheme</tt>:: The scheme of the incoming request, must
-        ##                            be one of +http+, +https+, +ws+ or +wss+.
-
-        ## <tt>rack.input</tt>:: See below, the input stream.
-
-        ## <tt>rack.errors</tt>:: See below, the error stream.
-
-        ## <tt>rack.hijack?</tt>:: See below, if present and true, indicates
-        ##                         that the server supports partial hijacking.
-
-        ## <tt>rack.hijack</tt>:: See below, if present, an object responding
-        ##                        to +call+ that is used to perform a full
-        ##                        hijack.
-
-        ## <tt>rack.protocol</tt>:: An optional +Array+ of +String+, containing
-        ##                          the protocols advertised by the client in
-        ##                          the +upgrade+ header (HTTP/1) or the
-        ##                          +:protocol+ pseudo-header (HTTP/2).
-        if protocols = @env['rack.protocol']
-          unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
-            raise LintError, "rack.protocol must be an Array of Strings"
-          end
-        end
-
-        ## Additional environment specifications have approved to
-        ## standardized middleware APIs. None of these are required to
-        ## be implemented by the server.
-
-        ## <tt>rack.session</tt>:: A hash-like interface for storing
-        ##                         request session data.
-        ##                         The store must implement:
-        if session = env[RACK_SESSION]
-          ##                         store(key, value)         (aliased as []=);
-          unless session.respond_to?(:store) && session.respond_to?(:[]=)
-            raise LintError, "session #{session.inspect} must respond to store and []="
-          end
-
-          ##                         fetch(key, default = nil) (aliased as []);
-          unless session.respond_to?(:fetch) && session.respond_to?(:[])
-            raise LintError, "session #{session.inspect} must respond to fetch and []"
-          end
-
-          ##                         delete(key);
-          unless session.respond_to?(:delete)
-            raise LintError, "session #{session.inspect} must respond to delete"
-          end
-
-          ##                         clear;
-          unless session.respond_to?(:clear)
-            raise LintError, "session #{session.inspect} must respond to clear"
-          end
-
-          ##                         to_hash (returning unfrozen Hash instance);
-          unless session.respond_to?(:to_hash) && session.to_hash.kind_of?(Hash) && !session.to_hash.frozen?
-            raise LintError, "session #{session.inspect} must respond to to_hash and return unfrozen Hash instance"
-          end
-        end
-
-        ## <tt>rack.logger</tt>:: A common object interface for logging messages.
-        ##                        The object must implement:
-        if logger = env[RACK_LOGGER]
-          ##                         info(message, &block)
-          unless logger.respond_to?(:info)
-            raise LintError, "logger #{logger.inspect} must respond to info"
-          end
-
-          ##                         debug(message, &block)
-          unless logger.respond_to?(:debug)
-            raise LintError, "logger #{logger.inspect} must respond to debug"
-          end
-
-          ##                         warn(message, &block)
-          unless logger.respond_to?(:warn)
-            raise LintError, "logger #{logger.inspect} must respond to warn"
-          end
-
-          ##                         error(message, &block)
-          unless logger.respond_to?(:error)
-            raise LintError, "logger #{logger.inspect} must respond to error"
-          end
-
-          ##                         fatal(message, &block)
-          unless logger.respond_to?(:fatal)
-            raise LintError, "logger #{logger.inspect} must respond to fatal"
-          end
-        end
-
-        ## <tt>rack.multipart.buffer_size</tt>:: An Integer hint to the multipart parser as to what chunk size to use for reads and writes.
-        if bufsize = env[RACK_MULTIPART_BUFFER_SIZE]
-          unless bufsize.is_a?(Integer) && bufsize > 0
-            raise LintError, "rack.multipart.buffer_size must be an Integer > 0 if specified"
-          end
-        end
-
-        ## <tt>rack.multipart.tempfile_factory</tt>:: An object responding to #call with two arguments, the filename and content_type given for the multipart form field, and returning an IO-like object that responds to #<< and optionally #rewind. This factory will be used to instantiate the tempfile for each multipart form file upload field, rather than the default class of Tempfile.
-        if tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
-          raise LintError, "rack.multipart.tempfile_factory must respond to #call" unless tempfile_factory.respond_to?(:call)
-          env[RACK_MULTIPART_TEMPFILE_FACTORY] = lambda do |filename, content_type|
-            io = tempfile_factory.call(filename, content_type)
-            raise LintError, "rack.multipart.tempfile_factory return value must respond to #<<" unless io.respond_to?(:<<)
-            io
-          end
-        end
-
-        ## The server or the application can store their own data in the
-        ## environment, too.  The keys must contain at least one dot,
-        ## and should be prefixed uniquely.  The prefix <tt>rack.</tt>
-        ## is reserved for use with the Rack core distribution and other
-        ## accepted specifications and must not be used otherwise.
+        ## === CGI Variables
         ##
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL rack.errors].each do |header|
-          raise LintError, "env missing required key #{header}" unless env.include? header
-        end
+        ## The environment is required to include these variables, adopted from {The Common Gateway Interface}[https://datatracker.ietf.org/doc/html/rfc3875] (CGI), except when they'd be empty, but see below.
 
-        ## The <tt>SERVER_PORT</tt> must be an Integer if set.
-        server_port = env["SERVER_PORT"]
-        unless server_port.nil? || (Integer(server_port) rescue false)
-          raise LintError, "env[SERVER_PORT] is not an Integer"
-        end
-
-        ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[SERVER_NAME]}/") rescue false)
-          raise LintError, "#{env[SERVER_NAME]} must be a valid authority"
-        end
-
-        ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
-          raise LintError, "#{env[HTTP_HOST]} must be a valid authority"
-        end
-
-        ## The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
-        server_protocol = env['SERVER_PROTOCOL']
-        unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
-          raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
-        end
-
-        ## The environment must not contain the keys
-        ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
-        ## (use the versions without <tt>HTTP_</tt>).
-        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
-          if env.include? header
-            raise LintError, "env contains #{header}, must use #{header[5..-1]}"
-          end
-        }
-
-        ## The CGI keys (named without a period) must have String values.
-        ## If the string values for CGI keys contain non-ASCII characters,
-        ## they should use ASCII-8BIT encoding.
-        env.each { |key, value|
-          next  if key.include? "."   # Skip extensions
+        ##
+        ## The CGI keys (named without a period) must have +String+ values and are reserved for the Rack specification. If the values for CGI keys contain non-ASCII characters, they should use ASCII-8BIT encoding.
+        env.each do |key, value|
+          next if key.include?(".") # Skip extensions
+          
           unless value.kind_of? String
             raise LintError, "env variable #{key} has non-string value #{value.inspect}"
           end
+
           next if value.encoding == Encoding::ASCII_8BIT
+
           unless value.b !~ /[\x80-\xff]/n
             raise LintError, "env variable #{key} has value containing non-ASCII characters and has non-ASCII-8BIT encoding #{value.inspect} encoding: #{value.encoding}"
           end
-        }
-
-        ## There are the following restrictions:
-
-        ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-        unless ALLOWED_SCHEMES.include?(env[RACK_URL_SCHEME])
-          raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
         end
 
-        ## * There may be a valid input stream in <tt>rack.input</tt>.
-        if rack_input = env[RACK_INPUT]
-          check_input_stream(rack_input)
-          @env[RACK_INPUT] = InputWrapper.new(rack_input)
+        ##
+        ## The server and application can store their own data in the environment, too. The keys must contain at least one dot, and should be prefixed uniquely. The prefix <tt>rack.</tt> is reserved for use with the Rack specification.
+
+        ##
+        ## ==== +REQUEST_METHOD+
+        ##
+        ## The HTTP request method, such as "GET" or "POST". This cannot ever be an empty string, and so is always required.
+        assert_required(env, REQUEST_METHOD) do |request_method|
+          unless request_method =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
+            raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
+          end
         end
 
-        ## * There must be a valid error stream in <tt>rack.errors</tt>.
-        rack_errors = env[RACK_ERRORS]
-        check_error_stream(rack_errors)
-        @env[RACK_ERRORS] = ErrorWrapper.new(rack_errors)
-
-        ## * There may be a valid hijack callback in <tt>rack.hijack</tt>
-        check_hijack env
-        ## * There may be a valid early hints callback in <tt>rack.early_hints</tt>
-        check_early_hints env
-
-        ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-        unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
-          raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
+        ##
+        ## ==== +SCRIPT_NAME+
+        ##
+        ## The initial portion of the request URL's path that corresponds to the application object, so that the application knows its virtual location. This may be an empty string, if the application corresponds to the root of the server. If non-empty, the string must start with <tt>/</tt>, but should not end with <tt>/</tt>.
+        assert_optional(env, SCRIPT_NAME) do |script_name|
+          if script_name != "" && script_name !~ /\A\//
+            raise LintError, "SCRIPT_NAME must start with /"
+          end
         end
 
-        ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-        if env.include?(SCRIPT_NAME) && env[SCRIPT_NAME] != "" && env[SCRIPT_NAME] !~ /\A\//
-          raise LintError, "SCRIPT_NAME must start with /"
+        ##
+        ## In addition, <tt>SCRIPT_NAME</tt> MUST not be <tt>/</tt>, but instead be empty,
+        if env[SCRIPT_NAME] == "/"
+          raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
 
-        ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string.
-        if env.include?(PATH_INFO)
+        ## and one of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be set, e.g. <tt>PATH_INFO</tt> can be <tt>/</tt> if <tt>SCRIPT_NAME</tt> is empty.
+        unless env[SCRIPT_NAME] || env[PATH_INFO]
+          raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
+        end
+
+        ##
+        ## ==== +PATH_INFO+
+        ##
+        ## The remainder of the request URL's "path", designating the virtual "location" of the request's target within the application. This may be an empty string, if the request URL targets the application root and does not have a trailing slash. This value may be percent-encoded when originating from a URL.
+        ##
+        ## The +PATH_INFO+, if provided, must be a valid request target or an empty string, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#target.resource].
+        assert_optional(env, PATH_INFO) do |path_info|
           case env[PATH_INFO]
           when REQUEST_PATH_ASTERISK_FORM
-            ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
+            ## * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
             unless env[REQUEST_METHOD] == OPTIONS
               raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
             end
           when REQUEST_PATH_AUTHORITY_FORM
-            ##   * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
+            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
             unless env[REQUEST_METHOD] == CONNECT
               raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
             end
           when REQUEST_PATH_ABSOLUTE_FORM
-            ##   * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
             if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
               raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
             end
           when REQUEST_PATH_ORIGIN_FORM
-            ##   * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with '#' (origin-form).
+            ## * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with <tt>#</tt> (origin-form).
           when ""
             # Empty string is okay.
           else
@@ -392,34 +211,255 @@ module Rack
           end
         end
 
-        ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
-        if env.include?("CONTENT_LENGTH") && env["CONTENT_LENGTH"] !~ /\A\d+\z/
-          raise LintError, "Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}"
+        ##
+        ## ==== +QUERY_STRING+
+        ##
+        ## The portion of the request URL that follows the <tt>?</tt>, if any. May be empty, but is always required!
+        assert_required(env, QUERY_STRING)
+        
+        ##
+        ## ==== +SERVER_NAME+
+        ##
+        ## When combined with <tt>SCRIPT_NAME</tt>, <tt>PATH_INFO</tt> and <tt>QUERY_STRING</tt>, these variables can be used to reconstruct the original the request URL. Note, however, that <tt>HTTP_HOST</tt>, if present, should be used in preference to <tt>SERVER_NAME</tt> for reconstructing the request URL. <tt>SERVER_NAME</tt> can never be an empty string, and so is always required.
+        ##
+        ## See {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#name-host-and-authority] for more details on the format of <tt>SERVER_NAME</tt>.
+        assert_required(env, SERVER_NAME) do |server_name|
+          unless (URI.parse("http://#{server_name}/") rescue false)
+            raise LintError, "#{env[SERVER_NAME].inspect} must be a valid authority"
+          end
         end
 
-        ## * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
-        ##   set. <tt>PATH_INFO</tt> should be <tt>/</tt> if
-        ##   <tt>SCRIPT_NAME</tt> is empty.
-        unless env[SCRIPT_NAME] || env[PATH_INFO]
-          raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
-        end
-        ##   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
-        unless env[SCRIPT_NAME] != "/"
-          raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
+        ##
+        ## ==== +SERVER_PROTOCOL+
+        ##
+        ## A string representing the HTTP version used for the request. It must match the regular expression <tt>HTTP/\d(\.\d)?</tt>.
+        assert_required(env, SERVER_PROTOCOL) do |server_protocol|
+          unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
+            raise LintError, "#{env[SERVER_PROTOCOL].inspect} does not match HTTP/\\d(\\.\\d)?"
+          end
         end
 
-        ## <tt>rack.response_finished</tt>:: An array of callables run by the server after the response has been
-        ##                                   processed. This would typically be invoked after sending the response to
-        ##                                   the client, but it could also be invoked if an error occurs while
-        ##                                   generating the response or sending the response; in that case, the error
-        ##                                   argument will be a subclass of +Exception+.
-        ##                                   The callables are invoked with +env, status, headers, error+ arguments and
-        ##                                   should not raise any exceptions. They should be invoked in reverse order
-        ##                                   of registration.
-        if callables = env[RACK_RESPONSE_FINISHED]
-          raise LintError, "rack.response_finished must be an array of callable objects" unless callables.is_a?(Array)
+        ##
+        ## ==== +SERVER_PORT+
+        ##
+        ## An optional <tt>Integer</tt> which is the port the server is running on. Should be specified if the server is running on a non-standard port.
+        ##
+        ## The standard ports are:
+        ## * 80 for HTTP
+        ## * 443 for HTTPS
+        assert_optional(env, SERVER_PORT) do |server_port|
+          unless (Integer(server_port) rescue false)
+            raise LintError, "env[SERVER_PORT] is not an Integer: #{server_port.inspect}"
+          end
+        end
 
-          callables.each do |callable|
+        ##
+        ## ==== +CONTENT_TYPE+
+        ##
+        ## The optional MIME type of the request body, if any.
+        assert_optional(env, "CONTENT_TYPE") do |content_type|
+          unless content_type.is_a?(String)
+            raise LintError, "env[CONTENT_TYPE] is not a String: #{content_type.inspect}"
+          end
+        end
+
+        ##
+        ## ==== +CONTENT_LENGTH+
+        ##
+        ## The length of the request body, if any.
+        assert_optional(env, "CONTENT_LENGTH") do |content_length|
+          unless (Integer(content_length) rescue false)
+            raise LintError, "env[CONTENT_LENGTH] is not an Integer: #{content_length.inspect}"
+          end
+        end
+
+        ##
+        ## ==== +HTTP_HOST+
+        ##
+        ## An optional string, representing the HTTP authority, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#name-host-and-authority].
+        assert_optional(env, HTTP_HOST) do |http_host|
+          unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
+            raise LintError, "#{env[HTTP_HOST].inspect} must be a valid authority"
+          end
+        end
+
+        ##
+        ## ==== +HTTP_+ Headers
+        ##
+        ## Unless specified above, the environment can contain any number of additional headers, each starting with <tt>HTTP_</tt>. The presence or absence of these variables should correspond with the presence or absence of the appropriate HTTP header in the request, and those headers have no specific interpretation or validation by the Rack specification. However, there are many standard HTTP headers that have a specific meaning in the context of a request; see {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18] for more details.
+        ##
+        ## For compatibility with the CGI specifiction, the environment must not contain the keys <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>. Instead, the keys <tt>CONTENT_TYPE</tt> and <tt>CONTENT_LENGTH</tt> must be used.
+        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each do |header|
+          if env.include?(header)
+            raise LintError, "env contains #{header}, must use #{header[5..-1]}"
+          end
+        end
+
+        ##
+        ## === Rack-specific Variables
+        ##
+        ## In addition to CGI variables, the Rack environment includes Rack-specific variables. These variables are prefixed with <tt>rack.</tt> and are reserved for use with the Rack specification.
+        ##
+        ## ==== +rack.url_scheme+
+        ##
+        ## The URL scheme, which must be one of +http+, +https+, +ws+ or +wss+. This can never be an empty string, and so is always required. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set +rack.url_scheme+ to +http+.
+        assert_required(env, RACK_URL_SCHEME) do |rack_url_scheme|
+          unless ALLOWED_SCHEMES.include?(rack_url_scheme)
+            raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
+          end
+        end
+
+        ##
+        ## ==== +rack.protocol+
+        ##
+        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the +upgrade+ header (HTTP/1) or the +:protocol+ pseudo-header (HTTP/2+).
+        assert_optional(env, RACK_PROTOCOL) do |protocols|
+          unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
+            raise LintError, "rack.protocol must be an Array of Strings"
+          end
+        end
+
+        ##
+        ## ==== +rack.session+
+        ##
+        ## An optional <tt>Hash</tt>-like interface for storing request session data. The store must implement:
+        ##
+        assert_optional(env, RACK_SESSION) do |session|
+          ## * <tt>store(key, value)</tt> (aliased as <tt>[]=</tt>) to set a value for a key,
+          unless session.respond_to?(:store) && session.respond_to?(:[]=)
+            raise LintError, "session #{session.inspect} must respond to store and []="
+          end
+
+          ## * <tt>fetch(key, default = nil)</tt> (aliased as <tt>[]</tt>) to retrieve a value for a key,
+          unless session.respond_to?(:fetch) && session.respond_to?(:[])
+            raise LintError, "session #{session.inspect} must respond to fetch and []"
+          end
+
+          ## * <tt>delete(key)</tt> to delete a key,
+          unless session.respond_to?(:delete)
+            raise LintError, "session #{session.inspect} must respond to delete"
+          end
+
+          ## * <tt>clear</tt> to clear the session,
+          unless session.respond_to?(:clear)
+            raise LintError, "session #{session.inspect} must respond to clear"
+          end
+
+          ## * <tt>to_hash</tt> (optional) to retrieve the session as a Hash.
+          unless session.respond_to?(:to_hash) && session.to_hash.kind_of?(Hash) && !session.to_hash.frozen?
+            raise LintError, "session #{session.inspect} must respond to to_hash and return unfrozen Hash instance"
+          end
+        end
+
+        ##
+        ## ==== +rack.logger+
+        ##
+        ## An optional <tt>Logger</tt>-like interface for logging messages. The logger must implement:
+        ##
+        assert_optional(env, RACK_LOGGER) do |logger|
+          ## * <tt>info(message, &block)</tt>,
+          unless logger.respond_to?(:info)
+            raise LintError, "logger #{logger.inspect} must respond to info"
+          end
+
+          ## * <tt>debug(message, &block)</tt>,
+          unless logger.respond_to?(:debug)
+            raise LintError, "logger #{logger.inspect} must respond to debug"
+          end
+
+          ## * <tt>warn(message, &block)</tt>,
+          unless logger.respond_to?(:warn)
+            raise LintError, "logger #{logger.inspect} must respond to warn"
+          end
+
+          ## * <tt>error(message, &block)</tt>,
+          unless logger.respond_to?(:error)
+            raise LintError, "logger #{logger.inspect} must respond to error"
+          end
+
+          ## * <tt>fatal(message, &block)</tt>.
+          unless logger.respond_to?(:fatal)
+            raise LintError, "logger #{logger.inspect} must respond to fatal"
+          end
+        end
+
+        ##
+        ## ==== +rack.multipart.buffer_size+
+        ##
+        ## An optional <tt>Integer</tt> hint to the multipart parser as to what chunk size to use for reads and writes.
+        assert_optional(env, RACK_MULTIPART_BUFFER_SIZE) do |rack_multipart_buffer_size|
+          unless rack_multipart_buffer_size.is_a?(Integer) && rack_multipart_buffer_size > 0
+            raise LintError, "rack.multipart.buffer_size must be an Integer > 0 if specified"
+          end
+        end
+
+        ##
+        ## ==== +rack.multipart.tempfile_factory+
+        ##
+        ## An optional object for constructing temporary files for multipart form data. The factory must implement:
+        assert_optional(env, RACK_MULTIPART_TEMPFILE_FACTORY) do |rack_multipart_tempfile_factory|
+          ## * <tt>call(filename, content_type)</tt> to create a temporary file for a multipart form field.
+          unless rack_multipart_tempfile_factory.respond_to?(:call)
+            raise LintError, "rack.multipart.tempfile_factory must respond to #call"
+          end
+
+          ## The factory must return an IO-like object that responds to <tt><<</tt> and optionally <tt>rewind</tt>.
+          env[RACK_MULTIPART_TEMPFILE_FACTORY] = lambda do |filename, content_type|
+            io = rack_multipart_tempfile_factory.call(filename, content_type)
+            unless io.respond_to?(:<<)
+              raise LintError, "rack.multipart.tempfile_factory return value must respond to #<<"
+            end
+            io
+          end
+        end
+
+        ##
+        ## ==== +rack.hijack?+
+        ##
+        ## If present and true, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
+        assert_optional(env, RACK_IS_HIJACK) do |rack_is_hijack|
+          unless rack_is_hijack == true || rack_is_hijack == false
+            raise LintError, "rack.hijack? must be true or false"
+          end
+        end
+
+        ##
+        ## ==== +rack.hijack+
+        ##
+        ## If present, an object responding to +call+ that is used to perform a full hijack.  See the section below on hijacking for more information.
+        check_hijack(env)
+
+        ##
+        ## ==== +rack.early_hints+
+        ##
+        ## If present, an object responding to +call+ that is used to send early hints. See the section below on early hints for more information.
+        check_early_hints env
+
+        ##
+        ## ==== +rack.input+
+        ##
+        ## If present, the input stream. See the section below on the input stream for more information.
+        assert_optional(env, RACK_INPUT) do |rack_input|
+          check_input_stream(rack_input)
+          @env[RACK_INPUT] = InputWrapper.new(rack_input)
+        end
+
+        ##
+        ## ==== +rack.errors+
+        ##
+        ## The error stream. See the section below on the error stream for more information.
+        assert_required(env, RACK_ERRORS) do |rack_errors|
+          check_error_stream(rack_errors)
+          @env[RACK_ERRORS] = ErrorWrapper.new(rack_errors)
+        end
+
+        ##
+        ## ==== +rack.response_finished+
+        ##
+        ## If present, an array of callables that will be run by the server after the response has been processed. This would typically be invoked after sending the response to the client, but it could also be invoked if an error occurs while generating the response or sending the response; in that case, the error argument will be a subclass of +Exception+. The callables are invoked with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. They should be invoked in reverse order of registration.
+        assert_optional(env, RACK_RESPONSE_FINISHED) do |rack_response_finished|
+          raise LintError, "rack.response_finished must be an array" unless rack_response_finished.is_a?(Array)
+          rack_response_finished.each do |callable|
             raise LintError, "rack.response_finished values must respond to call(env, status, headers, error)" unless callable.respond_to?(:call)
           end
         end
@@ -428,11 +468,9 @@ module Rack
       ##
       ## === The Input Stream
       ##
-      ## The input stream is an IO-like object which contains the raw HTTP
-      ## POST data.
+      ## The input stream is an IO-like object which contains the raw HTTP request data.
       def check_input_stream(input)
-        ## When applicable, its external encoding must be "ASCII-8BIT" and it
-        ## must be opened in binary mode.
+        ## When applicable, its external encoding must be "ASCII-8BIT" and it must be opened in binary mode.
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
           raise LintError, "rack.input #{input} does not have ASCII-8BIT as its external encoding"
         end
@@ -441,11 +479,11 @@ module Rack
         end
 
         ## The input stream must respond to +gets+, +each+, and +read+.
-        [:gets, :each, :read].each { |method|
+        [:gets, :each, :read].each do |method|
           unless input.respond_to? method
             raise LintError, "rack.input #{input} does not respond to ##{method}"
           end
-        }
+        end
       end
 
       class InputWrapper
@@ -457,30 +495,23 @@ module Rack
         ##   or +nil+ on EOF.
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
-          v = @input.gets
-          unless v.nil? or v.kind_of? String
+
+          chunk = @input.gets
+
+          unless chunk.nil? or chunk.kind_of? String
             raise LintError, "rack.input#gets didn't return a String"
           end
-          v
+
+          chunk
         end
 
-        ## * +read+ behaves like <tt>IO#read</tt>.
-        ##   Its signature is <tt>read([length, [buffer]])</tt>.
+        ## * +read+ behaves like <tt>IO#read</tt>. Its signature is <tt>read([length, [buffer]])</tt>.
+        ##   * If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must be a String and may not be nil.
+        ##   * If +length+ is given and not nil, then this method reads at most +length+ bytes from the input stream.
+        ##   * If +length+ is not given or nil, then this method reads all data until EOF.
+        ##   * When EOF is reached, this method returns nil if +length+ is given and not nil, or "" if +length+ is not given or is nil.
+        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created String object.
         ##
-        ##   If given, +length+ must be a non-negative Integer (>= 0) or +nil+,
-        ##   and +buffer+ must be a String and may not be nil.
-        ##
-        ##   If +length+ is given and not nil, then this method reads at most
-        ##   +length+ bytes from the input stream.
-        ##
-        ##   If +length+ is not given or nil, then this method reads
-        ##   all data until EOF.
-        ##
-        ##   When EOF is reached, this method returns nil if +length+ is given
-        ##   and not nil, or "" if +length+ is not given or is nil.
-        ##
-        ##   If +buffer+ is given, then the read data will be placed
-        ##   into +buffer+ instead of a newly created String object.
         def read(*args)
           unless args.size <= 2
             raise LintError, "rack.input#read called with too many arguments"
@@ -499,33 +530,32 @@ module Rack
             end
           end
 
-          v = @input.read(*args)
+          chunk = @input.read(*args)
 
-          unless v.nil? or v.kind_of? String
+          unless chunk.nil? or chunk.kind_of? String
             raise LintError, "rack.input#read didn't return nil or a String"
           end
           if args[0].nil?
-            unless !v.nil?
+            unless !chunk.nil?
               raise LintError, "rack.input#read(nil) returned nil on EOF"
             end
           end
 
-          v
+          chunk
         end
 
         ## * +each+ must be called without arguments and only yield Strings.
         def each(*args)
           raise LintError, "rack.input#each called with arguments" unless args.size == 0
-          @input.each { |line|
+          @input.each do |line|
             unless line.kind_of? String
               raise LintError, "rack.input#each didn't yield a String"
             end
             yield line
-          }
+          end
         end
 
-        ## * +close+ can be called on the input stream to indicate that
-        ##   any remaining input is not needed.
+        ## * +close+ can be called on the input stream to indicate that any remaining input is not needed.
         def close(*args)
           @input.close(*args)
         end
@@ -559,8 +589,7 @@ module Rack
           @error.write str
         end
 
-        ## * +flush+ must be called without arguments and must be called
-        ##   in order to make the error appear for sure.
+        ## * +flush+ must be called without arguments and must be called in order to make the error appear for sure.
         def flush
           @error.flush
         end
@@ -574,25 +603,15 @@ module Rack
       ##
       ## === Hijacking
       ##
-      ## The hijacking interfaces provides a means for an application to take
-      ## control of the HTTP connection. There are two distinct hijack
-      ## interfaces: full hijacking where the application takes over the raw
-      ## connection, and partial hijacking where the application takes over
-      ## just the response body stream. In both cases, the application is
-      ## responsible for closing the hijacked stream.
+      ## The hijacking interfaces provides a means for an application to take control of the HTTP connection. There are two distinct hijack interfaces: full hijacking where the application takes over the raw connection, and partial hijacking where the application takes over just the response body stream. In both cases, the application is responsible for closing the hijacked stream.
       ##
-      ## Full hijacking only works with HTTP/1. Partial hijacking is functionally
-      ## equivalent to streaming bodies, and is still optionally supported for
-      ## backwards compatibility with older Rack versions.
+      ## Full hijacking only works with HTTP/1. Partial hijacking is functionally equivalent to streaming bodies, and is still optionally supported for backwards compatibility with older Rack versions.
       ##
       ## ==== Full Hijack
       ##
-      ## Full hijack is used to completely take over an HTTP/1 connection. It
-      ## occurs before any headers are written and causes the request to
-      ## ignores any response generated by the application.
+      ## Full hijack is used to completely take over an HTTP/1 connection. It occurs before any headers are written and causes the request to ignores any response generated by the application.
       ##
-      ## It is intended to be used when applications need access to raw HTTP/1
-      ## connection.
+      ## It is intended to be used when applications need access to raw HTTP/1 connection.
       ##
       def check_hijack(env)
         ## If +rack.hijack+ is present in +env+, it must respond to +call+
@@ -602,9 +621,7 @@ module Rack
           env[RACK_HIJACK] = proc do
             io = original_hijack.call
 
-            ## and return an +IO+ instance which can be used to read and write
-            ## to the underlying connection using HTTP/1 semantics and
-            ## formatting.
+            ## and return an +IO+ instance which can be used to read and write to the underlying connection using HTTP/1 semantics and formatting.
             raise LintError, "rack.hijack must return an IO instance" unless io.is_a?(IO)
 
             io
@@ -615,12 +632,9 @@ module Rack
       ##
       ## ==== Partial Hijack
       ##
-      ## Partial hijack is used for bi-directional streaming of the request and
-      ## response body. It occurs after the status and headers are written by
-      ## the server and causes the server to ignore the Body of the response.
+      ## Partial hijack is used for bi-directional streaming of the request and response body. It occurs after the status and headers are written by the server and causes the server to ignore the Body of the response.
       ##
-      ## It is intended to be used when applications need bi-directional
-      ## streaming.
+      ## It is intended to be used when applications need bi-directional streaming.
       ##
       def check_hijack_response(headers, env)
         ## If +rack.hijack?+ is present in +env+ and truthy,
@@ -637,16 +651,10 @@ module Rack
             end
           end
           ##
-          ## After the response status and headers have been sent, this hijack
-          ## callback will be invoked with a +stream+ argument which follows the
-          ## same interface as outlined in "Streaming Body". Servers must
-          ## ignore the +body+ part of the response tuple when the
-          ## +rack.hijack+ response header is present. Using an empty +Array+
-          ## instance is recommended.
+          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the +rack.hijack+ response header is present. Using an empty +Array+ instance is recommended.
         else
           ##
-          ## The special response header +rack.hijack+ must only be set
-          ## if the request +env+ has a truthy +rack.hijack?+.
+          ## The special response header +rack.hijack+ must only be set if the request +env+ has a truthy +rack.hijack?+.
           if headers.key?(RACK_HIJACK)
             raise LintError, 'rack.hijack header must not be present if server does not support hijacking'
           end
@@ -658,20 +666,18 @@ module Rack
       ##
       ## === Early Hints
       ##
-      ## The application or any middleware may call the <tt>rack.early_hints</tt>
-      ## with an object which would be valid as the headers of a Rack response.
+      ## The application or any middleware may call the <tt>rack.early_hints</tt>  with an object which would be valid as the headers of a Rack response.
       def check_early_hints(env)
         if env[RACK_EARLY_HINTS]
           ##
-          ## If <tt>rack.early_hints</tt> is present, it must respond to #call.
+          ## If <tt>rack.early_hints</tt> is present, it must respond to +call+.
           unless env[RACK_EARLY_HINTS].respond_to?(:call)
             raise LintError, "rack.early_hints must respond to call"
           end
 
           original_callback = env[RACK_EARLY_HINTS]
           env[RACK_EARLY_HINTS] = lambda do |headers|
-            ## If <tt>rack.early_hints</tt> is called, it must be called with
-            ## valid Rack response headers.
+            ## If <tt>rack.early_hints</tt> is called, it must be called with valid Rack response headers.
             check_headers(headers)
             original_callback.call(headers)
           end
@@ -681,11 +687,12 @@ module Rack
       ##
       ## == The Response
       ##
+      ## Outgoing HTTP responses are generated from the response tuple generated by the application. The response tuple is an +Array+ of three elements, which are: the HTTP status, the headers, and the response body. The Rack application is responsible for ensuring that the response tuple is well-formed and should follow the rules set out in the Rack specification.
+      ##
       ## === The Status
       ##
       def check_status(status)
-        ## This is an HTTP status. It must be an Integer greater than or equal to
-        ## 100.
+        ## This is an HTTP status. It must be an Integer greater than or equal to 100.
         unless status.is_a?(Integer) && status >= 100
           raise LintError, "Status must be an Integer >=100"
         end
@@ -695,7 +702,7 @@ module Rack
       ## === The Headers
       ##
       def check_headers(headers)
-        ## The headers must be a unfrozen Hash.
+        ## The headers must be a unfrozen +Hash+.
         unless headers.kind_of?(Hash)
           raise LintError, "headers object should be a hash, but isn't (got #{headers.class} as headers)"
         end
@@ -705,28 +712,26 @@ module Rack
         end
 
         headers.each do |key, value|
-          ## The header keys must be Strings.
+          ## The header keys must be +String+ objects.
           unless key.kind_of? String
             raise LintError, "header key must be a string, was #{key.class}"
           end
 
-          ## Special headers starting "rack." are for communicating with the
-          ## server, and must not be sent back to the client.
+          ## Special headers starting <tt>rack.</tt> are for communicating with the server, and must not be sent back to the client.
           next if key.start_with?("rack.")
 
-          ## The header must not contain a +Status+ key.
-          raise LintError, "header must not contain status" if key == "status"
-          ## Header keys must conform to RFC7230 token specification, i.e. cannot
-          ## contain non-printable ASCII, DQUOTE or "(),/:;<=>?@[\]{}".
+          ## * The headers must not contain a <tt>"status"</tt> key.
+          raise LintError, "headers must not contain status" if key == "status"
+          ## * Header keys must conform to RFC7230 token specification, i.e. cannot contain non-printable ASCII, DQUOTE or <tt>(),/:;<=>?@[\]{}</tt>.
           raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
-          ## Header keys must not contain uppercase ASCII characters (A-Z).
+          ## * Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
-          ## Header values must be either a String instance,
+          ## * Header values must be either a +String+ instance,
           if value.kind_of?(String)
             check_header_value(key, value)
           elsif value.kind_of?(Array)
-            ## or an Array of String instances,
+            ##   or an +Array+ of +String+ values,
             value.each{|value| check_header_value(key, value)}
           else
             raise LintError, "a header value must be a String or Array of Strings, but the value of '#{key}' is a #{value.class}"
@@ -735,7 +740,7 @@ module Rack
       end
 
       def check_header_value(key, value)
-        ## such that each String instance must not contain characters below 037.
+        ##   such that each String instance must not contain characters below 037.
         if value =~ /[\000-\037]/
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
@@ -745,32 +750,30 @@ module Rack
       ## ==== The +content-type+ Header
       ##
       def check_content_type_header(status, headers)
-        headers.each { |key, value|
-          ## There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
-          ## 204, or 304.
+        headers.each do |key, value|
+          ## There must not be a <tt>content-type</tt> header key when the status is 1xx, 204, or 304.
           if key == "content-type"
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-type header found in #{status} response, not allowed"
             end
             return
           end
-        }
+        end
       end
 
       ##
       ## ==== The +content-length+ Header
       ##
       def check_content_length_header(status, headers)
-        headers.each { |key, value|
+        headers.each do |key, value|
           if key == 'content-length'
-            ## There must not be a <tt>content-length</tt> header key when the
-            ## +Status+ is 1xx, 204, or 304.
+            ## There must not be a <tt>content-length</tt> header key when the status is 1xx, 204, or 304.
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-length header found in #{status} response, not allowed"
             end
             @content_length = value
           end
-        }
+        end
       end
 
       def verify_content_length(size)
@@ -785,13 +788,11 @@ module Rack
         end
       end
 
-      ## 
+      ##
       ## ==== The +rack.protocol+ Header
       ##
       def check_rack_protocol_header(status, headers)
-        ## If the +rack.protocol+ header is present, it must be a +String+, and
-        ## must be one of the values from the +rack.protocol+ array from the
-        ## environment.
+        ## If the <tt>rack.protocol</tt> header is present, it must be a +String+, and must be one of the values from the +rack.protocol+ array from the environment.
         protocol = headers['rack.protocol']
 
         if protocol
@@ -805,43 +806,23 @@ module Rack
         end
       end
       ##
-      ## Setting this value informs the server that it should perform a
-      ## connection upgrade. In HTTP/1, this is done using the +upgrade+
-      ## header. In HTTP/2, this is done by accepting the request.
+      ## Setting this value informs the server that it should perform a connection upgrade. In HTTP/1, this is done using the +upgrade+ header. In HTTP/2, this is done by accepting the request.
       ##
       ## === The Body
       ##
-      ## The Body is typically an +Array+ of +String+ instances, an enumerable
-      ## that yields +String+ instances, a +Proc+ instance, or a File-like
-      ## object.
+      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+ instance, or a File-like object.
       ##
-      ## The Body must respond to +each+ or +call+. It may optionally respond
-      ## to +to_path+ or +to_ary+. A Body that responds to +each+ is considered
-      ## to be an Enumerable Body. A Body that responds to +call+ is considered
-      ## to be a Streaming Body.
+      ## The Body must respond to +each+ or +call+. It may optionally respond to +to_path+ or +to_ary+. A Body that responds to +each+ is considered to be an Enumerable Body. A Body that responds to +call+ is considered to be a Streaming Body.
       ##
-      ## A Body that responds to both +each+ and +call+ must be treated as an
-      ## Enumerable Body, not a Streaming Body. If it responds to +each+, you
-      ## must call +each+ and not +call+. If the Body doesn't respond to
-      ## +each+, then you can assume it responds to +call+.
+      ## A Body that responds to both +each+ and +call+ must be treated as an Enumerable Body, not a Streaming Body. If it responds to +each+, you must call +each+ and not +call+. If the Body doesn't respond to +each+, then you can assume it responds to +call+.
       ##
-      ## The Body must either be consumed or returned. The Body is consumed by
-      ## optionally calling either +each+ or +call+.
-      ## Then, if the Body responds to +close+, it must be called to release
-      ## any resources associated with the generation of the body.
-      ## In other words, +close+ must always be called at least once; typically
-      ## after the web server has sent the response to the client, but also in
-      ## cases where the Rack application makes internal/virtual requests and
-      ## discards the response.
-      ##
+      ## The Body must either be consumed or returned. The Body is consumed by optionally calling either +each+ or +call+. Then, if the Body responds to +close+, it must be called to release any resources associated with the generation of the body. In other words, +close+ must always be called at least once; typically after the web server has sent the response to the client, but also in cases where the Rack application makes internal/virtual requests and discards the response.
       def close
         ##
-        ## After calling +close+, the Body is considered closed and should not
-        ## be consumed again.
+        ## After calling +close+, the Body is considered closed and should not be consumed again.
         @closed = true
 
-        ## If the original Body is replaced by a new Body, the new Body must
-        ## also consume the original Body by calling +close+ if possible.
+        ## If the original Body is replaced by a new Body, the new Body must also consume the original Body by calling +close+ if possible.
         @body.close if @body.respond_to?(:close)
 
         index = @lint.index(self)
@@ -852,12 +833,7 @@ module Rack
 
       def verify_to_path
         ##
-        ## If the Body responds to +to_path+, it must return a +String+
-        ## path for the local file system whose contents are identical
-        ## to that produced by calling +each+; this may be used by the
-        ## server as an alternative, possibly more efficient way to
-        ## transport the response. The +to_path+ method does not consume
-        ## the body.
+        ## If the Body responds to +to_path+, it must return a +String+ path for the local file system whose contents are identical to that produced by calling +each+; this may be used by the server as an alternative, possibly more efficient way to transport the response. The +to_path+ method does not consume the body.
         if @body.respond_to?(:to_path)
           unless ::File.exist? @body.to_path
             raise LintError, "The file identified by body.to_path does not exist"
@@ -881,15 +857,13 @@ module Rack
         @invoked = :each
 
         @body.each do |chunk|
-          ## and must only yield String values.
+          ## and must only yield +String+ values.
           unless chunk.kind_of? String
             raise LintError, "Body yielded non-string value #{chunk.inspect}"
           end
 
           ##
-          ## Middleware must not call +each+ directly on the Body.
-          ## Instead, middleware can return a new Body that calls +each+ on the
-          ## original Body, yielding at least once per iteration.
+          ## Middleware must not call +each+ directly on the Body. Instead, middleware can return a new Body that calls +each+ on the original Body, yielding at least once per iteration.
           if @lint[0] == self
             @env['rack.lint.body_iteration'] += 1
           else
@@ -922,13 +896,7 @@ module Rack
       end
 
       ##
-      ## If the Body responds to +to_ary+, it must return an +Array+ whose
-      ## contents are identical to that produced by calling +each+.
-      ## Middleware may call +to_ary+ directly on the Body and return a new
-      ## Body in its place. In other words, middleware can only process the
-      ## Body directly if it responds to +to_ary+. If the Body responds to both
-      ## +to_ary+ and +close+, its implementation of +to_ary+ must call
-      ## +close+.
+      ## If the Body responds to +to_ary+, it must return an +Array+ whose contents are identical to that produced by calling +each+. Middleware may call +to_ary+ directly on the Body and return a new Body in its place. In other words, middleware can only process the Body directly if it responds to +to_ary+. If the Body responds to both +to_ary+ and +close+, its implementation of +to_ary+ must call +close+.
       def to_ary
         @body.to_ary.tap do |content|
           unless content == @body.enum_for.to_a
@@ -956,20 +924,14 @@ module Rack
 
         ## It takes a +stream+ argument.
         ##
-        ## The +stream+ argument must implement:
-        ## <tt>read, write, <<, flush, close, close_read, close_write, closed?</tt>
-        ##
+        ## The +stream+ argument must respond to: +read+, +write+, <tt><<</tt>, +flush+, +close+, +close_read+, +close_write+, and +closed?+.
         @body.call(StreamWrapper.new(stream))
       end
 
       class StreamWrapper
         extend Forwardable
 
-        ## The semantics of these IO methods must be a best effort match to
-        ## those of a normal Ruby IO or Socket object, using standard arguments
-        ## and raising standard exceptions. Servers are encouraged to simply
-        ## pass on real IO objects, although it is recognized that this approach
-        ## is not directly compatible with HTTP/2.
+        ## The semantics of these IO methods must be a best effort match to those of a normal Ruby IO or Socket object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or HTTP/2+), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
         REQUIRED_METHODS = [
           :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?
@@ -985,13 +947,16 @@ module Rack
           end
         end
       end
-
-      # :startdoc:
     end
   end
 end
 
 ##
 ## == Thanks
-## Some parts of this specification are adopted from {PEP 333 – Python Web Server Gateway Interface v1.0}[https://peps.python.org/pep-0333/]
-## I'd like to thank everyone involved in that effort.
+##
+## We'd like to thank everyone who has contributed to the Rack project over the years. Your work has made this specification possible. That includes everyone who has contributed code, documentation, bug reports, and feedback. We'd also like to thank the authors of the various web servers, frameworks, and libraries that have implemented the Rack specification. Your work has helped to make the web a better place.
+##
+## Some parts of this specification are adapted from {PEP 333 – Python Web Server Gateway Interface v1.0}[https://peps.python.org/pep-0333/]. We'd like to thank everyone involved in that effort.
+##
+
+# :startdoc:
