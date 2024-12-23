@@ -189,14 +189,14 @@ describe Rack::Lint do
       message.must_equal 'env[SERVER_PORT] is not an Integer'
 
     lambda {
-      Rack::Lint.new(valid_app).call(env("SERVER_NAME" => "\u1234"))
+      Rack::Lint.new(valid_app).call(env("SERVER_NAME" => "A Host"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "\u1234 must be a valid authority"
+      message.must_equal "A Host must be a valid authority"
 
     lambda {
-      Rack::Lint.new(valid_app).call(env("HTTP_HOST" => "\u1234"))
+      Rack::Lint.new(valid_app).call(env("HTTP_HOST" => "A Host"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "\u1234 must be a valid authority"
+      message.must_equal "A Host must be a valid authority"
 
     lambda {
       Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "FUCKUP?"))
