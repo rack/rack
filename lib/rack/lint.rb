@@ -146,7 +146,7 @@ module Rack
         end
 
         ##
-        ## The server and application can store their own data in the environment, too. The keys must contain at least one dot, and should be prefixed uniquely. The prefix <tt>rack.</tt> is reserved for use with the Rack specification.
+        ## The server and application can store their own data in the environment, too. The keys must contain at least one dot, and should be prefixed uniquely. The prefix <tt>rack.</tt> is reserved for use with the Rack specification and the classes that ship with Rack.
 
         ##
         ## ==== +REQUEST_METHOD+
