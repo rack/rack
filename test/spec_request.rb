@@ -578,6 +578,10 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "localhost:81", "HTTP_X_FORWARDED_HOST" => "example.org", "HTTP_FORWARDED" => "host=example.com:9292", "SERVER_PORT" => "9393")
     req.host_with_port.must_equal "example.com:9292"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "http://example.org", "HTTP_X_FORWARDED_HOST" => "")
+    req.host_with_port.must_equal "http://example.org"
   end
 
   it "parse the query string" do
