@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
+- Fix `NoMethodError` in `Rack::Request#wrap_ipv6` when `x-forwarded-host` is empty. ([#2270](https://github.com/rack/rack/pull/2270), [@oieioi](https://github.com/oieioi))
 
 ## [3.1.10] - 2025-02-12
 
