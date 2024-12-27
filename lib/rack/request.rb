@@ -398,7 +398,7 @@ module Rack
               return forwarded.last
             end
           when :x_forwarded
-            if x_forwarded_host = split_header(get_header(HTTP_X_FORWARDED_HOST)).last
+            if (value = get_header(HTTP_X_FORWARDED_HOST)) && (x_forwarded_host = split_header(value).last)
               return wrap_ipv6(x_forwarded_host)
             end
           end
