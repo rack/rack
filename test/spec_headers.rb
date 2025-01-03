@@ -220,8 +220,8 @@ class RackHeadersTest < Minitest::Spec
 
   def test_inspect
     %i'inspect to_s'.each do |meth|
-      assert_equal '{}', @h.send(meth)
-      assert_equal '{"ab"=>"1", "cd"=>"2", "3"=>"4"}', @fh.send(meth)
+      assert_equal({}.inspect, @h.send(meth))
+      assert_equal({"ab"=>"1", "cd"=>"2", "3"=>"4"}.inspect, @fh.send(meth))
     end
   end
 

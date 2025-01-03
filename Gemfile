@@ -19,3 +19,5 @@ group :test do
   gem 'minitest'
   gem 'bake-test-external', '~> 0.1.3'
 end
+
+gem "base64"
