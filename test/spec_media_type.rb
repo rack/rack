@@ -80,4 +80,16 @@ describe Rack::MediaType do
       Rack::MediaType.params(@content_type)['charset'].must_equal ''
     end
   end
+
+  describe 'when content_type is valid yet contains an empty part' do
+    before { @content_type = 'txtlainio;;z' }
+
+    it '#type is application/text' do
+      Rack::MediaType.type(@content_type).must_equal 'application/text'
+    end
+
+    it '#params has key "charset" with value "utf-8"' do
+      Rack::MediaType.params(@content_type)['charset'].must_equal 'utf-8'
+    end
+  end
 end

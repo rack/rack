@@ -29,6 +29,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
+- `Rack::MediaType` no longer fails with invalid content-type. ([#2273](https://github.com/rack/rack/pull/2273), [@redox](https://github.com/redox))
 
 ## [3.1.8] - 2024-10-14
 
