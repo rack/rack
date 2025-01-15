@@ -908,6 +908,7 @@ module Rack
       end
 
       BODY_METHODS = {to_ary: true, each: true, call: true, to_path: true}
+      Ractor.make_shareable(BODY_METHODS) if defined?(Ractor)
 
       def to_path
         @body.to_path
