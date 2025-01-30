@@ -44,4 +44,28 @@ describe Rack::MediaType do
       Rack::MediaType.params(@content_type)['charset'].must_equal 'utf-8'
     end
   end
+
+  describe 'when content_type contains media_type and incomplete params' do 
+    before { @content_type = 'application/text;CHARSET' }
+
+    it '#type is application/text' do
+      Rack::MediaType.type(@content_type).must_equal 'application/text'
+    end
+
+    it '#params has key "charset" with value ""' do
+      Rack::MediaType.params(@content_type)['charset'].must_equal ''
+    end
+  end
+
+  describe 'when content_type contains media_type and empty params' do 
+    before { @content_type = 'application/text;CHARSET=' }
+
+    it '#type is application/text' do
+      Rack::MediaType.type(@content_type).must_equal 'application/text'
+    end
+
+    it '#params has key "charset" with value of empty string' do
+      Rack::MediaType.params(@content_type)['charset'].must_equal ''
+    end
+  end
 end
