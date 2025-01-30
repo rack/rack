@@ -27,4 +27,7 @@ jobs:
         apt-get: _update_ libfcgi-dev libmemcached-dev
         brew: fcgi libmemcached
 
+    - name: Change permissions
+      run: chmod -R o-w /opt/hostedtoolcache/Ruby
+
     - run: bundle exec bake test:external
