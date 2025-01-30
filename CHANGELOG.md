@@ -30,6 +30,12 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
 
+## [3.1.9] - 2025-01-31
+
+### Fixed
+
+- `Rack::MediaType#params` now handles parameters without values. ([#2263](https://github.com/rack/rack/pull/2263), [@AllyMarthaJ](https://github.com/AllyMarthaJ))
+
 ## [3.1.8] - 2024-10-14
 
 ### Fixed
