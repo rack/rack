@@ -311,8 +311,7 @@ describe Rack::Deflater do
   end
 
   it 'handle gzip response with last-modified header' do
-    last_modified = 'Tue, 04 Feb 2025 19:23:29 GMT'
-
+    last_modified = last_modified = Time.now.httpdate
     options = {
       'response_headers' => {
         'content-type' => 'text/plain',
