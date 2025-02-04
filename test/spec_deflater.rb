@@ -75,8 +75,16 @@ describe Rack::Deflater do
         gz = Zlib::GzipReader.new(io)
         mtime = gz.mtime.to_i
         if last_mod = headers['last-modified']
-          Time.httpdate(last_mod).to_i.must_equal mtime
-        else
+          begin
+            header_mtime = Time.httpdate(last_mod).to_i
+          rescue ArgumentError
+            # nothing
+          else
+            header_mtime.must_equal mtime
+            mtime = nil
+          end
+        end
+        if mtime
           mtime.must_be(:<=, Time.now.to_i)
           mtime.must_be(:>=, start.to_i - 1)
         end
@@ -310,8 +318,27 @@ describe Rack::Deflater do
     closed.must_equal true
   end
 
-  it 'handle gzip response with last-modified header' do
+  it 'handle gzip response with valid last-modified header' do
     last_modified = Time.now.httpdate
+    options = {
+      'response_headers' => {
+        'content-type' => 'text/plain',
+        'last-modified' => last_modified
+      }
+    }
+
+    verify(200, 'Hello World!', 'gzip', options) do |status, headers, body|
+      headers.must_equal({
+        'content-encoding' => 'gzip',
+        'vary' => 'Accept-Encoding',
+        'last-modified' => last_modified,
+        'content-type' => 'text/plain'
+      })
+    end
+  end
+
+  it 'handle gzip response with invalid last-modified header' do
+    last_modified = "Xyz, 27 Dez 2024 18:26:57 GMT"
     options = {
       'response_headers' => {
         'content-type' => 'text/plain',

@@ -66,7 +66,13 @@ module Rack
         headers['content-encoding'] = "gzip"
         headers.delete(CONTENT_LENGTH)
         mtime = headers["last-modified"]
-        mtime = Time.httpdate(mtime).to_i if mtime
+        if mtime
+          begin
+            mtime = Time.httpdate(mtime).to_i
+          rescue ArgumentError
+            mtime = nil
+          end
+        end
         response[2] = GzipStream.new(body, mtime, @sync)
         response
       when "identity"

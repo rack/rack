@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
+- `Rack::Deflater` no longer fails if the application returns an invalid last-modified header. ([#1737](https://github.com/rack/rack/issues/1737), [@jeremyevans])
 
 ## [3.1.9] - 2025-01-31
 
