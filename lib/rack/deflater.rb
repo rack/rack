@@ -32,6 +32,8 @@ module Rack
     #        (e.g <tt>use Rack::Deflater, :if => lambda { |*, body| sum=0; body.each { |i| sum += i.length }; sum > 512 }</tt>).
     #        However, be aware that calling `body.each` inside the block will break cases where `body.each` is not idempotent,
     #        such as when it is an +IO+ instance.
+    # :exclude :: a lambda that is called for each request and receives the env, status, headers, and body.
+    #             If the return value is true, then deflation is disabled for the request.
     # :include :: a list of content types that should be compressed. By default, all content types are compressed.
     # :sync :: determines if the stream is going to be flushed after every chunk.  Flushing after every chunk reduces
     #          latency for time-sensitive streaming applications, but hurts compression and throughput.
@@ -39,6 +41,7 @@ module Rack
     def initialize(app, options = {})
       @app = app
       @condition = options[:if]
+      @exclude = options[:exclude]
       @compressible_types = options[:include]
       @sync = options.fetch(:sync, true)
     end
@@ -141,6 +144,8 @@ module Rack
           headers['content-encoding']&.!~(/\bidentity\b/)
         return false
       end
+
+      return false if @exclude && @exclude.call(env, status, headers, body)
 
       # Skip if @compressible_types are given and does not include request's content type
       return false if @compressible_types && !(headers.has_key?(CONTENT_TYPE) && @compressible_types.include?(headers[CONTENT_TYPE][/[^;]*/]))

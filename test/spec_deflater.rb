@@ -311,7 +311,8 @@ describe Rack::Deflater do
   end
 
   it 'handle gzip response with last-modified header' do
-    last_modified = Time.now.httpdate
+    last_modified = 'Tue, 04 Feb 2025 19:23:29 GMT'
+
     options = {
       'response_headers' => {
         'content-type' => 'text/plain',
@@ -521,5 +522,38 @@ describe Rack::Deflater do
     verify(200, 'foobar', deflate_or_gzip, { 'app_body' => app_body }) do |status, headers, body|
       assert_nil app_body.closed
     end
+  end
+
+  it '#should_deflate? does deflate if exclude is falsy' do
+    options = {
+      'deflater_options' => {
+        exclude: lambda { |env, status, headers, body| true }
+      }
+    }
+
+    verify(200, 'Hello World!', { 'gzip' => nil }, options)
+  end
+
+  it '#should_deflate? does deflate if exclude is truthy' do
+    options = {
+      'deflater_options' => {
+        exclude: ->(env, status, headers, body) { false }
+      }
+    }
+
+    verify(200, 'Hello World!', deflate_or_gzip, options)
+  end
+
+  it '#should_deflate? does deflate if PATH_INFO is in :exclude' do
+    options = {
+      'request_headers' => {
+        'PATH_INFO' => '/sidekiq'
+      },
+      'deflater_options' => {
+        exclude: ->(env, _, _, _) { env['PATH_INFO'] == '/sidekiq' }
+      }
+    }
+
+    verify(200, 'Hello World!', { 'gzip' => nil }, options)
   end
 end
