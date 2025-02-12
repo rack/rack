@@ -4,7 +4,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-## [3.1.11] - 2025-02-12
+## [2.2.11] - 2025-02-12
 
 ### Security
 
