@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.0.12] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+
 ## [3.0.11] - 2024-05-10
 
 - Backport #2062 to 3-0-stable: Do not allow `BodyProxy` to respond to `to_str`, make `to_ary` call close . ([#2062](https://github.com/rack/rack/pull/2062), [@jeremyevans](https://github.com/jeremyevans))
