@@ -29,6 +29,12 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
 
+## [3.1.10] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+
 ## [3.1.9] - 2025-01-31
 
 ### Fixed
@@ -137,6 +143,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.12] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
 
 ## [3.0.11] - 2024-05-10
 
@@ -313,6 +325,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.11] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
 
 ## [2.2.10] - 2024-10-14
 
