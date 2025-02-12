@@ -4,6 +4,12 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [3.1.11] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+
 ## [2.2.10] - 2024-10-14
 
 - Fix compatibility issues with Ruby v3.4.0. ([#2248](https://github.com/rack/rack/pull/2248), [@byroot](https://github.com/byroot))
