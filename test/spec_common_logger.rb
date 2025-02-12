@@ -87,12 +87,17 @@ describe Rack::CommonLogger do
     (0..1).must_include duration.to_f
   end
 
-  it "escapes non printable characters except newline" do
+  it "escapes non printable characters including newline" do
     logdev = StringIO.new
     log = Logger.new(logdev)
     Rack::MockRequest.new(Rack::CommonLogger.new(app_without_lint, log)).request("GET\b", "/hello")
 
     logdev.string.must_match(/GET\\x8 \/hello/)
+
+    Rack::MockRequest.new(Rack::CommonLogger.new(app, log)).get("/", 'REMOTE_USER' => "foo\nbar", "QUERY_STRING" => "bar\nbaz")
+    logdev.string[-1].must_equal "\n"
+    logdev.string.must_include("foo\\xabar")
+    logdev.string.must_include("bar\\xabaz")
   end
 
   it "log path with PATH_INFO" do

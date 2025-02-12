@@ -15,7 +15,7 @@ module Rack
     # The actual format is slightly different than the above due to the
     # separation of SCRIPT_NAME and PATH_INFO, and because the elapsed
     # time in seconds is included at the end.
-    FORMAT = %{%s - %s [%s] "%s %s%s%s %s" %d %s %0.4f\n}
+    FORMAT = %{%s - %s [%s] "%s %s%s%s %s" %d %s %0.4f }
 
     # +logger+ can be any object that supports the +write+ or +<<+ methods,
     # which includes the standard library Logger.  These methods are called
@@ -60,7 +60,8 @@ module Rack
         length,
         Utils.clock_time - began_at ]
 
-      msg.gsub!(/[^[:print:]\n]/) { |c| "\\x#{c.ord}" }
+      msg.gsub!(/[^[:print:]]/) { |c| sprintf("\\x%x", c.ord) }
+      msg[-1] = "\n"
 
       logger = @logger || env[RACK_ERRORS]
 
