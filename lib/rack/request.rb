@@ -413,10 +413,9 @@ module Rack
 
       def ip
         remote_addresses = split_header(get_header('REMOTE_ADDR'))
-        external_addresses = reject_trusted_ip_addresses(remote_addresses)
 
-        unless external_addresses.empty?
-          return external_addresses.last
+        remote_addresses.reverse_each do |ip|
+          return ip unless trusted_proxy?(ip)
         end
 
         if (forwarded_for = self.forwarded_for) && !forwarded_for.empty?
@@ -424,7 +423,10 @@ module Rack
           # So we reject all the trusted addresses (proxy*) and return the
           # last client. Or if we trust everyone, we just return the first
           # address.
-          return reject_trusted_ip_addresses(forwarded_for).last || forwarded_for.first
+          forwarded_for.reverse_each do |ip|
+            return ip unless trusted_proxy?(ip)
+          end
+          return forwarded_for.first
         end
 
         # If all the addresses are trusted, and we aren't forwarded, just return
@@ -707,10 +709,6 @@ module Rack
         return [] if authority.nil?
         return [] unless match = AUTHORITY.match(authority)
         return match[:host], match[:address], match[:port]&.to_i
-      end
-
-      def reject_trusted_ip_addresses(ip_addresses)
-        ip_addresses.reject { |ip| trusted_proxy?(ip) }
       end
 
       FORWARDED_SCHEME_HEADERS = {
