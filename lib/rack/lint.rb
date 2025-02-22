@@ -99,6 +99,12 @@ module Rack
         return [@status, @headers, self]
       end
 
+      private def assert_required(key)
+        raise LintError, "env missing required key #{key}" unless @env.include?(key)
+
+        return @env[key]
+      end
+
       ##
       ## == The Environment
       ##
@@ -154,6 +160,7 @@ module Rack
         ## <tt>QUERY_STRING</tt>:: The portion of the request URL that
         ##                         follows the <tt>?</tt>, if any. May be
         ##                         empty, but is always required!
+        assert_required(QUERY_STRING)
 
         ## <tt>SERVER_NAME</tt>:: When combined with <tt>SCRIPT_NAME</tt> and
         ##                        <tt>PATH_INFO</tt>, these variables can be
@@ -297,9 +304,6 @@ module Rack
         ## is reserved for use with the Rack core distribution and other
         ## accepted specifications and must not be used otherwise.
         ##
-        %w[REQUEST_METHOD SERVER_NAME QUERY_STRING SERVER_PROTOCOL rack.errors].each do |header|
-          raise LintError, "env missing required key #{header}" unless env.include? header
-        end
 
         ## The <tt>SERVER_PORT</tt> must be an Integer if set.
         server_port = env["SERVER_PORT"]
@@ -308,7 +312,8 @@ module Rack
         end
 
         ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[SERVER_NAME]}/") rescue false)
+        server_name = assert_required(SERVER_NAME)
+        unless (URI.parse("http://#{server_name}/") rescue false)
           raise LintError, "#{env[SERVER_NAME]} must be a valid authority"
         end
 
@@ -318,7 +323,7 @@ module Rack
         end
 
         ## The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
-        server_protocol = env['SERVER_PROTOCOL']
+        server_protocol = assert_required(SERVER_PROTOCOL)
         unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
           raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
         end
@@ -335,7 +340,8 @@ module Rack
         ## There are the following restrictions:
 
         ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
-        unless ALLOWED_SCHEMES.include?(env[RACK_URL_SCHEME])
+        rack_url_scheme = assert_required(RACK_URL_SCHEME)
+        unless ALLOWED_SCHEMES.include?(rack_url_scheme)
           raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
         end
 
@@ -346,7 +352,7 @@ module Rack
         end
 
         ## * There must be a valid error stream in <tt>rack.errors</tt>.
-        rack_errors = env[RACK_ERRORS]
+        rack_errors = assert_required(RACK_ERRORS)
         check_error_stream(rack_errors)
         @env[RACK_ERRORS] = ErrorWrapper.new(rack_errors)
 
@@ -356,7 +362,8 @@ module Rack
         check_early_hints env
 
         ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
-        unless env[REQUEST_METHOD] =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
+        request_method = assert_required(REQUEST_METHOD)
+        unless request_method =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
           raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
         end
 
