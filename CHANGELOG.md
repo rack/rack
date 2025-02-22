@@ -2,13 +2,17 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [2.2.12] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [2.2.11] - 2025-02-12
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [2.2.10] - 2024-10-14
 

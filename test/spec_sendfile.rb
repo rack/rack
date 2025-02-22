@@ -48,7 +48,7 @@ describe Rack::Sendfile do
       response.headers.wont_include 'X-Sendfile'
 
       io.rewind
-      io.read.must_equal "Unknown x-sendfile variation: 'X-Banana'.\n"
+      io.read.must_equal "Unknown x-sendfile variation: \"X-Banana\"\n"
     end
   end
 

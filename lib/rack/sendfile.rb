@@ -133,7 +133,7 @@ module Rack
           end
         when '', nil
         else
-          env[RACK_ERRORS].puts "Unknown x-sendfile variation: '#{type}'.\n"
+          env[RACK_ERRORS].puts "Unknown x-sendfile variation: #{type.inspect}"
         end
       end
       [status, headers, body]
