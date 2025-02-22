@@ -109,6 +109,20 @@ module Rack
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
+        ## The CGI keys (named without a period) must have String values.
+        ## If the string values for CGI keys contain non-ASCII characters,
+        ## they should use ASCII-8BIT encoding.
+        env.each { |key, value|
+          next  if key.include? "."   # Skip extensions
+          unless value.kind_of? String
+            raise LintError, "env variable #{key} has non-string value #{value.inspect}"
+          end
+          next if value.encoding == Encoding::ASCII_8BIT
+          unless value.b !~ /[\x80-\xff]/n
+            raise LintError, "env variable #{key} has value containing non-ASCII characters and has non-ASCII-8BIT encoding #{value.inspect} encoding: #{value.encoding}"
+          end
+        }
+
         ##
         ## The environment is required to include these variables
         ## (adopted from {PEP 333}[https://peps.python.org/pep-0333/]), except when they'd be empty, but see
@@ -315,20 +329,6 @@ module Rack
         %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
           if env.include? header
             raise LintError, "env contains #{header}, must use #{header[5..-1]}"
-          end
-        }
-
-        ## The CGI keys (named without a period) must have String values.
-        ## If the string values for CGI keys contain non-ASCII characters,
-        ## they should use ASCII-8BIT encoding.
-        env.each { |key, value|
-          next  if key.include? "."   # Skip extensions
-          unless value.kind_of? String
-            raise LintError, "env variable #{key} has non-string value #{value.inspect}"
-          end
-          next if value.encoding == Encoding::ASCII_8BIT
-          unless value.b !~ /[\x80-\xff]/n
-            raise LintError, "env variable #{key} has value containing non-ASCII characters and has non-ASCII-8BIT encoding #{value.inspect} encoding: #{value.encoding}"
           end
         }
 

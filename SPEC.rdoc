@@ -19,6 +19,9 @@ and the *body*.
 The environment must be an unfrozen instance of Hash that includes
 CGI-like headers. The Rack application is free to modify the
 environment.
+The CGI keys (named without a period) must have String values.
+If the string values for CGI keys contain non-ASCII characters,
+they should use ASCII-8BIT encoding.
 
 The environment is required to include these variables
 (adopted from {PEP 333}[https://peps.python.org/pep-0333/]), except when they'd be empty, but see
@@ -119,9 +122,6 @@ The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
 The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
 (use the versions without <tt>HTTP_</tt>).
-The CGI keys (named without a period) must have String values.
-If the string values for CGI keys contain non-ASCII characters,
-they should use ASCII-8BIT encoding.
 There are the following restrictions:
 * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
 * There may be a valid input stream in <tt>rack.input</tt>.
