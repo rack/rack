@@ -34,6 +34,12 @@ All notable changes to this project will be documented in this file. For info on
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 
+## [3.1.11] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+
 ## [3.1.10] - 2025-02-12
 
 ### Security
@@ -148,6 +154,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.13] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [3.0.12] - 2025-02-12
 
@@ -330,6 +342,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.12] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [2.2.11] - 2025-02-12
 
