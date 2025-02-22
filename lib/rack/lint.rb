@@ -118,16 +118,19 @@ module Rack
         ## The CGI keys (named without a period) must have String values.
         ## If the string values for CGI keys contain non-ASCII characters,
         ## they should use ASCII-8BIT encoding.
-        env.each { |key, value|
-          next  if key.include? "."   # Skip extensions
+        env.each do |key, value|
+          next if key.include?(".") # Skip extensions
+          
           unless value.kind_of? String
             raise LintError, "env variable #{key} has non-string value #{value.inspect}"
           end
+
           next if value.encoding == Encoding::ASCII_8BIT
+
           unless value.b !~ /[\x80-\xff]/n
             raise LintError, "env variable #{key} has value containing non-ASCII characters and has non-ASCII-8BIT encoding #{value.inspect} encoding: #{value.encoding}"
           end
-        }
+        end
 
         ##
         ## The environment is required to include these variables
@@ -212,7 +215,7 @@ module Rack
         ##                          the protocols advertised by the client in
         ##                          the +upgrade+ header (HTTP/1) or the
         ##                          +:protocol+ pseudo-header (HTTP/2).
-        if protocols = @env['rack.protocol']
+        if protocols = env[RACK_PROTOCOL]
           unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
             raise LintError, "rack.protocol must be an Array of Strings"
           end
@@ -282,18 +285,23 @@ module Rack
         end
 
         ## <tt>rack.multipart.buffer_size</tt>:: An Integer hint to the multipart parser as to what chunk size to use for reads and writes.
-        if bufsize = env[RACK_MULTIPART_BUFFER_SIZE]
-          unless bufsize.is_a?(Integer) && bufsize > 0
+        if rack_multipart_buffer_size = env[RACK_MULTIPART_BUFFER_SIZE]
+          unless rack_multipart_buffer_size.is_a?(Integer) && rack_multipart_buffer_size > 0
             raise LintError, "rack.multipart.buffer_size must be an Integer > 0 if specified"
           end
         end
 
         ## <tt>rack.multipart.tempfile_factory</tt>:: An object responding to #call with two arguments, the filename and content_type given for the multipart form field, and returning an IO-like object that responds to #<< and optionally #rewind. This factory will be used to instantiate the tempfile for each multipart form file upload field, rather than the default class of Tempfile.
-        if tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
-          raise LintError, "rack.multipart.tempfile_factory must respond to #call" unless tempfile_factory.respond_to?(:call)
+        if rack_multipart_tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
+          unless rack_multipart_tempfile_factory.respond_to?(:call)
+            raise LintError, "rack.multipart.tempfile_factory must respond to #call"
+          end
+
           env[RACK_MULTIPART_TEMPFILE_FACTORY] = lambda do |filename, content_type|
-            io = tempfile_factory.call(filename, content_type)
-            raise LintError, "rack.multipart.tempfile_factory return value must respond to #<<" unless io.respond_to?(:<<)
+            io = rack_multipart_tempfile_factory.call(filename, content_type)
+            unless io.respond_to?(:<<)
+              raise LintError, "rack.multipart.tempfile_factory return value must respond to #<<"
+            end
             io
           end
         end
@@ -306,20 +314,23 @@ module Rack
         ##
 
         ## The <tt>SERVER_PORT</tt> must be an Integer if set.
-        server_port = env["SERVER_PORT"]
-        unless server_port.nil? || (Integer(server_port) rescue false)
-          raise LintError, "env[SERVER_PORT] is not an Integer"
+        if server_port = env[SERVER_PORT]
+          unless (Integer(server_port) rescue false)
+            raise LintError, "env[SERVER_PORT] is not an Integer"
+          end
         end
 
         ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
         server_name = assert_required(SERVER_NAME)
         unless (URI.parse("http://#{server_name}/") rescue false)
-          raise LintError, "#{env[SERVER_NAME]} must be a valid authority"
+          raise LintError, "#{server_name} must be a valid authority"
         end
 
         ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
-        unless (URI.parse("http://#{env[HTTP_HOST]}/") rescue false)
-          raise LintError, "#{env[HTTP_HOST]} must be a valid authority"
+        if http_host = env[HTTP_HOST]
+          unless (URI.parse("http://#{http_host}/") rescue false)
+            raise LintError, "#{http_host} must be a valid authority"
+          end
         end
 
         ## The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
@@ -331,18 +342,18 @@ module Rack
         ## The environment must not contain the keys
         ## <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
         ## (use the versions without <tt>HTTP_</tt>).
-        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each { |header|
-          if env.include? header
+        %w[HTTP_CONTENT_TYPE HTTP_CONTENT_LENGTH].each do |header|
+          if env.include?(header)
             raise LintError, "env contains #{header}, must use #{header[5..-1]}"
           end
-        }
+        end
 
         ## There are the following restrictions:
 
         ## * <tt>rack.url_scheme</tt> must either be +http+ or +https+.
         rack_url_scheme = assert_required(RACK_URL_SCHEME)
         unless ALLOWED_SCHEMES.include?(rack_url_scheme)
-          raise LintError, "rack.url_scheme unknown: #{env[RACK_URL_SCHEME].inspect}"
+          raise LintError, "rack.url_scheme unknown: #{rack_url_scheme.inspect}"
         end
 
         ## * There may be a valid input stream in <tt>rack.input</tt>.
@@ -364,17 +375,19 @@ module Rack
         ## * The <tt>REQUEST_METHOD</tt> must be a valid token.
         request_method = assert_required(REQUEST_METHOD)
         unless request_method =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
-          raise LintError, "REQUEST_METHOD unknown: #{env[REQUEST_METHOD].dump}"
+          raise LintError, "REQUEST_METHOD unknown: #{request_method.inspect}"
         end
 
         ## * The <tt>SCRIPT_NAME</tt>, if non-empty, must start with <tt>/</tt>
-        if env.include?(SCRIPT_NAME) && env[SCRIPT_NAME] != "" && env[SCRIPT_NAME] !~ /\A\//
-          raise LintError, "SCRIPT_NAME must start with /"
+        if script_name = env[SCRIPT_NAME]
+          if script_name != "" && script_name !~ /\A\//
+            raise LintError, "SCRIPT_NAME must start with /"
+          end
         end
 
         ## * The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string.
-        if env.include?(PATH_INFO)
-          case env[PATH_INFO]
+        if path_info = env[PATH_INFO]
+          case path_info
           when REQUEST_PATH_ASTERISK_FORM
             ##   * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
             unless env[REQUEST_METHOD] == OPTIONS
@@ -400,8 +413,10 @@ module Rack
         end
 
         ## * The <tt>CONTENT_LENGTH</tt>, if given, must consist of digits only.
-        if env.include?("CONTENT_LENGTH") && env["CONTENT_LENGTH"] !~ /\A\d+\z/
-          raise LintError, "Invalid CONTENT_LENGTH: #{env["CONTENT_LENGTH"]}"
+        if content_length = env["CONTENT_LENGTH"]
+          if content_length !~ /\A\d+\z/
+            raise LintError, "Invalid CONTENT_LENGTH: #{content_length.inspect}"
+          end
         end
 
         ## * One of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be
@@ -411,7 +426,7 @@ module Rack
           raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
         end
         ##   <tt>SCRIPT_NAME</tt> never should be <tt>/</tt>, but instead be empty.
-        unless env[SCRIPT_NAME] != "/"
+        if env[SCRIPT_NAME] == "/"
           raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
         end
 
@@ -423,10 +438,9 @@ module Rack
         ##                                   The callables are invoked with +env, status, headers, error+ arguments and
         ##                                   should not raise any exceptions. They should be invoked in reverse order
         ##                                   of registration.
-        if callables = env[RACK_RESPONSE_FINISHED]
-          raise LintError, "rack.response_finished must be an array of callable objects" unless callables.is_a?(Array)
-
-          callables.each do |callable|
+        if rack_response_finished = env[RACK_RESPONSE_FINISHED]
+          raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
+          rack_response_finished.each do |callable|
             raise LintError, "rack.response_finished values must respond to call(env, status, headers, error)" unless callable.respond_to?(:call)
           end
         end
@@ -448,11 +462,11 @@ module Rack
         end
 
         ## The input stream must respond to +gets+, +each+, and +read+.
-        [:gets, :each, :read].each { |method|
+        [:gets, :each, :read].each do |method|
           unless input.respond_to? method
             raise LintError, "rack.input #{input} does not respond to ##{method}"
           end
-        }
+        end
       end
 
       class InputWrapper
@@ -464,11 +478,14 @@ module Rack
         ##   or +nil+ on EOF.
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
-          v = @input.gets
-          unless v.nil? or v.kind_of? String
+
+          chunk = @input.gets
+
+          unless chunk.nil? or chunk.kind_of? String
             raise LintError, "rack.input#gets didn't return a String"
           end
-          v
+
+          chunk
         end
 
         ## * +read+ behaves like <tt>IO#read</tt>.
@@ -506,29 +523,29 @@ module Rack
             end
           end
 
-          v = @input.read(*args)
+          chunk = @input.read(*args)
 
-          unless v.nil? or v.kind_of? String
+          unless chunk.nil? or chunk.kind_of? String
             raise LintError, "rack.input#read didn't return nil or a String"
           end
           if args[0].nil?
-            unless !v.nil?
+            unless !chunk.nil?
               raise LintError, "rack.input#read(nil) returned nil on EOF"
             end
           end
 
-          v
+          chunk
         end
 
         ## * +each+ must be called without arguments and only yield Strings.
         def each(*args)
           raise LintError, "rack.input#each called with arguments" unless args.size == 0
-          @input.each { |line|
+          @input.each do |line|
             unless line.kind_of? String
               raise LintError, "rack.input#each didn't yield a String"
             end
             yield line
-          }
+          end
         end
 
         ## * +close+ can be called on the input stream to indicate that
@@ -543,11 +560,11 @@ module Rack
       ##
       def check_error_stream(error)
         ## The error stream must respond to +puts+, +write+ and +flush+.
-        [:puts, :write, :flush].each { |method|
+        [:puts, :write, :flush].each do |method|
           unless error.respond_to? method
             raise LintError, "rack.error #{error} does not respond to ##{method}"
           end
-        }
+        end
       end
 
       class ErrorWrapper
@@ -752,7 +769,7 @@ module Rack
       ## ==== The +content-type+ Header
       ##
       def check_content_type_header(status, headers)
-        headers.each { |key, value|
+        headers.each do |key, value|
           ## There must not be a <tt>content-type</tt> header key when the +Status+ is 1xx,
           ## 204, or 304.
           if key == "content-type"
@@ -761,14 +778,14 @@ module Rack
             end
             return
           end
-        }
+        end
       end
 
       ##
       ## ==== The +content-length+ Header
       ##
       def check_content_length_header(status, headers)
-        headers.each { |key, value|
+        headers.each do |key, value|
           if key == 'content-length'
             ## There must not be a <tt>content-length</tt> header key when the
             ## +Status+ is 1xx, 204, or 304.
@@ -777,7 +794,7 @@ module Rack
             end
             @content_length = value
           end
-        }
+        end
       end
 
       def verify_content_length(size)
