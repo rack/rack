@@ -2,11 +2,17 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.11] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+
 ## [3.1.10] - 2025-02-12
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.1.9] - 2025-01-31
 
@@ -116,6 +122,18 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.13] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+
+## [3.0.12] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.0.11] - 2024-05-10
 
@@ -292,6 +310,64 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.12] - 2025-03-04
+
+### Security
+
+- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+
+## [2.2.11] - 2025-02-12
+
+### Security
+
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
+
+## [2.2.10] - 2024-10-14
+
+- Fix compatibility issues with Ruby v3.4.0. ([#2248](https://github.com/rack/rack/pull/2248), [@byroot](https://github.com/byroot))
+
+## [2.2.9] - 2023-03-21
+
+- Return empty when parsing a multi-part POST with only one end delimiter. ([#2104](https://github.com/rack/rack/pull/2104), [@alpaca-tc])
+
+## [2.2.8] - 2023-07-31
+
+- Regenerate SPEC ([#2102](https://github.com/rack/rack/pull/2102), [@skipkayhil](https://github.com/skipkayhil))
+- Limit file extension length of multipart tempfiles ([#2015](https://github.com/rack/rack/pull/2015), [@dentarg](https://github.com/dentarg))
+- Fix "undefined method DelegateClass for Rack::Session::Cookie:Class" ([#2092](https://github.com/rack/rack/pull/2092), [@onigra](https://github.com/onigra) [@dchandekstark](https://github.com/dchandekstark))
+
+## [2.2.7] - 2023-03-13
+
+- Correct the year number in the changelog ([#2015](https://github.com/rack/rack/pull/2015), [@kimulab](https://github.com/kimulab))
+- Support underscore in host names for Rack 2.2 (Fixes [#2070](https://github.com/rack/rack/issues/2070)) ([#2015](https://github.com/rack/rack/pull/2071), [@jeremyevans](https://github.com/jeremyevans))
+
+## [2.2.6.4] - 2023-03-13
+
+- [CVE-2023-27539] Avoid ReDoS in header parsing
+
+## [2.2.6.3] - 2023-03-02
+
+- [CVE-2023-27530] Introduce multipart_total_part_limit to limit total parts
+
+## [2.2.6.2] - 2023-01-17
+
+- [CVE-2022-44570] Fix ReDoS in Rack::Utils.get_byte_ranges
+
+## [2.2.6.1] - 2023-01-17
+
+- [CVE-2022-44571] Fix ReDoS vulnerability in multipart parser
+- [CVE-2022-44572] Forbid control characters in attributes (also ReDoS)
+
+## [2.2.6] - 2023-01-17
+
+- Extend `Rack::MethodOverride` to handle `QueryParser::ParamsTooDeepError` error. ([#2011](https://github.com/rack/rack/pull/2011), [@byroot](https://github.com/byroot))
+
+## [2.2.5] - 2022-12-27
+
+### Fixed
+
+- `Rack::URLMap` uses non-deprecated form of `Regexp.new`. ([#1998](https://github.com/rack/rack/pull/1998), [@weizheheng](https://github.com/weizheheng))
 
 ## [2.2.4] - 2022-06-30
 
