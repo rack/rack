@@ -191,12 +191,12 @@ describe Rack::Lint do
     lambda {
       Rack::Lint.new(valid_app).call(env("SERVER_NAME" => "A Host"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "A Host must be a valid authority"
+      message.must_equal "env[SERVER_NAME] must be a valid host"
 
     lambda {
       Rack::Lint.new(valid_app).call(env("HTTP_HOST" => "A Host"))
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal "A Host must be a valid authority"
+      message.must_equal "env[HTTP_HOST] must be a valid authority"
 
     lambda {
       Rack::Lint.new(valid_app).call(env("REQUEST_METHOD" => "FUCKUP?"))
