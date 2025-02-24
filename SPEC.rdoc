@@ -6,7 +6,7 @@ after to catch all mistakes.
 
 = Rack applications
 
-A Rack application is a Ruby object (not a class) that
+A Rack application is a Ruby object that
 responds to +call+.
 It takes exactly one argument, the *environment*
 and returns a non-frozen Array of exactly three values:

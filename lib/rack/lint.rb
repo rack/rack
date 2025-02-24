@@ -33,7 +33,7 @@ module Rack
     ##
     ## = Rack applications
     ##
-    ## A Rack application is a Ruby object (not a class) that
+    ## A Rack application is a Ruby object that
     ## responds to +call+.
     def initialize(app)
       raise LintError, "app must respond to call" unless app.respond_to?(:call)
