@@ -175,9 +175,9 @@ module Rack
         ##                        <tt>SERVER_NAME</tt> can never be an empty
         ##                        string, and so is always required.
 
-        ## <tt>SERVER_PORT</tt>:: An optional +Integer+ which is the port the
-        ##                        server is running on. Should be specified if
-        ##                        the server is running on a non-standard port.
+        ## <tt>SERVER_PORT</tt>:: The port the server is running on. Should be
+        ##                        specified if the server is running on a
+        ##                        non-standard port.
 
         ## <tt>SERVER_PROTOCOL</tt>:: A string representing the HTTP version used
         ##                            for the request.
@@ -313,9 +313,9 @@ module Rack
         ## accepted specifications and must not be used otherwise.
         ##
 
-        ## The <tt>SERVER_PORT</tt> must be an Integer if set.
+        ## The <tt>SERVER_PORT</tt>, if given, must consist of digits only.
         if server_port = env[SERVER_PORT]
-          unless (Integer(server_port) rescue false)
+          unless server_port =~ /\A\d+\z/
             raise LintError, "env[SERVER_PORT] is not an Integer"
           end
         end

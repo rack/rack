@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - `Rack::RewindableInput::Middleware` no longer wraps a nil input. ([#2259](https://github.com/rack/rack/pull/2259), [@tt](https://github.com/tt))
 - Fix `NoMethodError` in `Rack::Request#wrap_ipv6` when `x-forwarded-host` is empty. ([#2270](https://github.com/rack/rack/pull/2270), [@oieioi](https://github.com/oieioi))
+- Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 
 ## [3.1.10] - 2025-02-12
 
