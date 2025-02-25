@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require 'forwardable'
-require 'uri'
 
 require_relative 'constants'
 require_relative 'utils'
@@ -17,6 +16,35 @@ module Rack
     REQUEST_PATH_ABSOLUTE_FORM = /\A#{Utils::URI_PARSER.make_regexp}\z/
     REQUEST_PATH_AUTHORITY_FORM = /\A[^\/:]+:\d+\z/
     REQUEST_PATH_ASTERISK_FORM = '*'
+
+    # Match a host name, according to RFC3986.
+    # Copied from `URI::RFC3986_Parser::HOST` because older Ruby versions (< 3.3) don't expose it.
+    HOST_PATTERN = /
+      (?<IP-literal>\[(?:
+          (?<IPv6address>
+            (?:\h{1,4}:){6}
+            (?<ls32>\h{1,4}:\h{1,4}
+            | (?<IPv4address>(?<dec-octet>[1-9]\d|1\d{2}|2[0-4]\d|25[0-5]|\d)
+                \.\g<dec-octet>\.\g<dec-octet>\.\g<dec-octet>)
+            )
+          | ::(?:\h{1,4}:){5}\g<ls32>
+          | \h{1,4}?::(?:\h{1,4}:){4}\g<ls32>
+          | (?:(?:\h{1,4}:)?\h{1,4})?::(?:\h{1,4}:){3}\g<ls32>
+          | (?:(?:\h{1,4}:){,2}\h{1,4})?::(?:\h{1,4}:){2}\g<ls32>
+          | (?:(?:\h{1,4}:){,3}\h{1,4})?::\h{1,4}:\g<ls32>
+          | (?:(?:\h{1,4}:){,4}\h{1,4})?::\g<ls32>
+          | (?:(?:\h{1,4}:){,5}\h{1,4})?::\h{1,4}
+          | (?:(?:\h{1,4}:){,6}\h{1,4})?::
+          )
+        | (?<IPvFuture>v\h++\.[!$&-.0-9:;=A-Z_a-z~]++)
+        )\])
+    | \g<IPv4address>
+    | (?<reg-name>(?:%\h\h|[!$&-.0-9;=A-Z_a-z~])*+)
+    /x.freeze
+    SERVER_NAME_PATTERN = /\A#{HOST_PATTERN}\z/.freeze
+    HTTP_HOST_PATTERN = /\A#{HOST_PATTERN}(:\d*+)?\z/.freeze
+
+    private_constant :HOST_PATTERN, :SERVER_NAME_PATTERN, :HTTP_HOST_PATTERN
 
     # :stopdoc:
 
@@ -320,16 +348,16 @@ module Rack
           end
         end
 
-        ## The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
+        ## The <tt>SERVER_NAME</tt> must be a valid host as defined by RFC3986.
         server_name = assert_required(SERVER_NAME)
-        unless (URI.parse("http://#{server_name}/") rescue false)
-          raise LintError, "#{server_name} must be a valid authority"
+        unless server_name.match?(SERVER_NAME_PATTERN)
+          raise LintError, "env[SERVER_NAME] must be a valid host"
         end
 
-        ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
+        ## The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC9110.
         if http_host = env[HTTP_HOST]
-          unless (URI.parse("http://#{http_host}/") rescue false)
-            raise LintError, "#{http_host} must be a valid authority"
+          unless http_host.match?(HTTP_HOST_PATTERN)
+            raise LintError, "env[HTTP_HOST] must be a valid authority"
           end
         end
 

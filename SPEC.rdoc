@@ -116,8 +116,8 @@ is reserved for use with the Rack core distribution and other
 accepted specifications and must not be used otherwise.
 
 The <tt>SERVER_PORT</tt>, if given, must consist of digits only.
-The <tt>SERVER_NAME</tt> must be a valid authority as defined by RFC7540.
-The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC7540.
+The <tt>SERVER_NAME</tt> must be a valid host as defined by RFC3986.
+The <tt>HTTP_HOST</tt> must be a valid authority as defined by RFC9110.
 The <tt>SERVER_PROTOCOL</tt> must match the regexp <tt>HTTP/\d(\.\d)?</tt>.
 The environment must not contain the keys
 <tt>HTTP_CONTENT_TYPE</tt> or <tt>HTTP_CONTENT_LENGTH</tt>
