@@ -61,7 +61,12 @@ module Rack
 
     def initialize(env)
       @env = env
+      @ip = nil
       @params = nil
+    end
+
+    def ip
+      @ip ||= super
     end
 
     def params
