@@ -17,7 +17,7 @@ jobs:
       with:
         ruby-version: ${{matrix.ruby}}
 
-    - uses: actions/cache@v1
+    - uses: actions/cache@v4
       with:
         path: vendor/bundle
         key: bundle-use-ruby-${{matrix.os}}-${{matrix.ruby}}-${{hashFiles('**/Gemfile')}}
