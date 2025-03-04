@@ -12,7 +12,7 @@
 # so it should be enough just to <tt>require 'rack'</tt> in your code.
 
 module Rack
-  RELEASE = "3.1.10"
+  RELEASE = "3.1.11"
 
   # Return the Rack release as a dotted string.
   def self.release
