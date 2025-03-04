@@ -38,7 +38,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.1.9] - 2025-01-31
 
@@ -153,7 +153,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.0.11] - 2024-05-10
 
@@ -335,7 +335,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in Rack::CommonLogger.
+- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [2.2.10] - 2024-10-14
 
