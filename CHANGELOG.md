@@ -8,6 +8,10 @@ All notable changes to this project will be documented in this file. For info on
 
 - [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
+### Fixed
+
+- Remove autoloads for constants no longer shipped with Rack. ([#2269](https://github.com/rack/rack/pull/2269), [@ccutrer](https://github.com/ccutrer))
+
 ## [3.0.12] - 2025-02-12
 
 ### Security
