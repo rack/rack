@@ -69,8 +69,8 @@ module Rack
       alias_method :local_path, :path
 
       # Return true if the tempfile responds to the method.
-      def respond_to?(*args)
-        super or @tempfile.respond_to?(*args)
+      def respond_to_missing?(*args)
+        @tempfile.respond_to?(*args)
       end
 
       # Delegate method missing calls to the tempfile.
