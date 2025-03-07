@@ -124,8 +124,9 @@ module Rack
 
     def call(env)
       path = env[PATH_INFO]
+      actual_path = Utils.clean_path_info(Utils.unescape_path(path))
 
-      if can_serve(path)
+      if can_serve(actual_path)
         if overwrite_file_path(path)
           env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[path])
         elsif @gzip && env['HTTP_ACCEPT_ENCODING'] && /\bgzip\b/.match?(env['HTTP_ACCEPT_ENCODING'])
