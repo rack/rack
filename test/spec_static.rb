@@ -43,6 +43,12 @@ describe Rack::Static do
     res.body.must_match(/ruby/)
   end
 
+  it "does not serve files outside :urls" do
+    res = @request.get("/cgi/../#{File.basename(__FILE__)}")
+    res.must_be :ok?
+    res.body.must_equal "Hello World"
+  end
+
   it "404s if url root is known but it can't find the file" do
     res = @request.get("/cgi/foo")
     res.must_be :not_found?
