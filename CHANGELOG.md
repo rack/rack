@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.13] - 2025-03-11
+
+### Security
+
+- [CVE-2025-27610](https://github.com/rack/rack/security/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
+
 ## [2.2.12] - 2025-03-04
 
 ### Security
