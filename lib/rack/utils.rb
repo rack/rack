@@ -595,10 +595,10 @@ module Rack
       end
     end
 
-    PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+    PATH_SEPS = /\//.freeze
 
     def clean_path_info(path_info)
-      parts = path_info.split PATH_SEPS
+      parts = path_info.split("/")
 
       clean = []
 
@@ -607,7 +607,7 @@ module Rack
         part == '..' ? clean.pop : clean << part
       end
 
-      clean_path = clean.join(::File::SEPARATOR)
+      clean_path = clean.join("/")
       clean_path.prepend("/") if parts.empty? || parts.first.empty?
       clean_path
     end
