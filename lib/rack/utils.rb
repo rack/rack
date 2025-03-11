@@ -595,7 +595,16 @@ module Rack
       end
     end
 
+    # @deprecated
     PATH_SEPS = /\//.freeze
+
+    # RFC 3986, 3.3. Path
+    # https://tools.ietf.org/html/rfc3986#section-3.3
+    UNRESERVED = /[A-Za-z0-9\-\.\_\~]/
+    SUB_DELIMS = /[!\$\&\'\(\)\*\+\,\;\=]/
+    PCT_ENCODED = /(?:\%[0-9A-Fa-f]{2})/
+    PCHAR = Regexp.union(UNRESERVED, SUB_DELIMS, /[:@]/, PCT_ENCODED)
+    SEGMENT = /\A#{PCHAR}*\z/
 
     def clean_path_info(path_info)
       parts = path_info.split("/")
@@ -603,6 +612,10 @@ module Rack
       clean = []
 
       parts.each do |part|
+        unless part.match?(SEGMENT)
+          raise ArgumentError, "Invalid path info: #{path_info.inspect}"
+        end
+
         next if part.empty? || part == '.'
         part == '..' ? clean.pop : clean << part
       end
