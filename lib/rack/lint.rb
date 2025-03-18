@@ -57,7 +57,7 @@ module Rack
     #
     ## = Rack Specification
     ##
-    ## This specification aims to formalize the Rack protocol. You can (and should) use +Rack::Lint+ to enforce it. When you develop middleware, be sure to add a lint wrapper to catch all mistakes.
+    ## This specification aims to formalize the Rack protocol. You can (and should) use +Rack::Lint+ to enforce it. When you develop middleware, be sure to test with +Rack::Lint+ to catch possible violations of this specification.
     ##
     ## == The Application
     ##
@@ -85,7 +85,7 @@ module Rack
       end
 
       def response
-        ## It takes exactly one argument, the +environment+ \
+        ## It takes exactly one argument, the +environment+ (representing an HTTP request) \
         raise LintError, "No env given" unless @env
         check_environment(@env)
 
@@ -108,7 +108,7 @@ module Rack
           @headers[RACK_HIJACK] = hijack_proc
         end
 
-        ## and the +body+.
+        ## and the +body+ (representing an HTTP response).
         check_content_type_header(@status, @headers)
         check_content_length_header(@status, @headers)
         check_rack_protocol_header(@status, @headers)
@@ -130,19 +130,11 @@ module Rack
       end
 
       ##
-      ## A Rack application is typically invoked by a Rack compatible server, which constructs an environment from the incoming HTTP request and calls the application with the environment. The application then processes the request and returns a response. The server translates the response into an HTTP response and sends it back to the client.
-      ##
-      ##   run do |env|
-      ##     [200, {'content-type' => 'text/plain'}, ['Hello Rack']]
-      ##   end
-      ##
-      ## Conceptually, the Rack application functions as an HTTP proxy: it accepts an HTTP request, forwards it to an application, and then returns the application's response to the client.
-      ##
       ## == The Request
       ##
       ## Incoming HTTP requests are represented using an environment. \
       def check_environment(env)
-        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but should follow the rules set out in the Rack specification.
+        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification.
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
@@ -171,7 +163,7 @@ module Rack
         ## The server and application can store their own data in the environment, too. The keys must contain at least one dot, and should be prefixed uniquely. The prefix <tt>rack.</tt> is reserved for use with the Rack specification and the classes that ship with Rack.
 
         ##
-        ## ==== +REQUEST_METHOD+
+        ## ==== <tt>REQUEST_METHOD</tt>
         ##
         ## The HTTP request method, such as "GET" or "POST". This cannot ever be an empty string, and so is always required.
         request_method = assert_required(REQUEST_METHOD)
@@ -180,7 +172,7 @@ module Rack
         end
 
         ##
-        ## ==== +SCRIPT_NAME+
+        ## ==== <tt>SCRIPT_NAME</tt>
         ##
         ## The initial portion of the request URL's path that corresponds to the application object, so that the application knows its virtual location. This may be an empty string, if the application corresponds to the root of the server. If non-empty, the string must start with <tt>/</tt>, but should not end with <tt>/</tt>.
         if script_name = env[SCRIPT_NAME]
@@ -201,11 +193,11 @@ module Rack
         end
 
         ##
-        ## ==== +PATH_INFO+
+        ## ==== <tt>PATH_INFO</tt>
         ##
         ## The remainder of the request URL's "path", designating the virtual "location" of the request's target within the application. This may be an empty string, if the request URL targets the application root and does not have a trailing slash. This value may be percent-encoded when originating from a URL.
         ##
-        ## The +PATH_INFO+, if provided, must be a valid request target or an empty string, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#target.resource].
+        ## The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#target.resource].
         if path_info = env[PATH_INFO]
           case path_info
           when REQUEST_PATH_ASTERISK_FORM
@@ -233,33 +225,33 @@ module Rack
         end
 
         ##
-        ## ==== +QUERY_STRING+
+        ## ==== <tt>QUERY_STRING</tt>
         ##
         ## The portion of the request URL that follows the <tt>?</tt>, if any. May be empty, but is always required!
         assert_required(QUERY_STRING)
 
         ##
-        ## ==== +SERVER_NAME+
+        ## ==== <tt>SERVER_NAME</tt>
         ##
         ## Must be a valid host, as defined by {RFC3986}[https://datatracker.ietf.org/doc/html/rfc3986#section-3.2.2].
         ##
-        ## When combined with <tt>SCRIPT_NAME</tt>, <tt>PATH_INFO</tt> and <tt>QUERY_STRING</tt>, these variables can be used to reconstruct the original the request URL. Note, however, that <tt>HTTP_HOST</tt>, if present, should be used in preference to <tt>SERVER_NAME</tt> for reconstructing the request URL.
+        ## When combined with <tt>SCRIPT_NAME</tt>, <tt>PATH_INFO</tt>, and <tt>QUERY_STRING</tt>, these variables can be used to reconstruct the original the request URL. Note, however, that <tt>HTTP_HOST</tt>, if present, should be used in preference to <tt>SERVER_NAME</tt> for reconstructing the request URL.
         server_name = assert_required(SERVER_NAME)
         unless server_name.match?(SERVER_NAME_PATTERN)
           raise LintError, "env[SERVER_NAME] must be a valid host"
         end
 
         ##
-        ## ==== +SERVER_PROTOCOL+
+        ## ==== <tt>SERVER_PROTOCOL</tt>
         ##
-        ## The HTTP version used for the request. It must match the regular expression <tt>HTTP/\d(\.\d)?</tt>.
+        ## The HTTP version used for the request. It must match the regular expression <tt>HTTP\/\d(\.\d)?</tt>.
         server_protocol = assert_required(SERVER_PROTOCOL)
         unless %r{HTTP/\d(\.\d)?}.match?(server_protocol)
           raise LintError, "env[SERVER_PROTOCOL] does not match HTTP/\\d(\\.\\d)?"
         end
 
         ##
-        ## ==== +SERVER_PORT+
+        ## ==== <tt>SERVER_PORT</tt>
         ##
         ## The port the server is running on, if the server is running on a non-standard port. It must consist of digits only.
         ##
@@ -273,15 +265,15 @@ module Rack
         end
 
         ##
-        ## ==== +CONTENT_TYPE+
+        ## ==== <tt>CONTENT_TYPE</tt>
         ##
         ## The optional MIME type of the request body, if any.
         # N.B. We do not validate this field as it is considered user-provided data.
 
         ##
-        ## ==== +CONTENT_LENGTH+
+        ## ==== <tt>CONTENT_LENGTH</tt>
         ##
-        ## The length of the request body, if any.
+        ## The length of the request body, if any. It must consist of digits only.
         if content_length = env["CONTENT_LENGTH"]
           if content_length !~ /\A\d+\z/
             raise LintError, "Invalid CONTENT_LENGTH: #{content_length.inspect}"
@@ -289,7 +281,7 @@ module Rack
         end
 
         ##
-        ## ==== +HTTP_HOST+
+        ## ==== <tt>HTTP_HOST</tt>
         ##
         ## An optional HTTP authority, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#name-host-and-authority].
         if http_host = env[HTTP_HOST]
@@ -299,7 +291,7 @@ module Rack
         end
 
         ##
-        ## ==== +HTTP_+ Headers
+        ## ==== <tt>HTTP_</tt> Headers
         ##
         ## Unless specified above, the environment can contain any number of additional headers, each starting with <tt>HTTP_</tt>. The presence or absence of these variables should correspond with the presence or absence of the appropriate HTTP header in the request, and those headers have no specific interpretation or validation by the Rack specification. However, there are many standard HTTP headers that have a specific meaning in the context of a request; see {RFC3875 section 4.1.18}[https://tools.ietf.org/html/rfc3875#section-4.1.18] for more details.
         ##
@@ -313,20 +305,20 @@ module Rack
         ##
         ## === Rack-Specific Variables
         ##
-        ## In addition to CGI variables, the Rack environment includes Rack-specific variables. These variables are prefixed with <tt>rack.</tt> and are reserved for use with the Rack specification.
+        ## In addition to CGI variables, the Rack environment includes Rack-specific variables. These variables are prefixed with <tt>rack.</tt> and are reserved for use by the Rack specification, or by the classes that ship with Rack.
         ##
-        ## ==== +rack.url_scheme+
+        ## ==== <tt>rack.url_scheme</tt>
         ##
-        ## The URL scheme, which must be one of +http+, +https+, +ws+ or +wss+. This can never be an empty string, and so is always required. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set +rack.url_scheme+ to +http+.
+        ## The URL scheme, which must be one of <tt>http</tt>, <tt>https</tt>, <tt>ws</tt> or <tt>wss</tt>. This can never be an empty string, and so is always required. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set <tt>rack.url_scheme</tt> to <tt>http</tt>.
         rack_url_scheme = assert_required(RACK_URL_SCHEME)
         unless ALLOWED_SCHEMES.include?(rack_url_scheme)
           raise LintError, "rack.url_scheme unknown: #{rack_url_scheme.inspect}"
         end
 
         ##
-        ## ==== +rack.protocol+
+        ## ==== <tt>rack.protocol</tt>
         ##
-        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the +upgrade+ header (HTTP/1) or the +:protocol+ pseudo-header (HTTP/2+).
+        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
         if protocols = env[RACK_PROTOCOL]
           unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
             raise LintError, "rack.protocol must be an Array of Strings"
@@ -334,9 +326,9 @@ module Rack
         end
 
         ##
-        ## ==== +rack.session+
+        ## ==== <tt>rack.session</tt>
         ##
-        ## An optional <tt>Hash</tt>-like interface for storing request session data. The store must implement:
+        ## An optional +Hash+-like interface for storing request session data. The store must implement:
         if session = env[RACK_SESSION]
           ## * <tt>store(key, value)</tt> (aliased as <tt>[]=</tt>) to set a value for a key,
           unless session.respond_to?(:store) && session.respond_to?(:[]=)
@@ -365,9 +357,9 @@ module Rack
         end
 
         ##
-        ## ==== +rack.logger+
+        ## ==== <tt>rack.logger</tt>
         ##
-        ## An optional <tt>Logger</tt>-like interface for logging messages. The logger must implement:
+        ## An optional +Logger+-like interface for logging messages. The logger must implement:
         if logger = env[RACK_LOGGER]
           ## * <tt>info(message, &block)</tt>,
           unless logger.respond_to?(:info)
@@ -396,9 +388,9 @@ module Rack
         end
 
         ##
-        ## ==== +rack.multipart.buffer_size+
+        ## ==== <tt>rack.multipart.buffer_size</tt>
         ##
-        ## An optional <tt>Integer</tt> hint to the multipart parser as to what chunk size to use for reads and writes.
+        ## An optional +Integer+ hint to the multipart parser as to what chunk size to use for reads and writes.
         if rack_multipart_buffer_size = env[RACK_MULTIPART_BUFFER_SIZE]
           unless rack_multipart_buffer_size.is_a?(Integer) && rack_multipart_buffer_size > 0
             raise LintError, "rack.multipart.buffer_size must be an Integer > 0 if specified"
@@ -406,7 +398,7 @@ module Rack
         end
 
         ##
-        ## ==== +rack.multipart.tempfile_factory+
+        ## ==== <tt>rack.multipart.tempfile_factory</tt>
         ##
         ## An optional object for constructing temporary files for multipart form data. The factory must implement:
         if rack_multipart_tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
@@ -415,7 +407,7 @@ module Rack
             raise LintError, "rack.multipart.tempfile_factory must respond to #call"
           end
 
-          ## The factory must return an IO-like object that responds to <tt><<</tt> and optionally <tt>rewind</tt>.
+          ## The factory must return an +IO+-like object that responds to <tt><<</tt> and optionally <tt>rewind</tt>.
           env[RACK_MULTIPART_TEMPFILE_FACTORY] = lambda do |filename, content_type|
             io = rack_multipart_tempfile_factory.call(filename, content_type)
             unless io.respond_to?(:<<)
@@ -426,26 +418,26 @@ module Rack
         end
 
         ##
-        ## ==== +rack.hijack?+
+        ## ==== <tt>rack.hijack?</tt>
         ##
         ## If present and true, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
         #
         # N.B. There is no specific validation here. If the user provides a partial hijack response, we will confirm this value is true in `check_hijack_response`.
 
         ##
-        ## ==== +rack.hijack+
+        ## ==== <tt>rack.hijack</tt>
         ##
         ## If present, an object responding to +call+ that is used to perform a full hijack. See the section below on hijacking for more information.
         check_hijack(env)
 
         ##
-        ## ==== +rack.early_hints+
+        ## ==== <tt>rack.early_hints</tt>
         ##
         ## If present, an object responding to +call+ that is used to send early hints. See the section below on early hints for more information.
         check_early_hints env
 
         ##
-        ## ==== +rack.input+
+        ## ==== <tt>rack.input</tt>
         ##
         ## If present, the input stream. See the section below on the input stream for more information.
         if rack_input = env[RACK_INPUT]
@@ -454,7 +446,7 @@ module Rack
         end
 
         ##
-        ## ==== +rack.errors+
+        ## ==== <tt>rack.errors</tt>
         ##
         ## The error stream. See the section below on the error stream for more information.
         rack_errors = assert_required(RACK_ERRORS)
@@ -462,9 +454,9 @@ module Rack
         @env[RACK_ERRORS] = ErrorWrapper.new(rack_errors)
 
         ##
-        ## ==== +rack.response_finished+
+        ## ==== <tt>rack.response_finished</tt>
         ##
-        ## If present, an array of callables that will be run by the server after the response has been processed. This would typically be invoked after sending the response to the client, but it could also be invoked if an error occurs while generating the response or sending the response; in that case, the error argument will be a subclass of +Exception+. The callables are invoked with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. They should be invoked in reverse order of registration.
+        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be invoked in reverse order.
         if rack_response_finished = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
           rack_response_finished.each do |callable|
@@ -476,7 +468,7 @@ module Rack
       ##
       ## === The Input Stream
       ##
-      ## The input stream is an IO-like object which contains the raw HTTP request data. \
+      ## The input stream is an +IO+-like object which contains the raw HTTP request data. \
       def check_input_stream(input)
         ## When applicable, its external encoding must be "ASCII-8BIT" and it must be opened in binary mode. \
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
@@ -513,11 +505,11 @@ module Rack
         end
 
         ## * +read+ behaves like <tt>IO#read</tt>. Its signature is <tt>read([length, [buffer]])</tt>.
-        ##   * If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must be a String and may not be nil.
-        ##   * If +length+ is given and not nil, then this method reads at most +length+ bytes from the input stream.
-        ##   * If +length+ is not given or nil, then this method reads all data until EOF.
-        ##   * When EOF is reached, this method returns nil if +length+ is given and not nil, or "" if +length+ is not given or is nil.
-        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created String object.
+        ##   * If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must be a +String+ and may not be +nil+.
+        ##   * If +length+ is given and not +nil+, then this method reads at most +length+ bytes from the input stream.
+        ##   * If +length+ is not given or +nil+, then this method reads all data until EOF.
+        ##   * When EOF is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
+        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+ object.
         def read(*args)
           unless args.size <= 2
             raise LintError, "rack.input#read called with too many arguments"
@@ -550,7 +542,7 @@ module Rack
           chunk
         end
 
-        ## * +each+ must be called without arguments and only yield Strings.
+        ## * +each+ must be called without arguments and only yield +String+ values.
         def each(*args)
           raise LintError, "rack.input#each called with arguments" unless args.size == 0
           @input.each do |line|
@@ -589,7 +581,7 @@ module Rack
           @error.puts str
         end
 
-        ## * +write+ must be called with a single argument that is a String.
+        ## * +write+ must be called with a single argument that is a +String+.
         def write(str)
           raise LintError, "rack.errors#write not called with a String" unless str.kind_of? String
           @error.write str
@@ -615,10 +607,10 @@ module Rack
       ##
       ## ==== Full Hijack
       ##
-      ## Full hijack is used to completely take over an HTTP/1 connection. It occurs before any headers are written and causes the request to ignores any response generated by the application. It is intended to be used when applications need access to raw HTTP/1 connection.
+      ## Full hijack is used to completely take over an HTTP/1 connection. It occurs before any headers are written and causes the server to ignore any response generated by the application. It is intended to be used when applications need access to the raw HTTP/1 connection.
       ##
       def check_hijack(env)
-        ## If +rack.hijack+ is present in +env+, it must respond to +call+ \
+        ## If <tt>rack.hijack</tt> is present in +env+, it must respond to +call+ \
         if original_hijack = env[RACK_HIJACK]
           raise LintError, "rack.hijack must respond to call" unless original_hijack.respond_to?(:call)
 
@@ -639,9 +631,9 @@ module Rack
       ## Partial hijack is used for bi-directional streaming of the request and response body. It occurs after the status and headers are written by the server and causes the server to ignore the Body of the response. It is intended to be used when applications need bi-directional streaming.
       ##
       def check_hijack_response(headers, env)
-        ## If +rack.hijack?+ is present in +env+ and truthy, \
+        ## If <tt>rack.hijack?</tt> is present in +env+ and truthy, \
         if env[RACK_IS_HIJACK]
-          ## an application may set the special response header +rack.hijack+ \
+          ## an application may set the special response header <tt>rack.hijack</tt> \
           if original_hijack = headers[RACK_HIJACK]
             ## to an object that responds to +call+, \
             unless original_hijack.respond_to?(:call)
@@ -653,10 +645,10 @@ module Rack
             end
           end
           ##
-          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the +rack.hijack+ response header is present. Using an empty +Array+ instance is recommended.
+          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ instance is recommended.
         else
           ##
-          ## The special response header +rack.hijack+ must only be set if the request +env+ has a truthy +rack.hijack?+.
+          ## The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
           if headers.key?(RACK_HIJACK)
             raise LintError, 'rack.hijack header must not be present if server does not support hijacking'
           end
@@ -689,7 +681,7 @@ module Rack
       ##
       ## == The Response
       ##
-      ## Outgoing HTTP responses are generated from the response tuple generated by the application. The response tuple is an +Array+ of three elements, which are: the HTTP status, the headers, and the response body. The Rack application is responsible for ensuring that the response tuple is well-formed and should follow the rules set out in the Rack specification.
+      ## Outgoing HTTP responses are generated from the response tuple generated by the application. The response tuple is an +Array+ of three elements, which are: the HTTP status, the headers, and the response body. The Rack application is responsible for ensuring that the response tuple is well-formed and should follow the rules set out in this specification.
       ##
       ## === The Status
       ##
@@ -730,7 +722,7 @@ module Rack
           ## * Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
-          ## * Header values must be either a +String+ instance, \
+          ## * Header values must be either a +String+ value, \
           if value.kind_of?(String)
             check_header_value(key, value)
           elsif value.kind_of?(Array)
@@ -743,14 +735,14 @@ module Rack
       end
 
       def check_header_value(key, value)
-        ## such that each String instance must not contain characters below 037.
+        ## such that each +String+ value must not contain characters with an ASCII ordinal below 040 (32).
         if value =~ /[\000-\037]/
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
       end
 
       ##
-      ## ==== The +content-type+ Header
+      ## ==== The <tt>content-type</tt> Header
       ##
       def check_content_type_header(status, headers)
         headers.each do |key, value|
@@ -765,7 +757,7 @@ module Rack
       end
 
       ##
-      ## ==== The +content-length+ Header
+      ## ==== The <tt>content-length</tt> Header
       ##
       def check_content_length_header(status, headers)
         headers.each do |key, value|
@@ -792,10 +784,10 @@ module Rack
       end
 
       ##
-      ## ==== The +rack.protocol+ Header
+      ## ==== The <tt>rack.protocol</tt> Header
       ##
       def check_rack_protocol_header(status, headers)
-        ## If the <tt>rack.protocol</tt> header is present, it must be a +String+, and must be one of the values from the +rack.protocol+ array from the environment.
+        ## If the <tt>rack.protocol</tt> header is present, it must be a +String+, and must be one of the values from the <tt>rack.protocol</tt> array from the environment.
         protocol = headers['rack.protocol']
 
         if protocol
@@ -934,7 +926,7 @@ module Rack
       class StreamWrapper
         extend Forwardable
 
-        ## The semantics of these IO methods must be a best effort match to those of a normal Ruby IO or Socket object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or HTTP/2+), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
+        ## The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or HTTP/2+), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
         REQUIRED_METHODS = [
           :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?
@@ -960,6 +952,5 @@ end
 ## We'd like to thank everyone who has contributed to the Rack project over the years. Your work has made this specification possible. That includes everyone who has contributed code, documentation, bug reports, and feedback. We'd also like to thank the authors of the various web servers, frameworks, and libraries that have implemented the Rack specification. Your work has helped to make the web a better place.
 ##
 ## Some parts of this specification are adapted from {PEP 333 – Python Web Server Gateway Interface v1.0}[https://peps.python.org/pep-0333/]. We'd like to thank everyone involved in that effort.
-##
 
 # :startdoc:
