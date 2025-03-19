@@ -130,7 +130,7 @@ module Rack
       end
 
       ##
-      ## == The Request
+      ## == The Request Environment
       ##
       ## Incoming HTTP requests are represented using an environment. \
       def check_environment(env)

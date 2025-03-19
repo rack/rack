@@ -6,7 +6,7 @@ This specification aims to formalize the Rack protocol. You can (and should) use
 
 A Rack application is a Ruby object that responds to +call+. It takes exactly one argument, the +environment+ (representing an HTTP request) and returns a non-frozen +Array+ of exactly three values: the +status+, the +headers+, and the +body+ (representing an HTTP response).
 
-== The Request
+== The Request Environment
 
 Incoming HTTP requests are represented using an environment. The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification.
 
