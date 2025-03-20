@@ -9,10 +9,8 @@ group :maintenance, optional: true do
   gem "rubocop-packaging", require: false
 end
 
-unless ENV['CI']
-  group :doc do
-    gem 'rdoc'
-  end
+group :doc do
+  gem "rdoc"
 end
 
 group :test do
