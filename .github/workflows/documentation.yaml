@@ -1,0 +1,54 @@
+name: Documentation
+
+on:
+  push:
+    branches:
+      - main
+      - documentation-*
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: "pages"
+  cancel-in-progress: true
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v4
+
+    - uses: ruby/setup-ruby@v1
+      with:
+        ruby-version: "3.4"
+        bundler-cache: true
+    
+    - name: Generate documentation
+      timeout-minutes: 5
+      run: bundle exec rdoc --all --op docs --main README.md --template-stylesheets contrib/rdoc.css
+    
+    - name: Copy contrib
+      timeout-minutes: 5
+      run: cp -r contrib docs/
+    
+    - name: Upload documentation artifact
+      uses: actions/upload-pages-artifact@v3
+      with:
+        path: docs
+  
+  deploy:
+    runs-on: ubuntu-latest
+    
+    environment:
+      name: github-pages
+      url: ${{steps.deployment.outputs.page_url}}
+    
+    needs: generate
+    steps:
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4
