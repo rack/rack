@@ -6,7 +6,8 @@ way possible, it unifies and distills the bridge between web servers, web
 frameworks, and web application into a single method call.
 
 The exact details of this are described in the [Rack Specification], which all
-Rack applications should conform to.
+Rack applications should conform to. Browse the [Documentation] for more
+information.
 
 ## Version support
 
@@ -338,4 +339,5 @@ would like to thank:
 Rack is released under the [MIT License](MIT-LICENSE).
 
 [Rack Specification]: SPEC.rdoc
+[Documentation]: https://rack.github.io/rack/
 [Security Policy]: SECURITY.md
