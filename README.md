@@ -19,19 +19,19 @@ Rack applications should conform to.
 
 Please see the [Security Policy] for more information.
 
-## Rack 3.1
+### Rack 3.1
 
 This is the latest version of Rack. It contains bug fixes and security patches.
 Please check the [Change Log](CHANGELOG.md) for detailed information on specific
 changes.
 
-## Rack 3.0
+### Rack 3.0
 
 This version of rack contains significant changes which are detailed in the
 [Upgrade Guide](UPGRADE-GUIDE.md). It is recommended to upgrade to Rack 3 as soon
 as possible to receive the latest features and security patches.
 
-## Rack 2.2
+### Rack 2.2
 
 This version of Rack is receiving security patches only, and effort should be
 made to move to Rack 3.
