@@ -76,13 +76,19 @@ task spec: "SPEC.rdoc"
 
 file 'lib/rack/lint.rb'
 file "SPEC.rdoc" => 'lib/rack/lint.rb' do
-  File.open("SPEC.rdoc", "wb") { |file|
-    IO.foreach("lib/rack/lint.rb") { |line|
-      if line =~ /^\s*## ?(.*)/
-        file.puts $1
+  line_pattern = /\A\s*## ?(?<text>.*?)(?<wrap>\\)?$/
+
+  File.open("SPEC.rdoc", "wb") do |file|
+    IO.foreach("lib/rack/lint.rb") do |line|
+      if match = line_pattern.match(line)
+        if match[:wrap]
+          file.print match[:text]
+        else
+          file.puts match[:text]
+        end
       end
-    }
-  }
+    end
+  end
 end
 
 Rake::TestTask.new("test:regular") do |t|
