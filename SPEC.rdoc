@@ -4,7 +4,7 @@ This specification aims to formalize the Rack protocol. You can (and should) use
 
 == The Application
 
-A Rack application is a Ruby object that responds to +call+. It takes exactly one argument, the +environment+ (representing an HTTP request) and returns a non-frozen +Array+ of exactly three values: the +status+, the +headers+, and the +body+ (representing an HTTP response).
+A Rack application is a Ruby object that responds to +call+. It takes exactly one argument, the +environment+ (representing an HTTP request) and returns a non-frozen +Array+ of exactly three elements: the +status+, the +headers+, and the +body+ (representing an HTTP response).
 
 == The Request Environment
 

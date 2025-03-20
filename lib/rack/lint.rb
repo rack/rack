@@ -89,7 +89,7 @@ module Rack
         raise LintError, "No env given" unless @env
         check_environment(@env)
 
-        ## and returns a non-frozen +Array+ of exactly three values: \
+        ## and returns a non-frozen +Array+ of exactly three elements: \
         @response = @app.call(@env)
 
         raise LintError, "response is not an Array, but #{@response.class}" unless @response.kind_of? Array
