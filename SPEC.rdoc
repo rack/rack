@@ -8,7 +8,7 @@ A Rack application is a Ruby object that responds to +call+. It takes exactly on
 
 == The Request Environment
 
-Incoming HTTP requests are represented using an environment. The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification.
+Incoming HTTP requests are represented using an environment. The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. All environment keys must be strings.
 
 === CGI Variables
 

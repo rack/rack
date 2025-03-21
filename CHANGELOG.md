@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### SPEC Changes
+
+- Request environment keys must now be strings. [#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
+
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
