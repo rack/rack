@@ -10,8 +10,7 @@ group :maintenance, optional: true do
 end
 
 group :doc do
-  gem "rdoc", git: "https://github.com/ioquatix/rdoc.git"
-  # gem "rdoc", path: "../../ioquatix/rdoc"
+  gem "rdoc", git: "https://github.com/rdoc/rdoc.git"
 end
 
 group :test do
