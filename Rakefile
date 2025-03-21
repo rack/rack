@@ -76,10 +76,10 @@ task spec: "SPEC.rdoc"
 
 file 'lib/rack/lint.rb'
 file "SPEC.rdoc" => 'lib/rack/lint.rb' do
-  line_pattern = /\A\s*## ?(?<text>.*?)(?<wrap>\\)?$/
+  line_pattern = /\A\s*## ?(?<text>.*?)(?<wrap>\\)?$/u
 
-  File.open("SPEC.rdoc", "wb") do |file|
-    IO.foreach("lib/rack/lint.rb") do |line|
+  File.open("SPEC.rdoc", "wb", encoding: "UTF-8") do |file|
+    IO.foreach("lib/rack/lint.rb", encoding: "UTF-8") do |line|
       if match = line_pattern.match(line)
         if match[:wrap]
           file.print match[:text]
