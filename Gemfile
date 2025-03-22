@@ -9,10 +9,9 @@ group :maintenance, optional: true do
   gem "rubocop-packaging", require: false
 end
 
-unless ENV['CI']
-  group :doc do
-    gem 'rdoc'
-  end
+group :doc do
+  # gem "rdoc", git: "https://github.com/rdoc/rdoc.git"
+  gem "rdoc", git: "https://github.com/Shopify/rdoc.git", branch: "fix-#1107"
 end
 
 group :test do
