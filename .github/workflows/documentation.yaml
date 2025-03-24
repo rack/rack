@@ -29,11 +29,11 @@ jobs:
     
     - name: Generate documentation
       timeout-minutes: 5
-      run: bundle exec rdoc --all --op docs --main README.md --template-stylesheets contrib/rdoc.css
+      run: bundle exec rdoc --all --op docs/main --main README.md --template-stylesheets contrib/rdoc.css
     
     - name: Copy contrib
       timeout-minutes: 5
-      run: cp -r contrib docs/
+      run: cp -r contrib docs/main
     
     - name: Upload documentation artifact
       uses: actions/upload-pages-artifact@v3
