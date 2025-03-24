@@ -841,7 +841,7 @@ module Rack
 
           if optional_path != nil
             unless optional_path.is_a?(String) && ::File.exist?(optional_path)
-              raise LintError, "The file identified by body.to_path does not exist"
+              raise LintError, "body.to_path must be nil or a path to an existing file"
             end
           end
         end

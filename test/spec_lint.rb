@@ -749,7 +749,7 @@ describe Rack::Lint do
                              }).call(env({}))[2]
       body.each { |part| }
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'The file identified by body.to_path does not exist'
+      message.must_equal 'body.to_path must be nil or a path to an existing file'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|
@@ -760,7 +760,7 @@ describe Rack::Lint do
                              }).call(env({}))[2]
       body.each { |part| }
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'The file identified by body.to_path does not exist'
+      message.must_equal 'body.to_path must be nil or a path to an existing file'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|
