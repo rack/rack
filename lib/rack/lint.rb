@@ -134,9 +134,16 @@ module Rack
       ##
       ## Incoming HTTP requests are represented using an environment. \
       def check_environment(env)
-        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification.
+        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. \
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
+
+        ## All environment keys must be strings.
+        keys = env.keys
+        keys.reject!{|key| String === key}
+        unless keys.empty?
+          raise LintError, "env contains non-string keys: #{keys.inspect}"
+        end
 
         ##
         ## === CGI Variables
