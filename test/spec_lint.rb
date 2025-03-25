@@ -607,6 +607,17 @@ describe Rack::Lint do
     body.to_path.must_equal __FILE__
   end
 
+  it "handles body.to_path returning nil" do
+    body = Object.new
+    def body.each; end
+    def body.to_path; nil end
+    app = lambda { |env| [200, {}, body] }
+
+    body = Rack::Lint.new(app).call(env({}))[2]
+    body.must_respond_to(:to_path)
+    body.to_path.must_be_nil
+  end
+
   it "notice body errors" do
     lambda {
       body = Rack::Lint.new(lambda { |env|
@@ -738,7 +749,18 @@ describe Rack::Lint do
                              }).call(env({}))[2]
       body.each { |part| }
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'The file identified by body.to_path does not exist'
+      message.must_equal 'body.to_path must be nil or a path to an existing file'
+
+    lambda {
+      body = Rack::Lint.new(lambda { |env|
+                               to_path = Object.new
+                               def to_path.each; end
+                               def to_path.to_path; false end
+                               [200, { "content-type" => "text/plain", "content-length" => "0" }, to_path]
+                             }).call(env({}))[2]
+      body.each { |part| }
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal 'body.to_path must be nil or a path to an existing file'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|

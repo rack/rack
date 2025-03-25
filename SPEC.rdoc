@@ -235,7 +235,7 @@ The Body must either be consumed or returned. The Body is consumed by optionally
 
 After calling +close+, the Body is considered closed and should not be consumed again. If the original Body is replaced by a new Body, the new Body must also consume the original Body by calling +close+ if possible.
 
-If the Body responds to +to_path+, it must return a +String+ path for the local file system whose contents are identical to that produced by calling +each+; this may be used by the server as an alternative, possibly more efficient way to transport the response. The +to_path+ method does not consume the body.
+If the Body responds to +to_path+, it must return either +nil+ or a +String+. If a +String+ is returned, it must be a path for the local file system whose contents are identical to that produced by calling +each+; this may be used by the server as an alternative, possibly more efficient way to transport the response. The +to_path+ method does not consume the body.
 
 ==== Enumerable Body
 

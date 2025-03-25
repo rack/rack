@@ -835,10 +835,14 @@ module Rack
 
       def verify_to_path
         ##
-        ## If the Body responds to +to_path+, it must return a +String+ path for the local file system whose contents are identical to that produced by calling +each+; this may be used by the server as an alternative, possibly more efficient way to transport the response. The +to_path+ method does not consume the body.
+        ## If the Body responds to +to_path+, it must return either +nil+ or a +String+. If a +String+ is returned, it must be a path for the local file system whose contents are identical to that produced by calling +each+; this may be used by the server as an alternative, possibly more efficient way to transport the response. The +to_path+ method does not consume the body.
         if @body.respond_to?(:to_path)
-          unless ::File.exist? @body.to_path
-            raise LintError, "The file identified by body.to_path does not exist"
+          optional_path = @body.to_path
+
+          if optional_path != nil
+            unless optional_path.is_a?(String) && ::File.exist?(optional_path)
+              raise LintError, "body.to_path must be nil or a path to an existing file"
+            end
           end
         end
       end
