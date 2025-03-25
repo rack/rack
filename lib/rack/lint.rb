@@ -139,8 +139,10 @@ module Rack
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
         ## All environment keys must be strings.
-        unless env.keys.all?(String)
-          raise LintError, "env contains non-string keys"
+        keys = env.keys
+        keys.reject!{|key| String === key}
+        unless keys.empty?
+          raise LintError, "env contains non-string keys: #{keys.inspect}"
         end
 
         ##

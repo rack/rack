@@ -38,7 +38,7 @@ describe Rack::Lint do
       message.must_match(/env should not be frozen, but is/)
 
     lambda { Rack::Lint.new(valid_app).call({a: 1}) }.must_raise(Rack::Lint::LintError).
-      message.must_equal("env contains non-string keys")
+      message.must_equal("env contains non-string keys: [:a]")
 
     lambda {
       e = env
