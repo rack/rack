@@ -33,15 +33,15 @@ jobs:
 
     - name: "Generate 3.1 documentation"
       timeout-minutes: 5
-      run: 'gem install rack version "< 3.2" && gem unpack rack -v "< 3.2" && cd rack-3.1* && bundle exec rdoc --op ../docs/3.1 --main README.md'
+      run: 'gem install rack --version "< 3.2" && gem unpack rack -v "< 3.2" && cd rack-3.1* && bundle exec rdoc --op ../docs/3.1 --main README.md'
 
     - name: "Generate 3.0 documentation"
       timeout-minutes: 5
-      run: 'gem install rack version "< 3.1" && gem unpack rack -v "< 3.1" && cd rack-3.0* && bundle exec rdoc --op ../docs/3.0 --main README.md'
+      run: 'gem install rack --version "< 3.1" && gem unpack rack -v "< 3.1" && cd rack-3.0* && bundle exec rdoc --op ../docs/3.0 --main README.md'
 
     - name: "Generate 2.2 documentation"
       timeout-minutes: 5
-      run: 'gem install rack version "< 2.3" && gem unpack rack -v "< 2.3" && cd rack-2.2* && bundle exec rdoc --op ../docs/2.2 --main README.rdoc'
+      run: 'gem install rack --version "< 2.3" && gem unpack rack -v "< 2.3" && cd rack-2.2* && bundle exec rdoc --op ../docs/2.2 --main README.rdoc'
     
     - name: Copy contrib
       timeout-minutes: 5
