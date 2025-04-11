@@ -141,7 +141,7 @@ module Rack
 
       rack_input = opts[:input]
       if String === rack_input
-        rack_input = StringIO.new(rack_input)
+        rack_input = StringIO.new(rack_input, "r")
       end
 
       if rack_input
