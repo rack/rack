@@ -25,7 +25,7 @@ module Rack
     VERSION
   end
 
-  RELEASE = "3.0.14"
+  RELEASE = "3.0.15"
 
   # Return the Rack release as a dotted string.
   def self.release
