@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.13] - 2025-04-13
+
+- Ensure `Rack::ETag` correctly updates response body. ([#2324](https://github.com/rack/rack/pull/2324), [@ioquatix])
+
 ## [3.1.12] - 2025-03-11
 
 ### Security
@@ -128,6 +132,10 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.15] - 2025-04-13
+
+- Ensure `Rack::ETag` correctly updates response body. ([#2324](https://github.com/rack/rack/pull/2324), [@ioquatix])
 
 ## [3.0.14] - 2025-03-11
 
