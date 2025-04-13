@@ -28,6 +28,16 @@ describe Rack::ETag do
     response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
+  it "returns a valid response body when using a linted app" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
+    response = etag(Rack::Lint.new(app)).call(request)
+    response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
+
+    response[2].each do |chunk|
+      chunk.must_equal "Hello, World!"
+    end
+  end
+
   it "set etag if none is set if status is 201" do
     app = lambda { |env| [201, { 'content-type' => 'text/plain' }, ["Hello, World!"]] }
     response = etag(app).call(request)

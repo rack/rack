@@ -32,6 +32,9 @@ module Rack
         body = body.to_ary
         digest = digest_body(body)
         headers[ETAG_STRING] = %(W/"#{digest}") if digest
+
+        # Body was modified, so we need to re-assign it:
+        response[2] = body
       end
 
       unless headers[CACHE_CONTROL]

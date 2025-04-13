@@ -39,6 +39,10 @@ All notable changes to this project will be documented in this file. For info on
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 
+## [3.1.13] - 2025-04-13
+
+- Ensure `Rack::ETag` correctly updates response body. ([#2324](https://github.com/rack/rack/pull/2324), [@ioquatix])
+
 ## [3.1.12] - 2025-03-11
 
 ### Security
@@ -165,6 +169,10 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.15] - 2025-04-13
+
+- Ensure `Rack::ETag` correctly updates response body. ([#2324](https://github.com/rack/rack/pull/2324), [@ioquatix])
 
 ## [3.0.14] - 2025-03-11
 
