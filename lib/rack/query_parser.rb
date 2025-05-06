@@ -198,8 +198,8 @@ module Rack
       end
     end
 
-    def unescape(string, encoding = Encoding::UTF_8)
-      Utils.unescape(string, encoding)
+    def unescape(string)
+      Utils.unescape(string)
     end
 
     class Params
