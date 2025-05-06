@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [CVE-2025-32441](https://github.com/rack/rack/security/advisories/GHSA-vpfw-47h7-xj4g) Rack session can be restored after deletion.
+- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [2.2.13] - 2025-03-11
 

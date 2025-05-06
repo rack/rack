@@ -1535,6 +1535,10 @@ EOF
 
   class NonDelegate < Rack::Request
     def delegate?; false; end
+
+    def query_parser
+      Rack::QueryParser.make_default(Rack::Utils.key_space_limit, Rack::Utils.param_depth_limit, bytesize_limit: 2**30)
+    end
   end
 
   def make_request(env)
@@ -1558,6 +1562,10 @@ EOF
       def delegate?; true; end
 
       def env; @req.env.dup; end
+
+      def query_parser
+        Rack::QueryParser.make_default(Rack::Utils.key_space_limit, Rack::Utils.param_depth_limit, bytesize_limit: 2**30)
+      end
     end
 
     def make_request(env)
