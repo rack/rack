@@ -1879,6 +1879,9 @@ EOF
 
   class NonDelegate < Rack::Request
     def delegate?; false; end
+    def query_parser
+      Rack::QueryParser.make_default(Rack::Utils.param_depth_limit, bytesize_limit: 2**30)
+    end
   end
 
   def make_request(env)
@@ -1900,6 +1903,10 @@ EOF
       end
 
       def delegate?; true; end
+
+      def query_parser
+        Rack::QueryParser.make_default(Rack::Utils.param_depth_limit, bytesize_limit: 2**30)
+      end
     end
 
     def make_request(env)
