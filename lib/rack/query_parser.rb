@@ -21,21 +21,47 @@ module Rack
       include BadRequest
     end
 
-    # ParamsTooDeepError is the error that is raised when params are recursively
-    # nested over the specified limit.
-    class ParamsTooDeepError < RangeError
+    # QueryLimitError is for errors raised when the query provided exceeds one
+    # of the query parser limits.
+    class QueryLimitError < RangeError
       include BadRequest
     end
 
-    def self.make_default(param_depth_limit)
-      new Params, param_depth_limit
+    # ParamsTooDeepError is the old name for the error that is raised when params
+    # are recursively nested over the specified limit. Make it the same as
+    # as QueryLimitError, so that code that rescues ParamsTooDeepError error
+    # to handle bad query strings also now handles other limits.
+    ParamsTooDeepError = QueryLimitError
+
+    def self.make_default(param_depth_limit, **options)
+      new(Params, param_depth_limit, **options)
     end
 
     attr_reader :param_depth_limit
 
-    def initialize(params_class, param_depth_limit)
+    env_int = lambda do |key, val|
+      if str_val = ENV[key]
+        begin
+          val = Integer(str_val, 10)
+        rescue ArgumentError
+          raise ArgumentError, "non-integer value provided for environment variable #{key}"
+        end
+      end
+
+      val
+    end
+
+    BYTESIZE_LIMIT = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
+    private_constant :BYTESIZE_LIMIT
+
+    PARAMS_LIMIT = env_int.call("RACK_QUERY_PARSER_PARAMS_LIMIT", 4096)
+    private_constant :PARAMS_LIMIT
+
+    def initialize(params_class, param_depth_limit, bytesize_limit: BYTESIZE_LIMIT, params_limit: PARAMS_LIMIT)
       @params_class = params_class
       @param_depth_limit = param_depth_limit
+      @bytesize_limit = bytesize_limit
+      @params_limit = params_limit
     end
 
     # Stolen from Mongrel, with some small modifications:
@@ -47,7 +73,7 @@ module Rack
 
       params = make_params
 
-      (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
+      check_query_string(qs, separator).split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
         next if p.empty?
         k, v = p.split('=', 2).map!(&unescaper)
 
@@ -74,7 +100,7 @@ module Rack
       params = make_params
 
       unless qs.nil? || qs.empty?
-        (qs || '').split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
+        check_query_string(qs, separator).split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
           _normalize_params(params, k, v, 0)
@@ -187,6 +213,22 @@ module Rack
       end
 
       true
+    end
+
+    def check_query_string(qs, sep)
+      if qs
+        if qs.bytesize > @bytesize_limit
+          raise QueryLimitError, "total query size (#{qs.bytesize}) exceeds limit (#{@bytesize_limit})"
+        end
+
+        if (param_count = qs.count(sep.is_a?(String) ? sep : '&')) >= @params_limit
+          raise QueryLimitError, "total number of query parameters (#{param_count+1}) exceeds limit (#{@params_limit})"
+        end
+
+        qs
+      else
+        ''
+      end
     end
 
     def unescape(string, encoding = Encoding::UTF_8)

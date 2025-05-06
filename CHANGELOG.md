@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.14] - 2025-05-06
+
+### Security
+
+- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+
 ## [3.1.13] - 2025-04-13
 
 - Ensure `Rack::ETag` correctly updates response body. ([#2324](https://github.com/rack/rack/pull/2324), [@ioquatix])
@@ -132,6 +138,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.16] - 2025-05-06
+
+### Security
+
+- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [3.0.15] - 2025-04-13
 
@@ -330,6 +342,12 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.14] - 2025-05-06
+
+### Security
+
+- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [2.2.13] - 2025-03-11
 
