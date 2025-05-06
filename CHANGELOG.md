@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.14] - 2025-05-06
+
+### Security
+
+- [CVE-2025-32441](https://github.com/rack/rack/security/advisories/GHSA-vpfw-47h7-xj4g) Rack session can be restored after deletion.
+
 ## [2.2.13] - 2025-03-11
 
 ### Security

@@ -55,6 +55,7 @@ module Rack
 
       def write_session(req, session_id, new_session, options)
         with_lock(req) do
+          return false unless get_session_with_fallback(session_id)
           @pool.store session_id.private_id, new_session
           session_id
         end
@@ -64,7 +65,11 @@ module Rack
         with_lock(req) do
           @pool.delete(session_id.public_id)
           @pool.delete(session_id.private_id)
-          generate_sid unless options[:drop]
+          unless options[:drop]
+            sid = generate_sid
+            @pool.store(sid.private_id, {})
+            sid
+          end
         end
       end
 
