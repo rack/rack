@@ -84,6 +84,7 @@ describe Rack::MockResponse do
   it "provides access to session cookies" do
     res = Rack::MockRequest.new(app).get("")
     session_cookie = res.cookie("session_test")
+    session_cookie[0].must_equal "session_test"
     session_cookie.value[0].must_equal "session_test"
     session_cookie.domain.must_equal "test.com"
     session_cookie.path.must_equal "/"
