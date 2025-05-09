@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'cgi/cookie'
 require 'time'
 
 require_relative 'response'
@@ -11,6 +10,35 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
+    if RUBY_VERSION >= '3.5'
+      class Cookie
+        attr_reader :name, :value, :path, :domain, :expires, :secure
+
+        def initialize(args)
+          @name = args["name"]
+          @value = args["value"]
+          @path = args["path"]
+          @domain = args["domain"]
+          @expires = args["expires"]
+          @secure = args["secure"]
+        end
+
+        def method_missing(method_name, *args, &block)
+          @value.send(method_name, *args, &block)
+        end
+        # :nocov:
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+        # :nocov:
+
+        def respond_to_missing?(method_name, include_all = false)
+          @value.respond_to?(method_name, include_all) || super
+        end
+      end
+    else
+      require 'cgi/cookie'
+      Cookie = CGI::Cookie
+    end
+
     class << self
       alias [] new
     end
@@ -83,7 +111,7 @@ module Rack
         Array(set_cookie_header).each do |cookie|
           cookie_name, cookie_filling = cookie.split('=', 2)
           cookie_attributes = identify_cookie_attributes cookie_filling
-          parsed_cookie = CGI::Cookie.new(
+          parsed_cookie = Cookie.new(
             'name' => cookie_name.strip,
             'value' => cookie_attributes.fetch('value'),
             'path' => cookie_attributes.fetch('path', nil),
@@ -100,7 +128,7 @@ module Rack
     def identify_cookie_attributes(cookie_filling)
       cookie_bits = cookie_filling.split(';')
       cookie_attributes = Hash.new
-      cookie_attributes.store('value', cookie_bits[0].strip)
+      cookie_attributes.store('value', Array(cookie_bits[0].strip))
       cookie_bits.drop(1).each do |bit|
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=', 2)
