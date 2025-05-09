@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 require_relative 'helper'
-require 'cgi'
+require 'cgi/escape'
 require 'forwardable'
 require 'securerandom'
 
