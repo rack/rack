@@ -41,7 +41,7 @@ describe Rack::Session::Pool do
     pool = Rack::Session::Pool.new(incrementor)
     res = Rack::MockRequest.new(pool).get("/")
     res["Set-Cookie"].must_match(session_match)
-    res.body.must_equal '{"counter"=>1}'
+    res.body.must_equal({ "counter" => 1 }.to_s)
   end
 
   it "determines session from a cookie" do
@@ -49,16 +49,16 @@ describe Rack::Session::Pool do
     req = Rack::MockRequest.new(pool)
     cookie = req.get("/")["Set-Cookie"]
     req.get("/", "HTTP_COOKIE" => cookie).
-      body.must_equal '{"counter"=>2}'
+      body.must_equal({ "counter" => 2 }.to_s)
     req.get("/", "HTTP_COOKIE" => cookie).
-      body.must_equal '{"counter"=>3}'
+      body.must_equal({ "counter" => 3 }.to_s)
   end
 
   it "survives nonexistent cookies" do
     pool = Rack::Session::Pool.new(incrementor)
     res = Rack::MockRequest.new(pool).
       get("/", "HTTP_COOKIE" => "#{session_key}=blarghfasel")
-    res.body.must_equal '{"counter"=>1}'
+    res.body.must_equal({ "counter" => 1 }.to_s)
   end
 
   it "does not send the same session id if it did not change" do
@@ -67,17 +67,17 @@ describe Rack::Session::Pool do
 
     res0 = req.get("/")
     cookie = res0["Set-Cookie"][session_match]
-    res0.body.must_equal '{"counter"=>1}'
+    res0.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 1
 
     res1 = req.get("/", "HTTP_COOKIE" => cookie)
     res1["Set-Cookie"].must_be_nil
-    res1.body.must_equal '{"counter"=>2}'
+    res1.body.must_equal({ "counter" => 2 }.to_s)
     pool.pool.size.must_equal 1
 
     res2 = req.get("/", "HTTP_COOKIE" => cookie)
     res2["Set-Cookie"].must_be_nil
-    res2.body.must_equal '{"counter"=>3}'
+    res2.body.must_equal({ "counter" => 3 }.to_s)
     pool.pool.size.must_equal 1
   end
 
@@ -89,17 +89,17 @@ describe Rack::Session::Pool do
 
     res1 = req.get("/")
     session = (cookie = res1["Set-Cookie"])[session_match]
-    res1.body.must_equal '{"counter"=>1}'
+    res1.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 1
 
     res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
     res2["Set-Cookie"].must_be_nil
-    res2.body.must_equal '{"counter"=>2}'
+    res2.body.must_equal({ "counter" => 2 }.to_s)
     pool.pool.size.must_equal 0
 
     res3 = req.get("/", "HTTP_COOKIE" => cookie)
     res3["Set-Cookie"][session_match].wont_equal session
-    res3.body.must_equal '{"counter"=>1}'
+    res3.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 1
   end
 
@@ -111,22 +111,22 @@ describe Rack::Session::Pool do
 
     res1 = req.get("/")
     session = (cookie = res1["Set-Cookie"])[session_match]
-    res1.body.must_equal '{"counter"=>1}'
+    res1.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 1
 
     res2 = rreq.get("/", "HTTP_COOKIE" => cookie)
     new_cookie = res2["Set-Cookie"]
     new_session = new_cookie[session_match]
     new_session.wont_equal session
-    res2.body.must_equal '{"counter"=>2}'
+    res2.body.must_equal({ "counter" => 2 }.to_s)
     pool.pool.size.must_equal 1
 
     res3 = req.get("/", "HTTP_COOKIE" => new_cookie)
-    res3.body.must_equal '{"counter"=>3}'
+    res3.body.must_equal({ "counter" => 3 }.to_s)
     pool.pool.size.must_equal 1
 
     res4 = req.get("/", "HTTP_COOKIE" => cookie)
-    res4.body.must_equal '{"counter"=>1}'
+    res4.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 2
   end
 
@@ -137,7 +137,7 @@ describe Rack::Session::Pool do
 
     res1 = dreq.get("/")
     res1["Set-Cookie"].must_be_nil
-    res1.body.must_equal '{"counter"=>1}'
+    res1.body.must_equal({ "counter" => 1 }.to_s)
     pool.pool.size.must_equal 1
   end
 
@@ -154,7 +154,7 @@ describe Rack::Session::Pool do
 
     res1 = req.get("/", "HTTP_COOKIE" => cookie)
     res1["Set-Cookie"].must_be_nil
-    res1.body.must_equal '{"counter"=>2}'
+    res1.body.must_equal({ "counter" => 2 }.to_s)
     pool.pool[session_id.private_id].wont_be_nil
   end
 
@@ -173,7 +173,7 @@ describe Rack::Session::Pool do
 
     res2 = dreq.get("/", "HTTP_COOKIE" => cookie)
     res2["Set-Cookie"].must_be_nil
-    res2.body.must_equal '{"counter"=>2}'
+    res2.body.must_equal({ "counter" => 2 }.to_s)
     pool.pool[session_id.private_id].must_be_nil
     pool.pool[session_id.public_id].must_be_nil
   end
@@ -209,7 +209,7 @@ describe Rack::Session::Pool do
     req = Rack::MockRequest.new(pool)
 
     res = req.get('/')
-    res.body.must_equal '{"counter"=>1}'
+    res.body.must_equal({ "counter" => 1 }.to_s)
     cookie = res["Set-Cookie"]
     sess_id = cookie[/#{pool.key}=([^,;]+)/, 1]
 
