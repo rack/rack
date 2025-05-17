@@ -10,33 +10,28 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
-    if RUBY_VERSION >= '3.5'
-      class Cookie
-        attr_reader :name, :value, :path, :domain, :expires, :secure
+    class Cookie
+      attr_reader :name, :value, :path, :domain, :expires, :secure
 
-        def initialize(args)
-          @name = args["name"]
-          @value = args["value"]
-          @path = args["path"]
-          @domain = args["domain"]
-          @expires = args["expires"]
-          @secure = args["secure"]
-        end
-
-        def method_missing(method_name, *args, &block)
-          @value.send(method_name, *args, &block)
-        end
-        # :nocov:
-        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
-        # :nocov:
-
-        def respond_to_missing?(method_name, include_all = false)
-          @value.respond_to?(method_name, include_all) || super
-        end
+      def initialize(args)
+        @name = args["name"]
+        @value = args["value"]
+        @path = args["path"]
+        @domain = args["domain"]
+        @expires = args["expires"]
+        @secure = args["secure"]
       end
-    else
-      require 'cgi/cookie'
-      Cookie = CGI::Cookie
+
+      def method_missing(method_name, *args, &block)
+        @value.send(method_name, *args, &block)
+      end
+      # :nocov:
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+      # :nocov:
+
+      def respond_to_missing?(method_name, include_all = false)
+        @value.respond_to?(method_name, include_all) || super
+      end
     end
 
     class << self
