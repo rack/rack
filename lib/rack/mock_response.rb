@@ -10,7 +10,11 @@ module Rack
   # MockRequest.
 
   class MockResponse < Rack::Response
-    if RUBY_VERSION >= '3.5'
+    begin
+      # Recent versions of the CGI gem may not provide `CGI::Cookie`.
+      require 'cgi/cookie'
+      Cookie = CGI::Cookie
+    rescue LoadError
       class Cookie
         attr_reader :name, :value, :path, :domain, :expires, :secure
 
@@ -34,9 +38,6 @@ module Rack
           @value.respond_to?(method_name, include_all) || super
         end
       end
-    else
-      require 'cgi/cookie'
-      Cookie = CGI::Cookie
     end
 
     class << self
