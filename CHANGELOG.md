@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::Request#values_at` is removed. ([#2200](https://github.com/rack/rack/pull/2200), [@ioquatix])
 - `Rack::Logger` is removed with no replacement. ([#2196](https://github.com/rack/rack/pull/2196), [@ioquatix])
 - Automatic cache invalidation in `Rack::Request#{GET,POST}` has been removed. ([#2230](https://github.com/rack/rack/pull/2230), [@jeremyevans])
+- Support for `CGI::Cookie` has been removed. ([#2332](https://github.com/rack/rack/pull/2332), [@ioquatix])
 
 ### Fixed
 
