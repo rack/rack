@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.15] - 2025-05-18
+
+- Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
+
 ## [3.1.14] - 2025-05-06
 
 ### Security
@@ -138,6 +142,11 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 ### Fixed
 
 - In `Rack::Files`, ignore the `Range` header if served file is 0 bytes. ([#2159](https://github.com/rack/rack/pull/2159), [@zarqman])
+
+## [3.0.17] - 2025-05-18
+
+- Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
+
 
 ## [3.0.16] - 2025-05-06
 
@@ -342,6 +351,10 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.15] - 2025-05-18
+
+- Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [2.2.14] - 2025-05-06
 
@@ -1130,3 +1143,4 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 [@wjordan]: https://github.com/wjordan "Will Jordan"
 [@BlakeWilliams]: https://github.com/BlakeWilliams "Blake Williams"
 [@davidstosik]: https://github.com/davidstosik "David Stosik"
+[@earlopain]: https://github.com/earlopain "Earlopain"
