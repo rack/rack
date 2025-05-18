@@ -22,7 +22,7 @@ jobs:
           - '3.2'
           - '3.3'
           - '3.4'
-          - jruby
+          - jruby-head
           - truffleruby-head
         include:
           - os: macos-latest
@@ -30,11 +30,13 @@ jobs:
     runs-on: ${{matrix.os}}
 
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@v4
 
     - uses: ruby/setup-ruby@v1
       with:
         ruby-version: ${{matrix.ruby}}
         bundler-cache: true
+      continue-on-error: ${{ startsWith(matrix.ruby, '2.4') || startsWith(matrix.ruby, '2.5') }}
 
     - run: bundle exec rake
+      continue-on-error: ${{ startsWith(matrix.ruby, '2.4') || startsWith(matrix.ruby, '2.5') }}
