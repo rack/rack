@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.15] - 2025-05-18
+
+- Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
+
 ## [2.2.14] - 2025-05-06
 
 ### Security
@@ -777,3 +781,7 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
   - Removed Rails adapter, was too alpha.
 
 ## [0.1] 2007-03-03
+
+[@ioquatix]: https://github.com/ioquatix "Samuel Williams"
+[@jeremyevans]: https://github.com/jeremyevans "Jeremy Evans"
+[@earlopain]: https://github.com/earlopain "Earlopain"
