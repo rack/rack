@@ -265,7 +265,7 @@ module Rack
         set_cookie_header.split("\n").each do |cookie|
           cookie_name, cookie_filling = cookie.split('=', 2)
           cookie_attributes = identify_cookie_attributes cookie_filling
-          parsed_cookie = CGI::Cookie.new(
+          parsed_cookie = Cookie.new(
             'name' => cookie_name.strip,
             'value' => cookie_attributes.fetch('value'),
             'path' => cookie_attributes.fetch('path', nil),
