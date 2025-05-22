@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.0.18] - 2025-05-22
+
+- Fix incorrect backport of optional `CGI::Cookie` support. ([#2335](https://github.com/rack/rack/pull/2335), [@jeremyevans])
+
 ## [3.0.17] - 2025-05-18
 
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
@@ -213,6 +217,10 @@ All notable changes to this project will be documented in this file. For info on
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.16] - 2025-05-22
+
+- Fix incorrect backport of optional `CGI::Cookie` support. ([#2335](https://github.com/rack/rack/pull/2335), [@jeremyevans])
 
 ## [2.2.15] - 2025-05-18
 
