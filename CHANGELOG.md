@@ -2,6 +2,10 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.16] - 2025-05-22
+
+- Fix incorrect backport of optional `CGI::Cookie` support. ([#2335](https://github.com/rack/rack/pull/2335), [@jeremyevans])
+
 ## [2.2.15] - 2025-05-18
 
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
