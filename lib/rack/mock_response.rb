@@ -131,7 +131,7 @@ module Rack
     def identify_cookie_attributes(cookie_filling)
       cookie_bits = cookie_filling.split(';')
       cookie_attributes = Hash.new
-      cookie_attributes.store('value', cookie_bits[0].strip)
+      cookie_attributes.store('value', Array(cookie_bits[0].strip))
       cookie_bits.drop(1).each do |bit|
         if bit.include? '='
           cookie_attribute, attribute_value = bit.split('=', 2)
