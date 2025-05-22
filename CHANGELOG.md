@@ -303,6 +303,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [2.2.3.1] - 2022-05-27
 
+### Security
+
 - [CVE-2022-30123] Fix shell escaping issue in Common Logger
 - [CVE-2022-30122] Restrict parsing of broken MIME attachments
 
