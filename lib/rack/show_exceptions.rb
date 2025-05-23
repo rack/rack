@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'ostruct'
 require 'erb'
 
 require_relative 'constants'
@@ -18,6 +17,11 @@ module Rack
 
   class ShowExceptions
     CONTEXT = 7
+
+    Frame = Struct.new(:filename, :lineno, :function,
+                       :pre_context_lineno, :pre_context,
+                       :context_line, :post_context_lineno,
+                       :post_context)
 
     def initialize(app)
       @app = app
@@ -79,7 +83,7 @@ module Rack
       # This double assignment is to prevent an "unused variable" warning.
       # Yes, it is dumb, but I don't like Ruby yelling at me.
       frames = frames = exception.backtrace.map { |line|
-        frame = OpenStruct.new
+        frame = Frame.new
         if line =~ /(.*?):(\d+)(:in `(.*)')?/
           frame.filename = $1
           frame.lineno = $2.to_i
