@@ -34,6 +34,8 @@ Gem::Specification.new do |s|
     "source_code_uri"   => "https://github.com/rack/rack"
   }
 
+  s.add_runtime_dependency 'logger'
+
   s.add_development_dependency 'minitest', "~> 5.0"
   s.add_development_dependency 'minitest-global_expectations'
 
