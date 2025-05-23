@@ -22,6 +22,7 @@ jobs:
           - '3.2'
           - '3.3'
           - '3.4'
+          - ruby-head
           - jruby-head
           - truffleruby-head
         include:
