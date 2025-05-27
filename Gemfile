@@ -21,3 +21,5 @@ group :test do
 end
 
 gem "base64"
+gem "logger"
+gem "ostruct"
