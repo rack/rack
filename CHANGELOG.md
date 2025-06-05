@@ -40,6 +40,12 @@ All notable changes to this project will be documented in this file. For info on
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 
+## [3.1.16] - 2025-06-04
+
+### Security
+
+- [CVE-2025-49007](https://github.com/advisories/GHSA-47m2-26rw-j2jw) Fix ReDoS in multipart request.
+
 ## [3.1.15] - 2025-05-18
 
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
