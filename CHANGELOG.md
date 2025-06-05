@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.16] - 2025-06-04
+
+### Security
+
+- [CVE-2025-49007](https://github.com/advisories/GHSA-47m2-26rw-j2jw) Fix ReDoS in multipart request.
+
 ## [3.1.15] - 2025-05-18
 
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
