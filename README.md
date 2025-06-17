@@ -142,7 +142,6 @@ middleware:
 * `Rack::ETag` for setting `etag` header on bodies that can be buffered.
 * `Rack::Events` for providing easy hooks when a request is received and when
   the response is sent.
-* `Rack::Files` for serving static files.
 * `Rack::Head` for returning an empty body for HEAD requests.
 * `Rack::Lint` for checking conformance to the [Rack Specification].
 * `Rack::Lock` for serializing requests using a mutex.
@@ -159,7 +158,7 @@ middleware:
   a nice and helpful way with clickable backtrace.
 * `Rack::ShowStatus` for using nice error pages for empty client error
   responses.
-* `Rack::Static` for more configurable serving of static files.
+* `Rack::Static` for configurable serving of static files.
 * `Rack::TempfileReaper` for removing temporary files creating during a request.
 
 All these components use the same interface, which is described in detail in the
@@ -180,6 +179,8 @@ quickly and without doing the same web stuff all over:
 * `Rack::Cascade` for trying additional Rack applications if an application
   returns a not found or method not supported response.
 * `Rack::Directory` for serving files under a given directory, with directory
+  indexes.
+* `Rack::Files` for serving files under a given directory, without directory
   indexes.
 * `Rack::MediaType` for parsing content-type headers.
 * `Rack::Mime` for determining content-type based on file extension.
