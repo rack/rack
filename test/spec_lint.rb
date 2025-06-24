@@ -244,6 +244,25 @@ describe Rack::Lint do
       message.must_match(/One of .* must be set/)
 
     lambda {
+      Rack::Lint.new(valid_app).call(env("PATH_INFO" => "", "SCRIPT_NAME" => ""))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/One of .* must be set/)
+
+    lambda {
+      e = env("PATH_INFO" => "")
+      e.delete("SCRIPT_NAME")
+      Rack::Lint.new(valid_app).call(e)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/One of .* must be set/)
+
+    lambda {
+      e = env("SCRIPT_NAME" => "")
+      e.delete("PATH_INFO")
+      Rack::Lint.new(valid_app).call(e)
+    }.must_raise(Rack::Lint::LintError).
+      message.must_match(/One of .* must be set/)
+
+    lambda {
       Rack::Lint.new(valid_app).call(env("SCRIPT_NAME" => "/"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/cannot be .* make it ''/)
@@ -321,7 +340,7 @@ describe Rack::Lint do
   end
 
   it "accepts empty PATH_INFO" do
-    Rack::Lint.new(valid_app).call(env("PATH_INFO" => "")).first.must_equal 200
+    Rack::Lint.new(valid_app).call(env("PATH_INFO" => "", "SCRIPT_NAME" => "/foo")).first.must_equal 200
   end
 
   it "notices request-target asterisk form errors" do
