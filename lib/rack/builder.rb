@@ -156,12 +156,17 @@ module Rack
     # All requests through to this application will first be processed by the middleware class.
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
+    #
+    # Returns a proc that returns a new instance of this middleware using the supplied args. The proc
+    # can be called with either a Rack application parameter or nil/no-argument for use outside Rack.
     def use(middleware, *args, &block)
       if @map
         mapping, @map = @map, nil
         @use << proc { |app| generate_map(app, mapping) }
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
+      creator = proc { |app| middleware.new(app, *args, &block) }
+      @use << creator
+      creator
     end
     # :nocov:
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
