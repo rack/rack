@@ -50,17 +50,6 @@ module Rack
 # * +:name+ - The parameter name from the form
 # * +:tempfile+ - A Tempfile object containing the uploaded data
 # * +:head+ - The raw header content for this part
-#
-# Example Usage
-#
-#   uploaded_file = params[:file]
-#   filename = uploaded_file[:filename]  # Already URL decoded
-#   content_type = uploaded_file[:type]
-#   file_data = uploaded_file[:tempfile]
-#
-# The filename value has already undergone URL decoding during parsing,
-# so applications can use it directly without additional processing
-
     class Parser
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
