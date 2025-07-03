@@ -43,7 +43,7 @@ module Rack
 # File Parameter Contents
 #
 # When processing file uploads, the parser returns a hash containing
-# information about uploaded files. For +:file+ parameters, the hash includes:
+# information about uploaded files. For +file+ parameters, the hash includes:
 #
 # * +:filename+ - The original filename, already URL decoded by the parser
 # * +:type+ - The content type of the uploaded file  
