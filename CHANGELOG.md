@@ -403,6 +403,10 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
 
+## [2.2.17] - 2025-06-03
+
+- Backport `Rack::MediaType#params` now handles parameters without values. ([#2263](https://github.com/rack/rack/pull/2263), [@AllyMarthaJ](https://github.com/AllyMarthaJ))
+
 ## [2.2.16] - 2025-05-22
 
 - Fix incorrect backport of optional `CGI::Cookie` support. ([#2335](https://github.com/rack/rack/pull/2335), [@jeremyevans])
