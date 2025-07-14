@@ -52,6 +52,9 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.1.14] - 2025-05-06
 
+:warning: **This release includes a breaking change.**
+It introduces two limits `bytesize_limit` and `params_limit`. Which limits "total query size" and "total number of query parameters".
+
 ### Security
 
 - [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
