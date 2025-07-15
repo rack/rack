@@ -68,6 +68,7 @@ module Rack
       @param_depth_limit = param_depth_limit
       @bytesize_limit = bytesize_limit
       @params_limit = params_limit
+      freeze
     end
 
     # Stolen from Mongrel, with some small modifications:
