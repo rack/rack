@@ -625,13 +625,8 @@ class RackRequestTest < Minitest::Spec
         super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
       end
     end
-    parser = Rack::QueryParser.new(c, 100)
-    c = Class.new(Rack::Request) do
-      define_method(:query_parser) do
-        parser
-      end
-    end
-    req = c.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req.query_parser = Rack::QueryParser.new(c, 100)
     req.GET[:foo].must_equal "bar"
     req.GET[:quux].must_equal "bla"
     req.params[:foo].must_equal "bar"

@@ -539,6 +539,10 @@ module Rack
         self.GET.merge(self.POST)
       end
 
+      # Allow overriding the query parser that the receiver will use.
+      # By default Rack::Utils.default_query_parser is used.
+      attr_writer :query_parser
+
       # Destructively update a parameter, whether it's in GET and/or POST. Returns nil.
       #
       # The parameter is updated wherever it was previous defined, so GET, POST, or both. If it wasn't previously defined, it's inserted into GET.
@@ -645,7 +649,7 @@ module Rack
       end
 
       def query_parser
-        Utils.default_query_parser
+        @query_parser || Utils.default_query_parser
       end
 
       def parse_query(qs, d = '&')
