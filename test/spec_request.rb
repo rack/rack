@@ -795,6 +795,135 @@ class RackRequestTest < Minitest::Spec
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
   end
 
+  it "return form_pairs for url-encoded POST data" do
+    req = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "foo=bar&quux=bla")
+    req.form_pairs.must_equal [["foo", "bar"], ["quux", "bla"]]
+  end
+
+  it "preserve duplicate keys in form_pairs" do
+    req = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "foo=1&foo=2&bar=3")
+    req.form_pairs.must_equal [["foo", "1"], ["foo", "2"], ["bar", "3"]]
+  end
+
+  it "handle empty values in form_pairs" do
+    req = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "foo=&bar=baz&empty")
+    req.form_pairs.must_equal [["foo", ""], ["bar", "baz"], ["empty", nil]]
+  end
+
+  it "return empty array for form_pairs with no POST data" do
+    req = make_request \
+      Rack::MockRequest.env_for("/", 'REQUEST_METHOD' => 'POST', :input => "")
+    req.form_pairs.must_equal []
+  end
+
+  it "return empty array for form_pairs with non-form content type" do
+    req = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST',
+        "CONTENT_TYPE" => 'text/plain',
+        :input => "foo=bar")
+    req.form_pairs.must_equal []
+  end
+
+  it "raise same error for form_pairs as POST with invalid encoding" do
+    req = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST', :input => "a%=1")
+    lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
+      message.must_equal "invalid %-encoding (a%)"
+  end
+
+  it "return form_pairs for multipart form data" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="reply"\r
+\r
+yes\r
+--AaB03x\r
+content-disposition: form-data; name="name"\r
+\r
+John\r
+--AaB03x--\r
+EOF
+    req = make_request Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    pairs = req.form_pairs
+    pairs.must_equal [["reply", "yes"], ["name", "John"]]
+  end
+
+  it "preserve duplicate keys in multipart form_pairs" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="item"\r
+\r
+first\r
+--AaB03x\r
+content-disposition: form-data; name="item"\r
+\r
+second\r
+--AaB03x\r
+content-disposition: form-data; name="other"\r
+\r
+value\r
+--AaB03x--\r
+EOF
+    req = make_request Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    pairs = req.form_pairs
+    pairs.must_equal [["item", "first"], ["item", "second"], ["other", "value"]]
+  end
+
+  it "include file uploads in multipart form_pairs" do
+    input = <<EOF
+--AaB03x\r
+content-disposition: form-data; name="reply"\r
+\r
+yes\r
+--AaB03x\r
+content-disposition: form-data; name="fileupload"; filename="test.txt"\r
+content-type: text/plain\r
+\r
+file content\r
+--AaB03x--\r
+EOF
+    req = make_request Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    pairs = req.form_pairs
+    pairs.length.must_equal 2
+    pairs[0].must_equal ["reply", "yes"]
+    pairs[1][0].must_equal "fileupload"
+    pairs[1][1].must_be_kind_of Hash
+    pairs[1][1][:filename].must_equal "test.txt"
+    pairs[1][1][:type].must_equal "text/plain"
+  end
+
+  it "return empty array for empty multipart form_pairs" do
+    input = <<EOF
+--AaB03x--\r
+EOF
+    req = make_request Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+
+    req.form_pairs.must_equal []
+  end
+
   it "extract referrer correctly" do
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_REFERER" => "/some/path")

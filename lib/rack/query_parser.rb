@@ -91,6 +91,25 @@ module Rack
       return params.to_h
     end
 
+    # Parses a query string by breaking it up at the '&', returning all key-value
+    # pairs as an array of [key, value] arrays. Unlike parse_query, this preserves
+    # all duplicate keys rather than collapsing them.
+    def parse_query_pairs(qs, separator = nil, &unescaper)
+      unescaper ||= method(:unescape)
+
+      pairs = []
+
+      check_query_string(qs, separator).split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP).each do |p|
+        next if p.empty?
+        k, v = p.split('=', 2).map!(&unescaper)
+        pairs << [k, v]
+      end
+
+      return pairs
+    rescue ArgumentError => e
+      raise InvalidParameterError, e.message, e.backtrace
+    end
+
     # parse_nested_query expands a query string into structural types. Supported
     # types are Arrays, Hashes and basic value types. It is possible to supply
     # query strings with parameters of conflicting types, in this case a
