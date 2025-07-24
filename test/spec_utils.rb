@@ -587,6 +587,19 @@ describe Rack::Utils, "cookies" do
     header['Set-Cookie'].must_equal "name=; max-age=0; expires=Thu, 01 Jan 1970 00:00:00 GMT"
   end
 
+  it 'does not raise RegexpError with regex-unsafe characters in path and domain' do
+    value = { domain: 'example.com)' }
+    Rack::Utils.make_delete_cookie_header(nil, 'name', value).must_equal ''
+
+    value = { path: '/', domain: 'example.com)' }
+    Rack::Utils.make_delete_cookie_header(nil, 'name', value).must_equal ''
+
+    value = { path: '/)', domain: 'example.com' }
+    Rack::Utils.make_delete_cookie_header(nil, 'name', value).must_equal ''
+
+    value = { path: '/)' }
+    Rack::Utils.make_delete_cookie_header(nil, 'name', value).must_equal ''
+  end
 end
 
 describe Rack::Utils, "byte_range" do
