@@ -292,8 +292,8 @@ module Rack
       end
 
       key = escape(key)
-      domain = value[:domain]
-      path = value[:path]
+      domain = Regexp.escape(value[:domain].to_s) if value[:domain]
+      path = Regexp.escape(value[:path].to_s) if value[:path]
       regexp = if domain
                  if path
                    /\A#{key}=.*(?:domain=#{domain}(?:;|$).*path=#{path}(?:;|$)|path=#{path}(?:;|$).*domain=#{domain}(?:;|$))/
