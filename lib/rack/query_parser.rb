@@ -90,7 +90,13 @@ module Rack
     # pairs as an array of [key, value] arrays. Unlike parse_query, this preserves
     # all duplicate keys rather than collapsing them.
     def parse_query_pairs(qs, separator = nil)
-      each_query_pair(qs, separator).to_a
+      pairs = []
+
+      each_query_pair(qs, separator) do |k, v|
+        pairs << [k, v]
+      end
+
+      pairs
     end
 
     # parse_nested_query expands a query string into structural types. Supported
@@ -212,8 +218,6 @@ module Rack
     end
 
     def each_query_pair(qs, separator, unescaper = nil)
-      return enum_for(:each_query_pair, qs, separator, unescaper) unless block_given?
-
       return if !qs || qs.empty?
 
       if qs.bytesize > @bytesize_limit
