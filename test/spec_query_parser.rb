@@ -12,6 +12,9 @@ describe Rack::QueryParser do
     query_parser.parse_nested_query("a=a").must_equal({"a" => "a"})
     query_parser.parse_nested_query("a=").must_equal({"a" => ""})
     query_parser.parse_nested_query("a").must_equal({"a" => nil})
+    query_parser.parse_query_pairs("a=a").must_equal([["a", "a"]])
+    query_parser.parse_query_pairs("a=").must_equal([["a", ""]])
+    query_parser.parse_query_pairs("a").must_equal([["a", nil]])
   end
 
   it "accepts bytesize_limit to specify maximum size of query string to parse" do
@@ -19,9 +22,11 @@ describe Rack::QueryParser do
     query_parser.parse_query("a=a").must_equal({"a" => "a"})
     query_parser.parse_nested_query("a=a").must_equal({"a" => "a"})
     query_parser.parse_nested_query("a=a", '&').must_equal({"a" => "a"})
+    query_parser.parse_query_pairs("a=a").must_equal([["a", "a"]])
     proc { query_parser.parse_query("a=aa") }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_nested_query("a=aa") }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_nested_query("a=aa", '&') }.must_raise Rack::QueryParser::QueryLimitError
+    proc { query_parser.parse_query_pairs("a=aa") }.must_raise Rack::QueryParser::QueryLimitError
   end
 
   it "accepts params_limit to specify maximum number of query parameters to parse" do
@@ -29,8 +34,11 @@ describe Rack::QueryParser do
     query_parser.parse_query("a=a&b=b").must_equal({"a" => "a", "b" => "b"})
     query_parser.parse_nested_query("a=a&b=b").must_equal({"a" => "a", "b" => "b"})
     query_parser.parse_nested_query("a=a&b=b", '&').must_equal({"a" => "a", "b" => "b"})
+    query_parser.parse_query_pairs("a=a&b=b").must_equal([["a", "a"], ["b", "b"]])
+    query_parser.parse_query_pairs("a=1&a=2").must_equal([["a", "1"], ["a", "2"]])
     proc { query_parser.parse_query("a=a&b=b&c=c") }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_nested_query("a=a&b=b&c=c", '&') }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_query("b[]=a&b[]=b&b[]=c") }.must_raise Rack::QueryParser::QueryLimitError
+    proc { query_parser.parse_query_pairs("a=a&b=b&c=c") }.must_raise Rack::QueryParser::QueryLimitError
   end
 end

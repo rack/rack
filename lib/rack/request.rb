@@ -492,6 +492,46 @@ module Rack
         get_header(RACK_REQUEST_QUERY_HASH) || set_header(RACK_REQUEST_QUERY_HASH, parse_query(query_string, '&'))
       end
 
+      # Returns the form data pairs received in the request body.
+      #
+      # This method support both application/x-www-form-urlencoded and
+      # multipart/form-data.
+      def form_pairs
+        if pairs = get_header(RACK_REQUEST_FORM_PAIRS)
+          return pairs
+        elsif error = get_header(RACK_REQUEST_FORM_ERROR)
+          raise error.class, error.message, cause: error.cause
+        end
+
+        begin
+          rack_input = get_header(RACK_INPUT)
+
+          # Otherwise, figure out how to parse the input:
+          if rack_input.nil?
+            set_header(RACK_REQUEST_FORM_PAIRS, [])
+          elsif form_data? || parseable_data?
+            if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
+              set_header RACK_REQUEST_FORM_PAIRS, pairs
+            else
+              form_vars = get_header(RACK_INPUT).read
+
+              # Fix for Safari Ajax postings that always append \0
+              # form_vars.sub!(/\0\z/, '') # performance replacement:
+              form_vars.slice!(-1) if form_vars.end_with?("\0")
+
+              set_header RACK_REQUEST_FORM_VARS, form_vars
+              pairs = query_parser.parse_query_pairs(form_vars, '&')
+              set_header(RACK_REQUEST_FORM_PAIRS, pairs)
+            end
+          else
+            set_header(RACK_REQUEST_FORM_PAIRS, [])
+          end
+        rescue => error
+          set_header(RACK_REQUEST_FORM_ERROR, error)
+          raise
+        end
+      end
+
       # Returns the data received in the request body.
       #
       # This method support both application/x-www-form-urlencoded and
@@ -503,33 +543,8 @@ module Rack
           raise error.class, error.message, cause: error.cause
         end
 
-        begin
-          rack_input = get_header(RACK_INPUT)
-
-          # Otherwise, figure out how to parse the input:
-          if rack_input.nil?
-            set_header(RACK_REQUEST_FORM_HASH, {})
-          elsif form_data? || parseable_data?
-            if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
-              set_header RACK_REQUEST_FORM_PAIRS, pairs
-              set_header RACK_REQUEST_FORM_HASH, expand_param_pairs(pairs)
-            else
-              form_vars = get_header(RACK_INPUT).read
-
-              # Fix for Safari Ajax postings that always append \0
-              # form_vars.sub!(/\0\z/, '') # performance replacement:
-              form_vars.slice!(-1) if form_vars.end_with?("\0")
-
-              set_header RACK_REQUEST_FORM_VARS, form_vars
-              set_header RACK_REQUEST_FORM_HASH, parse_query(form_vars, '&')
-            end
-          else
-            set_header(RACK_REQUEST_FORM_HASH, {})
-          end
-        rescue => error
-          set_header(RACK_REQUEST_FORM_ERROR, error)
-          raise
-        end
+        pairs = form_pairs
+        set_header RACK_REQUEST_FORM_HASH, expand_param_pairs(pairs)
       end
 
       # The union of GET and POST data.
