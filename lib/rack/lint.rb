@@ -963,5 +963,3 @@ end
 ## We'd like to thank everyone who has contributed to the Rack project over the years. Your work has made this specification possible. That includes everyone who has contributed code, documentation, bug reports, and feedback. We'd also like to thank the authors of the various web servers, frameworks, and libraries that have implemented the Rack specification. Your work has helped to make the web a better place.
 ##
 ## Some parts of this specification are adapted from {PEP 333 – Python Web Server Gateway Interface v1.0}[https://peps.python.org/pep-0333/]. We'd like to thank everyone involved in that effort.
-
-# :startdoc:

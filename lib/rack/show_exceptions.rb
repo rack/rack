@@ -405,7 +405,5 @@ module Rack
       </body>
       </html>
     HTML
-
-    # :startdoc:
   end
 end

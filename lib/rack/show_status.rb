@@ -117,7 +117,5 @@ TEMPLATE = <<'HTML'
 </body>
 </html>
 HTML
-
-    # :startdoc:
   end
 end
