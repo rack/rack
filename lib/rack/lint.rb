@@ -10,12 +10,12 @@ module Rack
   class Lint
     # Represents a failure to meet the Rack specification.
     class LintError < RuntimeError; end
-    
+
     # Invoke the application, validating the request and response according to the Rack spec.
     def call(env = nil)
       Wrapper.new(@app, env).response
     end
-    
+
     # :stopdoc:
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
@@ -54,6 +54,10 @@ module Rack
     private_constant :HOST_PATTERN, :SERVER_NAME_PATTERN, :HTTP_HOST_PATTERN
 
     # N.B. The empty `##` comments creates paragraphs in the output. A trailing "\" is used to escape the newline character, which combines the comments into a single paragraph.
+    #
+    # Formatting conventions for documentation:
+    # - Use <tt> for: literal values, constants, method signatures, environment keys, technical terms, BNF symbols.
+    # - Use + for: Ruby types, concepts, method names, class references.
     #
     ## = Rack Specification
     ##
@@ -151,7 +155,7 @@ module Rack
         ## The environment is required to include these variables, adopted from {The Common Gateway Interface}[https://datatracker.ietf.org/doc/html/rfc3875] (CGI), except when they'd be empty, but see below.
 
         ##
-        ## The CGI keys (named without a period) must have +String+ values and are reserved for the Rack specification. If the values for CGI keys contain non-ASCII characters, they should use ASCII-8BIT encoding.
+        ## The CGI keys (named without a period) must have +String+ values and are reserved for the Rack specification. If the values for CGI keys contain non-ASCII characters, they should use <tt>ASCII-8BIT</tt> encoding.
         env.each do |key, value|
           next if key.include?(".") # Skip extensions
           
@@ -213,12 +217,12 @@ module Rack
               raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
             end
           when REQUEST_PATH_AUTHORITY_FORM
-            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
+            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in <tt>HTTP/2+</tt>, the authority-form is not a valid request target.
             unless env[REQUEST_METHOD] == CONNECT
               raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
             end
           when REQUEST_PATH_ABSOLUTE_FORM
-            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a <tt>URI</tt> (absolute-form).
             if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
               raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
             end
@@ -325,7 +329,7 @@ module Rack
         ##
         ## ==== <tt>rack.protocol</tt>
         ##
-        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
+        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (<tt>HTTP/1</tt>) or the <tt>:protocol</tt> pseudo-header (<tt>HTTP/2+</tt>).
         if protocols = env[RACK_PROTOCOL]
           unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
             raise LintError, "rack.protocol must be an Array of Strings"
@@ -477,7 +481,7 @@ module Rack
       ##
       ## The input stream is an +IO+-like object which contains the raw HTTP request data. \
       def check_input_stream(input)
-        ## When applicable, its external encoding must be "ASCII-8BIT" and it must be opened in binary mode. \
+        ## When applicable, its external encoding must be <tt>ASCII-8BIT</tt> and it must be opened in binary mode. \
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
           raise LintError, "rack.input #{input} does not have ASCII-8BIT as its external encoding"
         end
@@ -498,7 +502,7 @@ module Rack
           @input = input
         end
 
-        ## * +gets+ must be called without arguments and return a string, or +nil+ on EOF.
+        ## * +gets+ must be called without arguments and return a string, or +nil+ on <tt>EOF</tt>.
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
 
@@ -514,8 +518,8 @@ module Rack
         ## * +read+ behaves like <tt>IO#read</tt>. Its signature is <tt>read([length, [buffer]])</tt>.
         ##   * If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must be a +String+ and may not be +nil+.
         ##   * If +length+ is given and not +nil+, then this method reads at most +length+ bytes from the input stream.
-        ##   * If +length+ is not given or +nil+, then this method reads all data until EOF.
-        ##   * When EOF is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
+        ##   * If +length+ is not given or +nil+, then this method reads all data until <tt>EOF</tt>.
+        ##   * When <tt>EOF</tt> is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
         ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+ object.
         def read(*args)
           unless args.size <= 2
@@ -610,11 +614,11 @@ module Rack
       ##
       ## The hijacking interfaces provides a means for an application to take control of the HTTP connection. There are two distinct hijack interfaces: full hijacking where the application takes over the raw connection, and partial hijacking where the application takes over just the response body stream. In both cases, the application is responsible for closing the hijacked stream.
       ##
-      ## Full hijacking only works with HTTP/1. Partial hijacking is functionally equivalent to streaming bodies, and is still optionally supported for backwards compatibility with older Rack versions.
+      ## Full hijacking only works with <tt>HTTP/1</tt>. Partial hijacking is functionally equivalent to streaming bodies, and is still optionally supported for backwards compatibility with older Rack versions.
       ##
       ## ==== Full Hijack
       ##
-      ## Full hijack is used to completely take over an HTTP/1 connection. It occurs before any headers are written and causes the server to ignore any response generated by the application. It is intended to be used when applications need access to the raw HTTP/1 connection.
+      ## Full hijack is used to completely take over an <tt>HTTP/1</tt> connection. It occurs before any headers are written and causes the server to ignore any response generated by the application. It is intended to be used when applications need access to the raw <tt>HTTP/1</tt> connection.
       ##
       def check_hijack(env)
         ## If <tt>rack.hijack</tt> is present in +env+, it must respond to +call+ \
@@ -624,7 +628,7 @@ module Rack
           env[RACK_HIJACK] = proc do
             io = original_hijack.call
 
-            ## and return an +IO+ instance which can be used to read and write to the underlying connection using HTTP/1 semantics and formatting.
+            ## and return an +IO+ instance which can be used to read and write to the underlying connection using <tt>HTTP/1</tt> semantics and formatting.
             raise LintError, "rack.hijack must return an IO instance" unless io.is_a?(IO)
 
             io
@@ -724,9 +728,9 @@ module Rack
           ##
           ## * The headers must not contain a <tt>"status"</tt> key.
           raise LintError, "headers must not contain status" if key == "status"
-          ## * Header keys must conform to RFC7230 token specification, i.e. cannot contain non-printable ASCII, DQUOTE or <tt>(),/:;<=>?@[\]{}</tt>.
+          ## * Header keys must conform to {RFC7230}[https://tools.ietf.org/html/rfc7230] token specification, i.e. cannot contain non-printable <tt>ASCII</tt>, <tt>DQUOTE</tt> or <tt>(),/:;<=>?@[\]{}</tt>.
           raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
-          ## * Header keys must not contain uppercase ASCII characters (A-Z).
+          ## * Header keys must not contain uppercase <tt>ASCII</tt> characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
           ## * Header values must be either a +String+ value, \
@@ -753,7 +757,7 @@ module Rack
       ##
       def check_content_type_header(status, headers)
         headers.each do |key, value|
-          ## There must not be a <tt>content-type</tt> header key when the status is 1xx, 204, or 304.
+          ## There must not be a <tt>content-type</tt> header key when the status is <tt>1xx</tt>, <tt>204</tt>, or <tt>304</tt>.
           if key == "content-type"
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-type header found in #{status} response, not allowed"
@@ -769,7 +773,7 @@ module Rack
       def check_content_length_header(status, headers)
         headers.each do |key, value|
           if key == 'content-length'
-            ## There must not be a <tt>content-length</tt> header key when the status is 1xx, 204, or 304.
+            ## There must not be a <tt>content-length</tt> header key when the status is <tt>1xx</tt>, <tt>204</tt>, or <tt>304</tt>.
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-length header found in #{status} response, not allowed"
             end
@@ -808,7 +812,7 @@ module Rack
         end
       end
       ##
-      ## Setting this value informs the server that it should perform a connection upgrade. In HTTP/1, this is done using the +upgrade+ header. In HTTP/2, this is done by accepting the request.
+      ## Setting this value informs the server that it should perform a connection upgrade. In <tt>HTTP/1</tt>, this is done using the +upgrade+ header. In <tt>HTTP/2</tt>, this is done by accepting the request.
       ##
       ## === The Body
       ##
@@ -937,7 +941,7 @@ module Rack
       class StreamWrapper
         extend Forwardable
 
-        ## The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or HTTP/2+), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
+        ## The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or <tt>HTTP/2+</tt>), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
         REQUIRED_METHODS = [
           :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?
