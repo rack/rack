@@ -34,9 +34,10 @@ module Rack
           response[0] = 304
           headers.delete(CONTENT_TYPE)
           headers.delete(CONTENT_LENGTH)
-          response[2] = Rack::BodyProxy.new([]) do
-            body.close if body.respond_to?(:close)
-          end
+
+          # We are done with the body:
+          body.close if body.respond_to?(:close)
+          response[2] = []
         end
         response
       else
