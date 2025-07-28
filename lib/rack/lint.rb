@@ -138,7 +138,7 @@ module Rack
       ##
       ## Incoming HTTP requests are represented using an environment. \
       def check_environment(env)
-        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. \
+        ## The environment must be an unfrozen +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. \
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
@@ -502,7 +502,7 @@ module Rack
           @input = input
         end
 
-        ## * +gets+ must be called without arguments and return a string, or +nil+ on <tt>EOF</tt>.
+        ## * +gets+ must be called without arguments and return a +String+, or +nil+ on <tt>EOF</tt>.
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
 
@@ -520,7 +520,7 @@ module Rack
         ##   * If +length+ is given and not +nil+, then this method reads at most +length+ bytes from the input stream.
         ##   * If +length+ is not given or +nil+, then this method reads all data until <tt>EOF</tt>.
         ##   * When <tt>EOF</tt> is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
-        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+ object.
+        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+.
         def read(*args)
           unless args.size <= 2
             raise LintError, "rack.input#read called with too many arguments"
@@ -628,7 +628,7 @@ module Rack
           env[RACK_HIJACK] = proc do
             io = original_hijack.call
 
-            ## and return an +IO+ instance which can be used to read and write to the underlying connection using <tt>HTTP/1</tt> semantics and formatting.
+            ## and return an +IO+ object which can be used to read and write to the underlying connection using <tt>HTTP/1</tt> semantics and formatting.
             raise LintError, "rack.hijack must return an IO instance" unless io.is_a?(IO)
 
             io
@@ -656,7 +656,7 @@ module Rack
             end
           end
           ##
-          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ instance is recommended.
+          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
         else
           ##
           ## The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
@@ -707,7 +707,7 @@ module Rack
       ## === The Headers
       ##
       def check_headers(headers)
-        ## The headers must be a unfrozen +Hash+. \
+        ## The headers must be an unfrozen +Hash+. \
         unless headers.kind_of?(Hash)
           raise LintError, "headers object should be a hash, but isn't (got #{headers.class} as headers)"
         end
@@ -717,7 +717,7 @@ module Rack
         end
 
         headers.each do |key, value|
-          ## The header keys must be +String+ objects. \
+          ## The header keys must be +String+ values. \
           unless key.kind_of? String
             raise LintError, "header key must be a string, was #{key.class}"
           end
@@ -733,7 +733,7 @@ module Rack
           ## * Header keys must not contain uppercase <tt>ASCII</tt> characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
-          ## * Header values must be either a +String+ value, \
+          ## * Header values must be either a +String+, \
           if value.kind_of?(String)
             check_header_value(key, value)
           elsif value.kind_of?(Array)
@@ -746,7 +746,7 @@ module Rack
       end
 
       def check_header_value(key, value)
-        ## such that each +String+ value must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
+        ## such that each +String+ must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
         if value.match?(/[\x00\x0A\x0D]/)
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
@@ -816,7 +816,7 @@ module Rack
       ##
       ## === The Body
       ##
-      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+ instance, or a File-like object.
+      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+, or a +File+-like object.
       ##
       ## The Body must respond to +each+ or +call+. It may optionally respond to +to_path+ or +to_ary+. A Body that responds to +each+ is considered to be an Enumerable Body. A Body that responds to +call+ is considered to be a Streaming Body.
       ##
