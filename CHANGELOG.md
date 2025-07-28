@@ -6,14 +6,15 @@ All notable changes to this project will be documented in this file. For info on
 
 ### SPEC Changes
 
-- Request environment keys must now be strings. [#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
+- Request environment keys must now be strings. ([#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
 - Add `nil` as a valid return from a Response `body.to_path` ([#2318](https://github.com/rack/rack/pull/2318), [@MSP-Greg])
 
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
 - ISO-2022-JP encoded parts within MIME Multipart sections of an HTTP request body will now be converted to UTF-8. ([#2245](https://github.com/rack/rack/pull/2245), [@nappa](https://github.com/nappa))
-- Add `Rack::Request#query_parser=` to allow setting the query parser to use. [#2349](https://github.com/rack/rack/pull/2349), [@jeremyevans])
+- Add `Rack::Request#query_parser=` to allow setting the query parser to use. ([#2349](https://github.com/rack/rack/pull/2349), [@jeremyevans])
+- Add `Rack::Request#form_pairs` to access form data as raw key-value pairs, preserving duplicate keys. ([#2351](https://github.com/rack/rack/pull/2351), [@matthewd])
 
 ### Changed
 
@@ -1205,3 +1206,4 @@ Items below this line are from the previously maintained HISTORY.md and NEWS.md 
 [@davidstosik]: https://github.com/davidstosik "David Stosik"
 [@earlopain]: https://github.com/earlopain "Earlopain"
 [@wynksaiddestroy]: https://github.com/wynksaiddestroy "Fabian Winkler"
+[@matthewd]: https://github.com/matthewd "Matthew Draper"
