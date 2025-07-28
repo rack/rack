@@ -140,7 +140,7 @@ The error stream. See the section below on the error stream for more information
 
 ==== <tt>rack.response_finished</tt>
 
-If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be invoked in reverse order.
+If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be called in reverse order.
 
 === The Input Stream
 
@@ -181,7 +181,7 @@ Partial hijack is used for bi-directional streaming of the request and response 
 
 If <tt>rack.hijack?</tt> is present in +env+ and truthy, an application may set the special response header <tt>rack.hijack</tt> to an object that responds to +call+, accepting a +stream+ argument.
 
-After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
+After the response status and headers have been sent, this hijack callback will be called with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
 
 The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
 
@@ -239,7 +239,7 @@ If the Body responds to +to_path+, it must return either +nil+ or a +String+. If
 
 ==== Enumerable Body
 
-The Enumerable Body must respond to +each+. It must only be called once. It must not be called after being closed, and must only yield +String+ values.
+The Enumerable Body must respond to +each+. It must only be consumed once (calling this method consumes the body). It must not be called after being closed, and must only yield +String+ values.
 
 Middleware must not call +each+ directly on the Body. Instead, middleware can return a new Body that calls +each+ on the original Body, yielding at least once per iteration.
 
@@ -247,7 +247,7 @@ If the Body responds to +to_ary+, it must return an +Array+ whose contents are i
 
 ==== Streaming Body
 
-The Streaming Body must respond to +call+. It must only be called once. It must not be called after being closed. It takes a +stream+ argument.
+The Streaming Body must respond to +call+. It must only be consumed once (calling this method consumes the body). It must not be called after being closed. It takes a +stream+ argument.
 
 The +stream+ argument must respond to: +read+, +write+, <tt><<</tt>, +flush+, +close+, +close_read+, +close_write+, and +closed?+. The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or <tt>HTTP/2+</tt>), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
 

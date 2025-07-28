@@ -82,7 +82,7 @@ module Rack
         @status = nil
         @headers = nil
         @body = nil
-        @invoked = nil
+        @consumed = nil
         @content_length = nil
         @closed = false
         @size = 0
@@ -467,7 +467,7 @@ module Rack
         ##
         ## ==== <tt>rack.response_finished</tt>
         ##
-        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be invoked in reverse order.
+        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be called in reverse order.
         if rack_response_finished = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
           rack_response_finished.each do |callable|
@@ -656,7 +656,7 @@ module Rack
             end
           end
           ##
-          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
+          ## After the response status and headers have been sent, this hijack callback will be called with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
         else
           ##
           ## The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
@@ -858,13 +858,13 @@ module Rack
         ## The Enumerable Body must respond to +each+. \
         raise LintError, "Enumerable Body must respond to each" unless @body.respond_to?(:each)
 
-        ## It must only be called once. \
-        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+        ## It must only be consumed once (calling this method consumes the body). \
+        raise LintError, "Response body must only be consumed once (#{@consumed})" unless @consumed.nil?
 
         ## It must not be called after being closed, \
         raise LintError, "Response body is already closed" if @closed
 
-        @invoked = :each
+        @consumed = :each
 
         @body.each do |chunk|
           ## and must only yield +String+ values.
@@ -924,13 +924,13 @@ module Rack
         ## The Streaming Body must respond to +call+. \
         raise LintError, "Streaming Body must respond to call" unless @body.respond_to?(:call)
 
-        ## It must only be called once. \
-        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+        ## It must only be consumed once (calling this method consumes the body). \
+        raise LintError, "Response body must only be consumed once (#{@consumed})" unless @consumed.nil?
 
         ## It must not be called after being closed. \
         raise LintError, "Response body is already closed" if @closed
 
-        @invoked = :call
+        @consumed = :call
 
         ## It takes a +stream+ argument.
         ##
