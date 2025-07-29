@@ -57,7 +57,7 @@ It introduces two limits `bytesize_limit` and `params_limit`. Which limits "tota
 
 ### Security
 
-- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion. This was addressed by introducing two limits, `bytesize_limit` (total query size) and `params_limit` (total number of query parameters). Applications that expect to parse very large queries or queries with a very large number of parameters may need to increase the default limits.
 
 ## [3.1.13] - 2025-04-13
 
