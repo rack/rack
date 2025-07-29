@@ -55,10 +55,6 @@ module Rack
 
     # N.B. The empty `##` comments creates paragraphs in the output. A trailing "\" is used to escape the newline character, which combines the comments into a single paragraph.
     #
-    # Formatting conventions for documentation:
-    # - Use <tt> for: literal values, constants, method signatures, environment keys, technical terms, BNF symbols.
-    # - Use + for: Ruby types, concepts, method names, class references.
-    #
     ## = Rack Specification
     ##
     ## This specification aims to formalize the Rack protocol. You can (and should) use +Rack::Lint+ to enforce it. When you develop middleware, be sure to test with +Rack::Lint+ to catch possible violations of this specification.
@@ -217,12 +213,12 @@ module Rack
               raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
             end
           when REQUEST_PATH_AUTHORITY_FORM
-            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in <tt>HTTP/2+</tt>, the authority-form is not a valid request target.
+            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
             unless env[REQUEST_METHOD] == CONNECT
               raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
             end
           when REQUEST_PATH_ABSOLUTE_FORM
-            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a <tt>URI</tt> (absolute-form).
+            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
             if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
               raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
             end
@@ -329,7 +325,7 @@ module Rack
         ##
         ## ==== <tt>rack.protocol</tt>
         ##
-        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (<tt>HTTP/1</tt>) or the <tt>:protocol</tt> pseudo-header (<tt>HTTP/2+</tt>).
+        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
         if protocols = env[RACK_PROTOCOL]
           unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
             raise LintError, "rack.protocol must be an Array of Strings"
@@ -502,7 +498,7 @@ module Rack
           @input = input
         end
 
-        ## * +gets+ must be called without arguments and return a +String+, or +nil+ on <tt>EOF</tt>.
+        ## * +gets+ must be called without arguments and return a +String+, or +nil+ on EOF (end-of-file).
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
 
@@ -518,8 +514,8 @@ module Rack
         ## * +read+ behaves like <tt>IO#read</tt>. Its signature is <tt>read([length, [buffer]])</tt>.
         ##   * If given, +length+ must be a non-negative Integer (>= 0) or +nil+, and +buffer+ must be a +String+ and may not be +nil+.
         ##   * If +length+ is given and not +nil+, then this method reads at most +length+ bytes from the input stream.
-        ##   * If +length+ is not given or +nil+, then this method reads all data until <tt>EOF</tt>.
-        ##   * When <tt>EOF</tt> is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
+        ##   * If +length+ is not given or +nil+, then this method reads all data until EOF.
+        ##   * When EOF is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
         ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+.
         def read(*args)
           unless args.size <= 2
@@ -614,11 +610,11 @@ module Rack
       ##
       ## The hijacking interfaces provides a means for an application to take control of the HTTP connection. There are two distinct hijack interfaces: full hijacking where the application takes over the raw connection, and partial hijacking where the application takes over just the response body stream. In both cases, the application is responsible for closing the hijacked stream.
       ##
-      ## Full hijacking only works with <tt>HTTP/1</tt>. Partial hijacking is functionally equivalent to streaming bodies, and is still optionally supported for backwards compatibility with older Rack versions.
+      ## Full hijacking only works with HTTP/1. Partial hijacking is functionally equivalent to streaming bodies, and is still optionally supported for backwards compatibility with older Rack versions.
       ##
       ## ==== Full Hijack
       ##
-      ## Full hijack is used to completely take over an <tt>HTTP/1</tt> connection. It occurs before any headers are written and causes the server to ignore any response generated by the application. It is intended to be used when applications need access to the raw <tt>HTTP/1</tt> connection.
+      ## Full hijack is used to completely take over an HTTP/1 connection. It occurs before any headers are written and causes the server to ignore any response generated by the application. It is intended to be used when applications need access to the raw HTTP/1 connection.
       ##
       def check_hijack(env)
         ## If <tt>rack.hijack</tt> is present in +env+, it must respond to +call+ \
@@ -628,7 +624,7 @@ module Rack
           env[RACK_HIJACK] = proc do
             io = original_hijack.call
 
-            ## and return an +IO+ object which can be used to read and write to the underlying connection using <tt>HTTP/1</tt> semantics and formatting.
+            ## and return an +IO+ object which can be used to read and write to the underlying connection using HTTP/1 semantics and formatting.
             raise LintError, "rack.hijack must return an IO instance" unless io.is_a?(IO)
 
             io
@@ -728,9 +724,9 @@ module Rack
           ##
           ## * The headers must not contain a <tt>"status"</tt> key.
           raise LintError, "headers must not contain status" if key == "status"
-          ## * Header keys must conform to {RFC7230}[https://tools.ietf.org/html/rfc7230] token specification, i.e. cannot contain non-printable <tt>ASCII</tt>, <tt>DQUOTE</tt> or <tt>(),/:;<=>?@[\]{}</tt>.
+          ## * Header keys must conform to {RFC7230}[https://tools.ietf.org/html/rfc7230] token specification, i.e. cannot contain non-printable ASCII, <tt>DQUOTE</tt> or <tt>(),/:;<=>?@[\]{}</tt>.
           raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
-          ## * Header keys must not contain uppercase <tt>ASCII</tt> characters (A-Z).
+          ## * Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
           ## * Header values must be either a +String+, \
@@ -812,11 +808,11 @@ module Rack
         end
       end
       ##
-      ## Setting this value informs the server that it should perform a connection upgrade. In <tt>HTTP/1</tt>, this is done using the +upgrade+ header. In <tt>HTTP/2</tt>, this is done by accepting the request.
+      ## Setting this value informs the server that it should perform a connection upgrade. In HTTP/1, this is done using the +upgrade+ header. In HTTP/2+, this is done by accepting the request.
       ##
       ## === The Body
       ##
-      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+, or a +File+-like object.
+      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+, or an +IO+-like object.
       ##
       ## The Body must respond to +each+ or +call+. It may optionally respond to +to_path+ or +to_ary+. A Body that responds to +each+ is considered to be an Enumerable Body. A Body that responds to +call+ is considered to be a Streaming Body.
       ##
@@ -855,13 +851,13 @@ module Rack
       ## ==== Enumerable Body
       ##
       def each
-        ## The Enumerable Body must respond to +each+. \
+        ## The Enumerable Body must respond to +each+, \
         raise LintError, "Enumerable Body must respond to each" unless @body.respond_to?(:each)
 
-        ## It must only be consumed once (calling this method consumes the body). \
-        raise LintError, "Response body must only be consumed once (#{@consumed})" unless @consumed.nil?
+        ## which must only be called once, \
+        raise LintError, "Response body must only be called once (#{@consumed})" unless @consumed.nil?
 
-        ## It must not be called after being closed, \
+        ## must not be called after being closed, \
         raise LintError, "Response body is already closed" if @closed
 
         @consumed = :each
@@ -921,18 +917,18 @@ module Rack
       ## ==== Streaming Body
       ##
       def call(stream)
-        ## The Streaming Body must respond to +call+. \
+        ## The Streaming Body must respond to +call+, \
         raise LintError, "Streaming Body must respond to call" unless @body.respond_to?(:call)
 
-        ## It must only be consumed once (calling this method consumes the body). \
-        raise LintError, "Response body must only be consumed once (#{@consumed})" unless @consumed.nil?
+        ## which must only be called once, \
+        raise LintError, "Response body must only be called once (#{@consumed})" unless @consumed.nil?
 
-        ## It must not be called after being closed. \
+        ## must not be called after being closed, \
         raise LintError, "Response body is already closed" if @closed
 
         @consumed = :call
 
-        ## It takes a +stream+ argument.
+        ## and accept a +stream+ argument.
         ##
         ## The +stream+ argument must respond to: +read+, +write+, <tt><<</tt>, +flush+, +close+, +close_read+, +close_write+, and +closed?+. \
         @body.call(StreamWrapper.new(stream))
@@ -941,7 +937,7 @@ module Rack
       class StreamWrapper
         extend Forwardable
 
-        ## The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or <tt>HTTP/2+</tt>), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
+        ## The semantics of these +IO+ methods must be a best effort match to those of a normal Ruby +IO+ or +Socket+ object, using standard arguments and raising standard exceptions. Servers may simply pass on real +IO+ objects to the Streaming Body. In some cases (e.g. when using <tt>transfer-encoding</tt> or HTTP/2+), the server may need to provide a wrapper that implements the required methods, in order to provide the correct semantics.
         REQUIRED_METHODS = [
           :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?

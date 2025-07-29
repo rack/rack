@@ -1,3 +1,4 @@
 ---
 autolink_excluded_words:
 - Rack
+- CGI

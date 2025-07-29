@@ -662,7 +662,7 @@ describe Rack::Lint do
       body.each { |part| }
       body.each { |part| }
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'Response body must only be consumed once (each)'
+      message.must_equal 'Response body must only be called once (each)'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|
@@ -796,7 +796,7 @@ describe Rack::Lint do
       body.call(StringIO.new)
       body.call(nil)
     }.must_raise(Rack::Lint::LintError).
-      message.must_equal 'Response body must only be consumed once (call)'
+      message.must_equal 'Response body must only be called once (call)'
 
     lambda {
       body = Rack::Lint.new(lambda { |env|
