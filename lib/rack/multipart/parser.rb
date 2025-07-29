@@ -38,18 +38,18 @@ module Rack
     MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
 
-# Rack::Multipart::Parser handles parsing of multipart/form-data requests.
-#
-# File Parameter Contents
-#
-# When processing file uploads, the parser returns a hash containing
-# information about uploaded files. For +file+ parameters, the hash includes:
-#
-# * +:filename+ - The original filename, already URL decoded by the parser
-# * +:type+ - The content type of the uploaded file  
-# * +:name+ - The parameter name from the form
-# * +:tempfile+ - A Tempfile object containing the uploaded data
-# * +:head+ - The raw header content for this part
+    # Rack::Multipart::Parser handles parsing of multipart/form-data requests.
+    #
+    # File Parameter Contents
+    #
+    # When processing file uploads, the parser returns a hash containing
+    # information about uploaded files. For +file+ parameters, the hash includes:
+    #
+    # * +:filename+ - The original filename, already URL decoded by the parser
+    # * +:type+ - The content type of the uploaded file  
+    # * +:name+ - The parameter name from the form
+    # * +:tempfile+ - A Tempfile object containing the uploaded data
+    # * +:head+ - The raw header content for this part
     class Parser
       BUFSIZE = 1_048_576
       TEXT_PLAIN = "text/plain"
