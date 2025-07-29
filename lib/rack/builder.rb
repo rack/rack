@@ -162,6 +162,8 @@ module Rack
         @use << proc { |app| generate_map(app, mapping) }
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
+
+      self
     end
     # :nocov:
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
@@ -194,6 +196,8 @@ module Rack
       raise ArgumentError, "Both app and block given!" if app && block_given?
 
       @run = app || block
+
+      self
     end
 
     # Takes a lambda or block that is used to warm-up the application. This block is called
@@ -252,6 +256,8 @@ module Rack
     def map(path, &block)
       @map ||= {}
       @map[path] = block
+
+      self
     end
 
     # Freeze the app (set using run) and all middleware instances when building the application
