@@ -54,6 +54,8 @@ All notable changes to this project will be documented in this file. For info on
 
 ## [3.1.14] - 2025-05-06
 
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
+
 ### Security
 
 - [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
@@ -198,6 +200,8 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [3.0.16] - 2025-05-06
+
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
 
 ### Security
 
@@ -418,6 +422,8 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [2.2.14] - 2025-05-06
+
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
 
 ### Security
 
