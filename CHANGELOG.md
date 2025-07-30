@@ -22,6 +22,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::MediaType#params` now handles empty strings. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
 - Avoid unnecessary calls to the `ip_filter` lambda to evaluate `Request#ip` ([#2287](https://github.com/rack/rack/pull/2287), [@willbryant])
 - Only calculate `Request#ip` once per request ([#2292](https://github.com/rack/rack/pull/2292), [@willbryant])
+- `Rack::Builder` `#use`, `#map`, and `#run` methods now return `nil`. ([#2355](https://github.com/rack/rack/pull/2355), [@ioquatix])
 
 ### Deprecated
 
