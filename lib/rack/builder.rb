@@ -163,7 +163,7 @@ module Rack
       end
       @use << proc { |app| middleware.new(app, *args, &block) }
 
-      self
+      nil
     end
     # :nocov:
     ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
@@ -197,7 +197,7 @@ module Rack
 
       @run = app || block
 
-      self
+      nil
     end
 
     # Takes a lambda or block that is used to warm-up the application. This block is called
@@ -257,7 +257,7 @@ module Rack
       @map ||= {}
       @map[path] = block
 
-      self
+      nil
     end
 
     # Freeze the app (set using run) and all middleware instances when building the application
