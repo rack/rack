@@ -120,7 +120,7 @@ The factory must return an +IO+-like object that responds to <tt><<</tt> and opt
 
 ==== <tt>rack.hijack?</tt>
 
-If present and true, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
+If present and truthy, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
 
 ==== <tt>rack.hijack</tt>
 
@@ -183,7 +183,7 @@ If <tt>rack.hijack?</tt> is present in +env+ and truthy, an application may set 
 
 After the response status and headers have been sent, this hijack callback will be called with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
 
-The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
+If <tt>rack.hijack?</tt> is not present and truthy, the special response header <tt>rack.hijack</tt> must not be present in the response headers.
 
 === Early Hints
 

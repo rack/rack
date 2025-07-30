@@ -426,9 +426,9 @@ module Rack
         ##
         ## ==== <tt>rack.hijack?</tt>
         ##
-        ## If present and true, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
+        ## If present and truthy, indicates that the server supports partial hijacking. See the section below on hijacking for more information.
         #
-        # N.B. There is no specific validation here. If the user provides a partial hijack response, we will confirm this value is true in `check_hijack_response`.
+        # N.B. There is no specific validation here. If the user provides a partial hijack response, we will confirm this value is truthy in `check_hijack_response`.
 
         ##
         ## ==== <tt>rack.hijack</tt>
@@ -654,7 +654,7 @@ module Rack
           ## After the response status and headers have been sent, this hijack callback will be called with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
         else
           ##
-          ## The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
+          ## If <tt>rack.hijack?</tt> is not present and truthy, the special response header <tt>rack.hijack</tt> must not be present in the response headers.
           if headers.key?(RACK_HIJACK)
             raise LintError, 'rack.hijack header must not be present if server does not support hijacking'
           end
