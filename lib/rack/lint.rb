@@ -195,7 +195,7 @@ module Rack
         end
 
         ## and one of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be set, e.g. <tt>PATH_INFO</tt> can be <tt>/</tt> if <tt>SCRIPT_NAME</tt> is empty.
-        unless env[SCRIPT_NAME] || env[PATH_INFO]
+        if env[SCRIPT_NAME].to_s.empty? && env[PATH_INFO].to_s.empty?
           raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
         end
 
