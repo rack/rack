@@ -743,7 +743,7 @@ module Rack
 
       def check_header_value(key, value)
         ## such that each +String+ value must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
-        if value =~ /[\x00\x0A\x0D]/
+        if value.match?(/[\x00\x0A\x0D]/)
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
       end
