@@ -742,8 +742,8 @@ module Rack
       end
 
       def check_header_value(key, value)
-        ## such that each +String+ value must not contain characters with an ASCII ordinal below 040 (32).
-        if value =~ /[\000-\037]/
+        ## such that each +String+ value must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
+        if value.match?(/[\x00\x0A\x0D]/)
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
       end

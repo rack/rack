@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Request environment keys must now be strings. ([#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
 - Add `nil` as a valid return from a Response `body.to_path` ([#2318](https://github.com/rack/rack/pull/2318), [@MSP-Greg])
+- `#check_header_value` is relaxed, only disallowing CR/LF/NUL characters. ([#2354](https://github.com/rack/rack/pull/2354), [@ioquatix])
 
 ### Added
 
@@ -22,6 +23,7 @@ All notable changes to this project will be documented in this file. For info on
 - `Rack::MediaType#params` now handles empty strings. ([#2229](https://github.com/rack/rack/pull/2229), [@jeremyevans])
 - Avoid unnecessary calls to the `ip_filter` lambda to evaluate `Request#ip` ([#2287](https://github.com/rack/rack/pull/2287), [@willbryant])
 - Only calculate `Request#ip` once per request ([#2292](https://github.com/rack/rack/pull/2292), [@willbryant])
+- `Rack::Builder` `#use`, `#map`, and `#run` methods now return `nil`. ([#2355](https://github.com/rack/rack/pull/2355), [@ioquatix])
 - Directly close the body in `Rack::ConditionalGet` when the response is `304 Not Modified`. ([#2353](https://github.com/rack/rack/pull/2353), [@ioquatix])
 
 ### Deprecated
@@ -54,6 +56,8 @@ All notable changes to this project will be documented in this file. For info on
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [3.1.14] - 2025-05-06
+
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
 
 ### Security
 
@@ -199,6 +203,8 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [3.0.16] - 2025-05-06
+
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
 
 ### Security
 
@@ -419,6 +425,8 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Optional support for `CGI::Cookie` if not available. ([#2327](https://github.com/rack/rack/pull/2327), [#2333](https://github.com/rack/rack/pull/2333), [@earlopain])
 
 ## [2.2.14] - 2025-05-06
+
+:warning: **This release includes a security fix that may cause certain routes in previously working applications to fail if query parameters exceed 4,096 in count or 4 MB in total size. See <https://github.com/rack/rack/discussions/2356> for more details.**
 
 ### Security
 
