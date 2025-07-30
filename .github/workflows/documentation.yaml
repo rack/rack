@@ -24,12 +24,16 @@ jobs:
 
     - uses: ruby/setup-ruby@v1
       with:
-        ruby-version: "3.4"
+        ruby-version: ruby
         bundler-cache: true
     
     - name: Generate main documentation
       timeout-minutes: 5
       run: bundle exec rdoc --op docs/main --main README.md --template-stylesheets contrib/rdoc.css
+
+    - name: "Generate 3.2 documentation"
+      timeout-minutes: 5
+      run: 'gem install rack --version "< 3.3" && gem unpack rack -v "< 3.3" && cd rack-3.2* && bundle exec rdoc --op ../docs/3.2 --main README.md'
 
     - name: "Generate 3.1 documentation"
       timeout-minutes: 5
