@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Request environment keys must now be strings. ([#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
 - Add `nil` as a valid return from a Response `body.to_path` ([#2318](https://github.com/rack/rack/pull/2318), [@MSP-Greg])
+- `#check_header_value` is relaxed, only disallowing CR/LF/NUL characters. ([#2354](https://github.com/rack/rack/pull/2354), [@ioquatix])
 
 ### Added
 
