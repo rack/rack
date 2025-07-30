@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For info on
 - Only calculate `Request#ip` once per request ([#2292](https://github.com/rack/rack/pull/2292), [@willbryant])
 - `Rack::Builder` `#use`, `#map`, and `#run` methods now return `nil`. ([#2355](https://github.com/rack/rack/pull/2355), [@ioquatix])
 - Directly close the body in `Rack::ConditionalGet` when the response is `304 Not Modified`. ([#2353](https://github.com/rack/rack/pull/2353), [@ioquatix])
+- Directly close the body in `Rack::Head` when the request method is `HEAD`([#2360](https://github.com/rack/rack/pull/2360), [@skipkayhil](https://github.com/skipkayhil))
 
 ### Deprecated
 
