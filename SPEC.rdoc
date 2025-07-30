@@ -207,7 +207,7 @@ The headers must be a unfrozen +Hash+. The header keys must be +String+ objects.
 * The headers must not contain a <tt>"status"</tt> key.
 * Header keys must conform to RFC7230 token specification, i.e. cannot contain non-printable ASCII, DQUOTE or <tt>(),/:;<=>?@[\]{}</tt>.
 * Header keys must not contain uppercase ASCII characters (A-Z).
-* Header values must be either a +String+ value, or an +Array+ of +String+ values, such that each +String+ value must not contain characters with an ASCII ordinal below 040 (32).
+* Header values must be either a +String+ value, or an +Array+ of +String+ values, such that each +String+ value must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
 
 ==== The <tt>content-type</tt> Header
 
