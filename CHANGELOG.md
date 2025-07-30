@@ -4,16 +4,20 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [3.2.0] - 2025-07-31
+
+This release continues Rack's evolution toward a cleaner, more efficient foundation while maintaining backward compatibility for most applications. The breaking changes primarily affect deprecated functionality, so most users should experience a smooth upgrade with improved performance and standards compliance.
+
 ### SPEC Changes
 
 - Request environment keys must now be strings. ([#2310](https://github.com/rack/rack/issues/2310), [@jeremyevans])
 - Add `nil` as a valid return from a Response `body.to_path` ([#2318](https://github.com/rack/rack/pull/2318), [@MSP-Greg])
-- `#check_header_value` is relaxed, only disallowing CR/LF/NUL characters. ([#2354](https://github.com/rack/rack/pull/2354), [@ioquatix])
+- `Rack::Lint#check_header_value` is relaxed, only disallowing CR/LF/NUL characters. ([#2354](https://github.com/rack/rack/pull/2354), [@ioquatix])
 
 ### Added
 
 - Introduce `Rack::VERSION` constant. ([#2199](https://github.com/rack/rack/pull/2199), [@ioquatix])
-- ISO-2022-JP encoded parts within MIME Multipart sections of an HTTP request body will now be converted to UTF-8. ([#2245](https://github.com/rack/rack/pull/2245), [@nappa](https://github.com/nappa))
+- `ISO-2022-JP` encoded parts within MIME Multipart sections of an HTTP request body will now be converted to `UTF-8`. ([#2245](https://github.com/rack/rack/pull/2245), [@nappa](https://github.com/nappa))
 - Add `Rack::Request#query_parser=` to allow setting the query parser to use. ([#2349](https://github.com/rack/rack/pull/2349), [@jeremyevans])
 - Add `Rack::Request#form_pairs` to access form data as raw key-value pairs, preserving duplicate keys. ([#2351](https://github.com/rack/rack/pull/2351), [@matthewd])
 
@@ -145,7 +149,7 @@ All notable changes to this project will be documented in this file. For info on
 
 :warning: **This release includes several breaking changes.** Refer to the **Removed** section below for the list of deprecated methods that have been removed in this release.
 
-Rack v3.1 is primarily a maintenance release that removes features deprecated in Rack v3.0. Alongside these removals, there are several improvements to the Rack SPEC, mainly focused on enhancing input and output handling. These changes aim to make Rack more efficient and align better with the requirements of server implementations and relevant HTTP specifications.
+This release is primarily a maintenance release that removes features deprecated in Rack v3.0. Alongside these removals, there are several improvements to the Rack SPEC, mainly focused on enhancing input and output handling. These changes aim to make Rack more efficient and align better with the requirements of server implementations and relevant HTTP specifications.
 
 ### SPEC Changes
 
@@ -325,6 +329,8 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - `Rack::Lint::Wrapper` correctly handles `respond_to?` with `to_ary`, `each`, `call` and `to_path`, forwarding to the body. ([#1981](https://github.com/rack/rack/pull/1981), [@ioquatix])
 
 ## [3.0.0] - 2022-09-06
+
+This release introduces major improvements to Rack, including enhanced support for streaming responses, expanded protocol handling, and stricter compliance with HTTP standards. It refines middleware interfaces, improves multipart and hijack handling, and strengthens security and error reporting. The update also brings performance optimizations, better compatibility with modern Ruby versions, and numerous bug fixes, making Rack more robust and flexible for web application development.
 
 - No changes
 
