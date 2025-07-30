@@ -186,16 +186,17 @@ module Rack
           if script_name != "" && script_name !~ /\A\//
             raise LintError, "SCRIPT_NAME must start with /"
           end
-        end
 
-        ##
-        ## In addition, <tt>SCRIPT_NAME</tt> MUST not be <tt>/</tt>, but instead be empty, \
-        if env[SCRIPT_NAME] == "/"
-          raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
+          ##
+          ## In addition, <tt>SCRIPT_NAME</tt> MUST not be <tt>/</tt>, but instead be empty, \
+          if script_name == "/"
+            raise LintError, "SCRIPT_NAME cannot be '/', make it '' and PATH_INFO '/'"
+          end
         end
 
         ## and one of <tt>SCRIPT_NAME</tt> or <tt>PATH_INFO</tt> must be set, e.g. <tt>PATH_INFO</tt> can be <tt>/</tt> if <tt>SCRIPT_NAME</tt> is empty.
-        if env[SCRIPT_NAME].to_s.empty? && env[PATH_INFO].to_s.empty?
+        path_info = env[PATH_INFO]
+        if (script_name.nil? || script_name.empty?) && (path_info.nil? || path_info.empty?)
           raise LintError, "One of SCRIPT_NAME or PATH_INFO must be set (make PATH_INFO '/' if SCRIPT_NAME is empty)"
         end
 
@@ -205,30 +206,28 @@ module Rack
         ## The remainder of the request URL's "path", designating the virtual "location" of the request's target within the application. This may be an empty string, if the request URL targets the application root and does not have a trailing slash. This value may be percent-encoded when originating from a URL.
         ##
         ## The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty string, as defined by {RFC9110}[https://datatracker.ietf.org/doc/html/rfc9110#target.resource].
-        if path_info = env[PATH_INFO]
-          case path_info
-          when REQUEST_PATH_ASTERISK_FORM
-            ## * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
-            unless env[REQUEST_METHOD] == OPTIONS
-              raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
-            end
-          when REQUEST_PATH_AUTHORITY_FORM
-            ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
-            unless env[REQUEST_METHOD] == CONNECT
-              raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
-            end
-          when REQUEST_PATH_ABSOLUTE_FORM
-            ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
-            if env[REQUEST_METHOD] == CONNECT || env[REQUEST_METHOD] == OPTIONS
-              raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
-            end
-          when REQUEST_PATH_ORIGIN_FORM
-            ## * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with <tt>#</tt> (origin-form).
-          when ""
-            # Empty string is okay.
-          else
-            raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
+        case path_info
+        when REQUEST_PATH_ASTERISK_FORM
+          ## * Only <tt>OPTIONS</tt> requests may have <tt>PATH_INFO</tt> set to <tt>*</tt> (asterisk-form).
+          unless request_method == OPTIONS
+            raise LintError, "Only OPTIONS requests may have PATH_INFO set to '*' (asterisk-form)"
           end
+        when REQUEST_PATH_AUTHORITY_FORM
+          ## * Only <tt>CONNECT</tt> requests may have <tt>PATH_INFO</tt> set to an authority (authority-form). Note that in HTTP/2+, the authority-form is not a valid request target.
+          unless request_method == CONNECT
+            raise LintError, "Only CONNECT requests may have PATH_INFO set to an authority (authority-form)"
+          end
+        when REQUEST_PATH_ABSOLUTE_FORM
+          ## * <tt>CONNECT</tt> and <tt>OPTIONS</tt> requests must not have <tt>PATH_INFO</tt> set to a URI (absolute-form).
+          if request_method == CONNECT || request_method == OPTIONS
+            raise LintError, "CONNECT and OPTIONS requests must not have PATH_INFO set to a URI (absolute-form)"
+          end
+        when REQUEST_PATH_ORIGIN_FORM
+          ## * Otherwise, <tt>PATH_INFO</tt> must start with a <tt>/</tt> and must not include a fragment part starting with <tt>#</tt> (origin-form).
+        when "", nil
+          # Empty string or nil is okay.
+        else
+          raise LintError, "PATH_INFO must start with a '/' and must not include a fragment part starting with '#' (origin-form)"
         end
 
         ##
