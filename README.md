@@ -13,18 +13,28 @@ information.
 
 | Version  | Support                            |
 |----------|------------------------------------|
-|    3.1.x | Bug fixes and security patches.    |
-|    3.0.x | Security patches only.             |
+|    3.2.x | Bug fixes and security patches.    |
+|    3.1.x | Security patches only.             |
+|    3.0.x | End of support.                    |
 |    2.2.x | Security patches only.             |
 | <= 2.1.x | End of support.                    |
 
+**Rack 2.2.x is in security maintenance mode**. Please upgrade to Rack 3.1+ as soon
+as possible to ensure you are receiving the latest features and security patches.
+
 Please see the [Security Policy] for more information.
+
+## Change log
+
+See the [Changelog](CHANGELOG.md) for a detailed list of changes in each version of Rack.
+
+### Rack 3.2 (latest release)
+
+This version of rack contains bug fixes and security patches.
 
 ### Rack 3.1
 
-This is the latest version of Rack. It contains bug fixes and security patches.
-Please check the [Change Log](CHANGELOG.md) for detailed information on specific
-changes.
+This version of rack contains bug fixes and security patches.
 
 ### Rack 3.0
 
@@ -269,17 +279,12 @@ Set to 0 for no limit.
 
 Can also be set via the `RACK_MULTIPART_TOTAL_PART_LIMIT` environment variable.
 
-## Changelog
-
-See [CHANGELOG.md](CHANGELOG.md).
-
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for specific details about how to make a
 contribution to Rack.
 
-Please post bugs, suggestions and patches to [GitHub
-Issues](https://github.com/rack/rack/issues).
+Please post bugs, suggestions and patches to [GitHub Issues](https://github.com/rack/rack/issues).
 
 Please check our [Security Policy](https://github.com/rack/rack/security/policy)
 for responsible disclosure and security bug reporting process. Due to wide usage
@@ -366,6 +371,6 @@ would like to thank:
 
 Rack is released under the [MIT License](MIT-LICENSE).
 
-[Rack Specification]: SPEC.rdoc
+[Rack Specification]: https://rack.github.io/rack/main/SPEC_rdoc.html
 [Documentation]: https://rack.github.io/rack/
 [Security Policy]: SECURITY.md
