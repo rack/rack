@@ -15,9 +15,8 @@ module Rack
       _, _, body = response = @app.call(env)
 
       if env[REQUEST_METHOD] == HEAD
-        response[2] = Rack::BodyProxy.new([]) do
-          body.close if body.respond_to? :close
-        end
+        body.close if body.respond_to?(:close)
+        response[2] = []
       end
 
       response

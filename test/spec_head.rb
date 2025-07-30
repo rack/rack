@@ -44,7 +44,6 @@ describe Rack::Head do
     resp[0].must_equal 200
     resp[1].must_equal "content-type" => "test/plain", "content-length" => "3"
     resp[2].to_enum.to_a.must_equal []
-    body.wont_be :closed?
     resp[2].close
     body.must_be :closed?
   end
