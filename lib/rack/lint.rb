@@ -10,12 +10,12 @@ module Rack
   class Lint
     # Represents a failure to meet the Rack specification.
     class LintError < RuntimeError; end
-    
+
     # Invoke the application, validating the request and response according to the Rack spec.
     def call(env = nil)
       Wrapper.new(@app, env).response
     end
-    
+
     # :stopdoc:
 
     ALLOWED_SCHEMES = %w(https http wss ws).freeze
@@ -78,7 +78,7 @@ module Rack
         @status = nil
         @headers = nil
         @body = nil
-        @invoked = nil
+        @consumed = nil
         @content_length = nil
         @closed = false
         @size = 0
@@ -134,7 +134,7 @@ module Rack
       ##
       ## Incoming HTTP requests are represented using an environment. \
       def check_environment(env)
-        ## The environment must be an unfrozen instance of +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. \
+        ## The environment must be an unfrozen +Hash+. The Rack application is free to modify the environment, but the modified environment should also comply with this specification. \
         raise LintError, "env #{env.inspect} is not a Hash, but #{env.class}" unless env.kind_of? Hash
         raise LintError, "env should not be frozen, but is" if env.frozen?
 
@@ -151,7 +151,7 @@ module Rack
         ## The environment is required to include these variables, adopted from {The Common Gateway Interface}[https://datatracker.ietf.org/doc/html/rfc3875] (CGI), except when they'd be empty, but see below.
 
         ##
-        ## The CGI keys (named without a period) must have +String+ values and are reserved for the Rack specification. If the values for CGI keys contain non-ASCII characters, they should use ASCII-8BIT encoding.
+        ## The CGI keys (named without a period) must have +String+ values and are reserved for the Rack specification. If the values for CGI keys contain non-ASCII characters, they should use <tt>ASCII-8BIT</tt> encoding.
         env.each do |key, value|
           next if key.include?(".") # Skip extensions
           
@@ -463,7 +463,7 @@ module Rack
         ##
         ## ==== <tt>rack.response_finished</tt>
         ##
-        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be invoked in reverse order.
+        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be called in reverse order.
         if rack_response_finished = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
           rack_response_finished.each do |callable|
@@ -477,7 +477,7 @@ module Rack
       ##
       ## The input stream is an +IO+-like object which contains the raw HTTP request data. \
       def check_input_stream(input)
-        ## When applicable, its external encoding must be "ASCII-8BIT" and it must be opened in binary mode. \
+        ## When applicable, its external encoding must be <tt>ASCII-8BIT</tt> and it must be opened in binary mode. \
         if input.respond_to?(:external_encoding) && input.external_encoding != Encoding::ASCII_8BIT
           raise LintError, "rack.input #{input} does not have ASCII-8BIT as its external encoding"
         end
@@ -498,7 +498,7 @@ module Rack
           @input = input
         end
 
-        ## * +gets+ must be called without arguments and return a string, or +nil+ on EOF.
+        ## * +gets+ must be called without arguments and return a +String+, or +nil+ on EOF (end-of-file).
         def gets(*args)
           raise LintError, "rack.input#gets called with arguments" unless args.size == 0
 
@@ -516,7 +516,7 @@ module Rack
         ##   * If +length+ is given and not +nil+, then this method reads at most +length+ bytes from the input stream.
         ##   * If +length+ is not given or +nil+, then this method reads all data until EOF.
         ##   * When EOF is reached, this method returns +nil+ if +length+ is given and not +nil+, or +""+ if +length+ is not given or is +nil+.
-        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+ object.
+        ##   * If +buffer+ is given, then the read data will be placed into +buffer+ instead of a newly created +String+.
         def read(*args)
           unless args.size <= 2
             raise LintError, "rack.input#read called with too many arguments"
@@ -624,7 +624,7 @@ module Rack
           env[RACK_HIJACK] = proc do
             io = original_hijack.call
 
-            ## and return an +IO+ instance which can be used to read and write to the underlying connection using HTTP/1 semantics and formatting.
+            ## and return an +IO+ object which can be used to read and write to the underlying connection using HTTP/1 semantics and formatting.
             raise LintError, "rack.hijack must return an IO instance" unless io.is_a?(IO)
 
             io
@@ -652,7 +652,7 @@ module Rack
             end
           end
           ##
-          ## After the response status and headers have been sent, this hijack callback will be invoked with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ instance is recommended.
+          ## After the response status and headers have been sent, this hijack callback will be called with a +stream+ argument which follows the same interface as outlined in "Streaming Body". Servers must ignore the +body+ part of the response tuple when the <tt>rack.hijack</tt> response header is present. Using an empty +Array+ is recommended.
         else
           ##
           ## The special response header <tt>rack.hijack</tt> must only be set if the request +env+ has a truthy <tt>rack.hijack?</tt>.
@@ -703,7 +703,7 @@ module Rack
       ## === The Headers
       ##
       def check_headers(headers)
-        ## The headers must be a unfrozen +Hash+. \
+        ## The headers must be an unfrozen +Hash+. \
         unless headers.kind_of?(Hash)
           raise LintError, "headers object should be a hash, but isn't (got #{headers.class} as headers)"
         end
@@ -713,7 +713,7 @@ module Rack
         end
 
         headers.each do |key, value|
-          ## The header keys must be +String+ objects. \
+          ## The header keys must be +String+ values. \
           unless key.kind_of? String
             raise LintError, "header key must be a string, was #{key.class}"
           end
@@ -724,12 +724,12 @@ module Rack
           ##
           ## * The headers must not contain a <tt>"status"</tt> key.
           raise LintError, "headers must not contain status" if key == "status"
-          ## * Header keys must conform to RFC7230 token specification, i.e. cannot contain non-printable ASCII, DQUOTE or <tt>(),/:;<=>?@[\]{}</tt>.
+          ## * Header keys must conform to {RFC7230}[https://tools.ietf.org/html/rfc7230] token specification, i.e. cannot contain non-printable ASCII, <tt>DQUOTE</tt> or <tt>(),/:;<=>?@[\]{}</tt>.
           raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
           ## * Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
-          ## * Header values must be either a +String+ value, \
+          ## * Header values must be either a +String+, \
           if value.kind_of?(String)
             check_header_value(key, value)
           elsif value.kind_of?(Array)
@@ -742,7 +742,7 @@ module Rack
       end
 
       def check_header_value(key, value)
-        ## such that each +String+ value must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
+        ## such that each +String+ must not contain <tt>NUL</tt> (<tt>\0</tt>), <tt>CR</tt> (<tt>\r</tt>), or <tt>LF</tt> (<tt>\n</tt>).
         if value.match?(/[\x00\x0A\x0D]/)
           raise LintError, "invalid header value #{key}: #{value.inspect}"
         end
@@ -753,7 +753,7 @@ module Rack
       ##
       def check_content_type_header(status, headers)
         headers.each do |key, value|
-          ## There must not be a <tt>content-type</tt> header key when the status is 1xx, 204, or 304.
+          ## There must not be a <tt>content-type</tt> header key when the status is <tt>1xx</tt>, <tt>204</tt>, or <tt>304</tt>.
           if key == "content-type"
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-type header found in #{status} response, not allowed"
@@ -769,7 +769,7 @@ module Rack
       def check_content_length_header(status, headers)
         headers.each do |key, value|
           if key == 'content-length'
-            ## There must not be a <tt>content-length</tt> header key when the status is 1xx, 204, or 304.
+            ## There must not be a <tt>content-length</tt> header key when the status is <tt>1xx</tt>, <tt>204</tt>, or <tt>304</tt>.
             if Rack::Utils::STATUS_WITH_NO_ENTITY_BODY.key? status.to_i
               raise LintError, "content-length header found in #{status} response, not allowed"
             end
@@ -808,11 +808,11 @@ module Rack
         end
       end
       ##
-      ## Setting this value informs the server that it should perform a connection upgrade. In HTTP/1, this is done using the +upgrade+ header. In HTTP/2, this is done by accepting the request.
+      ## Setting this value informs the server that it should perform a connection upgrade. In HTTP/1, this is done using the +upgrade+ header. In HTTP/2+, this is done by accepting the request.
       ##
       ## === The Body
       ##
-      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+ instance, or a File-like object.
+      ## The Body is typically an +Array+ of +String+ values, an enumerable that yields +String+ values, a +Proc+, or an +IO+-like object.
       ##
       ## The Body must respond to +each+ or +call+. It may optionally respond to +to_path+ or +to_ary+. A Body that responds to +each+ is considered to be an Enumerable Body. A Body that responds to +call+ is considered to be a Streaming Body.
       ##
@@ -851,16 +851,16 @@ module Rack
       ## ==== Enumerable Body
       ##
       def each
-        ## The Enumerable Body must respond to +each+. \
+        ## The Enumerable Body must respond to +each+, \
         raise LintError, "Enumerable Body must respond to each" unless @body.respond_to?(:each)
 
-        ## It must only be called once. \
-        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+        ## which must only be called once, \
+        raise LintError, "Response body must only be called once (#{@consumed})" unless @consumed.nil?
 
-        ## It must not be called after being closed, \
+        ## must not be called after being closed, \
         raise LintError, "Response body is already closed" if @closed
 
-        @invoked = :each
+        @consumed = :each
 
         @body.each do |chunk|
           ## and must only yield +String+ values.
@@ -917,18 +917,18 @@ module Rack
       ## ==== Streaming Body
       ##
       def call(stream)
-        ## The Streaming Body must respond to +call+. \
+        ## The Streaming Body must respond to +call+, \
         raise LintError, "Streaming Body must respond to call" unless @body.respond_to?(:call)
 
-        ## It must only be called once. \
-        raise LintError, "Response body must only be invoked once (#{@invoked})" unless @invoked.nil?
+        ## which must only be called once, \
+        raise LintError, "Response body must only be called once (#{@consumed})" unless @consumed.nil?
 
-        ## It must not be called after being closed. \
+        ## must not be called after being closed, \
         raise LintError, "Response body is already closed" if @closed
 
-        @invoked = :call
+        @consumed = :call
 
-        ## It takes a +stream+ argument.
+        ## and accept a +stream+ argument.
         ##
         ## The +stream+ argument must respond to: +read+, +write+, <tt><<</tt>, +flush+, +close+, +close_read+, +close_write+, and +closed?+. \
         @body.call(StreamWrapper.new(stream))
