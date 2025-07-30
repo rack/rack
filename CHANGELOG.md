@@ -30,6 +30,7 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - `Rack::Builder` `#use`, `#map`, and `#run` methods now return `nil`. ([#2355](https://github.com/rack/rack/pull/2355), [@ioquatix])
 - Directly close the body in `Rack::ConditionalGet` when the response is `304 Not Modified`. ([#2353](https://github.com/rack/rack/pull/2353), [@ioquatix])
 - Directly close the body in `Rack::Head` when the request method is `HEAD`([#2360](https://github.com/rack/rack/pull/2360), [@skipkayhil](https://github.com/skipkayhil))
+- Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
 
 ### Deprecated
 
