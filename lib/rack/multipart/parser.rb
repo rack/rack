@@ -168,6 +168,7 @@ module Rack
           check_total_part_limit
 
           if filename
+            # This will raise an exception if we are at the limit:
             check_file_part_limit
 
             body = @tempfile.call(filename, content_type)
