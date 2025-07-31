@@ -165,7 +165,12 @@ module Rack
         end
 
         def on_mime_head(mime_index, head, filename, content_type, name)
+          check_total_part_limit
+
           if filename
+            # This will raise an exception if we are at the limit:
+            check_file_part_limit
+
             body = @tempfile.call(filename, content_type)
             body.binmode if body.respond_to?(:binmode)
             klass = TempfilePart
@@ -176,8 +181,6 @@ module Rack
           end
 
           @mime_parts[mime_index] = klass.new(body, head, filename, content_type, name)
-
-          check_part_limits
         end
 
         def on_mime_body(mime_index, content)
@@ -189,19 +192,22 @@ module Rack
 
         private
 
-        def check_part_limits
+        def check_file_part_limit
           file_limit = Utils.multipart_file_limit
-          part_limit = Utils.multipart_total_part_limit
 
           if file_limit && file_limit > 0
-            if @open_files >= file_limit
+            if (@open_files + 1) >= file_limit
               @mime_parts.each(&:close)
               raise MultipartPartLimitError, 'Maximum file multiparts in content reached'
             end
           end
+        end
+
+        def check_total_part_limit
+          part_limit = Utils.multipart_total_part_limit
 
           if part_limit && part_limit > 0
-            if @mime_parts.size >= part_limit
+            if (@mime_parts.size + 1) >= part_limit
               @mime_parts.each(&:close)
               raise MultipartTotalPartLimitError, 'Maximum total multiparts in content reached'
             end
