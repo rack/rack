@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### SPEC Changes
+
+- Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
+
 ### Changed
 
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
