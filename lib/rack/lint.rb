@@ -464,7 +464,7 @@ module Rack
         ##
         ## If present, an array of callables that will be run by the server after the response has been processed. Typically this will be after sending the response to the client, but it could also be if an error occurs while generating the response or sending the response.
         ##
-        ## The callables must be called in reverse order with four arguments which must be
+        ## The callables must be called in reverse order with four arguments which must be:
         if rack_response_finished = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
 
