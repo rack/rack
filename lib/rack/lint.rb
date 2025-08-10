@@ -490,13 +490,13 @@ module Rack
           ## * <tt>env</tt> a valid Rack environment
           @wrapper.check_environment(env)
 
-          ## * <tt>status</tt> a valid Rack status (or nil)
+          ## * <tt>status</tt> a valid Rack status (or +nil+)
           status.nil? || @wrapper.check_status(status)
 
-          ## * <tt>headers</tt> valid Rack response headers (or nil)
+          ## * <tt>headers</tt> valid Rack response headers (or +nil+)
           headers.nil? || @wrapper.check_headers(headers)
 
-          ## * <tt>error</t> an Exception (or nil)
+          ## * <tt>error</tt> an Exception (or +nil+)
           unless error.nil? || Exception === error
             raise LintError, "rack.response_finished callable's fourth argument must be an Exception or nil, got #{error}"
           end

@@ -144,9 +144,9 @@ If present, an array of callables that will be run by the server after the respo
 
 The callables must be called in reverse order with four arguments which must be:
 * <tt>env</tt> a valid Rack environment
-* <tt>status</tt> a valid Rack status (or nil)
-* <tt>headers</tt> valid Rack response headers (or nil)
-* <tt>error</t> an Exception (or nil)
+* <tt>status</tt> a valid Rack status (or +nil+)
+* <tt>headers</tt> valid Rack response headers (or +nil+)
+* <tt>error</tt> an Exception (or +nil+)
 and should not raise any exceptions.
 
 === The Input Stream
