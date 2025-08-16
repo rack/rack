@@ -462,13 +462,49 @@ module Rack
         ##
         ## ==== <tt>rack.response_finished</tt>
         ##
-        ## If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be called in reverse order.
+        ## If present, an array of callables that will be run by the server after the response has been processed. Typically this will be after sending the response to the client, but it could also be if an error occurs while generating the response or sending the response.
+        ##
+        ## The callables must be called in reverse order with four arguments which must be:
         if rack_response_finished = env[RACK_RESPONSE_FINISHED]
           raise LintError, "rack.response_finished must be an array of callable objects" unless rack_response_finished.is_a?(Array)
-          rack_response_finished.each do |callable|
+
+          rack_response_finished.map! do |callable|
             raise LintError, "rack.response_finished values must respond to call(env, status, headers, error)" unless callable.respond_to?(:call)
+
+            if ResponseFinishedWrapper === callable
+              callable
+            else
+              ResponseFinishedWrapper.new(self, callable)
+            end
           end
         end
+      end
+
+      class ResponseFinishedWrapper
+        def initialize(wrapper, callback)
+          @wrapper = wrapper
+          @callback = callback
+        end
+
+        def call(env, status, headers, error)
+          ## * <tt>env</tt> a valid Rack environment
+          @wrapper.check_environment(env)
+
+          ## * <tt>status</tt> a valid Rack status (or +nil+)
+          status.nil? || @wrapper.check_status(status)
+
+          ## * <tt>headers</tt> valid Rack response headers (or +nil+)
+          headers.nil? || @wrapper.check_headers(headers)
+
+          ## * <tt>error</tt> an Exception (or +nil+)
+          unless error.nil? || Exception === error
+            raise LintError, "rack.response_finished callable's fourth argument must be an Exception or nil, got #{error}"
+          end
+
+          @callback.call(env, status, headers, error)
+        end
+
+        ## and should not raise any exceptions.
       end
 
       ##

@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### SPEC Changes
+
+- Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
+
 ### Added
 
 - Add support for `rack.response_finished` to `Rack::TempfileReaper`. ([#2363](https://github.com/rack/rack/pull/2363), [@skipkayhil](https://github.com/skipkayhil))

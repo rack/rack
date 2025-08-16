@@ -140,7 +140,14 @@ The error stream. See the section below on the error stream for more information
 
 ==== <tt>rack.response_finished</tt>
 
-If present, an array of callables that will be run by the server after the response has been processed. The callables are called with <tt>environment, status, headers, error</tt> arguments and should not raise any exceptions. The callables would typically be called after sending the response to the client, but it could also be called if an error occurs while generating the response or sending the response (in that case, the +error+ argument will be a kind of +Exception+). The callables will be called in reverse order.
+If present, an array of callables that will be run by the server after the response has been processed. Typically this will be after sending the response to the client, but it could also be if an error occurs while generating the response or sending the response.
+
+The callables must be called in reverse order with four arguments which must be:
+* <tt>env</tt> a valid Rack environment
+* <tt>status</tt> a valid Rack status (or +nil+)
+* <tt>headers</tt> valid Rack response headers (or +nil+)
+* <tt>error</tt> an Exception (or +nil+)
+and should not raise any exceptions.
 
 === The Input Stream
 

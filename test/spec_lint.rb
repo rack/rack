@@ -266,16 +266,6 @@ describe Rack::Lint do
       Rack::Lint.new(valid_app).call(env("SCRIPT_NAME" => "/"))
     }.must_raise(Rack::Lint::LintError).
       message.must_match(/cannot be .* make it ''/)
-
-    lambda {
-      Rack::Lint.new(valid_app).call(env("rack.response_finished" => "not a callable"))
-    }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished must be an array of callable objects/)
-
-    lambda {
-      Rack::Lint.new(valid_app).call(env("rack.response_finished" => [-> (env) {}, "not a callable"]))
-    }.must_raise(Rack::Lint::LintError).
-    message.must_match(/rack.response_finished values must respond to call/)
   end
 
   it "notice input errors" do
@@ -1081,15 +1071,76 @@ describe Rack::Lint do
       message.must_equal 'rack.hijack header must not be present if server does not support hijacking'
   end
 
-  it "pass valid rack.response_finished" do
+  it "notices rack.response_finished errors" do
+    lambda {
+      Rack::Lint.new(valid_app).call(env("rack.response_finished" => "not a callable"))
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/rack.response_finished must be an array of callable objects/)
+
+    lambda {
+      e = env("rack.response_finished" => [proc {}])
+      Rack::Lint.new(valid_app).call(e)
+      e["rack.response_finished"].each(&:call)
+    }.must_raise(ArgumentError).
+    message.must_match(/wrong number of arguments \(given 0, expected 4\)/)
+
+    lambda {
+      e = env("rack.response_finished" => [proc {}])
+      Rack::Lint.new(valid_app).call(e)
+      e["rack.response_finished"].each { |c| c.call(0, 100, {}, nil) }
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/not a Hash/)
+
+    lambda {
+      e = env("rack.response_finished" => [proc {}])
+      Rack::Lint.new(valid_app).call(e)
+      e["rack.response_finished"].each { |c| c.call(e, 99, {}, nil) }
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/Status must be an Integer >=100/)
+
+    lambda {
+      e = env("rack.response_finished" => [proc {}])
+      Rack::Lint.new(valid_app).call(e)
+      e["rack.response_finished"].each { |c| c.call(e, 100, 0, nil) }
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/headers object should be a hash/)
+
+    lambda {
+      e = env("rack.response_finished" => [proc {}])
+      Rack::Lint.new(valid_app).call(e)
+      e["rack.response_finished"].each { |c| c.call(e, nil, nil, 0) }
+    }.must_raise(Rack::Lint::LintError).
+    message.must_match(/must be an Exception or nil/)
+
+    proc_called = 0
+    lambda_called = 0
+
     callable_object = Class.new do
+      attr_reader :called
+
+      def initialize
+        @called = 0
+      end
+
       def call(env, status, headers, error)
+        @called += 1
       end
     end.new
 
-    Rack::Lint.new(lambda { |env|
-                     [200, {}, ["foo"]]
-                   }).call(env({ "rack.response_finished" => [-> (env) {}, lambda { |env| }, callable_object], "content-length" => "3" })).first.must_equal 200
+    e = env({"rack.response_finished" => [
+      proc { proc_called += 1 },
+      ->(_, _, _, _) { lambda_called += 1 },
+      callable_object,
+    ]})
+
+    resp = Rack::Lint.new(valid_app).call(e)
+    resp[0].must_equal 200
+
+    e["rack.response_finished"].each { |c| c.call(e, resp[0], resp[1], nil) }
+
+    assert_equal 1, proc_called
+    assert_equal 1, lambda_called
+    assert_equal 1, callable_object.called
   end
 
   it "notices when the response protocol is not an array of strings" do
