@@ -26,7 +26,21 @@ describe Rack::TempfileReaper do
   end
 
   def call(app)
-    Rack::Lint.new(Rack::TempfileReaper.new(app)).call(@env)
+    Rack::Lint.new(Rack::TempfileReaper.new(Rack::Lint.new(app))).call(@env)
+  end
+
+  def call_with_response_finished(app)
+    @env['rack.response_finished'] = []
+
+    resp = call(app)
+
+    @env['rack.response_finished'].each { |cb| cb.call(@env, resp[0], resp[1], nil) }
+
+    resp
+  rescue => e
+    @env['rack.response_finished'].each { |cb| cb.call(@env, nil, nil, e) }
+
+    raise
   end
 
   it 'do nothing (i.e. not bomb out) without env[rack.tempfiles]' do
@@ -36,11 +50,26 @@ describe Rack::TempfileReaper do
     response[0].must_equal 200
   end
 
+  it 'does nothing without env[rack.tempfiles] with rack.response_finished' do
+    app = lambda { |_| [200, {}, ['Hello, World!']] }
+    response = call_with_response_finished(app)
+    response[0].must_equal 200
+  end
+
   it 'close env[rack.tempfiles] when app raises an error' do
     tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
     @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
     app = lambda { |_| raise 'foo' }
     proc{call(app)}.must_raise RuntimeError
+    tempfile1.closed.must_equal true
+    tempfile2.closed.must_equal true
+  end
+
+  it 'close env[rack.tempfiles] when app raises an error with rack.response_finished' do
+    tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
+    @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
+    app = lambda { |_| raise 'foo' }
+    proc{call_with_response_finished(app)}.must_raise RuntimeError
     tempfile1.closed.must_equal true
     tempfile2.closed.must_equal true
   end
@@ -59,6 +88,15 @@ describe Rack::TempfileReaper do
     @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
     app = lambda { |_| [200, {}, ['Hello, World!']] }
     call(app)[2].close
+    tempfile1.closed.must_equal true
+    tempfile2.closed.must_equal true
+  end
+
+  it 'close env[rack.tempfiles] when rack.response_finished' do
+    tempfile1, tempfile2 = MockTempfile.new, MockTempfile.new
+    @env['rack.tempfiles'] = [ tempfile1, tempfile2 ]
+    app = lambda { |_| [200, {}, ['Hello, World!']] }
+    call_with_response_finished(app)
     tempfile1.closed.must_equal true
     tempfile2.closed.must_equal true
   end
@@ -93,11 +131,27 @@ describe Rack::TempfileReaper do
     call(app)[2].close
   end
 
+  it 'handle missing rack.tempfiles on normal response with rack.response_finished' do
+    app = lambda do |env|
+      env.delete('rack.tempfiles')
+      [200, {}, ['Hello, World!']]
+    end
+    call_with_response_finished(app)
+  end
+
   it 'handle missing rack.tempfiles on error' do
     app = lambda do |env|
       env.delete('rack.tempfiles')
       raise 'Foo'
     end
     proc{call(app)}.must_raise RuntimeError
+  end
+
+  it 'handle missing rack.tempfiles on error with rack.response_finished' do
+    app = lambda do |env|
+      env.delete('rack.tempfiles')
+      raise 'Foo'
+    end
+    proc{call_with_response_finished(app)}.must_raise RuntimeError
   end
 end
