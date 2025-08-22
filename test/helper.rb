@@ -5,7 +5,7 @@ if ENV.delete('COVERAGE')
 
   SimpleCov.start do
     enable_coverage :branch
-    add_filter "/test/"
+    add_filter{|f| f.filename.start_with?(__dir__ + "/")}
     add_group('Missing'){|src| src.covered_percent < 100}
     add_group('Covered'){|src| src.covered_percent == 100}
   end
