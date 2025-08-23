@@ -20,7 +20,7 @@ The server and application can store their own data in the environment, too. The
 
 ==== <tt>REQUEST_METHOD</tt>
 
-The HTTP request method, such as "GET" or "POST". This cannot ever be an empty string, and so is always required.
+The HTTP request method, such as "GET" or "POST".
 
 ==== <tt>SCRIPT_NAME</tt>
 
@@ -40,7 +40,7 @@ The <tt>PATH_INFO</tt>, if provided, must be a valid request target or an empty 
 
 ==== <tt>QUERY_STRING</tt>
 
-The portion of the request URL that follows the <tt>?</tt>, if any. May be empty, but is always required!
+The portion of the request URL that follows the <tt>?</tt>, if any. May be empty.
 
 ==== <tt>SERVER_NAME</tt>
 
@@ -84,15 +84,15 @@ In addition to CGI variables, the Rack environment includes Rack-specific variab
 
 ==== <tt>rack.url_scheme</tt>
 
-The URL scheme, which must be one of <tt>http</tt>, <tt>https</tt>, <tt>ws</tt> or <tt>wss</tt>. This can never be an empty string, and so is always required. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set <tt>rack.url_scheme</tt> to <tt>http</tt>.
+The URL scheme, which must be one of <tt>http</tt>, <tt>https</tt>, <tt>ws</tt> or <tt>wss</tt>. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set <tt>rack.url_scheme</tt> to <tt>http</tt>.
 
 ==== <tt>rack.protocol</tt>
 
-An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
+An +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
 
 ==== <tt>rack.session</tt>
 
-An optional +Hash+-like interface for storing request session data. The store must implement:
+A +Hash+-like interface for storing request session data. The store must implement:
 * <tt>store(key, value)</tt> (aliased as <tt>[]=</tt>) to set a value for a key,
 * <tt>fetch(key, default = nil)</tt> (aliased as <tt>[]</tt>) to retrieve a value for a key,
 * <tt>delete(key)</tt> to delete a key,
@@ -101,7 +101,7 @@ An optional +Hash+-like interface for storing request session data. The store mu
 
 ==== <tt>rack.logger</tt>
 
-An optional +Logger+-like interface for logging messages. The logger must implement:
+A +Logger+-like interface for logging messages. The logger must implement:
 * <tt>info(message, &block)</tt>,
 * <tt>debug(message, &block)</tt>,
 * <tt>warn(message, &block)</tt>,
@@ -110,11 +110,11 @@ An optional +Logger+-like interface for logging messages. The logger must implem
 
 ==== <tt>rack.multipart.buffer_size</tt>
 
-An optional +Integer+ hint to the multipart parser as to what chunk size to use for reads and writes.
+An +Integer+ hint to the multipart parser as to what chunk size to use for reads and writes.
 
 ==== <tt>rack.multipart.tempfile_factory</tt>
 
-An optional object for constructing temporary files for multipart form data. The factory must implement:
+An object for constructing temporary files for multipart form data. The factory must implement:
 * <tt>call(filename, content_type)</tt> to create a temporary file for a multipart form field.
 The factory must return an +IO+-like object that responds to <tt><<</tt> and optionally <tt>rewind</tt>.
 
@@ -148,6 +148,36 @@ The callables must be called in reverse order with four arguments which must be:
 * <tt>headers</tt> valid Rack response headers (or +nil+)
 * <tt>error</tt> an Exception (or +nil+)
 and should not raise any exceptions.
+
+=== Required/Optional Request Environment Keys
+
+These keys are required:
+
+* +REQUEST_METHOD+
+* +SCRIPT_NAME+ (unless +PATH_INFO+ is present)
+* +PATH_INFO+ (unless +SCRIPT_NAME+ is present)
+* +QUERY_STRING+
+* +SERVER_NAME+
+* +SERVER_PROTOCOL+
+* +rack.url_scheme+
+* +rack.errors+
+
+These keys are optional:
+
+* +SERVER_PORT+
+* +CONTENT_TYPE+
+* +CONTENT_LENGTH+
+* +HTTP_HOST+
+* <tt>HTTP_*</tt>
+* +rack.protocol+
+* +rack.logger+
+* +rack.multipart.buffer_size+
+* +rack.multipart.tempfile_factory+
+* +rack.hijack?+
+* +rack.hijack+
+* +rack.early_hints+
+* +rack.input+
+* +rack.response_finished+
 
 === The Input Stream
 
