@@ -74,7 +74,7 @@ jobs:
         cp -r ../contrib ../docs/2.2
 
     - name: Upload documentation artifact
-      uses: actions/upload-pages-artifact@v3
+      uses: actions/upload-pages-artifact@v4
       with:
         path: docs
   
