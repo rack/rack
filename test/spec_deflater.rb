@@ -73,13 +73,7 @@ describe Rack::Deflater do
       when 'gzip'
         io = StringIO.new(body_text)
         gz = Zlib::GzipReader.new(io)
-        mtime = gz.mtime.to_i
-        if last_mod = headers['last-modified']
-          Time.httpdate(last_mod).to_i.must_equal mtime
-        else
-          mtime.must_be(:<=, Time.now.to_i)
-          mtime.must_be(:>=, start.to_i - 1)
-        end
+        gz.mtime.to_i.must_equal(Rack::Deflater::GZIP_MTIME)
         tmp = gz.read
         gz.close
         tmp

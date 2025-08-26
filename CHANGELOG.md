@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Changed
 
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
+- Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
 
 ### Fixed
 
