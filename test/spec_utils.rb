@@ -582,6 +582,12 @@ describe Rack::Utils do
   it "clean slash only paths" do
     Rack::Utils.clean_path_info("/").must_equal "/"
   end
+
+  it "raises an error if the path is invalid" do
+    lambda do
+      Rack::Utils.clean_path_info("/foo/..\\../bar")
+    end.must_raise(ArgumentError, /Invalid path/)
+  end
 end
 
 describe Rack::Utils, "cookies" do
