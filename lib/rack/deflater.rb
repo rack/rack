@@ -26,6 +26,9 @@ module Rack
   # Note that despite the name, Deflater does not support the +deflate+
   # encoding.
   class Deflater
+
+    GZIP_MTIME = RUBY_VERSION >= "2.7" ? 0 : 1
+
     # Creates Rack::Deflater middleware. Options:
     #
     # :if :: a lambda enabling / disabling deflation based on returned boolean value
@@ -65,9 +68,7 @@ module Rack
       when "gzip"
         headers['content-encoding'] = "gzip"
         headers.delete(CONTENT_LENGTH)
-        mtime = headers["last-modified"]
-        mtime = Time.httpdate(mtime).to_i if mtime
-        response[2] = GzipStream.new(body, mtime, @sync)
+        response[2] = GzipStream.new(body, GZIP_MTIME, @sync)
         response
       when "identity"
         response
