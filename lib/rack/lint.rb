@@ -172,7 +172,7 @@ module Rack
         ##
         ## ==== <tt>REQUEST_METHOD</tt>
         ##
-        ## The HTTP request method, such as "GET" or "POST". This cannot ever be an empty string, and so is always required.
+        ## The HTTP request method, such as "GET" or "POST".
         request_method = assert_required(REQUEST_METHOD)
         unless request_method =~ /\A[0-9A-Za-z!\#$%&'*+.^_`|~-]+\z/
           raise LintError, "REQUEST_METHOD unknown: #{request_method.inspect}"
@@ -233,7 +233,7 @@ module Rack
         ##
         ## ==== <tt>QUERY_STRING</tt>
         ##
-        ## The portion of the request URL that follows the <tt>?</tt>, if any. May be empty, but is always required!
+        ## The portion of the request URL that follows the <tt>?</tt>, if any. May be empty.
         assert_required(QUERY_STRING)
 
         ##
@@ -315,7 +315,7 @@ module Rack
         ##
         ## ==== <tt>rack.url_scheme</tt>
         ##
-        ## The URL scheme, which must be one of <tt>http</tt>, <tt>https</tt>, <tt>ws</tt> or <tt>wss</tt>. This can never be an empty string, and so is always required. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set <tt>rack.url_scheme</tt> to <tt>http</tt>.
+        ## The URL scheme, which must be one of <tt>http</tt>, <tt>https</tt>, <tt>ws</tt> or <tt>wss</tt>. The scheme should be set according to the last hop. For example, if a client makes a request to a reverse proxy over HTTPS, but the connection between the reverse proxy and the server is over plain HTTP, the reverse proxy should set <tt>rack.url_scheme</tt> to <tt>http</tt>.
         rack_url_scheme = assert_required(RACK_URL_SCHEME)
         unless ALLOWED_SCHEMES.include?(rack_url_scheme)
           raise LintError, "rack.url_scheme unknown: #{rack_url_scheme.inspect}"
@@ -324,7 +324,7 @@ module Rack
         ##
         ## ==== <tt>rack.protocol</tt>
         ##
-        ## An optional +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
+        ## An +Array+ of +String+ values, containing the protocols advertised by the client in the <tt>upgrade</tt> header (HTTP/1) or the <tt>:protocol</tt> pseudo-header (HTTP/2+).
         if protocols = env[RACK_PROTOCOL]
           unless protocols.is_a?(Array) && protocols.all?{|protocol| protocol.is_a?(String)}
             raise LintError, "rack.protocol must be an Array of Strings"
@@ -334,7 +334,7 @@ module Rack
         ##
         ## ==== <tt>rack.session</tt>
         ##
-        ## An optional +Hash+-like interface for storing request session data. The store must implement:
+        ## A +Hash+-like interface for storing request session data. The store must implement:
         if session = env[RACK_SESSION]
           ## * <tt>store(key, value)</tt> (aliased as <tt>[]=</tt>) to set a value for a key,
           unless session.respond_to?(:store) && session.respond_to?(:[]=)
@@ -365,7 +365,7 @@ module Rack
         ##
         ## ==== <tt>rack.logger</tt>
         ##
-        ## An optional +Logger+-like interface for logging messages. The logger must implement:
+        ## A +Logger+-like interface for logging messages. The logger must implement:
         if logger = env[RACK_LOGGER]
           ## * <tt>info(message, &block)</tt>,
           unless logger.respond_to?(:info)
@@ -396,7 +396,7 @@ module Rack
         ##
         ## ==== <tt>rack.multipart.buffer_size</tt>
         ##
-        ## An optional +Integer+ hint to the multipart parser as to what chunk size to use for reads and writes.
+        ## An +Integer+ hint to the multipart parser as to what chunk size to use for reads and writes.
         if rack_multipart_buffer_size = env[RACK_MULTIPART_BUFFER_SIZE]
           unless rack_multipart_buffer_size.is_a?(Integer) && rack_multipart_buffer_size > 0
             raise LintError, "rack.multipart.buffer_size must be an Integer > 0 if specified"
@@ -406,7 +406,7 @@ module Rack
         ##
         ## ==== <tt>rack.multipart.tempfile_factory</tt>
         ##
-        ## An optional object for constructing temporary files for multipart form data. The factory must implement:
+        ## An object for constructing temporary files for multipart form data. The factory must implement:
         if rack_multipart_tempfile_factory = env[RACK_MULTIPART_TEMPFILE_FACTORY]
           ## * <tt>call(filename, content_type)</tt> to create a temporary file for a multipart form field.
           unless rack_multipart_tempfile_factory.respond_to?(:call)
@@ -507,6 +507,36 @@ module Rack
         ## and should not raise any exceptions.
       end
 
+      ##
+      ## === Required/Optional Request Environment Keys
+      ##
+      ## These keys are required:
+      ##
+      ## * +REQUEST_METHOD+
+      ## * +SCRIPT_NAME+ (unless +PATH_INFO+ is present)
+      ## * +PATH_INFO+ (unless +SCRIPT_NAME+ is present)
+      ## * +QUERY_STRING+
+      ## * +SERVER_NAME+
+      ## * +SERVER_PROTOCOL+
+      ## * +rack.url_scheme+
+      ## * +rack.errors+
+      ##
+      ## These keys are optional:
+      ##
+      ## * +SERVER_PORT+
+      ## * +CONTENT_TYPE+
+      ## * +CONTENT_LENGTH+
+      ## * +HTTP_HOST+
+      ## * <tt>HTTP_*</tt>
+      ## * +rack.protocol+
+      ## * +rack.logger+
+      ## * +rack.multipart.buffer_size+
+      ## * +rack.multipart.tempfile_factory+
+      ## * +rack.hijack?+
+      ## * +rack.hijack+
+      ## * +rack.early_hints+
+      ## * +rack.input+
+      ## * +rack.response_finished+
       ##
       ## === The Input Stream
       ##
