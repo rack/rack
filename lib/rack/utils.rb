@@ -595,7 +595,7 @@ module Rack
       end
     end
 
-    PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact)
+    PATH_SEPS = Regexp.union(*[::File::SEPARATOR, ::File::ALT_SEPARATOR].compact).freeze
 
     def clean_path_info(path_info)
       parts = path_info.split PATH_SEPS

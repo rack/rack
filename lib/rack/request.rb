@@ -53,7 +53,7 @@ module Rack
       /\A172\.(1[6-9]|2[0-9]|3[01])#{valid_ipv4_octet}{2}\z/,   # private IPv4 range 172.16.0.0 .. 172.31.255.255
       /\A192\.168#{valid_ipv4_octet}{2}\z/,                     # private IPv4 range 192.168.x.x
       /\Alocalhost\z|\Aunix(\z|:)/i,                            # localhost hostname, and unix domain sockets
-    )
+    ).freeze
 
     self.ip_filter = lambda { |ip| trusted_proxies.match?(ip) }
 
@@ -712,7 +712,7 @@ module Rack
            |
            :(?:[0-9A-Fa-f]{1,4}(?::[0-9A-Fa-f]{1,4})*)?
          )?
-         :[0-9A-Fa-f]{1,4}%[-0-9A-Za-z._~]+/x)
+         :[0-9A-Fa-f]{1,4}%[-0-9A-Za-z._~]+/x).freeze
 
       AUTHORITY = /
         \A
