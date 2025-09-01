@@ -4,6 +4,16 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+## [3.2.1] -- 2025-09-02
+
+### Added
+
+- Add support for streaming bodies when using `Rack::Events`. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
+
+### Fixed
+
+- Fix an issue where a `NoMethodError` would be raised when using `Rack::Events` with streaming bodies. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
+
 ## [3.2.0] - 2025-07-31
 
 This release continues Rack's evolution toward a cleaner, more efficient foundation while maintaining backward compatibility for most applications. The breaking changes primarily affect deprecated functionality, so most users should experience a smooth upgrade with improved performance and standards compliance.

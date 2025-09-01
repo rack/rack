@@ -84,6 +84,21 @@ module Rack
       ], events
     end
 
+    def test_send_is_called_on_call
+      events = []
+      ret = [200, {}, lambda { |stream| stream.close }]
+      app = lambda { |env| events << [app, :call]; ret }
+      se = EventMiddleware.new events
+      e = Events.new app, [se]
+      triple = e.call({})
+      triple[2].call(StringIO.new)
+      assert_equal [[se, :on_start],
+                    [app, :call],
+                    [se, :on_commit],
+                    [se, :on_send],
+      ], events
+    end
+
     def test_finish_is_called_on_close
       events = []
       ret = [200, {}, []]
@@ -132,6 +147,13 @@ module Rack
                     [se, :on_error],
                     [se, :on_finish],
       ], events
+    end
+
+    def test_evented_body_proxy_respond_to_each_matches_body
+      app = lambda { |env| [200, {}, lambda { |stream| stream.close }] }
+      e = Events.new app, []
+      triple = e.call({})
+      refute triple[2].respond_to?(:each)
     end
   end
 end
