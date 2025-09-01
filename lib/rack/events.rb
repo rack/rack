@@ -29,12 +29,13 @@ module Rack
   #
   # * on_send(request, response)
   #
-  #   The webserver has started iterating over the response body and presumably
-  #   has started sending data over the wire. This method is always called with
-  #   a request object and the response object.  The response object is
-  #   constructed from the rack triple that the application returned.  Changes
-  #   SHOULD NOT be made to the response object as the webserver has already
-  #   started sending data.  Any mutations will likely result in an exception.
+  #   The webserver has started iterating over the response body, or has called
+  #   the streaming body, and presumably has started sending data over the
+  #   wire. This method is always called with a request object and the response
+  #   object. The response object is constructed from the rack triple that the
+  #   application returned.  Changes SHOULD NOT be made to the response object
+  #   as the webserver has already started sending data.  Any mutations will
+  #   likely result in an exception.
   #
   # * on_finish(request, response)
   #
@@ -91,9 +92,14 @@ module Rack
         super
       end
 
+      def call(stream)
+        @handlers.reverse_each { |handler| handler.on_send request, response }
+        super
+      end
+
       def respond_to?(method_name, include_all = false)
         case method_name
-        when :each
+        when :each, :call
           @body.respond_to?(method_name, include_all)
         else
           super

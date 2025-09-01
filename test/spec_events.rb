@@ -84,6 +84,21 @@ module Rack
       ], events
     end
 
+    def test_send_is_called_on_call
+      events = []
+      ret = [200, {}, lambda { |stream| stream.close }]
+      app = lambda { |env| events << [app, :call]; ret }
+      se = EventMiddleware.new events
+      e = Events.new app, [se]
+      triple = e.call({})
+      triple[2].call(StringIO.new)
+      assert_equal [[se, :on_start],
+                    [app, :call],
+                    [se, :on_commit],
+                    [se, :on_send],
+      ], events
+    end
+
     def test_finish_is_called_on_close
       events = []
       ret = [200, {}, []]
