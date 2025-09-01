@@ -133,5 +133,12 @@ module Rack
                     [se, :on_finish],
       ], events
     end
+
+    def test_evented_body_proxy_respond_to_each_matches_body
+      app = lambda { |env| [200, {}, lambda { |stream| stream.close }] }
+      e = Events.new app, []
+      triple = e.call({})
+      refute triple[2].respond_to?(:each)
+    end
   end
 end

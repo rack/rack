@@ -90,6 +90,15 @@ module Rack
         @handlers.reverse_each { |handler| handler.on_send request, response }
         super
       end
+
+      def respond_to?(method_name, include_all = false)
+        case method_name
+        when :each
+          @body.respond_to?(method_name, include_all)
+        else
+          super
+        end
+      end
     end
 
     class BufferedResponse < Rack::Response::Raw # :nodoc:
