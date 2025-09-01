@@ -11,10 +11,15 @@ All notable changes to this project will be documented in this file. For info on
 ### Added
 
 - Add support for `rack.response_finished` to `Rack::TempfileReaper`. ([#2363](https://github.com/rack/rack/pull/2363), [@skipkayhil](https://github.com/skipkayhil))
+- Add support for streaming bodies when using `Rack::Events`. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
 
 ### Changed
 
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
+
+### Fixed
+
+- Fix an issue where a `NoMethodError` would be raised when using `Rack::Events` with streaming bodies. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
 
 ## [3.2.0] - 2025-07-31
 
