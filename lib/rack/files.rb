@@ -77,7 +77,7 @@ module Rack
       headers[CONTENT_TYPE] = mime_type if mime_type
 
       # Set custom headers
-      headers.merge!(@headers) if @headers
+      headers.merge!(compute_headers(@headers, request)) if @headers
 
       status = 200
       size = filesize path
@@ -186,6 +186,12 @@ EOF
     end
 
     private
+
+    def compute_headers(headers, request)
+      headers.transform_values do |value|
+        value.respond_to?(:call) ? value.call(request) : value
+      end
+    end
 
     def fail(status, body, headers = {})
       body += "\n"

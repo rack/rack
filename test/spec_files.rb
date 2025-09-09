@@ -262,6 +262,14 @@ content-range: bytes 60-80/209\r
     heads['access-control-allow-origin'].must_equal '*'
   end
 
+  it "supports dynamic http headers with procs" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    status, heads, _ = files(DOCROOT, 'x-custom-proc' => ->(request) { request.path }).call(env)
+
+    status.must_equal 200
+    heads['x-custom-proc'].must_equal '/cgi/test'
+  end
+
   it "does not add custom HTTP headers when none are supplied" do
     env = Rack::MockRequest.env_for("/cgi/test")
     status, heads, _ = files(DOCROOT).call(env)
