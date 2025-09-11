@@ -76,8 +76,7 @@ module Rack
       mime_type = mime_type path, @default_mime
       headers[CONTENT_TYPE] = mime_type if mime_type
 
-      # Set custom headers
-      headers.merge!(compute_headers(@headers, request)) if @headers
+      set_headers(headers, request)
 
       status = 200
       size = filesize path
@@ -116,6 +115,10 @@ module Rack
       end
 
       [status, headers, body]
+    end
+
+    def set_headers(headers, request)
+      headers.merge!(@headers) if @headers
     end
 
     class BaseIterator
@@ -186,12 +189,6 @@ EOF
     end
 
     private
-
-    def compute_headers(headers, request)
-      headers.transform_values do |value|
-        value.respond_to?(:call) ? value.call(request) : value
-      end
-    end
 
     def fail(status, body, headers = {})
       body += "\n"
