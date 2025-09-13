@@ -76,7 +76,7 @@ module Rack
       mime_type = mime_type path, @default_mime
       headers[CONTENT_TYPE] = mime_type if mime_type
 
-      set_headers(headers, request)
+      assign_headers(headers, request)
 
       status = 200
       size = filesize path
@@ -117,7 +117,7 @@ module Rack
       [status, headers, body]
     end
 
-    def set_headers(headers, request)
+    def assign_headers(headers, request)
       headers.merge!(@headers) if @headers
     end
 

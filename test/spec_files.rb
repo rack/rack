@@ -265,7 +265,7 @@ content-range: bytes 60-80/209\r
   it "allows customizing the way http header's are set" do
     env = Rack::MockRequest.env_for("/cgi/test")
     custom_files = Class.new(Rack::Files) do
-      def set_headers(headers, request)
+      def assign_headers(headers, request)
         request.must_be_instance_of Rack::Request
         headers.merge!(@headers.invert)
       end
