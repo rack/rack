@@ -206,6 +206,14 @@ query string, before attempting parsing, so if the same parameter key is
 used multiple times in the query, each counts as a separate parameter for
 this check.
 
+=== `RACK_MULTIPART_BUFFERED_UPLOAD_BYTESIZE_LIMIT`
+
+This environment variable sets the maximum amount of memory Rack will use
+to buffer multipart parameters when parsing a request body. This considers
+the size of the multipart mime headers and the body part for multipart
+parameters that are buffered in memory and do not use tempfiles. This
+defaults to 16MB if not provided.
+
 === key_space_limit
 
 The default number of bytes to allow all parameters keys in a given parameter hash to take up.
