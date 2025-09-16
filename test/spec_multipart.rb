@@ -203,7 +203,90 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for '/', fixture
     lambda {
       Rack::Multipart.parse_multipart(env)
-    }.must_raise Rack::Multipart::EmptyContentError
+    }.must_raise Rack::Multipart::Error
+    rd.close
+
+    err = thr.value
+    err.must_be_instance_of Errno::EPIPE
+    wr.close
+  end
+
+  it "rejects excessive data before boundary" do
+    rd, wr = IO.pipe
+    def rd.rewind; end
+    wr.sync = true
+
+    thr = Thread.new do
+      begin
+        longer = "0123456789" * 1024 * 1024
+        (1024 * 1024).times do
+           wr.write(longer)
+        end
+
+        wr.write("\r\n\r\n--AaB03x")
+        wr.write("\r\n")
+        wr.write('content-disposition: form-data; name="a"; filename="a.txt"')
+        wr.write("\r\n")
+        wr.write("content-type: text/plain\r\n")
+        wr.write("\r\na")
+        wr.write("--AaB03x--\r\n")
+        wr.close
+      rescue => err # this is EPIPE if Rack shuts us down
+        err
+      end
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => (1024 * 1024 * 8).to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart boundary not found within limit"
+    rd.close
+
+    err = thr.value
+    err.must_be_instance_of Errno::EPIPE
+    wr.close
+  end
+
+  it "rejects excessive mime header size" do
+    rd, wr = IO.pipe
+    def rd.rewind; end
+    wr.sync = true
+
+    thr = Thread.new do
+      begin
+        wr.write("\r\n\r\n--AaB03x")
+        wr.write("\r\n")
+        wr.write('content-disposition: form-data; name="a"; filename="a.txt"')
+        wr.write("\r\n")
+        wr.write("content-type: text/plain\r\n")
+        longer = "0123456789" * 1024 * 1024
+        (1024 * 1024).times do
+          wr.write(longer)
+        end
+        wr.write("\r\na")
+        wr.write("--AaB03x--\r\n")
+        wr.close
+      rescue => err # this is EPIPE if Rack shuts us down
+        err
+      end
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => (1024 * 1024 * 8).to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart mime part header too large"
     rd.close
 
     err = thr.value
