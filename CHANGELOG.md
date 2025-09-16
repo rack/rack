@@ -4,6 +4,11 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
 ### SPEC Changes
 
 - Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
