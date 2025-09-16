@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.17] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
 ## [3.1.16] - 2025-06-04
 
 ### Security
@@ -364,6 +371,24 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.19] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61771](https://github.com/advisories/GHSA-w9pc-fmgc-vxvw) Multipart parser buffers large non‑file fields entirely in memory, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
+## [2.2.18] - 2025-09-25
+
+### Security
+
+- [CVE-2025-59830](https://github.com/rack/rack/security/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
+
+## [2.2.17] - 2025-06-03
+
+- Backport `Rack::MediaType#params` now handles parameters without values. ([#2263](https://github.com/rack/rack/pull/2263), [@AllyMarthaJ](https://github.com/AllyMarthaJ))
 
 ## [2.2.16] - 2025-05-22
 
