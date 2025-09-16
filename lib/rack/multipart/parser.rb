@@ -20,6 +20,12 @@ module Rack
 
       BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
 
+      BOUNDARY_START_LIMIT = 16 * 1024
+      private_constant :BOUNDARY_START_LIMIT
+
+      MIME_HEADER_BYTESIZE_LIMIT = 64 * 1024
+      private_constant :MIME_HEADER_BYTESIZE_LIMIT
+
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -241,7 +247,13 @@ module Rack
           @state = :MIME_HEAD
         else
           raise EOFError, "bad content body" if @sbuf.rest_size >= @bufsize
-          :want_read
+
+          # We raise if we don't find the multipart boundary, to avoid unbounded memory
+          # buffering. Note that the actual limit is the higher of 16KB and the buffer size (1MB by default)
+          raise EOFError, "multipart boundary not found within limit" if @sbuf.string.bytesize > BOUNDARY_START_LIMIT
+
+          # no boundary found, keep reading data
+          return :want_read
         end
       end
 
@@ -274,7 +286,11 @@ module Rack
           @collector.on_mime_head @mime_index, head, filename, content_type, name
           @state = :MIME_BODY
         else
-          :want_read
+          # We raise if the mime part header is too large, to avoid unbounded memory
+          # buffering. Note that the actual limit is the higher of 64KB and the buffer size (1MB by default)
+          raise EOFError, "multipart mime part header too large" if @sbuf.string.bytesize > MIME_HEADER_BYTESIZE_LIMIT
+
+          return :want_read
         end
       end
 

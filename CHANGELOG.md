@@ -2,7 +2,16 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.19] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
 ## [2.2.18] - 2025-09-25
+
+### Security
 
 - [CVE-2025-59830](https://github.com/rack/rack/security/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
 
