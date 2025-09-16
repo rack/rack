@@ -294,6 +294,108 @@ describe Rack::Multipart do
     wr.close
   end
 
+  it "rejects excessive buffered mime data size in a single parameter" do
+    rd, wr = IO.pipe
+    def rd.rewind; end
+    wr.sync = true
+
+    thr = Thread.new do
+      wr.write("--AaB03x")
+      wr.write("\r\n")
+      wr.write('content-disposition: form-data; name="a"')
+      wr.write("\r\n")
+      wr.write("content-type: text/plain\r\n")
+      wr.write("\r\n")
+      wr.write("0" * 17 * 1024 * 1024)
+      wr.write("--AaB03x--\r\n")
+      wr.close
+      true
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => (18 * 1024 * 1024).to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+    rd.close
+
+    thr.value.must_equal true
+    wr.close
+  end
+
+  it "rejects excessive buffered mime data size when split into multiple parameters" do
+    rd, wr = IO.pipe
+    def rd.rewind; end
+    wr.sync = true
+
+    thr = Thread.new do
+      4.times do |i|
+        wr.write("\r\n--AaB03x")
+        wr.write("\r\n")
+        wr.write("content-disposition: form-data; name=\"a#{i}\"")
+        wr.write("\r\n")
+        wr.write("content-type: text/plain\r\n")
+        wr.write("\r\n")
+        wr.write("0" * 4 * 1024 * 1024)
+      end
+      wr.write("\r\n--AaB03x--\r\n")
+      wr.close
+      true
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => (17 * 1024 * 1024).to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    lambda {
+  p    Rack::Multipart.parse_multipart(env).keys
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+    rd.close
+
+    thr.value.must_equal true
+    wr.close
+  end
+
+  it "allows large nonbuffered mime parameters" do
+    rd, wr = IO.pipe
+    def rd.rewind; end
+    wr.sync = true
+
+    thr = Thread.new do
+      wr.write("\r\n\r\n--AaB03x")
+      wr.write("\r\n")
+      wr.write('content-disposition: form-data; name="a"; filename="a.txt"')
+      wr.write("\r\n")
+      wr.write("content-type: text/plain\r\n")
+      wr.write("\r\n")
+      wr.write("0" * 16 * 1024 * 1024)
+      wr.write("\r\n--AaB03x--\r\n")
+      wr.close
+      true
+    end
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => (17 * 1024 * 1024).to_s,
+      :input => rd,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    Rack::Multipart.parse_multipart(env)['a'][:tempfile].read.bytesize.must_equal(16 * 1024 * 1024)
+    rd.close
+
+    thr.value.must_equal true
+    wr.close
+  end
+
   # see https://github.com/rack/rack/pull/1309
   it "parses strange multipart pdf" do
     boundary = '---------------------------932620571087722842402766118'

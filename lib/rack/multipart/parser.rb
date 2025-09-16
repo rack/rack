@@ -65,6 +65,21 @@ module Rack
       MIME_HEADER_BYTESIZE_LIMIT = 64 * 1024
       private_constant :MIME_HEADER_BYTESIZE_LIMIT
 
+      env_int = lambda do |key, val|
+        if str_val = ENV[key]
+          begin
+            val = Integer(str_val, 10)
+          rescue ArgumentError
+            raise ArgumentError, "non-integer value provided for environment variable #{key}"
+          end
+        end
+
+        val
+      end
+
+      BUFFERED_UPLOAD_BYTESIZE_LIMIT = env_int.call("RACK_MULTIPART_BUFFERED_UPLOAD_BYTESIZE_LIMIT", 16 * 1024 * 1024)
+      private_constant :BUFFERED_UPLOAD_BYTESIZE_LIMIT
+
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -230,6 +245,8 @@ module Rack
 
         @state = :FAST_FORWARD
         @mime_index = 0
+        @body_retained = nil
+        @retained_size = 0
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".dup)
@@ -426,6 +443,15 @@ module Rack
             name = filename || "#{content_type || TEXT_PLAIN}[]".dup
           end
 
+          # Mime part head data is retained for both TempfilePart and BufferPart
+          # for the entireity of the parse, even though it isn't used for BufferPart.
+          update_retained_size(head.bytesize)
+
+          # If a filename is given, a TempfilePart will be used, so the body will
+          # not be buffered in memory. However, if a filename is not given, a BufferPart
+          # will be used, and the body will be buffered in memory.
+          @body_retained = !filename
+
           @collector.on_mime_head @mime_index, head, filename, content_type, name
           @state = :MIME_BODY
         else
@@ -440,6 +466,7 @@ module Rack
       def handle_mime_body
         if (body_with_boundary = @sbuf.check_until(@body_regex)) # check but do not advance the pointer yet
           body = body_with_boundary.sub(@body_regex_at_end, '') # remove the boundary from the string
+          update_retained_size(body.bytesize) if @body_retained
           @collector.on_mime_body @mime_index, body
           @sbuf.pos += body.length + 2 # skip \r\n after the content
           @state = :CONSUME_TOKEN
@@ -448,11 +475,20 @@ module Rack
           # Save what we have so far
           if @rx_max_size < @sbuf.rest_size
             delta = @sbuf.rest_size - @rx_max_size
-            @collector.on_mime_body @mime_index, @sbuf.peek(delta)
+            body = @sbuf.peek(delta)
+            update_retained_size(body.bytesize) if @body_retained
+            @collector.on_mime_body @mime_index, body
             @sbuf.pos += delta
             @sbuf.string = @sbuf.rest
           end
           :want_read
+        end
+      end
+
+      def update_retained_size(size)
+        @retained_size += size
+        if @retained_size > BUFFERED_UPLOAD_BYTESIZE_LIMIT
+          raise Error, "multipart data over retained size limit"
         end
       end
 
