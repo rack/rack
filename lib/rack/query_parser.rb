@@ -188,7 +188,7 @@ module Rack
           raise QueryLimitError, "total query size (#{qs.bytesize}) exceeds limit (#{@bytesize_limit})"
         end
 
-        if (param_count = qs.count(sep.is_a?(String) ? sep : '&')) >= @params_limit
+        if (param_count = qs.count(sep.is_a?(String) ? sep : '&;')) >= @params_limit
           raise QueryLimitError, "total number of query parameters (#{param_count+1}) exceeds limit (#{@params_limit})"
         end
 

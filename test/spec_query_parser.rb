@@ -29,5 +29,12 @@ describe Rack::QueryParser do
     proc { query_parser.parse_query("a=a&b=b&c=c") }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_nested_query("a=a&b=b&c=c", '&') }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_query("b[]=a&b[]=b&b[]=c") }.must_raise Rack::QueryParser::QueryLimitError
+
+    query_parser.parse_query("a=a;b=b").must_equal({"a" => "a", "b" => "b"})
+    query_parser.parse_nested_query("a=a;b=b").must_equal({"a" => "a", "b" => "b"})
+    query_parser.parse_nested_query("a=a;b=b", ';').must_equal({"a" => "a", "b" => "b"})
+    proc { query_parser.parse_query("a=a;b=b;c=c") }.must_raise Rack::QueryParser::QueryLimitError
+    proc { query_parser.parse_nested_query("a=a;b=b;c=c", ';') }.must_raise Rack::QueryParser::QueryLimitError
+    proc { query_parser.parse_query("b[]=a;b[]=b;b[]=c") }.must_raise Rack::QueryParser::QueryLimitError
   end
 end
