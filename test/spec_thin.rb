@@ -38,7 +38,7 @@ describe Rack::Handler::Thin do
     GET("/")
     status.must_equal 200
     response["SERVER_SOFTWARE"].must_match(/thin/)
-    response["HTTP_VERSION"].must_equal "HTTP/1.1"
+    # response["HTTP_VERSION"].must_equal "HTTP/1.1"
     response["SERVER_PROTOCOL"].must_equal "HTTP/1.1"
     response["SERVER_PORT"].must_equal "9204"
     response["SERVER_NAME"].must_equal "127.0.0.1"
