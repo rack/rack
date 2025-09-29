@@ -15,6 +15,11 @@ module Rack
   # be passed to the specified +app+.
   #
   # If +app+ is not specified, a Rack::Files of the same +root+ will be used.
+  #
+  # Be aware that just like the default behavior of most webservers, Rack::Directory
+  # will follow symbolic links encountered under the root. If a symlink points to
+  # a location outside of the root, that target will still be served as part of
+  # the response.
 
   class Directory
     DIR_FILE = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>\n"

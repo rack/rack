@@ -16,6 +16,11 @@ module Rack
   #
   # Handlers can detect if bodies are a Rack::Files, and use mechanisms
   # like sendfile on the +path+.
+  #
+  # Be aware that just like the default behavior of most webservers, Rack::Files
+  # will follow symbolic links encountered under the root. If a symlink points to
+  # a location outside of the root, that target will still be served as part of
+  # the response.
 
   class Files
     ALLOWED_VERBS = %w[GET HEAD OPTIONS]
