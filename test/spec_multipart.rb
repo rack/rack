@@ -310,6 +310,9 @@ describe Rack::Multipart do
       wr.write("--AaB03x--\r\n")
       wr.close
       true
+    rescue Errno::EPIPE
+      # Expected when the reader closes due to size limit violation
+      true
     end
 
     fixture = {
@@ -345,6 +348,9 @@ describe Rack::Multipart do
       end
       wr.write("\r\n--AaB03x--\r\n")
       wr.close
+      true
+    rescue Errno::EPIPE
+      # Expected when the reader closes due to size limit violation
       true
     end
 
