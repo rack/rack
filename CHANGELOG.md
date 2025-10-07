@@ -4,12 +4,6 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
-### Security
-
-- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
-- [CVE-2025-61771](https://github.com/advisories/GHSA-w9pc-fmgc-vxvw) Multipart parser buffers large non‑file fields entirely in memory, enabling DoS (memory exhaustion)
-- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
-
 ### SPEC Changes
 
 - Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
@@ -24,6 +18,20 @@ All notable changes to this project will be documented in this file. For info on
 
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
 - Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
+
+## [3.2.2] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61771](https://github.com/advisories/GHSA-w9pc-fmgc-vxvw) Multipart parser buffers large non‑file fields entirely in memory, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
+## [3.2.1] -- 2025-09-02
+
+### Added
+
+- Add support for streaming bodies when using `Rack::Events`. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
 
 ### Fixed
 
@@ -75,6 +83,14 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 - `Rack::Lint` now disallows `PATH_INFO="" SCRIPT_NAME=""`. ([#2298](https://github.com/rack/rack/issues/2307), [@jeremyevans])
+
+## [3.1.17] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61771](https://github.com/advisories/GHSA-w9pc-fmgc-vxvw) Multipart parser buffers large non‑file fields entirely in memory, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
 
 ## [3.1.16] - 2025-06-04
 
@@ -444,6 +460,20 @@ This release introduces major improvements to Rack, including enhanced support f
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.19] - 2025-10-07
+
+### Security
+
+- [CVE-2025-61772](https://github.com/advisories/GHSA-wpv5-97wm-hp9c) Multipart parser buffers unbounded per-part headers, enabling DoS (memory exhaustion)
+- [CVE-2025-61771](https://github.com/advisories/GHSA-w9pc-fmgc-vxvw) Multipart parser buffers large non‑file fields entirely in memory, enabling DoS (memory exhaustion)
+- [CVE-2025-61770](https://github.com/advisories/GHSA-p543-xpfm-54cp) Unbounded multipart preamble buffering enables DoS (memory exhaustion)
+
+## [2.2.18] - 2025-09-25
+
+### Security
+
+- [CVE-2025-59830](https://github.com/rack/rack/security/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
 
 ## [2.2.17] - 2025-06-03
 
