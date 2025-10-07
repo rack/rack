@@ -16,12 +16,12 @@ describe Rack::Sendfile do
     lambda { |env| [200, { 'Content-Type' => 'text/plain' }, body] }
   end
 
-  def sendfile_app(body, mappings = [])
-    Rack::Lint.new Rack::Sendfile.new(simple_app(body), nil, mappings)
+  def sendfile_app(body, mappings = [], variation = nil)
+    Rack::Lint.new Rack::Sendfile.new(simple_app(body), variation, mappings)
   end
 
-  def request(headers = {}, body = sendfile_body, mappings = [])
-    yield Rack::MockRequest.new(sendfile_app(body, mappings)).get('/', headers)
+  def request(headers = {}, body = sendfile_body, mappings = [], variation = nil)
+    yield Rack::MockRequest.new(sendfile_app(body, mappings, variation)).get('/', headers)
   end
 
   def open_file(path)
@@ -42,7 +42,8 @@ describe Rack::Sendfile do
 
   it "does nothing and logs to rack.errors when incorrect X-Sendfile-Type header present" do
     io = StringIO.new
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Banana', 'rack.errors' => io do |response|
+    # Configure with wrong variation type
+    request({ 'rack.errors' => io }, sendfile_body, [], 'X-Banana') do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
       response.headers.wont_include 'X-Sendfile'
@@ -52,8 +53,8 @@ describe Rack::Sendfile do
     end
   end
 
-  it "sets X-Sendfile response header and discards body" do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' do |response|
+  it "sets x-sendfile response header and discards body" do
+    request({}, sendfile_body, [], 'X-Sendfile') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
@@ -61,21 +62,33 @@ describe Rack::Sendfile do
     end
   end
 
-  it "sets X-Lighttpd-Send-File response header and discards body" do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Lighttpd-Send-File' do |response|
+  it "closes body when x-sendfile used" do
+    body = sendfile_body
+    closed = false
+    body.define_singleton_method(:close){closed = true}
+    request({}, body, [], 'X-Sendfile') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
-      response.headers['Content-Length'].must_equal '0'
-      response.headers['X-Lighttpd-Send-File'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-sendfile'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
+    end
+    closed.must_equal true
+  end
+
+  it "sets x-lighttpd-send-file response header and discards body" do
+    request({}, sendfile_body, [], 'X-Lighttpd-Send-File') do |response|
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-lighttpd-send-file'].must_equal File.join(Dir.tmpdir,  "rack_sendfile")
     end
   end
 
   it "sets X-Accel-Redirect response header and discards body" do
     headers = {
-      'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
       'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar/"
     }
-    request headers do |response|
+    request(headers, sendfile_body, [], 'X-Accel-Redirect') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
@@ -85,10 +98,9 @@ describe Rack::Sendfile do
 
   it "sets X-Accel-Redirect response header to percent-encoded path" do
     headers = {
-      'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
       'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar%/"
     }
-    request headers, sendfile_body('file_with_%_?_symbol') do |response|
+    request(headers, sendfile_body('file_with_%_?_symbol'), [], 'X-Accel-Redirect') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
       response.headers['Content-Length'].must_equal '0'
@@ -96,8 +108,8 @@ describe Rack::Sendfile do
     end
   end
 
-  it 'writes to rack.error when no X-Accel-Mapping is specified' do
-    request 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' do |response|
+  it 'writes to rack.error when no x-accel-mapping is specified' do
+    request({}, sendfile_body, [], 'X-Accel-Redirect') do |response|
       response.must_be :ok?
       response.body.must_equal 'Hello World'
       response.headers.wont_include 'X-Accel-Redirect'
@@ -106,7 +118,7 @@ describe Rack::Sendfile do
   end
 
   it 'does nothing when body does not respond to #to_path' do
-    request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Sendfile' }, ['Not a file...']) do |response|
+    request({}, ['Not a file...'], [], 'X-Sendfile') do |response|
       response.body.must_equal 'Not a file...'
       response.headers.wont_include 'X-Sendfile'
     end
@@ -128,14 +140,14 @@ describe Rack::Sendfile do
         ["#{dir2}/", '/wibble/']
       ]
 
-      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, first_body, mappings) do |response|
+      request({}, first_body, mappings, 'X-Accel-Redirect') do |response|
         response.must_be :ok?
         response.body.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
         response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
       end
 
-      request({ 'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect' }, second_body, mappings) do |response|
+      request({}, second_body, mappings, 'X-Accel-Redirect') do |response|
         response.must_be :ok?
         response.body.must_be :empty?
         response.headers['Content-Length'].must_equal '0'
@@ -162,34 +174,142 @@ describe Rack::Sendfile do
       third_body = open_file(File.join(dir3, 'rack_sendfile'))
       third_body.puts 'hello again world'
 
+      # Now we need to explicitly enable x-accel-redirect in the constructor
+      app = Rack::Lint.new Rack::Sendfile.new(simple_app(first_body), "X-Accel-Redirect", [])
+      
       headers = {
-        'HTTP_X_SENDFILE_TYPE' => 'X-Accel-Redirect',
         'HTTP_X_ACCEL_MAPPING' => "#{dir1}/=/foo/bar/, #{dir2}/=/wibble/"
       }
 
-      request(headers, first_body) do |response|
-        response.must_be :ok?
-        response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/foo/bar/rack_sendfile'
-      end
+      response = Rack::MockRequest.new(app).get('/', headers)
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal '/foo/bar/rack_sendfile'
 
-      request(headers, second_body) do |response|
-        response.must_be :ok?
-        response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal '/wibble/rack_sendfile'
-      end
+      app = Rack::Lint.new Rack::Sendfile.new(simple_app(second_body), "X-Accel-Redirect", [])
+      response = Rack::MockRequest.new(app).get('/', headers)
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal '/wibble/rack_sendfile'
 
-      request(headers, third_body) do |response|
-        response.must_be :ok?
-        response.body.must_be :empty?
-        response.headers['Content-Length'].must_equal '0'
-        response.headers['X-Accel-Redirect'].must_equal "#{dir3}/rack_sendfile"
-      end
+      app = Rack::Lint.new Rack::Sendfile.new(simple_app(third_body), "X-Accel-Redirect", [])
+      response = Rack::MockRequest.new(app).get('/', headers)
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal "#{dir3}/rack_sendfile"
     ensure
       FileUtils.remove_entry_secure dir1
       FileUtils.remove_entry_secure dir2
+      FileUtils.remove_entry_secure dir3
+    end
+  end
+
+  # Security tests for CVE mitigation
+  describe "security: information disclosure prevention" do
+    it "ignores HTTP_X_SENDFILE_TYPE header to prevent attacker-controlled sendfile activation" do
+      # Attacker tries to enable x-sendfile via header
+      request 'HTTP_X_SENDFILE_TYPE' => 'x-sendfile' do |response|
+        response.must_be :ok?
+        response.body.must_equal 'Hello World'
+        response.headers.wont_include 'x-sendfile'
+      end
+    end
+
+    it "ignores HTTP_X_SENDFILE_TYPE header attempting to enable x-accel-redirect" do
+      # Attacker tries to enable x-accel-redirect via header with mapping
+      headers = {
+        'HTTP_X_SENDFILE_TYPE' => 'x-accel-redirect',
+        'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/attacker/path/"
+      }
+      request headers do |response|
+        response.must_be :ok?
+        response.body.must_equal 'Hello World'
+        response.headers.wont_include 'x-accel-redirect'
+      end
+    end
+
+    it "ignores HTTP_X_ACCEL_MAPPING when x-accel-redirect is not explicitly enabled" do
+      # Even if attacker sends mapping header, it should be ignored without explicit config
+      headers = {
+        'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/attacker/path/"
+      }
+      request headers do |response|
+        response.must_be :ok?
+        response.body.must_equal 'Hello World'
+        response.headers.wont_include 'x-accel-redirect'
+      end
+    end
+
+    it "ignores HTTP_X_ACCEL_MAPPING when application-level mappings are configured" do
+      # When app provides mappings, header should be ignored for security
+      begin
+        dir = Dir.mktmpdir
+        body = open_file(File.join(dir, 'rack_sendfile'))
+        body.puts 'test'
+        
+        app_mappings = [["#{dir}/", '/app/mapping/']]
+        app = Rack::Lint.new Rack::Sendfile.new(simple_app(body), "X-Accel-Redirect", app_mappings)
+        
+        headers = {
+          'HTTP_X_ACCEL_MAPPING' => "#{dir}/=/attacker/path/"
+        }
+        
+        response = Rack::MockRequest.new(app).get('/', headers)
+        response.must_be :ok?
+        response.body.must_be :empty?
+        response.headers['x-accel-redirect'].must_equal '/app/mapping/rack_sendfile'
+        response.headers['x-accel-redirect'].wont_equal '/attacker/path/rack_sendfile'
+      ensure
+        FileUtils.remove_entry_secure dir
+      end
+    end
+
+    it "allows HTTP_X_ACCEL_MAPPING only when x-accel-redirect explicitly enabled with no app mappings" do
+      # This is the safe use case: explicit config + no app mappings = allow header
+      begin
+        dir = Dir.mktmpdir
+        body = open_file(File.join(dir, 'rack_sendfile'))
+        body.puts 'test'
+        
+        app = Rack::Lint.new Rack::Sendfile.new(simple_app(body), "X-Accel-Redirect", [])
+        
+        headers = {
+          'HTTP_X_ACCEL_MAPPING' => "#{dir}/=/safe/nginx/mapping/"
+        }
+        
+        response = Rack::MockRequest.new(app).get('/', headers)
+        response.must_be :ok?
+        response.body.must_be :empty?
+        response.headers['x-accel-redirect'].must_equal '/safe/nginx/mapping/rack_sendfile'
+      ensure
+        FileUtils.remove_entry_secure dir
+      end
+    end
+
+    it "does not allow x-lighttpd-send-file activation via header" do
+      # Verify other sendfile types also can't be enabled via headers
+      request 'HTTP_X_SENDFILE_TYPE' => 'x-lighttpd-send-file' do |response|
+        response.must_be :ok?
+        response.body.must_equal 'Hello World'
+        response.headers.wont_include 'x-lighttpd-send-file'
+      end
+    end
+
+    it "requires explicit middleware configuration for any sendfile variation" do
+      # Test that sendfile.type env var still works (internal, not from HTTP headers)
+      body = sendfile_body
+      app = lambda { |env| [200, { 'content-type' => 'text/plain' }, body] }
+      middleware = Rack::Lint.new Rack::Sendfile.new(app)
+      
+      env = Rack::MockRequest.env_for('/', { 'sendfile.type' => 'X-Sendfile' })
+      status, headers, response_body = middleware.call(env)
+      
+      status.must_equal 200
+      headers['X-Sendfile'].must_equal File.join(Dir.tmpdir, "rack_sendfile")
+      headers['Content-Length'].must_equal '0'
     end
   end
 end

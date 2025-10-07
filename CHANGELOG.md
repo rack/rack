@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [2.2.20] - 2025-10-10
+
+### Security
+
+- [CVE-2025-61780](https://github.com/advisories/GHSA-r657-rxjc-j557) Improper handling of headers in `Rack::Sendfile` may allow proxy bypass.
+
 ## [2.2.19] - 2025-10-07
 
 ### Security
