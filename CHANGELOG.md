@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## [3.1.18] - 2025-10-10
+
+### Security
+
+- [CVE-2025-61780](https://github.com/advisories/GHSA-r657-rxjc-j557) Improper handling of headers in `Rack::Sendfile` may allow proxy bypass.
+
 ## [3.1.17] - 2025-10-07
 
 ### Security
@@ -372,6 +378,13 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.20] - 2025-10-10
+
+### Security
+
+- [CVE-2025-61780](https://github.com/advisories/GHSA-r657-rxjc-j557) Improper handling of headers in `Rack::Sendfile` may allow proxy bypass.
+- [CVE-2025-61919](https://github.com/advisories/GHSA-6xw4-3v39-52mm) Unbounded read in `Rack::Request` form parsing can lead to memory exhaustion.
 
 ## [2.2.19] - 2025-10-07
 
