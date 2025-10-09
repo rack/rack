@@ -15,7 +15,7 @@ module Rack
     HEADER_NAME = "server-timing" # :nodoc:
     METRIC_NAME = "rack-runtime" # :nodoc:
 
-    def initialize(app, metric_name = METRIC_NAME)
+    def initialize(app, metric_name: METRIC_NAME)
       @app = app
       @metric_name = metric_name
     end
