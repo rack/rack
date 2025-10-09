@@ -51,6 +51,8 @@ module Rack
     PARAMS_LIMIT = env_int.call("RACK_QUERY_PARSER_PARAMS_LIMIT", 4096)
     private_constant :PARAMS_LIMIT
 
+    attr_reader :bytesize_limit
+
     def initialize(params_class, key_space_limit, param_depth_limit, bytesize_limit: BYTESIZE_LIMIT, params_limit: PARAMS_LIMIT)
       @params_class = params_class
       @key_space_limit = key_space_limit
@@ -185,7 +187,7 @@ module Rack
     def check_query_string(qs, sep)
       if qs
         if qs.bytesize > @bytesize_limit
-          raise QueryLimitError, "total query size (#{qs.bytesize}) exceeds limit (#{@bytesize_limit})"
+          raise QueryLimitError, "total query size exceeds limit (#{@bytesize_limit})"
         end
 
         if (param_count = qs.count(sep.is_a?(String) ? sep : '&;')) >= @params_limit
