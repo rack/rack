@@ -54,6 +54,7 @@ module Rack
       Report-To
       Retry-After
       Server
+      Server-Timing
       Set-Cookie
       Status
       Strict-Transport-Security

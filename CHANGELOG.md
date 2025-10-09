@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For info on
 - Add `Rack::Files#assign_headers` to allow overriding how the configured file headers are set. ([#2377](https://github.com/rack/rack/pull/2377), [@codergeek121](https://github.com/codergeek121))
 - Add support for `rack.response_finished` to `Rack::TempfileReaper`. ([#2363](https://github.com/rack/rack/pull/2363), [@skipkayhil](https://github.com/skipkayhil))
 - Add support for streaming bodies when using `Rack::Events`. ([#2375](github.com/rack/rack/pull/2375), [@unflxw](https://github.com/unflxw))
+- Introduce `Rack::ServerTiming` middleware for instrumenting runtime in part or all of an application, and reporting via the [Server-Timing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Server-Timing) header. ([#2375](github.com/rack/rack/pull/2389), [@lewispb](https://github.com/lewispb))
 
 ### Changed
 
