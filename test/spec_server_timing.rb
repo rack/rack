@@ -20,18 +20,18 @@ describe Rack::ServerTiming do
   it "sets server-timing header with rack-runtime metric" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain' }, "Hello, World!"] }
     response = server_timing_app(app).call(request)
-    response[1]['server-timing'].must_match(/^rack-runtime;dur=[\d\.]+$/)
+    response[1]['server-timing'].must_match(/\Arack-runtime;dur=[\d\.]+\z/)
   end
 
   it "appends to existing server-timing header" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain', 'server-timing' => 'view;dur=50.0' }, "Hello, World!"] }
     response = server_timing_app(app).call(request)
-    response[1]['server-timing'].must_match(/^view;dur=50\.0, rack-runtime;dur=[\d\.]+$/)
+    response[1]['server-timing'].must_match(/\Aview;dur=50\.0, rack-runtime;dur=[\d\.]+\z/)
   end
 
   it "sets server-timing metric with custom name" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain' }, "Hello, World!"] }
     response = server_timing_app(app, "db").call(request)
-    response[1]['server-timing'].must_match(/^db;dur=[\d\.]+$/)
+    response[1]['server-timing'].must_match(/\Adb;dur=[\d\.]+\z/)
   end
 end
