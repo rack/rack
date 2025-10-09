@@ -513,7 +513,10 @@ module Rack
             if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
               set_header RACK_REQUEST_FORM_PAIRS, pairs
             else
-              form_vars = get_header(RACK_INPUT).read
+              # Add 2 bytes. One to check whether it is over the limit, and a second
+              # in case the slice! call below removes the last byte
+              # If read returns nil, use the empty string
+              form_vars = get_header(RACK_INPUT).read(query_parser.bytesize_limit + 2) || ''
 
               # Fix for Safari Ajax postings that always append \0
               # form_vars.sub!(/\0\z/, '') # performance replacement:
