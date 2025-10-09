@@ -14,7 +14,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-59830](https://github.com/rack/rack/security/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
+- [CVE-2025-59830](https://github.com/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
 
 ## [2.2.17] - 2025-06-03
 
@@ -32,26 +32,26 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-32441](https://github.com/rack/rack/security/advisories/GHSA-vpfw-47h7-xj4g) Rack session can be restored after deletion.
-- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+- [CVE-2025-32441](https://github.com/advisories/GHSA-vpfw-47h7-xj4g) Rack session can be restored after deletion.
+- [CVE-2025-46727](https://github.com/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [2.2.13] - 2025-03-11
 
 ### Security
 
-- [CVE-2025-27610](https://github.com/rack/rack/security/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
+- [CVE-2025-27610](https://github.com/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
 
 ## [2.2.12] - 2025-03-04
 
 ### Security
 
-- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+- [CVE-2025-27111](https://github.com/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [2.2.11] - 2025-02-12
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
+- [CVE-2025-25184](https://github.com/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [2.2.10] - 2024-10-14
 
