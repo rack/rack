@@ -24,7 +24,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+- [CVE-2025-46727](https://github.com/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [3.1.13] - 2025-04-13
 
@@ -34,19 +34,19 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-27610](https://github.com/rack/rack/security/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
+- [CVE-2025-27610](https://github.com/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
 
 ## [3.1.11] - 2025-03-04
 
 ### Security
 
-- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+- [CVE-2025-27111](https://github.com/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [3.1.10] - 2025-02-12
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
+- [CVE-2025-25184](https://github.com/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.1.9] - 2025-01-31
 
@@ -79,7 +79,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- Fix potential ReDoS attack in `Rack::Request#parse_http_accept_header`. ([GHSA-cj83-2ww7-mvq7](https://github.com/rack/rack/security/advisories/GHSA-cj83-2ww7-mvq7), [@dwisiswant0](https://github.com/dwisiswant0))
+- Fix potential ReDoS attack in `Rack::Request#parse_http_accept_header`. ([GHSA-cj83-2ww7-mvq7](https://github.com/advisories/GHSA-cj83-2ww7-mvq7), [@dwisiswant0](https://github.com/dwisiswant0))
 
 ## [3.1.4] - 2024-06-22
 
@@ -169,7 +169,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+- [CVE-2025-46727](https://github.com/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [3.0.15] - 2025-04-13
 
@@ -179,13 +179,13 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-27610](https://github.com/rack/rack/security/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
+- [CVE-2025-27610](https://github.com/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
 
 ## [3.0.13] - 2025-03-04
 
 ### Security
 
-- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+- [CVE-2025-27111](https://github.com/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ### Fixed
 
@@ -195,7 +195,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
+- [CVE-2025-25184](https://github.com/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [3.0.11] - 2024-05-10
 
@@ -385,7 +385,7 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-59830](https://github.com/rack/rack/security/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
+- [CVE-2025-59830](https://github.com/advisories/GHSA-625h-95r8-8xpm) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion via semicolon-separated parameters.
 
 ## [2.2.17] - 2025-06-03
 
@@ -403,25 +403,25 @@ Rack v3.1 is primarily a maintenance release that removes features deprecated in
 
 ### Security
 
-- [CVE-2025-46727](https://github.com/rack/rack/security/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
+- [CVE-2025-46727](https://github.com/advisories/GHSA-gjh7-p2fx-99vx) Unbounded parameter parsing in `Rack::QueryParser` can lead to memory exhaustion.
 
 ## [2.2.13] - 2025-03-11
 
 ### Security
 
-- [CVE-2025-27610](https://github.com/rack/rack/security/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
+- [CVE-2025-27610](https://github.com/advisories/GHSA-7wqh-767x-r66v) Local file inclusion in `Rack::Static`.
 
 ## [2.2.12] - 2025-03-04
 
 ### Security
 
-- [CVE-2025-27111](https://github.com/rack/rack/security/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
+- [CVE-2025-27111](https://github.com/advisories/GHSA-8cgq-6mh2-7j6v) Possible Log Injection in `Rack::Sendfile`.
 
 ## [2.2.11] - 2025-02-12
 
 ### Security
 
-- [CVE-2025-25184](https://github.com/rack/rack/security/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
+- [CVE-2025-25184](https://github.com/advisories/GHSA-7g2v-jj9q-g3rg) Possible Log Injection in `Rack::CommonLogger`.
 
 ## [2.2.10] - 2024-10-14
 
