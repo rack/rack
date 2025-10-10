@@ -9,8 +9,8 @@ separate_testing do
 end
 
 describe Rack::ServerTiming do
-  def server_timing_app(app, *args)
-    Rack::Lint.new Rack::ServerTiming.new(app, *args)
+  def server_timing_app(app, **kwargs)
+    Rack::Lint.new Rack::ServerTiming.new(app, **kwargs)
   end
 
   def request
@@ -31,7 +31,7 @@ describe Rack::ServerTiming do
 
   it "sets server-timing metric with custom name" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain' }, "Hello, World!"] }
-    response = server_timing_app(app, "db").call(request)
+    response = server_timing_app(app, metric_name: "db").call(request)
     response[1]['server-timing'].must_match(/\Adb;dur=[\d\.]+\z/)
   end
 end
