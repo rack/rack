@@ -49,6 +49,7 @@ module Rack
   autoload :RewindableInput, "rack/rewindable_input"
   autoload :Runtime, "rack/runtime"
   autoload :Sendfile, "rack/sendfile"
+  autoload :ServerTiming, "rack/server_timing"
   autoload :ShowExceptions, "rack/show_exceptions"
   autoload :ShowStatus, "rack/show_status"
   autoload :Static, "rack/static"
