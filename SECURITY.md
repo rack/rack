@@ -10,14 +10,13 @@ When a release series is no longer supported, it’s your own responsibility to 
 
 ## Reporting a security issue
 
-Contact the current security coordinator [Aaron Patterson](mailto:tenderlove@ruby-lang.org) directly. If you do not get a response within 7 days, create an issue on the relevant project without any specific details and mention the project maintainers.
+If you believe you have found a security issue in this project, please do not open a public issue. Instead, please use the "Report a Vulnerability" button at [the top of this page](https://github.com/rack/rack/security) (or on the relevant GitHub repository page) to report the issue privately.
 
 ## Disclosure Policy
 
-1. Security report received and is assigned a primary handler. This person will coordinate the fix and release process.
-2. Problem is confirmed and, a list of all affected versions is determined. Code is audited to find any potential similar problems.
-3. Fixes are prepared for all releases which are still supported. These fixes are not committed to the public repository but rather held locally pending the announcement.
-4. A suggested embargo date for this vulnerability is chosen and distros@openwall is notified. This notification will include patches for all versions still under support and a contact address for packagers who need advice back-porting patches to older versions.
-5. On the embargo date, the changes are pushed to the public repository and new gems released to rubygems.
+1. Security report is received and reviewed by the Rack maintainers.
+2. The problem is confirmed and a list of all affected versions is determined. Code is audited to find any potential similar problems.
+3. Fixes are prepared for all releases which are still supported.
+4. Patches are released, new gem versions are published to RubyGems, and security advisories are published.
 
-This process can take some time, especially when coordination is required with maintainers of other projects. Every effort will be made to handle the bug in as timely a manner as possible, however it’s important that we follow the release process above to ensure that the disclosure is handled in a consistent manner.
+In cases where coordination with other projects or distributions is necessary, we may implement an embargo period before public disclosure. However, for most security issues, we aim to release fixes and advisories as quickly as possible.
