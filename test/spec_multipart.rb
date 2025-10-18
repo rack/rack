@@ -1288,10 +1288,9 @@ content-type: image/png\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    content_type = params["upload"][:type]
-    content_type.wont_include "\r\n"
-    content_type.wont_include "Content-Disposition"
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
   end
 
   it "prevents filename parameter injection via obs-fold" do
@@ -1310,9 +1309,9 @@ content-type: image/png\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    filename = params["upload"][:filename]
-    filename.wont_equal "passwd"
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
   end
 
   it "prevents CRLF injection in parameter values via obs-fold" do
@@ -1332,9 +1331,9 @@ content-type: image/png\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    content_type = params["upload"][:type]
-    content_type.wont_include "\r\n"
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
   end
 
   # Security tests for CVE-2025-49007: ReDoS vulnerability in regex patterns
