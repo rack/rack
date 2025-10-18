@@ -1249,6 +1249,94 @@ content-type: image/png\r
     params["iso-2022-jp"].must_equal("アリス")
   end
 
+  it "rejects obsolete header folding per RFC 7230 section 3.2.4" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="test"\r
+      Content-Type: text/plain;\r
+      \tcharset=utf-8\r
+      \r
+      content\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
+  end
+
+  it "prevents header injection via obs-fold in Content-Type" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="normal.txt"\r
+      Content-Type: text/plain\r
+      \tContent-Disposition: form-data; name="admin"; filename="shell.php"\r
+      \r
+      <?php system($_GET['cmd']); ?>\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    content_type = params["upload"][:type]
+    content_type.wont_include "\r\n"
+    content_type.wont_include "Content-Disposition"
+  end
+
+  it "prevents filename parameter injection via obs-fold" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="safe.txt\r
+      \t"; filename="../../etc/passwd"\r
+      \r
+      malicious content\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    filename = params["upload"][:filename]
+    filename.wont_equal "passwd"
+  end
+
+  it "prevents CRLF injection in parameter values via obs-fold" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test.txt"\r
+      Content-Type: application/octet-stream; name="file\r
+      \t.php"\r
+      \r
+      <?php eval($_POST['x']); ?>\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    content_type = params["upload"][:type]
+    content_type.wont_include "\r\n"
+  end
+
   # Security tests for CVE-2025-49007: ReDoS vulnerability in regex patterns
   # These tests ensure the multipart header regex patterns are properly anchored
   # to prevent matching from incorrect positions and ReDoS attacks
