@@ -1248,4 +1248,86 @@ content-type: image/png\r
     params["us-ascii"].must_equal("Alice")
     params["iso-2022-jp"].must_equal("アリス")
   end
+
+  # Security tests for CVE-2025-49007: ReDoS vulnerability in regex patterns
+  # These tests ensure the multipart header regex patterns are properly anchored
+  # to prevent matching from incorrect positions and ReDoS attacks
+
+  it "has Content-Type regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_TYPE\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_TYPE regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_TYPE constant in parser.rb"
+    end
+  end
+
+  it "has Content-Disposition regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_DISPOSITION\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_DISPOSITION regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_DISPOSITION constant in parser.rb"
+    end
+  end
+
+  it "has Content-ID regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_ID\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_ID regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_ID constant in parser.rb"
+    end
+  end
+
+  it "does not match Content-Type from wrong position in headers" do
+    eol = "\r\n"
+    headers = "X-User-Comment: I tried Content-Type: application/json#{eol}" +
+              "Content-Type: text/plain#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    match = headers.match(content_type_regex)
+
+    # With proper anchoring (^), the regex should only match actual headers
+    # not Content-Type strings inside other header values
+    match[1].strip.must_equal "text/plain"
+  end
+
+  it "does not match Content-Type appearing in Content-Disposition value" do
+    eol = "\r\n"
+    headers = "Content-Disposition: form-data; name=\"Content-Type: fake\"#{eol}" +
+              "Content-Type: text/plain#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    matches = headers.scan(content_type_regex)
+
+    # Should only match the real Content-Type header, not the one in the value
+    matches.length.must_equal 1
+    matches[0][0].strip.must_equal "text/plain"
+  end
+
+  it "does not match Content-Type multiple times when string appears in other headers" do
+    eol = "\r\n"
+    # Headers with multiple occurrences of "Content-Type:" string
+    headers = "X-Description: Please use Content-Type: application/json#{eol}" +
+              "X-Note: Not Content-Type: text/xml either#{eol}" +
+              "Content-Type: text/plain#{eol}" +
+              "Content-Disposition: form-data; name=\"test\"#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    matches = headers.scan(content_type_regex)
+
+    # Should only match the one actual Content-Type header
+    matches.length.must_equal 1
+    matches[0][0].strip.must_equal "text/plain"
+  end
 end
