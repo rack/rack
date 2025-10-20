@@ -411,7 +411,7 @@ class RackRequestTest < Minitest::Spec
 
       req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
         "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
-        forwarded_authority.must_equal '4.5.6.7'
+        forwarded_authority.must_equal '2.3.4.5'
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws",
