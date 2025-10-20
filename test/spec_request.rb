@@ -410,8 +410,8 @@ class RackRequestTest < Minitest::Spec
         forwarded_port.must_equal [2345]
 
       req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
-        "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
-        forwarded_authority.must_equal '4.5.6.7'
+        "HTTP_X_FORWARDED_HOST" => "example.com,cdn.vade.io,proxy.internal").
+        forwarded_authority.must_equal 'example.com'
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws",
