@@ -431,12 +431,12 @@ module Rack
             name = head[MULTIPART_CONTENT_ID, 1]
           end
 
-          if filename_star
+          if filename
+            filename = normalize_filename(filename)
+          elsif filename_star
             encoding, _, filename = filename_star.split("'", 3)
             filename = normalize_filename(filename || '')
             filename.force_encoding(find_encoding(encoding))
-          elsif filename
-            filename = normalize_filename(filename)
           end
 
           if name.nil? || name.empty?
