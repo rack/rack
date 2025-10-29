@@ -319,6 +319,15 @@ module Rack
         get_header("HTTP_X_REQUESTED_WITH") == "XMLHttpRequest"
       end
 
+      # Checks whether the `Sec-Purpose` header is set to indicate a `prefetch`
+      # request through, e.g., <a href="..." rel="prefetch">...</a>.
+      #
+      # https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Sec-Purpose
+      # https://wicg.github.io/nav-speculation/prefetch.html#sec-purpose-header
+      def prefetch?
+        get_header("HTTP_SEC_PURPOSE") == "prefetch"
+      end
+
       # The `HTTP_HOST` header.
       def host_authority
         get_header(HTTP_HOST)
