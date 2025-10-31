@@ -27,16 +27,19 @@ module Rack
       include BadRequest
     end
 
+    # Line folding not allowed in multipart headers
+    class ObsoleteFoldingError < StandardError
+      include BadRequest
+    end
+
     # Prefer to use the BoundaryTooLongError class or Rack::BadRequest.
     Error = BoundaryTooLongError
 
     EOL = "\r\n"
-    FWS = /[ \t]+(?:\r\n[ \t]+)?/ # whitespace with optional folding
-    HEADER_VALUE = "(?:[^\r\n]|\r\n[ \t])*" # anything but a non-folding CRLF
     MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
-    MULTIPART_CONTENT_TYPE = /^Content-Type:#{FWS}?(#{HEADER_VALUE})/ni
-    MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
-    MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
+    MULTIPART_CONTENT_TYPE = /^Content-Type:[ \t]*(.*)#{EOL}/ni
+    MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:(.*)(?=#{EOL}(\S|\z))/ni
+    MULTIPART_CONTENT_ID = /^Content-ID:[ \t]*([^#{EOL}]*)/ni
 
     # Rack::Multipart::Parser handles parsing of multipart/form-data requests.
     #
@@ -348,6 +351,13 @@ module Rack
       def handle_mime_head
         if @sbuf.scan_until(@head_regex)
           head = @sbuf[1]
+
+          # Reject obsolete line folding in multipart headers (deprecated per
+          # RFC 7230 §3.2.4) to mitigate header injection attacks
+          if head =~ /#{EOL}[ \t]/
+            raise ObsoleteFoldingError, "obsolete line folding not supported"
+          end
+
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           if (disposition = head[MULTIPART_CONTENT_DISPOSITION, 1]) &&
               disposition.bytesize <= CONTENT_DISPOSITION_MAX_BYTES
