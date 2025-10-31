@@ -25,6 +25,10 @@ All notable changes to this project will be documented in this file. For info on
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
 - Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
 
+### Fixed
+
+- Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
+
 ## [3.2.2] - 2025-10-07
 
 ### Security
