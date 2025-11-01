@@ -249,7 +249,7 @@ module Rack
         @retained_size = 0
         @collector = Collector.new tempfile
 
-        @sbuf = StringScanner.new("".dup)
+        @sbuf = StringScanner.new("".b)
         @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
         @body_regex_at_end = /#{@body_regex}\z/m
         @end_boundary_size = boundary.bytesize + 4 # (-- at start, -- at finish)
