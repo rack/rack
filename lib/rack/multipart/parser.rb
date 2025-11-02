@@ -416,8 +416,6 @@ module Rack
                 name = value
               when 'filename'
                 filename = value
-              when 'filename*'
-                filename_star = value
               # else
               # ignore other parameters
               end
@@ -431,11 +429,7 @@ module Rack
             name = head[MULTIPART_CONTENT_ID, 1]
           end
 
-          if filename_star
-            encoding, _, filename = filename_star.split("'", 3)
-            filename = normalize_filename(filename || '')
-            filename.force_encoding(find_encoding(encoding))
-          elsif filename
+          if filename
             filename = normalize_filename(filename)
           end
 
@@ -509,6 +503,10 @@ module Rack
         if filename.scan(/%.?.?/).all? { |s| /%[0-9a-fA-F]{2}/.match?(s) }
           filename = Utils.unescape_path(filename)
         end
+
+        # Interpret as UTF-8 if it's binary and contains valid UTF-8 bytes
+        # (handles "commonly deployed systems" that send UTF-8 directly)
+        filename.force_encoding(Encoding::UTF_8)
 
         filename.scrub!
 

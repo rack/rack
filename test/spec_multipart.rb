@@ -90,10 +90,10 @@ describe Rack::Multipart do
     params["files"][:filename].must_equal "foo"
   end
 
-  it "parses multipart content with different filename and filename*" do
+  it "prefers filename over filename* when both are present" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:filename_multi)
     params = Rack::Multipart.parse_multipart(env)
-    params["files"][:filename].must_equal "bar"
+    params["files"][:filename].must_equal "foo"
   end
 
   it "sets US_ASCII encoding based on charset" do
