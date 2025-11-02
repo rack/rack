@@ -1049,6 +1049,15 @@ EOF
     req.must_be :xhr?
   end
 
+  it "figure out if prefetch request" do
+    req = make_request(Rack::MockRequest.env_for(""))
+    req.wont_be :prefetch?
+
+    req = make_request \
+      Rack::MockRequest.env_for("", "HTTP_SEC_PURPOSE" => "prefetch")
+    req.must_be :prefetch?
+  end
+
   it "ssl detection" do
     request = make_request(Rack::MockRequest.env_for("/"))
     request.scheme.must_equal "http"
