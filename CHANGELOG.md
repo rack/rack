@@ -27,6 +27,10 @@ All notable changes to this project will be documented in this file. For info on
 - Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
 - Multipart parser drops support for RFC 2231 `filename*` parameter (prohibited by RFC 7578) and now properly handles UTF-8 encoded filenames via percent-encoding and direct UTF-8 bytes. ([#2398](https://github.com/rack/rack/pull/2398), [@wtn](https://github.com/wtn))
 
+### Fixed
+
+- Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
+
 ## [3.2.2] - 2025-10-07
 
 ### Security
