@@ -314,7 +314,7 @@ module Rack
         else
           # We raise if the mime part header is too large, to avoid unbounded memory
           # buffering. Note that the actual limit is the higher of 64KB and the buffer size (1MB by default)
-          raise EOFError, "multipart mime part header too large" if @sbuf.string.bytesize > MIME_HEADER_BYTESIZE_LIMIT
+          raise EOFError, "multipart mime part header too large" if @sbuf.rest.bytesize > MIME_HEADER_BYTESIZE_LIMIT
 
           return :want_read
         end

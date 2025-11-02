@@ -242,6 +242,48 @@ describe Rack::Multipart do
     wr.close
   end
 
+  it "parses when the MIME head terminator straddles the BUFSIZE boundary" do
+    boundary = '------WebKitFormBoundaryysVLFAjttLkewYBx'
+
+    data = StringIO.new
+    data.write("--#{boundary}")
+    data.write("\r\n")
+
+    data.write('content-disposition: form-data; name="a"')
+    data.write("\r\n")
+    data.write("\r\n")
+    # Fill to the end of the first 1MB chunk so the header's `\r\n` is in the next chunk.
+    data.write("0" * (1024 * 1024 - 174))
+    data.write("\r\n")
+    data.write("--#{boundary}")
+    data.write("\r\n")
+    data.write('content-disposition: form-data; name="b"')
+    # First 1MB chunk separator is here
+    data.write("\r\n")
+    data.write("\r\n")
+    data.write("0" * (1024 * 1024 - 88))
+    data.write("\r\n")
+    data.write("--#{boundary}")
+    data.write("\r\n")
+    data.write('content-disposition: form-data; name="c"')
+    # Second 1MB chunk separator is here
+    data.write("\r\n")
+    data.write("\r\n")
+    data.write("hello")
+    data.write("\r\n")
+    data.write("--#{boundary}--\r\n")
+    data.rewind
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => data,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    Rack::Multipart.parse_multipart(env).keys.must_equal(["a", "b", "c"])
+  end
+
   it "rejects excessive buffered mime data size in a single parameter" do
     rd, wr = IO.pipe
     def rd.rewind; end
