@@ -416,8 +416,6 @@ module Rack
                 name = value
               when 'filename'
                 filename = value
-              when 'filename*'
-                filename_star = value
               # else
               # ignore other parameters
               end
@@ -433,10 +431,6 @@ module Rack
 
           if filename
             filename = normalize_filename(filename)
-          elsif filename_star
-            encoding, _, filename = filename_star.split("'", 3)
-            filename = normalize_filename(filename || '')
-            filename.force_encoding(find_encoding(encoding))
           end
 
           if name.nil? || name.empty?
