@@ -504,6 +504,10 @@ module Rack
           filename = Utils.unescape_path(filename)
         end
 
+        # Interpret as UTF-8 if it's binary and contains valid UTF-8 bytes
+        # (handles "commonly deployed systems" that send UTF-8 directly)
+        filename.force_encoding(Encoding::UTF_8)
+
         filename.scrub!
 
         filename.split(/[\/\\]/).last || String.new
