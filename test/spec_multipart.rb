@@ -342,19 +342,21 @@ describe Rack::Multipart do
     wr.sync = true
 
     thr = Thread.new do
-      wr.write("--AaB03x")
-      wr.write("\r\n")
-      wr.write('content-disposition: form-data; name="a"')
-      wr.write("\r\n")
-      wr.write("content-type: text/plain\r\n")
-      wr.write("\r\n")
-      wr.write("0" * 17 * 1024 * 1024)
-      wr.write("--AaB03x--\r\n")
-      wr.close
-      true
-    rescue Errno::EPIPE
-      # Expected when the reader closes due to size limit violation
-      true
+      begin
+        wr.write("--AaB03x")
+        wr.write("\r\n")
+        wr.write('content-disposition: form-data; name="a"')
+        wr.write("\r\n")
+        wr.write("content-type: text/plain\r\n")
+        wr.write("\r\n")
+        wr.write("0" * 17 * 1024 * 1024)
+        wr.write("--AaB03x--\r\n")
+        wr.close
+        true
+      rescue Errno::EPIPE
+        # Expected when the reader closes due to size limit violation
+        true
+      end
     end
 
     fixture = {
@@ -379,21 +381,23 @@ describe Rack::Multipart do
     wr.sync = true
 
     thr = Thread.new do
-      4.times do |i|
-        wr.write("\r\n--AaB03x")
-        wr.write("\r\n")
-        wr.write("content-disposition: form-data; name=\"a#{i}\"")
-        wr.write("\r\n")
-        wr.write("content-type: text/plain\r\n")
-        wr.write("\r\n")
-        wr.write("0" * 4 * 1024 * 1024)
+      begin
+        4.times do |i|
+          wr.write("\r\n--AaB03x")
+          wr.write("\r\n")
+          wr.write("content-disposition: form-data; name=\"a#{i}\"")
+          wr.write("\r\n")
+          wr.write("content-type: text/plain\r\n")
+          wr.write("\r\n")
+          wr.write("0" * 4 * 1024 * 1024)
+        end
+        wr.write("\r\n--AaB03x--\r\n")
+        wr.close
+        true
+      rescue Errno::EPIPE
+        # Expected when the reader closes due to size limit violation
+        true
       end
-      wr.write("\r\n--AaB03x--\r\n")
-      wr.close
-      true
-    rescue Errno::EPIPE
-      # Expected when the reader closes due to size limit violation
-      true
     end
 
     fixture = {
