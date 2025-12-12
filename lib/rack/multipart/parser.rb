@@ -46,7 +46,7 @@ module Rack
     # information about uploaded files. For +file+ parameters, the hash includes:
     #
     # * +:filename+ - The original filename, already URL decoded by the parser
-    # * +:type+ - The content type of the uploaded file  
+    # * +:type+ - The content type of the uploaded file
     # * +:name+ - The parameter name from the form
     # * +:tempfile+ - A Tempfile object containing the uploaded data
     # * +:head+ - The raw header content for this part
@@ -542,7 +542,7 @@ module Rack
           end
         end
 
-        name.force_encoding(encoding)
+        # We're doing the encoding intentionally ONLY on the body and NOT the name so that it stays UTF-8
         body.force_encoding(encoding)
       end
 
@@ -555,22 +555,22 @@ module Rack
         Encoding::BINARY
       end
 
-      REENCODE_DUMMY_ENCODINGS = {
-        # ISO-2022-JP is a legacy but still widely used encoding in Japan
-        # Here we convert ISO-2022-JP to UTF-8 so that it can be handled.
-        Encoding::ISO_2022_JP => true
-
-        # Other dummy encodings are rarely used and have not been supported yet.
-        # Adding support for them will require careful considerations.
-      }
-
       def handle_dummy_encoding(name, body)
+        # body is a String for text fields and a Hash for file uploads
+        return name, body if !body.is_a?(String) || !body.encoding.dummy?
+
         # A string object with a 'dummy' encoding does not have full functionality and can cause errors.
-        # So here we covert it to UTF-8 so that it can be handled properly.
-        if name.encoding.dummy? && REENCODE_DUMMY_ENCODINGS[name.encoding]
-          name = name.encode(Encoding::UTF_8)
+        # Dummy encodings like UTF-16LE, UTF-16BE, UTF-32LE, UTF-32BE and ISO-2022-JP are ASCII-incompatible
+        # They will raise Encoding::CompatibilityError when used in string operations with ASCII/UTF-8 strings.
+        # See also issue #2414 for details. We convert them so that will be handled properly by the query parser.
+        begin
           body = body.encode(Encoding::UTF_8)
+        rescue Encoding::UndefinedConversionError, Encoding::InvalidByteSequenceError
+          # If it fails we will use binary encoding to avoid crashes.
+          # This would avoid dangerous interpretation and also unnecessary exceptions.
+          body = body.encode(Encoding::BINARY, invalid: :replace, undef: :replace)
         end
+
         return name, body
       end
 

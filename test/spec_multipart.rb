@@ -101,10 +101,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["text"].encoding.must_equal Encoding::US_ASCII
 
-    # I'm not 100% sure if making the param name encoding match the
-    # content-type charset is the right thing to do.  We should revisit this.
+    # Parameter names always stay UTF-8 to avoid Encoding::CompatibilityError
+    # in the query parser (see issue #2414)
     params.keys.each do |key|
-      key.encoding.must_equal Encoding::US_ASCII
+      key.encoding.must_equal Encoding::UTF_8
     end
   end
 
@@ -113,10 +113,10 @@ describe Rack::Multipart do
     params = Rack::Multipart.parse_multipart(env)
     params["text"].encoding.must_equal Encoding::BINARY
 
-    # I'm not 100% sure if making the param name encoding match the
-    # content-type charset is the right thing to do.  We should revisit this.
+    # Parameter names always stay UTF-8 to avoid Encoding::CompatibilityError
+    # in the query parser (see issue #2414)
     params.keys.each do |key|
-      key.encoding.must_equal Encoding::BINARY
+      key.encoding.must_equal Encoding::UTF_8
     end
   end
 

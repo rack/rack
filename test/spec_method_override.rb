@@ -130,4 +130,23 @@ EOF
     env["REQUEST_METHOD"].must_equal "POST"
     env["rack.request.form_input"].must_be_nil
   end
+
+  it "handle multipart requests with ASCII-incompatible encodings without raising Encoding::CompatibilityError" do
+    input = <<~EOF
+      --AaB03x\r
+      content-type: text/plain; charset=UTF-16LE\r
+      \r
+      Deployed on the sea, would this become a Ship Rack?\r
+      --AaB03x--\r
+    EOF
+
+    env = Rack::MockRequest.env_for("/",
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => input.size.to_s,
+      method: "POST",
+      input: input)
+
+    app.call env
+    env["REQUEST_METHOD"].must_equal "POST"
+  end
 end
