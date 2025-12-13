@@ -106,6 +106,27 @@ EOF
     env[Rack::RACK_ERRORS].read.must_include 'Bad request content body'
   end
 
+  it "writes error to RACK_ERRORS when using incompatible multipart encoding" do
+    input = [
+      "--AaB03x\r\n",
+      %(content-disposition: form-data; name="), "UTF-16LE".encode("UTF-16LE"), %("\r\n),
+      "content-type: text/plain; charset=utf-16le\r\n",
+      "\r\n",
+      "Alice".encode("UTF-16LE"), "\r\n",
+      "--AaB03x--\r\n"
+    ].map(&:b).join
+
+    env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size.to_s,
+                      Rack::RACK_ERRORS => StringIO.new,
+                      :method => "POST", :input => input)
+    Rack::MethodOverride.new(proc { [200, { "content-type" => "text/plain" }, []] }).call env
+
+    env[Rack::RACK_ERRORS].rewind
+    env[Rack::RACK_ERRORS].read.must_include "Invalid or incomplete POST params"
+  end
+
   it "not modify REQUEST_METHOD for POST requests when the params are unparseable because too deep" do
     env = Rack::MockRequest.env_for("/", method: "POST", input: ("[a]" * 36) + "=1")
     app.call env
