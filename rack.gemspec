@@ -35,7 +35,7 @@ Gem::Specification.new do |s|
     "rubygems_mfa_required" => "true"
   }
 
-  s.add_development_dependency 'minitest', "~> 5.0"
+  s.add_development_dependency 'minitest', "> 5"
   s.add_development_dependency 'minitest-global_expectations'
 
   s.add_development_dependency 'bundler'
