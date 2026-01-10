@@ -411,7 +411,7 @@ class RackRequestTest < Minitest::Spec
 
       req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
         "HTTP_X_FORWARDED_HOST" => "example.com,cdn.vade.io,proxy.internal").
-        forwarded_authority.must_equal 'example.com'
+        forwarded_authority.must_equal 'proxy.internal'
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws",
@@ -539,6 +539,31 @@ class RackRequestTest < Minitest::Spec
     ensure
       Rack::Request.forwarded_priority = default_priority
       Rack::Request.x_forwarded_proto_priority = default_proto_priority
+    end
+  end
+
+  # Also read the following comment for more context:
+  # https://github.com/rack/rack/pull/2400#issuecomment-3477891669
+  it "have forwarded_authority respect x_forwarded_host_first" do
+    begin
+      def self.req(headers)
+        make_request(Rack::MockRequest.env_for("/", headers))
+      end
+
+      # default behavior uses last (rightmost, most recent proxy)
+      req("HTTP_X_FORWARDED_HOST" => "client.example.com,proxy.internal").
+        forwarded_authority.must_equal 'proxy.internal'
+
+      Rack::Request.x_forwarded_host_first = true
+
+      # when true, uses first (leftmost, client-supplied)
+      req("HTTP_X_FORWARDED_HOST" => "client.example.com,proxy.internal").
+        forwarded_authority.must_equal 'client.example.com'
+
+      req("HTTP_X_FORWARDED_HOST" => "example.com,vade.io,proxy.internal").
+        forwarded_authority.must_equal 'example.com'
+    ensure
+      Rack::Request.x_forwarded_host_first = false
     end
   end
 
@@ -1368,7 +1393,7 @@ EOF
       'rack.input' => StringIO.new('invalid=bar&invalid[foo]=bar'),
       'HTTP_CONTENT_TYPE' => "application/x-www-form-urlencoded",
     }
-    
+
     2.times do
       # The actual exception type here is unimportant - just that it fails.
       assert_raises(Rack::Utils::ParameterTypeError) do
