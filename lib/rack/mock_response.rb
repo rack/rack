@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'stringio'
 require 'time'
 
 require_relative 'response'
@@ -82,8 +83,12 @@ module Rack
       #   end
       buffer = @buffered_body = String.new
 
-      @body.each do |chunk|
-        buffer << chunk
+      if @body.respond_to?(:each)
+        @body.each do |chunk|
+          buffer << chunk
+        end
+      else
+        @body.call(StringIO.new(buffer))
       end
 
       return buffer
