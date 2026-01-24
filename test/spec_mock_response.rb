@@ -230,6 +230,42 @@ describe Rack::MockResponse do
     headers = res[1]
     refute headers.key?("content-length")
   end
+
+  it "handles Proc bodies" do
+    headers = { "content-type" => "text/event-stream" }
+
+    body = proc do |stream|
+      stream.write("Hello, ")
+      stream.write("world!")
+    end
+
+    response = Rack::MockResponse[200, headers, body]
+
+    response.status.must_equal 200
+    response.headers.must_equal headers
+    response.body.must_equal "Hello, world!"
+  end
+
+  it "closes streaming bodies that respond to close" do
+    closed = false
+
+    body = proc do |stream|
+      stream.write("content")
+    end
+
+    # Add a close method to the proc
+    def body.close
+      @closed = true
+    end
+
+    def body.closed?
+      @closed
+    end
+
+    response = Rack::MockResponse[200, {}, body]
+    response.body.must_equal "content"
+    body.must_be :closed?
+  end
 end
 
 describe Rack::MockResponse, 'headers' do

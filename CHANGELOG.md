@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- Fix `Rack::MockResponse#body` when the body is a Proc. ([#2420](https://github.com/rack/rack/pull/2420), [#2423](https://github.com/rack/rack/pull/2423), [@tavianator](https://github.com/tavianator), [@ioquatix])
+
 ## [3.2.4] - 2025-11-03
 
 ### Fixed
