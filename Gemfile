@@ -11,7 +11,7 @@ end
 
 group :doc do
   gem "rdoc"
-  gem "psych", "< 5" if RUBY_VERSION[0..2] == "2.5"
+  gem "psych", "= 3.0.2" if RUBY_VERSION[0..2] == "2.5"
 end
 
 group :test do
