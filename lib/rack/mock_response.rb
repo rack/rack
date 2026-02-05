@@ -83,12 +83,16 @@ module Rack
       #   end
       buffer = @buffered_body = String.new
 
-      if @body.respond_to?(:each)
-        @body.each do |chunk|
-          buffer << chunk
+      begin
+        if @body.respond_to?(:each)
+          @body.each do |chunk|
+            buffer << chunk
+          end
+        else
+          @body.call(StringIO.new(buffer))
         end
-      else
-        @body.call(StringIO.new(buffer))
+      ensure
+        @body.close if @body.respond_to?(:close)
       end
 
       return buffer
