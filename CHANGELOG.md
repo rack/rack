@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 - Escape non-printable characters in `Rack::ShowExceptions#dump_exception` output to prevent CRLF injection via exception messages containing user-controlled data. ([@haruki0409](https://github.com/haruki0409))
 - [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
 - [CVE-2026-32762](https://github.com/advisories/GHSA-qfgr-crr9-7r49) Forwarded header semicolon injection enables Host and Scheme spoofing.
+- [CVE-2026-26961](https://github.com/advisories/GHSA-vgpv-f759-9wx3) Raise error for multipart requests with multiple boundary parameters.
 
 ### SPEC Changes
 

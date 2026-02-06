@@ -33,7 +33,7 @@ module Rack
     EOL = "\r\n"
     FWS = /[ \t]+(?:\r\n[ \t]+)?/ # whitespace with optional folding
     HEADER_VALUE = "(?:[^\r\n]|\r\n[ \t])*" # anything but a non-folding CRLF
-    MULTIPART = %r|\Amultipart/.*boundary=\"?([^\";,]+)\"?|ni
+    MULTIPART = %r|\Amultipart/.*?boundary(\s*)=\"?([^\";,]+)\"?|ni
     MULTIPART_CONTENT_TYPE = /^Content-Type:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
@@ -116,7 +116,15 @@ module Rack
         return unless content_type
         data = content_type.match(MULTIPART)
         return unless data
-        data[1]
+
+        unless data[1].empty?
+          raise Error, "whitespace between boundary parameter name and equal sign"
+        end
+        if data.post_match.match?(/boundary\s*=/i)
+          raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
+        end
+
+        data[2]
       end
 
       def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
