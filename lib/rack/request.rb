@@ -1,6 +1,5 @@
 # frozen_string_literal: true
 
-require 'ipaddr'
 require_relative 'constants'
 require_relative 'utils'
 require_relative 'media_type'
@@ -626,40 +625,25 @@ module Rack
         parse_http_accept_header(get_header("HTTP_ACCEPT_LANGUAGE"))
       end
 
+      # Determine whether the given IP address is considered a trusted proxy.
+      #
+      # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        case get_header('rack.request.trusted_proxy')
+        trusted_proxy = get_header('rack.request.trusted_proxy')
+
+        case trusted_proxy
         when nil
           # Default to class-level ip_filter:
           Rack::Request.ip_filter.call(ip)
-        when true
-          # Trust all proxies:
-          true
-        when false
-          # Trust no proxies:
-          false
-        when Array
-          # Trust only specified IPs/ranges:
-          get_header('rack.request.trusted_proxy').any? do |pattern|
-            ip_matches?(ip, pattern)
-          end
+        when true, false
+          trusted_proxy
+        else
+          # Treat as callable:
+          trusted_proxy.call(ip)
         end
       end
 
       private
-
-      # Check if an IP address matches a pattern (IP address or CIDR range).
-      def ip_matches?(ip, pattern)
-        # Direct string match for exact IP comparison:
-        return true if ip == pattern
-
-        begin
-          ip_addr = IPAddr.new(ip)
-          pattern_addr = IPAddr.new(pattern)
-          pattern_addr.include?(ip_addr)
-        rescue IPAddr::InvalidAddressError
-          false
-        end
-      end
 
       def default_session; {}; end
 

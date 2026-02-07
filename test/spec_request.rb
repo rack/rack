@@ -2035,9 +2035,9 @@ EOF
     req.trusted_proxy?('1.2.3.4').must_equal false
   end
 
-  it "trusts only specified IPs when rack.request.trusted_proxy is an array" do
+  it "trusts only specified IPs when rack.request.trusted_proxy is a callable" do
     env = Rack::MockRequest.env_for("/")
-    env['rack.request.trusted_proxy'] = ['10.0.0.1', '192.168.1.100']
+    env['rack.request.trusted_proxy'] = lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }
     req = make_request(env)
     
     req.trusted_proxy?('10.0.0.1').must_equal true
@@ -2047,9 +2047,18 @@ EOF
     req.trusted_proxy?('127.0.0.1').must_equal false
   end
 
-  it "supports CIDR ranges in rack.request.trusted_proxy array" do
+  it "supports CIDR ranges in rack.request.trusted_proxy callable" do
+    require 'ipaddr'
     env = Rack::MockRequest.env_for("/")
-    env['rack.request.trusted_proxy'] = ['10.0.0.0/24', '192.168.1.0/28']
+    ranges = [IPAddr.new('10.0.0.0/24'), IPAddr.new('192.168.1.0/28')]
+    env['rack.request.trusted_proxy'] = lambda { |ip|
+      begin
+        ip_addr = IPAddr.new(ip)
+        ranges.any? { |range| range.include?(ip_addr) }
+      rescue IPAddr::InvalidAddressError
+        false
+      end
+    }
     req = make_request(env)
     
     # 10.0.0.0/24 covers 10.0.0.0 - 10.0.0.255
@@ -2064,9 +2073,19 @@ EOF
     req.trusted_proxy?('192.168.1.16').must_equal false
   end
 
-  it "supports IPv6 addresses in rack.request.trusted_proxy array" do
+  it "supports IPv6 addresses in rack.request.trusted_proxy callable" do
+    require 'ipaddr'
     env = Rack::MockRequest.env_for("/")
-    env['rack.request.trusted_proxy'] = ['2001:db8::1', 'fd00::/8']
+    ipv6_exact = IPAddr.new('2001:db8::1')
+    ipv6_range = IPAddr.new('fd00::/8')
+    env['rack.request.trusted_proxy'] = lambda { |ip|
+      begin
+        ip_addr = IPAddr.new(ip)
+        ip_addr == ipv6_exact || ipv6_range.include?(ip_addr)
+      rescue IPAddr::InvalidAddressError
+        false
+      end
+    }
     req = make_request(env)
     
     req.trusted_proxy?('2001:db8::1').must_equal true
@@ -2076,13 +2095,15 @@ EOF
     req.trusted_proxy?('fe00::1').must_equal false
   end
 
-  it "handles invalid IP addresses gracefully in rack.request.trusted_proxy" do
+  it "handles custom logic in rack.request.trusted_proxy callable" do
     env = Rack::MockRequest.env_for("/")
-    env['rack.request.trusted_proxy'] = ['10.0.0.1', 'invalid-ip']
+    env['rack.request.trusted_proxy'] = lambda { |ip|
+      ip == '10.0.0.1' || ip == 'invalid-ip'
+    }
     req = make_request(env)
     
     req.trusted_proxy?('10.0.0.1').must_equal true
-    req.trusted_proxy?('invalid-ip').must_equal true  # Direct string match
+    req.trusted_proxy?('invalid-ip').must_equal true
     req.trusted_proxy?('192.168.1.1').must_equal false
   end
 
