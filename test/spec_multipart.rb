@@ -1412,4 +1412,27 @@ content-type: image/png\r
     params["us-ascii"].must_equal("Alice")
     params["iso-2022-jp"].must_equal("アリス")
   end
+
+  it "prevents CRLF injection in parameter values via obs-fold" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test\r
+      \t.txt"\r
+      Content-Type: application/octet-stream;\r
+       name="file.php"\r
+      \r
+      <?php eval($_POST['x']); ?>\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params["upload"][:filename].must_equal "test\t.txt"
+    params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
+  end
 end

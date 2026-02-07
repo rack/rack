@@ -367,12 +367,20 @@ module Rack
 
       CONTENT_DISPOSITION_MAX_PARAMS = 16
       CONTENT_DISPOSITION_MAX_BYTES = 1536
+      OBS_UNFOLD = /\r\n([ \t])/
+      private_constant :OBS_UNFOLD
+
       def handle_mime_head
         if @sbuf.scan_until(@head_regex)
           head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
+          content_type.gsub!(OBS_UNFOLD, '\1') if content_type
+
           if (disposition = head[MULTIPART_CONTENT_DISPOSITION, 1]) &&
               disposition.bytesize <= CONTENT_DISPOSITION_MAX_BYTES
+
+            # Implement OBS unfolding (RFC 5322 Section 2.2.3)
+            disposition.gsub!(OBS_UNFOLD, '\1')
 
             # ignore actual content-disposition value (should always be form-data)
             i = disposition.index(';')
