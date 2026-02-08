@@ -40,6 +40,8 @@ jobs:
         gem unpack rack -v "< 3.3"
         cd rack-3.2*
         cp ../.rdoc_options .
+        cp ../UPGRADE-GUIDE.md .
+        cp ../SECURITY.md .
         bundle exec rdoc --op ../docs/3.2 --main README.md --template-stylesheets ../contrib/rdoc.css
         cp -r ../contrib ../docs/3.2
 
@@ -50,6 +52,8 @@ jobs:
         gem unpack rack -v "< 3.2"
         cd rack-3.1*
         cp ../.rdoc_options .
+        cp ../UPGRADE-GUIDE.md .
+        cp ../SECURITY.md .
         bundle exec rdoc --op ../docs/3.1 --main README.md --template-stylesheets ../contrib/rdoc.css
         cp -r ../contrib ../docs/3.1
 
@@ -60,6 +64,7 @@ jobs:
         gem unpack rack -v "< 3.1"
         cd rack-3.0*
         cp ../.rdoc_options .
+        cp ../UPGRADE-GUIDE.md .
         bundle exec rdoc --op ../docs/3.0 --main README.md --template-stylesheets ../contrib/rdoc.css
         cp -r ../contrib ../docs/3.0
 
