@@ -625,8 +625,22 @@ module Rack
         parse_http_accept_header(get_header("HTTP_ACCEPT_LANGUAGE"))
       end
 
+      # Determine whether the given IP address is considered a trusted proxy.
+      #
+      # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        Rack::Request.ip_filter.call(ip)
+        trusted_proxy = get_header(RACK_REQUEST_TRUSTED_PROXY)
+
+        case trusted_proxy
+        when nil
+          # Default to class-level ip_filter:
+          Rack::Request.ip_filter.call(ip)
+        when true, false
+          trusted_proxy
+        else
+          # Treat as callable:
+          trusted_proxy.call(ip)
+        end
       end
 
       private
