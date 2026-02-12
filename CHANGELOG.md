@@ -32,6 +32,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
+- Fix `Rack::MockResponse#body` when the body is a Proc. ([#2420](https://github.com/rack/rack/pull/2420), [#2423](https://github.com/rack/rack/pull/2423), [@tavianator](https://github.com/tavianator), [@ioquatix])
 
 ## [3.2.4] - 2025-11-03
 
