@@ -629,7 +629,7 @@ module Rack
       #
       # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        trusted_proxy = get_header('rack.request.trusted_proxy')
+        trusted_proxy = get_header(RACK_REQUEST_TRUSTED_PROXY)
 
         case trusted_proxy
         when nil
