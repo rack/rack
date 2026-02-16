@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Security
+
+- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+
 ### Fixed
 
 - Fix `Rack::MockResponse#body` when the body is a Proc. ([#2420](https://github.com/rack/rack/pull/2420), [#2423](https://github.com/rack/rack/pull/2423), [@tavianator](https://github.com/tavianator), [@ioquatix])
