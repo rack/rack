@@ -38,10 +38,21 @@ module Rack
       # similar to <tt>[:scheme, :proto]</tt>.  You can remove either or
       # both of the entries in array to ignore that respective header.
       attr_accessor :x_forwarded_proto_priority
+
+      # Whether to use the first (leftmost) value from the
+      # <tt>X-Forwarded-Host</tt> header. The default is +false+,
+      # which returns the last (rightmost) value from the most
+      # recent (and typically trusted) proxy. Set to +true+ to
+      # use the first value, which is the original client-supplied
+      # host, useful for generating URLs and redirects. Note that
+      # earlier values can be spoofed by clients, so only set to
+      # +true+ if you trust your proxy chain to sanitize headers.
+      attr_accessor :x_forwarded_host_first
     end
 
     @forwarded_priority = [:forwarded, :x_forwarded]
     @x_forwarded_proto_priority = [:proto, :scheme]
+    @x_forwarded_host_first = false
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
 
@@ -412,7 +423,8 @@ module Rack
               return forwarded.last
             end
           when :x_forwarded
-            if (value = get_header(HTTP_X_FORWARDED_HOST)) && (x_forwarded_host = split_header(value).last)
+            if (value = get_header(HTTP_X_FORWARDED_HOST)) && (hosts = split_header(value)) && !hosts.empty?
+              x_forwarded_host = x_forwarded_host_first ? hosts.first : hosts.last
               return wrap_ipv6(x_forwarded_host)
             end
           end
@@ -800,6 +812,10 @@ module Rack
 
       def x_forwarded_proto_priority
         Request.x_forwarded_proto_priority
+      end
+
+      def x_forwarded_host_first
+        Request.x_forwarded_host_first
       end
     end
 
