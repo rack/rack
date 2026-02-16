@@ -1213,7 +1213,7 @@ true\r
     data = <<-EOF
 --AaB03x\r
 content-type: text/plain\r
-content-disposition: attachment; name="quoted\\\\chars\\"in\tname"\r
+content-disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
 \r
 true\r
 --AaB03x--\r
@@ -1226,7 +1226,7 @@ true\r
     }
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
-    params["quoted\\chars\"in\tname"].must_equal 'true'
+    params["quoted\\chars\"in\rname"].must_equal 'true'
   end
 
   it "supports mixed case metadata" do
@@ -1293,5 +1293,174 @@ content-type: image/png\r
     params = Rack::Multipart.parse_multipart(env)
     params["us-ascii"].must_equal("Alice")
     params["iso-2022-jp"].must_equal("アリス")
+  end
+
+  it "rejects obsolete header folding per RFC 7230 section 3.2.4" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="test"\r
+      Content-Type: text/plain;\r
+      \tcharset=utf-8\r
+      \r
+      content\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
+  end
+
+  it "prevents header injection via obs-fold in Content-Type" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="normal.txt"\r
+      Content-Type: text/plain\r
+      \tContent-Disposition: form-data; name="admin"; filename="shell.php"\r
+      \r
+      <?php system($_GET['cmd']); ?>\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
+  end
+
+  it "prevents filename parameter injection via obs-fold" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="safe.txt\r
+      \t"; filename="../../etc/passwd"\r
+      \r
+      malicious content\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
+  end
+
+  it "prevents CRLF injection in parameter values via obs-fold" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test.txt"\r
+      Content-Type: application/octet-stream; name="file\r
+      \t.php"\r
+      \r
+      <?php eval($_POST['x']); ?>\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise Rack::BadRequest
+  end
+
+  # Security tests for CVE-2025-49007: ReDoS vulnerability in regex patterns
+  # These tests ensure the multipart header regex patterns are properly anchored
+  # to prevent matching from incorrect positions and ReDoS attacks
+
+  it "has Content-Type regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_TYPE\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_TYPE regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_TYPE constant in parser.rb"
+    end
+  end
+
+  it "has Content-Disposition regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_DISPOSITION\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_DISPOSITION regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_DISPOSITION constant in parser.rb"
+    end
+  end
+
+  it "has Content-ID regex anchored to prevent ReDoS" do
+    parser_source = File.read(File.expand_path('../../lib/rack/multipart/parser.rb', __FILE__))
+
+    if parser_source =~ /MULTIPART_CONTENT_ID\s*=\s*(.+)/
+      regex_line = $1
+      regex_line.must_match(/\^/,
+        "MULTIPART_CONTENT_ID regex must be anchored with ^ to prevent matching from wrong positions")
+    else
+      flunk "Could not find MULTIPART_CONTENT_ID constant in parser.rb"
+    end
+  end
+
+  it "does not match Content-Type from wrong position in headers" do
+    eol = "\r\n"
+    headers = "X-User-Comment: I tried Content-Type: application/json#{eol}" +
+              "Content-Type: text/plain#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    match = headers.match(content_type_regex)
+
+    # With proper anchoring (^), the regex should only match actual headers
+    # not Content-Type strings inside other header values
+    match[1].strip.must_equal "text/plain"
+  end
+
+  it "does not match Content-Type appearing in Content-Disposition value" do
+    eol = "\r\n"
+    headers = "Content-Disposition: form-data; name=\"Content-Type: fake\"#{eol}" +
+              "Content-Type: text/plain#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    matches = headers.scan(content_type_regex)
+
+    # Should only match the real Content-Type header, not the one in the value
+    matches.length.must_equal 1
+    matches[0][0].strip.must_equal "text/plain"
+  end
+
+  it "does not match Content-Type multiple times when string appears in other headers" do
+    eol = "\r\n"
+    # Headers with multiple occurrences of "Content-Type:" string
+    headers = "X-Description: Please use Content-Type: application/json#{eol}" +
+              "X-Note: Not Content-Type: text/xml either#{eol}" +
+              "Content-Type: text/plain#{eol}" +
+              "Content-Disposition: form-data; name=\"test\"#{eol}"
+
+    content_type_regex = Rack::Multipart::MULTIPART_CONTENT_TYPE
+    matches = headers.scan(content_type_regex)
+
+    # Should only match the one actual Content-Type header
+    matches.length.must_equal 1
+    matches[0][0].strip.must_equal "text/plain"
   end
 end
