@@ -82,6 +82,7 @@ table { width:100%%; }
     # Set the root directory and application for serving files.
     def initialize(root, app = nil)
       @root = ::File.expand_path(root)
+      @root_with_separator = @root.end_with?(::File::SEPARATOR) ? @root : "#{@root}#{::File::SEPARATOR}"
       @app = app || Files.new(@root)
       @head = Head.new(method(:get))
     end
@@ -118,7 +119,9 @@ table { width:100%%; }
     # Rack response to use for requests with paths outside the root, or nil if path is inside the root.
     def check_forbidden(path_info)
       return unless path_info.include? ".."
-      return if ::File.expand_path(::File.join(@root, path_info)).start_with?(@root)
+
+      expanded_path = ::File.expand_path(::File.join(@root, path_info))
+      return if expanded_path == @root || expanded_path.start_with?(@root_with_separator)
 
       body = "Forbidden\n"
       [403, { CONTENT_TYPE => "text/plain",

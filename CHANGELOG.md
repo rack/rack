@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+- [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
 
 ## [3.1.19] - 2025-11-03
 
