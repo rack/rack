@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Security
+
+- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+
 ## [2.2.21] - 2025-11-03
 
 ### Fixed

@@ -32,6 +32,15 @@ describe Rack::Directory do
     end
   end
 
+  it "serve root directory index" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/")
+
+    res.must_be :ok?
+    assert_includes(res.body, '<html><head>')
+    assert_includes(res.body, "href='./cgi")
+  end
+
   it "serve directory indices" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
       get("/cgi/")
