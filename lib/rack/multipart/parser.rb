@@ -110,7 +110,7 @@ module Rack
       end
 
       MultipartInfo = Struct.new :params, :tmp_files
-      EMPTY         = MultipartInfo.new(nil, [])
+      EMPTY         = MultipartInfo.new(nil, [].freeze).freeze
 
       def self.parse_boundary(content_type)
         return unless content_type
