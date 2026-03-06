@@ -91,6 +91,9 @@ module Rack
     def initialize(app, options = {})
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
+      if @urls.kind_of?(Array)
+        @urls = @urls.map { |url| [url, url.end_with?('/') ? url : "#{url}/".freeze].freeze }.freeze
+      end
       @index = options[:index]
       @gzip = options[:gzip]
       @cascade = options[:cascade]
@@ -113,7 +116,7 @@ module Rack
     end
 
     def route_file(path)
-      @urls.kind_of?(Array) && @urls.any? { |url| path.index(url) == 0 }
+      @urls.kind_of?(Array) && @urls.any? { |url, url_slash| path == url || path.start_with?(url_slash) }
     end
 
     def can_serve(path)
