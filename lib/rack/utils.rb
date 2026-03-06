@@ -32,7 +32,7 @@ module Rack
     # The default amount of nesting to allowed by hash parameters.
     # This helps prevent a rogue client from triggering a possible stack overflow
     # when parsing parameters.
-    self.default_query_parser = QueryParser.make_default(32)
+    self.default_query_parser = QueryParser.make_default(32).freeze
 
     module_function
 
