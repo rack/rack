@@ -266,6 +266,21 @@ describe Rack::Static do
     res.headers['cache-control'].must_be_nil
   end
 
+  it "not allow directory traversal via root prefix bypass" do
+    Dir.mktmpdir do |dir|
+      root = File.join(dir, "root")
+      outside = "#{root}_test"
+      FileUtils.mkdir_p(root)
+      FileUtils.mkdir_p(outside)
+      FileUtils.touch(File.join(outside, "test.txt"))
+
+      app = Rack::Static.new(proc { |env| [403, {}, ""] }, root: dir, urls: ["/root"])
+      res = Rack::MockRequest.new(app).get("/root_test/test.txt")
+
+      res.must_be :forbidden?
+    end
+  end
+
   it "expands the root path upon the middleware initialization" do
     relative_path = STATIC_OPTIONS[:root].sub("#{Dir.pwd}/", '')
     opts = { urls: [""], root: relative_path, index: 'index.html' }
