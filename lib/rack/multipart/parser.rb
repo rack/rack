@@ -84,6 +84,9 @@ module Rack
       PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
       private_constant :PARSER_BYTESIZE_LIMIT
 
+      CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT = env_int.call("RACK_MULTIPART_CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT", 8 * 1024)
+      private_constant :CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT
+
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -264,6 +267,7 @@ module Rack
         @body_retained = nil
         @retained_size = 0
         @total_bytes_read = (0 if PARSER_BYTESIZE_LIMIT)
+        @content_disposition_quoted_escapes = 0
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".b)
@@ -415,6 +419,11 @@ module Rack
 
                   # stop parsing parameter value if found ending quote
                   break if c == '"'
+
+                  @content_disposition_quoted_escapes += 1
+                  if @content_disposition_quoted_escapes > CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT
+                    raise Error, "number of quoted escapes during content disposition parsing exceeds limit"
+                  end
 
                   escaped_char = disposition.slice!(0, 1)
                   if param == 'filename' && escaped_char != '"'

@@ -658,6 +658,50 @@ describe Rack::Multipart do
     x.must_equal "application/pdf"=>[""]
   end
 
+  quoted_escape_test_parse = lambda do |parts, escapes_per_part|
+    boundary = '---------------------------932620571087722842402766118'
+    escaped_quotes = '\\"' * (escapes_per_part/2)
+    unescaped_quotes = '"' * (escapes_per_part/2)
+
+    data = StringIO.new
+    parts.times do |i|
+      data.write("--#{boundary}")
+      data.write("\r\n")
+      data.write("Content-Disposition: form-data; name=\"a#{i}#{escaped_quotes}\" filename=\"b#{i}#{escaped_quotes}\"")
+      data.write("\r\n")
+      data.write("content-type:application/pdf\r\n")
+      data.write("\r\n")
+      data.write("--#{boundary}--\r\n")
+    end
+    data.rewind
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => data,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    [Rack::Multipart.parse_multipart(env), unescaped_quotes]
+  end
+
+  it "allows up to 8192 quoted escapes during parsing" do
+    parts = 32
+    x, unescaped_quotes = quoted_escape_test_parse.call(parts, 256)
+    x.keys.must_equal Array.new(parts) {|i| "a#{i}#{unescaped_quotes}" }
+    parts.times do |i|
+      key = "a#{i}#{unescaped_quotes}"
+      v = x[key]
+      v[:filename].must_equal "b#{i}#{unescaped_quotes}"
+      v[:name].must_equal key
+    end
+  end
+
+  it "disallows more than 8192 quoted escapes during parsing" do
+    proc{quoted_escape_test_parse.call(32, 258)}.must_raise Rack::Multipart::Error
+    proc{quoted_escape_test_parse.call(33, 256)}.must_raise Rack::Multipart::Error
+  end
+
   it 'raises an EOF error on content-length mismatch' do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:empty))
     env['rack.input'] = StringIO.new
