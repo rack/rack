@@ -16,6 +16,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2026-34835](https://github.com/advisories/GHSA-g2pf-xv49-m2h5) `Rack::Request` accepts invalid Host characters, enabling host allowlist bypass.
 - [CVE-2026-34830](https://github.com/advisories/GHSA-qv7j-4883-hwh7) `Rack::Sendfile` header-based `X-Accel-Mapping` regex injection enables unauthorized `X-Accel-Redirect`.
 - [CVE-2026-34785](https://github.com/advisories/GHSA-h2jq-g4cq-5ppq) `Rack::Static` prefix matching can expose unintended files under the static root.
+- [CVE-2026-34829](https://github.com/advisories/GHSA-8vqr-qjwx-82mw) Multipart parsing without `Content-Length` header allows unbounded chunked file uploads.
 
 ## [3.2.5] - 2026-02-16
 
