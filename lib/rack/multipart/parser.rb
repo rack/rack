@@ -80,6 +80,10 @@ module Rack
       BUFFERED_UPLOAD_BYTESIZE_LIMIT = env_int.call("RACK_MULTIPART_BUFFERED_UPLOAD_BYTESIZE_LIMIT", 16 * 1024 * 1024)
       private_constant :BUFFERED_UPLOAD_BYTESIZE_LIMIT
 
+      bytesize_limit = env_int.call("RACK_MULTIPART_PARSER_BYTESIZE_LIMIT", 10 * 1024 * 1024 * 1024)
+      PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
+      private_constant :PARSER_BYTESIZE_LIMIT
+
       class BoundedIO # :nodoc:
         def initialize(io, content_length)
           @io             = io
@@ -132,6 +136,10 @@ module Rack
 
         boundary = parse_boundary content_type
         return EMPTY unless boundary
+
+        if PARSER_BYTESIZE_LIMIT && content_length && content_length > PARSER_BYTESIZE_LIMIT
+          raise Error, "multipart Content-Length #{content_length} exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+        end
 
         if boundary.length > 70
           # RFC 1521 Section 7.2.1 imposes a 70 character maximum for the boundary.
@@ -255,6 +263,7 @@ module Rack
         @mime_index = 0
         @body_retained = nil
         @retained_size = 0
+        @total_bytes_read = (0 if PARSER_BYTESIZE_LIMIT)
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".b)
@@ -266,6 +275,7 @@ module Rack
       end
 
       def parse(io)
+        @total_bytes_read &&= nil if io.is_a?(BoundedIO)
         outbuf = String.new
         read_data(io, outbuf)
 
@@ -304,6 +314,12 @@ module Rack
       def read_data(io, outbuf)
         content = io.read(@bufsize, outbuf)
         handle_empty_content!(content)
+        if @total_bytes_read
+          @total_bytes_read += content.bytesize
+          if @total_bytes_read > PARSER_BYTESIZE_LIMIT
+            raise Error, "multipart upload exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+          end
+        end
         @sbuf.concat(content)
       end
 
