@@ -20,6 +20,19 @@ describe Rack::Multipart do
     File.join(File.dirname(__FILE__), "multipart", name.to_s)
   end
 
+
+  def with_multipart_limit(limit)
+    previous = Rack::Multipart::Parser.send(:const_get, :PARSER_BYTESIZE_LIMIT)
+    begin
+      Rack::Multipart::Parser.send(:remove_const, :PARSER_BYTESIZE_LIMIT)
+      Rack::Multipart::Parser.const_set(:PARSER_BYTESIZE_LIMIT, limit)
+      yield
+    ensure
+      Rack::Multipart::Parser.send(:remove_const, :PARSER_BYTESIZE_LIMIT)
+      Rack::Multipart::Parser.const_set(:PARSER_BYTESIZE_LIMIT, previous)
+    end
+  end
+
   it "return nil if content type is not multipart" do
     env = Rack::MockRequest.env_for("/",
             "CONTENT_TYPE" => 'application/x-www-form-urlencoded')
@@ -47,6 +60,49 @@ describe Rack::Multipart do
     lambda {
       Rack::Multipart.parse_multipart(env)
     }.must_raise EOFError
+  end
+
+  it "raises an exception if Content-Length exceeds total bytesize limit" do
+    with_multipart_limit(1024) do
+      env = Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+        "CONTENT_LENGTH" => "2048",
+        :input => StringIO.new("--AaB03x--\r\n"))
+
+      lambda {
+        Rack::Multipart.parse_multipart(env)
+      }.must_raise(EOFError)
+    end
+  end
+
+  it "allows requests within the total bytesize limit" do
+    with_multipart_limit(1024 * 1024) do
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+      params = Rack::Multipart.parse_multipart(env)
+      params["submit-name"].must_equal "Larry"
+    end
+  end
+
+  it "skips total bytesize check when there is no limit" do
+    with_multipart_limit(nil) do
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+      params = Rack::Multipart.parse_multipart(env)
+      params["submit-name"].must_equal "Larry"
+    end
+  end
+
+  it "enforces total bytesize limit during streaming when Content-Length is absent" do
+    with_multipart_limit(1) do
+      # Even without Content-Length, the streaming check catches oversized uploads
+      fixture = multipart_fixture(:text)
+      fixture.delete("CONTENT_LENGTH")
+      env = Rack::MockRequest.env_for("/", fixture)
+      env.delete("CONTENT_LENGTH")
+
+      lambda {
+        Rack::Multipart.parse_multipart(env)
+      }.must_raise EOFError
+    end
   end
 
   it "parses multipart content when content type is present but disposition is not" do
