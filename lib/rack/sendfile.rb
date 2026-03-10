@@ -51,7 +51,7 @@ module Rack
   #
   # The `x-accel-mapping` header should specify the location on the file system,
   # followed by an equals sign (=), followed name of the private URL pattern
-  # that it maps to. The middleware performs a simple substitution on the
+  # that it maps to. The middleware performs a case-insensitive substitution on the
   # resulting path.
   #
   # To enable `x-accel-redirect`, you must configure the middleware explicitly:
@@ -186,7 +186,7 @@ module Rack
         # Safe to use header: explicit config + no app mappings:
         mapping.split(',').map(&:strip).each do |m|
           internal, external = m.split('=', 2).map(&:strip)
-          new_path = path.sub(/\A#{internal}/i, external)
+          new_path = path.sub(/\A#{Regexp.escape(internal)}/i, external)
           return new_path unless path == new_path
         end
 
