@@ -12,6 +12,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2026-34786](https://github.com/advisories/GHSA-q4qf-9j86-f5mh) `Rack::Static` `header_rules` bypass via URL-encoded path mismatch.
 - [CVE-2026-34831](https://github.com/advisories/GHSA-q2ww-5357-x388) `Content-Length` mismatch in `Rack::Files` error responses.
 - [CVE-2026-34826](https://github.com/advisories/GHSA-x8cg-fq8g-mxfx) Multipart byte range processing allows denial of service via excessive overlapping ranges.
+- [CVE-2026-34830](https://github.com/advisories/GHSA-qv7j-4883-hwh7) `Rack::Sendfile` header-based `X-Accel-Mapping` regex injection enables unauthorized `X-Accel-Redirect`.
 
 ## [2.2.22] - 2026-02-16
 

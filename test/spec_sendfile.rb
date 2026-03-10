@@ -96,6 +96,20 @@ describe Rack::Sendfile do
     end
   end
 
+  it "does not do a regexp substitution on the internal path" do
+    tmpdir = Dir.tmpdir.dup
+    tmpdir[1..2] = ".*"
+    headers = {
+      'HTTP_X_ACCEL_MAPPING' => "#{tmpdir}/=/foo/bar/"
+    }
+    request(headers, sendfile_body, [], 'X-Accel-Redirect') do |response|
+      response.must_be :ok?
+      response.body.must_be :empty?
+      response.headers['content-length'].must_equal '0'
+      response.headers['x-accel-redirect'].must_equal '/tmp/rack_sendfile'
+    end
+  end
+
   it "sets X-Accel-Redirect response header to percent-encoded path" do
     headers = {
       'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar%/"
