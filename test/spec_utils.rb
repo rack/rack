@@ -713,6 +713,18 @@ describe Rack::Utils, "get_byte_ranges" do
     assert_equal [], Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-20,0-500" }, 500)
   end
 
+  it "returns an empty list if the number of ranges exceeds what is allowed" do
+    range = "bytes=#{Array.new(101) { |i| "#{i}=#{i}"}.join(',')}"
+    assert_nil Rack::Utils.byte_ranges({ "HTTP_RANGE" => range }, 500)
+    assert_nil Rack::Utils.get_byte_ranges(range, 500)
+
+    assert_nil Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-0,1-1" }, 500, max_ranges: 1)
+    assert_nil Rack::Utils.get_byte_ranges("bytes=0-0,1-1", 500, max_ranges: 1)
+
+    assert_equal [0..0], Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=0-0" }, 500, max_ranges: 1)
+    assert_equal [0..0], Rack::Utils.get_byte_ranges("bytes=0-0", 500, max_ranges: 1)
+  end
+
   it "parse simple byte ranges from env" do
     Rack::Utils.byte_ranges({ "HTTP_RANGE" => "bytes=123-456" }, 500).must_equal [(123..456)]
   end
