@@ -149,23 +149,47 @@ class RackRequestTest < Minitest::Spec
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "♡.com")
-    req.host.must_equal "♡.com"
-    req.hostname.must_equal "♡.com"
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    # Punycode conversion of ♡.com
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "xn--c6h.com")
+    req.host.must_equal "xn--c6h.com"
+    req.hostname.must_equal "xn--c6h.com"
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "♡.com:80")
-    req.host.must_equal "♡.com"
-    req.hostname.must_equal "♡.com"
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    # Punycode conversion of ♡.com:80
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "xn--c6h.com:80")
+    req.host.must_equal "xn--c6h.com"
+    req.hostname.must_equal "xn--c6h.com"
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "nic.谷歌")
-    req.host.must_equal "nic.谷歌"
-    req.hostname.must_equal "nic.谷歌"
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    # Punycode conversion of nic.谷歌
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "nic.xn--flw351e")
+    req.host.must_equal "nic.xn--flw351e"
+    req.hostname.must_equal "nic.xn--flw351e"
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "nic.谷歌:80")
-    req.host.must_equal "nic.谷歌"
-    req.hostname.must_equal "nic.谷歌"
+    req.host.must_be_nil
+    req.hostname.must_be_nil
+
+    # Punycode conversion of nic.谷歌:80
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "nic.xn--flw351e:80")
+    req.host.must_equal "nic.xn--flw351e"
+    req.hostname.must_equal "nic.xn--flw351e"
 
     req = make_request \
       Rack::MockRequest.env_for("/", "HTTP_HOST" => "technically_invalid.example.com")
