@@ -728,8 +728,8 @@ module Rack
           # Match IPv6 as a string of hex digits and colons in square brackets
           \[(?<address>#{ipv6})\]
           |
-          # Match any other printable string (except square brackets) as a hostname
-          (?<address>[[[:graph:]&&[^\[\]]]]*?)
+          # Match characters allowed by RFC 3986 Section 3.2.2
+          (?<address>[-a-zA-Z0-9._~%!$&'()*+,;=]*?)
         )
         (:(?<port>\d+))?
         \z
