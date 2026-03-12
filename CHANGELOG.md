@@ -13,6 +13,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2026-34786](https://github.com/advisories/GHSA-q4qf-9j86-f5mh) `Rack::Static` `header_rules` bypass via URL-encoded path mismatch.
 - [CVE-2026-34831](https://github.com/advisories/GHSA-q2ww-5357-x388) `Content-Length` mismatch in `Rack::Files` error responses.
 - [CVE-2026-34826](https://github.com/advisories/GHSA-x8cg-fq8g-mxfx) Multipart byte range processing allows denial of service via excessive overlapping ranges.
+- [CVE-2026-34835](https://github.com/advisories/GHSA-g2pf-xv49-m2h5) `Rack::Request` accepts invalid Host characters, enabling host allowlist bypass.
 
 ## [3.2.5] - 2026-02-16
 
