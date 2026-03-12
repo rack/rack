@@ -496,17 +496,19 @@ module Rack
     # Parses the "Range:" header, if present, into an array of Range objects.
     # Returns nil if the header is missing or syntactically invalid.
     # Returns an empty array if none of the ranges are satisfiable.
-    def byte_ranges(env, size)
-      get_byte_ranges env['HTTP_RANGE'], size
+    def byte_ranges(env, size, max_ranges: 100)
+      get_byte_ranges env['HTTP_RANGE'], size, max_ranges: max_ranges
     end
 
-    def get_byte_ranges(http_range, size)
+    def get_byte_ranges(http_range, size, max_ranges: 100)
       # See <http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html#sec14.35>
       # Ignore Range when file size is 0 to avoid a 416 error.
       return nil if size.zero?
       return nil unless http_range && http_range =~ /bytes=([^;]+)/
+      byte_range = $1
+      return nil if byte_range.count(',') >= max_ranges
       ranges = []
-      $1.split(/,\s*/).each do |range_spec|
+      byte_range.split(/,[ \t]*/).each do |range_spec|
         return nil unless range_spec.include?('-')
         range = range_spec.split('-')
         r0, r1 = range[0], range[1]
