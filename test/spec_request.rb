@@ -397,6 +397,12 @@ class RackRequestTest < Minitest::Spec
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "ws"
 
+      r = req("HTTP_X_FORWARDED_PROTO" => "ws",
+        "HTTP_X_FORWARDED_SCHEME" => "http",
+        "HTTP_X_FORWARDED_SSL" => "on")
+      r.forwarded_scheme.must_equal "https"
+      r.ssl?.must_equal true
+
       req("HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "http"
 
@@ -419,6 +425,13 @@ class RackRequestTest < Minitest::Spec
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "ws"
 
+      r = req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_PROTO" => "ws",
+        "HTTP_X_FORWARDED_SCHEME" => "http",
+        "HTTP_X_FORWARDED_SSL" => "on")
+      r.forwarded_scheme.must_equal "https"
+      r.ssl?.must_equal true
+
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "http"
@@ -426,12 +439,14 @@ class RackRequestTest < Minitest::Spec
       req("HTTP_FORWARDED"=>"proto=https").
         forwarded_scheme.must_equal "https"
 
-      Rack::Request.x_forwarded_proto_priority = [nil, :scheme, :proto]
+      Rack::Request.x_forwarded_proto_priority = [nil, :scheme, :proto, :ssl]
 
-      req("HTTP_FORWARDED"=>"proto=https",
+      r = req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "http"
+        "HTTP_X_FORWARDED_SCHEME" => "http")
+      r.forwarded_scheme.must_equal "http"
+      r.ssl?.must_equal false
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws").
@@ -442,10 +457,12 @@ class RackRequestTest < Minitest::Spec
 
       Rack::Request.forwarded_priority = [:x_forwarded]
 
-      req("HTTP_FORWARDED"=>"proto=https",
+      r = req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "http"
+        "HTTP_X_FORWARDED_SCHEME" => "http")
+      r.forwarded_scheme.must_equal "http"
+      r.ssl?.must_equal false
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_PROTO" => "ws").
@@ -457,6 +474,7 @@ class RackRequestTest < Minitest::Spec
       Rack::Request.x_forwarded_proto_priority = [:scheme]
 
       req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "http"
@@ -471,6 +489,7 @@ class RackRequestTest < Minitest::Spec
       Rack::Request.x_forwarded_proto_priority = [:proto]
 
       req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_equal "ws"
@@ -485,6 +504,7 @@ class RackRequestTest < Minitest::Spec
       Rack::Request.x_forwarded_proto_priority = []
 
       req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
         "HTTP_X_FORWARDED_SCHEME" => "http").
         forwarded_scheme.must_be_nil
@@ -525,10 +545,12 @@ class RackRequestTest < Minitest::Spec
         "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
         forwarded_authority.must_be_nil
 
-      req("HTTP_FORWARDED"=>"proto=https",
+      r = req("HTTP_FORWARDED"=>"proto=https",
+        "HTTP_X_FORWARDED_SSL" => "on",
         "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
+        "HTTP_X_FORWARDED_SCHEME" => "http")
+      r.forwarded_scheme.must_be_nil
+      r.ssl?.must_equal false
 
       req("HTTP_FORWARDED"=>"proto=https",
         "HTTP_X_FORWARDED_SCHEME" => "http").
