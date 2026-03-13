@@ -433,7 +433,7 @@ module Rack
       ".pcx"       => "image/x-pcx",
       ".pdb"       => "chemical/x-pdb",
       ".pdf"       => "application/pdf",
-      ".pem"       => "application/x-x509-ca-cert",
+      ".pem"       => "application/x-pem-file",
       ".pfr"       => "application/font-tdpfr",
       ".pgm"       => "image/x-portable-graymap",
       ".pgn"       => "application/x-chess-pgn",
