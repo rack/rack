@@ -165,6 +165,8 @@ module Rack
 
     # Convert HTTP header rules to HTTP headers
     def applicable_rules(path)
+      path = ::Rack::Utils.unescape_path(path)
+
       @header_rules.find_all do |rule, new_headers|
         case rule
         when :all
@@ -172,10 +174,9 @@ module Rack
         when :fonts
           /\.(?:ttf|otf|eot|woff2|woff|svg)\z/.match?(path)
         when String
-          path = ::Rack::Utils.unescape(path)
           path.start_with?(rule) || path.start_with?('/' + rule)
         when Array
-          /\.(#{rule.join('|')})\z/.match?(path)
+          /\.#{Regexp.union(rule)}\z/.match?(path)
         when Regexp
           rule.match?(path)
         else

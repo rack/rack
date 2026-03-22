@@ -223,6 +223,35 @@ describe Rack::Static do
     res.headers['Cache-Control'].must_equal 'public, max-age=42'
   end
 
+  it "applies :fonts header rules to URL-encoded paths" do
+    res = @header_request.get('/cgi/assets/fonts/font%2Eeot')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=200'
+  end
+
+  it "applies Array header rules to URL-encoded paths" do
+    res = @header_request.get('/cgi/assets/images/image%2Epng')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=300'
+  end
+
+  it "applies Regexp header rules to URL-encoded paths" do
+    res = @header_request.get('/cgi/assets/stylesheets/app%2Ecss')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=600'
+  end
+
+  it "escapes Array rule entries when building regexp" do
+    opts = OPTIONS.merge(header_rules: [
+      [['p.g'], { 'cache-control' => 'public, max-age=999' }]
+    ])
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    # "p.g" should not match "png" since the dot must be literal
+    res = request.get('/cgi/assets/images/image.png')
+    res.must_be :ok?
+    res.headers['cache-control'].must_be_nil
+  end
+
   it "expands the root path upon the middleware initialization" do
     relative_path = STATIC_OPTIONS[:root].sub("#{Dir.pwd}/", '')
     opts = { urls: [""], root: relative_path, index: 'index.html' }
