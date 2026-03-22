@@ -74,6 +74,7 @@ module Rack
       end
       string = "#{exception.class}: #{message}\n".dup
       string << exception.backtrace.map { |l| "\t#{l}" }.join("\n")
+      string.gsub!(/[^[:print:]\n\t]/) { |c| sprintf("\\x%02x", c.ord) }
       string
     end
 

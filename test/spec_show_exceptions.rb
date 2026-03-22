@@ -202,4 +202,20 @@ describe Rack::ShowExceptions do
     assert_match(res, /No GET data/)
     assert_match(res, /No POST data/)
   end
+
+  it "escapes non-printable characters in exception messages written to rack.errors" do
+    errors = StringIO.new
+
+    req = Rack::MockRequest.new(
+      show_exceptions(
+        lambda { |env| raise RuntimeError, "injected\rCRLF" }
+    ))
+
+    req.get("/", "rack.errors" => errors, "HTTP_ACCEPT" => "text/plain")
+
+    error_output = errors.string
+    error_output.wont_include "\r"
+    error_output.must_include "\\x0d"
+    error_output.must_include "CRLF"
+  end
 end
