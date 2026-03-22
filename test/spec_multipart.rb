@@ -1294,4 +1294,28 @@ content-type: image/png\r
     params["us-ascii"].must_equal("Alice")
     params["iso-2022-jp"].must_equal("アリス")
   end
+
+  it "handles Content-Disposition without semicolon" do
+    body = "--boundary\r\nContent-Disposition: form-data\r\n\r\nvalue\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    # Should not raise NoMethodError
+    params = Rack::Multipart.parse_multipart(env)
+    params.must_be_kind_of Hash
+  end
+
+  it "handles Content-Type parameter without equals sign" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"field\"\r\nContent-Type: text/plain; charset\r\n\r\ndata\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    # Should not raise NoMethodError
+    params = Rack::Multipart.parse_multipart(env)
+    params["field"].must_equal "data"
+  end
 end

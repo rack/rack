@@ -353,8 +353,11 @@ module Rack
               disposition.bytesize <= CONTENT_DISPOSITION_MAX_BYTES
 
             # ignore actual content-disposition value (should always be form-data)
-            i = disposition.index(';')
-            disposition.slice!(0, i+1)
+            if i = disposition.index(';')
+              disposition.slice!(0, i + 1)
+            else
+              disposition = ''
+            end
             param = nil
             num_params = 0
 
@@ -533,6 +536,7 @@ module Rack
             rest.each do |param|
               k, v = param.split('=', 2)
               k.strip!
+              next unless v
               v.strip!
               v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
               if k == "charset"
