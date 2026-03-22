@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
 - [CVE-2026-32762](https://github.com/advisories/GHSA-qfgr-crr9-7r49) Forwarded header semicolon injection enables Host and Scheme spoofing.
 - [CVE-2026-26961](https://github.com/advisories/GHSA-vgpv-f759-9wx3) Raise error for multipart requests with multiple boundary parameters.
+- [CVE-2026-34786](https://github.com/advisories/GHSA-q4qf-9j86-f5mh) `Rack::Static` `header_rules` bypass via URL-encoded path mismatch.
 
 ## [3.1.20] - 2026-02-16
 
