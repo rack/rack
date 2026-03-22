@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
+
 ## [3.2.9] - 2026-11-20
 
 ### Security
