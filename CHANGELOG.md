@@ -8,6 +8,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
 - Escape non-printable characters in `Rack::ShowExceptions#dump_exception` output to prevent CRLF injection via exception messages containing user-controlled data. ([@haruki0409](https://github.com/haruki0409))
+- [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
 
 ### SPEC Changes
 
