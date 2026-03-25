@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
+- [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
 
 ## [3.2.5] - 2026-02-16
 
