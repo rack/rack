@@ -6,8 +6,7 @@ require_relative 'media_type'
 
 module Rack
   # Rack::Request provides a convenient interface to a Rack
-  # environment.  It is stateless, the environment +env+ passed to the
-  # constructor will be directly modified.
+  # environment.
   #
   #   req = Rack::Request.new(env)
   #   req.post?
