@@ -121,7 +121,7 @@ run App.new
 
 ### Reading Request Bodies
 
-HTTP requests using verbs other than `GET` or `HEAD` may contain a body. Rack provides access to this via `env["rack.input"]` or `Rack::Request#body`. An `IO`-like [input stream](SPEC_rdoc.html#the-input-stream) object will be returned.
+If a body is submitted with the HTTP request, Rack provides access to it as an `IO`-like [input stream](SPEC_rdoc.html#the-input-stream) object, via `env["rack.input"]` or `Rack::Request#body`.
 
 The below application demonstrates how a `POST` request with a JSON body could be handled:
 
