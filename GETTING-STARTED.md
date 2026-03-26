@@ -1,6 +1,6 @@
 # Getting Started With Rack
 
-This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) as the web server in this tutorial. Alternatives can be found in the [Readme](./index.html#supported-web-servers).
+This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) in this tutorial — alternative web servers can be found in the [Readme](./index.html#supported-web-servers).
 
 ## Creating a Rack Application
 
@@ -12,6 +12,18 @@ rack_app = lambda do |env|
 end
 
 run rack_app
+```
+
+A class can also be used to define a Rack app:
+
+```ruby
+class App
+  def call(env)
+    [200, { "content-type" => "text/plain" }, ["Hello World"]]
+  end
+end
+
+run App.new
 ```
 
 When an HTTP request is made, the Rack-compliant web server parses it to create the `env` hash, and calls the application with `env`. The `call` method must return an array with exactly three elements, representing the HTTP response:
@@ -46,39 +58,26 @@ Hello World
 Routing to different paths can be handled by querying the `env` Hash:
 
 ```ruby
-class App
-  def call(env)
-    path = env["PATH_INFO"]
-    case path
-    when "/admin"
-      [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
-    else
-      [200, { "content-type" => "text/plain" }, ["Hello World"]]
-    end
+rack_app = lambda do |env|
+  case env["PATH_INFO"]
+  when "/admin"
+    [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
+  else
+    [200, { "content-type" => "text/plain" }, ["Hello World"]]
   end
 end
 
-run App.new
+run rack_app
 ```
 
 The HTTP verb is also available within the `env`:
 
 ```ruby
-class App
-  def call(env)
-    request_method = env["REQUEST_METHOD"]
-    case request_method
-    when "POST"
-      [200, { "content-type" => "text/plain" }, ["Responding to a POST"]]
-    when "GET"
-      [200, { "content-type" => "text/plain" }, ["Responding to a GET"]]      
-    else
-      [200, { "content-type" => "text/plain" }, ["Responding to all other verbs"]]
-    end
-  end
+rack_app = lambda do |env|
+  [200, { "content-type" => "text/plain" }, ["HTTP #{env["REQUEST_METHOD"]}"]]
 end
 
-run App.new
+run rack_app
 ```
 
 Rack provides [`Rack::Request`](./Rack/Request.html), which implements a convenient interface to a Rack environment.
@@ -86,37 +85,26 @@ Rack provides [`Rack::Request`](./Rack/Request.html), which implements a conveni
 The above examples can be rewritten as:
 
 ```ruby
-class App
-  def call(env)
-    request = Rack::Request.new(env)
-    case request.path_info
-    when "/admin"
-      [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
-    else
-      [200, { "content-type" => "text/plain" }, ["Hello World"]]
-    end
+rack_app = lambda do |env|
+  request = Rack::Request.new(env)
+  case request.path_info
+  when "/admin"
+    [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
+  else
+    [200, { "content-type" => "text/plain" }, ["Hello World"]]
   end
 end
 
-run App.new
+run rack_app
 ```
 
 ```ruby
-class App
-  def call(env)
-    request = Rack::Request.new(env)
-    case request.request_method
-    when "POST"
-      [200, { "content-type" => "text/plain" }, ["Responding to a POST"]]
-    when "GET"
-      [200, { "content-type" => "text/plain" }, ["Responding to a GET"]]      
-    else
-      [200, { "content-type" => "text/plain" }, ["Responding to all other verbs"]]
-    end
-  end
+rack_app = lambda do |env|
+  request = Rack::Request.new(env)
+  [200, { "content-type" => "text/plain" }, ["HTTP #{request.request_method}"]]
 end
 
-run App.new
+run rack_app
 ```
 
 ### Reading Request Bodies
@@ -130,7 +118,8 @@ require "json"
 
 app = lambda do |env|
   body = if env["REQUEST_METHOD"] == "POST"
-    city = JSON.parse(env["rack.input"].read)['city']
+  	 raw_body = env["rack.input"].read
+    city = JSON.parse(raw_body)['city']
     ["Hello #{city}"]
   else
     ["Hello World!"]
@@ -253,5 +242,6 @@ This DSL to construct Rack applications is provided by [`Rack::Builder`](./Rack/
 
 ## Conclusion
 
-Since Rack provides a standardized interface between web servers and applications, all Rack-compliant web applications allow access to the underlying Rack objects such as the environment and the response. Refer to your chosen framework's documentation for the exact syntax. 
+Since Rack provides a standardized interface between web servers and applications, in general, any Rack-compliant web application can run using any Rack-compliant web server. Rack uses a simple request (`env`) to response (`[status, headers, body]`) design, providing the foundation upon which the majority of Ruby web applications are built. 
 
+As Rack is designed to be low-level, Ruby web applications are typically developed using frameworks that build on top of Rack. Access to the low-level Rack API is usually available within all Rack-compliant frameworks.
