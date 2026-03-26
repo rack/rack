@@ -4,44 +4,33 @@ This guide demonstrates how to create a basic Rack application and run it using 
 
 ## Creating a Rack Application
 
-A Rack app is a class which implements a `call` method. It is passed an [`env`](./SPEC_rdoc.html#the-request-environment) hash, known as the Rack environment, which is created by parsing the incoming HTTP request.
+A Rack app is an object which implements a `call` method. It is passed an [`env`](./SPEC_rdoc.html#the-request-environment) hash, known as the Rack environment.
 
 ```ruby
-class App
-  def call(env)
-    [200, { "content-type" => "text/plain" }, ["Hello World"]]
-  end
+rack_app = lambda do |env|
+  [200, { "content-type" => "text/plain" }, ["Hello World"]]
 end
 
-run App.new
+run rack_app
 ```
 
-When an HTTP request is made, the Rack-compliant web server parses it to create the `env` hash, and forwards it to the application's `call` method. This method must return an array representing the HTTP response.
+When an HTTP request is made, the Rack-compliant web server parses it to create the `env` hash, and calls the application with `env`. The `call` method must return an array with exactly three elements, representing the HTTP response:
 
-The first element is the HTTP response code, in this case `200`. The second element is a hash containing any Rack and HTTP response headers we wish to send. And the last element is an array of strings representing the response body.
+1. The HTTP response code (`200` in the above example).
+2. A hash containing any HTTP response headers we wish to send.
+3. An enumerable object that yields strings, representing the response body.
 
-You can run this app by organizing it into a folder:
+Rack applications are generally run using the web server's command line program, with the entry point for the application being stored in a `config.ru` file:
 
 ```bash
-$ mkdir rack-demo
-$ cd rack-demo
-$ bundle init
-$ bundle add rack puma
 $ cat > config.ru << APP
-class App
-  def call(env)
-    [200, { "content-type" => "text/plain" }, ["Hello World"]]
-  end
+rack_app = lambda do |env|
+  [200, { "content-type" => "text/plain" }, ["Hello World"]]
 end
-
-run App.new
+run rack_app
 APP
-```
-
-`config.ru` is the conventional entrypoint for Rack applications. Start Puma to run the app:
-
-```bash
-$ bundle exec puma
+$ gem install puma
+$ puma
 ```
 
 Your app should be available at <http://localhost:9292>. 
@@ -51,13 +40,6 @@ $ curl localhost:9292
 Hello World
 ```
 
-You can use a different entrypoint if you wish — as long as the file extension is `.ru`.
-
-```bash
-$ bundle exec puma server.ru
-```
-
-The syntax to manually specify the entrypoint might differ for other servers — consult the documentation.
 
 ### Handling Routes and HTTP Verbs
 
@@ -99,7 +81,7 @@ end
 run App.new
 ```
 
-Rack provides a [`Rack::Request`](./Rack/Request.html) utility class which implements a convenient interface to the Rack environment. It is stateless, meaning the `env` passed to the constructor will be directly accessed and modified.
+Rack provides [`Rack::Request`](./Rack/Request.html), which implements a convenient interface to a Rack environment.
 
 The above examples can be rewritten as:
 
@@ -146,21 +128,18 @@ The below application demonstrates how a `POST` request with a JSON body could b
 ```ruby
 require "json"
 
-class App
-  def call(env)
-    request = Rack::Request.new(env)
-    case request.request_method
-    when "POST"
-      request_body = request.body.read
-      parsed_body = JSON.parse(request_body)
-      [200, { "content-type" => "text/plain" }, ["Hello #{parsed_body['city']}"]]
-    else
-      [200, { "content-type" => "text/plain" }, ["Hello World!"]]
-    end
+app = lambda do |env|
+  body = if env["REQUEST_METHOD"] == "POST"
+    city = JSON.parse(env["rack.input"].read)['city']
+    ["Hello #{city}"]
+  else
+    ["Hello World!"]
   end
+
+  [200, { "content-type" => "text/plain" }, body]
 end
 
-run App.new
+run app
 ```
 
 Run the application and make a request:
@@ -174,25 +153,23 @@ Hello London
 
 ### Streaming Response Bodies
 
-To stream a response back to the client rather than sending a buffered response, a `Proc` can be returned in place of the response body. The `Proc` is yielded a `stream` to write to.
+In addition to the body being an enumerable of strings, the body can also be a callable object, which is yielded a `stream` to write to:
 
 ```ruby
-class App
-  def call(env)
-    response_stream = proc do |stream|
-      5.times do
-        stream.write "#{Time.now}\n\n"
-        sleep 1
-      end
-    ensure
-      stream.close
+app = lambda do |env|
+  body = proc do |stream|
+    5.times do
+      stream.write "#{Time.now}\n\n"
+      sleep 1
     end
-
-    [200, { "content-type" => "text/plain" }, response_stream]
+  ensure
+    stream.close
   end
+
+  [200, { "content-type" => "text/plain" }, body]
 end
 
-run App.new
+run app
 ```
 
 Run this application and then make a request to it:
@@ -203,13 +180,13 @@ $ curl localhost:9292
 
 You'll see the time is printed out 5 times at 1 second intervals and then the connection is closed. 
 
-Streaming responses allow Rack applications to implement communication over persistent connections such as [HTTP Server Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) and [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
+Streaming bodies may make it easier for Rack applications to implement communication over persistent connections such as [HTTP Server Sent Events](https://developer.mozilla.org/en-US/docs/Web/API/Server-sent_events/Using_server-sent_events) and [WebSockets](https://developer.mozilla.org/en-US/docs/Web/API/WebSockets_API).
 
 ## Rack Middleware
 
-Rack applications are built up of a stack of _middleware_ which may operate upon a request before it reaches the main application, and again after the application has processed the request. Middleware is usually used for tasks like logging, caching, authentication, and measuring performance.
+Rack applications can be wrapped using _middleware_ which may operate upon a request before it reaches the main application, and again after the application has returned a response to the request. Middleware is usually used for tasks like logging, caching, authentication, and measuring performance.
 
-A Rack middleware needs to be `initialize`d with the Rack `app` which is passed down through the middleware stack to the main application, and must implement a `call` method which operates on the request:
+A Rack middleware must have a `new` method that accepts the Rack app and any arguments used to configure the middleware. The `new` method must return a Rack application that responds to `call`. Typically, Rack middleware are classes, and each instance of the middleware wraps access to the related application:
 
 ```ruby
 class MyMiddleware
@@ -233,7 +210,7 @@ class MyMiddleware
 end
 ```
 
-Middleware can short-circuit the stack by skipping `@app.call` completely and returning a reponse by itself. This means the request never hits the main application. A middleware to authenticate a request might use this technique.
+Middleware can short-circuit the stack by skipping `@app.call` completely and returning a reponse by itself. This means the request never hits the main application or the remaining middleware in the stack. A middleware to authenticate a request might use this technique.
 
 ```ruby
 class AuthenticateRequest
@@ -262,19 +239,17 @@ class AuthenticateRequest
   # ...
 end
 
-class App
-  def call(env)
-    [200, { "content-type" => "text/plain" }, ["Hello World"]]
-  end
+app = lambda do |env|
+  [200, { "content-type" => "text/plain" }, ["Hello World"]]
 end
 
 use AuthenticateRequest
-run App.new
+run app
 ```
 
-This DSL to construct Rack applications is provided by `Rack::Builder`. Consult the [RDoc](./Rack/Builder.html) for advanced usage.
+This DSL to construct Rack applications is provided by [`Rack::Builder`](./Rack/Builder.html).
 
-Rack [ships with](index.html#available-middleware-shipped-with-rack) several pieces of middleware for common use-cases.
+[Rack ships with several pieces of middleware for common use-cases](index.html#available-middleware-shipped-with-rack).
 
 ## Conclusion
 
