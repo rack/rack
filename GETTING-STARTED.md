@@ -55,7 +55,7 @@ Hello World
 
 ### Handling Routes and HTTP Verbs
 
-Routing to different paths can be handled by querying the `env` Hash:
+Routing to different paths can be handled by querying the `env` hash:
 
 ```ruby
 rack_app = lambda do |env|
