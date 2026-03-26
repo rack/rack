@@ -59,12 +59,15 @@ Routing to different paths can be handled by querying the `env` hash:
 
 ```ruby
 rack_app = lambda do |env|
-  case env["PATH_INFO"]
-  when "/admin"
-    [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
-  else
-    [200, { "content-type" => "text/plain" }, ["Hello World"]]
-  end
+  body = \
+    case env["PATH_INFO"]
+    when "/admin"
+      ["Hello Admin"]
+    else
+      ["Hello World"]
+    end
+
+  [200, { "content-type" => "text/plain" }, body]
 end
 
 run rack_app
@@ -87,13 +90,17 @@ The above examples can be rewritten as:
 ```ruby
 rack_app = lambda do |env|
   request = Rack::Request.new(env)
-  case request.path_info
-  when "/admin"
-    [200, { "content-type" => "text/plain" }, ["Hello Admin!"]]
-  else
-    [200, { "content-type" => "text/plain" }, ["Hello World"]]
-  end
+  body = \
+    case request.path_info
+    when "/admin"
+      ["Hello Admin"]
+    else
+      ["Hello World"]
+    end
+
+  [200, { "content-type" => "text/plain" }, body]
 end
+
 
 run rack_app
 ```
