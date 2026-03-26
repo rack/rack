@@ -58,7 +58,7 @@ Hello World
 Routing to different paths can be handled by querying the `env` hash:
 
 ```ruby
-rack_app = lambda do |env|
+app = lambda do |env|
   body = \
     case env["PATH_INFO"]
     when "/admin"
@@ -70,17 +70,17 @@ rack_app = lambda do |env|
   [200, { "content-type" => "text/plain" }, body]
 end
 
-run rack_app
+run app
 ```
 
 The HTTP verb is also available within the `env`:
 
 ```ruby
-rack_app = lambda do |env|
+app = lambda do |env|
   [200, { "content-type" => "text/plain" }, ["HTTP #{env["REQUEST_METHOD"]}"]]
 end
 
-run rack_app
+run app
 ```
 
 Rack provides [`Rack::Request`](./Rack/Request.html), which implements a convenient interface to a Rack environment.
@@ -88,7 +88,7 @@ Rack provides [`Rack::Request`](./Rack/Request.html), which implements a conveni
 The above examples can be rewritten as:
 
 ```ruby
-rack_app = lambda do |env|
+app = lambda do |env|
   request = Rack::Request.new(env)
   body = \
     case request.path_info
@@ -101,17 +101,16 @@ rack_app = lambda do |env|
   [200, { "content-type" => "text/plain" }, body]
 end
 
-
-run rack_app
+run app
 ```
 
 ```ruby
-rack_app = lambda do |env|
+app = lambda do |env|
   request = Rack::Request.new(env)
   [200, { "content-type" => "text/plain" }, ["HTTP #{request.request_method}"]]
 end
 
-run rack_app
+run app
 ```
 
 ### Reading Request Bodies
