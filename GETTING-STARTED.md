@@ -125,7 +125,7 @@ require "json"
 
 app = lambda do |env|
   body = if env["REQUEST_METHOD"] == "POST"
-  	 raw_body = env["rack.input"].read
+  	raw_body = env["rack.input"].read
     city = JSON.parse(raw_body)['city']
     ["Hello #{city}"]
   else
