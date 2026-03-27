@@ -18,12 +18,20 @@ A class can also be used to define a Rack app:
 
 ```ruby
 class App
-  def call(env)
+  def self.call(env)
+    new(env).route
+  end
+
+  def initialize(env)
+    @env = env
+  end
+
+  def route
     [200, { "content-type" => "text/plain" }, ["Hello World"]]
   end
 end
 
-run App.new
+run App
 ```
 
 When an HTTP request is made, the Rack-compliant web server parses it to create the `env` hash, and calls the application with `env`. The `call` method must return an array with exactly three elements, representing the HTTP response:
@@ -58,7 +66,7 @@ Routing to different paths can be handled by querying the `env` hash:
 
 ```ruby
 app = lambda do |env|
-  body = \
+  body = 
     case env["PATH_INFO"]
     when "/admin"
       ["Hello Admin"]
@@ -89,7 +97,7 @@ The above examples can be rewritten as:
 ```ruby
 app = lambda do |env|
   request = Rack::Request.new(env)
-  body = \
+  body = 
     case request.path_info
     when "/admin"
       ["Hello Admin"]
