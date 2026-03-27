@@ -52,7 +52,6 @@ $ curl localhost:9292
 Hello World
 ```
 
-
 ### Handling Routes and HTTP Verbs
 
 Routing to different paths can be handled by querying the `env` hash:
@@ -250,4 +249,4 @@ This DSL to construct Rack applications is provided by [`Rack::Builder`](./Rack/
 
 Since Rack provides a standardized interface between web servers and applications, in general, any Rack-compliant web application can run using any Rack-compliant web server. Rack uses a simple request (`env`) to response (`[status, headers, body]`) design, providing the foundation upon which the majority of Ruby web applications are built. 
 
-As Rack is designed to be low-level, Ruby web applications are typically developed using frameworks that build on top of Rack. Access to the low-level Rack API is usually available within all Rack-compliant frameworks.
+As Rack is designed to be low-level, Ruby web applications are typically developed using frameworks that build on top of Rack. Most frameworks offer access to the low-level Rack API.
