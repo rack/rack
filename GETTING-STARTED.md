@@ -1,10 +1,10 @@
 # Getting Started With Rack
 
-This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) in this tutorial — alternative web servers can be found in the [Readme](./index.html#supported-web-servers).
+This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) in this tutorial — alternative web servers can be found in the [Readme](https://github.com/rack/rack?tab=readme-ov-file#supported-web-servers).
 
 ## Creating a Rack Application
 
-A Rack app is an object which implements a `call` method. It is passed an [`env`](./SPEC_rdoc.html#the-request-environment) hash, known as the Rack environment.
+A Rack app is an object which implements a `call` method. It is passed an [`env`](https://github.com/rack/rack/blob/main/SPEC.rdoc#the-request-environment) hash, known as the Rack environment.
 
 ```ruby
 rack_app = lambda do |env|
@@ -90,7 +90,7 @@ end
 run app
 ```
 
-Rack provides [`Rack::Request`](./Rack/Request.html), which implements a convenient interface to a Rack environment.
+Rack provides `Rack::Request`, which implements a convenient interface to a Rack environment.
 
 The above examples can be rewritten as:
 
@@ -122,7 +122,7 @@ run app
 
 ### Reading Request Bodies
 
-If a body is submitted with the HTTP request, Rack provides access to it as an `IO`-like [input stream](SPEC_rdoc.html#the-input-stream) object, via `env["rack.input"]` or `Rack::Request#body`.
+If a body is submitted with the HTTP request, Rack provides access to it as an `IO`-like [input stream](https://github.com/rack/rack/blob/main/SPEC.rdoc#the-input-stream) object, via `env["rack.input"]` or `Rack::Request#body`.
 
 The below application demonstrates how a `POST` request with a JSON body could be handled:
 
@@ -249,9 +249,9 @@ use AuthenticateRequest
 run app
 ```
 
-This DSL to construct Rack applications is provided by [`Rack::Builder`](./Rack/Builder.html).
+This DSL to construct Rack applications is provided by `Rack::Builder`.
 
-[Rack ships with several pieces of middleware for common use-cases](index.html#available-middleware-shipped-with-rack).
+[Rack ships with several pieces of middleware for common use-cases](https://github.com/rack/rack?tab=readme-ov-file#available-middleware-shipped-with-rack).
 
 ## Conclusion
 
