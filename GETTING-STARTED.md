@@ -147,10 +147,10 @@ run app
 Run the application and make a request:
 
 ```bash
-$ curl -X "POST" "http://localhost:9292/" \
+$ curl  -X "POST" "http://localhost:9292/" \
      	-H 'Content-Type: application/json; charset=utf-8' \
      	-d '{ "city": "London" }'
-Hello London     	
+Hello London
 ```
 
 ### Streaming Response Bodies
