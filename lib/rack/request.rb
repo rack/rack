@@ -40,7 +40,7 @@ module Rack
     end
 
     @forwarded_priority = [:forwarded, :x_forwarded]
-    @x_forwarded_proto_priority = [:proto, :scheme]
+    @x_forwarded_proto_priority = [:ssl, :proto, :scheme]
 
     valid_ipv4_octet = /\.(25[0-5]|2[0-4][0-9]|[01]?[0-9]?[0-9])/
 
@@ -253,12 +253,8 @@ module Rack
       def scheme
         if get_header(HTTPS) == 'on'
           'https'
-        elsif get_header(HTTP_X_FORWARDED_SSL) == 'on'
-          'https'
-        elsif forwarded_scheme
-          forwarded_scheme
         else
-          get_header(RACK_URL_SCHEME)
+          forwarded_scheme || get_header(RACK_URL_SCHEME)
         end
       end
 
@@ -762,7 +758,8 @@ module Rack
 
       FORWARDED_SCHEME_HEADERS = {
         proto: HTTP_X_FORWARDED_PROTO,
-        scheme: HTTP_X_FORWARDED_SCHEME
+        scheme: HTTP_X_FORWARDED_SCHEME,
+        ssl: HTTP_X_FORWARDED_SSL
       }.freeze
       private_constant :FORWARDED_SCHEME_HEADERS
       def forwarded_scheme
@@ -776,9 +773,13 @@ module Rack
           when :x_forwarded
             x_forwarded_proto_priority.each do |x_type|
               if header = FORWARDED_SCHEME_HEADERS[x_type]
-                split_header(get_header(header)).reverse_each do |scheme|
-                  if allowed_scheme(scheme)
-                    return scheme
+                if x_type == :ssl && get_header(header) == 'on'
+                  return 'https'
+                else
+                  split_header(get_header(header)).reverse_each do |scheme|
+                    if allowed_scheme(scheme)
+                      return scheme
+                    end
                   end
                 end
               end
