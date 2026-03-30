@@ -6,10 +6,6 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Security
 
-- [CVE-2025-61780](https://github.com/advisories/GHSA-r657-rxjc-j557) Improper handling of headers in `Rack::Sendfile` may allow proxy bypass.
-- [CVE-2025-61919](https://github.com/advisories/GHSA-6xw4-3v39-52mm) Unbounded read in `Rack::Request` form parsing can lead to memory exhaustion.
-- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
-- [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
 - [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
 
 ### SPEC Changes
@@ -35,6 +31,16 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
+
+## [3.2.5] - 2026-02-16
+
+### Security
+
+- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+- [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
+
+### Fixed
+
 - Fix `Rack::MockResponse#body` when the body is a Proc. ([#2420](https://github.com/rack/rack/pull/2420), [#2423](https://github.com/rack/rack/pull/2423), [@tavianator](https://github.com/tavianator), [@ioquatix])
 
 ## [3.2.4] - 2025-11-03
@@ -114,6 +120,13 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 - `Rack::Lint` now disallows `PATH_INFO="" SCRIPT_NAME=""`. ([#2298](https://github.com/rack/rack/issues/2307), [@jeremyevans])
+
+## [3.1.20] - 2026-02-16
+
+### Security
+
+- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+- [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
 
 ## [3.1.19] - 2025-11-03
 
@@ -504,6 +517,13 @@ This release introduces major improvements to Rack, including enhanced support f
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.22] - 2026-02-16
+
+### Security
+
+- [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
+- [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
 
 ## [2.2.21] - 2025-11-03
 
