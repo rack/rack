@@ -1,6 +1,6 @@
 # Getting Started With Rack
 
-This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) in this tutorial — alternative web servers can be found in the [Readme](https://github.com/rack/rack?tab=readme-ov-file#supported-web-servers).
+This guide demonstrates how to create a basic Rack application and run it using a Rack-compliant web server. We'll use [Puma](https://puma.io) in this tutorial (alternative web servers can be found in the [Readme](https://github.com/rack/rack?tab=readme-ov-file#supported-web-servers)).
 
 ## Creating a Rack Application
 
