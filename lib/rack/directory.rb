@@ -56,7 +56,7 @@ table { width:100%%; }
     class DirectoryBody < Struct.new(:root, :path, :files)
       # Yield strings for each part of the directory entry
       def each
-        show_path = Utils.escape_html(path.sub(/\A#{root}/, ''))
+        show_path = Utils.escape_html(path.sub(/\A#{Regexp.escape(root)}/, ''))
         yield(DIR_PAGE_HEADER % [ show_path, show_path ])
 
         unless path.chomp('/') == root

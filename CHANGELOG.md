@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2025-61919](https://github.com/advisories/GHSA-6xw4-3v39-52mm) Unbounded read in `Rack::Request` form parsing can lead to memory exhaustion.
 - [CVE-2026-25500](https://github.com/advisories/GHSA-whrj-4476-wvmp) XSS injection via malicious filename in `Rack::Directory`.
 - [CVE-2026-22860](https://github.com/advisories/GHSA-mxw3-3hh2-x2mh) Directory traversal via root prefix bypass in `Rack::Directory`.
+- [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
 
 ### SPEC Changes
 
