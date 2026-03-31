@@ -158,6 +158,43 @@ describe Rack::Files do
     res.must_be :not_found?
   end
 
+  it "uses bytesize not size for Content-Length in error responses with multibyte UTF-8" do
+    app = Rack::Files.new(DOCROOT)
+
+    # Create env directly with UTF-8 encoded PATH_INFO (not ASCII-8BIT like MockRequest forces):
+    env = {
+      "REQUEST_METHOD" => "GET",
+      "PATH_INFO" => "/cgi/caf%C3%A9", # URL-encoded "café"
+      "SCRIPT_NAME" => "",
+      "QUERY_STRING" => "",
+      "SERVER_NAME" => "example.org",
+      "SERVER_PORT" => "80",
+      "rack.url_scheme" => "http",
+      "rack.input" => StringIO.new,
+      "rack.errors" => StringIO.new
+    }
+
+    # Verify PATH_INFO is UTF-8:
+    assert_equal Encoding::UTF_8, env["PATH_INFO"].encoding
+
+    status, headers, body = app.call(env)
+
+    # Should be 404 not found:
+    assert_equal 404, status
+
+    # Extract body content:
+    body_str = String.new
+    body.each { |part| body_str << part }
+
+    # The body "File not found: /cgi/café\n" has 26 chars but 27 bytes:
+    assert_equal 26, body_str.size      # character count
+    assert_equal 27, body_str.bytesize  # byte count
+
+    # Content-Length must be 27 (bytes), not 26 (characters):
+    # (This will FAIL if using .size instead of .bytesize)
+    headers["Content-Length"].must_equal "27"
+  end
+
   it "detect SystemCallErrors" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi")
 
