@@ -437,10 +437,7 @@ describe Rack::Utils do
   end
 
   it "figure out which encodings are acceptable" do
-    helper = lambda do |a, b|
-      Rack::Request.new(Rack::MockRequest.env_for("", "HTTP_ACCEPT_ENCODING" => a))
-      Rack::Utils.select_best_encoding(a, b)
-    end
+    helper = Rack::Utils.method(:select_best_encoding)
 
     helper.call(%w(), [["x", 1]]).must_be_nil
     helper.call(%w(identity), [["identity", 0.0]]).must_be_nil
@@ -458,6 +455,9 @@ describe Rack::Utils do
 
     helper.call(%w(foo bar identity), [["foo", 0], ["bar", 0]]).must_equal "identity"
     helper.call(%w(foo bar baz identity), [["*", 0], ["identity", 0.1]]).must_equal "identity"
+    helper.call(%w(foo bar baz identity), [["*", 0.1], ["identity", 0.2]]).must_equal "identity"
+    helper.call(%w(foo bar baz identity), [["*", 0.1], ["identity", 0.2], ["*", 0.3]]).must_equal "identity"
+    helper.call(%w(foo bar baz identity), [["*", 0.3], ["identity", 0.2], ["*", 0.1]]).must_equal "foo"
   end
 
   it "should perform constant time string comparison" do
