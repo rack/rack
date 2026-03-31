@@ -437,7 +437,7 @@ describe Rack::Utils do
       proto: [ 'https' ]
     })
 
-    Rack::Utils.forwarded_values('for=3.4.5.6; proto=http, proto=https').must_equal({
+    Rack::Utils.forwarded_values("for=3.4.5.6\nproto=http, proto=https").must_equal({
       for: [ '3.4.5.6' ],
       proto: [ 'http', 'https' ]
     })
@@ -447,7 +447,33 @@ describe Rack::Utils do
       proto: [ 'http', 'https' ]
     })
 
+    Rack::Utils.forwarded_values('for="3.4.5.6;host=evil.com"; proto=http, proto=https; for=1.2.3.4').must_equal({
+      for: [ '3.4.5.6;host=evil.com', '1.2.3.4' ],
+      proto: [ 'http', 'https' ]
+    })
+
+    Rack::Utils.forwarded_values('for=" 3.4.5.6\"; ";; proto=http, proto=https; for=1.2.3.4').must_equal({
+      for: [ ' 3.4.5.6"; ', '1.2.3.4' ],
+      proto: [ 'http', 'https' ]
+    })
+
+    Rack::Utils.forwarded_values('proto=http, proto=https; for=1.2.3.4; for=" 3.4.5.6\"; "').must_equal({
+      for: [ '1.2.3.4', ' 3.4.5.6"; ' ],
+      proto: [ 'http', 'https' ]
+    })
+
+    Rack::Utils.forwarded_values('proto=http, proto=https; for=1.2.3.4; for=" 3.4.5.6\"; "; ').must_equal({
+      for: [ '1.2.3.4', ' 3.4.5.6"; ' ],
+      proto: [ 'http', 'https' ]
+    })
+
     Rack::Utils.forwarded_values('for=3.4.5.6; foo=bar').must_be_nil
+
+    Rack::Utils.forwarded_values('for=a;' * 1024).must_equal({for: ["a"]*1024})
+    Rack::Utils.forwarded_values('for="a' + "\\\\" * 1024 + 'b"').must_equal({for: ['a' + ("\\" * 1024) + 'b']})
+
+    Rack::Utils.forwarded_values('for=a;' * 1025).must_be_nil
+    Rack::Utils.forwarded_values('for="a' + "\\\\" * 1025 + 'b"').must_be_nil
   end
 
   it "select best quality match" do
