@@ -202,7 +202,7 @@ EOF
         status,
         {
           CONTENT_TYPE   => "text/plain",
-          CONTENT_LENGTH => body.size.to_s,
+          CONTENT_LENGTH => body.bytesize.to_s,
           "x-cascade" => "pass"
         }.merge!(headers),
         [body]
