@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Security
+
+- [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
+
 ## [3.2.5] - 2026-02-16
 
 ### Security
