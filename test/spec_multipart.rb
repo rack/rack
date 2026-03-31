@@ -26,7 +26,30 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
 
-  it "parse multipart content when content type present but disposition is not" do
+  it "raises an exception if there are multiple boundries" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] += "; Boundary=FooBar42x"
+    env = Rack::MockRequest.env_for("/", env)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise EOFError
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = "#{env["CONTENT_TYPE"].sub("boundary=", "boundary =")}; Boundary=FooBar42x"
+    env = Rack::MockRequest.env_for("/", env)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise EOFError
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = "#{env["CONTENT_TYPE"].sub("boundary=", "boundary =")}; Boundary =FooBar42x"
+    env = Rack::MockRequest.env_for("/", env)
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise EOFError
+  end
+
+  it "parses multipart content when content type is present but disposition is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
     params = Rack::Multipart.parse_multipart(env)
     params["text/plain; charset=US-ASCII"].must_equal ["contents"]

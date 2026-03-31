@@ -81,7 +81,15 @@ module Rack
         return unless content_type
         data = content_type.match(MULTIPART)
         return unless data
-        data[1]
+
+        unless data[1].empty?
+          raise EOFError, "whitespace between boundary parameter name and equal sign"
+        end
+        if data.post_match =~ /boundary\s*=/i
+          raise EOFError, "multiple boundary parameters found in multipart content type"
+        end
+
+        data[2]
       end
 
       def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
