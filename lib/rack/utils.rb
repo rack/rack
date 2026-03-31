@@ -146,17 +146,77 @@ module Rack
       end
     end
 
-    def forwarded_values(forwarded_header)
-      return nil unless forwarded_header
-      forwarded_header = forwarded_header.to_s.gsub("\n", ";")
+    ALLOWED_FORWARED_PARAMS = %w[by for host proto].to_h { |name| [name, name.to_sym] }.freeze
+    private_constant :ALLOWED_FORWARED_PARAMS
 
-      forwarded_header.split(';').each_with_object({}) do |field, values|
-        field.split(',').each do |pair|
-          pair = pair.split('=').map(&:strip).join('=')
-          return nil unless pair =~ /\A(by|for|host|proto)="?([^"]+)"?\Z/i
-          (values[$1.downcase.to_sym] ||= []) << $2
+    def forwarded_values(forwarded_header)
+      return unless forwarded_header
+      header = forwarded_header.to_s.tr("\n", ";")
+      header.sub!(/\A[\s;,]+/, '')
+      num_params = num_escapes = 0
+      max_params = max_escapes = 1024
+      params = {}
+
+      # Parse parameter list
+      while i = header.index('=')
+        # Only parse up to max parameters, to avoid potential denial of service
+        num_params += 1
+        return if num_params > max_params
+
+        # Found end of parameter name, ensure forward progress in loop
+        param = header.slice!(0, i+1)
+
+        # Remove ending equals and preceding whitespace from parameter name
+        param.chomp!('=')
+        param.strip!
+        param.downcase!
+        return unless param = ALLOWED_FORWARED_PARAMS[param]
+
+        if header[0] == '"'
+          # Parameter value is quoted, parse it, handling backslash escapes
+          header.slice!(0, 1)
+          value = String.new
+
+          while i = header.index(/(["\\])/)
+            c = $1
+
+            # Append all content until ending quote or escape
+            value << header.slice!(0, i)
+
+            # Remove either backslash or ending quote,
+            # ensures forward progress in loop
+            header.slice!(0, 1)
+
+            # stop parsing parameter value if found ending quote
+            break if c == '"'
+
+            # Only allow up to max escapes, to avoid potential denial of service
+            num_escapes += 1
+            return if num_escapes > max_escapes
+            escaped_char = header.slice!(0, 1)
+            value << escaped_char
+          end
+        else
+          if i = header.index(/[;,]/)
+            # Parameter value unquoted (which may be invalid), value ends at comma or semicolon
+            value = header.slice!(0, i)
+            value.sub!(/[\s;,]+\z/, '')
+          else
+            # If no ending semicolon, assume remainder of line is value and stop parsing
+            header.strip!
+            value = header
+            header = ''
+          end
+          value.lstrip!
         end
+
+        (params[param] ||= []) << value
+
+        # skip trailing semicolons/commas/whitespace, to proceed to next parameter
+        header.sub!(/\A[\s;,]+/, '') unless header.empty?
       end
+
+      params
     end
     module_function :forwarded_values
 
