@@ -15,8 +15,11 @@ end
 gem "rubocop", require: false
 
 group :test do
-  gem "logger"
-  gem "ostruct"
+  if RUBY_VERSION >= "4"
+    gem "logger"
+    gem "ostruct"
+  end
+
   gem "webrick" # gemified in Ruby 3.1+
   gem "psych"
 end
