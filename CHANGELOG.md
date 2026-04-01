@@ -17,7 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 - [CVE-2026-34830](https://github.com/advisories/GHSA-qv7j-4883-hwh7) `Rack::Sendfile` header-based `X-Accel-Mapping` regex injection enables unauthorized `X-Accel-Redirect`.
 - [CVE-2026-34785](https://github.com/advisories/GHSA-h2jq-g4cq-5ppq) `Rack::Static` prefix matching can expose unintended files under the static root.
 - [CVE-2026-34829](https://github.com/advisories/GHSA-8vqr-qjwx-82mw) Multipart parsing without `Content-Length` header allows unbounded chunked file uploads.
-- [CVE-2026-34827](https://github.com/advisories/GHSA-v6x5-cg8r-vv6x) Quadratic-time multipart header parsing allows denial of service via escape-heavy quoted parameters.
+- [CVE-2026-34827](https://github.com/advisories/GHSA-v6x5-cg8r-vv6x) Multipart header parsing allows denial of service via escape-heavy quoted parameters.
 - [CVE-2026-26962](https://github.com/advisories/GHSA-rx22-g9mx-qrhv) Improper unfolding of folded multipart headers preserves CRLF in parsed parameter values.
 
 ## [3.2.5] - 2026-02-16
@@ -108,6 +108,23 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 - `Rack::Lint` now disallows `PATH_INFO="" SCRIPT_NAME=""`. ([#2298](https://github.com/rack/rack/issues/2307), [@jeremyevans])
+
+## [3.1.21] - 2026-04-01
+
+### Security
+
+- [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
+- [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
+- [CVE-2026-32762](https://github.com/advisories/GHSA-qfgr-crr9-7r49) Forwarded header semicolon injection enables Host and Scheme spoofing.
+- [CVE-2026-26961](https://github.com/advisories/GHSA-vgpv-f759-9wx3) Raise error for multipart requests with multiple boundary parameters.
+- [CVE-2026-34786](https://github.com/advisories/GHSA-q4qf-9j86-f5mh) `Rack::Static` `header_rules` bypass via URL-encoded path mismatch.
+- [CVE-2026-34831](https://github.com/advisories/GHSA-q2ww-5357-x388) `Content-Length` mismatch in `Rack::Files` error responses.
+- [CVE-2026-34826](https://github.com/advisories/GHSA-x8cg-fq8g-mxfx) Multipart byte range processing allows denial of service via excessive overlapping ranges.
+- [CVE-2026-34835](https://github.com/advisories/GHSA-g2pf-xv49-m2h5) `Rack::Request` accepts invalid Host characters, enabling host allowlist bypass.
+- [CVE-2026-34830](https://github.com/advisories/GHSA-qv7j-4883-hwh7) `Rack::Sendfile` header-based `X-Accel-Mapping` regex injection enables unauthorized `X-Accel-Redirect`.
+- [CVE-2026-34785](https://github.com/advisories/GHSA-h2jq-g4cq-5ppq) `Rack::Static` prefix matching can expose unintended files under the static root.
+- [CVE-2026-34829](https://github.com/advisories/GHSA-8vqr-qjwx-82mw) Multipart parsing without `Content-Length` header allows unbounded chunked file uploads.
+- [CVE-2026-34827](https://github.com/advisories/GHSA-v6x5-cg8r-vv6x) Multipart header parsing allows denial of service via escape-heavy quoted parameters.
 
 ## [3.1.20] - 2026-02-16
 
@@ -505,6 +522,20 @@ This release introduces major improvements to Rack, including enhanced support f
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.23] - 2026-04-01
+
+### Security
+
+- [CVE-2026-34763](https://github.com/advisories/GHSA-7mqq-6cf9-v2qp) Root directory disclosure via unescaped regex interpolation in `Rack::Directory`.
+- [CVE-2026-34230](https://github.com/advisories/GHSA-v569-hp3g-36wr) Avoid O(n^2) algorithm in `Rack::Utils.select_best_encoding` which could lead to denial of service.
+- [CVE-2026-26961](https://github.com/advisories/GHSA-vgpv-f759-9wx3) Raise error for multipart requests with multiple boundary parameters.
+- [CVE-2026-34786](https://github.com/advisories/GHSA-q4qf-9j86-f5mh) `Rack::Static` `header_rules` bypass via URL-encoded path mismatch.
+- [CVE-2026-34831](https://github.com/advisories/GHSA-q2ww-5357-x388) `Content-Length` mismatch in `Rack::Files` error responses.
+- [CVE-2026-34826](https://github.com/advisories/GHSA-x8cg-fq8g-mxfx) Multipart byte range processing allows denial of service via excessive overlapping ranges.
+- [CVE-2026-34830](https://github.com/advisories/GHSA-qv7j-4883-hwh7) `Rack::Sendfile` header-based `X-Accel-Mapping` regex injection enables unauthorized `X-Accel-Redirect`.
+- [CVE-2026-34785](https://github.com/advisories/GHSA-h2jq-g4cq-5ppq) `Rack::Static` prefix matching can expose unintended files under the static root.
+- [CVE-2026-34829](https://github.com/advisories/GHSA-8vqr-qjwx-82mw) Multipart parsing without `Content-Length` header allows unbounded chunked file uploads.
 
 ## [2.2.22] - 2026-02-16
 
