@@ -291,4 +291,24 @@ describe Rack::Static do
       res.body.must_match(/index!/)
     end
   end
+
+  it "supports Regexp objects in urls option" do
+    # Test case for https://github.com/rack/rack/issues/2441
+    # Rack::Static should accept Regexp objects in the urls array.
+    app = lambda { |env| [200, { "content-type" => "text/plain" }, ["Hello World"]] }
+    static_app = Rack::Static.new(app, urls: [/.*\.css/, /.*\.js/], root: DOCROOT)
+    request = Rack::MockRequest.new(Rack::Lint.new(static_app))
+
+    # Should route and serve CSS files matching the regexp:
+    res = request.get("/cgi/assets/stylesheets/app.css")
+    res.must_be :ok?
+
+    # Should route and serve JS files matching the regexp:
+    res = request.get("/cgi/assets/javascripts/app.js")
+    res.must_be :ok?
+
+    # Should not route files that don't match the regexp:
+    res = request.get("/cgi/test")
+    res.body.must_equal "Hello World"
+  end
 end

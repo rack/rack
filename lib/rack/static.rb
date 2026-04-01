@@ -93,9 +93,6 @@ module Rack
     def initialize(app, options = {})
       @app = app
       @urls = options[:urls] || ["/favicon.ico"]
-      if @urls.kind_of?(Array)
-        @urls = @urls.map { |url| [url, url.end_with?('/') ? url : "#{url}/".freeze].freeze }.freeze
-      end
       @index = options[:index]
       @gzip = options[:gzip]
       @cascade = options[:cascade]
@@ -117,8 +114,34 @@ module Rack
       @urls.kind_of?(Hash) && @urls.key?(path) || add_index_root?(path)
     end
 
+    # Check if path is a prefix of url.
+    private def path_prefix?(path, pattern)
+      # Do we match?
+      if path.index(pattern) == 0
+        # If we are a string...
+        if pattern.is_a?(String)
+          # Do we have an exact match?
+          if path.size == pattern.size
+            return true
+          end
+
+          # Otherwise, do we have a trailing slash?
+          if pattern.end_with?('/')
+            # Then we correctly matched a directory prefix:
+            return true
+          else
+            # Otherwise, check that we have a slash after the matched prefix, to ensure that we don't match a path like "/application" when the pattern is "/app":
+            return path[pattern.size] == '/'
+          end
+        end
+
+        # Otherwise, url was probably a regexp, and we have a match:
+        return true
+      end
+    end
+
     def route_file(path)
-      @urls.kind_of?(Array) && @urls.any? { |url, url_slash| path == url || path.start_with?(url_slash) }
+      @urls.kind_of?(Array) && @urls.any? { |url| path_prefix?(path, url) }
     end
 
     def can_serve(path)
