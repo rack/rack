@@ -15,6 +15,7 @@ end
 gem "rubocop", require: false
 
 group :test do
+  gem "logger"
   gem "webrick" # gemified in Ruby 3.1+
   gem "psych"
 end
@@ -23,11 +24,11 @@ end
 # Gemfile.lock if that gets committed/reused:
 # c_platforms = [:mri] if Gem.platforms.last.os == "java"
 
-group :extra do
-  gem 'fcgi', platforms: c_platforms
-  gem 'dalli'
-  gem 'thin', platforms: c_platforms
-end
+# group :extra do
+#   gem 'fcgi', platforms: c_platforms
+#   gem 'dalli'
+#   gem 'thin', platforms: c_platforms
+# end
 
 group :doc do
   gem 'rdoc'
