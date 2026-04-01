@@ -102,11 +102,13 @@ describe Rack::Sendfile do
     headers = {
       'HTTP_X_ACCEL_MAPPING' => "#{tmpdir}/=/foo/bar/"
     }
-    request(headers, sendfile_body, [], 'X-Accel-Redirect') do |response|
+    body = sendfile_body
+    expected = Rack::Utils.escape_path(File.expand_path(body.to_path)).gsub('?', '%3F')
+    request(headers, body, [], 'X-Accel-Redirect') do |response|
       response.must_be :ok?
       response.body.must_be :empty?
       response.headers['content-length'].must_equal '0'
-      response.headers['x-accel-redirect'].must_equal '/tmp/rack_sendfile'
+      response.headers['x-accel-redirect'].must_equal expected
     end
   end
 
