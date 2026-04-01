@@ -146,7 +146,7 @@ module Rack
       end
     end
 
-    ALLOWED_FORWARED_PARAMS = %w[by for host proto].to_h { |name| [name, name.to_sym] }.freeze
+    ALLOWED_FORWARED_PARAMS = %w[by for host proto].map { |name| [name, name.to_sym] }.to_h.freeze
     private_constant :ALLOWED_FORWARED_PARAMS
 
     def forwarded_values(forwarded_header)
