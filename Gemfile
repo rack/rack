@@ -16,6 +16,7 @@ gem "rubocop", require: false
 
 group :test do
   gem "logger"
+  gem "ostruct"
   gem "webrick" # gemified in Ruby 3.1+
   gem "psych"
 end
