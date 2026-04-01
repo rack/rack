@@ -476,7 +476,7 @@ describe Rack::Multipart do
 
     env = Rack::MockRequest.env_for '/', fixture
     lambda {
-  p    Rack::Multipart.parse_multipart(env).keys
+      Rack::Multipart.parse_multipart(env).keys
     }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
     rd.close
 
