@@ -17,6 +17,6 @@ If you believe you have found a security issue in this project, please do not op
 1. Security report is received and reviewed by the Rack maintainers.
 2. The problem is confirmed and a list of all affected versions is determined. Code is audited to find any potential similar problems.
 3. Fixes are prepared for all releases which are still supported.
-4. Patches are released, new gem versions are published to RubyGems, and security advisories are published.
+4. Patches are released, new gem versions are published to RubyGems, and security advisories are published simultaneously.
 
 In cases where coordination with other projects or distributions is necessary, we may implement an embargo period before public disclosure. However, for most security issues, we aim to release fixes and advisories as quickly as possible.
