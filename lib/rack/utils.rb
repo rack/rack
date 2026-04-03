@@ -146,8 +146,8 @@ module Rack
       end
     end
 
-    ALLOWED_FORWARED_PARAMS = %w[by for host proto].map { |name| [name, name.to_sym] }.to_h.freeze
-    private_constant :ALLOWED_FORWARED_PARAMS
+    ALLOWED_FORWARDED_PARAMS = %w[by for host proto].map { |name| [name, name.to_sym] }.to_h.freeze
+    private_constant :ALLOWED_FORWARDED_PARAMS
 
     def forwarded_values(forwarded_header)
       return unless forwarded_header
@@ -170,7 +170,7 @@ module Rack
         param.chomp!('=')
         param.strip!
         param.downcase!
-        return unless param = ALLOWED_FORWARED_PARAMS[param]
+        return unless param = ALLOWED_FORWARDED_PARAMS[param]
 
         if header[0] == '"'
           # Parameter value is quoted, parse it, handling backslash escapes
