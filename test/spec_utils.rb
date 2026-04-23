@@ -655,9 +655,10 @@ describe Rack::Utils, "cookies" do
   end
 
   it "raises an error if the cookie key is invalid" do
-    lambda do
+    ex = lambda do
       Rack::Utils.set_cookie_header('na e', 'value')
-    end.must_raise(ArgumentError, /invalid cookie key/)
+    end.must_raise(ArgumentError)
+    assert_match(/invalid cookie key/, ex.message)
   end
 
   it "sets partitioned cookie attribute" do
