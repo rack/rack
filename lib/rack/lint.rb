@@ -922,7 +922,7 @@ module Rack
         verify_to_path
       end
 
-      BODY_METHODS = {to_ary: true, each: true, call: true, to_path: true}
+      BODY_METHODS = {to_ary: true, each: true, call: true, to_path: true}.freeze
 
       def to_path
         @body.to_path
@@ -976,7 +976,7 @@ module Rack
         REQUIRED_METHODS = [
           :read, :write, :<<, :flush, :close,
           :close_read, :close_write, :closed?
-        ]
+        ].freeze
 
         def_delegators :@stream, *REQUIRED_METHODS
 

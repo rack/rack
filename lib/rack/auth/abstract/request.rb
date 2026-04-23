@@ -37,7 +37,7 @@ module Rack
 
       private
 
-      AUTHORIZATION_KEYS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION']
+      AUTHORIZATION_KEYS = ['HTTP_AUTHORIZATION', 'X-HTTP_AUTHORIZATION', 'X_HTTP_AUTHORIZATION'].freeze
 
       def authorization_key
         @authorization_key ||= AUTHORIZATION_KEYS.detect { |key| @env.has_key?(key) }
