@@ -331,7 +331,10 @@ module Rack
       value.split(/; */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
-        cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
+        # RFC 6265: cookie values are opaque strings. Only decode percent-encoded
+        # sequences (%XX) — do NOT use decode_www_form_component which would
+        # silently convert + to space (form-encoding semantics have no place here).
+        cookies[key] = (value.gsub(/%([0-9A-Fa-f]{2})/) { $1.to_i(16).chr(Encoding::UTF_8) } rescue value) unless cookies.key?(key)
       end
     end
 

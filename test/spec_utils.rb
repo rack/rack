@@ -636,6 +636,17 @@ describe Rack::Utils, "cookies" do
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "%66oo=baz;foo=bar")
     cookies = Rack::Utils.parse_cookies(env)
     cookies.must_equal({ "%66oo" => "baz", "foo" => "bar" })
+
+    # RFC 6265: + in a cookie value is a literal +, not a space.
+    # Standard Base64 (used by rack-session V2 AES-256-GCM encryptor) produces
+    # + and / characters. Browsers send them back unchanged, so Rack must not
+    # corrupt them via form-encoding (decode_www_form_component) rules.
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "session=abc+def/ghi=")
+    Rack::Utils.parse_cookies(env).must_equal({ "session" => "abc+def/ghi=" })
+
+    # Percent-encoded sequences should still be decoded.
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=hello%20world")
+    Rack::Utils.parse_cookies(env).must_equal({ "foo" => "hello world" })
   end
 
   it "generates appropriate cookie header value" do
