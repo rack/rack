@@ -26,6 +26,7 @@ All notable changes to this project will be documented in this file. For info on
 - Require Ruby 2.7.3 or newer and replace `ruby2_keywords` with argument forwarding.
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
 - Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
+- `Rack::Directory` now check paths even if they do not contain `..`. ([#2458](https://github.com/rack/rack/pull/2458), [@jeremyevans](https://github.com/jeremyevans))
 - Multipart parser drops support for RFC 2231 `filename*` parameter (prohibited by RFC 7578) and now properly handles UTF-8 encoded filenames via percent-encoding and direct UTF-8 bytes. ([#2398](https://github.com/rack/rack/pull/2398), [@wtn](https://github.com/wtn))
 - The query parser now raises `Rack::QueryParser::IncompatibleEncodingError` if we try to parse params that are not ASCII compatible. ([#2416](https://github.com/rack/rack/pull/2416), [@bquorning](https://github.com/bquorning))
 - The mime type for `.pem` files has been changed from `application/x-x509-ca-cert` to `application/x-pem-file`. ([#2435](https://github.com/rack/rack/pull/2435), [@jeremyevans](https://github.com/jeremyevans))
