@@ -247,8 +247,6 @@ describe Rack::MockResponse do
   end
 
   it "closes streaming bodies that respond to close" do
-    closed = false
-
     body = proc do |stream|
       stream.write("content")
     end

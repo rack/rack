@@ -327,7 +327,7 @@ describe Rack::Sendfile do
       middleware = Rack::Lint.new Rack::Sendfile.new(app)
       
       env = Rack::MockRequest.env_for('/', { 'sendfile.type' => 'x-sendfile' })
-      status, headers, response_body = middleware.call(env)
+      status, headers = middleware.call(env)
       
       status.must_equal 200
       headers['x-sendfile'].must_equal File.join(Dir.tmpdir, "rack_sendfile")
