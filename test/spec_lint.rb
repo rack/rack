@@ -1004,7 +1004,7 @@ describe Rack::Lint do
       hijack_called = false
       s = File.open(__FILE__, 'rb')
       env = env({ 'rack.hijack' => proc { |io| hijack_called = true; s } })
-      res = Rack::Lint.new(lambda { |env|
+      Rack::Lint.new(lambda { |env|
                        [201, { "content-type" => "text/plain", "content-length" => "0"}, []]
                      }).call(env)
       hijack_called.must_equal false
@@ -1026,7 +1026,7 @@ describe Rack::Lint do
 
   it "notices when rack.hijack env entry does not return an IO" do
     env = env({ 'rack.hijack' => proc { Object.new } })
-    app = Rack::Lint.new(lambda { |env|
+    Rack::Lint.new(lambda { |env|
                           [201, { "content-type" => "text/plain", "content-length" => "0" }, []]
                          }).call(env)
     env['rack.hijack'].must_raise(Rack::Lint::LintError).
@@ -1149,7 +1149,7 @@ describe Rack::Lint do
     })
 
     lambda do
-      response = app.call(env({'rack.protocol' => 'websocket'}))
+      app.call(env({'rack.protocol' => 'websocket'}))
     end
       .must_raise(Rack::Lint::LintError)
       .message.must_equal("rack.protocol must be an Array of Strings")

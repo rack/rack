@@ -48,8 +48,6 @@ describe Rack::Deflater do
       [accept_encoding, accept_encoding.dup]
     end
 
-    start = Time.now.to_i
-
     # build response
     status, headers, body = build_response(
       options['app_status'] || expected_status,
