@@ -881,11 +881,11 @@ module Rack
       end
 
       def forwarded_priority
-        Request.forwarded_priority
+        config_value(:forwarded_priority) || Request.forwarded_priority
       end
 
       def x_forwarded_proto_priority
-        Request.x_forwarded_proto_priority
+        config_value(:x_forwarded_proto_priority) || Request.x_forwarded_proto_priority
       end
     end
 
