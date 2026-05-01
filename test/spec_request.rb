@@ -2206,7 +2206,7 @@ EOF
   it "uses rack.request.trusted_proxy env key when set to nil (default behavior)" do
     # When nil, should fall back to ip_filter
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = nil
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: nil}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal true
@@ -2217,7 +2217,7 @@ EOF
 
   it "trusts all proxies when rack.request.trusted_proxy is true" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: true}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal true
@@ -2228,7 +2228,7 @@ EOF
 
   it "trusts no proxies when rack.request.trusted_proxy is false" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = false
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: false}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal false
@@ -2239,7 +2239,7 @@ EOF
 
   it "trusts only specified IPs when rack.request.trusted_proxy is a callable" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }}
     req = make_request(env)
     
     req.trusted_proxy?('10.0.0.1').must_equal true
@@ -2253,13 +2253,15 @@ EOF
     require 'ipaddr'
     env = Rack::MockRequest.env_for("/")
     ranges = [IPAddr.new('10.0.0.0/24'), IPAddr.new('192.168.1.0/28')]
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      begin
-        ip_addr = IPAddr.new(ip)
-        ranges.any? { |range| range.include?(ip_addr) }
-      rescue IPAddr::InvalidAddressError
-        false
-      end
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip|
+        begin
+          ip_addr = IPAddr.new(ip)
+          ranges.any? { |range| range.include?(ip_addr) }
+        rescue IPAddr::InvalidAddressError
+          false
+        end
+      }
     }
     req = make_request(env)
     
@@ -2280,13 +2282,15 @@ EOF
     env = Rack::MockRequest.env_for("/")
     ipv6_exact = IPAddr.new('2001:db8::1')
     ipv6_range = IPAddr.new('fd00::/8')
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      begin
-        ip_addr = IPAddr.new(ip)
-        ip_addr == ipv6_exact || ipv6_range.include?(ip_addr)
-      rescue IPAddr::InvalidAddressError
-        false
-      end
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip|
+        begin
+          ip_addr = IPAddr.new(ip)
+          ip_addr == ipv6_exact || ipv6_range.include?(ip_addr)
+        rescue IPAddr::InvalidAddressError
+          false
+        end
+      }
     }
     req = make_request(env)
     
@@ -2299,8 +2303,8 @@ EOF
 
   it "handles custom logic in rack.request.trusted_proxy callable" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      ip == '10.0.0.1' || ip == 'invalid-ip'
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip| ip == '10.0.0.1' || ip == 'invalid-ip' }
     }
     req = make_request(env)
     
@@ -2309,10 +2313,10 @@ EOF
     req.trusted_proxy?('192.168.1.1').must_equal false
   end
 
-  it "can use Rack::Config to set rack.request.trusted_proxy" do
+  it "can use Rack::Config to set rack.request.config" do
     app = lambda { |env| [200, {}, [Rack::Request.new(env).trusted_proxy?('8.8.8.8').to_s]] }
     config_app = Rack::Config.new(app) do |env|
-      env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
+      env[Rack::RACK_REQUEST_CONFIG] = { trusted_proxy: true }
     end
     
     mock = Rack::MockRequest.new(config_app)
