@@ -706,7 +706,7 @@ module Rack
       #
       # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        trusted_proxy = get_header(RACK_REQUEST_TRUSTED_PROXY)
+        trusted_proxy = env.dig(RACK_REQUEST_CONFIG, :trusted_proxy)
 
         case trusted_proxy
         when nil
