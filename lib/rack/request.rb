@@ -771,7 +771,7 @@ module Rack
       end
 
       def query_parser
-        @query_parser || Utils.default_query_parser
+        @query_parser || config_value(:query_parser) || Utils.default_query_parser
       end
 
       def parse_query(qs, d = '&')

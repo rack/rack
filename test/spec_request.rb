@@ -666,7 +666,7 @@ class RackRequestTest < Minitest::Spec
     req.params.must_equal req.GET.merge(req.POST)
   end
 
-  it "should use the query_parser for query parsing" do
+  it "should use the query_parser set via attr_writer for query parsing" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
@@ -674,6 +674,20 @@ class RackRequestTest < Minitest::Spec
     end
     req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
     req.query_parser = Rack::QueryParser.new(c, 100)
+    req.GET[:foo].must_equal "bar"
+    req.GET[:quux].must_equal "bla"
+    req.params[:foo].must_equal "bar"
+    req.params[:quux].must_equal "bla"
+  end
+
+  it "should use the query_parser from environment for query parsing" do
+    c = Class.new(Rack::QueryParser::Params) do
+      def initialize(*)
+        super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
+      end
+    end
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req.env[Rack::RACK_REQUEST_CONFIG] = {query_parser: Rack::QueryParser.new(c, 100)}
     req.GET[:foo].must_equal "bar"
     req.GET[:quux].must_equal "bla"
     req.params[:foo].must_equal "bar"
