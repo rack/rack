@@ -710,7 +710,7 @@ module Rack
       #
       # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        trusted_proxy = env.dig(RACK_REQUEST_CONFIG, :trusted_proxy)
+        trusted_proxy = config_value(:trusted_proxy)
 
         case trusted_proxy
         when nil
@@ -725,6 +725,10 @@ module Rack
       end
 
       private
+
+      def config_value(key)
+        env.dig(RACK_REQUEST_CONFIG, key)
+      end
 
       def default_session; {}; end
 
