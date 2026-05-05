@@ -25,6 +25,7 @@ describe Rack::MethodOverride do
   it "sets rack.errors for invalid UTF8 _method values" do
     errors = StringIO.new
     env = Rack::MockRequest.env_for("/",
+      'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
       :method => "POST",
       :input => "_method=\xBF".b,
       Rack::RACK_ERRORS => errors)
@@ -37,7 +38,7 @@ describe Rack::MethodOverride do
   end
 
   it "modify REQUEST_METHOD for POST requests when _method parameter is set" do
-    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=put")
+    env = Rack::MockRequest.env_for("/", method: "POST", 'CONTENT_TYPE' => 'application/x-www-form-urlencoded', input: "_method=put")
     app.call env
 
     env["REQUEST_METHOD"].must_equal "PUT"
@@ -54,14 +55,14 @@ describe Rack::MethodOverride do
   end
 
   it "not modify REQUEST_METHOD if the method is unknown" do
-    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=foo")
+    env = Rack::MockRequest.env_for("/", method: "POST", 'CONTENT_TYPE' => 'application/x-www-form-urlencoded', input: "_method=foo")
     app.call env
 
     env["REQUEST_METHOD"].must_equal "POST"
   end
 
   it "not modify REQUEST_METHOD when _method is nil" do
-    env = Rack::MockRequest.env_for("/", method: "POST", input: "foo=bar")
+    env = Rack::MockRequest.env_for("/", method: "POST", 'CONTENT_TYPE' => 'application/x-www-form-urlencoded', input: "foo=bar")
     app.call env
 
     env["REQUEST_METHOD"].must_equal "POST"
@@ -69,6 +70,7 @@ describe Rack::MethodOverride do
 
   it "store the original REQUEST_METHOD prior to overriding" do
     env = Rack::MockRequest.env_for("/",
+            'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
             method: "POST",
             input: "_method=options")
     app.call env

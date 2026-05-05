@@ -557,14 +557,8 @@ module Rack
       # "application/x-www-form-urlencoded" or "multipart/form-data". The
       # list of form-data media types can be modified through the
       # +FORM_DATA_MEDIA_TYPES+ array.
-      #
-      # A request body is also assumed to contain form-data when no
-      # content-type header is provided and the request_method is POST.
       def form_data?
-        type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
-
-        (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
+        FORM_DATA_MEDIA_TYPES.include?(media_type)
       end
 
       # Determine whether the request body contains data by checking

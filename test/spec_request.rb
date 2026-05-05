@@ -658,6 +658,7 @@ class RackRequestTest < Minitest::Spec
   it "not truncate query strings containing semi-colons #543 only in POST" do
     mr = Rack::MockRequest.env_for("/",
       "REQUEST_METHOD" => 'POST',
+      "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
       :input => "foo=bar&quux=b;la")
     req = make_request mr
     req.query_string.must_equal ""
@@ -716,6 +717,7 @@ class RackRequestTest < Minitest::Spec
   it "not unify GET and POST when calling params" do
     mr = Rack::MockRequest.env_for("/?foo=quux",
       "REQUEST_METHOD" => 'POST',
+      "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
       :input => "foo=bar&quux=bla"
     )
     req = make_request mr
@@ -741,6 +743,7 @@ class RackRequestTest < Minitest::Spec
     end
     mr = Rack::MockRequest.env_for("/?foo=quux",
       "REQUEST_METHOD" => 'POST',
+      "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
       :input => "foo=bar&quux=bla"
     )
     req = c.new mr
@@ -757,6 +760,7 @@ class RackRequestTest < Minitest::Spec
   it "raise if input params has invalid %-encoding" do
     mr = Rack::MockRequest.env_for("/?foo=quux",
       "REQUEST_METHOD" => 'POST',
+      "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
       :input => "a%=1"
     )
     req = make_request mr
@@ -768,19 +772,6 @@ class RackRequestTest < Minitest::Spec
   it "return empty POST data if rack.input is missing" do
     req = make_request({})
     req.POST.must_be_empty
-  end
-
-  it "parse POST data when method is POST and no content-type given" do
-    req = make_request \
-      Rack::MockRequest.env_for("/?foo=quux",
-        "REQUEST_METHOD" => 'POST',
-        :input => "foo=bar&quux=bla")
-    req.content_type.must_be_nil
-    req.media_type.must_be_nil
-    req.query_string.must_equal "foo=quux"
-    req.GET.must_equal "foo" => "quux"
-    req.POST.must_equal "foo" => "bar", "quux" => "bla"
-    req.params.must_equal "foo" => "bar", "quux" => "bla"
   end
 
   it "parse POST data with explicit content type regardless of method" do
@@ -805,6 +796,21 @@ class RackRequestTest < Minitest::Spec
     req.media_type.must_equal 'text/plain'
     req.media_type_params['charset'].must_equal 'utf-8'
     req.content_charset.must_equal 'utf-8'
+    post = req.POST
+    post.must_be_empty
+    req.POST.must_be_same_as post
+    req.params.must_equal "foo" => "quux"
+    req.body.read.must_equal "foo=bar&quux=bla"
+  end
+
+  it "not parse POST data when method is POST and no content-type given" do
+    req = make_request \
+      Rack::MockRequest.env_for("/?foo=quux",
+        "REQUEST_METHOD" => 'POST',
+        :input => "foo=bar&quux=bla")
+    req.content_type.must_be_nil
+    req.media_type.must_be_nil
+    req.query_string.must_equal "foo=quux"
     post = req.POST
     post.must_be_empty
     req.POST.must_be_same_as post
@@ -838,7 +844,9 @@ class RackRequestTest < Minitest::Spec
   it "clean up Safari's ajax POST body" do
     req = make_request \
       Rack::MockRequest.env_for("/",
-        'REQUEST_METHOD' => 'POST', :input => "foo=bar&quux=bla\0")
+        'REQUEST_METHOD' => 'POST',
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+        :input => "foo=bar&quux=bla\0")
     req.POST.must_equal "foo" => "bar", "quux" => "bla"
   end
 
@@ -923,21 +931,26 @@ class RackRequestTest < Minitest::Spec
   it "return form_pairs for url-encoded POST data" do
     req = make_request \
       Rack::MockRequest.env_for("/",
-        'REQUEST_METHOD' => 'POST', :input => "foo=bar&quux=bla")
+        'REQUEST_METHOD' => 'POST',
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+        :input => "foo=bar&quux=bla")
     req.form_pairs.must_equal [["foo", "bar"], ["quux", "bla"]]
   end
 
   it "preserve duplicate keys in form_pairs" do
     req = make_request \
       Rack::MockRequest.env_for("/",
-        'REQUEST_METHOD' => 'POST', :input => "foo=1&foo=2&bar=3")
+        'REQUEST_METHOD' => 'POST',
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+        :input => "foo=1&foo=2&bar=3")
     req.form_pairs.must_equal [["foo", "1"], ["foo", "2"], ["bar", "3"]]
   end
 
   it "handle empty values in form_pairs" do
     req = make_request \
       Rack::MockRequest.env_for("/",
-        'REQUEST_METHOD' => 'POST', :input => "foo=&bar=baz&empty")
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
+        :input => "foo=&bar=baz&empty")
     req.form_pairs.must_equal [["foo", ""], ["bar", "baz"], ["empty", nil]]
   end
 
@@ -951,7 +964,7 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/",
         'REQUEST_METHOD' => 'POST',
-        "CONTENT_TYPE" => 'text/plain',
+        'CONTENT_TYPE' => 'text/plain',
         :input => "foo=bar")
     req.form_pairs.must_equal []
   end
@@ -959,7 +972,9 @@ class RackRequestTest < Minitest::Spec
   it "raise same error for form_pairs as POST with invalid encoding" do
     req = make_request \
       Rack::MockRequest.env_for("/",
-        'REQUEST_METHOD' => 'POST', :input => "a%=1")
+        'REQUEST_METHOD' => 'POST',
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+        :input => "a%=1")
     lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
       message.must_equal "invalid %-encoding (a%)"
   end
@@ -1228,7 +1243,7 @@ EOF
   end
 
   it "modify params hash if param is in POST" do
-    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => 'foo=duh')
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => 'foo=duh')
     req1 = make_request(e)
     req1.params.must_equal 'foo' => 'duh'
     req1.update_param 'foo', 'bar'
@@ -1258,7 +1273,7 @@ EOF
   end
 
   it "modify params hash by changing only POST" do
-    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST',  "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "foo=duhpost")
     req = make_request(e)
     req.GET.must_equal({})
     req.POST.must_equal 'foo' => 'duhpost'
@@ -1268,7 +1283,7 @@ EOF
   end
 
   it "modify params hash, even if param is defined in both POST and GET" do
-    e = Rack::MockRequest.env_for("?foo=duhget", "REQUEST_METHOD" => 'POST', :input => "foo=duhpost")
+    e = Rack::MockRequest.env_for("?foo=duhget", "REQUEST_METHOD" => 'POST', "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "foo=duhpost")
     req1 = make_request(e)
     req1.GET.must_equal 'foo' => 'duhget'
     req1.POST.must_equal 'foo' => 'duhpost'
@@ -1295,7 +1310,7 @@ EOF
   end
 
   it "allow deleting from params hash if param is in POST" do
-    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', :input => 'foo=bar')
+    e = Rack::MockRequest.env_for("", "REQUEST_METHOD" => 'POST', "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => 'foo=bar')
     req1 = make_request(e)
     req1.params.must_equal 'foo' => 'bar'
     req1.delete_param('foo').must_equal 'bar'
@@ -1554,9 +1569,9 @@ EOF
       'REQUEST_METHOD' => 'POST',
       'PATH_INFO' => '/foo',
       'rack.input' => StringIO.new('invalid=bar&invalid[foo]=bar'),
-      'HTTP_CONTENT_TYPE' => "application/x-www-form-urlencoded",
+      'CONTENT_TYPE' => "application/x-www-form-urlencoded",
     }
-    
+
     2.times do
       # The actual exception type here is unimportant - just that it fails.
       assert_raises(Rack::Utils::ParameterTypeError) do
@@ -2193,7 +2208,7 @@ EOF
     env = Rack::MockRequest.env_for("/")
     env[Rack::RACK_REQUEST_TRUSTED_PROXY] = nil
     req = make_request(env)
-    
+
     req.trusted_proxy?('127.0.0.1').must_equal true
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('192.168.1.1').must_equal true
@@ -2204,7 +2219,7 @@ EOF
     env = Rack::MockRequest.env_for("/")
     env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
     req = make_request(env)
-    
+
     req.trusted_proxy?('127.0.0.1').must_equal true
     req.trusted_proxy?('1.2.3.4').must_equal true
     req.trusted_proxy?('8.8.8.8').must_equal true
@@ -2215,7 +2230,7 @@ EOF
     env = Rack::MockRequest.env_for("/")
     env[Rack::RACK_REQUEST_TRUSTED_PROXY] = false
     req = make_request(env)
-    
+
     req.trusted_proxy?('127.0.0.1').must_equal false
     req.trusted_proxy?('10.0.0.1').must_equal false
     req.trusted_proxy?('192.168.1.1').must_equal false
@@ -2226,7 +2241,7 @@ EOF
     env = Rack::MockRequest.env_for("/")
     env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }
     req = make_request(env)
-    
+
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('192.168.1.100').must_equal true
     req.trusted_proxy?('10.0.0.2').must_equal false
@@ -2247,13 +2262,13 @@ EOF
       end
     }
     req = make_request(env)
-    
+
     # 10.0.0.0/24 covers 10.0.0.0 - 10.0.0.255
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('10.0.0.100').must_equal true
     req.trusted_proxy?('10.0.0.255').must_equal true
     req.trusted_proxy?('10.0.1.1').must_equal false
-    
+
     # 192.168.1.0/28 covers 192.168.1.0 - 192.168.1.15
     req.trusted_proxy?('192.168.1.5').must_equal true
     req.trusted_proxy?('192.168.1.15').must_equal true
@@ -2274,7 +2289,7 @@ EOF
       end
     }
     req = make_request(env)
-    
+
     req.trusted_proxy?('2001:db8::1').must_equal true
     req.trusted_proxy?('2001:db8::2').must_equal false
     req.trusted_proxy?('fd00::1').must_equal true
@@ -2288,7 +2303,7 @@ EOF
       ip == '10.0.0.1' || ip == 'invalid-ip'
     }
     req = make_request(env)
-    
+
     req.trusted_proxy?('10.0.0.1').must_equal true
     req.trusted_proxy?('invalid-ip').must_equal true
     req.trusted_proxy?('192.168.1.1').must_equal false
@@ -2299,7 +2314,7 @@ EOF
     config_app = Rack::Config.new(app) do |env|
       env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
     end
-    
+
     mock = Rack::MockRequest.new(config_app)
     res = mock.get '/'
     res.body.must_equal 'true'
@@ -2374,6 +2389,7 @@ EOF
     it "handles ASCII NUL input of #{length} bytes" do
       mr = Rack::MockRequest.env_for("/",
         "REQUEST_METHOD" => 'POST',
+        "CONTENT_TYPE" => 'application/x-www-form-urlencoded',
         :input => "\0"*length)
       req = make_request mr
       req.query_string.must_equal ""
