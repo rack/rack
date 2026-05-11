@@ -647,12 +647,45 @@ describe Rack::Utils, "cookies" do
     # Percent-encoded sequences should still be decoded.
     env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=hello%20world")
     Rack::Utils.parse_cookies(env).must_equal({ "foo" => "hello world" })
+
+    # High-byte percent sequences produce raw bytes force-encoded as UTF-8.
+    env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => "foo=%FF")
+    Rack::Utils.parse_cookies(env)["foo"].bytes.must_equal [0xFF]
+    Rack::Utils.parse_cookies(env)["foo"].encoding.must_equal Encoding::UTF_8
   end
 
   it "generates appropriate cookie header value" do
     Rack::Utils.set_cookie_header('name', 'value').must_equal 'name=value'
     Rack::Utils.set_cookie_header('name', %w[value]).must_equal 'name=value'
     Rack::Utils.set_cookie_header('name', %w[va ue]).must_equal 'name=va&ue'
+    # Spaces are encoded as %20, not + (RFC 6265: cookie values are not form-encoded)
+    Rack::Utils.set_cookie_header('name', 'a b').must_equal 'name=a%20b'
+    # + is percent-encoded to preserve literal +
+    Rack::Utils.set_cookie_header('name', 'a+b').must_equal 'name=a%2Bb'
+  end
+
+  it "round-trips cookie values through set_cookie_header and parse_cookies" do
+    test_values = [
+      "simple",
+      "hello world",
+      "a+b",
+      "a+b/c=d",
+      "abc+def/ghi==",     # base64-like
+      "café",              # multibyte UTF-8
+      "a&b",
+      "100%",
+      "key=val",
+      "semi;colon",
+      "a b+c/d=e&f",
+    ]
+
+    test_values.each do |original|
+      header = Rack::Utils.set_cookie_header("test", original)
+      cookie_str = header.split(";", 2).first  # strip attributes
+      env = Rack::MockRequest.env_for("", "HTTP_COOKIE" => cookie_str)
+      parsed = Rack::Utils.parse_cookies(env)["test"]
+      parsed.must_equal original, "Round-trip failed for #{original.inspect}: got #{parsed.inspect}"
+    end
   end
 
   it "sets and deletes cookies in header hash" do
