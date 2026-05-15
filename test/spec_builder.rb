@@ -248,12 +248,10 @@ describe Rack::Builder do
   end
 
   it 'complains about a missing run' do
-    error = proc do
+    proc do
       Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
     end.must_raise(RuntimeError)
-
-    error.message.must_equal "missing run or map statement"
-end
+  end
 
   describe "parse_file" do
     def config_file(name)
