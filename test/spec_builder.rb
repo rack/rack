@@ -252,7 +252,7 @@ describe Rack::Builder do
       Rack::Lint.new Rack::Builder.app { use Rack::ShowExceptions }
     end.must_raise(RuntimeError)
 
-    error.message.must_equal "missing run or map statement in config.ru"
+    error.message.must_equal "missing run or map statement"
 end
 
   describe "parse_file" do
