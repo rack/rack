@@ -25,6 +25,7 @@ All notable changes to this project will be documented in this file. For info on
 - Multipart parser drops support for RFC 2231 `filename*` parameter (prohibited by RFC 7578) and now properly handles UTF-8 encoded filenames via percent-encoding and direct UTF-8 bytes. ([#2398](https://github.com/rack/rack/pull/2398), [@wtn](https://github.com/wtn))
 - The query parser now raises `Rack::QueryParser::IncompatibleEncodingError` if we try to parse params that are not ASCII compatible. ([#2416](https://github.com/rack/rack/pull/2416), [@bquorning](https://github.com/bquorning))
 - The mime type for `.pem` files has been changed from `application/x-x509-ca-cert` to `application/x-pem-file`. ([#2435](https://github.com/rack/rack/pull/2435), [@jeremyevans](https://github.com/jeremyevans))
+- Freeze `Rack::Auth::AbstractRequest::AUTHORIZATION_KEYS`, `Rack::Utils::STATUS_WITH_NO_ENTITY_BODY`, `Rack::Multipart::Parser::EMPTY`, `Rack::Utils.default_query_parser`, and internal constants in `Rack::Lint`. Also make the multipart parser's default Tempfile factory Ractor-compatible. ([#2428](https://github.com/rack/rack/pull/2428), [@jhawthorn](https://github.com/jhawthorn))
 
 ### Fixed
 
