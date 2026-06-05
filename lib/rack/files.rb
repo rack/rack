@@ -29,11 +29,21 @@ module Rack
 
     attr_reader :root
 
+    class Callable
+      def initialize(files)
+        @files = files
+      end
+
+      def call(env)
+        @files.get env
+      end
+    end
+
     def initialize(root, headers = {}, default_mime = 'text/plain')
       @root = (::File.expand_path(root) if root)
       @headers = headers
       @default_mime = default_mime
-      @head = Rack::Head.new(lambda { |env| get env })
+      @head = Rack::Head.new(Callable.new(self))
     end
 
     def call(env)

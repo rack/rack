@@ -382,4 +382,14 @@ content-range: bytes 60-80/209\r
     res.must_be :not_found?
     res.body.must_be :empty?
   end
+
+  if defined?(Ractor)
+    it "can be made ractor shareable" do
+      files = Rack::Files.new(DOCROOT)
+
+      Ractor.make_shareable(files)
+
+      assert Ractor.shareable?(files)
+    end
+  end
 end
