@@ -175,10 +175,16 @@ module Rack
       def initialize(gzip, stream)
         @gzip = gzip
         @stream = stream
+        @flushed = false
       end
 
       def write(data)
-        @gzip.write(data)
+        # Skip empty strings: with sync enabled they trigger an empty
+        # Z_SYNC_FLUSH, which raises Zlib::BufError.
+        return 0 if data.empty?
+        result = @gzip.write(data)
+        @flushed = @gzip.sync
+        result
       end
 
       def <<(data)
@@ -187,7 +193,11 @@ module Rack
       end
 
       def flush
-        @gzip.flush
+        # Flushing twice without an intervening write raises Zlib::BufError,
+        # and with sync enabled every write already flushes.
+        @gzip.flush unless @flushed
+        @flushed = true
+        self
       end
 
       def close
