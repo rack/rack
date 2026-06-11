@@ -32,7 +32,7 @@ module Rack
     # The default amount of nesting to allowed by hash parameters.
     # This helps prevent a rogue client from triggering a possible stack overflow
     # when parsing parameters.
-    self.default_query_parser = QueryParser.make_default(32)
+    self.default_query_parser = QueryParser.make_default(32).freeze
 
     module_function
 
@@ -651,7 +651,7 @@ module Rack
     }
 
     # Responses with HTTP status codes that should not have an entity body
-    STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])]
+    STATUS_WITH_NO_ENTITY_BODY = Hash[((100..199).to_a << 204 << 304).product([true])].freeze
 
     SYMBOL_TO_STATUS_CODE = Hash[*HTTP_STATUS_CODES.map { |code, message|
       [message.downcase.gsub(/\s|-/, '_').to_sym, code]
