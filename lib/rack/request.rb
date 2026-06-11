@@ -60,8 +60,7 @@ module Rack
 
     def initialize(env)
       @env = env
-      @ip = nil
-      @params = nil
+      @ip = @params = @headers = @query_parser = nil
     end
 
     def ip
