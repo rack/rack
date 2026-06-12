@@ -66,9 +66,13 @@ module Rack
                                             request.accept_encoding)
 
       # Set the Vary HTTP header.
-      vary = headers["vary"].to_s.split(",").map(&:strip)
-      unless vary.include?("*") || vary.any?{|v| v.downcase == 'accept-encoding'}
-        headers["vary"] = vary.push("Accept-Encoding").join(",")
+      if headers.has_key?(VARY)
+        vary = headers[VARY].to_s.split(",").map(&:strip)
+        unless vary.include?("*") || vary.any?{|v| v.downcase == 'accept-encoding'}
+          headers[VARY] = vary.push("Accept-Encoding").join(",")
+        end
+      else
+        headers[VARY] = "Accept-Encoding"
       end
 
       case encoding
