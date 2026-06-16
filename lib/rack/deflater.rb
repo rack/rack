@@ -197,6 +197,9 @@ module Rack
         # and with sync enabled every write already flushes.
         @gzip.flush unless @flushed
         @flushed = true
+        # Propagate to the wrapped stream so a write-then-flush (e.g. SSE)
+        # is not left sitting in a buffering server-side wrapper.
+        @stream.flush if @stream.respond_to?(:flush)
         self
       end
 
