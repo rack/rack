@@ -155,6 +155,27 @@ describe Rack::Deflater do
     Zlib::GzipReader.new(StringIO.new(out.string)).read.must_equal "event: a\n\nevent: b\n\n"
   end
 
+  it 'propagate flush to the wrapped stream for streaming gzip bodies' do
+    app_body = Object.new
+    class << app_body
+      def call(stream)
+        stream.write("event: a\n\n")
+        stream.flush
+      ensure
+        stream.close
+      end
+    end
+
+    status, headers, body = build_response(200, app_body, 'gzip')
+    status.must_equal 200
+
+    out = StringIO.new(String.new)
+    def out.flush_count = @flush_count ||= 0
+    def out.flush; @flush_count = flush_count + 1; super; end
+    body.call(out)
+    out.flush_count.must_be :>, 0
+  end
+
   it 'should not update vary response header if it includes * or accept-encoding' do
     verify(200, 'foobar', deflate_or_gzip, 'response_headers' => { 'vary' => 'Accept-Encoding' } ) do |status, headers, body|
       headers['vary'].must_equal 'Accept-Encoding'
