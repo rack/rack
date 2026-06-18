@@ -331,7 +331,10 @@ module Rack
       value.split(/; */n).each_with_object({}) do |cookie, cookies|
         next if cookie.empty?
         key, value = cookie.split('=', 2)
-        cookies[key] = (unescape(value) rescue value) unless cookies.key?(key)
+        # RFC 6265: cookie values are opaque strings. Only decode percent-encoded
+        # sequences (%XX) — do NOT use decode_www_form_component which would
+        # silently convert + to space (form-encoding semantics have no place here).
+        cookies[key] = value.gsub(/%([0-9A-Fa-f]{2})/) { [$1.to_i(16)].pack('C') }.force_encoding(Encoding::UTF_8) unless cookies.key?(key)
       end
     end
 
@@ -405,7 +408,9 @@ module Rack
 
       value = [value] unless Array === value
 
-      return "#{key}=#{value.map { |v| escape v }.join('&')}#{domain}" \
+      # Use percent-encoding with %20 for spaces (not +) since cookie values
+      # are not form-encoded. This ensures round-tripping with parse_cookies_header.
+      return "#{key}=#{value.map { |v| escape(v).gsub('+', '%20') }.join('&')}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}#{partitioned}"
     end
 
