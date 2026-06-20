@@ -8,9 +8,11 @@ require_relative 'utils'
 module Rack
   # Automatically sets the etag header on all String bodies.
   #
-  # The etag header is skipped if etag or last-modified headers are sent or if
+  # The etag header is skipped if etag or last-modified headers are sent, if
   # a sendfile body (body.responds_to :to_path) is given (since such cases
-  # should be handled by apache/nginx).
+  # should be handled by apache/nginx), or if the response is marked
+  # cache-control: no-store (since such responses must not be stored, an
+  # entity-tag validator would never be usable).
   #
   # On initialization, you can pass two parameters: a cache-control directive
   # used when etag is absent and a directive when it is present. The first
@@ -55,6 +57,11 @@ module Rack
       end
 
       def skip_caching?(headers)
+        if cache_control = headers[CACHE_CONTROL]
+          # Skip ETag generation if caching is explicitly denied:
+          return true if cache_control.match?(/\bno-store\b/)
+        end
+
         headers.key?(ETAG_STRING) || headers.key?('last-modified')
       end
 
