@@ -116,6 +116,18 @@ describe Rack::ETag do
     response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
+  it "not set etag if no-store is given" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'cache-control' => 'no-store' }, ['Hello, World!']] }
+    response = etag(app).call(request)
+    response[1]['etag'].must_be_nil
+  end
+
+  it "not set etag even if no-store is combined with no-cache" do
+    app = lambda { |env| [200, { 'content-type' => 'text/plain', 'cache-control' => 'no-cache, no-store, must-revalidate' }, ['Hello, World!']] }
+    response = etag(app).call(request)
+    response[1]['etag'].must_be_nil
+  end
+
   it "close the original body" do
     body = StringIO.new
     app = lambda { |env| [200, {}, body] }
