@@ -36,6 +36,7 @@ module Rack
   LINK    = 'LINK'
   UNLINK  = 'UNLINK'
   TRACE   = 'TRACE'
+  QUERY   = 'QUERY'
 
   # Rack environment variables
   RACK_VERSION                        = 'rack.version'

@@ -327,6 +327,9 @@ module Rack
       # Checks the HTTP request method (or verb) to see if it was of type PUT
       def put?;     request_method == PUT     end
 
+      # Checks the HTTP request method (or verb) to see if it was of type QUERY
+      def query?;   request_method == QUERY   end
+
       # Checks the HTTP request method (or verb) to see if it was of type TRACE
       def trace?;   request_method == TRACE   end
 

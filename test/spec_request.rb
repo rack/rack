@@ -111,6 +111,20 @@ class RackRequestTest < Minitest::Spec
     refute req.has_header? 'foo'
   end
 
+  it 'can recognize a QUERY request' do
+    req = make_request(Rack::MockRequest.env_for('http://example.com:8080/', method: 'QUERY'))
+
+    req.request_method.must_equal 'QUERY'
+
+    req.must_be :query?
+    req.wont_be :get?
+    req.wont_be :post?
+    req.wont_be :put?
+    req.wont_be :delete?
+    req.wont_be :head?
+    req.wont_be :patch?
+  end
+
   it "wrap the rack variables" do
     req = make_request(Rack::MockRequest.env_for("http://example.com:8080/"))
 
@@ -124,6 +138,7 @@ class RackRequestTest < Minitest::Spec
     req.wont_be :delete?
     req.wont_be :head?
     req.wont_be :patch?
+    req.wont_be :query?
 
     req.script_name.must_equal ""
     req.path_info.must_equal "/"

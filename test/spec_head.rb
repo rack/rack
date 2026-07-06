@@ -21,8 +21,8 @@ describe Rack::Head do
     return response, body
   end
 
-  it "pass GET, POST, PUT, DELETE, OPTIONS, TRACE requests" do
-    %w[GET POST PUT DELETE OPTIONS TRACE].each do |type|
+  it "pass GET, QUERY, POST, PUT, DELETE, OPTIONS, TRACE requests" do
+    %w[GET QUERY POST PUT DELETE OPTIONS TRACE].each do |type|
       resp, _ = test_response("REQUEST_METHOD" => type)
 
       resp[0].must_equal 200
