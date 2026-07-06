@@ -10,7 +10,12 @@ group :maintenance, optional: true do
 end
 
 group :doc do
-  gem "rdoc"
+  if RUBY_ENGINE == "jruby"
+    gem "rdoc", "< 8"
+  else
+    gem "rdoc"
+  end
+
   gem "psych", "= 3.0.2" if RUBY_VERSION[0..2] == "2.5"
 end
 
