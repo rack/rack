@@ -8,18 +8,28 @@ module Rack
   class MethodOverride
     HTTP_METHODS = %w[GET HEAD PUT POST DELETE OPTIONS PATCH LINK UNLINK]
 
+    PRIV_HTTP_METHODS = HTTP_METHODS
+    private_constant :PRIV_HTTP_METHODS
+    deprecate_constant :HTTP_METHODS
+
     METHOD_OVERRIDE_PARAM_KEY = "_method"
     HTTP_METHOD_OVERRIDE_HEADER = "HTTP_X_HTTP_METHOD_OVERRIDE"
     ALLOWED_METHODS = %w[POST]
 
-    def initialize(app)
+    PRIV_ALLOWED_METHODS = ALLOWED_METHODS
+    private_constant :PRIV_ALLOWED_METHODS
+    deprecate_constant :ALLOWED_METHODS
+
+    def initialize(app, allowed_methods: PRIV_ALLOWED_METHODS, allowed_overrides: PRIV_HTTP_METHODS)
       @app = app
+      @allowed_methods = allowed_methods
+      @allowed_overrides = allowed_overrides
     end
 
     def call(env)
       if allowed_methods.include?(env[REQUEST_METHOD])
         method = method_override(env)
-        if HTTP_METHODS.include?(method)
+        if allowed_overrides.include?(method)
           env[RACK_METHODOVERRIDE_ORIGINAL_METHOD] = env[REQUEST_METHOD]
           env[REQUEST_METHOD] = method
         end
@@ -41,9 +51,7 @@ module Rack
 
     private
 
-    def allowed_methods
-      ALLOWED_METHODS
-    end
+    attr_reader :allowed_methods, :allowed_overrides
 
     def method_override_param(req)
       req.POST[METHOD_OVERRIDE_PARAM_KEY] if req.form_data? || req.parseable_data?
