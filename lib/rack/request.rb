@@ -3,6 +3,7 @@
 require_relative 'constants'
 require_relative 'utils'
 require_relative 'media_type'
+require_relative 'multipart'
 
 module Rack
   # Rack::Request provides a convenient interface to a Rack
@@ -889,7 +890,3 @@ module Rack
     include Helpers
   end
 end
-
-# :nocov:
-require_relative 'multipart' unless defined?(Rack::Multipart)
-# :nocov:
