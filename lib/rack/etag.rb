@@ -3,7 +3,6 @@
 require 'digest/sha2'
 
 require_relative 'constants'
-require_relative 'utils'
 
 module Rack
   # Automatically sets the etag header on all String bodies.

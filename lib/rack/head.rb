@@ -1,7 +1,6 @@
 # frozen_string_literal: true
 
 require_relative 'constants'
-require_relative 'body_proxy'
 
 module Rack
   # Rack::Head returns an empty body for all HEAD requests. It leaves
