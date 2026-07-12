@@ -64,6 +64,17 @@ describe Rack::ConditionalGet do
     response.body.must_be :empty?
   end
 
+  it "set a 304 status and truncate body when if-none-match hits a QUERY request" do
+    app = conditional_get(lambda { |env|
+      [200, { 'etag' => '1234' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      query("/", 'HTTP_IF_NONE_MATCH' => '1234')
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+  end
+
   it "set a 304 status and truncate body when if-none-match hits but if-modified-since is after last-modified" do
     app = conditional_get(lambda { |env|
       [200, { 'last-modified' => (Time.now + 3600).httpdate, 'etag' => '1234', 'content-type' => 'text/plain' }, ['TEST']] })

@@ -6,7 +6,7 @@ require_relative 'constants'
 
 module Rack
 
-  # Middleware that enables conditional GET using if-none-match and
+  # Middleware that enables conditional GET and QUERY using if-none-match and
   # if-modified-since. The application should set either or both of the
   # last-modified or etag response headers according to RFC 2616. When
   # either of the conditions is met, the response body is set to be zero
@@ -27,7 +27,7 @@ module Rack
     # modified since the last request.
     def call(env)
       case env[REQUEST_METHOD]
-      when "GET", "HEAD"
+      when "GET", "HEAD", "QUERY"
         status, headers, body = response = @app.call(env)
 
         if status == 200 && fresh?(env, headers)

@@ -43,6 +43,13 @@ describe Rack::MethodOverride do
     env["REQUEST_METHOD"].must_equal "PUT"
   end
 
+  it "modify REQUEST_METHOD for POST requests when _method parameter is set to query" do
+    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=query")
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "QUERY"
+  end
+
   it "modify REQUEST_METHOD for POST requests when X-HTTP-Method-Override is set" do
     env = Rack::MockRequest.env_for("/",
             :method => "POST",

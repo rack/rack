@@ -95,7 +95,7 @@ describe Rack::MockRequest do
     env["mock.postdata"].must_be_nil
   end
 
-  it "allow GET/POST/PUT/DELETE/HEAD" do
+  it "allow GET/POST/PUT/DELETE/HEAD/QUERY" do
     res = Rack::MockRequest.new(app).get("", input: "foo")
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "GET"
@@ -103,6 +103,10 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).post("", input: "foo")
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
+
+    res = Rack::MockRequest.new(app).query("", input: "foo")
+    env = YAML.unsafe_load(res.body)
+    env["REQUEST_METHOD"].must_equal "QUERY"
 
     res = Rack::MockRequest.new(app).put("", input: "foo")
     env = YAML.unsafe_load(res.body)
@@ -242,6 +246,26 @@ describe Rack::MockRequest do
     res = Rack::MockRequest.new(app).post("/foo", params: "foo%5Bbar%5D=1")
     env = YAML.unsafe_load(res.body)
     env["REQUEST_METHOD"].must_equal "POST"
+    env["QUERY_STRING"].must_equal ""
+    env["PATH_INFO"].must_equal "/foo"
+    env["CONTENT_TYPE"].must_equal "application/x-www-form-urlencoded"
+    env["mock.postdata"].must_equal "foo%5Bbar%5D=1"
+  end
+
+  it "accept params and build url encoded params for QUERY requests" do
+    res = Rack::MockRequest.new(app).query("/foo", params: { foo: { bar: "1" } })
+    env = YAML.unsafe_load(res.body)
+    env["REQUEST_METHOD"].must_equal "QUERY"
+    env["QUERY_STRING"].must_equal ""
+    env["PATH_INFO"].must_equal "/foo"
+    env["CONTENT_TYPE"].must_equal "application/x-www-form-urlencoded"
+    env["mock.postdata"].must_equal "foo%5Bbar%5D=1"
+  end
+
+  it "accept raw input in params for QUERY requests" do
+    res = Rack::MockRequest.new(app).query("/foo", params: "foo%5Bbar%5D=1")
+    env = YAML.unsafe_load(res.body)
+    env["REQUEST_METHOD"].must_equal "QUERY"
     env["QUERY_STRING"].must_equal ""
     env["PATH_INFO"].must_equal "/foo"
     env["CONTENT_TYPE"].must_equal "application/x-www-form-urlencoded"
