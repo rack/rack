@@ -10,7 +10,6 @@ require 'erb'
 
 require_relative 'query_parser'
 require_relative 'mime'
-require_relative 'headers'
 require_relative 'constants'
 
 module Rack
