@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 - Add `Rack::Request#prefetch?` for identifying requests with `Sec-Purpose: prefetch` header set. ([#2405](https://github.com/rack/rack/pull/2405), [@glaszig](https://github.com/glaszig))
 - Add `rack.request.trusted_proxy` environment key to indicate whether the request is coming from a trusted proxy.
 - Add `Rack::Request#headers` for simpler access to request headers by header name. ([#1881](https://github.com/rack/rack/pull/1881), [@jeremyevans](https://github.com/jeremyevans))
+- Introduce `Rack::ServerTiming` middleware for instrumenting runtime in part or all of an application, and reporting via the [Server-Timing](https://developer.mozilla.org/en-US/docs/Web/HTTP/Reference/Headers/Server-Timing) header. ([#2375](github.com/rack/rack/pull/2389), [@lewispb](https://github.com/lewispb))
 
 ### Changed
 
