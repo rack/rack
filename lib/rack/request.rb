@@ -710,7 +710,7 @@ module Rack
       #
       # @returns [Boolean] true if the given IP is a trusted proxy, false otherwise.
       def trusted_proxy?(ip)
-        trusted_proxy = get_header(RACK_REQUEST_TRUSTED_PROXY)
+        trusted_proxy = config_value(:trusted_proxy)
 
         case trusted_proxy
         when nil
@@ -725,6 +725,10 @@ module Rack
       end
 
       private
+
+      def config_value(key)
+        env.dig(RACK_REQUEST_CONFIG, key)
+      end
 
       def default_session; {}; end
 
@@ -771,7 +775,7 @@ module Rack
       end
 
       def query_parser
-        @query_parser || Utils.default_query_parser
+        @query_parser || config_value(:query_parser) || Utils.default_query_parser
       end
 
       def parse_query(qs, d = '&')
@@ -881,11 +885,11 @@ module Rack
       end
 
       def forwarded_priority
-        Request.forwarded_priority
+        config_value(:forwarded_priority) || Request.forwarded_priority
       end
 
       def x_forwarded_proto_priority
-        Request.x_forwarded_proto_priority
+        config_value(:x_forwarded_proto_priority) || Request.x_forwarded_proto_priority
       end
     end
 

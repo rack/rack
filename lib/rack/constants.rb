@@ -56,6 +56,7 @@ module Rack
   RACK_MULTIPART_TEMPFILE_FACTORY     = 'rack.multipart.tempfile_factory'
   RACK_RESPONSE_FINISHED              = 'rack.response_finished'
   RACK_PROTOCOL                       = 'rack.protocol'
+  RACK_REQUEST_CONFIG                 = 'rack.request.config'
   RACK_REQUEST_FORM_INPUT             = 'rack.request.form_input'
   RACK_REQUEST_FORM_HASH              = 'rack.request.form_hash'
   RACK_REQUEST_FORM_PAIRS             = 'rack.request.form_pairs'
@@ -65,6 +66,5 @@ module Rack
   RACK_REQUEST_COOKIE_STRING          = 'rack.request.cookie_string'
   RACK_REQUEST_QUERY_HASH             = 'rack.request.query_hash'
   RACK_REQUEST_QUERY_STRING           = 'rack.request.query_string'
-  RACK_REQUEST_TRUSTED_PROXY          = 'rack.request.trusted_proxy'
   RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'
 end

@@ -405,202 +405,225 @@ class RackRequestTest < Minitest::Spec
     req.port.must_equal 443
   end
 
-  it "have forwarded_* methods respect forwarded_priority" do
-    begin
-      default_priority = Rack::Request.forwarded_priority
-      default_proto_priority = Rack::Request.x_forwarded_proto_priority
+  [true, false].each do |global|
+    it "have forwarded_* methods respect forwarded_priority set #{global ? "globally" : "via rack.request.config"}" do
+      begin
+        default_priority = Rack::Request.forwarded_priority
+        default_proto_priority = Rack::Request.x_forwarded_proto_priority
 
-      def self.req(headers)
-        req = make_request Rack::MockRequest.env_for("/", headers)
-        req.singleton_class.send(:public, :forwarded_scheme)
-        req
+        define_singleton_method(:req) do |headers|
+          env = Rack::MockRequest.env_for("/", headers)
+          unless global
+            config = env[Rack::RACK_REQUEST_CONFIG] = {
+              forwarded_priority: @forwarded_priority,
+              x_forwarded_proto_priority: @x_forwarded_proto_priority
+            }
+          end
+          req = make_request env
+          req.singleton_class.send(:public, :forwarded_scheme)
+          req
+        end
+
+        define_singleton_method(:set_forwarded_priority) do |val|
+          if global
+            Rack::Request.forwarded_priority = val
+          else
+            @forwarded_priority = val
+          end
+        end
+
+        define_singleton_method(:set_x_forwarded_proto_priority) do |val|
+          if global
+            Rack::Request.x_forwarded_proto_priority = val
+          else
+            @x_forwarded_proto_priority = val
+          end
+        end
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4:1234",
+          "HTTP_X_FORWARDED_PORT" => "2345").
+          forwarded_port.must_equal [1234]
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4",
+          "HTTP_X_FORWARDED_PORT" => "2345").
+          forwarded_port.must_equal []
+
+        req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
+          "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
+          forwarded_authority.must_equal '3.4.5.6'
+
+        req("HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "ws"
+
+        r = req("HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http",
+          "HTTP_X_FORWARDED_SSL" => "on")
+        r.forwarded_scheme.must_equal "https"
+        r.ssl?.must_equal true
+
+        req("HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "http"
+
+        set_forwarded_priority([nil, :x_forwarded, :forwarded])
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4",
+          "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
+          forwarded_for.must_equal ['2.3.4.5']
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4",
+          "HTTP_X_FORWARDED_PORT" => "2345").
+          forwarded_port.must_equal [2345]
+
+        req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
+          "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
+          forwarded_authority.must_equal '4.5.6.7'
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "ws"
+
+        r = req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http",
+          "HTTP_X_FORWARDED_SSL" => "on")
+        r.forwarded_scheme.must_equal "https"
+        r.ssl?.must_equal true
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "http"
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_equal "https"
+
+        set_x_forwarded_proto_priority([nil, :scheme, :proto, :ssl])
+
+        r = req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http")
+        r.forwarded_scheme.must_equal "http"
+        r.ssl?.must_equal false
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws").
+          forwarded_scheme.must_equal "ws"
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_equal "https"
+
+        set_forwarded_priority([:x_forwarded])
+
+        r = req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http")
+        r.forwarded_scheme.must_equal "http"
+        r.ssl?.must_equal false
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws").
+          forwarded_scheme.must_equal "ws"
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_be_nil
+
+        set_x_forwarded_proto_priority([:scheme])
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "http"
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_be_nil
+
+        set_x_forwarded_proto_priority([:proto])
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal "ws"
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_be_nil
+
+        set_x_forwarded_proto_priority([])
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_be_nil
+
+        set_x_forwarded_proto_priority(default_proto_priority)
+        set_forwarded_priority([:forwarded])
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_equal 'https'
+
+        req("HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_X_FORWARDED_PROTO" => "ws").
+          forwarded_scheme.must_be_nil
+
+        set_forwarded_priority([])
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4",
+          "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
+          forwarded_for.must_be_nil
+
+        req("HTTP_FORWARDED"=>"for=1.2.3.4",
+          "HTTP_X_FORWARDED_PORT" => "2345").
+          forwarded_port.must_be_nil
+
+        req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
+          "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
+          forwarded_authority.must_be_nil
+
+        r = req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SSL" => "on",
+          "HTTP_X_FORWARDED_PROTO" => "ws",
+          "HTTP_X_FORWARDED_SCHEME" => "http")
+        r.forwarded_scheme.must_be_nil
+        r.ssl?.must_equal false
+
+        req("HTTP_FORWARDED"=>"proto=https",
+          "HTTP_X_FORWARDED_SCHEME" => "http").
+          forwarded_scheme.must_be_nil
+
+        req("HTTP_FORWARDED"=>"proto=https").
+          forwarded_scheme.must_be_nil
+
+      ensure
+        if global
+          Rack::Request.forwarded_priority = default_priority
+          Rack::Request.x_forwarded_proto_priority = default_proto_priority
+        end
       end
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
-        forwarded_for.must_equal ['1.2.3.4']
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4:1234",
-        "HTTP_X_FORWARDED_PORT" => "2345").
-        forwarded_port.must_equal [1234]
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_PORT" => "2345").
-        forwarded_port.must_equal []
-
-      req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
-        "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
-        forwarded_authority.must_equal '3.4.5.6'
-
-      req("HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "ws"
-
-      r = req("HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http",
-        "HTTP_X_FORWARDED_SSL" => "on")
-      r.forwarded_scheme.must_equal "https"
-      r.ssl?.must_equal true
-
-      req("HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "http"
-
-      Rack::Request.forwarded_priority = [nil, :x_forwarded, :forwarded]
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
-        forwarded_for.must_equal ['2.3.4.5']
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_PORT" => "2345").
-        forwarded_port.must_equal [2345]
-
-      req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
-        "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
-        forwarded_authority.must_equal '4.5.6.7'
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "ws"
-
-      r = req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http",
-        "HTTP_X_FORWARDED_SSL" => "on")
-      r.forwarded_scheme.must_equal "https"
-      r.ssl?.must_equal true
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "http"
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_equal "https"
-
-      Rack::Request.x_forwarded_proto_priority = [nil, :scheme, :proto, :ssl]
-
-      r = req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http")
-      r.forwarded_scheme.must_equal "http"
-      r.ssl?.must_equal false
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws").
-        forwarded_scheme.must_equal "ws"
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_equal "https"
-
-      Rack::Request.forwarded_priority = [:x_forwarded]
-
-      r = req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http")
-      r.forwarded_scheme.must_equal "http"
-      r.ssl?.must_equal false
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws").
-        forwarded_scheme.must_equal "ws"
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_be_nil
-
-      Rack::Request.x_forwarded_proto_priority = [:scheme]
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "http"
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_be_nil
-
-      Rack::Request.x_forwarded_proto_priority = [:proto]
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal "ws"
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_be_nil
-
-      Rack::Request.x_forwarded_proto_priority = []
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_be_nil
-
-      Rack::Request.x_forwarded_proto_priority = default_proto_priority
-      Rack::Request.forwarded_priority = [:forwarded]
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_equal 'https'
-
-      req("HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_X_FORWARDED_PROTO" => "ws").
-        forwarded_scheme.must_be_nil
-
-      Rack::Request.forwarded_priority = []
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_FOR" => "2.3.4.5").
-        forwarded_for.must_be_nil
-
-      req("HTTP_FORWARDED"=>"for=1.2.3.4",
-        "HTTP_X_FORWARDED_PORT" => "2345").
-        forwarded_port.must_be_nil
-
-      req("HTTP_FORWARDED"=>"host=1.2.3.4, host=3.4.5.6",
-        "HTTP_X_FORWARDED_HOST" => "2.3.4.5,4.5.6.7").
-        forwarded_authority.must_be_nil
-
-      r = req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SSL" => "on",
-        "HTTP_X_FORWARDED_PROTO" => "ws",
-        "HTTP_X_FORWARDED_SCHEME" => "http")
-      r.forwarded_scheme.must_be_nil
-      r.ssl?.must_equal false
-
-      req("HTTP_FORWARDED"=>"proto=https",
-        "HTTP_X_FORWARDED_SCHEME" => "http").
-        forwarded_scheme.must_be_nil
-
-      req("HTTP_FORWARDED"=>"proto=https").
-        forwarded_scheme.must_be_nil
-
-    ensure
-      Rack::Request.forwarded_priority = default_priority
-      Rack::Request.x_forwarded_proto_priority = default_proto_priority
     end
   end
 
@@ -681,7 +704,7 @@ class RackRequestTest < Minitest::Spec
     req.params.must_equal req.GET.merge(req.POST)
   end
 
-  it "should use the query_parser for query parsing" do
+  it "should use the query_parser set via attr_writer for query parsing" do
     c = Class.new(Rack::QueryParser::Params) do
       def initialize(*)
         super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
@@ -689,6 +712,20 @@ class RackRequestTest < Minitest::Spec
     end
     req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
     req.query_parser = Rack::QueryParser.new(c, 100)
+    req.GET[:foo].must_equal "bar"
+    req.GET[:quux].must_equal "bla"
+    req.params[:foo].must_equal "bar"
+    req.params[:quux].must_equal "bla"
+  end
+
+  it "should use the query_parser from environment for query parsing" do
+    c = Class.new(Rack::QueryParser::Params) do
+      def initialize(*)
+        super(){|h, k| h[k.to_s] if k.is_a?(Symbol)}
+      end
+    end
+    req = Rack::Request.new(Rack::MockRequest.env_for("/?foo=bar&quux=bla"))
+    req.env[Rack::RACK_REQUEST_CONFIG] = {query_parser: Rack::QueryParser.new(c, 100)}
     req.GET[:foo].must_equal "bar"
     req.GET[:quux].must_equal "bla"
     req.params[:foo].must_equal "bar"
@@ -2206,7 +2243,7 @@ EOF
   it "uses rack.request.trusted_proxy env key when set to nil (default behavior)" do
     # When nil, should fall back to ip_filter
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = nil
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: nil}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal true
@@ -2217,7 +2254,7 @@ EOF
 
   it "trusts all proxies when rack.request.trusted_proxy is true" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: true}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal true
@@ -2228,7 +2265,7 @@ EOF
 
   it "trusts no proxies when rack.request.trusted_proxy is false" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = false
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: false}
     req = make_request(env)
     
     req.trusted_proxy?('127.0.0.1').must_equal false
@@ -2239,7 +2276,7 @@ EOF
 
   it "trusts only specified IPs when rack.request.trusted_proxy is a callable" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }
+    env[Rack::RACK_REQUEST_CONFIG] = {trusted_proxy: lambda { |ip| ['10.0.0.1', '192.168.1.100'].include?(ip) }}
     req = make_request(env)
     
     req.trusted_proxy?('10.0.0.1').must_equal true
@@ -2253,13 +2290,15 @@ EOF
     require 'ipaddr'
     env = Rack::MockRequest.env_for("/")
     ranges = [IPAddr.new('10.0.0.0/24'), IPAddr.new('192.168.1.0/28')]
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      begin
-        ip_addr = IPAddr.new(ip)
-        ranges.any? { |range| range.include?(ip_addr) }
-      rescue IPAddr::InvalidAddressError
-        false
-      end
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip|
+        begin
+          ip_addr = IPAddr.new(ip)
+          ranges.any? { |range| range.include?(ip_addr) }
+        rescue IPAddr::InvalidAddressError
+          false
+        end
+      }
     }
     req = make_request(env)
     
@@ -2280,13 +2319,15 @@ EOF
     env = Rack::MockRequest.env_for("/")
     ipv6_exact = IPAddr.new('2001:db8::1')
     ipv6_range = IPAddr.new('fd00::/8')
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      begin
-        ip_addr = IPAddr.new(ip)
-        ip_addr == ipv6_exact || ipv6_range.include?(ip_addr)
-      rescue IPAddr::InvalidAddressError
-        false
-      end
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip|
+        begin
+          ip_addr = IPAddr.new(ip)
+          ip_addr == ipv6_exact || ipv6_range.include?(ip_addr)
+        rescue IPAddr::InvalidAddressError
+          false
+        end
+      }
     }
     req = make_request(env)
     
@@ -2299,8 +2340,8 @@ EOF
 
   it "handles custom logic in rack.request.trusted_proxy callable" do
     env = Rack::MockRequest.env_for("/")
-    env[Rack::RACK_REQUEST_TRUSTED_PROXY] = lambda { |ip|
-      ip == '10.0.0.1' || ip == 'invalid-ip'
+    env[Rack::RACK_REQUEST_CONFIG] = {
+      trusted_proxy: lambda { |ip| ip == '10.0.0.1' || ip == 'invalid-ip' }
     }
     req = make_request(env)
     
@@ -2309,10 +2350,10 @@ EOF
     req.trusted_proxy?('192.168.1.1').must_equal false
   end
 
-  it "can use Rack::Config to set rack.request.trusted_proxy" do
+  it "can use Rack::Config to set rack.request.config" do
     app = lambda { |env| [200, {}, [Rack::Request.new(env).trusted_proxy?('8.8.8.8').to_s]] }
     config_app = Rack::Config.new(app) do |env|
-      env[Rack::RACK_REQUEST_TRUSTED_PROXY] = true
+      env[Rack::RACK_REQUEST_CONFIG] = { trusted_proxy: true }
     end
     
     mock = Rack::MockRequest.new(config_app)
