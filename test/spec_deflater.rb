@@ -170,7 +170,7 @@ describe Rack::Deflater do
     status.must_equal 200
 
     out = StringIO.new(String.new)
-    def out.flush_count = @flush_count ||= 0
+    def out.flush_count; @flush_count ||= 0; end
     def out.flush; @flush_count = flush_count + 1; super; end
     body.call(out)
     out.flush_count.must_be :>, 0
