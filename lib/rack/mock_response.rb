@@ -23,7 +23,7 @@ module Rack
         @secure = args["secure"]
       end
 
-      if RUBY_VERSION >= '3.0'
+      if RUBY_VERSION.to_i >= 3
         def method_missing(method_name, *args, **kwargs, &block)
           @value.send(method_name, *args, **kwargs, &block)
         end

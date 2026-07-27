@@ -74,7 +74,7 @@ module Rack
       end
 
       # Delegate method missing calls to the tempfile.
-      if RUBY_VERSION >= '3.0'
+      if RUBY_VERSION.to_i >= 3
         def method_missing(method_name, *args, **kwargs, &block) #:nodoc:
           @tempfile.__send__(method_name, *args, **kwargs, &block)
         end

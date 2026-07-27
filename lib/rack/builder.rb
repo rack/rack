@@ -156,7 +156,7 @@ module Rack
     # All requests through to this application will first be processed by the middleware class.
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
-    if RUBY_VERSION >= '3.0'
+    if RUBY_VERSION.to_i >= 3
       def use(middleware, *args, **kwargs, &block)
         add_middleware { |app| middleware.new(app, *args, **kwargs, &block) }
       end
