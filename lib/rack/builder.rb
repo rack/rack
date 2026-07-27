@@ -156,18 +156,21 @@ module Rack
     # All requests through to this application will first be processed by the middleware class.
     # The +call+ method in this example sets an additional environment key which then can be
     # referenced in the application if required.
-    def use(middleware, *args, &block)
-      if @map
-        mapping, @map = @map, nil
-        @use << proc { |app| generate_map(app, mapping) }
+    if RUBY_VERSION >= '3.0'
+      def use(middleware, *args, **kwargs, &block)
+        add_middleware { |app| middleware.new(app, *args, **kwargs, &block) }
       end
-      @use << proc { |app| middleware.new(app, *args, &block) }
-
-      nil
+    else
+      # :nocov:
+      # Ruby < 3.0 does not separate a trailing positional Hash from keywords,
+      # so a `**kwargs` parameter would capture an options Hash and forward it
+      # as keywords.
+      def use(middleware, *args, &block)
+        add_middleware { |app| middleware.new(app, *args, &block) }
+      end
+      ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
+      # :nocov:
     end
-    # :nocov:
-    ruby2_keywords(:use) if respond_to?(:ruby2_keywords, true)
-    # :nocov:
 
     # Takes a block or argument that is an object that responds to #call and
     # returns a Rack response.
@@ -284,6 +287,18 @@ module Rack
     end
 
     private
+
+    # Append a middleware factory to the stack, flushing any pending map block
+    # first. The factory receives the app it wraps and returns the middleware.
+    def add_middleware(&factory)
+      if @map
+        mapping, @map = @map, nil
+        @use << proc { |app| generate_map(app, mapping) }
+      end
+      @use << factory
+
+      nil
+    end
 
     # Generate a URLMap instance by generating new Rack applications for each
     # map block in this instance.

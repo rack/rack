@@ -42,22 +42,40 @@ module Rack
     end
 
     # Delegate missing methods to the wrapped body.
-    def method_missing(method_name, *args, &block)
-      case method_name
-      when :to_str
-        super
-      when :to_ary
-        begin
-          @body.__send__(method_name, *args, &block)
-        ensure
-          close
+    if RUBY_VERSION >= '3.0'
+      def method_missing(method_name, *args, **kwargs, &block)
+        case method_name
+        when :to_str
+          super
+        when :to_ary
+          begin
+            @body.__send__(method_name, *args, **kwargs, &block)
+          ensure
+            close
+          end
+        else
+          @body.__send__(method_name, *args, **kwargs, &block)
         end
-      else
-        @body.__send__(method_name, *args, &block)
       end
+    else
+      # :nocov:
+      # See the note in Rack::Builder#use.
+      def method_missing(method_name, *args, &block)
+        case method_name
+        when :to_str
+          super
+        when :to_ary
+          begin
+            @body.__send__(method_name, *args, &block)
+          ensure
+            close
+          end
+        else
+          @body.__send__(method_name, *args, &block)
+        end
+      end
+      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+      # :nocov:
     end
-    # :nocov:
-    ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
-    # :nocov:
   end
 end

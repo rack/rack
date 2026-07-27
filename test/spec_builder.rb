@@ -11,6 +11,35 @@ separate_testing do
   require_relative '../lib/rack/auth/basic'
 end
 
+# Records exactly what the middleware constructor received.
+class ArgumentRecordingMiddleware
+  class << self; attr_accessor :args, :kwargs; end
+
+  def initialize(app, *args, **kwargs)
+    self.class.args = args
+    self.class.kwargs = kwargs
+    @app = app
+  end
+
+  def call(env)
+    @app.call(env)
+  end
+end
+
+# Takes an options Hash as a required positional argument.
+class OptionsHashMiddleware
+  class << self; attr_accessor :options; end
+
+  def initialize(app, options)
+    self.class.options = options
+    @app = app
+  end
+
+  def call(env)
+    @app.call(env)
+  end
+end
+
 class NothingMiddleware
   def initialize(app, **)
     @app = app
@@ -307,6 +336,41 @@ describe Rack::Builder do
       body = response.instance_variable_get(:@body)
       body.must_equal(['frozen'])
       body[0].frozen?.must_equal true
+    end
+  end
+
+  describe 'argument forwarding to middleware' do
+    def run_with(&block)
+      app = builder_to_app(&block)
+      Rack::MockRequest.new(app).get("/")
+    end
+
+    it "passes keyword arguments as keywords" do
+      run_with do
+        use ArgumentRecordingMiddleware, :positional, answer: 42
+        run lambda { |env| [200, { "content-type" => "text/plain" }, ["OK"]] }
+      end
+      ArgumentRecordingMiddleware.args.must_equal [:positional]
+      ArgumentRecordingMiddleware.kwargs.must_equal(answer: 42)
+    end
+
+    it "passes an empty options Hash through as a positional argument" do
+      options = {}
+      body = run_with do
+        use OptionsHashMiddleware, options
+        run lambda { |env| [200, { "content-type" => "text/plain" }, ["OK"]] }
+      end.body.to_s
+      body.must_equal 'OK'
+      OptionsHashMiddleware.options.must_equal({})
+    end
+
+    it "passes an options Hash with non-Symbol keys through unsplit" do
+      body = run_with do
+        use OptionsHashMiddleware, { "a" => 1, :b => 2 }
+        run lambda { |env| [200, { "content-type" => "text/plain" }, ["OK"]] }
+      end.body.to_s
+      body.must_equal 'OK'
+      OptionsHashMiddleware.options.must_equal({ "a" => 1, :b => 2 })
     end
   end
 

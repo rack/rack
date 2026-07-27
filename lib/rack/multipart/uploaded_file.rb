@@ -74,12 +74,19 @@ module Rack
       end
 
       # Delegate method missing calls to the tempfile.
-      def method_missing(method_name, *args, &block) #:nodoc:
-        @tempfile.__send__(method_name, *args, &block)
+      if RUBY_VERSION >= '3.0'
+        def method_missing(method_name, *args, **kwargs, &block) #:nodoc:
+          @tempfile.__send__(method_name, *args, **kwargs, &block)
+        end
+      else
+        # :nocov:
+        # See the note in Rack::Builder#use.
+        def method_missing(method_name, *args, &block) #:nodoc:
+          @tempfile.__send__(method_name, *args, &block)
+        end
+        ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
+        # :nocov:
       end
-      # :nocov:
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
-      # :nocov:
     end
   end
 end
