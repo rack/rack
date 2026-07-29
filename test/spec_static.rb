@@ -204,6 +204,29 @@ describe Rack::Static do
     res.headers['cache-control'].must_equal 'public, max-age=300'
   end
 
+  it "applies folder rules to paths that normalise into the folder" do
+    # A path containing dot-segments is normalised before the file is served, so the header rule
+    # has to be evaluated against the same normalised path.
+    res = @header_request.get('/cgi/assets/other/../folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies folder rules to percent-encoded dot-segments" do
+    # %2E%2E survives client-side canonicalisation, so it reaches the server verbatim.
+    res = @header_request.get('/cgi/assets/other/%2E%2E/folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies Regexp rules anchored at the start to normalised paths" do
+    opts = OPTIONS.merge(header_rules: [[%r{\A/cgi/assets/folder/}, { 'x-normalised' => 'yes' }]])
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    res = request.get('/cgi/assets/other/../folder/test.js')
+    res.must_be :ok?
+    res.headers['x-normalised'].must_equal 'yes'
+  end
+
   it "supports folder rules provided as a String" do
     # Headers for files in folder via string
     res = @header_request.get('/cgi/assets/folder/test.js')
