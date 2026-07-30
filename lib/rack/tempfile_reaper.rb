@@ -9,11 +9,6 @@ module Rack
   # Ideas/strategy based on posts by Eric Wong and Charles Oliver Nutter
   # https://groups.google.com/forum/#!searchin/rack-devel/temp/rack-devel/brK8eh-MByw/sw61oJJCGRMJ
   class TempfileReaper
-    RESPONSE_FINISHED_HANDLER = proc { |env|
-      env[RACK_TEMPFILES]&.each(&:close!)
-    }
-    private_constant :RESPONSE_FINISHED_HANDLER
-
     def initialize(app)
       @app = app
     end
@@ -22,7 +17,7 @@ module Rack
       env[RACK_TEMPFILES] ||= []
 
       if response_finished = env[RACK_RESPONSE_FINISHED]
-        response_finished << RESPONSE_FINISHED_HANDLER
+        response_finished << TempfileReaper
 
         @app.call(env)
       else
@@ -39,6 +34,10 @@ module Rack
 
         response
       end
+    end
+
+    def self.call(env, _status, _headers, _error) # :nodoc:
+      env[RACK_TEMPFILES]&.each(&:close!)
     end
   end
 end
