@@ -255,6 +255,50 @@ describe Rack::Static do
     res.headers['cache-control'].must_equal 'public, max-age=600'
   end
 
+  it "applies String header rules to paths containing dot segments" do
+    # /cgi/assets/x/../folder/test.js resolves to /cgi/assets/folder/test.js,
+    # which is what gets served, so the '/cgi/assets/folder/' rule must apply.
+    res = @header_request.get('/cgi/assets/x/../folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies String header rules to paths containing URL-encoded dot segments" do
+    res = @header_request.get('/cgi/assets/x/%2E%2E/folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies String header rules without a leading slash to paths containing dot segments" do
+    res = @header_request.get('/cgi/assets/x/../javascripts/app.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=500'
+  end
+
+  it "applies String header rules to paths containing duplicate slashes" do
+    res = @header_request.get('/cgi/assets//folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies start-anchored Regexp header rules to paths containing dot segments" do
+    opts = OPTIONS.merge(header_rules: [
+      [%r{\A/cgi/assets/folder/}, { 'cache-control' => 'public, max-age=700' }]
+    ])
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    res = request.get('/cgi/assets/x/../folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=700'
+  end
+
+  it "applies extension-anchored Regexp header rules to paths containing dot segments" do
+    # Suffix-matching rules were already unaffected by dot segments; kept as a
+    # control so a regression in normalization shows up as a diff here too.
+    res = @header_request.get('/cgi/assets/x/../stylesheets/app.css')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=600'
+  end
+
   it "escapes Array rule entries when building regexp" do
     opts = OPTIONS.merge(header_rules: [
       [['p.g'], { 'cache-control' => 'public, max-age=999' }]

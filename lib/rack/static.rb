@@ -168,7 +168,11 @@ module Rack
 
     # Convert HTTP header rules to HTTP headers
     def applicable_rules(path)
-      path = ::Rack::Utils.unescape_path(path)
+      # Normalize with the same pair used to decide whether the path is servable
+      # (#call) and to locate the file on disk (Rack::Files), so a path
+      # containing dot segments cannot be served while its header rules are
+      # tested against the un-normalized string.
+      path = ::Rack::Utils.clean_path_info(::Rack::Utils.unescape_path(path))
 
       @header_rules.find_all do |rule, new_headers|
         case rule

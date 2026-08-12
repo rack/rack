@@ -31,6 +31,7 @@ All notable changes to this project will be documented in this file. For info on
 
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
+- `Rack::Static`: match `header_rules` against the same normalized path used to decide whether the file is served, so requests containing dot segments or duplicate slashes receive their configured headers. ([@anir0y](https://github.com/anir0y))
 
 ## [3.2.6] - 2026-04-01
 
