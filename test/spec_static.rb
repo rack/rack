@@ -227,6 +227,28 @@ describe Rack::Static do
     res.headers['x-normalised'].must_equal 'yes'
   end
 
+  it "applies folder rules given without a leading slash to normalised paths" do
+    res = @header_request.get('/cgi/assets/other/../javascripts/app.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=500'
+  end
+
+  it "applies folder rules to paths containing duplicate slashes" do
+    # clean_path_info collapses these too, so the served path matches the rule.
+    res = @header_request.get('/cgi/assets//folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies extension-anchored Regexp rules to normalised paths" do
+    # Suffix-matching rules were already unaffected, since the extension survives
+    # the dot-segments. Kept as a control so a regression in the normalisation
+    # shows up here as well as in the prefix cases above.
+    res = @header_request.get('/cgi/assets/other/../stylesheets/app.css')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=600'
+  end
+
   it "supports folder rules provided as a String" do
     # Headers for files in folder via string
     res = @header_request.get('/cgi/assets/folder/test.js')
