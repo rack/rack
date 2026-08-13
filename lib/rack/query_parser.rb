@@ -55,7 +55,8 @@ module Rack
       val
     end
 
-    BYTESIZE_LIMIT = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
+    bytesize_limit = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
+    BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
     private_constant :BYTESIZE_LIMIT
 
     PARAMS_LIMIT = env_int.call("RACK_QUERY_PARSER_PARAMS_LIMIT", 4096)
@@ -228,7 +229,7 @@ module Rack
     def each_query_pair(qs, separator, unescaper = nil)
       return if !qs || qs.empty?
 
-      if qs.bytesize > @bytesize_limit
+      if @bytesize_limit && qs.bytesize > @bytesize_limit
         raise QueryLimitError, "total query size exceeds limit (#{@bytesize_limit})"
       end
 

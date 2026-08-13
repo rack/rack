@@ -29,6 +29,14 @@ describe Rack::QueryParser do
     proc { query_parser.parse_query_pairs("a=aa") }.must_raise Rack::QueryParser::QueryLimitError
   end
 
+  it "does not enforce a bytesize limit when bytesize_limit is nil" do
+    query_parser = Rack::QueryParser.make_default(32, bytesize_limit: nil)
+    query_parser.parse_query("a=aa").must_equal({"a" => "aa"})
+    query_parser.parse_nested_query("a=aa").must_equal({"a" => "aa"})
+    query_parser.parse_nested_query("a=aa", '&').must_equal({"a" => "aa"})
+    query_parser.parse_query_pairs("a=aa").must_equal([["a", "aa"]])
+  end
+
   it "accepts params_limit to specify maximum number of query parameters to parse" do
     query_parser = Rack::QueryParser.make_default(32, params_limit: 2)
     query_parser.parse_query("a=a&b=b").must_equal({"a" => "a", "b" => "b"})
