@@ -599,7 +599,7 @@ module Rack
           if rack_input.nil?
             set_header(RACK_REQUEST_FORM_PAIRS, [])
           elsif form_data? || parseable_data?
-            if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
+            if pairs = multipart_parser.parse_from_env(env)
               set_header RACK_REQUEST_FORM_PAIRS, pairs
             else
               # Add 2 bytes. One to check whether it is over the limit, and a second
@@ -769,6 +769,18 @@ module Rack
 
       def query_parser
         @query_parser || config_value(:query_parser) || Utils.default_query_parser
+      end
+
+      # The default multipart parser
+      class MultipartParser < Multipart::Parser
+        # The default query parser used by the multipart parser.
+        def self.default_query_parser
+          Rack::Multipart::ParamList
+        end
+      end
+
+      def multipart_parser
+        config_value(:multipart_parser) || MultipartParser
       end
 
       def parse_query(qs, d = '&')

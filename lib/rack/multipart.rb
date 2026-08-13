@@ -46,23 +46,7 @@ module Rack
 
     class << self
       def parse_multipart(env, params = Rack::Utils.default_query_parser)
-        unless io = env[RACK_INPUT]
-          raise MissingInputError, "Missing input stream!"
-        end
-
-        if content_length = env['CONTENT_LENGTH']
-          content_length = content_length.to_i
-        end
-
-        content_type = env['CONTENT_TYPE']
-
-        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || Parser::TEMPFILE_FACTORY
-        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || Parser::BUFSIZE
-
-        info = Parser.parse(io, content_length, content_type, tempfile, bufsize, params)
-        env[RACK_TEMPFILES] = info.tmp_files
-
-        return info.params
+        Parser.parse_from_env(env, query_parser: params)
       end
 
       def extract_multipart(request, params = Rack::Utils.default_query_parser)
