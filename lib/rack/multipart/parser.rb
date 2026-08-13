@@ -314,18 +314,17 @@ module Rack
       def handle_mime_head
         if @sbuf.scan_until(@head_regex)
           head = @sbuf[1]
-          # Implement OBS unfolding (RFC 5322 Section 2.2.3). Done on the whole mime part
-          # header because content type, disposition and filename are all extracted
-          # from it by regex on this branch.
-          head = head.gsub(OBS_UNFOLD, '\\1')
-          content_type = head[MULTIPART_CONTENT_TYPE, 1]
-          if name = head[MULTIPART_CONTENT_DISPOSITION, 1]
+          # Implement OBS unfolding (RFC 5322 Section 2.2.3). Done on a copy
+          # because content type, disposition and filename are extracted by regex.
+          unfolded_head = head.gsub(OBS_UNFOLD, '\\1')
+          content_type = unfolded_head[MULTIPART_CONTENT_TYPE, 1]
+          if name = unfolded_head[MULTIPART_CONTENT_DISPOSITION, 1]
             name = Rack::Auth::Digest::Params::dequote(name)
           else
-            name = head[MULTIPART_CONTENT_ID, 1]
+            name = unfolded_head[MULTIPART_CONTENT_ID, 1]
           end
 
-          filename = get_filename(head)
+          filename = get_filename(unfolded_head)
 
           if name.nil? || name.empty?
             name = filename || "#{content_type || TEXT_PLAIN}[]".dup
