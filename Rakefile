@@ -94,7 +94,7 @@ end
 Rake::TestTask.new("test:regular") do |t|
   t.libs << "test"
   t.test_files = FileList["test/**/*_test.rb", "test/**/spec_*.rb", "test/gemloader.rb"]
-  t.warning = false
+  t.warning = true
   t.verbose = true
 end
 
