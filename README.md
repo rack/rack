@@ -207,9 +207,10 @@ implementation.
 
 This environment variable sets the default for the maximum query string bytesize
 that `Rack::QueryParser` will attempt to parse.  Attempts to use a query string
-that exceeds this number of bytes will result in a
-`Rack::QueryParser::QueryLimitError` exception. If this enviroment variable is
-provided, it must be an integer, or `Rack::QueryParser` will raise an exception.
+or application/x-www-form-urlencoded request body that exceeds this number of
+bytes will result in a `Rack::QueryParser::QueryLimitError` exception. If this
+enviroment variable is provided, it must be an integer, or `Rack::QueryParser`
+will raise an exception.
 
 The default limit can be overridden on a per-`Rack::QueryParser` basis using
 the `bytesize_limit` keyword argument when creating the `Rack::QueryParser`.
@@ -218,9 +219,10 @@ the `bytesize_limit` keyword argument when creating the `Rack::QueryParser`.
 
 This environment variable sets the default for the maximum number of query
 parameters that `Rack::QueryParser` will attempt to parse.  Attempts to use a
-query string with more than this many query parameters will result in a
-`Rack::QueryParser::QueryLimitError` exception. If this enviroment variable is
-provided, it must be an integer, or `Rack::QueryParser` will raise an exception.
+query string or application/x-www-form-urlencoded request body with more
+parameters than this will result in a `Rack::QueryParser::QueryLimitError`
+exception. If this enviroment variable is provided, it must be an integer, or
+`Rack::QueryParser` will raise an exception.
 
 The default limit can be overridden on a per-`Rack::QueryParser` basis using
 the `params_limit` keyword argument when creating the `Rack::QueryParser`.
