@@ -405,6 +405,22 @@ class RackRequestTest < Minitest::Spec
     req.port.must_equal 443
   end
 
+  it "use rack.request.config :authority for authority host, hostname, host_with_port, and port" do
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org", "rack.request.config" => {authority: "www3.example.org:80"})
+    req.host.must_equal "www3.example.org"
+    req.hostname.must_equal "www3.example.org"
+    req.host_with_port.must_equal "www3.example.org"
+    req.port.must_equal 80
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org", "rack.request.config" => {authority: "www3.example.org:81"})
+    req.host.must_equal "www3.example.org"
+    req.hostname.must_equal "www3.example.org"
+    req.host_with_port.must_equal "www3.example.org:81"
+    req.port.must_equal 81
+  end
+
   [true, false].each do |global|
     it "have forwarded_* methods respect forwarded_priority set #{global ? "globally" : "via rack.request.config"}" do
       begin
