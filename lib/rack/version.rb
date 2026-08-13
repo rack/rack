@@ -6,7 +6,7 @@
 # See MIT-LICENSE or https://opensource.org/licenses/MIT.
 
 module Rack
-  VERSION = "3.2.6"
+  VERSION = "3.2.7"
 
   RELEASE = VERSION
 
