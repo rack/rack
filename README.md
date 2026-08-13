@@ -11,16 +11,17 @@ information.
 
 ## Version support
 
-| Version  | Support                            |
-|----------|------------------------------------|
-|    3.2.x | Bug fixes and security patches.    |
-|    3.1.x | Security patches only.             |
-|    3.0.x | End of support.                    |
-|    2.2.x | Security patches only.             |
-| <= 2.1.x | End of support.                    |
+| Version  | Support                                     |
+|----------|---------------------------------------------|
+|    3.2.x | Bug fixes and security patches.             |
+|    3.1.x | Security patches only.                      |
+|    3.0.x | End of support.                             |
+|    2.2.x | Security patches only (through April 2027). |
+| <= 2.1.x | End of support.                             |
 
-**Rack 2.2.x is in security maintenance mode**. Please upgrade to Rack 3.1+ as soon
-as possible to ensure you are receiving the latest features and security patches.
+**Rack 2.2.x is in security maintenance mode, and all support will end in May
+2027**. Please upgrade to Rack 3.2 as soon as possible to ensure you are receiving
+the latest bug fixes and security patches.
 
 Please see the [Security Policy] for more information.
 
@@ -30,22 +31,21 @@ See the [Changelog](CHANGELOG.md) for a detailed list of changes in each version
 
 ### Rack 3.2 (latest release)
 
-This version of rack contains bug fixes and security patches.
+This version of rack is supported with bug fixes and security patches.
 
 ### Rack 3.1
 
-This version of rack contains bug fixes and security patches.
+This version of rack is supported with security patches only.
 
 ### Rack 3.0
 
-This version of rack contains significant changes which are detailed in the
-[Upgrade Guide](UPGRADE-GUIDE.md). It is recommended to upgrade to Rack 3 as soon
-as possible to receive the latest features and security patches.
+This version of rack is no longer supported. It contains significant changes
+which are detailed in the [Upgrade Guide](UPGRADE-GUIDE.md).
 
 ### Rack 2.2
 
 This version of Rack is receiving security patches only, and effort should be
-made to move to Rack 3.
+made to move to Rack 3.2.
 
 Starting in Ruby 3.4 the `base64` dependency will no longer be a default gem,
 and may cause a warning or error about `base64` being missing. To correct this,
