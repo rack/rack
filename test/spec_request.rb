@@ -414,7 +414,7 @@ class RackRequestTest < Minitest::Spec
         define_singleton_method(:req) do |headers|
           env = Rack::MockRequest.env_for("/", headers)
           unless global
-            config = env[Rack::RACK_REQUEST_CONFIG] = {
+            env[Rack::RACK_REQUEST_CONFIG] = {
               forwarded_priority: @forwarded_priority,
               x_forwarded_proto_priority: @x_forwarded_proto_priority
             }
