@@ -128,8 +128,7 @@ describe Rack::Multipart do
 
   it "parses multipart content when content type is present but disposition is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
-    params = Rack::Multipart.parse_multipart(env)
-    params["text/plain; charset=US-ASCII"].must_equal ["contents"]
+    Rack::Multipart.parse_multipart(env).to_h.must_equal("text/plain; charset=US-ASCII" => ["contents"])
   end
 
   deprecated "parses multipart content when called using Rack::Request#parse_multipart" do
@@ -145,14 +144,12 @@ describe Rack::Multipart do
     write.close
     env[:input] = read
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition))
-    params = Rack::Multipart.parse_multipart(env)
-    params["text/plain; charset=US-ASCII"].must_equal ["contents"]
+    Rack::Multipart.parse_multipart(env).to_h.must_equal("text/plain; charset=US-ASCII" => ["contents"])
   end
 
   it "parses multipart content when content type present but filename is not" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
-    params = Rack::Multipart.parse_multipart(env)
-    params["text"].must_equal "contents"
+    Rack::Multipart.parse_multipart(env).to_h.must_equal("text" => "contents")
   end
 
   it "raises for invalid data preceding the boundary" do
@@ -232,9 +229,16 @@ describe Rack::Multipart do
   it "parses multipart form webkit style" do
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
-    params = Rack::Multipart.parse_multipart(env)
-    params['profile']['bio'].must_include 'hello'
-    params['profile'].keys.must_include 'public_email'
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({
+      "_method" => "put",
+      "profile" => {
+        "blog" => "",
+        "public_email" => "",
+        "interests" => "",
+        "bio" => "hello\r\n\r\n\"quote\""
+      },
+      "commit" => "Save"
+    })
   end
 
   it "rejects insanely long boundaries" do
@@ -863,16 +867,12 @@ describe Rack::Multipart do
 
   it "is robust separating content-disposition fields" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:robust_field_separation))
-    params = Rack::Multipart.parse_multipart(env)
-    params["text"].must_equal "contents"
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({"text" => "contents"})
   end
 
   it "does not include file params if no file was selected" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
-    params = Rack::Multipart.parse_multipart(env)
-    params["submit-name"].must_equal "Larry"
-    params["files"].must_be_nil
-    params.keys.wont_include "files"
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({"submit-name" => "Larry"})
   end
 
   it "parses multipart/mixed" do
@@ -1241,8 +1241,16 @@ EOF
     env = Rack::MockRequest.env_for '/', multipart_fixture(:webkit)
     env['CONTENT_TYPE'] = "multipart/form-data; boundary=----WebKitFormBoundaryWLHCs9qmcJJoyjKR"
     env.delete 'CONTENT_LENGTH'
-    params = Rack::Multipart.parse_multipart(env)
-    params['profile']['bio'].must_include 'hello'
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({
+      "_method" => "put",
+      "profile" => {
+        "blog" => "",
+        "public_email" => "",
+        "interests" => "",
+        "bio" => "hello\r\n\r\n\"quote\""
+      },
+      "commit" => "Save"
+    })
   end
 
   ['', '"'].each do |quote_char|
@@ -1327,8 +1335,7 @@ true\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    params["inline"].must_equal 'true'
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({"inline" => "true"})
   end
 
   it "parses quoted chars in name parameter" do
@@ -1347,8 +1354,7 @@ true\r
       :input => StringIO.new(data)
     }
     env = Rack::MockRequest.env_for("/", options)
-    params = Rack::Multipart.parse_multipart(env)
-    params["quoted\\chars\"in\tname"].must_equal 'true'
+    Rack::Multipart.parse_multipart(env).to_h.must_equal({"quoted\\chars\"in\tname" => "true"})
   end
 
   it "supports mixed case metadata" do
