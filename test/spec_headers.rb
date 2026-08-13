@@ -464,57 +464,49 @@ class RackHeadersTest < Minitest::Spec
     assert_equal('11', @fh['aB'])
   end
 
-  if RUBY_VERSION >= '2.5'
-    def test_slice
-      assert_equal(Rack::Headers['Ab'=>'1', 'cD'=>'2', '3'=>'4'], @fh.slice('aB', 'Cd', '3'))
-      assert_equal(Rack::Headers['AB'=>'1', 'CD'=>'2'], @fh.slice('Ab', 'CD'))
-      assert_equal(Rack::Headers[], @fh.slice('ad'))
-      assert_equal('1', @fh.slice('AB', 'cd')['Ab'])
-    end
-
-    def test_transform_keys
-      map = {'ab'=>'Xy', 'cd'=>'dC', '3'=>'5'}
-      dh = @fh.dup
-      fh = @fh.transform_keys{|k| map[k]}
-      assert_equal(dh, @fh)
-      assert_equal('1', fh['xY'])
-      assert_equal('2', fh['Dc'])
-      assert_equal('4', fh['5'])
-    end
-
-    def test_transform_keys!
-      map = {'ab'=>'Xy', 'cd'=>'dC', '3'=>'5'}
-      dh = @fh.dup
-      @fh.transform_keys!{|k| map[k]}
-      assert_equal(false, dh == @fh)
-      assert_equal('1', @fh['xY'])
-      assert_equal('2', @fh['DC'])
-      assert_equal('4', @fh['5'])
-    end
+  def test_slice
+    assert_equal(Rack::Headers['Ab'=>'1', 'cD'=>'2', '3'=>'4'], @fh.slice('aB', 'Cd', '3'))
+    assert_equal(Rack::Headers['AB'=>'1', 'CD'=>'2'], @fh.slice('Ab', 'CD'))
+    assert_equal(Rack::Headers[], @fh.slice('ad'))
+    assert_equal('1', @fh.slice('AB', 'cd')['Ab'])
   end
 
-  if RUBY_VERSION >= '2.6'
-    def test_filter!
-      assert_nil @h.filter!{|k, v| true}
-      assert_nil @fh.filter!{|k, v| true}
-      assert_equal @h, @fh.dup.filter!{|k, v| false}
-      assert_equal Rack::Headers["AB"=>'1'], @fh.filter!{|k, v| k == "ab"}
-    end
+  def test_transform_keys
+    map = {'ab'=>'Xy', 'cd'=>'dC', '3'=>'5'}
+    dh = @fh.dup
+    fh = @fh.transform_keys{|k| map[k]}
+    assert_equal(dh, @fh)
+    assert_equal('1', fh['xY'])
+    assert_equal('2', fh['Dc'])
+    assert_equal('4', fh['5'])
   end
 
-  if RUBY_VERSION >= '2.7'
-    def test_deconstruct_keys
-      assert_equal(@fh.to_hash, @fh.deconstruct_keys([]))
-      assert_equal(Rack::Headers, @fh.deconstruct_keys([]).class)
-    end
+  def test_transform_keys!
+    map = {'ab'=>'Xy', 'cd'=>'dC', '3'=>'5'}
+    dh = @fh.dup
+    @fh.transform_keys!{|k| map[k]}
+    assert_equal(false, dh == @fh)
+    assert_equal('1', @fh['xY'])
+    assert_equal('2', @fh['DC'])
+    assert_equal('4', @fh['5'])
   end
 
-  if RUBY_VERSION >= '3.0'
-    def test_except
-      @fh = Rack::Headers['AB'=>'1', 'Cd'=>'2', '3'=>'4']
-      assert_equal(@fh, @fh.except)
-      assert_equal(Rack::Headers['cD'=>'2', '3'=>'4'], @fh.except('AB', 5))
-      assert_equal(Rack::Headers['AB'=>'1'], @fh.except('cD', '3'))
-    end
+  def test_filter!
+    assert_nil @h.filter!{|k, v| true}
+    assert_nil @fh.filter!{|k, v| true}
+    assert_equal @h, @fh.dup.filter!{|k, v| false}
+    assert_equal Rack::Headers["AB"=>'1'], @fh.filter!{|k, v| k == "ab"}
+  end
+
+  def test_deconstruct_keys
+    assert_equal(@fh.to_hash, @fh.deconstruct_keys([]))
+    assert_equal(Rack::Headers, @fh.deconstruct_keys([]).class)
+  end
+
+  def test_except
+    @fh = Rack::Headers['AB'=>'1', 'Cd'=>'2', '3'=>'4']
+    assert_equal(@fh, @fh.except)
+    assert_equal(Rack::Headers['cD'=>'2', '3'=>'4'], @fh.except('AB', 5))
+    assert_equal(Rack::Headers['AB'=>'1'], @fh.except('cD', '3'))
   end
 end

@@ -27,7 +27,7 @@ module Rack
   # encoding.
   class Deflater
 
-    GZIP_MTIME = RUBY_VERSION >= "2.7" ? 0 : 1
+    GZIP_MTIME = 0
 
     # Creates Rack::Deflater middleware. Options:
     #
