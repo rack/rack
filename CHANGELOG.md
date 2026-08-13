@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Security
+
+- [CVE-2026-26962](https://github.com/advisories/GHSA-rx22-g9mx-qrhv) Improper unfolding of folded multipart headers preserves CRLF in parsed parameter values.
+
 ## [3.1.21] - 2026-04-01
 
 ### Security
