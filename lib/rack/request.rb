@@ -349,7 +349,7 @@ module Rack
       # In HTTP/1, this is the `host` header.
       # In HTTP/2, this is the `:authority` pseudo-header.
       def authority
-        forwarded_authority || host_authority || server_authority
+        config_value(:authority) || forwarded_authority || host_authority || server_authority
       end
 
       # The authority as defined by the `SERVER_NAME` and `SERVER_PORT`
