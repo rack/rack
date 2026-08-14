@@ -1019,6 +1019,13 @@ content-type: image/jpeg\r
     Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"), binary: true).must_be :binmode?
   end
 
+  it "delegates keyword arguments to the tempfile" do
+    file = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
+    file.readlines(chomp: true).must_equal ['contents']
+    file.rewind
+    file.gets(chomp: true).must_equal 'contents'
+  end
+
   it "builds multipart body" do
     files = Rack::Multipart::UploadedFile.new(multipart_file("file1.txt"))
     data  = Rack::Multipart.build_multipart("submit-name" => "Larry", "files" => files)

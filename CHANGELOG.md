@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- `Rack::Multipart::UploadedFile` now delegates keyword arguments to the wrapped tempfile. Calls such as `uploaded_file.readlines(chomp: true)` raised `TypeError` on Ruby 3.0+. ([#2481](https://github.com/rack/rack/issues/2481), [#2501](https://github.com/rack/rack/pull/2501), [@SeanLF](https://github.com/SeanLF))
+
 ## [3.2.7] - 2026-08-13
 
 ### Fixed
