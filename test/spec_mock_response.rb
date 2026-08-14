@@ -92,6 +92,16 @@ describe Rack::MockResponse do
     session_cookie.expires.must_be_nil
   end
 
+  it "forwards keyword arguments from cookies to their values" do
+    value = Object.new
+    def value.fetch_value(prefix:, suffix:)
+      "#{prefix}value#{suffix}"
+    end
+
+    cookie = Rack::MockResponse::Cookie.new("value" => value)
+    cookie.fetch_value(prefix: "[", suffix: "]").must_equal "[value]"
+  end
+
   it "provides access to persistent cookies set with max-age" do
     res = Rack::MockRequest.new(app).get("")
     persistent_cookie = res.cookie("persistent_test")

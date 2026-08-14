@@ -23,12 +23,9 @@ module Rack
         @secure = args["secure"]
       end
 
-      def method_missing(method_name, *args, &block)
-        @value.send(method_name, *args, &block)
+      def method_missing(...)
+        @value.send(...)
       end
-      # :nocov:
-      ruby2_keywords(:method_missing) if respond_to?(:ruby2_keywords, true)
-      # :nocov:
 
       def respond_to_missing?(method_name, include_all = false)
         @value.respond_to?(method_name, include_all) || super

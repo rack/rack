@@ -199,31 +199,26 @@ module Rack
       keys.map{|key| self[key]}
     end
 
-    # :nocov:
-    if RUBY_VERSION >= '2.5'
-    # :nocov:
-      def slice(*a)
-        h = self.class.new
-        a.each{|k| h[k] = self[k] if has_key?(k)}
-        h
-      end
-
-      def transform_keys(&block)
-        dup.transform_keys!(&block)
-      end
-
-      def transform_keys!
-        hash = self.class.new
-        each do |k, v|
-          hash[yield k] = v
-        end
-        replace(hash)
-      end
+    def slice(*a)
+      h = self.class.new
+      a.each{|k| h[k] = self[k] if has_key?(k)}
+      h
     end
 
-    # :nocov:
-    if RUBY_VERSION >= '3.0'
-    # :nocov:
+    def transform_keys(&block)
+      dup.transform_keys!(&block)
+    end
+
+    def transform_keys!
+      hash = self.class.new
+      each do |k, v|
+        hash[yield k] = v
+      end
+      replace(hash)
+    end
+
+    # Ruby < 3.0 does not provide Hash#except.
+    if Hash.method_defined?(:except)
       def except(*a)
         super(*a.map!{|key| downcase_key(key)})
       end

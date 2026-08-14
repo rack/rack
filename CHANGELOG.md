@@ -20,6 +20,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Changed
 
+- Require Ruby 2.7.3 or newer and replace `ruby2_keywords` with argument forwarding.
 - Raise before exceeding a part limit, not after. ([#2362](https://github.com/rack/rack/pull/2362), [@matthew-puku](https://github.com/matthew-puku))
 - Rack::Deflater now uses a fixed GZip mtime value. ([#2372](https://github.com/rack/rack/pull/2372), [@bensheldon](https://github.com/bensheldon))
 - Multipart parser drops support for RFC 2231 `filename*` parameter (prohibited by RFC 7578) and now properly handles UTF-8 encoded filenames via percent-encoding and direct UTF-8 bytes. ([#2398](https://github.com/rack/rack/pull/2398), [@wtn](https://github.com/wtn))
@@ -29,6 +30,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `Rack::Multipart::UploadedFile` now delegates keyword arguments to the wrapped tempfile. Calls such as `uploaded_file.readlines(chomp: true)` raised `TypeError` on Ruby 3.0+. ([#2482](https://github.com/rack/rack/pull/2482), [@SeanLF](https://github.com/SeanLF))
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 

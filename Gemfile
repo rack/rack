@@ -15,8 +15,6 @@ group :doc do
   else
     gem "rdoc"
   end
-
-  gem "psych", "= 3.0.2" if RUBY_VERSION[0..2] == "2.5"
 end
 
 group :test do
