@@ -134,6 +134,38 @@ module Rack
         data[2]
       end
 
+      def self.default_tempfile_factory
+        TEMPFILE_FACTORY
+      end
+
+      def self.default_bufsize
+        BUFSIZE
+      end
+
+      def self.default_query_parser
+        Rack::Utils.default_query_parser
+      end
+
+      def self.parse_from_env(env, query_parser: default_query_parser)
+        unless io = env[RACK_INPUT]
+          raise MissingInputError, "Missing input stream!"
+        end
+
+        if content_length = env['CONTENT_LENGTH']
+          content_length = content_length.to_i
+        end
+
+        content_type = env['CONTENT_TYPE']
+
+        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || default_tempfile_factory
+        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || default_bufsize
+
+        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser)
+        env[RACK_TEMPFILES] = info.tmp_files
+
+        return info.params
+      end
+
       def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
         return EMPTY if 0 == content_length
 
