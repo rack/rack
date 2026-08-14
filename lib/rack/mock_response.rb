@@ -23,8 +23,8 @@ module Rack
         @secure = args["secure"]
       end
 
-      def method_missing(method_name, ...)
-        @value.send(method_name, ...)
+      def method_missing(...)
+        @value.send(...)
       end
 
       def respond_to_missing?(method_name, include_all = false)

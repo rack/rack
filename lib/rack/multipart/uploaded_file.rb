@@ -74,8 +74,8 @@ module Rack
       end
 
       # Delegate method missing calls to the tempfile.
-      def method_missing(method_name, ...) #:nodoc:
-        @tempfile.__send__(method_name, ...)
+      def method_missing(...) #:nodoc:
+        @tempfile.__send__(...)
       end
     end
   end

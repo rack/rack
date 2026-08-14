@@ -217,8 +217,11 @@ module Rack
       replace(hash)
     end
 
-    def except(*a)
-      super(*a.map!{|key| downcase_key(key)})
+    # Ruby < 3.0 does not provide Hash#except.
+    if Hash.method_defined?(:except)
+      def except(*a)
+        super(*a.map!{|key| downcase_key(key)})
+      end
     end
 
     private

@@ -25,7 +25,7 @@ Gem::Specification.new do |s|
 
   s.homepage = 'https://github.com/rack/rack'
 
-  s.required_ruby_version = '>= 3.0.0'
+  s.required_ruby_version = '>= 2.7.3'
 
   s.metadata = {
     "bug_tracker_uri" => "https://github.com/rack/rack/issues",

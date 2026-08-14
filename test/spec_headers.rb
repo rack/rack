@@ -503,10 +503,12 @@ class RackHeadersTest < Minitest::Spec
     assert_equal(Rack::Headers, @fh.deconstruct_keys([]).class)
   end
 
-  def test_except
-    @fh = Rack::Headers['AB'=>'1', 'Cd'=>'2', '3'=>'4']
-    assert_equal(@fh, @fh.except)
-    assert_equal(Rack::Headers['cD'=>'2', '3'=>'4'], @fh.except('AB', 5))
-    assert_equal(Rack::Headers['AB'=>'1'], @fh.except('cD', '3'))
+  if Hash.method_defined?(:except)
+    def test_except
+      @fh = Rack::Headers['AB'=>'1', 'Cd'=>'2', '3'=>'4']
+      assert_equal(@fh, @fh.except)
+      assert_equal(Rack::Headers['cD'=>'2', '3'=>'4'], @fh.except('AB', 5))
+      assert_equal(Rack::Headers['AB'=>'1'], @fh.except('cD', '3'))
+    end
   end
 end
