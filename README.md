@@ -211,9 +211,11 @@ or application/x-www-form-urlencoded request body that exceeds this number of
 bytes will result in a `Rack::QueryParser::QueryLimitError` exception. If this
 enviroment variable is provided, it must be an integer, or `Rack::QueryParser`
 will raise an exception.
+If the value is negative, the bytesize limit is disabled.
 
 The default limit can be overridden on a per-`Rack::QueryParser` basis using
 the `bytesize_limit` keyword argument when creating the `Rack::QueryParser`.
+Passing `nil` for this keyword argument disables the bytesize limit.
 
 ### `RACK_QUERY_PARSER_PARAMS_LIMIT`
 
@@ -223,9 +225,11 @@ query string or application/x-www-form-urlencoded request body with more
 parameters than this will result in a `Rack::QueryParser::QueryLimitError`
 exception. If this enviroment variable is provided, it must be an integer, or
 `Rack::QueryParser` will raise an exception.
+If the value is negative, the params limit is disabled.
 
 The default limit can be overridden on a per-`Rack::QueryParser` basis using
 the `params_limit` keyword argument when creating the `Rack::QueryParser`.
+Passing `nil` for this keyword argument disables the params limit.
 
 This is implemented by counting the number of parameter separators in the
 query string, before attempting parsing, so if the same parameter key is

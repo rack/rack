@@ -918,6 +918,32 @@ class RackRequestTest < Minitest::Spec
     reads.first.must_equal(request.send(:query_parser).bytesize_limit + 2)
   end
 
+  it "read POST body without a length limit when bytesize_limit is nil" do
+    # Create a mock input that tracks read calls
+    reads = []
+    mock_input = Object.new
+    mock_input.define_singleton_method(:read) do |len=nil|
+      reads << len
+      # Return mutable string
+      "foo=bar".dup
+    end
+
+    request = make_request \
+      Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST',
+        'CONTENT_TYPE' => 'application/x-www-form-urlencoded',
+        'rack.input' => mock_input)
+    request.define_singleton_method(:query_parser) do
+      Rack::QueryParser.make_default(Rack::Utils.param_depth_limit, bytesize_limit: nil)
+    end
+
+    request.POST.must_equal "foo" => "bar"
+
+    # Verify read was called without a limit (nil), since bytesize_limit is nil
+    reads.size.must_equal 1
+    assert_nil reads.first
+  end
+
   it "handle nil return from rack.input.read when parsing url-encoded data" do
     # Simulate an input that returns nil on read
     mock_input = Object.new
