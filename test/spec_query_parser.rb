@@ -50,6 +50,12 @@ describe Rack::QueryParser do
     proc { query_parser.parse_query_pairs("a=a&b=b&c=c") }.must_raise Rack::QueryParser::QueryLimitError
   end
 
+  it "does not enforce a params limit when params_limit is nil" do
+    query_parser = Rack::QueryParser.make_default(32, params_limit: nil)
+    query_parser.parse_query("a=a&b=b&c=c").must_equal({"a" => "a", "b" => "b", "c" => "c"})
+    query_parser.parse_nested_query("a=a&b=b&c=c").must_equal({"a" => "a", "b" => "b", "c" => "c"})
+  end
+
   it "raises when normalizing params with incompatible encoding such as UTF-16LE" do
     query_parser = Rack::QueryParser.make_default(8)
     name = "utf-16le".dup.force_encoding("UTF-16LE")

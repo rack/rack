@@ -17,6 +17,7 @@ All notable changes to this project will be documented in this file. For info on
 - Add `Rack::Request#prefetch?` for identifying requests with `Sec-Purpose: prefetch` header set. ([#2405](https://github.com/rack/rack/pull/2405), [@glaszig](https://github.com/glaszig))
 - Add `rack.request.config` environment key to configure Rack::Request behavior.
 - Add `Rack::Request#headers` for simpler access to request headers by header name. ([#1881](https://github.com/rack/rack/pull/1881), [@jeremyevans](https://github.com/jeremyevans))
+- Allow disabling the `Rack::QueryParser` bytesize and params limits by passing `nil` for the `bytesize_limit`/`params_limit` keyword arguments, or a negative value for `RACK_QUERY_PARSER_BYTESIZE_LIMIT`/`RACK_QUERY_PARSER_PARAMS_LIMIT`. ([#2492](https://github.com/rack/rack/pull/2492), [@alpaca-tc](https://github.com/alpaca-tc))
 
 ### Changed
 

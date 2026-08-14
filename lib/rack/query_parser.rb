@@ -52,11 +52,10 @@ module Rack
         end
       end
 
-      val
+      val if val >= 0
     end
 
-    bytesize_limit = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
-    BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
+    BYTESIZE_LIMIT = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
     private_constant :BYTESIZE_LIMIT
 
     PARAMS_LIMIT = env_int.call("RACK_QUERY_PARSER_PARAMS_LIMIT", 4096)
@@ -233,9 +232,10 @@ module Rack
         raise QueryLimitError, "total query size exceeds limit (#{@bytesize_limit})"
       end
 
-      pairs = qs.split(separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP, @params_limit + 1)
+      sep = separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP
+      pairs = @params_limit ? qs.split(sep, @params_limit + 1) : qs.split(sep)
 
-      if pairs.size > @params_limit
+      if @params_limit && pairs.size > @params_limit
         param_count = pairs.size + pairs.last.count(separator || "&")
         raise QueryLimitError, "total number of query parameters (#{param_count}) exceeds limit (#{@params_limit})"
       end
