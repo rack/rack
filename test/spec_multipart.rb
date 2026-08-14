@@ -131,12 +131,6 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).to_h.must_equal("text/plain; charset=US-ASCII" => ["contents"])
   end
 
-  deprecated "parses multipart content when called using Rack::Request#parse_multipart" do
-    request = Rack::Request.new(Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_disposition)))
-    params = request.send(:parse_multipart)
-    params["text/plain; charset=US-ASCII"].must_equal ["contents"]
-  end
-
   it "parses multipart content when content type is present but disposition is not when using IO" do
     read, write = IO.pipe
     env = multipart_fixture(:content_type_and_no_disposition)

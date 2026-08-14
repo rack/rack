@@ -775,11 +775,6 @@ module Rack
         query_parser.parse_nested_query(qs, d)
       end
 
-      def parse_multipart
-        warn "Rack::Request#parse_multipart is deprecated and will be removed in a future version of Rack.", uplevel: 1
-        Rack::Multipart.extract_multipart(self, query_parser)
-      end
-
       def expand_param_pairs(pairs, query_parser = query_parser())
         params = query_parser.make_params
 
