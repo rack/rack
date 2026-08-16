@@ -134,6 +134,29 @@ module Rack
         gzip.finish
       end
 
+      # Compress a streaming (call-only) body on the fly, wrapping the
+      # server-provided stream so the body writes plain data and the client
+      # receives gzip.
+      def call(stream)
+        @writer = stream.method(:write)
+        gzip = ::Zlib::GzipWriter.new(self)
+        gzip.mtime = @mtime if @mtime
+        gzip.sync = @sync
+        @body.call(GzipWriterStream.new(gzip, stream))
+      end
+
+      # Treat the wrapped body as the server would: an Enumerable Body responds
+      # to +each+, a Streaming Body responds to +call+. Delegating +respond_to?+
+      # keeps this wrapper on the same side of that contract as the body it wraps.
+      def respond_to?(name, include_all = false)
+        case name
+        when :each, :call
+          @body.respond_to?(name, include_all)
+        else
+          super
+        end
+      end
+
       # Call the block passed to #each with the gzipped data.
       def write(data)
         @writer.call(data)
@@ -142,6 +165,63 @@ module Rack
       # Close the original body if possible.
       def close
         @body.close if @body.respond_to?(:close)
+      end
+    end
+
+    # Stream wrapper handed to a streaming body so that everything it writes is
+    # gzip compressed before reaching the server-provided stream. Closing it
+    # finishes the gzip trailer and then closes the underlying stream.
+    class GzipWriterStream
+      def initialize(gzip, stream)
+        @gzip = gzip
+        @stream = stream
+        @flushed = false
+      end
+
+      def write(data)
+        # Skip empty strings: with sync enabled they trigger an empty
+        # Z_SYNC_FLUSH, which raises Zlib::BufError.
+        return 0 if data.empty?
+        result = @gzip.write(data)
+        @flushed = @gzip.sync
+        result
+      end
+
+      def <<(data)
+        write(data)
+        self
+      end
+
+      def flush
+        # Flushing twice without an intervening write raises Zlib::BufError,
+        # and with sync enabled every write already flushes.
+        @gzip.flush unless @flushed
+        @flushed = true
+        # Propagate to the wrapped stream so a write-then-flush (e.g. SSE)
+        # is not left sitting in a buffering server-side wrapper.
+        @stream.flush if @stream.respond_to?(:flush)
+        self
+      end
+
+      def close
+        @gzip.finish
+        @stream.close
+      end
+
+      def closed?
+        @stream.closed?
+      end
+
+      def read(*args, &block)
+        @stream.read(*args, &block)
+      end
+
+      def close_read
+        @stream.close_read
+      end
+
+      def close_write
+        close
       end
     end
 
