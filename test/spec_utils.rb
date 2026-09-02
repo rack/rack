@@ -411,6 +411,34 @@ describe Rack::Utils do
     ]
   end
 
+  it "parse q-values with the weight after other media-range parameters" do
+    # RFC 9110 Section 12.5.1: "Recipients SHOULD process any parameter named
+    # 'q' as weight, regardless of parameter ordering."
+    Rack::Utils.q_values("text/plain;format=fixed;q=0.4").must_equal [
+      [ 'text/plain', 0.4 ]
+    ]
+
+    # The worked example from RFC 9110 Section 12.5.1.
+    Rack::Utils.q_values("text/*;q=0.3, text/plain;q=0.7, text/plain;format=flowed, text/plain;format=fixed;q=0.4, */*;q=0.5").must_equal [
+      [ 'text/*', 0.3 ],
+      [ 'text/plain', 0.7 ],
+      [ 'text/plain', 1.0 ],
+      [ 'text/plain', 0.4 ],
+      [ '*/*', 0.5 ]
+    ]
+
+    # Only a parameter actually named "q" is a weight.
+    Rack::Utils.q_values("text/plain;seq=5").must_equal [
+      [ 'text/plain', 1.0 ]
+    ]
+
+    # Chrome's default navigation Accept header ends with a weighted entry that
+    # carries a media-range parameter first.
+    chrome = "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7"
+    Rack::Utils.q_values(chrome).last.must_equal [ 'application/signed-exchange', 0.7 ]
+    Rack::Utils.best_q_match(chrome, %w[application/signed-exchange text/html]).must_equal "text/html"
+  end
+
   it "parses RFC 7239 Forwarded header" do
     Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
       for: [ '3.4.5.6' ],
@@ -494,6 +522,9 @@ describe Rack::Utils do
 
     # When there are no matches, return nil:
     Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).must_be_nil
+
+    # A weight is still a weight when it follows other media-range parameters.
+    Rack::Utils.best_q_match("application/json;charset=utf-8;q=0.5,text/html;q=0.9", %w[application/json text/html]).must_equal "text/html"
   end
 
   it "escape html entities [&><'\"/]" do

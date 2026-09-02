@@ -755,8 +755,11 @@ module Rack
           attribute.strip!
           parameters&.strip!
           quality = 1.0
-          if parameters and /\Aq=([\d.]+)/ =~ parameters
-            quality = $1.to_f
+          parameters&.split(';')&.each do |parameter|
+            if /\Aq=([\d.]+)/ =~ parameter.strip
+              quality = $1.to_f
+              break
+            end
           end
           [attribute, quality]
         end

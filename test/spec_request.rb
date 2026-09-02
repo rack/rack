@@ -2023,6 +2023,8 @@ EOF
 
     parser.call("gzip ; q=0.9").must_equal [["gzip", 0.9]]
     parser.call("gzip ; deflate").must_equal [["gzip", 1.0]]
+    # RFC 9110 Section 12.5.1: 'q' is the weight regardless of parameter ordering.
+    parser.call("gzip ; deflate ; q=0.5").must_equal [["gzip", 0.5]]
 
     parser.call(", ").must_equal []
     parser.call(", gzip").must_equal [["gzip", 1.0]]
@@ -2044,6 +2046,7 @@ EOF
 
     parser.call("fr ; q=0.9").must_equal [["fr", 0.9]]
     parser.call("fr").must_equal [["fr", 1.0]]
+    parser.call("fr ; x=y ; q=0.5").must_equal [["fr", 0.5]]
 
     parser.call(", ").must_equal []
     parser.call(", en").must_equal [["en", 1.0]]
