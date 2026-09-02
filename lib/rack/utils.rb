@@ -134,12 +134,17 @@ module Rack
       end
     end
 
+    # RFC 9110 Section 12.5.1: process a parameter named 'q' as the weight
+    # "regardless of parameter ordering", so check every parameter, not just the first.
     def q_values(q_value_header)
       q_value_header.to_s.split(',').map do |part|
         value, parameters = part.split(';', 2).map(&:strip)
         quality = 1.0
-        if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
-          quality = md[1].to_f
+        parameters&.split(';')&.each do |parameter|
+          if md = /\Aq=([\d.]+)/.match(parameter.strip)
+            quality = md[1].to_f
+            break
+          end
         end
         [value, quality]
       end
