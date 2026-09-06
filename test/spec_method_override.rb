@@ -134,6 +134,38 @@ EOF
     env[Rack::RACK_ERRORS].read.must_include "Invalid or incomplete POST params"
   end
 
+  it "writes error to RACK_ERRORS when the multipart boundary is too long" do
+    boundary = "A" * 71
+    input = "--#{boundary}\r\ncontent-disposition: form-data; name=\"_method\"\r\n\r\nDELETE\r\n--#{boundary}--\r\n"
+    env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+                      "CONTENT_LENGTH" => input.size.to_s,
+                      Rack::RACK_ERRORS => StringIO.new,
+                      :method => "POST", :input => input)
+    Rack::MethodOverride.new(proc { [200, { "content-type" => "text/plain" }, []] }).call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env[Rack::RACK_ERRORS].rewind
+    env[Rack::RACK_ERRORS].read.must_include "Invalid or incomplete POST params"
+  end
+
+  it "writes error to RACK_ERRORS when the multipart part limit is exceeded" do
+    parts = (Rack::Utils.multipart_part_limit + 1).times.map do |i|
+      "--AaB03x\r\ncontent-disposition: form-data; name=\"f#{i}\"; filename=\"f#{i}\"\r\ncontent-type: text/plain\r\n\r\nx\r\n"
+    end
+    input = parts.join + "--AaB03x--\r\n"
+    env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size.to_s,
+                      Rack::RACK_ERRORS => StringIO.new,
+                      :method => "POST", :input => input)
+    Rack::MethodOverride.new(proc { [200, { "content-type" => "text/plain" }, []] }).call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env[Rack::RACK_ERRORS].rewind
+    env[Rack::RACK_ERRORS].read.must_include "Invalid or incomplete POST params"
+  end
+
   it "not modify REQUEST_METHOD for POST requests when the params are unparseable because too deep" do
     env = Rack::MockRequest.env_for("/", method: "POST", input: ("[a]" * 36) + "=1")
     app.call env
