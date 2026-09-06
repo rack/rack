@@ -31,7 +31,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
-- `Rack::MethodOverride`: rescue all `Rack::BadRequest` errors (e.g. `Rack::Multipart::BoundaryTooLongError`) instead of an explicit list, so malformed bodies no longer raise. ([#2505](https://github.com/rack/rack/pull/2505), [@navidemad](https://github.com/navidemad))
+- `Rack::MethodOverride` now rescues `Rack::BadRequest` to avoid the middleware raising an exception for invalid request bodies. ([#2505](https://github.com/rack/rack/pull/2505), [@navidemad](https://github.com/navidemad))
 - `Rack::Multipart::UploadedFile` now delegates keyword arguments to the wrapped tempfile. Calls such as `uploaded_file.readlines(chomp: true)` raised `TypeError` on Ruby 3.0+. ([#2481](https://github.com/rack/rack/issues/2481), [#2499](https://github.com/rack/rack/pull/2499), [@SeanLF](https://github.com/SeanLF))
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
