@@ -43,7 +43,32 @@ describe Rack::MethodOverride do
     env["REQUEST_METHOD"].must_equal "PUT"
   end
 
-  it "modify REQUEST_METHOD for POST requests when _method parameter is set to query" do
+  it "does not modify REQUEST_METHOD for POST requests when _method parameter is set to query" do
+    # QUERY's CSRF exemptions rely on HTML forms being unable to emit it,
+    # so the form-reachable _method parameter may not override to it.
+    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=query")
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env["rack.methodoverride.original_method"].must_be_nil
+  end
+
+  it "modify REQUEST_METHOD for POST requests when X-HTTP-Method-Override is set to QUERY" do
+    # Unlike the _method parameter, the header is not reachable from an
+    # HTML form, and setting it cross-origin forces a CORS preflight.
+    env = Rack::MockRequest.env_for("/",
+            :method => "POST",
+            "HTTP_X_HTTP_METHOD_OVERRIDE" => "QUERY"
+          )
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "QUERY"
+  end
+
+  it "modify REQUEST_METHOD for _method=query when allowed_param_overrides opts in" do
+    app = Rack::Lint.new(Rack::MethodOverride.new(lambda {|e|
+      [200, { "content-type" => "text/plain" }, []]
+    }, allowed_param_overrides: %w[QUERY]))
     env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=query")
     app.call env
 
