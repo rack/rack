@@ -168,7 +168,11 @@ module Rack
 
     # Convert HTTP header rules to HTTP headers
     def applicable_rules(path)
-      path = ::Rack::Utils.unescape_path(path)
+      # Canonicalise the same way the serving decision does. `can_serve` and Rack::Files both
+      # apply clean_path_info in addition to unescape_path, so without it a path that normalises
+      # onto a rule-matched path is served while the rule is tested against the un-normalised
+      # string and fails to match.
+      path = ::Rack::Utils.clean_path_info(::Rack::Utils.unescape_path(path))
 
       @header_rules.find_all do |rule, new_headers|
         case rule
