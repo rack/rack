@@ -31,12 +31,16 @@ module Rack
       # lack a value (e.g., "text/plain;charset=" will return { 'charset' => '' },
       # and "text/plain;charset" will return { 'charset' => '' }, similarly to 
       # the query params parser (barring the latter case, which returns nil instead)).
+      #
+      # Segments that carry no key at all (e.g., the empty segment in
+      # "text/plain;;charset=utf-8") are skipped.
       def params(content_type)
         return {} if content_type.nil? || content_type.empty?
 
         content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
           s.strip!
           k, v = s.split('=', 2)
+          next if k.nil?
           k.downcase!
           hsh[k] = strip_doublequotes(v)
         end

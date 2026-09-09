@@ -80,4 +80,27 @@ describe Rack::MediaType do
       Rack::MediaType.params(@content_type)['charset'].must_equal ''
     end
   end
+
+  # Empty parameter segments (";;", "; ;", ",,") have no key at all.
+  {
+    'application/text;;charset=utf-8'   => { 'charset' => 'utf-8' },
+    'application/text; ;charset=utf-8'  => { 'charset' => 'utf-8' },
+    'application/text,,charset=utf-8'   => { 'charset' => 'utf-8' },
+    'application/text;;'                => {},
+    'application/text;;;'               => {},
+    'application/text;charset=utf-8;;'  => { 'charset' => 'utf-8' },
+    'application/text;;charset'         => { 'charset' => '' },
+    'application/text;;charset='        => { 'charset' => '' },
+    'application/text;=utf-8'           => { '' => 'utf-8' },
+  }.each do |content_type, expected|
+    describe "when content_type is #{content_type.inspect}" do
+      it "#params is #{expected.inspect}" do
+        Rack::MediaType.params(content_type).must_equal expected
+      end
+
+      it '#type is application/text' do
+        Rack::MediaType.type(content_type).must_equal 'application/text'
+      end
+    end
+  end
 end
