@@ -81,7 +81,6 @@ describe Rack::MediaType do
     end
   end
 
-  # Empty parameter segments (";;", "; ;", ",,") have no key at all.
   {
     'application/text;;charset=utf-8'   => { 'charset' => 'utf-8' },
     'application/text; ;charset=utf-8'  => { 'charset' => 'utf-8' },
