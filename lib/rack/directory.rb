@@ -123,8 +123,6 @@ table { width:100%%; }
 
     # Rack response to use for requests with paths outside the root, or nil if path is inside the root.
     def check_forbidden(path_info)
-      return unless path_info.include? ".."
-
       expanded_path = ::File.expand_path(::File.join(@root, path_info))
       return if expanded_path == @root || expanded_path.start_with?(@root_with_separator)
 
