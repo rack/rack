@@ -133,7 +133,7 @@ module Rack
     # Copyright (c) Django Software Foundation and individual contributors.
     # Used under the modified BSD license:
     # http://www.xfree86.org/3.3.6/COPYRIGHT2.html#5
-    TEMPLATE = ERB.new(<<~'HTML')
+    TEMPLATE = ERB.new(<<~'HTML').freeze
       <!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN" "http://www.w3.org/TR/html4/loose.dtd">
       <html lang="en">
       <head>
