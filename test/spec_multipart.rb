@@ -1442,6 +1442,18 @@ content-type: image/png\r
     params.must_be_kind_of Hash
   end
 
+  it "handles Content-Type with an empty parameter segment" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"field\"\r\nContent-Type: text/plain;;charset=us-ascii\r\n\r\ndata\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    params = Rack::Multipart.parse_multipart(env)
+    params["field"].must_equal "data"
+    params["field"].encoding.must_equal Encoding::US_ASCII
+  end
+
   it "handles Content-Type parameter without equals sign" do
     body = "--boundary\r\nContent-Disposition: form-data; name=\"field\"\r\nContent-Type: text/plain; charset\r\n\r\ndata\r\n--boundary--\r\n"
     env = Rack::MockRequest.env_for("/", {
