@@ -515,6 +515,34 @@ describe Rack::Deflater do
     end
   end
 
+  it 'passes streaming (call-only) bodies through unchanged instead of crashing' do
+    streaming_body = Class.new do
+      def call(stream)
+        stream.write('foo')
+        stream.write('bar')
+        stream.close
+      end
+    end.new
+
+    app = lambda do |env|
+      [200, { 'content-type' => 'text/plain' }, streaming_body]
+    end
+
+    request = Rack::MockRequest.env_for('', 'HTTP_ACCEPT_ENCODING' => 'gzip')
+    status, headers, body = Rack::Deflater.new(app).call(request)
+
+    status.must_equal 200
+    headers['content-encoding'].must_be_nil
+    body.must_equal streaming_body
+
+    written = String.new
+    fake_stream = Object.new
+    fake_stream.define_singleton_method(:write) { |chunk| written << chunk }
+    fake_stream.define_singleton_method(:close) { }
+    body.call(fake_stream)
+    written.must_equal 'foobar'
+  end
+
   describe 'custom deflaters' do
     class MockCompressor
       def initialize(body)

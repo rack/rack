@@ -73,9 +73,15 @@ module Rack
 
       case encoding
       when "gzip"
-        headers['content-encoding'] = "gzip"
-        headers.delete(CONTENT_LENGTH)
-        response[2] = GzipStream.new(body, GZIP_MTIME, @sync)
+        # GzipStream only knows how to consume an Enumerable Body (#each) or
+        # a File. A Streaming Body (#call-only, see SPEC.rdoc) has no #each
+        # to iterate, so leave it untouched rather than crash inside
+        # GzipStream#each with a NoMethodError.
+        if body.respond_to?(:each) || body.is_a?(::File)
+          headers['content-encoding'] = "gzip"
+          headers.delete(CONTENT_LENGTH)
+          response[2] = GzipStream.new(body, GZIP_MTIME, @sync)
+        end
         response
       when "identity"
         response
