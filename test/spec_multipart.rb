@@ -195,6 +195,23 @@ describe Rack::Multipart do
     end
   end
 
+  it "sets UTF-8 name encoding for charsets that are not ASCII compatible" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_incompatible_charset))
+    params = Rack::Multipart.parse_multipart(env)
+
+    params.keys.each do |key|
+      key.encoding.must_equal Encoding::UTF_8
+    end
+    params["text"].encoding.must_equal Encoding::UTF_16LE
+    params["nested"]["text"].encoding.must_equal Encoding::UTF_16LE
+    params["dummy"].encoding.must_equal Encoding::UTF_7
+  end
+
+  it "does not raise out of Request#POST for charsets that are not ASCII compatible" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_incompatible_charset).merge(method: "POST"))
+    Rack::Request.new(env).POST.keys.must_equal ["text", "nested", "dummy"]
+  end
+
   it "sets BINARY encoding on things without content type" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:none))
     params = Rack::Multipart.parse_multipart(env)
