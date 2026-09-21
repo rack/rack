@@ -41,4 +41,13 @@ describe Rack::QueryParser do
     proc { query_parser.parse_query("b[]=a&b[]=b&b[]=c") }.must_raise Rack::QueryParser::QueryLimitError
     proc { query_parser.parse_query_pairs("a=a&b=b&c=c") }.must_raise Rack::QueryParser::QueryLimitError
   end
+
+  it "raises when normalizing params with incompatible encoding such as UTF-16LE" do
+    query_parser = Rack::QueryParser.make_default(8)
+    name = "utf-16le".dup.force_encoding("UTF-16LE")
+    value = "Alice?".dup.force_encoding("UTF-16LE")
+    lambda {
+      query_parser.normalize_params({}, name, value)
+    }.must_raise(::Rack::QueryParser::IncompatibleEncodingError)
+  end
 end
