@@ -616,6 +616,14 @@ module Rack
           name = name.encode(Encoding::UTF_8)
           body = body.encode(Encoding::UTF_8)
         end
+
+        # The name is compared against ASCII literals by the query parser, so a
+        # charset that is not ASCII compatible cannot be applied to it. Only the
+        # body keeps such a charset.
+        unless name.encoding.ascii_compatible?
+          name = name.dup.force_encoding(Encoding::UTF_8)
+        end
+
         return name, body
       end
 
