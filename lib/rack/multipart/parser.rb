@@ -275,6 +275,12 @@ module Rack
         @body_regex_at_end = /#{@body_regex}\z/m
         @end_boundary_size = boundary.bytesize + 4 # (-- at start, -- at finish)
         @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
+        @boundary_tokens = [
+          "#{EOL}--#{boundary}#{EOL}".b,
+          "#{EOL}--#{boundary}--".b,
+          "--#{boundary}#{EOL}".b,
+          "--#{boundary}--".b,
+        ]
         @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
@@ -355,7 +361,14 @@ module Rack
             # buffering. Note that the actual limit is the higher of 16KB and the buffer size (1MB by default)
             raise Error, "multipart boundary not found within limit" if @sbuf.string.bytesize > BOUNDARY_START_LIMIT
 
-            # no boundary found, keep reading data
+            # consume_boundary moved to the end of this read. If that read
+            # ended on a partial delimiter, keep just that prefix so the next
+            # read can finish it. Any other suffix must stay consumed: "\A" in
+            # the boundary pattern matches at the scan position, and rewinding
+            # into the preamble would hide a delimiter that begins on the next read.
+            # The accumulated string is left intact so the limit above still applies.
+            @sbuf.pos = @sbuf.string.bytesize - partial_boundary_prefix_length
+
             return :want_read
           end
         end
@@ -541,6 +554,21 @@ module Rack
           @sbuf.terminate
           nil
         end
+      end
+
+      # Bytes at the end of the buffer that are a proper prefix of a boundary
+      # token. Zero when the tail cannot be part of a delimiter.
+      def partial_boundary_prefix_length
+        str = @sbuf.string
+        max = [@rx_max_size - 1, str.bytesize].min
+        keep = 0
+        1.upto(max) do |len|
+          suffix = str.byteslice(-len, len)
+          if @boundary_tokens.any? { |tok| tok.bytesize > len && tok.start_with?(suffix) }
+            keep = len
+          end
+        end
+        keep
       end
 
       def normalize_filename(filename)

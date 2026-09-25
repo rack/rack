@@ -418,6 +418,36 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).keys.must_equal(["a", "b", "c"])
   end
 
+  it "parses when the opening delimiter is split across reads" do
+    boundary = "Q7"
+    # `--Q7` is 4 bytes. A 3-byte buffer yields `--Q`, then `7\r\n...`.
+    body = "--#{boundary}\r\nContent-Disposition: form-data; name=\"note\"\r\n\r\nhello\r\n--#{boundary}--\r\n"
+
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      "rack.multipart.buffer_size" => 3,
+      :input => StringIO.new(body),
+    })
+
+    Rack::Multipart.parse_multipart(env).must_equal("note" => "hello")
+  end
+
+  it "rejects a fragmented preamble that exceeds the boundary search limit" do
+    body = "x" * (16 * 1024 + 8) + "--Q7\r\nContent-Disposition: form-data; name=\"note\"\r\n\r\nhello\r\n--Q7--\r\n"
+
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=Q7",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      "rack.multipart.buffer_size" => 3,
+      :input => StringIO.new(body),
+    })
+
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart boundary not found within limit"
+  end
+
   it "rejects excessive buffered mime data size in a single parameter" do
     rd, wr = IO.pipe
     def rd.rewind; end
