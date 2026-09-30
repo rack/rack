@@ -60,24 +60,22 @@ module Rack
 
     # Whether the etag response header matches the if-none-match request header.
     # If so, the request has not been modified.
-    #
-    # The field value is either "*", which matches any current representation, or
-    # a comma separated list of entity-tags, any one of which may match.  RFC 7232
-    # Section 3.2 also requires the weak comparison function to be used, so a
-    # "W/" prefixed tag and a bare tag with the same opaque value are equivalent.
     def etag_matches?(none_match, headers)
       # "*" matches as long as the server has a current representation for the
       # target resource, which is guaranteed here since the status is 200.
-      return true if none_match.strip == '*'
+      none_match = none_match.strip
+      return true if none_match == '*'
 
       etag = headers[ETAG]
       return false if etag.nil?
 
-      none_match.split(',').any? { |tag| weak_etag_match?(tag.strip, etag) }
+      etag = etag.strip
+      none_match.split(',').any? do |tag|
+        tag.strip!
+        weak_etag_match?(tag, etag)
+      end
     end
 
-    # Weak comparison of two entity-tags, which only compares the opaque values
-    # and ignores the weakness prefix.
     def weak_etag_match?(a, b)
       strip_weak_prefix(a) == strip_weak_prefix(b)
     end
