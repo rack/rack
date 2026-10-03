@@ -439,6 +439,30 @@ describe Rack::Utils do
     Rack::Utils.best_q_match(chrome, %w[application/signed-exchange text/html]).must_equal "text/html"
   end
 
+  it "does not read a weight out of a quoted parameter value" do
+    # A quoted value may contain ';' and even 'q=', so it has to be consumed
+    # whole. This URL would otherwise give a weight of 9.0.
+    Rack::Utils.q_values('application/rss+xml;version="http://example.com/?a=1;q=9"').must_equal [
+      [ 'application/rss+xml', 1.0 ]
+    ]
+
+    # A real weight after a quoted value still has to be found.
+    Rack::Utils.q_values('application/rss+xml;version="a;q=1";q=0.5').must_equal [
+      [ 'application/rss+xml', 0.5 ]
+    ]
+
+    # An escaped quote inside the value does not end it early.
+    Rack::Utils.q_values('text/plain;note="a\\";q=9";q=0.25').must_equal [
+      [ 'text/plain', 0.25 ]
+    ]
+
+    # Negotiation has to follow the real weight. Reading the quoted ';q=9' puts
+    # this entry at 9.0 and picks it, instead of honouring its actual 0.3.
+    header = 'application/json;version="http://example.com/?a=1;q=9";q=0.3, text/html;q=0.9'
+    Rack::Utils.q_values(header).first.must_equal [ 'application/json', 0.3 ]
+    Rack::Utils.best_q_match(header, %w[application/json text/html]).must_equal "text/html"
+  end
+
   it "parses RFC 7239 Forwarded header" do
     Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
       for: [ '3.4.5.6' ],
