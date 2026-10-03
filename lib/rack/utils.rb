@@ -134,14 +134,30 @@ module Rack
       end
     end
 
+    # RFC 9110 Section 12.5.1 says to process a parameter named 'q' as the
+    # weight "regardless of parameter ordering", so the weight has to be looked
+    # for in every parameter rather than only the first.
+    #
+    # The quoted-string branch comes first so that a quoted value is consumed
+    # whole and a ';' or 'q=' inside it is never read as a parameter boundary or
+    # as the weight. Without it, `version="http://example.com/?a=1;q=9"` yields
+    # a weight of 9.0, which is not even a legal qvalue.
+    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=([\d.]+)/
+
+    def weight_parameter(parameters)
+      quality = 1.0
+      parameters&.scan(WEIGHT_PARAMETER) do |weight,|
+        next unless weight
+        quality = weight.to_f
+        break
+      end
+      quality
+    end
+
     def q_values(q_value_header)
       q_value_header.to_s.split(',').map do |part|
         value, parameters = part.split(';', 2).map(&:strip)
-        quality = 1.0
-        if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
-          quality = md[1].to_f
-        end
-        [value, quality]
+        [value, weight_parameter(parameters)]
       end
     end
 
