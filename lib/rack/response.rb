@@ -64,7 +64,7 @@ module Rack
         @headers[k] = v
       end
 
-      @writer = self.method(:append)
+      @writer = nil
 
       @block = nil
 
@@ -146,7 +146,11 @@ module Rack
     def write(chunk)
       buffered_body!
 
-      @writer.call(chunk.to_s)
+      if @writer
+        @writer.call(chunk.to_s)
+      else
+        append(chunk.to_s)
+      end
     end
 
     def close
@@ -343,7 +347,7 @@ module Rack
             @buffered = true
 
             body.each do |part|
-              @writer.call(part.to_s)
+              append(part.to_s)
             end
 
             body.close if body.respond_to?(:close)
