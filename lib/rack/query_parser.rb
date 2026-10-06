@@ -216,6 +216,11 @@ module Rack
     def params_hash_has_key?(hash, key)
       return false if /\[\]/.match?(key)
 
+      # Fast path for a key without nesting, equivalent to the split below.
+      unless key.include?('[') || key.include?(']')
+        return key.empty? || hash.key?(key)
+      end
+
       key.split(/[\[\]]+/).inject(hash) do |h, part|
         next h if part == ''
         return false unless params_hash_type?(h) && h.key?(part)
