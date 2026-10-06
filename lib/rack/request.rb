@@ -502,6 +502,7 @@ module Rack
       end
 
       def ssl?
+        scheme = self.scheme
         scheme == 'https' || scheme == 'wss'
       end
 
@@ -855,11 +856,11 @@ module Rack
             end
           when :x_forwarded
             x_forwarded_proto_priority.each do |x_type|
-              if header = FORWARDED_SCHEME_HEADERS[x_type]
-                if x_type == :ssl && get_header(header) == 'on'
+              if (header = FORWARDED_SCHEME_HEADERS[x_type]) && (value = get_header(header))
+                if x_type == :ssl && value == 'on'
                   return 'https'
                 else
-                  split_header(get_header(header)).reverse_each do |scheme|
+                  split_header(value).reverse_each do |scheme|
                     if allowed_scheme(scheme)
                       return scheme
                     end
