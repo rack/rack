@@ -826,7 +826,7 @@ module Rack
           \[(?<address>#{ipv6})\]
           |
           # Match characters allowed by RFC 3986 Section 3.2.2
-          (?<address>[-a-zA-Z0-9._~%!$&'()*+,;=]*?)
+          (?<address>[-a-zA-Z0-9._~%!$&'()*+,;=]*)
         )
         (:(?<port>\d+))?
         \z
