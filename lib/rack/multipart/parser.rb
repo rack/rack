@@ -271,11 +271,11 @@ module Rack
         @collector = Collector.new tempfile
 
         @sbuf = StringScanner.new("".b)
-        @body_regex = /(?:#{EOL}|\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)/m
-        @body_regex_at_end = /#{@body_regex}\z/m
+        body_regex_source = "(?:#{EOL}|\\A)--#{Regexp.quote(boundary)}(?:#{EOL}|--)"
+        @body_regex = Regexp.new(body_regex_source, Regexp::MULTILINE)
+        @body_regex_at_end = Regexp.new("#{body_regex_source}\\z", Regexp::MULTILINE)
         @end_boundary_size = boundary.bytesize + 4 # (-- at start, -- at finish)
         @rx_max_size = boundary.bytesize + 6 # (\r\n-- at start, either \r\n or -- at finish)
-        @head_regex = /(.*?#{EOL})#{EOL}/m
       end
 
       def parse(io)
@@ -376,8 +376,11 @@ module Rack
       OBS_UNFOLD = /\r\n([ \t])/
       private_constant :OBS_UNFOLD
 
+      HEAD_REGEX = /(.*?#{EOL})#{EOL}/m
+      private_constant :HEAD_REGEX
+
       def handle_mime_head
-        if @sbuf.scan_until(@head_regex)
+        if @sbuf.scan_until(HEAD_REGEX)
           head = @sbuf[1]
           content_type = head[MULTIPART_CONTENT_TYPE, 1]
           content_type.gsub!(OBS_UNFOLD, '\1') if content_type
