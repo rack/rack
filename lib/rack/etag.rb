@@ -61,10 +61,23 @@ module Rack
         digest = nil
 
         body.each do |part|
-          (digest ||= Digest::SHA256.new) << part unless part.empty?
+          (digest ||= new_digest) << part unless part.empty?
         end
 
         digest && digest.hexdigest.byteslice(0,32)
+      end
+
+      # OpenSSL's SHA-256 gives the same digest as digest/sha2's, several times
+      # faster on large bodies, since it uses the CPU's SHA extensions where it
+      # can. It is used only if the application has already loaded OpenSSL.
+      def new_digest
+        # :nocov:
+        if defined?(::OpenSSL::Digest)
+          ::OpenSSL::Digest.new('SHA256')
+        # :nocov:
+        else
+          Digest::SHA256.new
+        end
       end
   end
 end
