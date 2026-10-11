@@ -205,15 +205,12 @@ describe Rack::Static do
   end
 
   it "applies folder rules to paths that normalise into the folder" do
-    # A path containing dot-segments is normalised before the file is served, so the header rule
-    # has to be evaluated against the same normalised path.
     res = @header_request.get('/cgi/assets/other/../folder/test.js')
     res.must_be :ok?
     res.headers['cache-control'].must_equal 'public, max-age=400'
   end
 
   it "applies folder rules to percent-encoded dot-segments" do
-    # %2E%2E survives client-side canonicalisation, so it reaches the server verbatim.
     res = @header_request.get('/cgi/assets/other/%2E%2E/folder/test.js')
     res.must_be :ok?
     res.headers['cache-control'].must_equal 'public, max-age=400'
@@ -234,16 +231,12 @@ describe Rack::Static do
   end
 
   it "applies folder rules to paths containing duplicate slashes" do
-    # clean_path_info collapses these too, so the served path matches the rule.
     res = @header_request.get('/cgi/assets//folder/test.js')
     res.must_be :ok?
     res.headers['cache-control'].must_equal 'public, max-age=400'
   end
 
   it "applies extension-anchored Regexp rules to normalised paths" do
-    # Suffix-matching rules were already unaffected, since the extension survives
-    # the dot-segments. Kept as a control so a regression in the normalisation
-    # shows up here as well as in the prefix cases above.
     res = @header_request.get('/cgi/assets/other/../stylesheets/app.css')
     res.must_be :ok?
     res.headers['cache-control'].must_equal 'public, max-age=600'
