@@ -315,4 +315,12 @@ describe Rack::MockRequest do
       assert_equal Encoding::ASCII_8BIT, req[k].encoding
     end
   end
+
+  if defined?(Ractor)
+    it "builds an env inside a non-main Ractor" do
+      ractor = Ractor.new { Rack::MockRequest.env_for("/foo?bar=1").values_at("PATH_INFO", "QUERY_STRING") }
+
+      assert_equal ["/foo", "bar=1"], ractor.respond_to?(:value) ? ractor.value : ractor.take
+    end
+  end
 end
