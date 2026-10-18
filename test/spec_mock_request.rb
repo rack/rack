@@ -2,6 +2,7 @@
 
 require_relative 'helper'
 require 'yaml'
+require 'open3'
 require_relative 'psych_fix'
 
 separate_testing do
@@ -317,10 +318,18 @@ describe Rack::MockRequest do
   end
 
   if defined?(Ractor)
-    it "builds an env inside a non-main Ractor" do
-      ractor = Ractor.new { Rack::MockRequest.env_for("/foo?bar=1").values_at("PATH_INFO", "QUERY_STRING") }
+    # In a child process, so the freezing in rack/ractorize stays out of the other tests.
+    it "builds an env inside a non-main Ractor after requiring rack/ractorize" do
+      script = <<~'RUBY'
+        require "rack"
+        require "rack/ractorize"
+        ractor = Ractor.new { Rack::MockRequest.env_for("/foo?bar=1").values_at("PATH_INFO", "QUERY_STRING") }
+        p(ractor.respond_to?(:value) ? ractor.value : ractor.take)
+      RUBY
+      out, err, status = Open3.capture3(RbConfig.ruby, "-I", File.expand_path("../lib", __dir__), "-e", script)
 
-      assert_equal ["/foo", "bar=1"], ractor.respond_to?(:value) ? ractor.value : ractor.take
+      assert status.success?, err
+      assert_equal %(["/foo", "bar=1"]\n), out
     end
   end
 end

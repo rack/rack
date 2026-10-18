@@ -26,5 +26,7 @@ module Rack
 
   Mime::MIME_TYPES.freeze
 
+  Ractor.make_shareable(MockRequest.const_get(:URI_PARSER))
+
   Ractor.make_shareable(ShowExceptions::TEMPLATE)
 end
