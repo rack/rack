@@ -320,6 +320,9 @@ describe Rack::MockRequest do
   if defined?(Ractor)
     # In a child process, so the freezing in rack/ractorize stays out of the other tests.
     it "builds an env inside a non-main Ractor after requiring rack/ractorize" do
+      # Ruby 3.0's uri (0.10) reads an unshareable URI::DEFAULT_PARSER whenever it builds a URI.
+      skip "this Ruby's uri can't build a URI in a non-main Ractor" unless Ractor.shareable?(URI::DEFAULT_PARSER)
+
       script = <<~'RUBY'
         require "rack"
         require "rack/ractorize"
