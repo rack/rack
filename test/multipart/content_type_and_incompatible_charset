@@ -1,0 +1,16 @@
+--AaB03x
+content-disposition: form-data; name="text"
+content-type: text/plain; charset=utf-16le
+
+contents
+--AaB03x
+content-disposition: form-data; name="nested[text]"
+content-type: text/plain; charset=utf-16le
+
+contents
+--AaB03x
+content-disposition: form-data; name="dummy"
+content-type: text/plain; charset=utf-7
+
+contents
+--AaB03x--
