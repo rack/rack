@@ -613,10 +613,18 @@ module Rack
         # A string object with a 'dummy' encoding does not have full functionality and can cause errors.
         # So here we covert it to UTF-8 so that it can be handled properly.
         if name.encoding.dummy? && REENCODE_DUMMY_ENCODINGS[name.encoding]
-          name = name.encode(Encoding::UTF_8)
-          body = body.encode(Encoding::UTF_8)
+          name = reencode_dummy(name)
+          body = reencode_dummy(body)
         end
         return name, body
+      end
+
+      # However, because the charset is submitted by the user, the bytes may not
+      # be valid in it, so use a binary encoding in that case.
+      def reencode_dummy(string)
+        string.encode(Encoding::UTF_8)
+      rescue EncodingError
+        string.b
       end
 
       def handle_empty_content!(content)

@@ -1423,6 +1423,14 @@ content-type: image/png\r
     f.length.must_equal 26473
   end
 
+  it "falls back to a binary encoding for bytes that are invalid in a dummy charset" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:invalid_dummy_encoding))
+    params = Rack::Multipart.parse_multipart(env)
+
+    params["text"].encoding.must_equal Encoding::BINARY
+    params["\xFF\xFEname".b].must_equal "contents"
+  end
+
   it "supports ISO-2022-JP-encoded part" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:multiple_encodings))
     params = Rack::Multipart.parse_multipart(env)
