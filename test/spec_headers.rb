@@ -511,4 +511,51 @@ class RackHeadersTest < Minitest::Spec
       assert_equal(Rack::Headers['AB'=>'1'], @fh.except('cD', '3'))
     end
   end
+
+  def test_known_headers_is_deprecated
+    deprecated = Warning[:deprecated]
+    Warning[:deprecated] = true
+    capture_warnings(Warning) do |warnings|
+      Rack::Headers::KNOWN_HEADERS
+      assert_equal(1, warnings.size)
+      assert_match(/constant Rack::Headers::KNOWN_HEADERS is deprecated/, warnings.pop.first)
+    end
+  ensure
+    Warning[:deprecated] = deprecated
+  end
+
+  def test_known_headers_is_still_used_for_lookups
+    verbose, $VERBOSE = $VERBOSE, nil
+    known_headers = Rack::Headers::KNOWN_HEADERS
+    $VERBOSE = verbose
+
+    assert_same(known_headers, Rack::Headers.known_headers)
+  end
+
+  def test_class_known_headers
+    assert_equal('content-type', Rack::Headers.known_headers['Content-Type'])
+    assert_equal('content-type', Rack::Headers.known_headers['content-type'])
+    assert_predicate(Rack::Headers.known_headers['Content-Type'], :frozen?)
+  end
+
+  def test_subclass_known_headers
+    app_version = 'x-app-version'.freeze
+    known = Rack::Headers.known_headers.merge('X-App-Version' => app_version, 'x-app-version' => app_version).freeze
+    subclass = Class.new(Rack::Headers) do
+      define_singleton_method(:known_headers) { known }
+    end
+
+    headers = subclass.new
+    headers['X-App-Version'] = '1'
+    assert_same(app_version, headers.keys.first)
+    assert_equal('1', headers['x-APP-version'])
+    assert_equal('1', subclass['X-App-Version' => '1']['x-app-version'])
+
+    headers['Content-Type'] = 'text/plain'
+    assert_same(Rack::Headers.known_headers['Content-Type'], headers.keys.last)
+
+    base = Rack::Headers.new
+    base['X-App-Version'] = '1'
+    refute_same(app_version, base.keys.first)
+  end
 end

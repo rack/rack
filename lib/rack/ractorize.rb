@@ -1,7 +1,7 @@
 # frozen_string_literal: true
 
 module Rack
-  Headers::KNOWN_HEADERS.freeze
+  Headers.known_headers.freeze
 
   Ractor.make_shareable(Multipart::Parser::TEMPFILE_FACTORY)
   Multipart::Parser::REENCODE_DUMMY_ENCODINGS.freeze
