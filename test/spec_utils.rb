@@ -494,6 +494,16 @@ describe Rack::Utils do
 
     # When there are no matches, return nil:
     Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).must_be_nil
+
+    # A quality of 0 means "not acceptable"
+    Rack::Utils.best_q_match("text/html;q=0", %w[text/html]).must_be_nil
+    Rack::Utils.best_q_match("*/*;q=0.5, text/html;q=0", %w[text/html]).must_be_nil
+    Rack::Utils.best_q_match("text/html;q=0, */*", %w[text/html text/plain]).must_equal "text/plain"
+
+    # The most specific matching media range sets the quality
+    Rack::Utils.best_q_match("text/*;q=0.9, text/html;q=0.1", %w[text/html text/plain]).must_equal "text/plain"
+    Rack::Utils.best_q_match("text/html;q=0.1, */*;q=0.9", %w[text/html text/plain]).must_equal "text/plain"
+    Rack::Utils.best_q_match("text/html;q=0.1, */*;q=0.9", %w[text/html]).must_equal "text/html"
   end
 
   it "escape html entities [&><'\"/]" do

@@ -220,20 +220,38 @@ module Rack
     module_function :forwarded_values
 
     # Return best accept value to use, based on the algorithm
-    # in RFC 2616 Section 14.  If there are multiple best
-    # matches (same specificity and quality), the value returned
-    # is arbitrary.
+    # in RFC 9110 Section 12.5.1. The quality of each available
+    # mime type comes from the most specific media range that
+    # matches it, and a quality of 0 means "not acceptable". If
+    # there are multiple best matches, the one that comes first
+    # in +available_mimes+ is returned.
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
-      matches = values.map do |req_mime, quality|
-        match = available_mimes.find { |am| Rack::Mime.match?(am, req_mime) }
-        next unless match
-        [match, quality]
-      end.compact.sort_by do |match, quality|
-        (match.split('/', 2).count('*') * -10) + quality
-      end.last
-      matches&.first
+      best_match = nil
+      best_quality = 0.0
+
+      available_mimes.each do |available_mime|
+        quality = nil
+        specificity = -1
+
+        values.each do |req_mime, req_quality|
+          next unless Rack::Mime.match?(available_mime, req_mime)
+
+          req_specificity = 2 - req_mime.split('/', 2).count('*')
+          if req_specificity > specificity
+            specificity = req_specificity
+            quality = req_quality
+          end
+        end
+
+        if quality && quality > best_quality
+          best_match = available_mime
+          best_quality = quality
+        end
+      end
+
+      best_match
     end
 
     # Introduced in ERB 4.0. ERB::Escape is an alias for ERB::Utils which
