@@ -25,6 +25,4 @@ module Rack
   Files::ALLOW_HEADER.freeze
 
   Mime::MIME_TYPES.freeze
-
-  Ractor.make_shareable(ShowExceptions::TEMPLATE)
 end
