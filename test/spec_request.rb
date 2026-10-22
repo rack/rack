@@ -732,6 +732,22 @@ class RackRequestTest < Minitest::Spec
     req.params[:quux].must_equal "bla"
   end
 
+  it "should use the multipart_parser from environment for multipart parsing" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    mp_parser = Class.new(Rack::Request::MultipartParser) do
+      def self.default_tempfile_factory
+        proc { raise "no uploads allowed" }
+      end
+    end
+
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {multipart_parser: mp_parser},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    proc { req.POST }.must_raise(RuntimeError).message.must_equal "no uploads allowed"
+  end
+
   it "does not use semi-colons as separators for query strings in GET" do
     req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
     req.query_string.must_equal "foo=bar&quux=b;la;wun=duh"
