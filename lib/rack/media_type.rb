@@ -37,6 +37,7 @@ module Rack
         content_type.split(SPLIT_PATTERN)[1..-1].each_with_object({}) do |s, hsh|
           s.strip!
           k, v = s.split('=', 2)
+          next unless k
           k.downcase!
           hsh[k] = strip_doublequotes(v)
         end

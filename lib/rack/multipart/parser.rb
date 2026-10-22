@@ -576,8 +576,8 @@ module Rack
             rest = list.drop 1
             rest.each do |param|
               k, v = param.split('=', 2)
-              k.strip!
               next unless v
+              k.strip!
               v.strip!
               v = v[1..-2] if v.start_with?('"') && v.end_with?('"')
               if k == "charset"
