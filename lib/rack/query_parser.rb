@@ -216,6 +216,11 @@ module Rack
     def params_hash_has_key?(hash, key)
       return false if /\[\]/.match?(key)
 
+      # Fast path for a key without nesting, equivalent to the split below.
+      unless key.include?('[') || key.include?(']')
+        return key.empty? || hash.key?(key)
+      end
+
       key.split(/[\[\]]+/).inject(hash) do |h, part|
         next h if part == ''
         return false unless params_hash_type?(h) && h.key?(part)
@@ -232,7 +237,13 @@ module Rack
         raise QueryLimitError, "total query size exceeds limit (#{@bytesize_limit})"
       end
 
-      sep = separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP
+      if (!separator || separator == '&') && !qs.include?(' ')
+        # Without spaces, DEFAULT_SEP matches exactly the '&' characters, and
+        # splitting on a string is much faster than splitting on a regexp.
+        sep = '&'
+      else
+        sep = separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP
+      end
       pairs = @params_limit ? qs.split(sep, @params_limit + 1) : qs.split(sep)
 
       if @params_limit && pairs.size > @params_limit
@@ -249,8 +260,11 @@ module Rack
       else
         pairs.each do |p|
           next if p.empty?
-          k, v = p.split('=', 2).map! { |s| unescape(s) }
-          yield k, v
+          if i = p.index('=')
+            yield unescape(p[0, i]), unescape(p[i + 1, p.length])
+          else
+            yield unescape(p), nil
+          end
         end
       end
     rescue ArgumentError => e
