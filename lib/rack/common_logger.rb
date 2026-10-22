@@ -66,7 +66,9 @@ module Rack
         length,
         Utils.clock_time - began_at)
 
-      msg.gsub!(/[^[:print:]]/) { |c| sprintf("\\x%x", c.ord) }
+      unless msg.ascii_only? && msg.count("\x00-\x1f\x7f") == 0
+        msg.gsub!(/[^[:print:]]/) { |c| sprintf("\\x%x", c.ord) }
+      end
       msg[-1] = "\n"
 
       logger = @logger || request.get_header(RACK_ERRORS)
