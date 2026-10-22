@@ -28,6 +28,7 @@ All notable changes to this project will be documented in this file. For info on
 - The query parser now raises `Rack::QueryParser::IncompatibleEncodingError` if we try to parse params that are not ASCII compatible. ([#2416](https://github.com/rack/rack/pull/2416), [@bquorning](https://github.com/bquorning))
 - The mime type for `.pem` files has been changed from `application/x-x509-ca-cert` to `application/x-pem-file`. ([#2435](https://github.com/rack/rack/pull/2435), [@jeremyevans](https://github.com/jeremyevans))
 - Freeze `Rack::Auth::AbstractRequest::AUTHORIZATION_KEYS`, `Rack::Utils::STATUS_WITH_NO_ENTITY_BODY`, `Rack::Multipart::Parser::EMPTY`, `Rack::Utils.default_query_parser`, and internal constants in `Rack::Lint`. ([#2428](https://github.com/rack/rack/pull/2428), [@jhawthorn](https://github.com/jhawthorn))
+- `Rack::Request#form_data?` no longer assumes form-data when a `POST` request provides no `Content-Type`, so `Rack::Request#POST`, `#form_pairs` and `#params` no longer parse such a request body and leave it unread. This matches `ActionDispatch::Request`. As a consequence, `Rack::MethodOverride` no longer honours a `_method` parameter from such a request and no longer sets `rack.methodoverride.original_method` for it. Applications relying on the old behaviour can push `nil` onto `Rack::Request::FORM_DATA_MEDIA_TYPES` to restore it, though that restores Rack's pre-3.0 semantics of parsing any request without a `Content-Type` rather than the `POST`-only rule removed here. ([#2447](https://github.com/rack/rack/issues/2447))
 
 ### Fixed
 
