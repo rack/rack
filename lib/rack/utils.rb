@@ -220,11 +220,7 @@ module Rack
     module_function :forwarded_values
 
     # Return best accept value to use, based on the algorithm
-    # in RFC 9110 Section 12.5.1. The quality of each available
-    # mime type comes from the most specific media range that
-    # matches it, and a quality of 0 means "not acceptable". If
-    # there are multiple best matches, the one that comes first
-    # in +available_mimes+ is returned.
+    # in RFC 9110 Section 12.5.1.
     def best_q_match(q_value_header, available_mimes)
       values = q_values(q_value_header)
 
