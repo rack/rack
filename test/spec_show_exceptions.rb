@@ -104,7 +104,8 @@ describe Rack::ShowExceptions do
       ["text/html", ["/", { "HTTP_ACCEPT" => "*/*" }]],
       # Serve text/plain when the client does not accept text/html
       ["text/plain", ["/"]],
-      ["text/plain", ["/", { "HTTP_ACCEPT" => "application/json" }]]
+      ["text/plain", ["/", { "HTTP_ACCEPT" => "application/json" }]],
+      ["text/plain", ["/", { "HTTP_ACCEPT" => "text/html;q=0, */*" }]]
     ].each do |exmime, rargs|
       res = req.get(*rargs)
 
