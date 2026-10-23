@@ -226,24 +226,32 @@ module Rack
 
       best_match = nil
       best_quality = 0.0
+      best_index = -1
 
       available_mimes.each do |available_mime|
         quality = nil
+        index = nil
         specificity = -1
 
-        values.each do |req_mime, req_quality|
+        values.each_with_index do |(req_mime, req_quality), req_index|
           next unless Rack::Mime.match?(available_mime, req_mime)
 
           req_specificity = 2 - req_mime.split('/', 2).count('*')
           if req_specificity > specificity
             specificity = req_specificity
             quality = req_quality
+            index = req_index
           end
         end
 
-        if quality && quality > best_quality
+        next unless quality && quality > 0
+
+        # When qualities are equal, prefer the media range listed later in
+        # the header, as previous versions did.
+        if quality > best_quality || (quality == best_quality && index > best_index)
           best_match = available_mime
           best_quality = quality
+          best_index = index
         end
       end
 

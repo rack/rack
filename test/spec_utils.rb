@@ -504,6 +504,10 @@ describe Rack::Utils do
     Rack::Utils.best_q_match("text/*;q=0.9, text/html;q=0.1", %w[text/html text/plain]).must_equal "text/plain"
     Rack::Utils.best_q_match("text/html;q=0.1, */*;q=0.9", %w[text/html text/plain]).must_equal "text/plain"
     Rack::Utils.best_q_match("text/html;q=0.1, */*;q=0.9", %w[text/html]).must_equal "text/html"
+
+    # With equal qualities, the media range listed later in the header wins
+    Rack::Utils.best_q_match("application/json, application/xml;q=1.0", %w[application/json application/xml]).must_equal "application/xml"
+    Rack::Utils.best_q_match("application/xml;q=1.0, application/json", %w[application/json application/xml]).must_equal "application/json"
   end
 
   it "escape html entities [&><'\"/]" do
