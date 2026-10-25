@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Fixed
 
 - `Rack::MethodOverride` now rescues `Rack::BadRequest` to avoid the middleware raising an exception for invalid request bodies. ([#2505](https://github.com/rack/rack/pull/2505), [@navidemad](https://github.com/navidemad))
+- `Rack::Files` now compares `If-Modified-Since` as a date, so a date later than the file's `last-modified` also gets a 304, and ignores it when the request has `If-None-Match`. ([@wleeaf](https://github.com/wleeaf))
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 

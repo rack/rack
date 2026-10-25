@@ -84,8 +84,10 @@ module Rack
       if request.options?
         return [200, { 'allow' => ALLOW_HEADER, CONTENT_LENGTH => '0' }, []]
       end
-      last_modified = ::File.mtime(path).httpdate
-      return [304, {}, []] if request.get_header('HTTP_IF_MODIFIED_SINCE') == last_modified
+      mtime = ::File.mtime(path)
+      return [304, {}, []] if not_modified_since?(request, mtime)
+
+      last_modified = mtime.httpdate
 
       headers = { "last-modified" => last_modified }
       mime_type = mime_type path, @default_mime
@@ -204,6 +206,17 @@ EOF
     end
 
     private
+
+    # Whether the file is unchanged since the If-Modified-Since date. The date is
+    # ignored when it is invalid or when the request has If-None-Match
+    # (RFC 9110, section 13.1.3).
+    def not_modified_since?(request, mtime)
+      since = request.get_header('HTTP_IF_MODIFIED_SINCE')
+      return false if since.nil? || request.get_header('HTTP_IF_NONE_MATCH')
+
+      since = Time.httpdate(since) rescue nil
+      !since.nil? && mtime.to_i <= since.to_i
+    end
 
     def fail(status, body, headers = {})
       body += "\n"

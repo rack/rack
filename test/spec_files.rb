@@ -81,6 +81,30 @@ describe Rack::Files do
     res.must_be :ok?
   end
 
+  it "returns 304 if file isn't modified since a later date" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = Rack::MockRequest.new(files(DOCROOT)).
+      get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => (File.mtime(path) + 100).httpdate)
+
+    res.status.must_equal 304
+  end
+
+  it "ignores if-modified-since when if-none-match is present" do
+    path = File.join(DOCROOT, "/cgi/test")
+    res = Rack::MockRequest.new(files(DOCROOT)).
+      get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => File.mtime(path).httpdate,
+                       'HTTP_IF_NONE_MATCH' => '"abc"')
+
+    res.must_be :ok?
+  end
+
+  it "ignores an if-modified-since value that is not a date" do
+    res = Rack::MockRequest.new(files(DOCROOT)).
+      get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => 'yesterday')
+
+    res.must_be :ok?
+  end
+
   it "serves files with URL encoded filenames" do
     res = Rack::MockRequest.new(files(DOCROOT)).get("/cgi/%74%65%73%74") # "/cgi/test"
 
