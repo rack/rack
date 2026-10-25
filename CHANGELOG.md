@@ -37,6 +37,7 @@ All notable changes to this project will be documented in this file. For info on
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 - Multipart parser: only use a parameter named `boundary` as the boundary, not one whose name merely ends in `boundary`. ([#2542](https://github.com/rack/rack/pull/2542))
+- Multipart parser: match `Content-Disposition` parameter names case-insensitively, so that `NAME="field"` and `FileName="a.txt"` are no longer ignored. ([@wleeaf](https://github.com/wleeaf))
 
 ## [3.2.8] - 2026-10-30
 
