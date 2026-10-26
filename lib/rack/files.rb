@@ -214,8 +214,13 @@ EOF
       since = request.get_header('HTTP_IF_MODIFIED_SINCE')
       return false if since.nil? || request.get_header('HTTP_IF_NONE_MATCH')
 
-      since = Time.httpdate(since) rescue nil
-      !since.nil? && mtime.to_i <= since.to_i
+      begin
+        since = Time.httpdate(since)
+      rescue
+        false
+      else
+        mtime.to_i <= since.to_i
+      end
     end
 
     def fail(status, body, headers = {})

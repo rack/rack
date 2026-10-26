@@ -81,7 +81,7 @@ describe Rack::Files do
     res.must_be :ok?
   end
 
-  it "returns 304 if file isn't modified since a later date" do
+  it "returns 304 if last modified time given is after the file's mtime" do
     path = File.join(DOCROOT, "/cgi/test")
     res = Rack::MockRequest.new(files(DOCROOT)).
       get("/cgi/test", 'HTTP_IF_MODIFIED_SINCE' => (File.mtime(path) + 100).httpdate)
