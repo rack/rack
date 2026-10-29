@@ -5,7 +5,7 @@ description: End-to-end process for handling a Rack security report (GitHub Secu
 
 # Security triage for Rack
 
-This skill captures Samuel's process for taking a security report through to a fix on every supported branch. Follow the steps in order. Steps marked **TODO** have not been fully specified yet; ask before acting on them, then update this file with the answer.
+This skill captures Samuel's process for taking a security report through to a fix on every supported branch. Follow the steps in order. Releasing the result is covered by the `release` skill. When a step is unclear, ask, then update this file with the answer.
 
 ## Context
 
@@ -38,7 +38,7 @@ The same issue is often reported more than once, sometimes months apart. Search 
    - Keep the change minimal and local to the vulnerable code path.
    - Add regression tests that fail without the fix and pass with it. Test the reproduction shape from the report, not just the general mechanism.
    - Follow the style of previous security fixes in `git log` for the same file (commit subject, test placement, limit constants with `private_constant`).
-   - **TODO:** Where the fix branch lives when we author it (the private advisory fork, a local branch, or both) and who else reviews it.
+   - When we author the fix, develop it in a temporary copy under `/tmp`, then push it to a new branch in the advisory's private fork and open a pull request there so the other maintainers can review it before it merges from the advisory page.
 3. Apply the fix to a temporary copy of `main` and confirm:
    - The reproduction no longer triggers the issue.
    - New regression tests fail without the fix and pass with it.
@@ -74,11 +74,11 @@ If accepting:
 
 ## Phase 5: Backport
 
-1. **TODO:** Settle the backport target list for this report. Default is every supported stable branch, plus any older branch the maintainers still patch.
+1. The default targets are every series listed as supported in the `README.md` version support table (currently the latest series, the previous one, and 2.2 through April 2027). Confirm the list with Samuel if the fix does not apply cleanly to one of them.
 2. For each target, cherry-pick or re-apply the fix onto `<remote>/<series>-stable`, re-run the reproduction and the test suite on that branch, and add the changelog entry to that branch's `CHANGELOG.md` under a new patch version heading.
 3. Do not assume the `main` result carries over. Older branches can have different parser code and additional problems that need separate fixes.
 4. Open a PR per branch titled `Backport <subject> to <series>-stable`, then merge.
-5. **TODO:** Version bump and gem release steps.
+5. Changelog preparation, version bumps, tagging, and gem pushes follow the `release` skill. In particular, security entries move out of `## Unreleased` on `main` into per-series release sections before the stable branches are updated.
 
 ### Several advisories in one release
 
@@ -95,7 +95,7 @@ Security fixes are often batched so each supported series gets one patch release
 1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version (for example `>= 3.2.0, < 3.2.8` patched in `3.2.8`). Include every backported series and mark unsupported older series as affected with no patched version if they are not fixed.
 2. Confirm the patched versions are published to RubyGems and the changelog on each branch names them.
 3. Confirm the CVE is assigned and the description, credits, and severity are final.
-4. Publish the advisory. **TODO:** Who publishes, and whether any coordination or embargo applies.
+4. Samuel publishes the advisory, immediately after the patched gems are on RubyGems and together with any other advisories in the same release. There is normally no embargo; see `SECURITY.md`.
 
 ## Checklist before saying a step is done
 
