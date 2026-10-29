@@ -282,4 +282,13 @@ describe Rack::Directory do
       res.body.must_include "file.txt"
     end
   end
+
+  it "handles root directory ending in separator" do
+    root = File.expand_path("/")
+    app = Rack::Directory.new(root)
+    path = DOCROOT.delete_prefix(root.chomp("/"))
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).get(File.join(path, "cgi/"))
+    res.must_be :ok?
+    res.body.must_include "test"
+  end
 end

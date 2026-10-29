@@ -291,4 +291,11 @@ describe Rack::Static do
       res.body.must_match(/index!/)
     end
   end
+
+  it "supports urls ending in /" do
+    request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS.merge(urls: ["/cgi/"])))
+    res = request.get("/cgi/test")
+    res.must_be :ok?
+    res.body.must_match(/ruby/)
+  end
 end

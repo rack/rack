@@ -341,4 +341,17 @@ describe Rack::Builder do
       Rack::MockRequest.new(app).get("/").body.to_s.must_equal 'OK'
     end
   end
+
+  it "does not strip byte order mark if file is not read as UTF-8" do
+    enc = Encoding.default_external
+    begin
+      verbose, $VERBOSE = $VERBOSE, nil
+      Encoding.default_external = 'BINARY'
+      app, _ = Rack::Builder.parse_file File.join(__dir__, 'builder/line.ru')
+      Rack::MockRequest.new(app).get("/").body.to_s.must_equal '3'
+    ensure
+      Encoding.default_external = enc
+      $VERBOSE = verbose
+    end
+  end
 end
