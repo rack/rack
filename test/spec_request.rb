@@ -764,6 +764,35 @@ class RackRequestTest < Minitest::Spec
     proc { req.POST }.must_raise(RuntimeError).message.must_equal "no uploads allowed"
   end
 
+  it "should not use the multipart_parser for url-encoded POST data" do
+    mp_parser = Class.new(Rack::Request::MultipartParser) do
+      def self.parse_from_env(env)
+        raise "multipart parser called"
+      end
+    end
+
+    [nil, "application/x-www-form-urlencoded"].each do |content_type|
+      env = Rack::MockRequest.env_for("/",
+        "REQUEST_METHOD" => "POST",
+        "rack.request.config" => {multipart_parser: mp_parser},
+        :input => "foo=bar")
+      env.delete("CONTENT_TYPE")
+      env["CONTENT_TYPE"] = content_type if content_type
+      req = make_request(env)
+      req.form_pairs.must_equal [["foo", "bar"]]
+      req.POST.must_equal "foo" => "bar"
+    end
+  end
+
+  it "return empty form_pairs for multipart content type without boundary" do
+    req = make_request       Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST',
+        "CONTENT_TYPE" => 'multipart/mixed',
+        :input => "foo=bar")
+    req.form_pairs.must_equal []
+    req.POST.must_equal({})
+  end
+
   it "does not use semi-colons as separators for query strings in GET" do
     req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
     req.query_string.must_equal "foo=bar&quux=b;la;wun=duh"
