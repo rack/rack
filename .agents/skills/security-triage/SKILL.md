@@ -43,6 +43,7 @@ The same issue is often reported more than once, sometimes months apart. Search 
    - The reproduction no longer triggers the issue.
    - New regression tests fail without the fix and pass with it.
    - The affected test file passes, then the full test suite passes. Record the counts.
+4. Temporary private forks behave differently from ordinary repositories. Their pull requests target `rack/rack` `main`, the fork cannot itself be forked, and GitHub does not update an existing pull request when more commits are pushed to its head branch: the branch moves but `refs/pull/N/head` stays where it was. To add a commit such as a changelog entry, push the updated history to a new branch in the private fork and open a new pull request there, then close the old one. Merge private fork pull requests from the advisory page.
 
 ## Phase 3: Decide, then accept or close
 
