@@ -26,7 +26,7 @@ This skill captures the maintainers' process for shipping patch releases, usuall
 - [CVE-YYYY-NNNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx) One-sentence description of the issue.
 ```
 
-Use the CVE as the link text. A fix does not merge to `main` until its CVE is assigned, so by release time every security entry already carries one.
+Use the CVE as the link text when it is assigned and the GHSA identifier otherwise, with the same link target either way. CVE assignment can take weeks and does not hold the release. When a CVE arrives after the entry has shipped, update the link text on `main` and on each stable branch that carries the entry.
 
 The file on `main` is the master copy and holds every series. Sections are grouped by series in descending order: all `3.2.x` sections, then the `3.1.x` block, then the `2.2.x` block, and so on. A new `3.1.x` section goes at the top of the `3.1.x` block, not at the top of the file.
 
@@ -36,7 +36,7 @@ Security entries are written under `## Unreleased` on `main` when the fix merges
 
 ## Phase 1: Prepare the changelog on main
 
-1. Confirm every fix in the batch has merged to `main` and has its entry under `## Unreleased`, each linking its CVE. Confirm there is nothing else waiting that the release coordinator wants in the same release.
+1. Confirm every fix in the batch has merged to `main` and has its entry under `## Unreleased`, each linking its CVE or, if not yet assigned, its GHSA identifier. Confirm there is nothing else waiting that the release coordinator wants in the same release.
 2. Choose the next patch version for each series being released, for example `3.2.8`, `3.1.23`, `2.2.25`, and the release date.
 3. On a branch from `main`, edit `CHANGELOG.md`:
    - Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of each series block being released.
@@ -79,7 +79,7 @@ The release coordinator runs the pushes to RubyGems. Prepare the branches and th
 Do this only after every gem in the batch is on RubyGems.
 
 1. On each advisory, set the affected products: ecosystem RubyGems, package `rack`, one row per series with the vulnerable range and patched version. Follow the shape of past published advisories, for example `< 2.2.25` patched in `2.2.25`, `>= 3.0, < 3.1.23` patched in `3.1.23`, `>= 3.2, < 3.2.8` patched in `3.2.8`. A series that is unsupported and not fixed is listed as affected with no patched version.
-2. Confirm the CVE is assigned and the description, severity, and credits are final.
+2. Confirm the description, severity, and credits are final. Do not wait for the CVE; GitHub attaches it to the published advisory when assigned.
 3. Publish every advisory in the batch together, immediately after the gems are available, as `SECURITY.md` promises. The release coordinator publishes; prepare the advisories so publishing is one click each.
 4. If a fix is backported to a further series later, update that advisory's affected products afterward so the new patched version is recorded. Published advisories can still be edited.
 
