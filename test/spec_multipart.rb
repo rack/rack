@@ -1483,4 +1483,10 @@ content-type: image/png\r
     params.must_be_kind_of Hash
     params["submit-name"].must_equal "Larry"
   end
+
+  it "returns nil when parsing input without a content type" do
+    env = Rack::MockRequest.env_for("/", :input => "foo=bar")
+    env.delete("CONTENT_TYPE")
+    Rack::Multipart.parse_multipart(env).must_be_nil
+  end
 end
