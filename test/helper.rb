@@ -7,7 +7,6 @@ if ENV.delete('COVERAGE')
     enable_coverage :branch
     skip{|f| f.filename.start_with?(__dir__ + "/")}
     group('Missing'){|src| src.covered_percent < 100}
-    group('Covered'){|src| src.covered_percent == 100}
   end
 end
 
