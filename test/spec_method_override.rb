@@ -113,7 +113,7 @@ EOF
     env[Rack::RACK_ERRORS].read.must_include 'Bad request content body'
   end
 
-  it "writes error to RACK_ERRORS when using incompatible multipart encoding" do
+  it "does not write an error to RACK_ERRORS for a part with a non-ASCII-compatible charset" do
     input = [
       "--AaB03x\r\n",
       %(content-disposition: form-data; name="), "UTF-16LE".encode("UTF-16LE"), %("\r\n),
@@ -131,7 +131,7 @@ EOF
     Rack::MethodOverride.new(proc { [200, { "content-type" => "text/plain" }, []] }).call env
 
     env[Rack::RACK_ERRORS].rewind
-    env[Rack::RACK_ERRORS].read.must_include "Invalid or incomplete POST params"
+    env[Rack::RACK_ERRORS].read.must_be_empty
   end
 
   it "writes error to RACK_ERRORS when the multipart boundary is too long" do
