@@ -71,7 +71,7 @@ If accepting:
 4. Open a PR per branch titled `Backport <subject> to <series>-stable`, then merge.
 5. **TODO:** Version bump and gem release steps.
 
-## Triaging several advisories in one release
+### Several advisories in one release
 
 Security fixes are often batched so each supported series gets one patch release. When several advisories are in flight:
 
