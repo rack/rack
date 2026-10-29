@@ -204,6 +204,44 @@ describe Rack::Static do
     res.headers['cache-control'].must_equal 'public, max-age=300'
   end
 
+  it "applies folder rules to paths that normalise into the folder" do
+    res = @header_request.get('/cgi/assets/other/../folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies folder rules to percent-encoded dot-segments" do
+    res = @header_request.get('/cgi/assets/other/%2E%2E/folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies Regexp rules anchored at the start to normalised paths" do
+    opts = OPTIONS.merge(header_rules: [[%r{\A/cgi/assets/folder/}, { 'x-normalised' => 'yes' }]])
+    request = Rack::MockRequest.new(static(DummyApp.new, opts))
+    res = request.get('/cgi/assets/other/../folder/test.js')
+    res.must_be :ok?
+    res.headers['x-normalised'].must_equal 'yes'
+  end
+
+  it "applies folder rules given without a leading slash to normalised paths" do
+    res = @header_request.get('/cgi/assets/other/../javascripts/app.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=500'
+  end
+
+  it "applies folder rules to paths containing duplicate slashes" do
+    res = @header_request.get('/cgi/assets//folder/test.js')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=400'
+  end
+
+  it "applies extension-anchored Regexp rules to normalised paths" do
+    res = @header_request.get('/cgi/assets/other/../stylesheets/app.css')
+    res.must_be :ok?
+    res.headers['cache-control'].must_equal 'public, max-age=600'
+  end
+
   it "supports folder rules provided as a String" do
     # Headers for files in folder via string
     res = @header_request.get('/cgi/assets/folder/test.js')
