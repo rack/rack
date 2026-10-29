@@ -615,7 +615,7 @@ module Rack
             set_header(RACK_REQUEST_FORM_PAIRS, [])
           elsif parse_type = form_pairs_parse_type
             if parse_type == :multipart
-              set_header(RACK_REQUEST_FORM_PAIRS, multipart_parser.parse_from_env(env) || [])
+              set_header(RACK_REQUEST_FORM_PAIRS, multipart_parser&.parse_from_env(env) || [])
             else # :url_encoded
               # Add 2 bytes. One to check whether it is over the limit, and a second
               # in case the slice! call below removes the last byte
@@ -745,6 +745,14 @@ module Rack
         env.dig(RACK_REQUEST_CONFIG, key)
       end
 
+      def config_value_fetch(key, &block)
+        if config = env[RACK_REQUEST_CONFIG]
+          config.fetch(key, &block)
+        else
+          yield
+        end
+      end
+
       def default_session; {}; end
 
       # Assist with compatibility when processing `X-Forwarded-For`.
@@ -795,7 +803,7 @@ module Rack
       end
 
       def multipart_parser
-        config_value(:multipart_parser) || MultipartParser
+        config_value_fetch(:multipart_parser) { MultipartParser }
       end
 
       def parse_query(qs, d = '&')
