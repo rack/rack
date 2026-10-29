@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Security
+
+- [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
+
 ### SPEC Changes
 
 - Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
