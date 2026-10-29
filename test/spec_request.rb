@@ -764,6 +764,37 @@ class RackRequestTest < Minitest::Spec
     proc { req.POST }.must_raise(RuntimeError).message.must_equal "no uploads allowed"
   end
 
+  it "should not parse multipart data if multipart_parser is nil in environment" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    req = make_request Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {multipart_parser: nil},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    req.form_pairs.must_equal []
+    req.POST.must_equal({})
+    req.env.wont_include "rack.tempfiles"
+  end
+
+  it "should parse url-encoded POST data if multipart_parser is nil in environment" do
+    req = make_request Rack::MockRequest.env_for("/",
+                      "REQUEST_METHOD" => "POST",
+                      "rack.request.config" => {multipart_parser: nil},
+                      "CONTENT_TYPE" => "application/x-www-form-urlencoded",
+                      :input => "foo=bar")
+    req.POST.must_equal "foo" => "bar"
+  end
+
+  it "should use the default multipart_parser if rack.request.config does not include multipart_parser" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    req = make_request Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    req.POST["files"][:filename].must_equal "foo"
+  end
+
   it "should not use the multipart_parser for url-encoded POST data" do
     mp_parser = Class.new(Rack::Request::MultipartParser) do
       def self.parse_from_env(env)
