@@ -70,7 +70,7 @@ If accepting:
    - [CVE-YYYY-NNNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx) One-sentence description of the issue.
    ```
 
-   If no CVE has been assigned yet, use the GHSA link and fill in the CVE before release.
+   Do not merge until the CVE is assigned. Merging to `main` is public, so the changelog line must carry the final identifier from the start. Keep the fix waiting in the private fork until the CVE arrives, usually within a day of the request.
 3. Merge the fix into `main`.
 
 ## Phase 5: Backport
