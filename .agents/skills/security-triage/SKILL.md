@@ -43,6 +43,7 @@ The same issue is often reported more than once, sometimes months apart. Search 
    - The reproduction no longer triggers the issue.
    - New regression tests fail without the fix and pass with it.
    - The affected test file passes, then the full test suite passes. Record the counts.
+4. Temporary private forks behave differently from ordinary repositories. Their pull requests target `rack/rack` `main`, the fork cannot itself be forked, and status checks do not run on them. A pull request opened by the reporter did not pick up a maintainer's later push to its branch (`git ls-remote` showed the branch had moved, but the pull request head stayed put), while a pull request opened by a maintainer did follow pushes. After pushing to an existing branch, confirm with `gh api repos/rack/<fork>/pulls/<n> --jq .head.sha` that the pull request followed. If it did not, change the pull request's base branch and back or close and reopen it, or push the history to a new branch, open a new pull request, and close the stale one. Merge private fork pull requests from the advisory page.
 
 ## Phase 3: Decide, then accept or close
 
