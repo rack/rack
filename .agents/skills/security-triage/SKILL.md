@@ -57,9 +57,10 @@ If accepting:
 
 0. Accept the report in the GitHub advisory UI.
 1. Copy the reporter's original description verbatim into a comment on the advisory so the original report is preserved.
-2. Replace the description with a simplified version using the structure in `advisory-template.md`: `## Summary`, `## Details`, `## Impact`, `## Mitigation`. Match the tone and length of past accepted advisories (for example GHSA-v569-hp3g-36wr and GHSA-7mqq-6cf9-v2qp). Keep the reporter's credit.
+2. Replace the description with a simplified version using the structure in `advisory-template.md`: `## Summary`, `## Details`, `## Impact`, `## Mitigation`. Match the tone and length of past accepted advisories (for example GHSA-v569-hp3g-36wr and GHSA-7mqq-6cf9-v2qp). Keep the reporter's credit. Rewrite the title at the same time: one sentence naming the mechanism and the impact, with identifiers in backticks and a full stop at the end, for example "`Rack::Static` `header_rules` bypass via URL-encoded path mismatch." Reporter titles are often long, hedged, or reference other CVEs, and the title is what appears in GHSA feeds and release notes.
 3. Request a CVE from GitHub immediately after accepting, while the advisory is still in triage, so the identifier is available for the changelog entry and the fix PR.
-4. Propose a severity: review the report against comparable past Rack advisories (same component and impact class), draft a CVSS 3.1 vector with a one-line justification per metric, and discuss it with the maintainer coordinating the advisory before setting it on the advisory. Denial of service in default-enabled parsing by an unauthenticated attacker has historically been rated medium or high depending on the resource exhausted and whether it is bounded.
+4. Set the credits to match published Rack advisories: the reporter as `reporter`, whoever authored the fix as `remediation_developer`, a maintainer who reviewed a reporter-authored fix as `remediation_reviewer`, and the maintainer coordinating the advisory as `coordinator`. GitHub keeps one type per login, so a reporter who also wrote the fix stays `reporter`, and a coordinator who also wrote the fix stays `coordinator`. Credits can be set at any point before publication, once it is known who wrote the fix.
+5. Propose a severity: review the report against comparable past Rack advisories (same component and impact class), draft a CVSS 3.1 vector with a one-line justification per metric, and discuss it with the maintainer coordinating the advisory before setting it on the advisory. Denial of service in default-enabled parsing by an unauthenticated attacker has historically been rated medium or high depending on the resource exhausted and whether it is bounded.
 
 ## Phase 4: Merge to main
 
@@ -70,7 +71,7 @@ If accepting:
    - [CVE-YYYY-NNNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx) One-sentence description of the issue.
    ```
 
-   If no CVE has been assigned yet, use the GHSA link and fill in the CVE before release.
+   Do not merge until the CVE is assigned. Merging to `main` is public, so the changelog line must carry the final identifier from the start. Keep the fix waiting in the private fork until the CVE arrives, usually within a day of the request.
 3. Merge the fix into `main`.
 
 ## Phase 5: Backport

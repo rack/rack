@@ -26,7 +26,7 @@ This skill captures the maintainers' process for shipping patch releases, usuall
 - [CVE-YYYY-NNNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx) One-sentence description of the issue.
 ```
 
-Use the CVE as the link text when it is assigned and the GHSA id otherwise, and replace the GHSA id with the CVE before release if it arrives in time.
+Use the CVE as the link text. A fix does not merge to `main` until its CVE is assigned, so by release time every security entry already carries one.
 
 The file on `main` is the master copy and holds every series. Sections are grouped by series in descending order: all `3.2.x` sections, then the `3.1.x` block, then the `2.2.x` block, and so on. A new `3.1.x` section goes at the top of the `3.1.x` block, not at the top of the file.
 
@@ -36,7 +36,7 @@ Security entries are written under `## Unreleased` on `main` when the fix merges
 
 ## Phase 1: Prepare the changelog on main
 
-1. Confirm every fix in the batch has merged to `main` and has its entry under `## Unreleased`, with the CVE filled in where assigned. Confirm there is nothing else waiting that the release coordinator wants in the same release.
+1. Confirm every fix in the batch has merged to `main` and has its entry under `## Unreleased`, each linking its CVE. Confirm there is nothing else waiting that the release coordinator wants in the same release.
 2. Choose the next patch version for each series being released, for example `3.2.8`, `3.1.23`, `2.2.25`, and the release date.
 3. On a branch from `main`, edit `CHANGELOG.md`:
    - Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of each series block being released.
