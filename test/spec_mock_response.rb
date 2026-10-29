@@ -352,4 +352,11 @@ describe Rack::MockResponse, 'headers' do
     response.headers.must_equal({})
     response.body.must_equal ""
   end
+
+  it "delegates respond_to? for cookies to the cookie value" do
+    res = Rack::MockRequest.new(app).get("")
+    session_cookie = res.cookie("session_test")
+    session_cookie.respond_to?(:first).must_equal true
+    session_cookie.respond_to?(:nonexistent_method).must_equal false
+  end
 end

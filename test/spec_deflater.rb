@@ -551,4 +551,14 @@ describe Rack::Deflater do
       end
     end
   end
+
+  it "uses current time as gzip mtime if GzipStream is not given an mtime" do
+    body = Rack::Deflater::GzipStream.new(["foo"], nil, false)
+    output = String.new
+    before = Time.now.to_i
+    body.each { |part| output << part }
+    gz = Zlib::GzipReader.new(StringIO.new(output))
+    gz.read.must_equal "foo"
+    gz.mtime.to_i.must_be :>=, before
+  end
 end

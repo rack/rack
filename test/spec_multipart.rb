@@ -1476,4 +1476,11 @@ content-type: image/png\r
     params["upload"][:filename].must_equal "test\t.txt"
     params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
   end
+
+  it "uses the default query parser when parsing directly from env" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    params = Rack::Multipart::Parser.parse_from_env(env)
+    params.must_be_kind_of Hash
+    params["submit-name"].must_equal "Larry"
+  end
 end

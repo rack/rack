@@ -1072,6 +1072,8 @@ class RackRequestTest < Minitest::Spec
         'REQUEST_METHOD' => 'POST', :input => "a%=1")
     lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
       message.must_equal "invalid %-encoding (a%)"
+    lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
+      message.must_equal "invalid %-encoding (a%)"
   end
 
   it "return form_pairs for multipart form data" do
@@ -1497,6 +1499,14 @@ EOF
     req.headers['FOO-BAR'].must_equal 'baz'
     req.headers['content-type'].must_equal 'text/html'
     req.headers['Content-Length'].must_equal '1'
+  end
+
+  it "ignore headers.add for existing env values that are not strings or arrays" do
+    e = Rack::MockRequest.env_for("", "HTTP_FOO_BAR" => 1)
+    req = make_request(e)
+
+    req.headers.add('foo-bar', 'baz').must_be_nil
+    e['HTTP_FOO_BAR'].must_equal 1
   end
 
   it "set or add HTTP header in env via headers.add" do
