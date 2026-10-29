@@ -71,6 +71,16 @@ If accepting:
 4. Open a PR per branch titled `Backport <subject> to <series>-stable`, then merge.
 5. **TODO:** Version bump and gem release steps.
 
+## Triaging several advisories in one release
+
+Security fixes are often batched so each supported series gets one patch release. When several advisories are in flight:
+
+- Run Phases 1 to 3 independently for each advisory. Each keeps its own private fork, fix, description, CVE, and severity. Do not merge unrelated fixes into one pull request.
+- Hold the version bump until every fix in the batch has merged to `main` and been backported to each target series. One release per series then carries all of them.
+- List every advisory as a separate line under the same `### Security` heading in `CHANGELOG.md` on `main` and on each series branch.
+- Set the same patched version on every advisory in the batch for a given series, then publish the advisories together once the gems are on RubyGems.
+- If one fix is not ready, decide with Samuel whether to hold the release or ship without it. Do not let a half-finished fix delay a release indefinitely.
+
 ## Phase 6: Set fixed versions and publish
 
 1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version (for example `>= 3.2.0, < 3.2.8` patched in `3.2.8`). Include every backported series and mark unsupported older series as affected with no patched version if they are not fixed.
