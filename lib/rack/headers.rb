@@ -218,7 +218,7 @@ module Rack
     end
 
     # Ruby < 3.0 does not provide Hash#except.
-    if Hash.method_defined?(:except)
+    if Hash.method_defined?(:except) # simplecov:disable
       def except(*a)
         super(*a.map!{|key| downcase_key(key)})
       end

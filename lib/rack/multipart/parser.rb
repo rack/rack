@@ -66,6 +66,7 @@ module Rack
       private_constant :MIME_HEADER_BYTESIZE_LIMIT
 
       env_int = lambda do |key, val|
+        # simplecov:disable
         if str_val = ENV[key]
           begin
             val = Integer(str_val, 10)
@@ -73,6 +74,7 @@ module Rack
             raise ArgumentError, "non-integer value provided for environment variable #{key}"
           end
         end
+        # simplecov:enable
 
         val
       end
@@ -81,7 +83,7 @@ module Rack
       private_constant :BUFFERED_UPLOAD_BYTESIZE_LIMIT
 
       bytesize_limit = env_int.call("RACK_MULTIPART_PARSER_BYTESIZE_LIMIT", 10 * 1024 * 1024 * 1024)
-      PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
+      PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil # simplecov:disable
       private_constant :PARSER_BYTESIZE_LIMIT
 
       CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT = env_int.call("RACK_MULTIPART_CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT", 8 * 1024)
