@@ -5,7 +5,7 @@ description: End-to-end process for handling a Rack security report (GitHub Secu
 
 # Security triage for Rack
 
-This skill captures Samuel's process for taking a security report through to a fix on every supported branch. Follow the steps in order. Releasing the result is covered by the `release` skill. When a step is unclear, ask, then update this file with the answer.
+This skill captures the maintainers' process for taking a security report through to a fix on every supported branch. Follow the steps in order. Releasing the result is covered by the `release` skill. When a step is unclear, ask, then update this file with the answer.
 
 ## Context
 
@@ -58,7 +58,7 @@ If accepting:
 1. Copy the reporter's original description verbatim into a comment on the advisory so the original report is preserved.
 2. Replace the description with a simplified version using the structure in `advisory-template.md`: `## Summary`, `## Details`, `## Impact`, `## Mitigation`. Match the tone and length of past accepted advisories (for example GHSA-v569-hp3g-36wr and GHSA-7mqq-6cf9-v2qp). Keep the reporter's credit.
 3. Request a CVE from GitHub immediately after accepting, while the advisory is still in triage, so the identifier is available for the changelog entry and the fix PR.
-4. Propose a severity: review the report against comparable past Rack advisories (same component and impact class), draft a CVSS 3.1 vector with a one-line justification per metric, and discuss it with Samuel before setting it on the advisory. Denial of service in default-enabled parsing by an unauthenticated attacker has historically been rated medium or high depending on the resource exhausted and whether it is bounded.
+4. Propose a severity: review the report against comparable past Rack advisories (same component and impact class), draft a CVSS 3.1 vector with a one-line justification per metric, and discuss it with the maintainer coordinating the advisory before setting it on the advisory. Denial of service in default-enabled parsing by an unauthenticated attacker has historically been rated medium or high depending on the resource exhausted and whether it is bounded.
 
 ## Phase 4: Merge to main
 
@@ -74,7 +74,7 @@ If accepting:
 
 ## Phase 5: Backport
 
-1. The default targets are every series listed as supported in the `README.md` version support table (currently the latest series, the previous one, and 2.2 through April 2027). Confirm the list with Samuel if the fix does not apply cleanly to one of them.
+1. The default targets are every series listed as supported in the `README.md` version support table (currently the latest series, the previous one, and 2.2 through April 2027). Confirm the list with the maintainers if the fix does not apply cleanly to one of them.
 2. For each target, cherry-pick or re-apply the fix onto `<remote>/<series>-stable`, re-run the reproduction and the test suite on that branch, and add the changelog entry to that branch's `CHANGELOG.md` under a new patch version heading.
 3. Do not assume the `main` result carries over. Older branches can have different parser code and additional problems that need separate fixes.
 4. Open a PR per branch titled `Backport <subject> to <series>-stable`, then merge.
@@ -88,14 +88,14 @@ Security fixes are often batched so each supported series gets one patch release
 - Hold the version bump until every fix in the batch has merged to `main` and been backported to each target series. One release per series then carries all of them.
 - List every advisory as a separate line under the same `### Security` heading in `CHANGELOG.md` on `main` and on each series branch.
 - Set the same patched version on every advisory in the batch for a given series, then publish the advisories together once the gems are on RubyGems.
-- If one fix is not ready, decide with Samuel whether to hold the release or ship without it. Do not let a half-finished fix delay a release indefinitely.
+- If one fix is not ready, the release coordinator decides whether to hold the release or ship without it. Do not let a half-finished fix delay a release indefinitely.
 
 ## Phase 6: Set fixed versions and publish
 
 1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version (for example `>= 3.2.0, < 3.2.8` patched in `3.2.8`). Include every backported series and mark unsupported older series as affected with no patched version if they are not fixed.
 2. Confirm the patched versions are published to RubyGems and the changelog on each branch names them.
 3. Confirm the CVE is assigned and the description, credits, and severity are final.
-4. Samuel publishes the advisory, immediately after the patched gems are on RubyGems and together with any other advisories in the same release. There is normally no embargo; see `SECURITY.md`.
+4. The release coordinator publishes the advisory, immediately after the patched gems are on RubyGems and together with any other advisories in the same release. There is normally no embargo; see `SECURITY.md`.
 
 ## Checklist before saying a step is done
 
