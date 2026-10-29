@@ -89,6 +89,17 @@ Do this only after every gem in the batch is on RubyGems.
 - Update the version support table and the release notes paragraphs in `README.md` on `main` when a series changes support status or an end-of-support date is announced.
 - Clean up temporary worktrees and leave every checkout on the branch it started on.
 
+## Minor and major releases
+
+A new minor or major version starts with a new stable branch, cut before anything is bumped or tagged. (Earlier minors such as 3.1.0 and 3.2.0 were tagged on `main` and branched afterwards; going forward, cut the branch first.)
+
+1. Confirm with the release coordinator that `main` is at the intended cut point and that nothing else is waiting for the release.
+2. Create `<major>-<minor>-stable` from `main` and push it to `rack/rack`, for example `git branch 3-3-stable <remote>/main && git push <remote> 3-3-stable`. `main` continues as development for the following version.
+3. On the new stable branch, turn `## Unreleased` into `## [X.Y.0] - YYYY-MM-DD`, set the version in `lib/rack/version.rb`, commit as `Bump minor version.` or `Bump major version.`, wait for CI, then run `rake release` as in Phase 3.
+4. On `main`, add the same `## [X.Y.0]` section below `## Unreleased` so the master changelog records the release, and leave `## Unreleased` empty for new work. The new branch already mirrors `main`, including the older series blocks.
+5. Update `README.md` on `main`: the new series becomes the one receiving bug fixes and security patches, the previous series moves to security patches only, and the series that drops out of support gets an end-of-support entry. Update the per-series paragraphs under the change log heading to match. Backport the README change to the new stable branch.
+6. Later patch releases for the new series follow Phases 1 to 5 like any other.
+
 ## Checklist before saying a step is done
 
 - Every version mentioned exists on the remote as a tag and on RubyGems, checked, not inferred.
