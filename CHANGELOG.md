@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
+- [GHSA-wvg4-6p58-3gh3](https://github.com/advisories/GHSA-wvg4-6p58-3gh3) `Rack::Static` header rules were matched against an unnormalized path, allowing dot segments to bypass them.
 
 ### SPEC Changes
 
