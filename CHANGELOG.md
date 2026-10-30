@@ -2,7 +2,14 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [3.2.8] - 2026-10-30
+
+### Security
+
+- [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
+- [GHSA-wvg4-6p58-3gh3](https://github.com/advisories/GHSA-wvg4-6p58-3gh3) `Rack::Static` header rules were matched against an unnormalized path, allowing dot segments to bypass them.
+- [GHSA-2j8w-xcrc-x985](https://github.com/advisories/GHSA-2j8w-xcrc-x985) `Rack::Request#host_with_port`, `#base_url`, and `#url` returned the raw authority when it was invalid; `host_with_port` now returns `nil` in that case.
+- [GHSA-p8x9-v4hv-2w4g](https://github.com/advisories/GHSA-p8x9-v4hv-2w4g) Multipart requests with more than one `boundary` parameter were accepted when the first value was empty or began with a quote, semicolon, or comma, bypassing the guard added for CVE-2026-26961.
 
 ### Fixed
 
@@ -120,6 +127,15 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 - `Rack::Lint` now disallows `PATH_INFO="" SCRIPT_NAME=""`. ([#2298](https://github.com/rack/rack/issues/2307), [@jeremyevans])
+
+## [3.1.23] - 2026-10-30
+
+### Security
+
+- [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
+- [GHSA-wvg4-6p58-3gh3](https://github.com/advisories/GHSA-wvg4-6p58-3gh3) `Rack::Static` header rules were matched against an unnormalized path, allowing dot segments to bypass them.
+- [GHSA-2j8w-xcrc-x985](https://github.com/advisories/GHSA-2j8w-xcrc-x985) `Rack::Request#host_with_port`, `#base_url`, and `#url` returned the raw authority when it was invalid; `host_with_port` now returns `nil` in that case.
+- [GHSA-p8x9-v4hv-2w4g](https://github.com/advisories/GHSA-p8x9-v4hv-2w4g) Multipart requests with more than one `boundary` parameter were accepted when the first value was empty or began with a quote, semicolon, or comma, bypassing the guard added for CVE-2026-26961.
 
 ## [3.1.22] - 2026-08-13
 
@@ -544,6 +560,18 @@ This release introduces major improvements to Rack, including enhanced support f
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.25] - 2026-10-30
+
+### Security
+
+- [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
+- [GHSA-wvg4-6p58-3gh3](https://github.com/advisories/GHSA-wvg4-6p58-3gh3) `Rack::Static` header rules were matched against an unnormalized path, allowing dot segments to bypass them.
+- [GHSA-p8x9-v4hv-2w4g](https://github.com/advisories/GHSA-p8x9-v4hv-2w4g) Multipart requests with more than one `boundary` parameter were accepted when the first value was empty or began with a quote, semicolon, or comma, bypassing the guard added for CVE-2026-26961.
+
+### Fixed
+
+- Multipart parser: scan boundary lines with a literal newline search instead of a backtracking regexp, which allocated tens of megabytes per scan for long lines and made the scan buffer fix above ineffective on this series.
 
 ## [2.2.24] - 2026-08-13
 
