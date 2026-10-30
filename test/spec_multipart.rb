@@ -76,6 +76,18 @@ describe Rack::Multipart do
     }.must_raise Rack::Multipart::Error
   end
 
+  it "ignores a parameter whose name merely ends in boundary" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = env["CONTENT_TYPE"].sub("boundary=", "xboundary=")
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env).must_be_nil
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = env["CONTENT_TYPE"].sub("boundary=", "xboundary=other; boundary=")
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env)["text"].must_equal "contents"
+  end
+
   it "raises an exception if a boundary parameter precedes the one that is parsed" do
     [
       'multipart/form-data; boundary=; boundary=AaB03x',
