@@ -20,6 +20,9 @@ module Rack
 
       BOUNDARY_REGEX = /\A([^\n]*(?:\n|\Z))/
 
+      LINE_END = /\n/
+      private_constant :LINE_END
+
       BOUNDARY_START_LIMIT = 16 * 1024
       private_constant :BOUNDARY_START_LIMIT
 
@@ -391,12 +394,27 @@ module Rack
       # end of the boundary.  If we don't find the start or end of the
       # boundary, clear the buffer and return nil.
       def consume_boundary
-        while read_buffer = @sbuf.scan_until(BOUNDARY_REGEX)
+        while read_buffer = scan_line
           case read_buffer.strip
           when full_boundary then return :BOUNDARY
           when @end_boundary then return :END_BOUNDARY
           end
           return if @sbuf.eos?
+        end
+      end
+
+      # Return the next line of the buffer including its trailing "\n", or the
+      # rest of the buffer if it contains no "\n", and advance past it. This is
+      # equivalent to `@sbuf.scan_until(BOUNDARY_REGEX)`, but searching for the
+      # "\n" directly avoids the regexp engine's backtracking stack, which grows
+      # by one entry per byte matched by `[^\n]*` (tens of MB for a 1 MB line).
+      def scan_line
+        if line = @sbuf.scan_until(LINE_END)
+          line
+        else
+          line = @sbuf.rest
+          @sbuf.terminate
+          line
         end
       end
 
