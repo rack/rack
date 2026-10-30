@@ -58,8 +58,8 @@ If accepting:
 0. Accept the report in the GitHub advisory UI.
 1. Copy the reporter's original description verbatim into a comment on the advisory so the original report is preserved.
 2. Replace the description with a simplified version using the structure in `advisory-template.md`: `## Summary`, `## Details`, `## Impact`, `## Mitigation`. Match the tone and length of past accepted advisories (for example GHSA-v569-hp3g-36wr and GHSA-7mqq-6cf9-v2qp). Keep the reporter's credit. Rewrite the title at the same time: one sentence naming the mechanism and the impact, with identifiers in backticks and a full stop at the end, for example "`Rack::Static` `header_rules` bypass via URL-encoded path mismatch." Reporter titles are often long, hedged, or reference other CVEs, and the title is what appears in GHSA feeds and release notes.
-3. Request a CVE from GitHub immediately after accepting, while the advisory is still in triage, so the identifier is available for the changelog entry and the fix PR.
-4. Set the credits to match published Rack advisories: the reporter as `reporter`, whoever authored the fix as `remediation_developer`, a maintainer who reviewed a reporter-authored fix as `remediation_reviewer`, and the maintainer coordinating the advisory as `coordinator`. GitHub keeps one type per login, so a reporter who also wrote the fix stays `reporter`, and a coordinator who also wrote the fix stays `coordinator`. Credits can be set at any point before publication, once it is known who wrote the fix.
+3. Request a CVE from GitHub immediately after accepting. Assignment can take around three weeks, so it is not on the critical path: the fix merges and the release ships whether or not the CVE has arrived, and the advisory can be published without one. Confirm the request registered on the advisory page, since the API gives no pending state.
+4. Set the credits to match published Rack advisories: the reporter as `reporter`, whoever authored the fix as `remediation_developer`, a maintainer who reviewed a reporter-authored fix as `remediation_reviewer`, and the maintainer coordinating the advisory as `coordinator`. GitHub keeps one type per login, so a person with two roles gets the higher-effort one: a reporter who also wrote the fix is credited as `remediation_developer`, and the coordinator stays `coordinator` even when they wrote the fix. Credits can be set at any point before publication, once it is known who wrote the fix.
 5. Propose a severity: review the report against comparable past Rack advisories (same component and impact class), draft a CVSS 3.1 vector with a one-line justification per metric, and discuss it with the maintainer coordinating the advisory before setting it on the advisory. Denial of service in default-enabled parsing by an unauthenticated attacker has historically been rated medium or high depending on the resource exhausted and whether it is bounded.
 
 ## Phase 4: Merge to main
@@ -69,9 +69,11 @@ If accepting:
 
    ```
    - [CVE-YYYY-NNNNN](https://github.com/advisories/GHSA-xxxx-xxxx-xxxx) One-sentence description of the issue.
+
+   Use the CVE as the link text when it is assigned. Until then use the GHSA identifier, keeping the same link target.
    ```
 
-   Do not merge until the CVE is assigned. Merging to `main` is public, so the changelog line must carry the final identifier from the start. Keep the fix waiting in the private fork until the CVE arrives, usually within a day of the request.
+   Do not wait for the CVE to merge. When it arrives later, update the link text in a follow-up `Update changelog.` commit on `main` and on each stable branch that carries the entry. The published advisory picks up the CVE automatically.
 3. Merge the fix into `main`.
 
 ## Phase 5: Backport
@@ -96,7 +98,7 @@ Security fixes are often batched so each supported series gets one patch release
 
 1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version (for example `>= 3.2.0, < 3.2.8` patched in `3.2.8`). Include every backported series and mark unsupported older series as affected with no patched version if they are not fixed.
 2. Confirm the patched versions are published to RubyGems and the changelog on each branch names them.
-3. Confirm the CVE is assigned and the description, credits, and severity are final.
+3. Confirm the description, credits, and severity are final. Publish whether or not the CVE has been assigned; GitHub attaches it to the published advisory when it arrives.
 4. The release coordinator publishes the advisory, immediately after the patched gems are on RubyGems and together with any other advisories in the same release. There is normally no embargo; see `SECURITY.md`.
 
 ## Checklist before saying a step is done
