@@ -277,4 +277,67 @@ describe Rack::Static do
       res.body.must_match(/index!/)
     end
   end
+
+  it "supports urls ending in /" do
+    request = Rack::MockRequest.new(static(DummyApp.new, OPTIONS.merge(urls: ["/cgi/"])))
+    res = request.get("/cgi/test")
+    res.must_be :ok?
+    res.body.must_match(/ruby/)
+  end
+  describe "applies path-specific header rules after path normalization" do
+    SECRET_BODY = "<protected>top secret</protected>".freeze
+
+    def with_normalized_app
+      Dir.mktmpdir do |dir|
+        FileUtils.mkdir_p(File.join(dir, "css"))
+        FileUtils.mkdir_p(File.join(dir, "admin"))
+        File.write(File.join(dir, "admin", "secret.html"), SECRET_BODY)
+
+        opts = {
+          urls: ["/css", "/admin"],
+          root: dir,
+          header_rules: [
+            [:all, { 'cache-control' => 'public, max-age=100' }],
+            ['/admin/', {
+              'cache-control' => 'private, no-store',
+              'x-frame-options' => 'DENY'
+            }]
+          ]
+        }
+
+        yield Rack::MockRequest.new(static(DummyApp.new, opts))
+      end
+    end
+
+    def assert_admin_headers_applied(res)
+      res.must_be :ok?
+      res.body.must_equal SECRET_BODY
+      res.headers['cache-control'].must_equal 'private, no-store'
+      res.headers['x-frame-options'].must_equal 'DENY'
+    end
+
+    it "applies admin header rules for a dot-segment path" do
+      with_normalized_app do |request|
+        assert_admin_headers_applied(request.get("/css/../admin/secret.html"))
+      end
+    end
+
+    it "applies admin header rules for a fully encoded dot-segment path" do
+      with_normalized_app do |request|
+        assert_admin_headers_applied(request.get("/css%2F..%2Fadmin%2Fsecret.html"))
+      end
+    end
+
+    it "applies admin header rules for a mixed encoded dot-segment path" do
+      with_normalized_app do |request|
+        assert_admin_headers_applied(request.get("/foo/..%2Fadmin/secret.html"))
+      end
+    end
+
+    it "applies admin header rules when dot segments are percent-encoded" do
+      with_normalized_app do |request|
+        assert_admin_headers_applied(request.get("/css/%2E%2E/admin/secret.html"))
+      end
+    end
+  end
 end
