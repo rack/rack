@@ -391,5 +391,22 @@ content-range: bytes 60-80/209\r
 
       assert Ractor.shareable?(files)
     end
+
+    it "answers OPTIONS and rejects other verbs from a non-main ractor" do
+      files = Ractor.make_shareable(Rack::Files.new(DOCROOT))
+      envs = %w[OPTIONS POST].map do |verb|
+        Rack::MockRequest.env_for("/cgi/test", method: verb).except(Rack::RACK_INPUT, Rack::RACK_ERRORS)
+      end
+
+      ractor = Ractor.new(files, envs) do |files, envs|
+        envs.map do |env|
+          status, headers, _ = files.call(env)
+          [status, headers["allow"]]
+        end
+      end
+      responses = ractor.respond_to?(:value) ? ractor.value : ractor.take
+
+      responses.must_equal [[200, "GET, HEAD, OPTIONS"], [405, "GET, HEAD, OPTIONS"]]
+    end
   end
 end
