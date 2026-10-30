@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- Fix `NoMethodError` in `Rack::Request#wrap_ipv6` when `x-forwarded-host` is empty. ([#2270](https://github.com/rack/rack/pull/2270), [@oieioi](https://github.com/oieioi))
+
 ## [3.1.23] - 2026-10-30
 
 ### Security
