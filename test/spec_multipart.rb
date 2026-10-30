@@ -62,6 +62,26 @@ describe Rack::Multipart do
     }.must_raise EOFError
   end
 
+  it "raises an exception if a boundary parameter precedes the one that is parsed" do
+    [
+      'multipart/form-data; boundary=; boundary=AaB03x',
+      'multipart/form-data; boundary=""; boundary=AaB03x',
+      'multipart/form-data; boundary=";boundary=AaB03x"',
+      'multipart/form-data; boundary=",boundary=AaB03x"',
+      'multipart/form-data; boundary=;boundary=AaB03x',
+      "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
+      "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
+      'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+    ].each do |content_type|
+      env = multipart_fixture(:content_type_and_no_filename)
+      env["CONTENT_TYPE"] = content_type
+      env = Rack::MockRequest.env_for("/", env)
+      lambda {
+        Rack::Multipart.parse_multipart(env)
+      }.must_raise EOFError, content_type
+    end
+  end
+
   it "raises an exception if Content-Length exceeds total bytesize limit" do
     with_multipart_limit(1024) do
       env = Rack::MockRequest.env_for("/",
