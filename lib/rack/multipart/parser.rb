@@ -444,9 +444,11 @@ module Rack
               # Found end of parameter name, ensure forward progress in loop
               param = disposition.slice!(0, i+1)
 
-              # Remove ending equals and preceding whitespace from parameter name
+              # Remove ending equals and preceding whitespace from parameter name,
+              # parameter names are matched case-insensitively (RFC 2045 Section 5.1)
               param.chomp!('=')
               param.lstrip!
+              param.downcase!
 
               if disposition[0] == '"'
                 # Parameter value is quoted, parse it, handling backslash escapes

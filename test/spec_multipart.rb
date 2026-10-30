@@ -656,6 +656,13 @@ describe Rack::Multipart do
     x["file"][:name].must_equal "file"
   end
 
+  it "parses content-disposition parameter names case-insensitively" do
+    x = content_disposition_parse.call('FileName="c:\foo\bar"; NAME=file')
+    x.keys.must_equal ["file"]
+    x["file"][:filename].must_equal "bar"
+    x["file"][:name].must_equal "file"
+  end
+
   it "parses content-disposition with IE full paths in filename" do
     x = content_disposition_parse.call('filename="c:\foo\bar"; name=file;')
     x.keys.must_equal ["file"]
