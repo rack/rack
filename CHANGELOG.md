@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For info on
 - [GHSA-5v64-555j-wjxm](https://github.com/advisories/GHSA-5v64-555j-wjxm) Multipart parser retains parsed data in its scan buffer, allowing denial of service via memory exhaustion.
 - [GHSA-wvg4-6p58-3gh3](https://github.com/advisories/GHSA-wvg4-6p58-3gh3) `Rack::Static` header rules were matched against an unnormalized path, allowing dot segments to bypass them.
 - [GHSA-2j8w-xcrc-x985](https://github.com/advisories/GHSA-2j8w-xcrc-x985) `Rack::Request#host_with_port`, `#base_url`, and `#url` returned the raw authority when it was invalid; `host_with_port` now returns `nil` in that case.
+- [GHSA-p8x9-v4hv-2w4g](https://github.com/advisories/GHSA-p8x9-v4hv-2w4g) Multipart requests with more than one `boundary` parameter were accepted when the first value was empty or began with a quote, semicolon, or comma, bypassing the guard added for CVE-2026-26961.
 
 ### SPEC Changes
 
