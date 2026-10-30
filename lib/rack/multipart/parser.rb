@@ -115,7 +115,11 @@ module Rack
         unless data[1].empty?
           raise Error, "whitespace between boundary parameter name and equal sign"
         end
-        if data.post_match.match?(/boundary\s*=/i)
+        # Count across the whole header rather than only after the match: the
+        # lazy prefix in MULTIPART can skip a first boundary parameter whose
+        # value is empty or starts with a quote, semicolon, or comma. Also
+        # count RFC 2231 boundary* parameters, which some parsers prefer.
+        if content_type.scan(/boundary(?:\*\d*\*?)?\s*=/i).size > 1
           raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
         end
 
