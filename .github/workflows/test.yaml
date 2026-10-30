@@ -27,7 +27,8 @@ jobs:
         include:
           - os: macos-latest
             ruby: '4.0'
-    runs-on: ${{matrix.os}}
+    # ruby/setup-ruby has no Ruby < 3.2 for ubuntu-26.04, which ubuntu-latest now points to
+    runs-on: ${{ matrix.os == 'ubuntu-latest' && contains(fromJSON('["2.7", "2.7.3", "3.0", "3.1"]'), matrix.ruby) && 'ubuntu-24.04' || matrix.os }}
     env:
       CI: spec
 
