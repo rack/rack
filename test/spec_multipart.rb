@@ -438,6 +438,33 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).keys.must_equal(["a", "b", "c"])
   end
 
+  it "parses an empty part whose delimiter directly follows the header blank line" do
+    # RFC 2046 makes the body of a part optional, so the CRLF that ends the
+    # part headers can also be the CRLF that starts the next delimiter.
+    data = StringIO.new
+    data.write("--AaB03x\r\n")
+    data.write("content-disposition: form-data; name=\"a\"\r\n")
+    data.write("\r\n")
+    data.write("--AaB03x\r\n")
+    data.write("content-disposition: form-data; name=\"b\"\r\n")
+    data.write("\r\n")
+    data.write("--AaB03x\r\n")
+    data.write("content-disposition: form-data; name=\"c\"\r\n")
+    data.write("\r\n")
+    data.write("third\r\n")
+    data.write("--AaB03x--\r\n")
+    data.rewind
+
+    fixture = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.length.to_s,
+      :input => data,
+    }
+
+    env = Rack::MockRequest.env_for '/', fixture
+    Rack::Multipart.parse_multipart(env).must_equal("a" => "", "b" => "", "c" => "third")
+  end
+
   { "inside a MIME head" => 10, "at the start of a MIME body" => 0 }.each do |position, offset|
     it "does not retain parsed parts when reads end #{position}" do
       boundary = "AaB03x"
@@ -716,8 +743,8 @@ describe Rack::Multipart do
       data.write("\r\n")
       data.write("content-type:application/pdf\r\n")
       data.write("\r\n")
-      data.write("--#{boundary}--\r\n")
     end
+    data.write("--#{boundary}--\r\n")
     data.rewind
 
     fixture = {
