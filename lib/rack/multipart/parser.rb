@@ -350,6 +350,7 @@ module Rack
           # buffering. Note that the actual limit is the higher of 64KB and the buffer size (1MB by default)
           raise EOFError, "multipart mime part header too large" if @sbuf.rest.bytesize > MIME_HEADER_BYTESIZE_LIMIT
 
+          @sbuf.string = @sbuf.rest
           return :want_read
         end
       end
@@ -370,8 +371,8 @@ module Rack
             update_retained_size(body.bytesize) if @body_retained
             @collector.on_mime_body @mime_index, body
             @sbuf.pos += delta
-            @sbuf.string = @sbuf.rest
           end
+          @sbuf.string = @sbuf.rest
           :want_read
         end
       end

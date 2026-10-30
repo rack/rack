@@ -383,6 +383,28 @@ describe Rack::Multipart do
     Rack::Multipart.parse_multipart(env).keys.must_equal(["a", "b", "c"])
   end
 
+  { "inside a MIME head" => 10, "at the start of a MIME body" => 0 }.each do |position, offset|
+    it "does not retain parsed parts when reads end #{position}" do
+      boundary = "AaB03x"
+      bufsize = 1024
+      delimiter = "\r\n--#{boundary}\r\n"
+      names = ("a00".."a63").to_a
+      heads = names.map { |name| %(content-disposition: form-data; name="#{name}"\r\n\r\n) }
+      body = "0" * (bufsize - delimiter.bytesize - heads.first.bytesize)
+
+      # Each part is one read long, so each read ends `offset` bytes before a body
+      data = "x" * (bufsize - delimiter.bytesize - heads.first.bytesize + offset)
+      heads.each { |head| data << delimiter << head << body }
+      data << "\r\n--#{boundary}--\r\n"
+
+      parser = Rack::Multipart::Parser.new(boundary, Rack::Multipart::Parser::TEMPFILE_FACTORY, bufsize, Rack::Utils.default_query_parser)
+      io = StringIO.new(data)
+      parser.on_read(io.read(bufsize)) until parser.state == :DONE
+      parser.result.params.keys.must_equal names
+      parser.instance_variable_get(:@sbuf).string.bytesize.must_be :<, 2 * bufsize
+    end
+  end
+
   it "rejects excessive buffered mime data size in a single parameter" do
     rd, wr = IO.pipe
     def rd.rewind; end
