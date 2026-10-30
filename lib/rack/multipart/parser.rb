@@ -545,7 +545,12 @@ module Rack
           body = body_with_boundary.sub(@body_regex_at_end, '') # remove the boundary from the string
           update_retained_size(body.bytesize) if @body_retained
           @collector.on_mime_body @mime_index, body
-          @sbuf.pos += body.length + 2 # skip \r\n after the content
+          @sbuf.pos += body.length
+          # The delimiter is normally preceded by CRLF, which is not part of the
+          # body. An empty body may omit it, in which case the header's blank
+          # line already served as the delimiter's CRLF and the delimiter
+          # follows directly.
+          @sbuf.pos += 2 if @sbuf.peek(2) == EOL
           @state = :CONSUME_TOKEN
           @mime_index += 1
         else
