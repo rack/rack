@@ -320,8 +320,10 @@ module Rack
       end
 
       def host_with_port(authority = self.authority)
-        host, _, port = split_authority(authority)
+        parts = split_authority(authority)
+        return nil if parts.empty?
 
+        host, _, port = parts
         if port == DEFAULT_PORTS[self.scheme]
           host
         else
@@ -591,7 +593,8 @@ module Rack
       end
 
       def base_url
-        "#{scheme}://#{host_with_port}"
+        hostport = host_with_port || host_with_port(server_authority)
+        "#{scheme}://#{hostport}"
       end
 
       # Tries to return a remake of the original request URL as a string.

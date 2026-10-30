@@ -604,6 +604,28 @@ class RackRequestTest < Minitest::Spec
     req.host_with_port.must_equal "example.com:9292"
   end
 
+  it "does not leak invalid Host through host_with_port; base_url uses SERVER_NAME" do
+    %w[evil.com@attacker evil.com/path evil.com#frag evil.com?x=1].each do |host|
+      req = make_request \
+        Rack::MockRequest.env_for("/", "HTTP_HOST" => host)
+      req.host.must_be_nil
+      req.host_with_port.must_be_nil
+      req.base_url.must_equal "http://example.org"
+      req.url.must_equal "http://example.org/"
+    end
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "good.example", "HTTP_X_FORWARDED_HOST" => "evil.com@attacker")
+    req.host.must_be_nil
+    req.host_with_port.must_be_nil
+    req.base_url.must_equal "http://example.org"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "evil.com@attacker", "SERVER_PORT" => "9292")
+    req.host_with_port.must_be_nil
+    req.base_url.must_equal "http://example.org:9292"
+  end
+
   it "parse the query string" do
     request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
     request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
