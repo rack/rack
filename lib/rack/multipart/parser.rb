@@ -634,9 +634,19 @@ module Rack
       # enc is submitted by the user, it may be invalid, so
       # use a binary encoding in that case.
       def find_encoding(enc)
-        Encoding.find enc
+        if respect_requested_encoding?(enc)
+          Encoding.find enc
+        else
+          Encoding::BINARY
+        end
       rescue ArgumentError
         Encoding::BINARY
+      end
+
+      # Whether to respect the given encoding (given as a string). If a
+      # requested encoding is not respected, binary encoding is used.
+      def respect_requested_encoding?(encoding_string)
+        true
       end
 
       REENCODE_DUMMY_ENCODINGS = {

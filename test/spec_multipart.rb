@@ -41,6 +41,14 @@ describe Rack::Multipart do
     end
   end
 
+  def parse_respecting_encoding(env, respect)
+    parser = Class.new(Rack::Multipart::Parser) do
+      define_method(:respect_requested_encoding?, &respect)
+      private :respect_requested_encoding?
+    end
+    parser.parse_from_env(Rack::MockRequest.env_for("/", env))
+  end
+
   it "returns nil if the content type is not multipart" do
     env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "")
     Rack::Multipart.parse_multipart(env).must_be_nil
@@ -213,6 +221,30 @@ describe Rack::Multipart do
     params.keys.each do |key|
       key.encoding.must_equal Encoding::BINARY
     end
+  end
+
+  it "sets BINARY encoding if respect_requested_encoding? returns false for the charset" do
+    encodings = []
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_no_filename), lambda { |enc| encodings << enc; enc != "US-ASCII" })
+    encodings.must_equal ["US-ASCII"]
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+    params.keys.each do |key|
+      key.encoding.must_equal Encoding::BINARY
+    end
+  end
+
+  it "respects charset if respect_requested_encoding? returns true for the charset" do
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_no_filename), lambda { |enc| enc != "ISO-2022-JP" })
+    params["text"].encoding.must_equal Encoding::US_ASCII
+  end
+
+  it "does not reencode dummy encodings if respect_requested_encoding? returns false for the charset" do
+    params = parse_respecting_encoding(multipart_fixture(:multiple_encodings), lambda { |enc| enc != "iso-2022-jp" })
+    params["us-ascii"].must_equal "Alice"
+    params["us-ascii"].encoding.must_equal Encoding::UTF_8
+    params["iso-2022-jp"].must_equal "\e$B%\"%j%9\e(B".b
+    params["iso-2022-jp"].encoding.must_equal Encoding::BINARY
   end
 
   it "sets BINARY encoding on things without content type" do
