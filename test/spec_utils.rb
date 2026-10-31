@@ -463,6 +463,32 @@ describe Rack::Utils do
     Rack::Utils.best_q_match(header, %w[application/json text/html]).must_equal "text/html"
   end
 
+  it "only reads a weight that is a legal qvalue" do
+    # RFC 9110 Section 12.4.2 allows 0 or 1 with at most three digits after the
+    # point. Anything else is not a weight, so the default of 1.0 stands rather
+    # than a value being read out of it.
+    [ 'q=9', 'q=1.5', 'q=1.001', 'q=0.1234', 'q=2', 'q=-0.5', 'q=.5' ].each do |parameters|
+      Rack::Utils.q_values("text/plain;#{parameters}").must_equal [
+        [ 'text/plain', 1.0 ]
+      ], "expected #{parameters.inspect} not to be read as a weight"
+    end
+
+    # Trailing garbage is not silently ignored either.
+    Rack::Utils.q_values('text/plain;q=0.5abc').must_equal [
+      [ 'text/plain', 1.0 ]
+    ]
+
+    # The legal forms are still read, including the bounds.
+    {
+      'q=0' => 0.0, 'q=1' => 1.0, 'q=0.5' => 0.5, 'q=0.000' => 0.0,
+      'q=1.0' => 1.0, 'q=1.000' => 1.0, 'q=0.333' => 0.333
+    }.each do |parameters, weight|
+      Rack::Utils.q_values("text/plain;#{parameters}").must_equal [
+        [ 'text/plain', weight ]
+      ], "expected #{parameters.inspect} to give #{weight}"
+    end
+  end
+
   it "parses RFC 7239 Forwarded header" do
     Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
       for: [ '3.4.5.6' ],

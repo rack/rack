@@ -135,14 +135,12 @@ module Rack
     end
 
     # RFC 9110 Section 12.5.1 says to process a parameter named 'q' as the
-    # weight "regardless of parameter ordering", so the weight has to be looked
-    # for in every parameter rather than only the first.
-    #
-    # The quoted-string branch comes first so that a quoted value is consumed
-    # whole and a ';' or 'q=' inside it is never read as a parameter boundary or
-    # as the weight. Without it, `version="http://example.com/?a=1;q=9"` yields
-    # a weight of 9.0, which is not even a legal qvalue.
-    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=([\d.]+)/
+    # weight "regardless of parameter ordering", so every parameter has to be
+    # considered, not only the first. The quoted-string branch comes first so a
+    # quoted value is consumed whole, since a ';' or 'q=' inside it is not a
+    # parameter boundary. Section 12.4.2 limits a qvalue to 0 or 1 with at most
+    # three digits after the point, so anything else is not a weight.
+    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=(0(?:\.\d{1,3})?|1(?:\.0{1,3})?)(?=[;,\s]|\z)/
 
     def weight_parameter(parameters)
       quality = 1.0
