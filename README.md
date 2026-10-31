@@ -293,6 +293,104 @@ Set to 0 for no limit.
 
 Can also be set via the `RACK_MULTIPART_TOTAL_PART_LIMIT` environment variable.
 
+### `Request#ip` Configuration
+
+Rack's default configuration for determining `Request#ip` is currently designed
+to support the widest variety of deployment scenarios. It determines the IP
+using the following algorithm:
+
+* Look at the `REMOTE_ADDR` entry in the environment
+  * If any of the entries are not a trusted proxy, return the last such entry
+* Check the forwarded headers
+  * First consider the `for` entry of the RFC 7239 `Forwarded` header
+  * If not present, consider the older `X-Forwarded-For` header
+  * Choose the last entry that is not a trusted proxy
+  * If all entries are trusted proxies, return the first entry
+* If neither forwarded header contains IP information
+  * Return the first entry in `REMOTE_ADDR`
+
+For cases where the forwarded headers are not being forged, this determines
+the IP correctly in most deployment scenarios.
+
+Unfortunately, it's simple to forge the forwarded headers, making Rack's
+default approach insecure by default in most cases. Additionally, the
+default for considering a IP as a trusted proxy by default is whether the
+IP is in private IP address space, which is not the case for all deployment
+scenarios.
+
+Unfortunately, the correct approach to use depends on the deployment
+scenario, which is not something Rack can determine, it is something that
+must be configured.
+
+Note that in Rack 4, Rack will default to only looking at `REMOTE_ADDR`,
+and will not consider any IP as a trusted proxy by default.
+
+See the headings below to configure your application for correct and secure
+`Request#ip`. Note that for examples mentioning `env['rack.request.config']`,
+you can use the `Rack::Config` middleware to update the `env` hash.
+
+#### No Reverse Proxy
+
+When not using a reverse proxy in front of the Ruby webserver, do not consider
+any IP as a trusted proxy, and do not consider any forwarded headers.
+
+##### Rack >= 3.3
+
+```ruby
+env['rack.request.config'] = {trusted_proxy: false, forwarded_priority: []}
+```
+
+##### Rack <= 3.2
+
+```ruby
+Rack::Request.ip_filter = lambda { |ip| false }
+Rack::Request.forwarded_priority = []
+```
+
+#### Reverse Proxy Using `Forwarded` Header
+
+When using a reverse proxy that sets the `Forwarded` header, you should configure
+only the IP of that reverse proxy as a trusted proxy, and only consider the
+`Forwarded` header.
+
+##### Rack >= 3.3
+
+```ruby
+env['rack.request.config'] = {
+  trusted_proxy: lambda { |ip| ip == ip_of_your_trusted_proxy },
+  forwarded_priority: [:forwarded]
+}
+```
+
+##### Rack <= 3.2
+
+```ruby
+Rack::Request.ip_filter = lambda { |ip| ip == ip_of_your_trusted_proxy }
+Rack::Request.forwarded_priority = [:forwarded]
+```
+
+#### Reverse Proxy Using `X-Forwarded-For` Header
+
+When using a reverse proxy that sets the `X-Forwarded-For` header, you should
+configure only the IP of that reverse proxy as a trusted proxy, and only
+consider the `X-Forwarded-For` header.
+
+##### Rack >= 3.3
+
+```ruby
+env['rack.request.config'] = {
+  trusted_proxy: lambda { |ip| ip == ip_of_your_trusted_proxy },
+  forwarded_priority: [:x_forwarded]
+}
+```
+
+##### Rack <= 3.2
+
+```ruby
+Rack::Request.ip_filter = lambda { |ip| ip == ip_of_your_trusted_proxy }
+Rack::Request.forwarded_priority = [:x_forwarded]
+```
+
 ## Contributing
 
 See [CONTRIBUTING.md](CONTRIBUTING.md) for specific details about how to make a
