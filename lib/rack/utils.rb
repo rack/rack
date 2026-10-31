@@ -134,14 +134,28 @@ module Rack
       end
     end
 
+    # RFC 9110 Section 12.5.1 says to process a parameter named 'q' as the
+    # weight "regardless of parameter ordering", so every parameter has to be
+    # considered, not only the first. The quoted-string branch comes first so a
+    # quoted value is consumed whole, since a ';' or 'q=' inside it is not a
+    # parameter boundary. Section 12.4.2 limits a qvalue to 0 or 1 with at most
+    # three digits after the point, so anything else is not a weight.
+    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=(0(?:\.\d{1,3})?|1(?:\.0{1,3})?)(?=[;,\s]|\z)/
+
+    def weight_parameter(parameters)
+      quality = 1.0
+      parameters&.scan(WEIGHT_PARAMETER) do |weight,|
+        next unless weight
+        quality = weight.to_f
+        break
+      end
+      quality
+    end
+
     def q_values(q_value_header)
       q_value_header.to_s.split(',').map do |part|
         value, parameters = part.split(';', 2).map(&:strip)
-        quality = 1.0
-        if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
-          quality = md[1].to_f
-        end
-        [value, quality]
+        [value, weight_parameter(parameters)]
       end
     end
 
