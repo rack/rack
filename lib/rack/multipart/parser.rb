@@ -33,7 +33,13 @@ module Rack
     EOL = "\r\n"
     FWS = /[ \t]+(?:\r\n[ \t]+)?/ # whitespace with optional folding
     HEADER_VALUE = "(?:[^\r\n]|\r\n[ \t])*" # anything but a non-folding CRLF
-    MULTIPART = %r|\Amultipart/.*?boundary(\s*)=\"?([^\";,]+)\"?|ni
+    # Negative lookbehind for a character that RFC 9110 allows in a token, so
+    # that "boundary" is only matched as a whole parameter name. Without it a
+    # parameter whose name merely ends in "boundary", such as "xboundary",
+    # would supply the boundary.
+    NOT_AFTER_TOKEN_CHAR = %q{(?<![\w!#$%&'*+.^`|~-])}
+    private_constant :NOT_AFTER_TOKEN_CHAR
+    MULTIPART = /\Amultipart\/.*?#{NOT_AFTER_TOKEN_CHAR}boundary(\s*)="?([^";,]+)"?/ni
     MULTIPART_CONTENT_TYPE = /^Content-Type:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
@@ -133,7 +139,7 @@ module Rack
         # lazy prefix in MULTIPART can skip a first boundary parameter whose
         # value is empty or starts with a quote, semicolon, or comma. Also
         # count RFC 2231 boundary* parameters, which some parsers prefer.
-        if content_type.scan(/boundary(?:\*\d*\*?)?\s*=/i).size > 1
+        if content_type.scan(/#{NOT_AFTER_TOKEN_CHAR}boundary(?:\*\d*\*?)?\s*=/i).size > 1
           raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
         end
 
