@@ -24,7 +24,7 @@ module Rack
   Files::ALLOWED_VERBS.freeze
   Files::ALLOW_HEADER.freeze
 
-  Mime::MIME_TYPES.freeze
+  Mime.send(:mime_types).freeze
 
   Ractor.make_shareable(ShowExceptions::TEMPLATE)
 end

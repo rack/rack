@@ -27,6 +27,40 @@ describe Rack::Mime do
     Rack::Mime.mime_type('.nothing', nil).must_be_nil
   end
 
+  it "should return registered mime-types" do
+    types = Rack::Mime.send(:mime_types)
+    saved = types.dup
+    begin
+      Rack::Mime.register('.rackfoo' => 'text/foo', '.txt' => 'text/x-plain').must_be_nil
+      Rack::Mime.mime_type('.rackfoo').must_equal 'text/foo'
+      Rack::Mime.mime_type('.RACKFOO').must_equal 'text/foo'
+      Rack::Mime.mime_type('.txt').must_equal 'text/x-plain'
+    ensure
+      types.replace(saved)
+    end
+  end
+
+  it "should warn that MIME_TYPES is deprecated" do
+    deprecated, Warning[:deprecated] = Warning[:deprecated], true
+    capture_warnings(Warning) do |warnings|
+      Rack::Mime::MIME_TYPES.size
+      warnings.pop(true).first.must_include 'constant Rack::Mime::MIME_TYPES is deprecated'
+    end
+  ensure
+    Warning[:deprecated] = deprecated
+  end
+
+  deprecated "should still allow adding mime-types through MIME_TYPES" do
+    types = Rack::Mime::MIME_TYPES
+    saved = types.dup
+    begin
+      types['.rackbar'] = 'text/bar'
+      Rack::Mime.mime_type('.rackbar').must_equal 'text/bar'
+    ensure
+      types.replace(saved)
+    end
+  end
+
   it "should match exact mimes" do
     Rack::Mime.match?('text/html', 'text/html').must_equal true
     Rack::Mime.match?('text/html', 'text/meme').must_equal false
