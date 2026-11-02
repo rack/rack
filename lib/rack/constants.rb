@@ -23,6 +23,7 @@ module Rack
   EXPIRES           = 'expires'
   SET_COOKIE        = 'set-cookie'
   TRANSFER_ENCODING = 'transfer-encoding'
+  VARY              = 'vary'
 
   # HTTP method verbs
   GET     = 'GET'
