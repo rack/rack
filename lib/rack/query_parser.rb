@@ -44,6 +44,7 @@ module Rack
     attr_reader :param_depth_limit
 
     env_int = lambda do |key, val|
+      # simplecov:disable
       if str_val = ENV[key]
         begin
           val = Integer(str_val, 10)
@@ -53,6 +54,7 @@ module Rack
       end
 
       val if val >= 0
+      # simplecov:enable
     end
 
     BYTESIZE_LIMIT = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)

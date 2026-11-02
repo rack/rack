@@ -65,12 +65,12 @@ module Rack
     def dump_exception(exception)
       if exception.respond_to?(:detailed_message)
         message = exception.detailed_message(highlight: false)
-      # :nocov:
+      # simplecov:disable
       # Ruby 3.2 added Exception#detailed_message, so the else
       # branch cannot be hit on the current Ruby version.
       else
         message = exception.message
-      # :nocov:
+      # simplecov:enable
       end
       string = "#{exception.class}: #{message}\n".dup
       string << exception.backtrace.map { |l| "\t#{l}" }.join("\n")

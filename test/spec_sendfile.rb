@@ -334,4 +334,29 @@ describe Rack::Sendfile do
       headers['content-length'].must_equal '0'
     end
   end
+
+  it "ignores x-accel-mapping header when x-accel-redirect is not configured via the constructor" do
+    headers = {
+      'sendfile.type' => 'X-Accel-Redirect',
+      'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar/"
+    }
+    request(headers) do |response|
+      response.must_be :ok?
+      response.body.must_equal 'Hello World'
+      response.headers.wont_include 'x-accel-redirect'
+      response.errors.must_include 'x-accel-mapping'
+    end
+  end
+
+  it "ignores x-accel-mapping header when mappings are configured but none match" do
+    headers = {
+      'HTTP_X_ACCEL_MAPPING' => "#{Dir.tmpdir}/=/foo/bar/"
+    }
+    request(headers, sendfile_body, [["/nonexistent/", "/foo/"]], 'X-Accel-Redirect') do |response|
+      response.must_be :ok?
+      response.body.must_equal 'Hello World'
+      response.headers.wont_include 'x-accel-redirect'
+      response.errors.must_include 'x-accel-mapping'
+    end
+  end
 end

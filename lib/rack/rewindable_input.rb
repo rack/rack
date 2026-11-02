@@ -88,12 +88,12 @@ module Rack
       @rewindable_io.chmod(0000)
       @rewindable_io.set_encoding(Encoding::BINARY)
       @rewindable_io.binmode
-      # :nocov:
+      # simplecov:disable
       if filesystem_has_posix_semantics?
         raise 'Unlink failed. IO closed.' if @rewindable_io.closed?
         @unlinked = true
       end
-      # :nocov:
+      # simplecov:enable
 
       buffer = "".dup
       while @io.read(1024 * 4, buffer)
