@@ -573,18 +573,9 @@ module Rack
       end
 
       private def form_pairs_parse_type
-        type = media_type
-        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+        return unless form_data? || parseable_data?
 
-        if (meth == POST && type.nil?) || type == 'application/x-www-form-urlencoded'
-          return :url_encoded
-        end
-
-        if FORM_DATA_MEDIA_TYPES.include?(type) || PARSEABLE_DATA_MEDIA_TYPES.include?(type)
-          return :multipart
-        end
-
-        nil
+        media_type&.start_with?('multipart/') ? :multipart : :url_encoded
       end
 
       # Determine whether the request body contains data by checking
