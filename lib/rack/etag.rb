@@ -71,10 +71,10 @@ module Rack
       # faster on large bodies, since it uses the CPU's SHA extensions where it
       # can. It is used only if the application has already loaded OpenSSL.
       def new_digest
-        # :nocov:
+        # simplecov:disable
         if defined?(::OpenSSL::Digest)
           ::OpenSSL::Digest.new('SHA256')
-        # :nocov:
+        # simplecov:enable
         else
           Digest::SHA256.new
         end
