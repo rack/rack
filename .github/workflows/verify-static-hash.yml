@@ -1,0 +1,21 @@
+name: Validate normalized Hash static lookup
+on:
+  push:
+    branches:
+      - fix/static-hash-normalized-lookup
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  rack-tests:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 18
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.4'
+      - name: Install dependencies
+        run: bundle install --jobs 4 --retry 2
+      - name: Run Rack native tests
+        run: bundle exec rake test
