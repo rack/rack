@@ -402,9 +402,9 @@ module Rack
         value = value[:value]
       end
 
-      value = [value] unless Array === value
+      escaped = Array === value ? value.map { |v| escape v }.join('&') : escape(value)
 
-      return "#{key}=#{value.map { |v| escape v }.join('&')}#{domain}" \
+      return "#{key}=#{escaped}#{domain}" \
         "#{path}#{max_age}#{expires}#{secure}#{httponly}#{same_site}#{partitioned}"
     end
 
