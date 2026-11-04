@@ -30,6 +30,7 @@ All notable changes to this project will be documented in this file. For info on
 - The mime type for `.pem` files has been changed from `application/x-x509-ca-cert` to `application/x-pem-file`. ([#2435](https://github.com/rack/rack/pull/2435), [@jeremyevans](https://github.com/jeremyevans))
 - Freeze `Rack::Auth::AbstractRequest::AUTHORIZATION_KEYS`, `Rack::Utils::STATUS_WITH_NO_ENTITY_BODY`, `Rack::Multipart::Parser::EMPTY`, `Rack::Utils.default_query_parser`, and internal constants in `Rack::Lint`. ([#2428](https://github.com/rack/rack/pull/2428), [@jhawthorn](https://github.com/jhawthorn))
 - `Rack::Request` no longer calls the multipart parser for URL-encoded request bodies. Request bodies with a multipart media type but without a valid boundary are now treated as empty, instead of being parsed as URL-encoded. ([#2534](https://github.com/rack/rack/pull/2534) ([@jeremyevans](https://github.com/jeremyevans))
+- Improve the performance of `Rack::Utils.set_cookie_header` for a single cookie value. ([#2550](https://github.com/rack/rack/pull/2550), [@thomasklemm](https://github.com/thomasklemm))
 
 ### Fixed
 
