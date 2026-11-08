@@ -140,7 +140,7 @@ module Rack
     # quoted value is consumed whole, since a ';' or 'q=' inside it is not a
     # parameter boundary. Section 12.4.2 limits a qvalue to 0 or 1 with at most
     # three digits after the point, so anything else is not a weight.
-    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=(0(?:\.\d{1,3})?|1(?:\.0{1,3})?)(?=[;,\s]|\z)/
+    WEIGHT_PARAMETER = /"(?:[^"\\]|\\.)*"|(?:\A|;)\s*q=(0(?:\.\d{0,3})?|1(?:\.0{0,3})?)(?=[;,\s]|\z)/
 
     def weight_parameter(parameters)
       quality = 1.0

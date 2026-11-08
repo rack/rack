@@ -481,7 +481,8 @@ describe Rack::Utils do
     # The legal forms are still read, including the bounds.
     {
       'q=0' => 0.0, 'q=1' => 1.0, 'q=0.5' => 0.5, 'q=0.000' => 0.0,
-      'q=1.0' => 1.0, 'q=1.000' => 1.0, 'q=0.333' => 0.333
+      'q=1.0' => 1.0, 'q=1.000' => 1.0, 'q=0.333' => 0.333,
+      'q=0.' => 0.0, 'q=1.' => 1.0
     }.each do |parameters, weight|
       Rack::Utils.q_values("text/plain;#{parameters}").must_equal [
         [ 'text/plain', weight ]
