@@ -67,6 +67,36 @@ describe Rack::MethodOverride do
     env["REQUEST_METHOD"].must_equal "POST"
   end
 
+  it "not modify REQUEST_METHOD for POST requests when _method parameter is set to head" do
+    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=head")
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env.wont_include "rack.methodoverride.original_method"
+  end
+
+  it "not modify REQUEST_METHOD for POST requests when X-HTTP-Method-Override is set to HEAD" do
+    env = Rack::MockRequest.env_for("/",
+            :method => "POST",
+            "HTTP_X_HTTP_METHOD_OVERRIDE" => "HEAD"
+          )
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "POST"
+    env.wont_include "rack.methodoverride.original_method"
+  end
+
+  it "modify REQUEST_METHOD to HEAD when HEAD is in allowed_overrides" do
+    app = Rack::Lint.new(Rack::MethodOverride.new(lambda {|e|
+      [200, { "content-type" => "text/plain" }, []]
+    }, allowed_overrides: %w[HEAD]))
+    env = Rack::MockRequest.env_for("/", method: "POST", input: "_method=head")
+    app.call env
+
+    env["REQUEST_METHOD"].must_equal "HEAD"
+    env["rack.methodoverride.original_method"].must_equal "POST"
+  end
+
   it "not modify REQUEST_METHOD when _method is nil" do
     env = Rack::MockRequest.env_for("/", method: "POST", input: "foo=bar")
     app.call env
