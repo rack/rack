@@ -550,6 +550,24 @@ describe Rack::Deflater do
         headers['content-encoding'].must_equal 'gzip'
       end
     end
+
+    it 'prefers custom deflaters over gzip when the client accepts both equally' do
+      custom_deflater = lambda { |headers, body| MockCompressor.new(body) }
+      options = { 'app_body' => 'foobar', 'deflater_options' => { deflaters: { 'zstd' => custom_deflater } } }
+
+      verify(200, 'COMPRESSED:foobar', { 'gzip, deflate, br, zstd' => 'zstd' }, options) do |status, headers, body|
+        headers['content-encoding'].must_equal 'zstd'
+      end
+    end
+
+    it 'uses gzip when the client prefers it over custom deflaters' do
+      custom_deflater = lambda { |headers, body| MockCompressor.new(body) }
+      options = { 'deflater_options' => { deflaters: { 'zstd' => custom_deflater } } }
+
+      verify(200, 'foobar', { 'gzip, zstd;q=0.5' => 'gzip' }, options) do |status, headers, body|
+        headers['content-encoding'].must_equal 'gzip'
+      end
+    end
   end
 
   it "uses current time as gzip mtime if GzipStream is not given an mtime" do
