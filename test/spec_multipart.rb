@@ -76,6 +76,38 @@ describe Rack::Multipart do
     }.must_raise Rack::Multipart::Error
   end
 
+  it "ignores a parameter whose name merely ends in boundary" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = env["CONTENT_TYPE"].sub("boundary=", "xboundary=")
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env).must_be_nil
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] = env["CONTENT_TYPE"].sub("boundary=", "xboundary=other; boundary=")
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env)["text"].must_equal "contents"
+  end
+
+  it "raises an exception if a boundary parameter precedes the one that is parsed" do
+    [
+      'multipart/form-data; boundary=; boundary=AaB03x',
+      'multipart/form-data; boundary=""; boundary=AaB03x',
+      'multipart/form-data; boundary=";boundary=AaB03x"',
+      'multipart/form-data; boundary=",boundary=AaB03x"',
+      'multipart/form-data; boundary=;boundary=AaB03x',
+      "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
+      "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
+      'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+    ].each do |content_type|
+      env = multipart_fixture(:content_type_and_no_filename)
+      env["CONTENT_TYPE"] = content_type
+      env = Rack::MockRequest.env_for("/", env)
+      lambda {
+        Rack::Multipart.parse_multipart(env)
+      }.must_raise Rack::Multipart::BoundaryTooLongError, content_type
+    end
+  end
+
   it "raises an exception if Content-Length exceeds total bytesize limit" do
     with_multipart_limit(1024) do
       env = Rack::MockRequest.env_for("/",
@@ -416,6 +448,27 @@ describe Rack::Multipart do
 
     env = Rack::MockRequest.env_for '/', fixture
     Rack::Multipart.parse_multipart(env).keys.must_equal(["a", "b", "c"])
+  end
+
+  { "inside a MIME head" => 10, "at the start of a MIME body" => 0 }.each do |position, offset|
+    it "does not retain parsed parts when reads end #{position}" do
+      boundary = "AaB03x"
+      bufsize = 1024
+      delimiter = "\r\n--#{boundary}\r\n"
+      names = ("a00".."a63").to_a
+      heads = names.map { |name| %(content-disposition: form-data; name="#{name}"\r\n\r\n) }
+      body = "0" * (bufsize - delimiter.bytesize - heads.first.bytesize)
+
+      # Each part is one read long, so each read ends `offset` bytes before a body
+      data = "x" * (bufsize - delimiter.bytesize - heads.first.bytesize + offset)
+      heads.each { |head| data << delimiter << head << body }
+      data << "\r\n--#{boundary}--\r\n"
+
+      parser = Rack::Multipart::Parser.new(boundary, Rack::Multipart::Parser::TEMPFILE_FACTORY, bufsize, Rack::Utils.default_query_parser)
+      parser.parse(StringIO.new(data))
+      parser.result.params.keys.must_equal names
+      parser.instance_variable_get(:@sbuf).string.bytesize.must_be :<, 2 * bufsize
+    end
   end
 
   it "rejects excessive buffered mime data size in a single parameter" do
@@ -1483,5 +1536,18 @@ content-type: image/png\r
     params = Rack::Multipart.parse_multipart(env)
     params["upload"][:filename].must_equal "test\t.txt"
     params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
+  end
+
+  it "uses the default query parser when parsing directly from env" do
+    env = Rack::MockRequest.env_for("/", multipart_fixture(:text))
+    params = Rack::Multipart::Parser.parse_from_env(env)
+    params.must_be_kind_of Hash
+    params["submit-name"].must_equal "Larry"
+  end
+
+  it "returns nil when parsing input without a content type" do
+    env = Rack::MockRequest.env_for("/", :input => "foo=bar")
+    env.delete("CONTENT_TYPE")
+    Rack::Multipart.parse_multipart(env).must_be_nil
   end
 end

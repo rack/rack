@@ -33,7 +33,13 @@ module Rack
     EOL = "\r\n"
     FWS = /[ \t]+(?:\r\n[ \t]+)?/ # whitespace with optional folding
     HEADER_VALUE = "(?:[^\r\n]|\r\n[ \t])*" # anything but a non-folding CRLF
-    MULTIPART = %r|\Amultipart/.*?boundary(\s*)=\"?([^\";,]+)\"?|ni
+    # Negative lookbehind for a character that RFC 9110 allows in a token, so
+    # that "boundary" is only matched as a whole parameter name. Without it a
+    # parameter whose name merely ends in "boundary", such as "xboundary",
+    # would supply the boundary.
+    NOT_AFTER_TOKEN_CHAR = %q{(?<![\w!#$%&'*+.^`|~-])}
+    private_constant :NOT_AFTER_TOKEN_CHAR
+    MULTIPART = /\Amultipart\/.*?#{NOT_AFTER_TOKEN_CHAR}boundary(\s*)="?([^";,]+)"?/ni
     MULTIPART_CONTENT_TYPE = /^Content-Type:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_DISPOSITION = /^Content-Disposition:#{FWS}?(#{HEADER_VALUE})/ni
     MULTIPART_CONTENT_ID = /^Content-ID:#{FWS}?(#{HEADER_VALUE})/ni
@@ -66,6 +72,7 @@ module Rack
       private_constant :MIME_HEADER_BYTESIZE_LIMIT
 
       env_int = lambda do |key, val|
+        # simplecov:disable
         if str_val = ENV[key]
           begin
             val = Integer(str_val, 10)
@@ -73,6 +80,7 @@ module Rack
             raise ArgumentError, "non-integer value provided for environment variable #{key}"
           end
         end
+        # simplecov:enable
 
         val
       end
@@ -81,7 +89,7 @@ module Rack
       private_constant :BUFFERED_UPLOAD_BYTESIZE_LIMIT
 
       bytesize_limit = env_int.call("RACK_MULTIPART_PARSER_BYTESIZE_LIMIT", 10 * 1024 * 1024 * 1024)
-      PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil
+      PARSER_BYTESIZE_LIMIT = bytesize_limit > 0 ? bytesize_limit : nil # simplecov:disable
       private_constant :PARSER_BYTESIZE_LIMIT
 
       CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT = env_int.call("RACK_MULTIPART_CONTENT_DISPOSITION_QUOTED_ESCAPES_LIMIT", 8 * 1024)
@@ -127,11 +135,47 @@ module Rack
         unless data[1].empty?
           raise Error, "whitespace between boundary parameter name and equal sign"
         end
-        if data.post_match.match?(/boundary\s*=/i)
+        # Count across the whole header rather than only after the match: the
+        # lazy prefix in MULTIPART can skip a first boundary parameter whose
+        # value is empty or starts with a quote, semicolon, or comma. Also
+        # count RFC 2231 boundary* parameters, which some parsers prefer.
+        if content_type.scan(/#{NOT_AFTER_TOKEN_CHAR}boundary(?:\*\d*\*?)?\s*=/i).size > 1
           raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
         end
 
         data[2]
+      end
+
+      def self.default_tempfile_factory
+        TEMPFILE_FACTORY
+      end
+
+      def self.default_bufsize
+        BUFSIZE
+      end
+
+      def self.default_query_parser
+        Rack::Utils.default_query_parser
+      end
+
+      def self.parse_from_env(env, query_parser: default_query_parser)
+        unless io = env[RACK_INPUT]
+          raise MissingInputError, "Missing input stream!"
+        end
+
+        if content_length = env['CONTENT_LENGTH']
+          content_length = content_length.to_i
+        end
+
+        content_type = env['CONTENT_TYPE']
+
+        tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || default_tempfile_factory
+        bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || default_bufsize
+
+        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser)
+        env[RACK_TEMPFILES] = info.tmp_files
+
+        return info.params
       end
 
       def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
@@ -497,6 +541,7 @@ module Rack
           # buffering. Note that the actual limit is the higher of 64KB and the buffer size (1MB by default)
           raise Error, "multipart mime part header too large" if @sbuf.rest.bytesize > MIME_HEADER_BYTESIZE_LIMIT
 
+          @sbuf.string = @sbuf.rest
           return :want_read
         end
       end
@@ -517,8 +562,8 @@ module Rack
             update_retained_size(body.bytesize) if @body_retained
             @collector.on_mime_body @mime_index, body
             @sbuf.pos += delta
-            @sbuf.string = @sbuf.rest
           end
+          @sbuf.string = @sbuf.rest
           :want_read
         end
       end

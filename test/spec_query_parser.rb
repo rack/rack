@@ -64,4 +64,15 @@ describe Rack::QueryParser do
       query_parser.normalize_params({}, name, value)
     }.must_raise(::Rack::QueryParser::IncompatibleEncodingError)
   end
+
+  it "ignores nil name when normalizing params" do
+    params = Rack::QueryParser.make_default(32).make_params
+    Rack::QueryParser.make_default(32).normalize_params(params, nil, "v").must_be_nil
+    params.to_h.must_equal({})
+  end
+
+  it "supports custom unescaper when parsing query" do
+    Rack::QueryParser.make_default(32).parse_query("a=b&&c=d") { |s| s.upcase }.
+      must_equal("A" => "B", "C" => "D")
+  end
 end

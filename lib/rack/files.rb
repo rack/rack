@@ -68,9 +68,9 @@ module Rack
       rescue SystemCallError
         # Not sure in what conditions this exception can occur, but this
         # is a safe way to handle such an error.
-        # :nocov:
+        # simplecov:disable
         false
-        # :nocov:
+        # simplecov:enable
       end
 
       if available

@@ -155,5 +155,13 @@ module Rack
       triple = e.call({})
       refute triple[2].respond_to?(:each)
     end
+
+    def test_evented_body_proxy_respond_to_other_methods
+      app = lambda { |env| [200, {}, []] }
+      e = Events.new app, []
+      triple = e.call({})
+      assert triple[2].respond_to?(:close)
+      refute triple[2].respond_to?(:nonexistent_method)
+    end
   end
 end

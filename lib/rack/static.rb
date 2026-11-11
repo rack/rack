@@ -168,7 +168,7 @@ module Rack
 
     # Convert HTTP header rules to HTTP headers
     def applicable_rules(path)
-      path = ::Rack::Utils.unescape_path(path)
+      path = ::Rack::Utils.clean_path_info(::Rack::Utils.unescape_path(path))
 
       @header_rules.find_all do |rule, new_headers|
         case rule

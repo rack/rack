@@ -47,7 +47,7 @@ bundle install
 Run all tests.
 
 ```
-rake test
+bundle exec rake test
 ```
 
 ## Write Tests

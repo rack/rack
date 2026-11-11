@@ -23,7 +23,7 @@ module Rack
     DEFAULT_SEP = QueryParser::DEFAULT_SEP
     COMMON_SEP = QueryParser::COMMON_SEP
     KeySpaceConstrainedParams = QueryParser::Params
-    URI_PARSER = defined?(::URI::RFC2396_PARSER) ? ::URI::RFC2396_PARSER : ::URI::DEFAULT_PARSER
+    URI_PARSER = defined?(::URI::RFC2396_PARSER) ? ::URI::RFC2396_PARSER : ::URI::DEFAULT_PARSER # simplecov:disable
 
     class << self
       attr_accessor :default_query_parser
@@ -91,11 +91,11 @@ module Rack
         Process.clock_gettime(Process::CLOCK_MONOTONIC)
       end
     else
-      # :nocov:
+      # simplecov:disable
       def clock_time
         Time.now.to_f
       end
-      # :nocov:
+      # simplecov:enable
     end
 
     def parse_query(qs, d = nil, &unescaper)
@@ -240,7 +240,7 @@ module Rack
     # doesn't get monkey-patched by rails
     if defined?(ERB::Escape) && ERB::Escape.instance_method(:html_escape)
       define_method(:escape_html, ERB::Escape.instance_method(:html_escape))
-    # :nocov:
+    # simplecov:disable
     # Ruby 3.2/ERB 4.0 added ERB::Escape#html_escape, so the else
     # branch cannot be hit on the current Ruby version.
     else
@@ -249,7 +249,7 @@ module Rack
       def escape_html(string)
         CGI.escapeHTML(string.to_s)
       end
-    # :nocov:
+    # simplecov:enable
     end
 
     # Given an array of available encoding strings, and an array of
@@ -528,7 +528,7 @@ module Rack
       ranges
     end
 
-    # :nocov:
+    # simplecov:disable
     if defined?(OpenSSL.fixed_length_secure_compare)
       # Constant time string comparison.
       #
@@ -541,7 +541,7 @@ module Rack
 
         OpenSSL.fixed_length_secure_compare(a, b)
       end
-    # :nocov:
+    # simplecov:enable
     else
       def secure_compare(a, b)
         return false unless a.bytesize == b.bytesize
