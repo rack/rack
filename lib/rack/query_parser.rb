@@ -27,6 +27,10 @@ module Rack
       include BadRequest
     end
 
+    class IncompatibleEncodingError < EncodingError
+      include BadRequest
+    end
+
     # ParamsTooDeepError is the old name for the error that is raised when params
     # are recursively nested over the specified limit. Make it the same as
     # as QueryLimitError, so that code that rescues ParamsTooDeepError error
@@ -191,6 +195,8 @@ module Rack
       end
 
       params
+    rescue Encoding::CompatibilityError
+      raise IncompatibleEncodingError
     end
 
     def make_params

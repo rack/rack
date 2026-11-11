@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- The query parser now raises `Rack::QueryParser::IncompatibleEncodingError` (a `Rack::BadRequest`) instead of `Encoding::CompatibilityError` if we try to parse params that are not ASCII compatible. ([#2416](https://github.com/rack/rack/pull/2416), [#2510](https://github.com/rack/rack/issues/2510), [@bquorning](https://github.com/bquorning))
+
 ## [3.2.8] - 2026-10-30
 
 ### Security
