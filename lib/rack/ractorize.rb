@@ -21,9 +21,6 @@ module Rack
 
   Directory::FILESIZE_FORMAT.each(&:freeze).freeze
 
-  Files::ALLOWED_VERBS.freeze
-  Files::ALLOW_HEADER.freeze
-
   Mime::MIME_TYPES.freeze
 
   Ractor.make_shareable(ShowExceptions::TEMPLATE)
