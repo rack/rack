@@ -127,7 +127,11 @@ module Rack
         unless data[1].empty?
           raise Error, "whitespace between boundary parameter name and equal sign"
         end
-        if data.post_match.match?(/boundary\s*=/i)
+        # Count across the whole header rather than only after the match: the
+        # lazy prefix in MULTIPART can skip a first boundary parameter whose
+        # value is empty or starts with a quote, semicolon, or comma. Also
+        # count RFC 2231 boundary* parameters, which some parsers prefer.
+        if content_type.scan(/boundary(?:\*\d*\*?)?\s*=/i).size > 1
           raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
         end
 
@@ -494,6 +498,7 @@ module Rack
           # buffering. Note that the actual limit is the higher of 64KB and the buffer size (1MB by default)
           raise Error, "multipart mime part header too large" if @sbuf.rest.bytesize > MIME_HEADER_BYTESIZE_LIMIT
 
+          @sbuf.string = @sbuf.rest
           return :want_read
         end
       end
@@ -514,8 +519,8 @@ module Rack
             update_retained_size(body.bytesize) if @body_retained
             @collector.on_mime_body @mime_index, body
             @sbuf.pos += delta
-            @sbuf.string = @sbuf.rest
           end
+          @sbuf.string = @sbuf.rest
           :want_read
         end
       end
