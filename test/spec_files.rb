@@ -393,6 +393,7 @@ content-range: bytes 60-80/209\r
     end
 
     it "answers OPTIONS and rejects other verbs from a non-main ractor" do
+      skip "URI parser is not shareable" unless Ractor.shareable?(Rack::Utils::URI_PARSER)
       files = Ractor.make_shareable(Rack::Files.new(DOCROOT))
       envs = %w[OPTIONS POST].map do |verb|
         Rack::MockRequest.env_for("/cgi/test", method: verb).except(Rack::RACK_INPUT, Rack::RACK_ERRORS)
