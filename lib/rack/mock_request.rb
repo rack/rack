@@ -83,9 +83,12 @@ module Rack
 
     # For historical reasons, we're pinning to RFC 2396.
     # URI::Parser = URI::RFC2396_Parser
+    # Built once, so rack/ractorize can make it shareable.
+    URI_PARSER = URI::Parser.new
+    private_constant :URI_PARSER
+
     def self.parse_uri_rfc2396(uri)
-      @parser ||= URI::Parser.new
-      @parser.parse(uri)
+      URI_PARSER.parse(uri)
     end
 
     # Return the Rack environment used for a request to +uri+.
