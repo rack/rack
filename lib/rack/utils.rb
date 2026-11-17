@@ -63,6 +63,8 @@ module Rack
 
       attr_accessor :multipart_file_limit
 
+      attr_accessor :multipart_ignore_charset
+
       # multipart_part_limit is the original name of multipart_file_limit, but
       # the limit only counts parts with filenames.
       alias multipart_part_limit multipart_file_limit
@@ -77,6 +79,10 @@ module Rack
     # The maximum total number of parts a request can contain. Accepting too
     # many can lead to excessive memory use and parsing time.
     self.multipart_total_part_limit = (ENV['RACK_MULTIPART_TOTAL_PART_LIMIT'] || 4096).to_i
+
+    # Whether parts `charset` directive should be disregarded.
+    # Only applies to parts without a filename.
+    self.multipart_ignore_charset = !ENV['RACK_MULTIPART_IGNORE_CHARSET'].to_s.empty?
 
     def self.param_depth_limit
       default_query_parser.param_depth_limit
