@@ -57,6 +57,10 @@ All notable changes to this project will be documented in this file. For info on
 
 - Restore Ruby 2.4/2.5 compatibility.
 
+### Removed
+
+- `Rack::Request#parse_multipart` (private method designed to be overridden in subclasses) ([#2494](https://github.com/rack/rack/pull/2494), [@jeremyevans](https://github.com/jeremyevans))
+
 ## [3.2.6] - 2026-04-01
 
 ### Security
