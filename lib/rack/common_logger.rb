@@ -8,7 +8,7 @@ require_relative 'request'
 module Rack
   # Rack::CommonLogger forwards every request to the given +app+, and
   # logs a line in the
-  # {Apache common log format}[https://httpd.apache.org/docs/current/logs.html#common]
+  # Apache common log format
   # to the configured logger.
   class CommonLogger
     # Common Log Format: https://httpd.apache.org/docs/current/logs.html#common
