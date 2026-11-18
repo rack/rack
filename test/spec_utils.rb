@@ -90,6 +90,39 @@ describe Rack::Utils do
       must_equal "q1!2\"'w$5&7/z8)?\\"
   end
 
+  it "unescape to the given encoding" do
+    Rack::Utils.unescape("%E3%81%82").must_equal "あ"
+    Rack::Utils.unescape("%FF").encoding.must_equal Encoding::UTF_8
+    Rack::Utils.unescape("%FF").valid_encoding?.must_equal false
+    Rack::Utils.unescape("%FF", Encoding::Shift_JIS).encoding.must_equal Encoding::Shift_JIS
+    Rack::Utils.unescape("%FF".b).encoding.must_equal Encoding::UTF_8
+    Rack::Utils.unescape("%DA%00", Encoding::BINARY).must_equal [218, 0].pack('CC')
+    Rack::Utils.unescape("%82%A0", Encoding::Shift_JIS).must_equal "あ".encode(Encoding::Shift_JIS)
+  end
+
+  it "unescape String subclasses to a String" do
+    Rack::Utils.unescape(Class.new(String).new("a%41")).must_be_instance_of String
+    tagged = Class.new(String).new("a")
+    tagged.instance_variable_set(:@tag, true)
+    Rack::Utils.unescape(tagged).must_be_instance_of String
+  end
+
+  it "unescape with an encoding argument converted once" do
+    encoding = Object.new
+    def encoding.to_str
+      raise "converted twice" if @converted
+      @converted = true
+      "UTF-8"
+    end
+    Rack::Utils.unescape("%E3%81%82", encoding).must_equal "あ"
+  end
+
+  it "raise on invalid %-encoding when unescaping" do
+    lambda { Rack::Utils.unescape("a%") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (a%)"
+    lambda { Rack::Utils.unescape("%2") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (%2)"
+    lambda { Rack::Utils.unescape("%zz") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (%zz)"
+  end
+
   it "parse query strings correctly" do
     Rack::Utils.parse_query("foo=bar").
       must_equal "foo" => "bar"
