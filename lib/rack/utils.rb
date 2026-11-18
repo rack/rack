@@ -38,7 +38,13 @@ module Rack
 
     # URI escapes. (CGI style space to +)
     def escape(s)
-      URI.encode_www_form_component(s)
+      # On MRI before 4.0, CGI.escape needs cgi/util for ASCII-incompatible strings.
+      return URI.encode_www_form_component(s) unless s.instance_of?(String) && s.encoding.ascii_compatible?
+
+      escaped = CGI.escape(s).force_encoding(Encoding::US_ASCII)
+      escaped.gsub!("%2A", "*")
+      escaped.gsub!("~", "%7E")
+      escaped
     end
 
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
