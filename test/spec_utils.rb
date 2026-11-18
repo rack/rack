@@ -70,6 +70,18 @@ describe Rack::Utils do
     Rack::Utils.escape("ø".encode("ISO-8859-1")).must_equal "%F8"
   end
 
+  it "escape * and ~ like URI.encode_www_form_component" do
+    Rack::Utils.escape("a*b~c").must_equal "a*b%7Ec"
+    Rack::Utils.escape("%2A*").must_equal "%252A*"
+    Rack::Utils.escape("-._").must_equal "-._"
+  end
+
+  it "escape to a US-ASCII String" do
+    Rack::Utils.escape("a b").encoding.must_equal Encoding::US_ASCII
+    Rack::Utils.escape(Class.new(String).new("a")).must_be_instance_of String
+    Rack::Utils.escape("a b~".encode("UTF-16LE")).must_equal "a%00+%00b%00%7E%00"
+  end
+
   it "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
     Timeout.timeout(1) do
       lambda {
