@@ -95,6 +95,7 @@ table { width:100%%; }
       if client_error_response = check_bad_request(path_info) || check_forbidden(path_info)
         client_error_response
       else
+        path_info = Utils.clean_path_info(path_info)
         path = ::File.join(@root, path_info)
         list_path(env, path, path_info, script_name)
       end
@@ -131,7 +132,7 @@ table { width:100%%; }
 
       # Globbing not safe as path could contain glob metacharacters
       body = DirectoryBody.new(@root, path, ->(basename) do
-        stat = stat(::File.join(path, basename))
+        stat = stat(basename == '..' ? ::File.dirname(path) : ::File.join(path, basename))
         next unless stat
 
         url = ::File.join(*url_head + [Utils.escape_path(basename)])
