@@ -9,6 +9,7 @@ All notable changes to this project will be documented in this file. For info on
 - [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
 - [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
 - [GHSA-mhj6-xc86-54m8](https://github.com/advisories/GHSA-mhj6-xc86-54m8) `Rack::Directory` listed directories outside the root when `..` followed a symbolic link.
+- [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` did not unfold a folded `Content-ID` header, preserving CRLF in the parsed parameter name.
 
 ### Fixed
 

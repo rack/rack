@@ -1693,4 +1693,72 @@ content-type: image/png\r
     params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
   end
 
+  it "prevents CRLF injection in parameter names via obs-fold in Content-ID" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-ID: injected-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    ["multipart/related", "multipart/form-data"].each do |content_type|
+      options = {
+        "CONTENT_TYPE" => "#{content_type}; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.bytesize.to_s,
+        :input => StringIO.new(data.dup)
+      }
+      env = Rack::MockRequest.env_for("/", options)
+      params = Rack::Multipart.parse_multipart(env)
+      params.keys.must_equal ["injected-id value"]
+      params["injected-id value"].must_equal "payload"
+    end
+  end
+
+  it "prevents CRLF injection in parameter names via multiple obs-folds in Content-ID" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-ID: injected\r
+      \t-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.must_equal ["injected\t-id value"]
+    params["injected\t-id value"].must_equal "payload"
+  end
+
+  it "prevents CRLF injection in parameter names via obs-fold in Content-ID when Content-Disposition is too long" do
+    disposition = "form-data; name=\"ignored\"; " + "a=b; " * 400
+    disposition.bytesize.must_be :>, 1536
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: #{disposition}\r
+      Content-ID: injected-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.must_equal ["injected-id value"]
+    params["injected-id value"].must_equal "payload"
+  end
 end
