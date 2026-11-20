@@ -1209,7 +1209,7 @@ true\r
     data = <<-EOF
 --AaB03x\r
 Content-Type: text/plain\r
-Content-Disposition: attachment; name="quoted\\\\chars\\"in\rname"\r
+Content-Disposition: attachment; name="quoted\\\\chars\\"in\tname"\r
 \r
 true\r
 --AaB03x--\r
@@ -1222,7 +1222,7 @@ true\r
     }
     env = Rack::MockRequest.env_for("/", options)
     params = Rack::Multipart.parse_multipart(env)
-    params["quoted\\chars\"in\rname"].must_equal 'true'
+    params["quoted\\chars\"in\tname"].must_equal 'true'
   end
 
   it "support mixed case metadata" do
@@ -1305,6 +1305,99 @@ Content-Type: image/png\r
     params = Rack::Multipart.parse_multipart(env)
     params["upload"][:filename].must_equal "test\t.txt"
     params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
+  end
+
+  it "prevents CRLF injection in parameter names via a line break inside a quoted name" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="injected\r
+      b"\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    # The quoted name is rejected, so the part falls back to the content type name.
+    params.keys.must_equal ["text/plain"]
+    params["text/plain"].must_equal ["payload"]
+  end
+
+  it "prevents CR injection in content type via a bare CR in Content-Type" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test.txt"\r
+      Content-Type: text/plain\rX-Injected: 1\r
+      \r
+      payload\r
+      --AaB03x\r
+      Content-Type: text/plain\rX-Injected: 1\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.sort.must_equal ["text/plain", "upload"]
+    params["upload"][:type].must_equal "text/plain"
+    params["text/plain"].must_equal ["payload"]
+  end
+
+  it "prevents LF injection in filenames via a bare LF inside a quoted filename" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test\n.txt"\r
+      Content-Type: text/plain\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    # The quoted filename is rejected, so the part is treated as a plain field.
+    params.keys.must_equal ["upload"]
+    params["upload"].must_equal "payload"
+  end
+
+  it "prevents CRLF injection in filenames via a CRLF inside a quoted filename" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: form-data; name="upload"; filename="test\r
+      .txt"\r
+      Content-Type: text/plain\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    # The quoted filename is rejected, so the part is treated as a plain field.
+    params.keys.must_equal ["upload"]
+    params["upload"].must_equal "payload"
   end
 
 end

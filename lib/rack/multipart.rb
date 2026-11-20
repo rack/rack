@@ -15,9 +15,11 @@ module Rack
     MULTIPART = %r|\Amultipart/.*?boundary(\s*)=\"?([^\";,]+)\"?|ni
     TOKEN = /[^\s()<>,;:\\"\/\[\]?=]+/
     CONDISP = /Content-Disposition:\s*#{TOKEN}\s*/i
-    VALUE = /"(?:\\"|[^"])*"|#{TOKEN}/
+    # Quoted strings may not contain a raw CR or LF. Folded header lines are
+    # unfolded before matching, so any remaining line break is a header terminator.
+    VALUE = /"(?:\\"|[^"\r\n])*"|#{TOKEN}/
     BROKEN = /^#{CONDISP}.*;\s*filename=(#{VALUE})/i
-    MULTIPART_CONTENT_TYPE = /Content-Type: (.*)#{EOL}/ni
+    MULTIPART_CONTENT_TYPE = /Content-Type: ([^\r\n]*)/ni
     MULTIPART_CONTENT_DISPOSITION = /Content-Disposition:[^:]*;\s*name=(#{VALUE})/ni
     MULTIPART_CONTENT_ID = /Content-ID:\s*([^#{EOL}]*)/ni
     # Updated definitions from RFC 2231
