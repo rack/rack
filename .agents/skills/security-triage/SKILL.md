@@ -18,7 +18,7 @@ This skill captures the maintainers' process for taking a security report throug
 
 1. Read the advisory description. If a fix PR exists in the private fork, read it and record the commit SHA you reviewed.
 2. Reproduce the issue locally against `main` and against each candidate backport target (checkouts of the released tags, for example `v3.2.7`, `v3.1.19`, `v2.2.24`). Do not trust the reporter's version range; verify it.
-3. Look for related open PRs and issues on `rack/rack` that touch the same code and note merge interactions.
+3. Look for related open PRs and issues on `rack/rack` that touch the same code and note merge interactions. Do the same before opening any follow-up pull request that comes out of the triage (CI fixes, hardening, cleanup); another maintainer may already have one open.
 4. Work in temporary copies under `/tmp`, never in the working checkout. Isolate `GEM_HOME` and `GEM_PATH` if the system gem path has incompatible native extensions.
 5. Report findings in the conversation, not in a document in the checkout. Include the PR SHAs reviewed, results per version, test counts, and what was not verified.
 
@@ -30,6 +30,7 @@ The same issue is often reported more than once, sometimes months apart. Search 
 - Close the others as duplicates with a short comment thanking the reporter and explaining that an earlier report covers the same issue and that they will be credited on the published advisory. Reporters cannot see each other's private advisories, so do not link them.
 - Add every reporter to the credits of the canonical advisory. Carry over any reproduction, affected version, or impact detail from the duplicates that the canonical report lacks.
 - Handle the set as one issue from then on: one fix, one description, one CVE, one severity.
+- A report of an incomplete earlier fix can have a different mechanism on an older branch whose code differs (for example a regex that spans line breaks on 2.2 where 3.x unfolds a header). That is the same weakness and belongs in the same advisory: widen the affected ranges and give `## Details` one subsection per series rather than opening a second advisory.
 
 ## Phase 2: Obtain or create the fix
 
@@ -38,12 +39,14 @@ The same issue is often reported more than once, sometimes months apart. Search 
    - Keep the change minimal and local to the vulnerable code path.
    - Add regression tests that fail without the fix and pass with it. Test the reproduction shape from the report, not just the general mechanism.
    - Follow the style of previous security fixes in `git log` for the same file (commit subject, test placement, limit constants with `private_constant`).
-   - When we author the fix, develop it in a temporary copy under `/tmp`, then push it to a new branch in the advisory's private fork and open a pull request there so the other maintainers can review it before it merges from the advisory page.
+   - When we author the fix, develop it in a temporary copy under `/tmp`, then push it to a new branch in the advisory's private fork and open a pull request there so the other maintainers can review it before it lands on `main`.
+   - A private fork pull request is exactly one commit carrying the fix, its tests, and the changelog line. The subject is an imperative one-liner ending with the advisory id, for example `Only call Encoding.find for known multipart charset names. (GHSA-58mf-c3jj-277p)`, and the body explains the mechanism and any visible behaviour change. Squash review rounds into that commit and force-push with `--force-with-lease`. Keep the original author when the reporter or another maintainer wrote the fix; the maintainer who squashed it is the committer and adds a `Co-authored-by` trailer. When a reporter's pull request already exists with a different shape, open a new pull request with the single commit, say that it supersedes the first, and close the first after the fix lands.
 3. Apply the fix to a temporary copy of `main` and confirm:
    - The reproduction no longer triggers the issue.
    - New regression tests fail without the fix and pass with it.
    - The affected test file passes, then the full test suite passes. Record the counts.
-4. Temporary private forks behave differently from ordinary repositories. Their pull requests target `rack/rack` `main`, the fork cannot itself be forked, and status checks do not run on them. A pull request opened by the reporter did not pick up a maintainer's later push to its branch (`git ls-remote` showed the branch had moved, but the pull request head stayed put), while a pull request opened by a maintainer did follow pushes. After pushing to an existing branch, confirm with `gh api repos/rack/<fork>/pulls/<n> --jq .head.sha` that the pull request followed. If it did not, change the pull request's base branch and back or close and reopen it, or push the history to a new branch, open a new pull request, and close the stale one. Merge private fork pull requests from the advisory page.
+4. Temporary private forks behave differently from ordinary repositories. Their pull requests target `rack/rack` `main`, the fork cannot itself be forked, and status checks do not run on them. A pull request opened by the reporter did not pick up a maintainer's later push to its branch (`git ls-remote` showed the branch had moved, but the pull request head stayed put), while a pull request opened by a maintainer did follow pushes. After pushing to an existing branch, confirm with `gh api repos/rack/<fork>/pulls/<n> --jq .head.sha` that the pull request followed. If it did not, change the pull request's base branch and back or close and reopen it, or push the history to a new branch, open a new pull request, and close the stale one.
+5. Private fork pull requests cannot be merged through the API (REST returns 404, GraphQL answers "This action is forbidden on workspace repositories"), and merging from the advisory page produces a merge commit titled `Merge commit from fork`, which then has to be rewritten. Land the reviewed commit on `main` as described in Phase 4 instead. The pull request does not close when its commit reaches `main`; leave it, since the fork and everything in it are deleted when the advisory is published.
 
 ## Phase 3: Decide, then accept or close
 
@@ -64,7 +67,7 @@ If accepting:
 
 ## Phase 4: Merge to main
 
-1. Confirm the PR targets the current `main` and CI checks pass.
+1. Confirm the PR targets the current `main`. Status checks do not run on private forks, so run the full suite yourself on the exact tree that will land, on at least two Ruby versions, and record the counts.
 2. Ensure the PR includes a changelog entry under `## Unreleased` / `### Security` in `CHANGELOG.md`, formatted exactly like existing entries:
 
    ```
@@ -74,14 +77,14 @@ If accepting:
    ```
 
    Do not wait for the CVE to merge. When it arrives later, update the link text in a follow-up `Update changelog.` commit on `main` and on each stable branch that carries the entry. The published advisory picks up the CVE automatically.
-3. Merge the fix into `main`.
+3. Land the fix on `main` as a fast-forward push of the reviewed commit, with the release coordinator's explicit approval for the push: rebase the fork branch onto the current `main`, force-push it with `--force-with-lease` so the pull request records the exact SHA that lands, then `git push <remote> <fork-branch>:main`. The result is one commit per advisory on `main` with its subject and author intact and no merge commits. For a batch, stack the commits in one linear series and push once; the only conflicts are the adjacent `CHANGELOG.md` lines, resolved by keeping every line in batch order.
 
 ## Phase 5: Backport
 
 1. The default targets are every series listed as supported in the `README.md` version support table (currently the latest series, the previous one, and 2.2 through April 2027). Confirm the list with the maintainers if the fix does not apply cleanly to one of them.
-2. For each target, cherry-pick or re-apply the fix onto `<remote>/<series>-stable`, re-run the reproduction and the test suite on that branch, and add the changelog entry to that branch's `CHANGELOG.md` under a new patch version heading.
-3. Do not assume the `main` result carries over. Older branches can have different parser code and additional problems that need separate fixes.
-4. Open a PR per branch titled `Backport <subject> to <series>-stable`, then merge.
+2. For each target, cherry-pick or re-apply the fix onto `<remote>/<series>-stable`, re-run the reproduction and the test suite on that branch, and add the changelog entry to that branch's `CHANGELOG.md` under a new patch version heading. A cherry-pick that applies cleanly can still be wrong for the branch: tests from `main` may call helpers the branch does not have (`parse_from_env` is absent from 3.2 and earlier) or omit cases the branch still needs (3.1 still supports RFC 2231 `filename*`). Read the branch's code before trusting a clean apply. Preparing the backport patches while the fix is under review, so they are ready when it lands, has worked well.
+3. Do not assume the `main` result carries over. Older branches can have different parser code and additional problems that need separate fixes. When a branch needs a different fix for the same advisory, that fix ships as the branch's backport commit with its own subject and changelog wording; it cannot be reviewed as a private fork pull request, which can only target `main`, so review it as a patch instead.
+4. Open a PR per branch titled `Backport <subject> to <series>-stable` and rebase-merge it, or, when the release coordinator says so, push the branch directly as a fast-forward. Either way the stable branch history stays linear.
 5. Changelog preparation, version bumps, tagging, and gem pushes follow the `release` skill. In particular, security entries move out of `## Unreleased` on `main` into per-series release sections before the stable branches are updated.
 
 ### Several advisories in one release
@@ -96,9 +99,9 @@ Security fixes are often batched so each supported series gets one patch release
 
 ## Phase 6: Set fixed versions and publish
 
-1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version (for example `>= 3.2.0, < 3.2.8` patched in `3.2.8`). Include every backported series and mark unsupported older series as affected with no patched version if they are not fixed.
+1. Before publishing, set the affected products on the advisory: ecosystem RubyGems, package `rack`, one row per release series with the affected range and the patched version, in the shape of past published advisories: `< 2.2.26` patched in `2.2.26`, `>= 3.0, < 3.1.24` patched in `3.1.24`, `>= 3.2, < 3.2.9` patched in `3.2.9`. An unsupported series that is not fixed (3.0) is folded into the next supported series' range, so the row names the upgrade path. Drop or narrow rows for series the advisory does not affect (no 2.2 row when 2.2 is unaffected; `>= 3.1.16, < 3.1.24` when the bug was introduced mid-series). Set the versions with one `PATCH` of `vulnerabilities` only, then re-read the advisory and confirm the summary, description, CVSS, CWEs, and credits are unchanged, since multi-field patches have silently dropped fields.
 2. Confirm the patched versions are published to RubyGems and the changelog on each branch names them.
-3. Confirm the description, credits, and severity are final. Publish whether or not the CVE has been assigned; GitHub attaches it to the published advisory when it arrives.
+3. Confirm the description, credits, and severity are final. Publish whether or not the CVE has been assigned; GitHub attaches it to the published advisory when it arrives. The API shows no "CVE requested" state, only the eventual `cve_id`, so the request is confirmed on the advisory page.
 4. The release coordinator publishes the advisory, immediately after the patched gems are on RubyGems and together with any other advisories in the same release. There is normally no embargo; see `SECURITY.md`.
 
 ## Checklist before saying a step is done

@@ -30,7 +30,7 @@ Use the CVE as the link text when it is assigned and the GHSA identifier otherwi
 
 The file on `main` is the master copy and holds every series. Sections are grouped by series in descending order: all `3.2.x` sections, then the `3.1.x` block, then the `2.2.x` block, and so on. A new `3.1.x` section goes at the top of the `3.1.x` block, not at the top of the file.
 
-Each stable branch carries its own copy. `3-2-stable` mirrors `main` and includes the `3.1.x` and `2.2.x` sections. `3-1-stable` and `2-2-stable` contain only their own series. Keep these copies consistent with `main`; when they drift, `main` wins and the stable branch is corrected.
+Each stable branch carries its own copy. `3-2-stable` mirrors `main` and includes the `3.1.x` and `2.2.x` sections. `3-1-stable` and `2-2-stable` contain only their own series. Keep these copies consistent with `main`; when they drift, `main` wins and the stable branch is corrected. Two deliberate differences: a stable branch has no `## Unreleased` heading once its entries have moved into the release section (past tags start straight at `## [X.Y.Z]`), and an entry may legitimately be worded differently for an older series when the behaviour differs (2.2 raises `EOFError` where 3.x raises `Rack::Multipart::Error`; 2.2 needed a different fix for the same advisory). In that case the series' section on `main` uses the series' wording, and the sections for a given version are byte-identical on every branch that carries them.
 
 Security entries are written under `## Unreleased` on `main` when the fix merges. They do not stay there. At release time they move into the release section for each series that ships them, which is what Phase 1 does. Past releases that skipped this step needed a follow-up commit titled `Copy missing ... entries to changelog`, so do not skip it.
 
@@ -41,22 +41,22 @@ Security entries are written under `## Unreleased` on `main` when the fix merges
 3. On a branch from `main`, edit `CHANGELOG.md`:
    - Add a `## [X.Y.Z] - YYYY-MM-DD` section at the top of each series block being released.
    - Move the `### Security` entries from `## Unreleased` into each new section. Only include an entry in a series it actually fixes; a fix that does not apply to 2.2, or that was not backported there, is omitted from the 2.2 section.
-   - Move any non-security `### Fixed` entries that are also being backported to the latest series into its section. Entries for changes that only exist on `main` stay under `## Unreleased`.
+   - Move any non-security `### Changed` or `### Fixed` entries that were backported with the fixes into the section of every series that received them. Entries for changes that only exist on `main` stay under `## Unreleased`.
    - Remove the `### Security` heading from `## Unreleased` if it is now empty.
-4. Commit as `Update changelog.` and land it on `main` by pull request unless the release coordinator says to push directly. This commit is the source for every stable branch in Phase 2.
+4. Commit as `Update changelog.` and land it on `main` by pull request unless the release coordinator says to push directly. This commit is the source for every stable branch in Phase 2: the `3-2-stable` copy is exactly this file with the `## Unreleased` block removed, which is a useful check.
 
 ## Phase 2: Backport to each stable branch
 
 Work on one stable branch at a time, oldest series first, so the oldest release can go out while newer ones are still in CI.
 
 1. Branch from `<remote>/<series>-stable`.
-2. Cherry-pick the fix commits from `main`. Keep the original subjects; past backports do not carry a `cherry picked from` trailer. When a cherry-pick does not apply cleanly, re-implement against that branch's code, note the upstream commit in the message, and keep the regression tests.
+2. Cherry-pick the fix commits from `main`. Keep the original subjects; past backports do not carry a `cherry picked from` trailer. When a cherry-pick does not apply cleanly, re-implement against that branch's code, note the upstream commit in the message, and keep the regression tests. A clean apply is not proof of a correct backport: tests from `main` may use helpers the branch lacks (`parse_from_env` is absent before 3.3), so compare the `lib/` hunks with `main` and read the test changes against the branch. When several fixes are stacked, each one's `CHANGELOG.md` hunk conflicts with the previous; resolve by keeping the branch's file and inserting only the new line after the previous security line. Never resolve with a union merge against `main`, which drags `main`'s whole `## Unreleased` block into the branch.
 3. Apply the changelog from Phase 1 to this branch's copy:
    - On the latest series branch, bring the whole set of new sections across so it keeps mirroring `main`.
    - On older series branches, add only that series' new section.
    - If the branch has its own `## Unreleased` entries (for example a bug fix backported earlier and not yet released), move them into the new release section too.
-4. Run the reproduction for each security fix on this branch, then the affected spec files, then the full suite. The stable branches still test on Ruby 2.4 through 4.0, so expect older-Ruby compatibility breaks that `main` does not have and fix them in a separate commit.
-5. Open a pull request against `<series>-stable` titled `Backport <subject> to <series>-stable` and wait for CI. Do not tag from a red branch.
+4. Run the reproduction for each security fix on this branch, then the affected spec files, then the full suite, on at least two Ruby versions. Run the reproductions against the pristine branch tip too, so a probe that passes everywhere is caught (a time-based probe for a load-path search does not fail on a short `$LOAD_PATH`; count the calls instead). Do not run the suite with `-W0`: two `spec_request.rb` tests on 3-1-stable assert on deprecation warnings and fail when warnings are off. The stable branches still test on Ruby 2.4 through 4.0, so expect older-Ruby compatibility breaks that `main` does not have and fix them in a separate commit.
+5. Open a pull request against `<series>-stable` titled `Backport <subject> to <series>-stable` and wait for CI, or, when the release coordinator says so, push the fixes, the `Update changelog.` commit, and the `Bump patch version.` commit directly to the stable branch as one fast-forward and let CI run there. Do not tag from a red branch.
 6. Older branches can have different code and additional problems that need separate fixes. Do not assume the `main` result carries over; 2.2's multipart parser in particular differs from 3.x.
 
 ### Several advisories in one release
@@ -69,7 +69,7 @@ For each series, oldest first (`2-2-stable`, then `3-1-stable`, then `3-2-stable
 
 1. On a clean checkout of the stable branch, set the release version in `lib/rack/version.rb` and confirm the changelog heading carries the same version and today's date.
 2. Commit as `Bump patch version.` and push to the stable branch.
-3. Run `rake release` from that checkout. Confirm the tag `vX.Y.Z` exists on the remote and points at the bump commit, and that `gem fetch rack -v X.Y.Z` succeeds.
+3. Run `rake release` from that checkout. Confirm the tag `vX.Y.Z` exists on the remote and points at the bump commit (`git rev-parse vX.Y.Z^{commit}`), and that the version is on RubyGems (`https://rubygems.org/api/v2/rubygems/rack/versions/X.Y.Z.json` or `gem fetch rack -v X.Y.Z`).
 4. Move to the next series.
 
 The release coordinator runs the pushes to RubyGems. Prepare the branches and the commands, and report the state of each series, rather than pushing gems yourself unless told to.
@@ -78,9 +78,9 @@ The release coordinator runs the pushes to RubyGems. Prepare the branches and th
 
 Do this only after every gem in the batch is on RubyGems.
 
-1. On each advisory, set the affected products: ecosystem RubyGems, package `rack`, one row per series with the vulnerable range and patched version. Follow the shape of past published advisories, for example `< 2.2.25` patched in `2.2.25`, `>= 3.0, < 3.1.23` patched in `3.1.23`, `>= 3.2, < 3.2.8` patched in `3.2.8`. A series that is unsupported and not fixed is listed as affected with no patched version.
+1. On each advisory, set the affected products: ecosystem RubyGems, package `rack`, one row per series with the vulnerable range and patched version. Follow the shape of past published advisories, for example `< 2.2.25` patched in `2.2.25`, `>= 3.0, < 3.1.23` patched in `3.1.23`, `>= 3.2, < 3.2.8` patched in `3.2.8`. The unsupported 3.0 series is folded into the 3.1 row, so the row names the upgrade path. Omit the row for a series the advisory does not affect, and narrow the range when the bug was introduced mid-series. Patch `vulnerabilities` on its own and re-read the advisory afterwards to confirm nothing else changed.
 2. Confirm the description, severity, and credits are final. Do not wait for the CVE; GitHub attaches it to the published advisory when assigned.
-3. Publish every advisory in the batch together, immediately after the gems are available, as `SECURITY.md` promises. The release coordinator publishes; prepare the advisories so publishing is one click each.
+3. Publish every advisory in the batch together, immediately after the gems are available, as `SECURITY.md` promises. The release coordinator publishes; prepare the advisories so publishing is one click each. Publishing deletes the temporary private forks, including any pull requests still open in them, and the advisory appears in the global database with its CVE some hours later.
 4. If a fix is backported to a further series later, update that advisory's affected products afterward so the new patched version is recorded. Published advisories can still be edited.
 
 ## Phase 5: After the release
