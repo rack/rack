@@ -76,7 +76,7 @@ describe Rack::MethodOverride do
 content-disposition: form-data; name="huge"; filename="huge"\r
 EOF
     env = Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size.to_s,
                       :method => "POST", :input => input)
     app.call env
@@ -90,7 +90,7 @@ EOF
 content-disposition: form-data; name="huge"; filename="huge"\r
 EOF
     env = Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size.to_s,
                       Rack::RACK_ERRORS => StringIO.new,
                       :method => "POST", :input => input)

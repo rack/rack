@@ -66,18 +66,90 @@ describe Rack::Multipart do
     [
       'multipart/form-data; boundary=; boundary=AaB03x',
       'multipart/form-data; boundary=""; boundary=AaB03x',
-      'multipart/form-data; boundary=";boundary=AaB03x"',
-      'multipart/form-data; boundary=",boundary=AaB03x"',
       'multipart/form-data; boundary=;boundary=AaB03x',
       "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
       "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
       'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z; boundary=AaB03x',
+      "multipart/form-data; boundary=AaB03x; boundary*0*=utf-8''Zz; boundary*1=z",
+      'multipart/form-data; BOUNDARY=AaB03x; Boundary*=Zzz',
     ].each do |content_type|
       env = multipart_fixture(:content_type_and_no_filename)
       env["CONTENT_TYPE"] = content_type
       env = Rack::MockRequest.env_for("/", env)
       lambda {
         Rack::Multipart.parse_multipart(env)
+      }.must_raise EOFError, content_type
+    end
+  end
+
+  it "parses multipart upload with parameters after the boundary" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] += "; charset=utf-8"
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env)["text"].must_equal "contents"
+  end
+
+  it "parses a single boundary parameter" do
+    {
+      'multipart/form-data; boundary=AaB03x; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; boundary="AaB03x"; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; boundary="a\"b"' => 'a"b',
+      'multipart/form-data; boundary="a\\\\"' => 'a\\',
+      'multipart/form-data; boundary="a\\;"' => 'a;',
+      'multipart/form-data; boundary="AaB03x,1"' => 'AaB03x,1',
+      'multipart/form-data; boundary="AaB03x;1"' => 'AaB03x;1',
+      'multipart/form-data; boundary=AaB03x ; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; x-boundary=other; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; foo.boundary=other; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; name="x;boundary=other"; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; name="a\";boundary=other"; boundary=AaB03x' => 'AaB03x',
+    }.each do |content_type, boundary|
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_equal boundary, content_type
+    end
+  end
+
+  it "does not use a boundary from a parameter not named boundary" do
+    [
+      'multipart/form-data; x-boundary=other',
+      'multipart/form-data; foo.boundary=other',
+      'multipart/form-data; name="x;boundary=other"',
+      'multipart/form-data; name="a\";boundary=other"',
+      'multipart/form-data; name=" boundary=other"',
+      "multipart/form-data; boundary*=utf-8''Zzz",
+    ].each do |content_type|
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_be_nil content_type
+    end
+  end
+
+  it "raises an exception for a boundary parameter combined with an RFC 2231 boundary parameter" do
+    [
+      "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
+      "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
+      'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z; boundary=AaB03x',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z',
+    ].each do |content_type|
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
+      }.must_raise EOFError, content_type
+    end
+  end
+
+  it "raises an exception for an invalid boundary parameter" do
+    [
+      'multipart/form-data; boundary=',
+      'multipart/form-data; boundary=""',
+      'multipart/form-data; boundary="AaB03x"junk',
+      'multipart/form-data; boundary=a"b',
+      'multipart/form-data; boundary=a,b',
+      "multipart/form-data; boundary=a\0b",
+      'multipart/form-data; boundary= AaB03x',
+      'multipart/form-data; x=boundary=AaB03x',
+      'multipart/form-data; charset=utf-8 boundary=AaB03x',
+    ].each do |content_type|
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
       }.must_raise EOFError, content_type
     end
   end
@@ -670,6 +742,35 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
+  it "parses multipart upload with boundary= inside quoted boundary" do
+    fixture = multipart_fixture(:quoted, %(",boundary=AaB03x"))
+    body = fixture[:input].read.gsub("AaB:03x", ",boundary=AaB03x")
+    fixture[:input] = StringIO.new(body)
+    fixture["CONTENT_LENGTH"] = body.bytesize.to_s
+    env = Rack::MockRequest.env_for("/", fixture)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].must_equal "Larry"
+    params["submit-name-with-content"].must_equal "Berry"
+    params["files"][:type].must_equal "text/plain"
+    params["files"][:filename].must_equal "file1.txt"
+    params["files"][:head].must_equal "Content-Disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "Content-Type: text/plain\r\n"
+    params["files"][:name].must_equal "files"
+    params["files"][:tempfile].read.must_equal "contents"
+  end
+
+  it "does not parse parts delimited by a truncation of a quoted boundary" do
+    body = "--safe,X\r\ncontent-disposition: form-data; name=\"comment\"\r\n\r\nhello\r\n--safe,X--\r\n" \
+      "--safe\r\ncontent-disposition: form-data; name=\"upload\"; filename=\"shell.php\"\r\n\r\nsmuggled\r\n--safe--\r\n"
+    env = Rack::MockRequest.env_for("/",
+      "CONTENT_TYPE" => 'multipart/form-data; boundary="safe,X"',
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body))
+    params = Rack::Multipart.parse_multipart(env)
+    params.must_equal "comment" => "hello"
+  end
+
   it "parse multipart upload with filename with invalid characters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:invalid_character))
     params = Rack::Multipart.parse_multipart(env)
@@ -929,7 +1030,7 @@ Content-Type: image/jpeg\r
     input = File.read(multipart_file("bad_robots"))
 
     req = Rack::Request.new Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=1yy3laWhgX31qpiHinh67wJXqKalukEUTvqTzmon",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
