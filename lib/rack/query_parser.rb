@@ -4,8 +4,8 @@ module Rack
   class QueryParser
     (require_relative 'core_ext/regexp'; using ::Rack::RegexpExtensions) if RUBY_VERSION < '2.4'
 
-    DEFAULT_SEP = /[&;] */n
-    COMMON_SEP = { ";" => /[;] */n, ";," => /[;,] */n, "&" => /[&] */n }
+    DEFAULT_SEP = /[&;]/n
+    COMMON_SEP = { ";" => ";", ";," => /[;,]/n, "&" => "&" }
 
     # ParameterTypeError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain conflicting types.
@@ -71,7 +71,7 @@ module Rack
 
       params = make_params
 
-      check_query_string(qs, d).split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+      split_query_string(qs, d).each do |p|
         next if p.empty?
         k, v = p.split('=', 2).map!(&unescaper)
 
@@ -98,7 +98,7 @@ module Rack
       params = make_params
 
       unless qs.nil? || qs.empty?
-        check_query_string(qs, d).split(d ? (COMMON_SEP[d] || /[#{d}] */n) : DEFAULT_SEP).each do |p|
+        split_query_string(qs, d).each do |p|
           k, v = p.split('=', 2).map! { |s| unescape(s) }
 
           normalize_params(params, k, v, param_depth_limit)
@@ -116,9 +116,16 @@ module Rack
     def normalize_params(params, name, v, depth)
       raise ParamsTooDeepError if depth <= 0
 
-      name =~ %r(\A[\[\]]*([^\[\]]+)\]*)
-      k = $1 || ''
-      after = $' || ''
+      # Equivalent to name =~ /\A[\[\]]*([^\[\]]+)\]*/ with k = $1 and
+      # after = $', but a quantified regexp allocates backtracking state for
+      # every character matched, so locate the key with single character
+      # searches instead, which do not backtrack.
+      k = after = ''
+      if name && (start = name.index(/[^\[\]]/))
+        stop = name.index(/[\[\]]/, start) || name.length
+        k = name[start, stop - start]
+        after = name[(name.index(/[^\]]/, stop) || name.length)..-1]
+      end
 
       if k.empty?
         if !v.nil? && name == "[]"
@@ -136,8 +143,12 @@ module Rack
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         params[k] << v
-      elsif after =~ %r(^\[\]\[([^\[\]]+)\]$) || after =~ %r(^\[\](.+)$)
-        child_key = $1
+      elsif after.start_with?('[]')
+        # Recognize x[][y] (hash inside array) parameters
+        unless after[2] == '[' && after.end_with?(']') && (child_key = after[3, after.length-4]) && !child_key.empty? && !child_key.index('[') && !child_key.index(']')
+          # Handle other nested array parameters
+          child_key = after[2, after.length]
+        end
         params[k] ||= []
         raise ParameterTypeError, "expected Array (got #{params[k].class.name}) for param `#{k}'" unless params[k].is_a?(Array)
         if params_hash_type?(params[k].last) && !params_hash_has_key?(params[k].last, child_key)
@@ -175,13 +186,33 @@ module Rack
     def params_hash_has_key?(hash, key)
       return false if /\[\]/.match?(key)
 
-      key.split(/[\[\]]+/).inject(hash) do |h, part|
-        next h if part == ''
-        return false unless params_hash_type?(h) && h.key?(part)
-        h[part]
+      # Equivalent to walking key.split(/[\[\]]+/), but a quantified regexp
+      # allocates backtracking state for every bracket matched, so find the
+      # segments with single character searches instead, which do not
+      # backtrack.
+      pos = 0
+      while (start = key.index(/[^\[\]]/, pos))
+        stop = key.index(/[\[\]]/, start) || key.length
+        part = key[start, stop - start]
+        return false unless params_hash_type?(hash) && hash.key?(part)
+        hash = hash[part]
+        pos = stop
       end
 
       true
+    end
+
+    def split_query_string(qs, d)
+      pairs = check_query_string(qs, d).split(d ? (COMMON_SEP[d] || /[#{d}]/n) : DEFAULT_SEP)
+
+      # Remove spaces following the separator. A quantified regexp such as
+      # /& */ allocates backtracking state for every space matched, so find
+      # the first non-space character instead, which does not backtrack.
+      pairs.each do |pair|
+        pair.slice!(0, pair.index(/[^ ]/) || pair.length) if pair.getbyte(0) == 32
+      end
+
+      pairs
     end
 
     def check_query_string(qs, sep)
