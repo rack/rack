@@ -7,6 +7,11 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+- [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
+
+### Fixed
+
+- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
 
 ### Changed
 

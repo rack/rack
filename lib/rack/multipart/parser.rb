@@ -1,5 +1,6 @@
 # frozen_string_literal: true
 
+require 'set'
 require 'strscan'
 
 require_relative '../utils'
@@ -634,13 +635,27 @@ module Rack
         body.force_encoding(encoding)
       end
 
+      ENCODING_NAMES = Set.new(Encoding.name_list.map(&:downcase)).freeze
+      private_constant :ENCODING_NAMES
+
       # Return the related Encoding object. However, because
       # enc is submitted by the user, it may be invalid, so
       # use a binary encoding in that case.
       def find_encoding(enc)
-        Encoding.find enc
-      rescue ArgumentError
-        Encoding::BINARY
+        if respect_requested_encoding?(enc)
+          begin
+            Encoding.find(enc)
+          rescue ArgumentError
+            nil
+          end
+        end || Encoding::BINARY
+      end
+
+      # Whether to respect the given encoding (given as a string). If a
+      # requested encoding is not respected, binary encoding is used.
+      # The string may be nil or in any encoding, so compare it as bytes.
+      def respect_requested_encoding?(encoding_string)
+        ENCODING_NAMES.include?(encoding_string.to_s.b.downcase(:ascii))
       end
 
       def handle_empty_content!(content)
