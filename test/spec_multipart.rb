@@ -41,6 +41,31 @@ describe Rack::Multipart do
     end
   end
 
+  def parse_respecting_encoding(env, &respect)
+    parser = Class.new(Rack::Multipart::Parser) do
+      define_method(:respect_requested_encoding?, &respect)
+      private :respect_requested_encoding?
+    end
+    env = Rack::MockRequest.env_for("/", env)
+    parser.parse(env["rack.input"], env["CONTENT_LENGTH"].to_i, env["CONTENT_TYPE"],
+      Rack::Multipart::Parser::TEMPFILE_FACTORY, Rack::Multipart::Parser::BUFSIZE,
+      Rack::Utils.default_query_parser).params
+  end
+
+  def with_recorded_encoding_find
+    names = []
+    encoding = Class.new(Encoding) do
+      define_singleton_method(:find) do |name|
+        names << name
+        super(name)
+      end
+    end
+    Rack::Multipart::Parser.const_set(:Encoding, encoding)
+    yield names
+  ensure
+    Rack::Multipart::Parser.send(:remove_const, :Encoding)
+  end
+
   it "returns nil if the content type is not multipart" do
     env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "")
     Rack::Multipart.parse_multipart(env).must_be_nil
@@ -287,6 +312,120 @@ describe Rack::Multipart do
     # content-type charset is the right thing to do.  We should revisit this.
     params.keys.each do |key|
       key.encoding.must_equal Encoding::BINARY
+    end
+  end
+
+  it "does not call Encoding.find for unknown charsets" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=unknown; charset=US-ASCII; charset=unknown\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(env)
+      params["text"].encoding.must_equal Encoding::BINARY
+      names.must_equal ["US-ASCII"]
+    end
+  end
+
+  it "does not call Encoding.find for unknown filename* charsets" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename*=unknown''a.txt\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary\r\nContent-Disposition: form-data; name=\"file2\"; filename*=US-ASCII''b.txt\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(env)
+      params["file"][:filename].must_equal "a.txt"
+      params["file"][:filename].encoding.must_equal Encoding::BINARY
+      params["file2"][:filename].must_equal "b.txt"
+      params["file2"][:filename].encoding.must_equal Encoding::US_ASCII
+      names.must_equal ["US-ASCII"]
+    end
+  end
+
+  it "does not raise for a filename* without a charset" do
+    { "filename*=" => nil, "filename*=\"\"" => nil, "filename*=''a.txt" => "a.txt" }.each do |param, filename|
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"file\"; #{param}\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary--\r\n"
+      env = Rack::MockRequest.env_for("/", {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body)
+      })
+      with_recorded_encoding_find do |names|
+        params = Rack::Multipart.parse_multipart(env)
+        if filename
+          params["file"][:filename].must_equal filename
+          params["file"][:filename].encoding.must_equal Encoding::BINARY
+        else
+          # An empty filename drops the part; before the fix this raised TypeError.
+          params["file"].must_be_nil
+        end
+        names.must_be_empty
+      end
+    end
+  end
+
+  it "sets BINARY encoding if respect_requested_encoding? returns false for the charset" do
+    encodings = []
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_no_filename)) { |enc| encodings << enc; enc != "US-ASCII" }
+    encodings.must_equal ["US-ASCII"]
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "sets BINARY encoding if respect_requested_encoding? returns true for an unknown charset" do
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_unknown_charset)) { |enc| true }
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "sets BINARY encoding for charsets that are not valid encoding names" do
+    ["\xff\xfeUTF-8", "UTF-8\xc3\xa9", "UTF-8\u212a", "\u0130SO-8859-1", "ut\xfff-8", "\xef\xbb\xbfutf-8"].each do |charset|
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=#{charset.b}\r\n\r\ncontents\r\n--boundary--\r\n".b
+      env = Rack::MockRequest.env_for("/", {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body)
+      })
+      with_recorded_encoding_find do |names|
+        params = Rack::Multipart.parse_multipart(env)
+        params["text"].must_equal "contents"
+        params["text"].encoding.must_equal Encoding::BINARY
+        names.must_be_empty
+      end
+    end
+  end
+
+  it "does not raise in respect_requested_encoding? for nil or strings in incompatible encodings" do
+    parser = Rack::Multipart::Parser.allocate
+    parser.send(:respect_requested_encoding?, nil).must_equal false
+    parser.send(:respect_requested_encoding?, "").must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("ISO-2022-JP")).must_equal true
+    parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("UTF-7")).must_equal true
+    parser.send(:respect_requested_encoding?, "UTF-8\x81".dup.force_encoding("Shift_JIS")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".encode("UTF-16LE")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8\xff".dup.force_encoding("UTF-8")).must_equal false
+  end
+
+  it "sets BINARY encoding for the internal charset if there is no default internal encoding" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=internal\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    default_internal = Encoding.default_internal
+    verbose, $VERBOSE = $VERBOSE, nil
+    begin
+      Encoding.default_internal = nil
+      params = Rack::Multipart.parse_multipart(env)
+      params["text"].encoding.must_equal Encoding::BINARY
+    ensure
+      Encoding.default_internal = default_internal
+      $VERBOSE = verbose
     end
   end
 
