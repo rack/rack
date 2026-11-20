@@ -70,6 +70,18 @@ describe Rack::Utils do
     Rack::Utils.escape("ø".encode("ISO-8859-1")).must_equal "%F8"
   end
 
+  it "escape * and ~ like URI.encode_www_form_component" do
+    Rack::Utils.escape("a*b~c").must_equal "a*b%7Ec"
+    Rack::Utils.escape("%2A*").must_equal "%252A*"
+    Rack::Utils.escape("-._").must_equal "-._"
+  end
+
+  it "escape to a US-ASCII String" do
+    Rack::Utils.escape("a b").encoding.must_equal Encoding::US_ASCII
+    Rack::Utils.escape(Class.new(String).new("a")).must_be_instance_of String
+    Rack::Utils.escape("a b~".encode("UTF-16LE")).must_equal "a%00+%00b%00%7E%00"
+  end
+
   it "not hang on escaping long strings that end in % (http://redmine.ruby-lang.org/issues/5149)" do
     Timeout.timeout(1) do
       lambda {
@@ -88,6 +100,39 @@ describe Rack::Utils do
     Rack::Utils.unescape("a%20space").must_equal "a space"
     Rack::Utils.unescape("q1%212%22%27w%245%267%2Fz8%29%3F%5C").
       must_equal "q1!2\"'w$5&7/z8)?\\"
+  end
+
+  it "unescape to the given encoding" do
+    Rack::Utils.unescape("%E3%81%82").must_equal "あ"
+    Rack::Utils.unescape("%FF").encoding.must_equal Encoding::UTF_8
+    Rack::Utils.unescape("%FF").valid_encoding?.must_equal false
+    Rack::Utils.unescape("%FF", Encoding::Shift_JIS).encoding.must_equal Encoding::Shift_JIS
+    Rack::Utils.unescape("%FF".b).encoding.must_equal Encoding::UTF_8
+    Rack::Utils.unescape("%DA%00", Encoding::BINARY).must_equal [218, 0].pack('CC')
+    Rack::Utils.unescape("%82%A0", Encoding::Shift_JIS).must_equal "あ".encode(Encoding::Shift_JIS)
+  end
+
+  it "unescape String subclasses to a String" do
+    Rack::Utils.unescape(Class.new(String).new("a%41")).must_be_instance_of String
+    tagged = Class.new(String).new("a")
+    tagged.instance_variable_set(:@tag, true)
+    Rack::Utils.unescape(tagged).must_be_instance_of String
+  end
+
+  it "unescape with an encoding argument converted once" do
+    encoding = Object.new
+    def encoding.to_str
+      raise "converted twice" if @converted
+      @converted = true
+      "UTF-8"
+    end
+    Rack::Utils.unescape("%E3%81%82", encoding).must_equal "あ"
+  end
+
+  it "raise on invalid %-encoding when unescaping" do
+    lambda { Rack::Utils.unescape("a%") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (a%)"
+    lambda { Rack::Utils.unescape("%2") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (%2)"
+    lambda { Rack::Utils.unescape("%zz") }.must_raise(ArgumentError).message.must_equal "invalid %-encoding (%zz)"
   end
 
   it "parse query strings correctly" do

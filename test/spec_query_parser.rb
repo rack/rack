@@ -71,6 +71,21 @@ describe Rack::QueryParser do
     params.to_h.must_equal({})
   end
 
+  it "unescapes keys and values to UTF-8" do
+    params = Rack::QueryParser.make_default(32).parse_query("%E3%81%82=a+%2B&b=%FF".b)
+    params.must_equal("あ" => "a +", "b" => "\xFF".dup.force_encoding(Encoding::UTF_8))
+    params["b"].encoding.must_equal Encoding::UTF_8
+    lambda {
+      Rack::QueryParser.make_default(32).parse_query("a=%2")
+    }.must_raise(Rack::QueryParser::InvalidParameterError).message.must_equal "invalid %-encoding (%2)"
+  end
+
+  it "unescapes String subclasses to a String" do
+    tagged = Class.new(String).new("a")
+    tagged.instance_variable_set(:@tag, true)
+    Rack::QueryParser.make_default(32).send(:unescape, tagged).must_be_instance_of String
+  end
+
   it "supports custom unescaper when parsing query" do
     Rack::QueryParser.make_default(32).parse_query("a=b&&c=d") { |s| s.upcase }.
       must_equal("A" => "B", "C" => "D")
