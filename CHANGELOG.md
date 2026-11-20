@@ -4,6 +4,10 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+### Security
+
+- [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+
 ### SPEC Changes
 
 - Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
@@ -30,6 +34,7 @@ All notable changes to this project will be documented in this file. For info on
 - The mime type for `.pem` files has been changed from `application/x-x509-ca-cert` to `application/x-pem-file`. ([#2435](https://github.com/rack/rack/pull/2435), [@jeremyevans](https://github.com/jeremyevans))
 - Freeze `Rack::Auth::AbstractRequest::AUTHORIZATION_KEYS`, `Rack::Utils::STATUS_WITH_NO_ENTITY_BODY`, `Rack::Multipart::Parser::EMPTY`, `Rack::Utils.default_query_parser`, and internal constants in `Rack::Lint`. ([#2428](https://github.com/rack/rack/pull/2428), [@jhawthorn](https://github.com/jhawthorn))
 - `Rack::Request` no longer calls the multipart parser for URL-encoded request bodies. Request bodies with a multipart media type but without a valid boundary are now treated as empty, instead of being parsed as URL-encoded. ([#2534](https://github.com/rack/rack/pull/2534) ([@jeremyevans](https://github.com/jeremyevans))
+- The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
 
 ### Fixed
 

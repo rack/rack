@@ -127,23 +127,78 @@ module Rack
       MultipartInfo = Struct.new :params, :tmp_files
       EMPTY         = MultipartInfo.new(nil, [].freeze).freeze
 
+      # Parse the boundary parameter from a multipart content type, following
+      # the media type grammar in RFC 9110 Section 8.3.1:
+      #
+      #   media-type = type "/" subtype parameters
+      #   parameters = *( OWS ";" OWS [ parameter ] )
+      #   parameter  = parameter-name "=" parameter-value
+      #   parameter-value = ( token / quoted-string )
+      #
+      # Returns nil if the content type is not multipart or has no boundary
+      # parameter. Raises Error if the parameters are malformed, the boundary
+      # is empty, or there is more than one boundary parameter.
       def self.parse_boundary(content_type)
-        return unless content_type
-        data = content_type.match(MULTIPART)
-        return unless data
+        return unless content_type && content_type.match?(/\Amultipart\//ni)
 
-        unless data[1].empty?
-          raise Error, "whitespace between boundary parameter name and equal sign"
-        end
-        # Count across the whole header rather than only after the match: the
-        # lazy prefix in MULTIPART can skip a first boundary parameter whose
-        # value is empty or starts with a quote, semicolon, or comma. Also
-        # count RFC 2231 boundary* parameters, which some parsers prefer.
-        if content_type.scan(/#{NOT_AFTER_TOKEN_CHAR}boundary(?:\*\d*\*?)?\s*=/i).size > 1
-          raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
+        scanner = StringScanner.new(content_type.b)
+        return unless scanner.skip(/multipart\/[!#$%&'*+\-.^_`|~0-9A-Za-z]+/ni)
+
+        boundary = nil
+        boundary_seen = false
+        ows = /[ \t]*/n
+        # From RFC 9110 Section 5.6.2
+        token = /[!#$%&'*+\-.^_`|~0-9A-Za-z]+/n
+
+        loop do
+          scanner.skip(ows)
+          break if scanner.eos?
+
+          unless scanner.skip(/;/n)
+            raise Error, "invalid parameters in multipart content type"
+          end
+
+          scanner.skip(ows)
+          # Empty parameter, such as in "a=b;;c=d" or a trailing ";".
+          next unless name = scanner.scan(token)
+          is_boundary = name.casecmp?("boundary")
+          # RFC 2231 forms such as boundary*, boundary*0, or boundary*0*. Rack
+          # does not use them, but some parsers (for example Go's
+          # mime.ParseMediaType) prefer them over a plain boundary parameter,
+          # so treat them as boundary parameters when checking for duplicates.
+          is_rfc2231_boundary = !is_boundary && name.match?(/\Aboundary\*/ni)
+
+          unless scanner.skip(/=/n)
+            if is_boundary && scanner.match?(/\s+=/n)
+              raise Error, "whitespace between boundary parameter name and equal sign"
+            end
+            raise Error, "invalid parameter in multipart content type"
+          end
+
+          if scanner.scan(/"((?:[\t \x21\x23-\x5B\x5D-\x7E\x80-\xFF]|\\[\t \x21-\x7E\x80-\xFF])*)"/n)
+            value = scanner[1]
+            value.gsub!(/\\(.)/mn, '\1')
+          elsif !(value = scanner.scan(token))
+            raise Error, "invalid parameter value in multipart content type"
+          end
+
+          next unless is_boundary || is_rfc2231_boundary
+
+          if boundary_seen
+            raise BoundaryTooLongError, "multiple boundary parameters found in multipart content type"
+          end
+          boundary_seen = true
+
+          next unless is_boundary
+
+          if value.empty?
+            raise Error, "empty boundary in multipart content type"
+          end
+
+          boundary = value
         end
 
-        data[2]
+        boundary
       end
 
       def self.default_tempfile_factory
