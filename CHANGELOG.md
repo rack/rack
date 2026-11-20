@@ -2,7 +2,7 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
-## Unreleased
+## [3.1.24] - 2026-11-20
 
 ### Security
 
@@ -12,13 +12,13 @@ All notable changes to this project will be documented in this file. For info on
 - [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` did not unfold a folded `Content-ID` header, preserving CRLF in the parsed parameter name.
 - [GHSA-f7cc-57h7-qrcg](https://github.com/advisories/GHSA-f7cc-57h7-qrcg) `Rack::QueryParser` separator pattern allocated about 48 bytes per space after `&`, and nested parameter name splitting about 48 bytes per bracket, allowing denial of service via memory amplification. `DEFAULT_SEP` and the `COMMON_SEP` entries for `&` and `;` are now Strings rather than Regexps.
 
-### Fixed
-
-- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
-
 ### Changed
 
 - The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
+
+### Fixed
+
+- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
 
 ## [3.1.23] - 2026-10-30
 
