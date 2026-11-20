@@ -824,7 +824,7 @@ class RackRequestTest < Minitest::Spec
   it "safely accepts POST requests with empty body" do
     mr = Rack::MockRequest.env_for("/",
       "REQUEST_METHOD" => "POST",
-      "CONTENT_TYPE"   => "multipart/form-data, boundary=AaB03x",
+      "CONTENT_TYPE"   => "multipart/form-data; boundary=AaB03x",
       "CONTENT_LENGTH" => '0',
       :input => nil)
 
@@ -1339,7 +1339,7 @@ content-transfer-encoding: base64\r
 --AaB03x--\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1378,7 +1378,7 @@ content-transfer-encoding: base64
 --AaB03x--
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1402,7 +1402,7 @@ content-transfer-encoding: base64\r
 --AaB03x--\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1433,7 +1433,7 @@ EOF
 EOF
     mr = Rack::MockRequest.env_for(
       "/",
-      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
       "CONTENT_LENGTH" => input.size,
       :input => input
     )
@@ -1516,7 +1516,7 @@ content-disposition: form-data; name="mean"; filename="mean"\r
 --AaB03x--\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1542,7 +1542,7 @@ content-transfer-encoding: base64\r
 --AaB03x--\r
 EOF
     env = Rack::MockRequest.env_for("/",
-                          "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                          "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                           "CONTENT_LENGTH" => input.size,
                           :input => input)
     req = make_request(env)
@@ -1556,7 +1556,7 @@ EOF
 content-disposition: form-data; name="huge"; filename="huge"\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1569,7 +1569,7 @@ content-disposition: form-data; name="huge"; filename="huge"\r
 foo\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1582,7 +1582,7 @@ content-disposition: form-data; name="huge"; filename="huge"\r
 foo\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1595,7 +1595,7 @@ EOF
 content-disposition: form-data; name="huge"; filename="huge"\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1614,7 +1614,7 @@ foo\r
 --AaB03x--\r
 EOF
     req = make_request Rack::MockRequest.env_for("/",
-                      "CONTENT_TYPE" => "multipart/related, boundary=AaB03x",
+                      "CONTENT_TYPE" => "multipart/related; boundary=AaB03x",
                       "CONTENT_LENGTH" => input.size,
                       :input => input)
 
@@ -1632,7 +1632,7 @@ content-type: application/octet-stream\r
 EOF
 
         req = make_request Rack::MockRequest.env_for("/",
-                          "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+                          "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
                           "CONTENT_LENGTH" => input.size,
                           :input => input)
 
@@ -1680,7 +1680,7 @@ content-transfer-encoding: base64\r
 EOF
     input.force_encoding(Encoding::ASCII_8BIT)
     res = Rack::MockRequest.new(Rack::Lint.new(app)).get "/",
-      "CONTENT_TYPE" => "multipart/form-data, boundary=AaB03x",
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
       "CONTENT_LENGTH" => input.size.to_s, "rack.input" => StringIO.new(input)
 
     res.must_be :ok?
