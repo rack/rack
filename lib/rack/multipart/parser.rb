@@ -524,6 +524,7 @@ module Rack
             end
           else
             name = head[MULTIPART_CONTENT_ID, 1]
+            name.gsub!(OBS_UNFOLD, '\1') if name
           end
 
           if filename_star
