@@ -10,6 +10,7 @@ All notable changes to this project will be documented in this file. For info on
 - [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
 - [GHSA-mhj6-xc86-54m8](https://github.com/advisories/GHSA-mhj6-xc86-54m8) `Rack::Directory` listed directories outside the root when `..` followed a symbolic link.
 - [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` did not unfold a folded `Content-ID` header, preserving CRLF in the parsed parameter name.
+- [GHSA-f7cc-57h7-qrcg](https://github.com/advisories/GHSA-f7cc-57h7-qrcg) `Rack::QueryParser` separator pattern allocated about 48 bytes per space after `&`, and nested parameter name splitting about 48 bytes per bracket, allowing denial of service via memory amplification. `DEFAULT_SEP` and the `COMMON_SEP` entries for `&` and `;` are now Strings rather than Regexps.
 
 ### SPEC Changes
 
