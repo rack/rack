@@ -35,6 +35,7 @@ All notable changes to this project will be documented in this file. For info on
 - Freeze `Rack::Auth::AbstractRequest::AUTHORIZATION_KEYS`, `Rack::Utils::STATUS_WITH_NO_ENTITY_BODY`, `Rack::Multipart::Parser::EMPTY`, `Rack::Utils.default_query_parser`, and internal constants in `Rack::Lint`. ([#2428](https://github.com/rack/rack/pull/2428), [@jhawthorn](https://github.com/jhawthorn))
 - `Rack::Request` no longer calls the multipart parser for URL-encoded request bodies. Request bodies with a multipart media type but without a valid boundary are now treated as empty, instead of being parsed as URL-encoded. ([#2534](https://github.com/rack/rack/pull/2534) ([@jeremyevans](https://github.com/jeremyevans))
 - The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
+- Improve the performance of `Rack::Utils.set_cookie_header` for a single cookie value. ([#2550](https://github.com/rack/rack/pull/2550), [@thomasklemm](https://github.com/thomasklemm))
 
 ### Fixed
 
