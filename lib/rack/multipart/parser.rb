@@ -664,11 +664,12 @@ module Rack
         name = name.to_s
         encoding = Encoding::UTF_8
 
-        name.force_encoding(encoding)
+        if filename
+          name.force_encoding(encoding)
+          return
+        end
 
-        return if filename
-
-        if content_type
+        if content_type && !Utils.multipart_ignore_charset
           list         = content_type.split(';')
           type_subtype = list.first
           type_subtype.strip!

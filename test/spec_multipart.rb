@@ -287,6 +287,23 @@ describe Rack::Multipart do
     end
   end
 
+  it "sets UTF-8 encoding regardless of charset if Rack::Utils.multipart_ignore_charset is enabled" do
+    multipart_ignore_charset_was = Rack::Utils.multipart_ignore_charset
+    Rack::Utils.multipart_ignore_charset = true
+
+    begin
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+      params = Rack::Multipart.parse_multipart(env)
+      params["text"].encoding.must_equal Encoding::UTF_8
+
+      params.each_key do |key|
+        key.encoding.must_equal Encoding::UTF_8
+      end
+    ensure
+      Rack::Utils.multipart_ignore_charset = multipart_ignore_charset_was
+    end
+  end
+
   it "sets BINARY encoding for invalid charsets" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_unknown_charset))
     params = Rack::Multipart.parse_multipart(env)
