@@ -14,7 +14,6 @@ jobs:
           - ubuntu-latest
         ruby:
           - '2.7'
-          - '2.7.3'
           - '3.0'
           - '3.1'
           - '3.2'
@@ -27,6 +26,9 @@ jobs:
         include:
           - os: macos-latest
             ruby: '4.0'
+          # Exact minimum version. Newer runner images only ship the latest patch release of each series.
+          - os: ubuntu-24.04
+            ruby: '2.7.3'
     runs-on: ${{matrix.os}}
     env:
       CI: spec
