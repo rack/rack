@@ -4,6 +4,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ## Unreleased
 
+
 ### SPEC Changes
 
 - Define `rack.response_finished` callback arguments more strictly. ([#2365](https://github.com/rack/rack/pull/2365), [@skipkayhil](https://github.com/skipkayhil))
@@ -37,6 +38,24 @@ All notable changes to this project will be documented in this file. For info on
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 - Multipart parser: only use a parameter named `boundary` as the boundary, not one whose name merely ends in `boundary`. ([#2542](https://github.com/rack/rack/pull/2542))
+
+## [3.2.9] - 2026-11-20
+
+### Security
+
+- [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+- [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
+- [GHSA-mhj6-xc86-54m8](https://github.com/advisories/GHSA-mhj6-xc86-54m8) `Rack::Directory` listed directories outside the root when `..` followed a symbolic link.
+- [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` did not unfold a folded `Content-ID` header, preserving CRLF in the parsed parameter name.
+- [GHSA-f7cc-57h7-qrcg](https://github.com/advisories/GHSA-f7cc-57h7-qrcg) `Rack::QueryParser` separator pattern allocated about 48 bytes per space after `&`, and nested parameter name splitting about 48 bytes per bracket, allowing denial of service via memory amplification. `DEFAULT_SEP` and the `COMMON_SEP` entries for `&` and `;` are now Strings rather than Regexps.
+
+### Changed
+
+- The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
+
+### Fixed
+
+- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
 
 ## [3.2.8] - 2026-10-30
 
@@ -163,6 +182,24 @@ This release continues Rack's evolution toward a cleaner, more efficient foundat
 - Fix the specification for `SERVER_PORT` which was incorrectly documented as required to be an `Integer` if present - it must be a `String` containing digits only. ([#2296](https://github.com/rack/rack/pull/2296), [@ioquatix])
 - `SERVER_NAME` and `HTTP_HOST` are now more strictly validated according to the relevant specifications. ([#2298](https://github.com/rack/rack/pull/2298), [@ioquatix])
 - `Rack::Lint` now disallows `PATH_INFO="" SCRIPT_NAME=""`. ([#2298](https://github.com/rack/rack/issues/2307), [@jeremyevans])
+
+## [3.1.24] - 2026-11-20
+
+### Security
+
+- [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+- [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
+- [GHSA-mhj6-xc86-54m8](https://github.com/advisories/GHSA-mhj6-xc86-54m8) `Rack::Directory` listed directories outside the root when `..` followed a symbolic link.
+- [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` did not unfold a folded `Content-ID` header, preserving CRLF in the parsed parameter name.
+- [GHSA-f7cc-57h7-qrcg](https://github.com/advisories/GHSA-f7cc-57h7-qrcg) `Rack::QueryParser` separator pattern allocated about 48 bytes per space after `&`, and nested parameter name splitting about 48 bytes per bracket, allowing denial of service via memory amplification. `DEFAULT_SEP` and the `COMMON_SEP` entries for `&` and `;` are now Strings rather than Regexps.
+
+### Changed
+
+- The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
+
+### Fixed
+
+- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
 
 ## [3.1.23] - 2026-10-30
 
@@ -596,6 +633,19 @@ This release introduces major improvements to Rack, including enhanced support f
 - Make `Rack::NullLogger` respond to `#fatal!` [@jeremyevans])
 - Fix multipart filename generation for filenames that contain spaces. Encode spaces as "%20" instead of "+" which will be decoded properly by the multipart parser. ([#1736](https://github.com/rack/rack/pull/1645), [@muirdm](https://github.com/muirdm))
 - `Rack::Request#scheme` returns `ws` or `wss` when one of the `X-Forwarded-Scheme` / `X-Forwarded-Proto` headers is set to `ws` or `wss`, respectively. ([#1730](https://github.com/rack/rack/issues/1730), [@erwanst](https://github.com/erwanst))
+
+## [2.2.26] - 2026-11-20
+
+### Security
+
+- [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+- [GHSA-mhj6-xc86-54m8](https://github.com/advisories/GHSA-mhj6-xc86-54m8) `Rack::Directory` listed directories outside the root when `..` followed a symbolic link.
+- [GHSA-frgv-948x-h96g](https://github.com/advisories/GHSA-frgv-948x-h96g) `Rack::Multipart::Parser` accepted raw CR and LF characters inside quoted multipart header values, preserving them in parsed parameter names.
+- [GHSA-f7cc-57h7-qrcg](https://github.com/advisories/GHSA-f7cc-57h7-qrcg) `Rack::QueryParser` separator pattern allocated about 48 bytes per space after `&`, and nested parameter name splitting about 48 bytes per bracket, allowing denial of service via memory amplification. The `COMMON_SEP` entries for `&` and `;` are now Strings rather than Regexps.
+
+### Changed
+
+- The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `EOFError` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
 
 ## [2.2.25] - 2026-10-30
 
