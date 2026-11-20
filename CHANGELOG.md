@@ -7,6 +7,7 @@ All notable changes to this project will be documented in this file. For info on
 ### Security
 
 - [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+- [GHSA-58mf-c3jj-277p](https://github.com/advisories/GHSA-58mf-c3jj-277p) Multipart parser searched the load path for every unknown part `charset`, allowing denial of service via CPU exhaustion.
 
 ### SPEC Changes
 
@@ -42,6 +43,7 @@ All notable changes to this project will be documented in this file. For info on
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 - Multipart parser: only use a parameter named `boundary` as the boundary, not one whose name merely ends in `boundary`. ([#2542](https://github.com/rack/rack/pull/2542))
+- `Rack::Multipart` no longer raises `TypeError` for a part with `charset=internal` when no default internal encoding is set; the part is treated as binary.
 
 ## [3.2.8] - 2026-10-30
 
