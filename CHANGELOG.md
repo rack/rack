@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Security
+
+- [GHSA-r243-pfwh-7rpx](https://github.com/advisories/GHSA-r243-pfwh-7rpx) Multipart boundary was extracted by substring match rather than parameter parsing, allowing parser differentials and WAF bypass.
+
+### Changed
+
+- The multipart `Content-Type` header is now parsed according to RFC 9110. An unquoted `boundary` containing characters outside the token grammar (such as `=`, `/`, `:`, `?`, parentheses, or spaces), or parameters not separated by `;`, now raise `Rack::Multipart::Error` instead of being accepted. Quoted boundaries are unaffected. ([@jeremyevans](https://github.com/jeremyevans), [@tenderlove](https://github.com/tenderlove))
+
 ## [3.2.8] - 2026-10-30
 
 ### Security
