@@ -164,6 +164,58 @@ describe Rack::Directory do
     end
   end
 
+  it "not allow directory traversal via .. following a symlinked directory" do
+    Dir.mktmpdir do |dir|
+      root = File.join(dir, "root")
+      shared = File.join(dir, "shared")
+      FileUtils.mkdir_p(File.join(root, "assets"))
+      FileUtils.mkdir_p(File.join(shared, "system", "sub"))
+      FileUtils.mkdir_p(File.join(shared, "config"))
+      FileUtils.touch(File.join(shared, "system", "a.txt"))
+      FileUtils.touch(File.join(shared, "system", "sub", "b.txt"))
+      FileUtils.touch(File.join(shared, "config", "database.yml"))
+      File.symlink(File.join(shared, "system"), File.join(root, "system"))
+
+      # Distinct timestamps so the Parent Directory row can be attributed:
+      root_mtime = Time.utc(2000, 1, 1)
+      shared_mtime = Time.utc(2001, 1, 1)
+      File.utime(root_mtime, root_mtime, root)
+      File.utime(shared_mtime, shared_mtime, shared)
+
+      req = Rack::MockRequest.new(Rack::Lint.new(Rack::Directory.new(root)))
+
+      # The symlinked directory itself is still served:
+      res = req.get("/system/")
+      res.must_be :ok?
+      res.body.must_include "a.txt"
+
+      # Its Parent Directory row describes the root, not the parent of the link target:
+      parent_row = res.body[/<tr>.*Parent Directory.*<\/tr>/]
+      parent_row.must_include root_mtime.httpdate
+      parent_row.wont_include shared_mtime.httpdate
+
+      # .. after the symlink resolves to the root, not to the parent of the link target:
+      res = req.get("/system/../")
+      res.must_be :ok?
+      res.body.must_include "assets"
+      res.body.wont_include "config"
+
+      # .. inside the link target resolves to the link target, not to its sibling:
+      res = req.get("/system/sub/../")
+      res.must_be :ok?
+      res.body.must_include "a.txt"
+      res.body.wont_include "config"
+
+      res = req.get("/system/../config/")
+      res.must_be :not_found?
+      res.body.wont_include "database.yml"
+
+      res = req.get("/system/%2E%2E/config/")
+      res.must_be :not_found?
+      res.body.wont_include "database.yml"
+    end
+  end
+
   it "not allow dir globs" do
     Dir.mktmpdir do |dir|
       weirds = "uploads/.?/.?"
