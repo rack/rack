@@ -271,6 +271,31 @@ content-range: bytes 60-80/209\r
     res.body.must_equal expected_body
   end
 
+  it "returns the byte range if If-Range matches the last-modified date" do
+    env = Rack::MockRequest.env_for("/cgi/test")
+    env["HTTP_RANGE"] = "bytes=22-33"
+    env["HTTP_IF_RANGE"] = File.mtime(File.join(DOCROOT, "/cgi/test")).httpdate
+    res = Rack::MockResponse.new(*files(DOCROOT).call(env))
+
+    res.status.must_equal 206
+    res["content-range"].must_equal "bytes 22-33/209"
+    res.body.must_equal "IS FILE! ***"
+  end
+
+  it "returns the whole file if If-Range does not match" do
+    path = File.join(DOCROOT, "/cgi/test")
+    [(File.mtime(path) - 100).httpdate, '"etag"'].each do |if_range|
+      env = Rack::MockRequest.env_for("/cgi/test")
+      env["HTTP_RANGE"] = "bytes=22-33"
+      env["HTTP_IF_RANGE"] = if_range
+      res = Rack::MockResponse.new(*files(DOCROOT).call(env))
+
+      res.status.must_equal 200
+      res["content-range"].must_be_nil
+      res["content-length"].must_equal "209"
+    end
+  end
+
   it "returns 416 error and correct Content-Range for unsatisfiable byte range" do
     env = Rack::MockRequest.env_for("/cgi/test")
     env["HTTP_RANGE"] = "bytes=1234-5678"

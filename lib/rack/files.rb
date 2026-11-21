@@ -97,6 +97,9 @@ module Rack
       size = filesize path
 
       ranges = Rack::Utils.get_byte_ranges(request.get_header('HTTP_RANGE'), size)
+      # Serve the whole file when If-Range doesn't match its Last-Modified date.
+      if_range = request.get_header('HTTP_IF_RANGE')
+      ranges = nil if if_range && if_range != last_modified
       if ranges.nil?
         # No ranges:
         ranges = [0..size - 1]
