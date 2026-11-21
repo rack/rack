@@ -118,6 +118,24 @@ describe Rack::Static do
     res.body.must_equal "Hello World"
   end
 
+  it "uses the normalized path for Hash URL mappings" do
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir_p(File.join(dir, "assets"))
+      File.write(File.join(dir, "assets", "intended.txt"), "INTENDED")
+      File.write(File.join(dir, "entry"), "OTHER_FILE")
+
+      opts = { urls: { "/entry" => "/assets/intended.txt" }, root: dir }
+      request = Rack::MockRequest.new(static(DummyApp.new, opts))
+
+      request.get("/entry").body.must_equal "INTENDED"
+      request.get("/%65ntry").body.must_equal "INTENDED"
+      request.get("/./entry").body.must_equal "INTENDED"
+
+      File.delete(File.join(dir, "entry"))
+      request.get("/%65ntry").body.must_equal "INTENDED"
+    end
+  end
+
   it "allows the root URI to be configured via hash options" do
     res = @hash_root_request.get("/")
     res.must_be :ok?

@@ -34,6 +34,7 @@ All notable changes to this project will be documented in this file. For info on
 
 ### Fixed
 
+- `Rack::Static` now uses the normalized request path when looking up Hash `:urls` mappings, so non-canonical paths (e.g. `/%65ntry`, `/./entry`) serve the mapped file instead of falling through to `Rack::Files`. ([#2549](https://github.com/rack/rack/pull/2549), [@Johnny-Kao](https://github.com/Johnny-Kao))
 - `Rack::MethodOverride` now rescues `Rack::BadRequest` to avoid the middleware raising an exception for invalid request bodies. ([#2505](https://github.com/rack/rack/pull/2505), [@navidemad](https://github.com/navidemad))
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
