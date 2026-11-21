@@ -46,6 +46,23 @@ module RewindableTest
     @rio.read.must_equal "hello world"
   end
 
+  it "seek is able to move the cursor" do
+    @rio.seek(1)
+    @rio.read(1).must_equal 'e'
+
+    @rio.seek(3)
+    @rio.read(2).must_equal 'lo'
+
+    @rio.seek(1, IO::SEEK_CUR)
+    @rio.read(5).must_equal 'world'
+
+    @rio.seek(-5, IO::SEEK_END)
+    @rio.read(5).must_equal 'world'
+
+    @rio.rewind
+    @rio.read.must_equal "hello world"
+  end
+
   it "be able to handle gets" do
     @rio.gets.must_equal "hello world"
     @rio.rewind

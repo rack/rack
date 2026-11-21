@@ -50,6 +50,11 @@ module Rack
       @rewindable_io.each(&block)
     end
 
+    def seek(*args)
+      make_rewindable unless @rewindable_io
+      @rewindable_io.seek(*args)
+    end
+
     def rewind
       make_rewindable unless @rewindable_io
       @rewindable_io.rewind
