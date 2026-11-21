@@ -20,6 +20,26 @@ describe Rack::Multipart do
     File.join(File.dirname(__FILE__), "multipart", name.to_s)
   end
 
+  def multipart_body_env(body, boundary = "AaB03x")
+    Rack::MockRequest.env_for("/",
+      "CONTENT_TYPE" => "multipart/form-data; boundary=#{boundary}",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body))
+  end
+
+  def with_recorded_encoding_find
+    names = []
+    encoding = Class.new(Encoding) do
+      define_singleton_method(:find) do |name|
+        names << name
+        super(name)
+      end
+    end
+    Rack::Multipart::Parser.const_set(:Encoding, encoding)
+    yield names
+  ensure
+    Rack::Multipart::Parser.send(:remove_const, :Encoding)
+  end
 
   def with_multipart_limit(limit)
     previous = Rack::Multipart::Parser.send(:const_get, :PARSER_BYTESIZE_LIMIT)
@@ -261,6 +281,72 @@ describe Rack::Multipart do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:unity3d_wwwform))
     params = Rack::Multipart.parse_multipart(env)
     params['user_sid'].encoding.must_equal Encoding::UTF_8
+  end
+
+  it "sets BINARY encoding for an unknown charset instead of raising" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=unknown\r\n\r\ncontents\r\n--AaB03x--\r\n"
+    params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "ignores a Content-Type parameter without a value instead of raising" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"field\"\r\nContent-Type: text/plain; charset\r\n\r\ndata\r\n--AaB03x--\r\n"
+    params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+    params["field"].must_equal "data"
+    params["field"].encoding.must_equal Encoding::UTF_8
+  end
+
+  it "sets BINARY encoding for a quoted unknown charset instead of raising" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=\"unknown\"\r\n\r\ncontents\r\n--AaB03x--\r\n"
+    params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "does not call Encoding.find for unknown charsets" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=unknown; charset=US-ASCII; charset=unknown\r\n\r\ncontents\r\n--AaB03x--\r\n"
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+      params["text"].encoding.must_equal Encoding::BINARY
+      names.must_equal ["US-ASCII"]
+    end
+  end
+
+  it "sets BINARY encoding for the internal charset if there is no default internal encoding" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=internal\r\n\r\ncontents\r\n--AaB03x--\r\n"
+    default_internal = Encoding.default_internal
+    verbose, $VERBOSE = $VERBOSE, nil
+    begin
+      Encoding.default_internal = nil
+      params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+      params["text"].must_equal "contents"
+      params["text"].encoding.must_equal Encoding::BINARY
+    ensure
+      Encoding.default_internal = default_internal
+      $VERBOSE = verbose
+    end
+  end
+
+  it "sets BINARY encoding for a filename* with an unknown charset instead of raising" do
+    body = "--AaB03x\r\nContent-Disposition: form-data; name=\"files\"; filename*=unknown''file.txt\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--AaB03x--\r\n"
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(multipart_body_env(body))
+      params["files"][:filename].must_equal "file.txt"
+      params["files"][:filename].encoding.must_equal Encoding::BINARY
+      params["files"][:tempfile].read.must_equal "contents"
+      names.must_be_empty
+    end
+  end
+
+  it "does not raise in respect_requested_encoding? for nil or strings in incompatible encodings" do
+    parser = Rack::Multipart::Parser.allocate
+    parser.send(:respect_requested_encoding?, nil).must_equal false
+    parser.send(:respect_requested_encoding?, "").must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("ISO-2022-JP")).must_equal true
+    parser.send(:respect_requested_encoding?, "UTF-8\x81".dup.force_encoding("Shift_JIS")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".encode("UTF-16LE")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8\xff".dup.force_encoding("UTF-8")).must_equal false
   end
 
   it "raise ParamsTooDeepError if the key space is exhausted" do
