@@ -2,6 +2,7 @@
 
 require_relative 'helper'
 require 'yaml'
+require 'open3'
 require_relative 'psych_fix'
 
 separate_testing do
@@ -313,6 +314,25 @@ describe Rack::MockRequest do
     ]
     keys.each do |k|
       assert_equal Encoding::ASCII_8BIT, req[k].encoding
+    end
+  end
+
+  if defined?(Ractor)
+    # In a child process, so the freezing in rack/ractorize stays out of the other tests.
+    it "builds an env inside a non-main Ractor after requiring rack/ractorize" do
+      # Ruby 3.0's uri (0.10) reads an unshareable URI::DEFAULT_PARSER whenever it builds a URI.
+      skip "this Ruby's uri can't build a URI in a non-main Ractor" unless Ractor.shareable?(URI::DEFAULT_PARSER)
+
+      script = <<~'RUBY'
+        require "rack"
+        require "rack/ractorize"
+        ractor = Ractor.new { Rack::MockRequest.env_for("/foo?bar=1").values_at("PATH_INFO", "QUERY_STRING") }
+        p(ractor.respond_to?(:value) ? ractor.value : ractor.take)
+      RUBY
+      out, err, status = Open3.capture3(RbConfig.ruby, "-I", File.expand_path("../lib", __dir__), "-e", script)
+
+      assert status.success?, err
+      assert_equal %(["/foo", "bar=1"]\n), out
     end
   end
 end
