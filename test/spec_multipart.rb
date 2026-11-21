@@ -142,11 +142,10 @@ describe Rack::Multipart do
     {
       'multipart/form-data; boundary=AaB03x; charset=utf-8' => 'AaB03x',
       'multipart/form-data; boundary="AaB03x"; charset=utf-8' => 'AaB03x',
-      'multipart/form-data; boundary="a\"b"' => 'a"b',
-      'multipart/form-data; boundary="a\\\\"' => 'a\\',
-      'multipart/form-data; boundary="a\\;"' => 'a;',
+      'multipart/form-data; boundary="a\,b"' => 'a,b',
+      'multipart/form-data; boundary="a\ b"' => 'a b',
       'multipart/form-data; boundary="AaB03x,1"' => 'AaB03x,1',
-      'multipart/form-data; boundary="AaB03x;1"' => 'AaB03x;1',
+      'multipart/form-data; boundary="AaB03x:1"' => 'AaB03x:1',
       'multipart/form-data; boundary=AaB03x ; charset=utf-8' => 'AaB03x',
       'multipart/form-data; x-boundary=other; boundary=AaB03x' => 'AaB03x',
       'multipart/form-data; foo.boundary=other; boundary=AaB03x' => 'AaB03x',
@@ -199,6 +198,106 @@ describe Rack::Multipart do
       lambda {
         Rack::Multipart::Parser.parse_boundary(content_type.b)
       }.must_raise Rack::Multipart::Error, content_type
+    end
+  end
+
+  it "parses a boundary using every character allowed by RFC 2046" do
+    # All 75 allowed characters do not fit in one 70 character boundary, so
+    # split them across two. Each includes an internal space, which requires
+    # a quoted-string.
+    [
+      "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ'()+_,-./:=? x",
+      "abcdefghijklmnopqrstuvwxyz'()+_,-./:=? x",
+    ].each do |boundary|
+      content_type = %(multipart/form-data; boundary="#{boundary}")
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_equal boundary
+
+      body = "--#{boundary}\r\ncontent-disposition: form-data; name=\"text\"\r\n\r\ncontents\r\n--#{boundary}--\r\n"
+      env = Rack::MockRequest.env_for("/",
+        "CONTENT_TYPE" => content_type,
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body))
+      Rack::Multipart.parse_multipart(env).must_equal({ "text" => "contents" }, boundary)
+    end
+  end
+
+  it "parses a boundary with a leading space or leading dashes" do
+    {
+      'multipart/form-data; boundary=" AaB03x"' => ' AaB03x',
+      'multipart/form-data; boundary=--AaB03x' => '--AaB03x',
+      "multipart/form-data; boundary=#{'a' * 70}" => 'a' * 70,
+      "multipart/form-data; boundary=\"#{'a' * 70}\"" => 'a' * 70,
+    }.each do |content_type, boundary|
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_equal boundary, content_type
+    end
+  end
+
+  it "raises an exception for a boundary outside the RFC 2046 grammar" do
+    [
+      # Characters outside bcharsnospace, in a quoted-string.
+      'multipart/form-data; boundary="a;b"',
+      'multipart/form-data; boundary="a@b"',
+      'multipart/form-data; boundary="a<b>"',
+      'multipart/form-data; boundary="a[b]"',
+      'multipart/form-data; boundary="a{b}"',
+      'multipart/form-data; boundary="a\"b"',
+      'multipart/form-data; boundary="a\\\\b"',
+      'multipart/form-data; boundary="a\\;"',
+      "multipart/form-data; boundary=\"a\tb\"",
+      "multipart/form-data; boundary=\"a\\\tb\"",
+      "multipart/form-data; boundary=\"a\\\0b\"",
+      "multipart/form-data; boundary=\"a\\\x7fb\"",
+      "multipart/form-data; boundary=\"a\xC3\xA9b\"",
+      "multipart/form-data; boundary=\"a\xFFb\"",
+      # Token characters that are not boundary characters.
+      'multipart/form-data; boundary=a!b',
+      'multipart/form-data; boundary=a#b',
+      'multipart/form-data; boundary=a$b',
+      'multipart/form-data; boundary=a%b',
+      'multipart/form-data; boundary=a&b',
+      'multipart/form-data; boundary=a*b',
+      'multipart/form-data; boundary=a^b',
+      'multipart/form-data; boundary=a`b',
+      'multipart/form-data; boundary=a|b',
+      'multipart/form-data; boundary=a~b',
+      # Trailing space.
+      'multipart/form-data; boundary="AaB03x "',
+      'multipart/form-data; boundary=" "',
+      # Too long.
+      "multipart/form-data; boundary=#{'a' * 71}",
+      "multipart/form-data; boundary=\"#{'a' * 71}\"",
+      "multipart/form-data; boundary=\"#{'a' * 69}\\,\\,\"",
+    ].each do |content_type|
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
+      }.must_raise Rack::Multipart::Error, content_type
+    end
+  end
+
+  it "raises an exception for a multipart request with a boundary outside the RFC 2046 grammar" do
+    boundary = "AaB;03x"
+    body = "--#{boundary}\r\ncontent-disposition: form-data; name=\"text\"\r\n\r\ncontents\r\n--#{boundary}--\r\n"
+    env = Rack::MockRequest.env_for("/",
+      "CONTENT_TYPE" => %(multipart/form-data; boundary="#{boundary}"),
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body))
+    lambda {
+      Rack::Multipart.parse_multipart(env)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "invalid boundary in multipart content type"
+  end
+
+  it "parses a very long boundary parameter in linear time" do
+    [
+      "multipart/form-data; boundary=#{'a' * 1_000_000}",
+      "multipart/form-data; boundary=\"#{'a ' * 500_000}\"",
+      "multipart/form-data; boundary=\"#{'\\,' * 500_000}\"",
+      "multipart/form-data; boundary=\"#{';' * 1_000_000}\"",
+    ].each do |content_type|
+      start = Process.clock_gettime(Process::CLOCK_MONOTONIC)
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
+      }.must_raise Rack::Multipart::Error, content_type
+      (Process.clock_gettime(Process::CLOCK_MONOTONIC) - start).must_be :<, 1
     end
   end
 
