@@ -61,7 +61,7 @@ describe Rack::ShowExceptions do
         lambda{|env| raise RuntimeError }
     ))
 
-    res = req.post("/", "HTTP_ACCEPT" => "text/html", "rack.input" => StringIO.new(String.new << '(%bad-params%)'))
+    res = req.post("/", "HTTP_ACCEPT" => "text/html", 'CONTENT_TYPE' => 'application/x-www-form-urlencoded', "rack.input" => StringIO.new(String.new << '(%bad-params%)'))
 
     res.must_be :server_error?
     res.status.must_equal 500
