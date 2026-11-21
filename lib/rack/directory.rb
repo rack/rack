@@ -22,7 +22,7 @@ module Rack
   # the response.
 
   class Directory
-    DIR_FILE = "<tr><td class='name'><a href='./%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>\n"
+    DIR_FILE = "<tr><td class='name'><a href='%s'>%s</a></td><td class='size'>%s</td><td class='type'>%s</td><td class='mtime'>%s</td></tr>\n"
     DIR_PAGE_HEADER = <<-PAGE
 <html><head>
   <title>%s</title>
@@ -137,8 +137,8 @@ table { width:100%%; }
 
     # Rack response to use for directories under the root.
     def list_directory(path_info, path, script_name)
-      url_head = (script_name.split('/') + path_info.split('/')).map do |part|
-        Utils.escape_path part
+      url_head = (script_name.split('/') + path_info.split('/')).filter_map do |part|
+        Utils.escape_path(part) unless part.empty?
       end
 
       # Globbing not safe as path could contain glob metacharacters
@@ -146,7 +146,9 @@ table { width:100%%; }
         stat = stat(basename == '..' ? ::File.dirname(path) : ::File.join(path, basename))
         next unless stat
 
-        url = ::File.join(*url_head + [Utils.escape_path(basename)])
+        # Always an absolute path with a single leading slash, so that an
+        # entry name can never be interpreted as a URL scheme or authority.
+        url = "/#{(url_head + [Utils.escape_path(basename)]).join('/')}"
         mtime = stat.mtime.httpdate
         if stat.directory?
           type = 'directory'
