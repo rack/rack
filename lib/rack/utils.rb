@@ -134,9 +134,14 @@ module Rack
       end
     end
 
+    # Parse a header containing a comma-separated list of values with
+    # optional quality parameters (such as Accept or Accept-Encoding)
+    # into an array of [value, quality] pairs. Empty elements are
+    # skipped, and a missing or malformed quality defaults to 1.0.
     def q_values(q_value_header)
-      q_value_header.to_s.split(',').map do |part|
+      q_value_header.to_s.split(',').filter_map do |part|
         value, parameters = part.split(';', 2).map(&:strip)
+        next if value.nil? || value.empty?
         quality = 1.0
         if parameters && (md = /\Aq=([\d.]+)/.match(parameters))
           quality = md[1].to_f
@@ -223,8 +228,12 @@ module Rack
     # in RFC 2616 Section 14.  If there are multiple best
     # matches (same specificity and quality), the value returned
     # is arbitrary.
+    #
+    # To reduce denial of service potential, only the first 16
+    # values in the header are considered.
     def best_q_match(q_value_header, available_mimes)
-      values = q_values(q_value_header)
+      # Only process the first 16 values
+      values = q_values(q_value_header)[0...16]
 
       matches = values.map do |req_mime, quality|
         match = available_mimes.find { |am| Rack::Mime.match?(am, req_mime) }

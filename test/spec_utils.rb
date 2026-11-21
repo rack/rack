@@ -411,6 +411,25 @@ describe Rack::Utils do
     ]
   end
 
+  it "skips empty elements when parsing q-values" do
+    Rack::Utils.q_values("foo,,bar").must_equal [[ 'foo', 1.0 ], [ 'bar', 1.0 ]]
+    Rack::Utils.q_values("foo, ,bar").must_equal [[ 'foo', 1.0 ], [ 'bar', 1.0 ]]
+    Rack::Utils.q_values("foo;q=0.5,,").must_equal [[ 'foo', 0.5 ]]
+    Rack::Utils.q_values(",foo").must_equal [[ 'foo', 1.0 ]]
+    Rack::Utils.q_values(";q=1").must_equal []
+    Rack::Utils.q_values(",").must_equal []
+    Rack::Utils.q_values("").must_equal []
+    Rack::Utils.q_values(nil).must_equal []
+  end
+
+  it "defaults quality to 1.0 for missing or malformed q parameters" do
+    Rack::Utils.q_values("foo;").must_equal [[ 'foo', 1.0 ]]
+    Rack::Utils.q_values("foo;q=").must_equal [[ 'foo', 1.0 ]]
+    Rack::Utils.q_values("foo;q=abc").must_equal [[ 'foo', 1.0 ]]
+    Rack::Utils.q_values("foo;level=1").must_equal [[ 'foo', 1.0 ]]
+    Rack::Utils.q_values("foo; q=0.5; level=1").must_equal [[ 'foo', 0.5 ]]
+  end
+
   it "parses RFC 7239 Forwarded header" do
     Rack::Utils.forwarded_values('for=3.4.5.6').must_equal({
       for: [ '3.4.5.6' ],
@@ -494,6 +513,24 @@ describe Rack::Utils do
 
     # When there are no matches, return nil:
     Rack::Utils.best_q_match("application/json", %w[text/html text/plain]).must_be_nil
+  end
+
+  it "select best quality match ignoring empty elements" do
+    Rack::Utils.best_q_match("text/html,,text/plain", %w[text/plain text/html]).must_equal "text/plain"
+    Rack::Utils.best_q_match("text/html, ,text/plain", %w[text/plain text/html]).must_equal "text/plain"
+    Rack::Utils.best_q_match(",text/html", %w[text/html]).must_equal "text/html"
+    Rack::Utils.best_q_match("text/html,,", %w[text/html]).must_equal "text/html"
+    Rack::Utils.best_q_match(";q=1", %w[text/html]).must_be_nil
+    Rack::Utils.best_q_match(",", %w[text/html]).must_be_nil
+    Rack::Utils.best_q_match(nil, %w[text/html]).must_be_nil
+  end
+
+  it "select best quality match only considers the first 16 values" do
+    header = (["application/json"] * 16).join(",") + ",text/html"
+    Rack::Utils.best_q_match(header, %w[text/html]).must_be_nil
+
+    header = (["application/json"] * 15).join(",") + ",text/html"
+    Rack::Utils.best_q_match(header, %w[text/html]).must_equal "text/html"
   end
 
   it "escape html entities [&><'\"/]" do
