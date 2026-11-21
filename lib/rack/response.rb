@@ -342,11 +342,13 @@ module Rack
             @body = Array.new
             @buffered = true
 
-            body.each do |part|
-              @writer.call(part.to_s)
+            begin
+              body.each do |part|
+                @writer.call(part.to_s)
+              end
+            ensure
+              body.close if body.respond_to?(:close)
             end
-
-            body.close if body.respond_to?(:close)
           else
             # We don't know how to buffer the user-supplied body:
             @buffered = false

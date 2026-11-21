@@ -652,6 +652,26 @@ describe Rack::Response do
     res.finish.last.must_equal ["Large", " larg", "e fil", "e con", "tent", " written"]
   end
 
+  it "closes the original body when buffering it raises" do
+    body_class = Class.new do
+      attr_reader :closed
+
+      def each
+        yield "Foo"
+        raise "boom"
+      end
+
+      def close
+        @closed = true
+      end
+    end
+    body = body_class.new
+    res = Rack::Response.new(body)
+
+    lambda { res.write("Bar") }.must_raise(RuntimeError).message.must_equal "boom"
+    body.closed.must_equal true
+  end
+
   it "calls close on #body" do
     res = Rack::Response.new
     res.body = StringIO.new
