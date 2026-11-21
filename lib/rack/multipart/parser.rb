@@ -362,6 +362,9 @@ module Rack
         @params         = query_parser.make_params
         @bufsize        = bufsize
 
+        config ||= {}.freeze
+        @respected_encoding_names = config[:respected_encoding_names] || ENCODING_NAMES
+
         @state = :FAST_FORWARD
         @mime_index = 0
         @body_retained = nil
@@ -713,7 +716,7 @@ module Rack
       # requested encoding is not respected, binary encoding is used.
       # The string may be nil or in any encoding, so compare it as bytes.
       def respect_requested_encoding?(encoding_string)
-        ENCODING_NAMES.include?(encoding_string.to_s.b.downcase(:ascii))
+        @respected_encoding_names.include?(encoding_string.to_s.b.downcase(:ascii))
       end
 
       REENCODE_DUMMY_ENCODINGS = {

@@ -349,6 +349,25 @@ describe Rack::Multipart do
     params["text"].encoding.must_equal Encoding::BINARY
   end
 
+  it "respects the :respected_encoding_names multipart parser config option" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::US_ASCII
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { respected_encoding_names: ["utf-8"] }
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { respected_encoding_names: ["utf-8", "us-ascii"] }
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::US_ASCII
+  end
+
   it "sets BINARY encoding for charsets that are not valid encoding names" do
     ["\xff\xfeUTF-8", "UTF-8\xc3\xa9", "UTF-8\u212a", "\u0130SO-8859-1", "ut\xfff-8", "\xef\xbb\xbfutf-8"].each do |charset|
       body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=#{charset.b}\r\n\r\ncontents\r\n--boundary--\r\n".b
@@ -368,6 +387,7 @@ describe Rack::Multipart do
 
   it "does not raise in respect_requested_encoding? for nil or strings in incompatible encodings" do
     parser = Rack::Multipart::Parser.allocate
+    parser.instance_variable_set(:@respected_encoding_names, Rack::Multipart::Parser.const_get(:ENCODING_NAMES))
     parser.send(:respect_requested_encoding?, nil).must_equal false
     parser.send(:respect_requested_encoding?, "").must_equal false
     parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("ISO-2022-JP")).must_equal true
