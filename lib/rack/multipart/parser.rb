@@ -228,13 +228,13 @@ module Rack
         tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || default_tempfile_factory
         bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || default_bufsize
 
-        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser)
+        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser, config: env[RACK_MULTIPART_PARSER_CONFIG])
         env[RACK_TEMPFILES] = info.tmp_files
 
         return info.params
       end
 
-      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
+      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp, config: nil)
         return EMPTY if 0 == content_length
 
         boundary = parse_boundary content_type
@@ -252,7 +252,7 @@ module Rack
 
         io = BoundedIO.new(io, content_length) if content_length
 
-        parser = new(boundary, tmpfile, bufsize, qp)
+        parser = new(boundary, tmpfile, bufsize, qp, config: config)
         parser.parse(io)
 
         parser.result
@@ -357,7 +357,7 @@ module Rack
 
       attr_reader :state
 
-      def initialize(boundary, tempfile, bufsize, query_parser)
+      def initialize(boundary, tempfile, bufsize, query_parser, config: nil)
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @bufsize        = bufsize
