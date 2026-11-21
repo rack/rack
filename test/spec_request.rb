@@ -839,6 +839,15 @@ class RackRequestTest < Minitest::Spec
     req = make_request(make_env.call({ respected_encoding_names: ["utf-8", "us-ascii"] }))
     req.POST["text"].must_equal "contents"
     req.POST["text"].encoding.must_equal Encoding::US_ASCII
+
+    # The retained size of this fixture (part head and buffered part body) is 97 bytes.
+    req = make_request(make_env.call({ buffered_upload_bytesize_limit: 97 }))
+    req.POST["text"].must_equal "contents"
+
+    req = make_request(make_env.call({ buffered_upload_bytesize_limit: 96 }))
+    lambda {
+      req.POST
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
   end
 
   it "should not use the multipart_parser for url-encoded POST data" do

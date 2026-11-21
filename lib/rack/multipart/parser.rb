@@ -364,6 +364,7 @@ module Rack
 
         config ||= {}.freeze
         @respected_encoding_names = config[:respected_encoding_names] || ENCODING_NAMES
+        @buffered_upload_bytesize_limit = config[:buffered_upload_bytesize_limit] || BUFFERED_UPLOAD_BYTESIZE_LIMIT
 
         @state = :FAST_FORWARD
         @mime_index = 0
@@ -630,7 +631,7 @@ module Rack
 
       def update_retained_size(size)
         @retained_size += size
-        if @retained_size > BUFFERED_UPLOAD_BYTESIZE_LIMIT
+        if @retained_size > @buffered_upload_bytesize_limit
           raise Error, "multipart data over retained size limit"
         end
       end

@@ -368,6 +368,22 @@ describe Rack::Multipart do
     params["text"].encoding.must_equal Encoding::US_ASCII
   end
 
+  it "respects the :buffered_upload_bytesize_limit multipart parser config option" do
+    # The retained size of this fixture (part head and buffered part body) is 97 bytes.
+    env = multipart_fixture(:content_type_and_no_filename)
+    Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { buffered_upload_bytesize_limit: 97 }
+    Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { buffered_upload_bytesize_limit: 96 }
+    lambda {
+      Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+  end
+
   it "sets BINARY encoding for charsets that are not valid encoding names" do
     ["\xff\xfeUTF-8", "UTF-8\xc3\xa9", "UTF-8\u212a", "\u0130SO-8859-1", "ut\xfff-8", "\xef\xbb\xbfutf-8"].each do |charset|
       body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=#{charset.b}\r\n\r\ncontents\r\n--boundary--\r\n".b
