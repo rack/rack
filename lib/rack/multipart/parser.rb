@@ -240,8 +240,10 @@ module Rack
         boundary = parse_boundary content_type
         return EMPTY unless boundary
 
-        if PARSER_BYTESIZE_LIMIT && content_length && content_length > PARSER_BYTESIZE_LIMIT
-          raise Error, "multipart Content-Length #{content_length} exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+        parser_bytesize_limit = config ? config.fetch(:parser_bytesize_limit, PARSER_BYTESIZE_LIMIT) : PARSER_BYTESIZE_LIMIT
+
+        if parser_bytesize_limit && content_length && content_length > parser_bytesize_limit
+          raise Error, "multipart Content-Length #{content_length} exceeds limit of #{parser_bytesize_limit} bytes"
         end
 
         if boundary.length > 70
@@ -365,12 +367,13 @@ module Rack
         config ||= {}.freeze
         @respected_encoding_names = config[:respected_encoding_names] || ENCODING_NAMES
         @buffered_upload_bytesize_limit = config[:buffered_upload_bytesize_limit] || BUFFERED_UPLOAD_BYTESIZE_LIMIT
+        @parser_bytesize_limit = config.fetch(:parser_bytesize_limit, PARSER_BYTESIZE_LIMIT)
 
         @state = :FAST_FORWARD
         @mime_index = 0
         @body_retained = nil
         @retained_size = 0
-        @total_bytes_read = (0 if PARSER_BYTESIZE_LIMIT)
+        @total_bytes_read = (0 if @parser_bytesize_limit)
         @content_disposition_quoted_escapes = 0
         @collector = Collector.new tempfile
 
@@ -424,8 +427,8 @@ module Rack
         handle_empty_content!(content)
         if @total_bytes_read
           @total_bytes_read += content.bytesize
-          if @total_bytes_read > PARSER_BYTESIZE_LIMIT
-            raise Error, "multipart upload exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+          if @total_bytes_read > @parser_bytesize_limit
+            raise Error, "multipart upload exceeds limit of #{@parser_bytesize_limit} bytes"
           end
         end
         @sbuf.concat(content)

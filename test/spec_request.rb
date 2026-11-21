@@ -848,6 +848,14 @@ class RackRequestTest < Minitest::Spec
     lambda {
       req.POST
     }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+
+    req = make_request(make_env.call({ parser_bytesize_limit: input.bytesize }))
+    req.POST["text"].must_equal "contents"
+
+    req = make_request(make_env.call({ parser_bytesize_limit: input.bytesize - 1 }))
+    lambda {
+      req.POST
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart Content-Length #{input.bytesize} exceeds limit of #{input.bytesize - 1} bytes"
   end
 
   it "should not use the multipart_parser for url-encoded POST data" do
