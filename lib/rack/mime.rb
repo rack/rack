@@ -7,18 +7,33 @@ module Rack
     #       File.extname(file) returns.
     # +fallback+ may be any object
     #
-    # Also see the documentation for MIME_TYPES
+    # Also see the documentation for Rack::Mime.register
     #
     # Usage:
     #     Rack::Mime.mime_type('.foo')
-    #
-    # This is a shortcut for:
-    #     Rack::Mime::MIME_TYPES.fetch('.foo', 'application/octet-stream')
 
     def mime_type(ext, fallback = 'application/octet-stream')
-      MIME_TYPES.fetch(ext.to_s.downcase, fallback)
+      Mime.send(:mime_types).fetch(ext.to_s.downcase, fallback)
     end
     module_function :mime_type
+
+    # Adds the mime types in +mime_type_hash+, a Hash of lowercase '.ext' extensions to
+    # mime types, to the ones Rack::Mime.mime_type returns. An extension
+    # already known gets the new mime type.
+    #
+    # To add your local mime.types list:
+    #
+    #     require 'webrick/httputils'
+    #     list = WEBrick::HTTPUtils.load_mime_types('/etc/mime.types')
+    #     Rack::Mime.register(list)
+    #
+    # N.B. On Ubuntu the mime.types file does not include the leading period, so
+    # users may need to modify the data before registering it.
+
+    def self.register(mime_type_hash)
+      mime_types.merge!(mime_type_hash)
+      nil
+    end
 
     # Returns true if the given value is a mime match for the given mime match
     # specification, false otherwise.
@@ -39,14 +54,7 @@ module Rack
     # according to their usefulness in a webserving scope for Ruby
     # users.
     #
-    # To amend this list with your local mime.types list you can use:
-    #
-    #     require 'webrick/httputils'
-    #     list = WEBrick::HTTPUtils.load_mime_types('/etc/mime.types')
-    #     Rack::Mime::MIME_TYPES.merge!(list)
-    #
-    # N.B. On Ubuntu the mime.types file does not include the leading period, so
-    # users may need to modify the data before merging into the hash.
+    # Deprecated: use Rack::Mime.register to add mime types.
 
     MIME_TYPES = {
       ".123"       => "application/vnd.lotus-1-2-3",
@@ -690,5 +698,14 @@ module Rack
       ".zip"       => "application/zip",
       ".zmm"       => "application/vnd.handheld-entertainment+xml",
     }
+
+    @mime_types = MIME_TYPES
+
+    class << self
+      attr_reader :mime_types
+      private :mime_types
+    end
+
+    deprecate_constant :MIME_TYPES
   end
 end
