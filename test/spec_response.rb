@@ -509,6 +509,12 @@ describe Rack::Response do
     res.must_be :successful?
     res.must_be :no_content?
 
+    res.status = 299
+    res.wont_be :redirection?
+
+    res.status = 300
+    res.must_be :redirection?
+
     res.status = 301
     res.must_be :redirect?
     res.must_be :moved_permanently?
@@ -525,7 +531,11 @@ describe Rack::Response do
     res.status = 308
     res.must_be :redirect?
 
+    res.status = 399
+    res.must_be :redirection?
+
     res.status = 400
+    res.wont_be :redirection?
     res.wont_be :successful?
     res.must_be :client_error?
     res.must_be :bad_request?
