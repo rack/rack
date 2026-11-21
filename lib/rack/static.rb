@@ -130,8 +130,10 @@ module Rack
       actual_path = Utils.clean_path_info(Utils.unescape_path(path))
 
       if can_serve(actual_path)
-        if overwrite_file_path(@urls.kind_of?(Hash) ? actual_path : path)
-          env[PATH_INFO] = (add_index_root?(path) ? path + @index : @urls[actual_path])
+        if @urls.kind_of?(Hash)
+          env[PATH_INFO] = @urls[actual_path]
+        elsif add_index_root?(path)
+          env[PATH_INFO] = path + @index
         elsif @gzip && env['HTTP_ACCEPT_ENCODING'] && /\bgzip\b/.match?(env['HTTP_ACCEPT_ENCODING'])
           path = env[PATH_INFO]
           env[PATH_INFO] += '.gz'
