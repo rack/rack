@@ -846,6 +846,37 @@ class RackRequestTest < Minitest::Spec
     req.POST.must_equal({})
   end
 
+  it "should only parse POST data for media types in FORM_DATA_MEDIA_TYPES" do
+    form_data_media_types = Rack::Request::FORM_DATA_MEDIA_TYPES.dup
+    Rack::Request::FORM_DATA_MEDIA_TYPES.replace(["application/x-custom"])
+    begin
+      post = lambda do |content_type|
+        env = Rack::MockRequest.env_for("/", "REQUEST_METHOD" => "POST", "CONTENT_TYPE" => content_type, :input => "foo=bar")
+        make_request(env).POST
+      end
+      post.call("application/x-www-form-urlencoded").must_equal({})
+      post.call("application/x-custom").must_equal "foo" => "bar"
+    ensure
+      Rack::Request::FORM_DATA_MEDIA_TYPES.replace(form_data_media_types)
+    end
+  end
+
+  it "should parse POST data for media types in PARSEABLE_DATA_MEDIA_TYPES" do
+    Rack::Request::PARSEABLE_DATA_MEDIA_TYPES << "application/x-custom"
+    begin
+      env = Rack::MockRequest.env_for("/", "REQUEST_METHOD" => "POST", "CONTENT_TYPE" => "application/x-custom", :input => "foo=bar")
+      make_request(env).POST.must_equal "foo" => "bar"
+    ensure
+      Rack::Request::PARSEABLE_DATA_MEDIA_TYPES.delete("application/x-custom")
+    end
+  end
+
+  it "should not parse POST data if form_data? is false" do
+    req = Class.new(Rack::Request) { def form_data?; false; end }.new \
+      Rack::MockRequest.env_for("/", "REQUEST_METHOD" => "POST", :input => "foo=bar")
+    req.POST.must_equal({})
+  end
+
   it "does not use semi-colons as separators for query strings in GET" do
     req = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=b;la;wun=duh"))
     req.query_string.must_equal "foo=bar&quux=b;la;wun=duh"
