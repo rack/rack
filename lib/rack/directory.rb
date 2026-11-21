@@ -171,7 +171,10 @@ table { width:100%%; }
     # File::Stat for the given path, but return nil for missing/bad entries.
     def stat(path)
       ::File.stat(path)
-    rescue Errno::ENOENT, Errno::ELOOP
+    rescue SystemCallError
+      # ENOENT and ELOOP are the common cases, but a path component that is a
+      # file (ENOTDIR), an over-long name (ENAMETOOLONG), or a parent without
+      # search permission (EACCES) are all equally "not found" to the client.
       return nil
     end
 

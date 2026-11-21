@@ -96,6 +96,64 @@ describe Rack::Directory do
     end
   end
 
+  it "return 404 for paths that treat a file as a directory" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/cgi/test/foo")
+
+    res.must_be :not_found?
+  end
+
+  it "return 404 for path segments that are too long" do
+    res = Rack::MockRequest.new(Rack::Lint.new(app)).
+      get("/cgi/#{'a' * 300}")
+
+    res.must_be :not_found?
+  end
+
+  it "return 404 for entries inside a directory without search permission" do
+    skip "root bypasses permission checks" if Process.euid == 0
+
+    Dir.mktmpdir do |dir|
+      FileUtils.mkdir File.join(dir, "secret")
+      File.write File.join(dir, "secret", "file.txt"), "secret"
+      File.chmod(0, File.join(dir, "secret"))
+
+      begin
+        req = Rack::MockRequest.new(Rack::Lint.new(Rack::Directory.new(dir)))
+
+        res = req.get("/secret/")
+        res.must_be :not_found?
+
+        res = req.get("/secret/file.txt")
+        res.must_be :not_found?
+      ensure
+        File.chmod(0700, File.join(dir, "secret"))
+      end
+    end
+  end
+
+  it "serve directory indices with unreadable and dangling entries" do
+    Dir.mktmpdir do |dir|
+      File.write File.join(dir, "ok.txt"), "ok"
+      File.write File.join(dir, "noperm.txt"), "x"
+      File.chmod(0, File.join(dir, "noperm.txt"))
+      FileUtils.mkdir File.join(dir, "nopermdir")
+      File.chmod(0, File.join(dir, "nopermdir"))
+      File.symlink("nowhere", File.join(dir, "dangling"))
+
+      begin
+        res = Rack::MockRequest.new(Rack::Lint.new(Rack::Directory.new(dir))).get("/")
+
+        res.must_be :ok?
+        res.body.must_include "ok.txt"
+        res.body.wont_include "dangling"
+      ensure
+        File.chmod(0700, File.join(dir, "nopermdir"))
+        File.chmod(0600, File.join(dir, "noperm.txt"))
+      end
+    end
+  end
+
   it "pass to app if file found" do
     res = Rack::MockRequest.new(Rack::Lint.new(app)).
       get("/cgi/test")
