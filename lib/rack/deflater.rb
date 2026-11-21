@@ -42,16 +42,15 @@ module Rack
     # :deflaters :: a hash of custom deflaters, where keys are encoding names and values are callables
     #              that take (headers, body) and return a deflated body object. When provided, these
     #              custom deflaters will be used if the client's accept-encoding header matches.
+    #              When the client accepts several encodings equally, custom deflaters are
+    #              preferred over gzip, in the order given.
     def initialize(app, options = {})
       @app = app
       @condition = options[:if]
       @compressible_types = options[:include]
       @sync = options.fetch(:sync, true)
       @deflaters = options[:deflaters]
-      @available_encodings = %w(gzip)
-      @deflaters&.each_key { |key| @available_encodings << key }
-      @available_encodings << 'identity'
-      @available_encodings.freeze
+      @available_encodings = [*@deflaters&.keys, 'gzip', 'identity'].freeze
     end
 
     def call(env)
