@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file. For info on how to format all future additions to this file please reference [Keep A Changelog](https://keepachangelog.com/en/1.0.0/).
 
+## Unreleased
+
+### Fixed
+
+- Multipart parser: a part with an unknown `charset`, or a `filename*` with an unknown charset, is now treated as binary instead of raising `ArgumentError`, and a `Content-Type` parameter without a value (`charset` with no `=`) is ignored instead of raising `NoMethodError`. `Encoding.find` is only called for names in `Encoding.name_list`, so unknown names no longer search the load path. ([#2568](https://github.com/rack/rack/pull/2568), [@samuel-williams-shopify](https://github.com/samuel-williams-shopify))
+
 ## [2.2.26] - 2026-11-20
 
 ### Security
