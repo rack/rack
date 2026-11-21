@@ -128,6 +128,18 @@ module Rack
       MultipartInfo = Struct.new :params, :tmp_files
       EMPTY         = MultipartInfo.new(nil, [].freeze).freeze
 
+      # The characters RFC 2046 Section 5.1.1 allows in a boundary:
+      #
+      #   boundary      := 0*69<bchars> bcharsnospace
+      #   bchars        := bcharsnospace / " "
+      #   bcharsnospace := DIGIT / ALPHA / "'" / "(" / ")" / "+" / "_"
+      #                    / "," / "-" / "." / "/" / ":" / "=" / "?"
+      BOUNDARY_CHARACTERS = /\A[0-9A-Za-z'()+_,\-.\/:=? ]+\z/n
+      private_constant :BOUNDARY_CHARACTERS
+
+      BOUNDARY_BYTESIZE_LIMIT = 70
+      private_constant :BOUNDARY_BYTESIZE_LIMIT
+
       # Parse the boundary parameter from a multipart content type, following
       # the media type grammar in RFC 9110 Section 8.3.1:
       #
@@ -136,9 +148,14 @@ module Rack
       #   parameter  = parameter-name "=" parameter-value
       #   parameter-value = ( token / quoted-string )
       #
+      # The boundary value itself must then satisfy the boundary grammar in
+      # RFC 2046 Section 5.1.1: 1 to 70 characters from BOUNDARY_CHARACTERS,
+      # not ending in a space.
+      #
       # Returns nil if the content type is not multipart or has no boundary
       # parameter. Raises Error if the parameters are malformed, the boundary
-      # is empty, or there is more than one boundary parameter.
+      # is empty, too long, contains characters outside the boundary grammar,
+      # or there is more than one boundary parameter.
       def self.parse_boundary(content_type)
         return unless content_type && content_type.match?(/\Amultipart\//ni)
 
@@ -196,6 +213,14 @@ module Rack
             raise Error, "empty boundary in multipart content type"
           end
 
+          if value.bytesize > BOUNDARY_BYTESIZE_LIMIT
+            raise BoundaryTooLongError, "multipart boundary size too large (#{value.bytesize} characters)"
+          end
+
+          unless value.match?(BOUNDARY_CHARACTERS) && !value.end_with?(" ")
+            raise Error, "invalid boundary in multipart content type"
+          end
+
           boundary = value
         end
 
@@ -242,12 +267,6 @@ module Rack
 
         if PARSER_BYTESIZE_LIMIT && content_length && content_length > PARSER_BYTESIZE_LIMIT
           raise Error, "multipart Content-Length #{content_length} exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
-        end
-
-        if boundary.length > 70
-          # RFC 1521 Section 7.2.1 imposes a 70 character maximum for the boundary.
-          # Most clients use no more than 55 characters.
-          raise BoundaryTooLongError, "multipart boundary size too large (#{boundary.length} characters)"
         end
 
         io = BoundedIO.new(io, content_length) if content_length
