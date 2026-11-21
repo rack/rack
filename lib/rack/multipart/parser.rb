@@ -228,20 +228,22 @@ module Rack
         tempfile = env[RACK_MULTIPART_TEMPFILE_FACTORY] || default_tempfile_factory
         bufsize = env[RACK_MULTIPART_BUFFER_SIZE] || default_bufsize
 
-        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser)
+        info = parse(io, content_length, content_type, tempfile, bufsize, query_parser, config: env[RACK_MULTIPART_PARSER_CONFIG])
         env[RACK_TEMPFILES] = info.tmp_files
 
         return info.params
       end
 
-      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp)
+      def self.parse(io, content_length, content_type, tmpfile, bufsize, qp, config: nil)
         return EMPTY if 0 == content_length
 
         boundary = parse_boundary content_type
         return EMPTY unless boundary
 
-        if PARSER_BYTESIZE_LIMIT && content_length && content_length > PARSER_BYTESIZE_LIMIT
-          raise Error, "multipart Content-Length #{content_length} exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+        parser_bytesize_limit = config ? config.fetch(:parser_bytesize_limit, PARSER_BYTESIZE_LIMIT) : PARSER_BYTESIZE_LIMIT
+
+        if parser_bytesize_limit && content_length && content_length > parser_bytesize_limit
+          raise Error, "multipart Content-Length #{content_length} exceeds limit of #{parser_bytesize_limit} bytes"
         end
 
         if boundary.length > 70
@@ -252,7 +254,7 @@ module Rack
 
         io = BoundedIO.new(io, content_length) if content_length
 
-        parser = new(boundary, tmpfile, bufsize, qp)
+        parser = new(boundary, tmpfile, bufsize, qp, config: config)
         parser.parse(io)
 
         parser.result
@@ -357,16 +359,21 @@ module Rack
 
       attr_reader :state
 
-      def initialize(boundary, tempfile, bufsize, query_parser)
+      def initialize(boundary, tempfile, bufsize, query_parser, config: nil)
         @query_parser   = query_parser
         @params         = query_parser.make_params
         @bufsize        = bufsize
+
+        config ||= {}.freeze
+        @respected_encoding_names = config[:respected_encoding_names] || ENCODING_NAMES
+        @buffered_upload_bytesize_limit = config[:buffered_upload_bytesize_limit] || BUFFERED_UPLOAD_BYTESIZE_LIMIT
+        @parser_bytesize_limit = config.fetch(:parser_bytesize_limit, PARSER_BYTESIZE_LIMIT)
 
         @state = :FAST_FORWARD
         @mime_index = 0
         @body_retained = nil
         @retained_size = 0
-        @total_bytes_read = (0 if PARSER_BYTESIZE_LIMIT)
+        @total_bytes_read = (0 if @parser_bytesize_limit)
         @content_disposition_quoted_escapes = 0
         @collector = Collector.new tempfile
 
@@ -420,8 +427,8 @@ module Rack
         handle_empty_content!(content)
         if @total_bytes_read
           @total_bytes_read += content.bytesize
-          if @total_bytes_read > PARSER_BYTESIZE_LIMIT
-            raise Error, "multipart upload exceeds limit of #{PARSER_BYTESIZE_LIMIT} bytes"
+          if @total_bytes_read > @parser_bytesize_limit
+            raise Error, "multipart upload exceeds limit of #{@parser_bytesize_limit} bytes"
           end
         end
         @sbuf.concat(content)
@@ -627,7 +634,7 @@ module Rack
 
       def update_retained_size(size)
         @retained_size += size
-        if @retained_size > BUFFERED_UPLOAD_BYTESIZE_LIMIT
+        if @retained_size > @buffered_upload_bytesize_limit
           raise Error, "multipart data over retained size limit"
         end
       end
@@ -713,7 +720,7 @@ module Rack
       # requested encoding is not respected, binary encoding is used.
       # The string may be nil or in any encoding, so compare it as bytes.
       def respect_requested_encoding?(encoding_string)
-        ENCODING_NAMES.include?(encoding_string.to_s.b.downcase(:ascii))
+        @respected_encoding_names.include?(encoding_string.to_s.b.downcase(:ascii))
       end
 
       REENCODE_DUMMY_ENCODINGS = {

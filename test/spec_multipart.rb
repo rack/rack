@@ -349,6 +349,93 @@ describe Rack::Multipart do
     params["text"].encoding.must_equal Encoding::BINARY
   end
 
+  it "respects the :respected_encoding_names multipart parser config option" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::US_ASCII
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { respected_encoding_names: ["utf-8"] }
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { respected_encoding_names: ["utf-8", "us-ascii"] }
+    params = Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::US_ASCII
+  end
+
+  it "respects the :buffered_upload_bytesize_limit multipart parser config option" do
+    # The retained size of this fixture (part head and buffered part body) is 97 bytes.
+    env = multipart_fixture(:content_type_and_no_filename)
+    Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { buffered_upload_bytesize_limit: 97 }
+    Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { buffered_upload_bytesize_limit: 96 }
+    lambda {
+      Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+  end
+
+  it "respects the :parser_bytesize_limit multipart parser config option when Content-Length is given" do
+    size = File.size(multipart_file(:content_type_and_no_filename))
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { parser_bytesize_limit: size }
+    Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+    env = multipart_fixture(:content_type_and_no_filename)
+    env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { parser_bytesize_limit: size - 1 }
+    lambda {
+      Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart Content-Length #{size} exceeds limit of #{size - 1} bytes"
+  end
+
+  it "respects the :parser_bytesize_limit multipart parser config option when Content-Length is not given" do
+    size = File.size(multipart_file(:content_type_and_no_filename))
+    parse = lambda do |config|
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+      env.delete("CONTENT_LENGTH")
+      env[Rack::RACK_MULTIPART_PARSER_CONFIG] = config
+      Rack::Multipart.parse_multipart(env)
+    end
+
+    parse.call(parser_bytesize_limit: size)["text"].must_equal "contents"
+
+    lambda {
+      parse.call(parser_bytesize_limit: size - 1)
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart upload exceeds limit of #{size - 1} bytes"
+  end
+
+  it "uses PARSER_BYTESIZE_LIMIT unless the :parser_bytesize_limit multipart parser config option is given" do
+    with_multipart_limit(1) do
+      [{}, nil].each do |config|
+        env = multipart_fixture(:content_type_and_no_filename)
+        env[Rack::RACK_MULTIPART_PARSER_CONFIG] = config if config
+        lambda {
+          Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))
+        }.must_raise(Rack::Multipart::Error).message.must_match(/exceeds limit of 1 bytes/)
+      end
+
+      # An explicit nil value disables the limit
+      env = multipart_fixture(:content_type_and_no_filename)
+      env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { parser_bytesize_limit: nil }
+      Rack::Multipart.parse_multipart(Rack::MockRequest.env_for("/", env))["text"].must_equal "contents"
+
+      env = Rack::MockRequest.env_for("/", multipart_fixture(:content_type_and_no_filename))
+      env.delete("CONTENT_LENGTH")
+      env[Rack::RACK_MULTIPART_PARSER_CONFIG] = { parser_bytesize_limit: nil }
+      Rack::Multipart.parse_multipart(env)["text"].must_equal "contents"
+    end
+  end
+
   it "sets BINARY encoding for charsets that are not valid encoding names" do
     ["\xff\xfeUTF-8", "UTF-8\xc3\xa9", "UTF-8\u212a", "\u0130SO-8859-1", "ut\xfff-8", "\xef\xbb\xbfutf-8"].each do |charset|
       body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=#{charset.b}\r\n\r\ncontents\r\n--boundary--\r\n".b
@@ -368,6 +455,7 @@ describe Rack::Multipart do
 
   it "does not raise in respect_requested_encoding? for nil or strings in incompatible encodings" do
     parser = Rack::Multipart::Parser.allocate
+    parser.instance_variable_set(:@respected_encoding_names, Rack::Multipart::Parser.const_get(:ENCODING_NAMES))
     parser.send(:respect_requested_encoding?, nil).must_equal false
     parser.send(:respect_requested_encoding?, "").must_equal false
     parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("ISO-2022-JP")).must_equal true

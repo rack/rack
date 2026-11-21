@@ -817,6 +817,47 @@ class RackRequestTest < Minitest::Spec
     req.POST["files"][:filename].must_equal "foo"
   end
 
+  it "should pass rack.multipart.parser.config from environment to the multipart parser" do
+    input = File.binread(File.join(File.dirname(__FILE__), "multipart", "content_type_and_no_filename"))
+    make_env = lambda do |config|
+      env = Rack::MockRequest.env_for("/",
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.bytesize,
+                      :input => input)
+      env[Rack::RACK_MULTIPART_PARSER_CONFIG] = config if config
+      env
+    end
+
+    req = make_request(make_env.call(nil))
+    req.POST["text"].must_equal "contents"
+    req.POST["text"].encoding.must_equal Encoding::US_ASCII
+
+    req = make_request(make_env.call({ respected_encoding_names: ["utf-8"] }))
+    req.POST["text"].must_equal "contents"
+    req.POST["text"].encoding.must_equal Encoding::BINARY
+
+    req = make_request(make_env.call({ respected_encoding_names: ["utf-8", "us-ascii"] }))
+    req.POST["text"].must_equal "contents"
+    req.POST["text"].encoding.must_equal Encoding::US_ASCII
+
+    # The retained size of this fixture (part head and buffered part body) is 97 bytes.
+    req = make_request(make_env.call({ buffered_upload_bytesize_limit: 97 }))
+    req.POST["text"].must_equal "contents"
+
+    req = make_request(make_env.call({ buffered_upload_bytesize_limit: 96 }))
+    lambda {
+      req.POST
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart data over retained size limit"
+
+    req = make_request(make_env.call({ parser_bytesize_limit: input.bytesize }))
+    req.POST["text"].must_equal "contents"
+
+    req = make_request(make_env.call({ parser_bytesize_limit: input.bytesize - 1 }))
+    lambda {
+      req.POST
+    }.must_raise(Rack::Multipart::Error).message.must_equal "multipart Content-Length #{input.bytesize} exceeds limit of #{input.bytesize - 1} bytes"
+  end
+
   it "should not use the multipart_parser for url-encoded POST data" do
     mp_parser = Class.new(Rack::Request::MultipartParser) do
       def self.parse_from_env(env)

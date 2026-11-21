@@ -67,4 +67,5 @@ module Rack
   RACK_REQUEST_QUERY_HASH             = 'rack.request.query_hash'
   RACK_REQUEST_QUERY_STRING           = 'rack.request.query_string'
   RACK_METHODOVERRIDE_ORIGINAL_METHOD = 'rack.methodoverride.original_method'
+  RACK_MULTIPART_PARSER_CONFIG        = 'rack.multipart.parser.config'
 end
