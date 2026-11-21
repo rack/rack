@@ -155,4 +155,70 @@ describe Rack::ConditionalGet do
     response.body.must_equal 'TEST'
   end
 
+  it "set a 304 status and truncate body when if-none-match is *" do
+    app = conditional_get(lambda { |env|
+      [200, { 'etag' => 'W/"1234"' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => '*')
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+  end
+
+  it "set a 304 status and truncate body when if-none-match is * and no etag is set" do
+    app = conditional_get(lambda { |env|
+      [200, { 'content-type' => 'text/plain' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => '*')
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+  end
+
+  it "set a 304 status and truncate body when the etag is one of a list of if-none-match tags" do
+    app = conditional_get(lambda { |env|
+      [200, { 'etag' => 'W/"1234"' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => '"4321", W/"1234"')
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+  end
+
+  it "set a 304 status and truncate body when if-none-match matches using the weak comparison function" do
+    app = conditional_get(lambda { |env|
+      [200, { 'etag' => '"1234"' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => 'W/"1234"')
+
+    response.status.must_equal 304
+    response.body.must_be :empty?
+  end
+
+  it "not set a 304 status if no etag in the if-none-match list matches" do
+    app = conditional_get(lambda { |env|
+      [200, { 'etag' => 'W/"1234"', 'content-type' => 'text/plain' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => 'W/"1111", W/"2222"')
+
+    response.status.must_equal 200
+    response.body.must_equal 'TEST'
+  end
+
+  it "not set a 304 status if the response has no etag and if-none-match is not *" do
+    app = conditional_get(lambda { |env|
+      [200, { 'content-type' => 'text/plain' }, ['TEST']] })
+
+    response = Rack::MockRequest.new(app).
+      get("/", 'HTTP_IF_NONE_MATCH' => 'W/"1234"')
+
+    response.status.must_equal 200
+    response.body.must_equal 'TEST'
+  end
+
 end

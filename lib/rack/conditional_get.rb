@@ -61,7 +61,27 @@ module Rack
     # Whether the etag response header matches the if-none-match request header.
     # If so, the request has not been modified.
     def etag_matches?(none_match, headers)
-      headers[ETAG] == none_match
+      # "*" matches as long as the server has a current representation for the
+      # target resource, which is guaranteed here since the status is 200.
+      none_match = none_match.strip
+      return true if none_match == '*'
+
+      etag = headers[ETAG]
+      return false if etag.nil?
+
+      etag = etag.strip
+      none_match.split(',').any? do |tag|
+        tag.strip!
+        weak_etag_match?(tag, etag)
+      end
+    end
+
+    def weak_etag_match?(a, b)
+      strip_weak_prefix(a) == strip_weak_prefix(b)
+    end
+
+    def strip_weak_prefix(etag)
+      etag.start_with?('W/') ? etag[2..-1] : etag
     end
 
     # Whether the last-modified response header matches the if-modified-since
