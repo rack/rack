@@ -46,7 +46,7 @@ describe Rack::Directory do
 
     res.must_be :ok?
     assert_includes(res.body, '<html><head>')
-    assert_includes(res.body, "href='./cgi")
+    assert_includes(res.body, "href='/cgi/'")
   end
 
   it "serve directory indices" do
@@ -56,6 +56,47 @@ describe Rack::Directory do
     res.must_be :ok?
     assert_includes(res.body, '<html><head>')
     assert_includes(res.body, "rackup_stub.rb")
+  end
+
+  it "link entries with absolute paths" do
+    mr = Rack::MockRequest.new(Rack::Lint.new(app))
+
+    res = mr.get("/cgi/")
+    res.must_be :ok?
+    res.body.must_include "href='/cgi/../'>Parent Directory<"
+    res.body.must_include "href='/cgi/test.ru'>test.ru<"
+    res.body.must_include "href='/cgi/test+directory/'>test+directory/<"
+    res.body.wont_include "href='.//"
+    res.body.wont_include "href='./"
+
+    # Without a trailing slash, the same absolute links are generated:
+    res = mr.get("/cgi")
+    res.must_be :ok?
+    res.body.must_include "href='/cgi/../'>Parent Directory<"
+    res.body.must_include "href='/cgi/test.ru'>test.ru<"
+
+    res = mr.get("/cgi/", "SCRIPT_NAME" => "/dir")
+    res.must_be :ok?
+    res.body.must_include "href='/dir/cgi/../'>Parent Directory<"
+    res.body.must_include "href='/dir/cgi/test.ru'>test.ru<"
+    res.body.wont_include "href='.//"
+
+    # Empty PATH_INFO lists the root:
+    res = mr.get("", "SCRIPT_NAME" => "/dir", "PATH_INFO" => "")
+    res.must_be :ok?
+    res.body.must_include "href='/dir/cgi/'>cgi/<"
+    res.body.wont_include "Parent Directory"
+  end
+
+  it "does not link entry names as URL schemes" do
+    Dir.mktmpdir do |dir|
+      FileUtils.touch File.join(dir, "javascript:alert(1)")
+      res = Rack::MockRequest.new(Rack::Lint.new(Rack::Directory.new(dir))).get("/")
+
+      res.must_be :ok?
+      res.body.must_include "href='/javascript:alert(1)'"
+      res.body.wont_include "href='javascript:"
+    end
   end
 
   it "return 404 for pipes" do
