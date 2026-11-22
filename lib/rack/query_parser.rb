@@ -218,6 +218,11 @@ module Rack
     def params_hash_has_key?(hash, key)
       return false if /\[\]/.match?(key)
 
+      # Fast path for a key without nesting, equivalent to the loop below.
+      unless key.include?('[') || key.include?(']')
+        return key.empty? || hash.key?(key)
+      end
+
       # Equivalent to walking key.split(/[\[\]]+/), but a quantified regexp
       # allocates backtracking state for every bracket matched, so find the
       # segments with single character searches instead, which do not
@@ -265,8 +270,11 @@ module Rack
       else
         pairs.each do |p|
           next if p.empty?
-          k, v = p.split('=', 2).map! { |s| unescape(s) }
-          yield k, v
+          if i = p.index('=')
+            yield unescape(p[0, i]), unescape(p[i + 1, p.length])
+          else
+            yield unescape(p), nil
+          end
         end
       end
     rescue ArgumentError => e
