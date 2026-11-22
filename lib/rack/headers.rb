@@ -88,6 +88,30 @@ module Rack
       KNOWN_HEADERS[str] = KNOWN_HEADERS[downcased] = downcased
     end
 
+    PRIV_KNOWN_HEADERS = KNOWN_HEADERS
+    private_constant :PRIV_KNOWN_HEADERS
+    deprecate_constant :KNOWN_HEADERS
+
+    # The table used to find the downcased form of a header name without
+    # allocating a new string. It maps each known header name, in its usual
+    # and its downcased spelling, to the frozen downcased name.
+    #
+    # Subclasses can override it to add header names their application uses:
+    #
+    #   class AppHeaders < Rack::Headers
+    #     KNOWN = known_headers.merge(
+    #       'X-App-Version' => 'x-app-version',
+    #       'x-app-version' => 'x-app-version'
+    #     ).freeze
+    #
+    #     def self.known_headers
+    #       KNOWN
+    #     end
+    #   end
+    def self.known_headers
+      PRIV_KNOWN_HEADERS
+    end
+
     def self.[](*items)
       if items.length % 2 != 0
         if items.length == 1 && items.first.is_a?(Hash)
@@ -112,7 +136,7 @@ module Rack
     end
 
     def []=(key, value)
-      super(KNOWN_HEADERS[key] || key.downcase.freeze, value)
+      super(self.class.known_headers[key] || key.downcase.freeze, value)
     end
     alias store []=
 
@@ -227,7 +251,7 @@ module Rack
     private
 
     def downcase_key(key)
-      key.is_a?(String) ? KNOWN_HEADERS[key] || key.downcase : key
+      key.is_a?(String) ? self.class.known_headers[key] || key.downcase : key
     end
   end
 end
