@@ -92,6 +92,21 @@ describe Rack::ETag do
     response[1]['etag'].must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\""
   end
 
+  it "set the same etag with OpenSSL's SHA-256 when the application has loaded OpenSSL" do
+    # In a process of its own: loading OpenSSL here would change the digest every other spec uses.
+    script = <<~'RUBY'
+      require 'openssl'
+      require 'rack/etag'
+      used = false
+      OpenSSL::Digest.prepend(Module.new { [:update, :<<].each { |name| define_method(name) { |data| used = true; super(data) } } })
+      app = lambda { |env| [200, {}, ["Hello", "", ", World!"]] }
+      print Rack::ETag.new(app).call({})[1]['etag'], ' ', used
+    RUBY
+
+    output = IO.popen([RbConfig.ruby, '-I', File.expand_path('../lib', __dir__), '-e', script], &:read)
+    output.must_equal "W/\"dffd6021bb2bd5b0af676290809ec3a5\" true"
+  end
+
   it "not set etag if last-modified is set" do
     app = lambda { |env| [200, { 'content-type' => 'text/plain', 'last-modified' => Time.now.httpdate }, ["Hello, World!"]] }
     response = etag(app).call(request)
