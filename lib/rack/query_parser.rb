@@ -265,8 +265,11 @@ module Rack
       else
         pairs.each do |p|
           next if p.empty?
-          k, v = p.split('=', 2).map! { |s| unescape(s) }
-          yield k, v
+          if i = p.index('=')
+            yield unescape(p[0, i]), unescape(p[i + 1, p.length])
+          else
+            yield unescape(p), nil
+          end
         end
       end
     rescue ArgumentError => e
