@@ -41,6 +41,31 @@ describe Rack::Multipart do
     end
   end
 
+  def parse_respecting_encoding(env, &respect)
+    parser = Class.new(Rack::Multipart::Parser) do
+      define_method(:respect_requested_encoding?, &respect)
+      private :respect_requested_encoding?
+    end
+    env = Rack::MockRequest.env_for("/", env)
+    parser.parse(env["rack.input"], env["CONTENT_LENGTH"].to_i, env["CONTENT_TYPE"],
+      Rack::Multipart::Parser::TEMPFILE_FACTORY, Rack::Multipart::Parser::BUFSIZE,
+      Rack::Utils.default_query_parser).params
+  end
+
+  def with_recorded_encoding_find
+    names = []
+    encoding = Class.new(Encoding) do
+      define_singleton_method(:find) do |name|
+        names << name
+        super(name)
+      end
+    end
+    Rack::Multipart::Parser.const_set(:Encoding, encoding)
+    yield names
+  ensure
+    Rack::Multipart::Parser.send(:remove_const, :Encoding)
+  end
+
   it "returns nil if the content type is not multipart" do
     env = Rack::MockRequest.env_for("/", "CONTENT_TYPE" => 'application/x-www-form-urlencoded', :input => "")
     Rack::Multipart.parse_multipart(env).must_be_nil
@@ -80,12 +105,13 @@ describe Rack::Multipart do
     [
       'multipart/form-data; boundary=; boundary=AaB03x',
       'multipart/form-data; boundary=""; boundary=AaB03x',
-      'multipart/form-data; boundary=";boundary=AaB03x"',
-      'multipart/form-data; boundary=",boundary=AaB03x"',
       'multipart/form-data; boundary=;boundary=AaB03x',
       "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
       "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
       'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z; boundary=AaB03x',
+      "multipart/form-data; boundary=AaB03x; boundary*0*=utf-8''Zz; boundary*1=z",
+      'multipart/form-data; BOUNDARY=AaB03x; Boundary*=Zzz',
     ].each do |content_type|
       env = multipart_fixture(:content_type_and_no_filename)
       env["CONTENT_TYPE"] = content_type
@@ -93,6 +119,77 @@ describe Rack::Multipart do
       lambda {
         Rack::Multipart.parse_multipart(env)
       }.must_raise Rack::Multipart::BoundaryTooLongError, content_type
+    end
+  end
+
+  it "parses multipart upload with parameters after the boundary" do
+    env = multipart_fixture(:content_type_and_no_filename)
+    env["CONTENT_TYPE"] += "; charset=utf-8"
+    env = Rack::MockRequest.env_for("/", env)
+    Rack::Multipart.parse_multipart(env)["text"].must_equal "contents"
+  end
+
+  it "parses a single boundary parameter" do
+    {
+      'multipart/form-data; boundary=AaB03x; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; boundary="AaB03x"; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; boundary="a\"b"' => 'a"b',
+      'multipart/form-data; boundary="a\\\\"' => 'a\\',
+      'multipart/form-data; boundary="a\\;"' => 'a;',
+      'multipart/form-data; boundary="AaB03x,1"' => 'AaB03x,1',
+      'multipart/form-data; boundary="AaB03x;1"' => 'AaB03x;1',
+      'multipart/form-data; boundary=AaB03x ; charset=utf-8' => 'AaB03x',
+      'multipart/form-data; x-boundary=other; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; foo.boundary=other; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; name="x;boundary=other"; boundary=AaB03x' => 'AaB03x',
+      'multipart/form-data; name="a\";boundary=other"; boundary=AaB03x' => 'AaB03x',
+    }.each do |content_type, boundary|
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_equal boundary, content_type
+    end
+  end
+
+  it "does not use a boundary from a parameter not named boundary" do
+    [
+      'multipart/form-data; x-boundary=other',
+      'multipart/form-data; foo.boundary=other',
+      'multipart/form-data; name="x;boundary=other"',
+      'multipart/form-data; name="a\";boundary=other"',
+      'multipart/form-data; name=" boundary=other"',
+      "multipart/form-data; boundary*=utf-8''Zzz",
+    ].each do |content_type|
+      Rack::Multipart::Parser.parse_boundary(content_type.b).must_be_nil content_type
+    end
+  end
+
+  it "raises an exception for a boundary parameter combined with an RFC 2231 boundary parameter" do
+    [
+      "multipart/form-data; boundary=AaB03x; boundary*=utf-8''Zzz",
+      "multipart/form-data; boundary*=utf-8''Zzz; boundary=AaB03x",
+      'multipart/form-data; boundary=AaB03x; boundary*0=Zz; boundary*1=z',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z; boundary=AaB03x',
+      'multipart/form-data; boundary*0=Zz; boundary*1=z',
+    ].each do |content_type|
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
+      }.must_raise Rack::Multipart::BoundaryTooLongError, content_type
+    end
+  end
+
+  it "raises an exception for an invalid boundary parameter" do
+    [
+      'multipart/form-data; boundary=',
+      'multipart/form-data; boundary=""',
+      'multipart/form-data; boundary="AaB03x"junk',
+      'multipart/form-data; boundary=a"b',
+      'multipart/form-data; boundary=a,b',
+      "multipart/form-data; boundary=a\0b",
+      'multipart/form-data; boundary= AaB03x',
+      'multipart/form-data; x=boundary=AaB03x',
+      'multipart/form-data; charset=utf-8 boundary=AaB03x',
+    ].each do |content_type|
+      lambda {
+        Rack::Multipart::Parser.parse_boundary(content_type.b)
+      }.must_raise Rack::Multipart::Error, content_type
     end
   end
 
@@ -215,6 +312,120 @@ describe Rack::Multipart do
     # content-type charset is the right thing to do.  We should revisit this.
     params.keys.each do |key|
       key.encoding.must_equal Encoding::BINARY
+    end
+  end
+
+  it "does not call Encoding.find for unknown charsets" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=unknown; charset=US-ASCII; charset=unknown\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(env)
+      params["text"].encoding.must_equal Encoding::BINARY
+      names.must_equal ["US-ASCII"]
+    end
+  end
+
+  it "does not call Encoding.find for unknown filename* charsets" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"file\"; filename*=unknown''a.txt\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary\r\nContent-Disposition: form-data; name=\"file2\"; filename*=US-ASCII''b.txt\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    with_recorded_encoding_find do |names|
+      params = Rack::Multipart.parse_multipart(env)
+      params["file"][:filename].must_equal "a.txt"
+      params["file"][:filename].encoding.must_equal Encoding::BINARY
+      params["file2"][:filename].must_equal "b.txt"
+      params["file2"][:filename].encoding.must_equal Encoding::US_ASCII
+      names.must_equal ["US-ASCII"]
+    end
+  end
+
+  it "does not raise for a filename* without a charset" do
+    { "filename*=" => nil, "filename*=\"\"" => nil, "filename*=''a.txt" => "a.txt" }.each do |param, filename|
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"file\"; #{param}\r\nContent-Type: text/plain\r\n\r\ncontents\r\n--boundary--\r\n"
+      env = Rack::MockRequest.env_for("/", {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body)
+      })
+      with_recorded_encoding_find do |names|
+        params = Rack::Multipart.parse_multipart(env)
+        if filename
+          params["file"][:filename].must_equal filename
+          params["file"][:filename].encoding.must_equal Encoding::BINARY
+        else
+          # An empty filename drops the part; before the fix this raised TypeError.
+          params["file"].must_be_nil
+        end
+        names.must_be_empty
+      end
+    end
+  end
+
+  it "sets BINARY encoding if respect_requested_encoding? returns false for the charset" do
+    encodings = []
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_no_filename)) { |enc| encodings << enc; enc != "US-ASCII" }
+    encodings.must_equal ["US-ASCII"]
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "sets BINARY encoding if respect_requested_encoding? returns true for an unknown charset" do
+    params = parse_respecting_encoding(multipart_fixture(:content_type_and_unknown_charset)) { |enc| true }
+    params["text"].must_equal "contents"
+    params["text"].encoding.must_equal Encoding::BINARY
+  end
+
+  it "sets BINARY encoding for charsets that are not valid encoding names" do
+    ["\xff\xfeUTF-8", "UTF-8\xc3\xa9", "UTF-8\u212a", "\u0130SO-8859-1", "ut\xfff-8", "\xef\xbb\xbfutf-8"].each do |charset|
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=#{charset.b}\r\n\r\ncontents\r\n--boundary--\r\n".b
+      env = Rack::MockRequest.env_for("/", {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body)
+      })
+      with_recorded_encoding_find do |names|
+        params = Rack::Multipart.parse_multipart(env)
+        params["text"].must_equal "contents"
+        params["text"].encoding.must_equal Encoding::BINARY
+        names.must_be_empty
+      end
+    end
+  end
+
+  it "does not raise in respect_requested_encoding? for nil or strings in incompatible encodings" do
+    parser = Rack::Multipart::Parser.allocate
+    parser.send(:respect_requested_encoding?, nil).must_equal false
+    parser.send(:respect_requested_encoding?, "").must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("ISO-2022-JP")).must_equal true
+    parser.send(:respect_requested_encoding?, "UTF-8".dup.force_encoding("UTF-7")).must_equal true
+    parser.send(:respect_requested_encoding?, "UTF-8\x81".dup.force_encoding("Shift_JIS")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8".encode("UTF-16LE")).must_equal false
+    parser.send(:respect_requested_encoding?, "UTF-8\xff".dup.force_encoding("UTF-8")).must_equal false
+  end
+
+  it "sets BINARY encoding for the internal charset if there is no default internal encoding" do
+    body = "--boundary\r\nContent-Disposition: form-data; name=\"text\"\r\nContent-Type: text/plain; charset=internal\r\n\r\ncontents\r\n--boundary--\r\n"
+    env = Rack::MockRequest.env_for("/", {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body)
+    })
+    default_internal = Encoding.default_internal
+    verbose, $VERBOSE = $VERBOSE, nil
+    begin
+      Encoding.default_internal = nil
+      params = Rack::Multipart.parse_multipart(env)
+      params["text"].encoding.must_equal Encoding::BINARY
+    ensure
+      Encoding.default_internal = default_internal
+      $VERBOSE = verbose
     end
   end
 
@@ -870,6 +1081,35 @@ describe Rack::Multipart do
     params["files"][:tempfile].read.must_equal "contents"
   end
 
+  it "parses multipart upload with boundary= inside quoted boundary" do
+    fixture = multipart_fixture(:quoted, %(",boundary=AaB03x"))
+    body = fixture[:input].read.gsub("AaB:03x", ",boundary=AaB03x")
+    fixture[:input] = StringIO.new(body)
+    fixture["CONTENT_LENGTH"] = body.bytesize.to_s
+    env = Rack::MockRequest.env_for("/", fixture)
+    params = Rack::Multipart.parse_multipart(env)
+    params["submit-name"].must_equal "Larry"
+    params["submit-name-with-content"].must_equal "Berry"
+    params["files"][:type].must_equal "text/plain"
+    params["files"][:filename].must_equal "file1.txt"
+    params["files"][:head].must_equal "content-disposition: form-data; " +
+      "name=\"files\"; filename=\"file1.txt\"\r\n" +
+      "content-type: text/plain\r\n"
+    params["files"][:name].must_equal "files"
+    params["files"][:tempfile].read.must_equal "contents"
+  end
+
+  it "does not parse parts delimited by a truncation of a quoted boundary" do
+    body = "--safe,X\r\ncontent-disposition: form-data; name=\"comment\"\r\n\r\nhello\r\n--safe,X--\r\n" \
+      "--safe\r\ncontent-disposition: form-data; name=\"upload\"; filename=\"shell.php\"\r\n\r\nsmuggled\r\n--safe--\r\n"
+    env = Rack::MockRequest.env_for("/",
+      "CONTENT_TYPE" => 'multipart/form-data; boundary="safe,X"',
+      "CONTENT_LENGTH" => body.bytesize.to_s,
+      :input => StringIO.new(body))
+    params = Rack::Multipart.parse_multipart(env)
+    params.must_equal "comment" => "hello"
+  end
+
   it "parses multipart upload with a filename containing invalid characters" do
     env = Rack::MockRequest.env_for("/", multipart_fixture(:invalid_character))
     params = Rack::Multipart.parse_multipart(env)
@@ -1486,5 +1726,74 @@ content-type: image/png\r
     params = Rack::Multipart.parse_multipart(env)
     params["upload"][:filename].must_equal "test\t.txt"
     params["upload"][:type].must_equal 'application/octet-stream; name="file.php"'
+  end
+
+  it "prevents CRLF injection in parameter names via obs-fold in Content-ID" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-ID: injected-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    ["multipart/related", "multipart/form-data"].each do |content_type|
+      options = {
+        "CONTENT_TYPE" => "#{content_type}; boundary=AaB03x",
+        "CONTENT_LENGTH" => data.bytesize.to_s,
+        :input => StringIO.new(data.dup)
+      }
+      env = Rack::MockRequest.env_for("/", options)
+      params = Rack::Multipart.parse_multipart(env)
+      params.keys.must_equal ["injected-id value"]
+      params["injected-id value"].must_equal "payload"
+    end
+  end
+
+  it "prevents CRLF injection in parameter names via multiple obs-folds in Content-ID" do
+    data = <<~EOF
+      --AaB03x\r
+      Content-ID: injected\r
+      \t-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.must_equal ["injected\t-id value"]
+    params["injected\t-id value"].must_equal "payload"
+  end
+
+  it "prevents CRLF injection in parameter names via obs-fold in Content-ID when Content-Disposition is too long" do
+    disposition = "form-data; name=\"ignored\"; " + "a=b; " * 400
+    disposition.bytesize.must_be :>, 1536
+    data = <<~EOF
+      --AaB03x\r
+      Content-Disposition: #{disposition}\r
+      Content-ID: injected-id\r
+       value\r
+      \r
+      payload\r
+      --AaB03x--\r
+    EOF
+
+    options = {
+      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+      "CONTENT_LENGTH" => data.bytesize.to_s,
+      :input => StringIO.new(data)
+    }
+    env = Rack::MockRequest.env_for("/", options)
+    params = Rack::Multipart.parse_multipart(env)
+    params.keys.must_equal ["injected-id value"]
+    params["injected-id value"].must_equal "payload"
   end
 end
