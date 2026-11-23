@@ -23,8 +23,8 @@ module Rack
   # the response.
 
   class Files
-    ALLOWED_VERBS = %w[GET HEAD OPTIONS]
-    ALLOW_HEADER = ALLOWED_VERBS.join(', ')
+    ALLOWED_VERBS = %w[GET HEAD OPTIONS].freeze
+    ALLOW_HEADER = ALLOWED_VERBS.join(', ').freeze
     MULTIPART_BOUNDARY = 'AaB03x'
 
     attr_reader :root
