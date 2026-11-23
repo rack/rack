@@ -349,7 +349,7 @@ module Rack
       # In HTTP/1, this is the `host` header.
       # In HTTP/2, this is the `:authority` pseudo-header.
       def authority
-        forwarded_authority || host_authority || server_authority
+        config_value(:authority) || forwarded_authority || host_authority || server_authority
       end
 
       # The authority as defined by the `SERVER_NAME` and `SERVER_PORT`
@@ -414,8 +414,10 @@ module Rack
       end
 
       def host_with_port(authority = self.authority)
-        host, _, port = split_authority(authority)
+        parts = split_authority(authority)
+        return nil if parts.empty?
 
+        host, _, port = parts
         if port == DEFAULT_PORTS[self.scheme]
           host
         else
@@ -570,6 +572,21 @@ module Rack
         (meth == POST && type.nil?) || FORM_DATA_MEDIA_TYPES.include?(type)
       end
 
+      private def form_pairs_parse_type
+        type = media_type
+        meth = get_header(RACK_METHODOVERRIDE_ORIGINAL_METHOD) || get_header(REQUEST_METHOD)
+
+        if (meth == POST && type.nil?) || type == 'application/x-www-form-urlencoded'
+          return :url_encoded
+        end
+
+        if FORM_DATA_MEDIA_TYPES.include?(type) || PARSEABLE_DATA_MEDIA_TYPES.include?(type)
+          return :multipart
+        end
+
+        nil
+      end
+
       # Determine whether the request body contains data by checking
       # the request media_type against registered parse-data media-types
       def parseable_data?
@@ -598,10 +615,10 @@ module Rack
           # Otherwise, figure out how to parse the input:
           if rack_input.nil?
             set_header(RACK_REQUEST_FORM_PAIRS, [])
-          elsif form_data? || parseable_data?
-            if pairs = Rack::Multipart.parse_multipart(env, Rack::Multipart::ParamList)
-              set_header RACK_REQUEST_FORM_PAIRS, pairs
-            else
+          elsif parse_type = form_pairs_parse_type
+            if parse_type == :multipart
+              set_header(RACK_REQUEST_FORM_PAIRS, multipart_parser&.parse_from_env(env) || [])
+            else # :url_encoded
               # Add 2 bytes. One to check whether it is over the limit, and a second
               # in case the slice! call below removes the last byte
               # If read returns nil, use the empty string
@@ -682,7 +699,8 @@ module Rack
       end
 
       def base_url
-        "#{scheme}://#{host_with_port}"
+        hostport = host_with_port || host_with_port(server_authority)
+        "#{scheme}://#{hostport}"
       end
 
       # Tries to return a remake of the original request URL as a string.
@@ -730,6 +748,14 @@ module Rack
         env.dig(RACK_REQUEST_CONFIG, key)
       end
 
+      def config_value_fetch(key, &block)
+        if config = env[RACK_REQUEST_CONFIG]
+          config.fetch(key, &block)
+        else
+          yield
+        end
+      end
+
       def default_session; {}; end
 
       # Assist with compatibility when processing `X-Forwarded-For`.
@@ -769,6 +795,18 @@ module Rack
 
       def query_parser
         @query_parser || config_value(:query_parser) || Utils.default_query_parser
+      end
+
+      # The default multipart parser
+      class MultipartParser < Multipart::Parser
+        # The default query parser used by the multipart parser.
+        def self.default_query_parser
+          Rack::Multipart::ParamList
+        end
+      end
+
+      def multipart_parser
+        config_value_fetch(:multipart_parser) { MultipartParser }
       end
 
       def parse_query(qs, d = '&')

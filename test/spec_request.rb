@@ -405,6 +405,22 @@ class RackRequestTest < Minitest::Spec
     req.port.must_equal 443
   end
 
+  it "use rack.request.config :authority for authority host, hostname, host_with_port, and port" do
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org", "rack.request.config" => {authority: "www3.example.org:80"})
+    req.host.must_equal "www3.example.org"
+    req.hostname.must_equal "www3.example.org"
+    req.host_with_port.must_equal "www3.example.org"
+    req.port.must_equal 80
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "www2.example.org", "rack.request.config" => {authority: "www3.example.org:81"})
+    req.host.must_equal "www3.example.org"
+    req.hostname.must_equal "www3.example.org"
+    req.host_with_port.must_equal "www3.example.org:81"
+    req.port.must_equal 81
+  end
+
   [true, false].each do |global|
     it "have forwarded_* methods respect forwarded_priority set #{global ? "globally" : "via rack.request.config"}" do
       begin
@@ -669,6 +685,28 @@ class RackRequestTest < Minitest::Spec
     req.host_with_port.must_equal "example.org"
   end
 
+  it "does not leak invalid Host through host_with_port; base_url uses SERVER_NAME" do
+    %w[evil.com@attacker evil.com/path evil.com#frag evil.com?x=1].each do |host|
+      req = make_request \
+        Rack::MockRequest.env_for("/", "HTTP_HOST" => host)
+      req.host.must_be_nil
+      req.host_with_port.must_be_nil
+      req.base_url.must_equal "http://example.org"
+      req.url.must_equal "http://example.org/"
+    end
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "good.example", "HTTP_X_FORWARDED_HOST" => "evil.com@attacker")
+    req.host.must_be_nil
+    req.host_with_port.must_be_nil
+    req.base_url.must_equal "http://example.org"
+
+    req = make_request \
+      Rack::MockRequest.env_for("/", "HTTP_HOST" => "evil.com@attacker", "SERVER_PORT" => "9292")
+    req.host_with_port.must_be_nil
+    req.base_url.must_equal "http://example.org:9292"
+  end
+
   it "parse the query string" do
     request = make_request(Rack::MockRequest.env_for("/?foo=bar&quux=bla&nothing&empty="))
     request.query_string.must_equal "foo=bar&quux=bla&nothing&empty="
@@ -730,6 +768,82 @@ class RackRequestTest < Minitest::Spec
     req.GET[:quux].must_equal "bla"
     req.params[:foo].must_equal "bar"
     req.params[:quux].must_equal "bla"
+  end
+
+  it "should use the multipart_parser from environment for multipart parsing" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    mp_parser = Class.new(Rack::Request::MultipartParser) do
+      def self.default_tempfile_factory
+        proc { raise "no uploads allowed" }
+      end
+    end
+
+    req = Rack::Request.new Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {multipart_parser: mp_parser},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    proc { req.POST }.must_raise(RuntimeError).message.must_equal "no uploads allowed"
+  end
+
+  it "should not parse multipart data if multipart_parser is nil in environment" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    req = make_request Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {multipart_parser: nil},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    req.form_pairs.must_equal []
+    req.POST.must_equal({})
+    req.env.wont_include "rack.tempfiles"
+  end
+
+  it "should parse url-encoded POST data if multipart_parser is nil in environment" do
+    req = make_request Rack::MockRequest.env_for("/",
+                      "REQUEST_METHOD" => "POST",
+                      "rack.request.config" => {multipart_parser: nil},
+                      "CONTENT_TYPE" => "application/x-www-form-urlencoded",
+                      :input => "foo=bar")
+    req.POST.must_equal "foo" => "bar"
+  end
+
+  it "should use the default multipart_parser if rack.request.config does not include multipart_parser" do
+    input = File.read(File.join(File.dirname(__FILE__), "multipart", "filename_multi"))
+    req = make_request Rack::MockRequest.env_for("/",
+                      "rack.request.config" => {},
+                      "CONTENT_TYPE" => "multipart/form-data; boundary=AaB03x",
+                      "CONTENT_LENGTH" => input.size,
+                      :input => input)
+    req.POST["files"][:filename].must_equal "foo"
+  end
+
+  it "should not use the multipart_parser for url-encoded POST data" do
+    mp_parser = Class.new(Rack::Request::MultipartParser) do
+      def self.parse_from_env(env)
+        raise "multipart parser called"
+      end
+    end
+
+    [nil, "application/x-www-form-urlencoded"].each do |content_type|
+      env = Rack::MockRequest.env_for("/",
+        "REQUEST_METHOD" => "POST",
+        "rack.request.config" => {multipart_parser: mp_parser},
+        :input => "foo=bar")
+      env.delete("CONTENT_TYPE")
+      env["CONTENT_TYPE"] = content_type if content_type
+      req = make_request(env)
+      req.form_pairs.must_equal [["foo", "bar"]]
+      req.POST.must_equal "foo" => "bar"
+    end
+  end
+
+  it "return empty form_pairs for multipart content type without boundary" do
+    req = make_request       Rack::MockRequest.env_for("/",
+        'REQUEST_METHOD' => 'POST',
+        "CONTENT_TYPE" => 'multipart/mixed',
+        :input => "foo=bar")
+    req.form_pairs.must_equal []
+    req.POST.must_equal({})
   end
 
   it "does not use semi-colons as separators for query strings in GET" do
@@ -1038,6 +1152,8 @@ class RackRequestTest < Minitest::Spec
     req = make_request \
       Rack::MockRequest.env_for("/",
         'REQUEST_METHOD' => 'POST', :input => "a%=1")
+    lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
+      message.must_equal "invalid %-encoding (a%)"
     lambda { req.form_pairs }.must_raise(Rack::Utils::InvalidParameterError).
       message.must_equal "invalid %-encoding (a%)"
   end
@@ -1465,6 +1581,14 @@ EOF
     req.headers['FOO-BAR'].must_equal 'baz'
     req.headers['content-type'].must_equal 'text/html'
     req.headers['Content-Length'].must_equal '1'
+  end
+
+  it "ignore headers.add for existing env values that are not strings or arrays" do
+    e = Rack::MockRequest.env_for("", "HTTP_FOO_BAR" => 1)
+    req = make_request(e)
+
+    req.headers.add('foo-bar', 'baz').must_be_nil
+    e['HTTP_FOO_BAR'].must_equal 1
   end
 
   it "set or add HTTP header in env via headers.add" do

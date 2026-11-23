@@ -1188,4 +1188,35 @@ describe Rack::Lint do
 
     response.first.must_equal 101
   end
+
+  it "raises if app does not respond to call" do
+    lambda { Rack::Lint.new(Object.new) }.must_raise(Rack::Lint::LintError).
+      message.must_equal "app must respond to call"
+  end
+
+  it "allows missing SERVER_PORT" do
+    e = env({})
+    e.delete("SERVER_PORT")
+    Rack::Lint.new(valid_app).call(e).first.must_equal 200
+  end
+
+  it "notices rack.response_finished values that are not callable" do
+    lambda {
+      Rack::Lint.new(valid_app).call(env("rack.response_finished" => [Object.new]))
+    }.must_raise(Rack::Lint::LintError).
+      message.must_equal "rack.response_finished values must respond to call(env, status, headers, error)"
+  end
+
+  it "allows body.to_path to return nil after iterating body" do
+    body = Object.new
+    def body.each; yield "foo" end
+    def body.to_path; nil end
+    app = lambda { |env| [200, { "content-length" => "3" }, body] }
+
+    body = Rack::Lint.new(app).call(env({}))[2]
+    parts = []
+    body.each { |part| parts << part }
+    body.close
+    parts.must_equal ["foo"]
+  end
 end

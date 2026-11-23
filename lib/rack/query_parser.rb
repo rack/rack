@@ -5,8 +5,8 @@ require 'uri'
 
 module Rack
   class QueryParser
-    DEFAULT_SEP = /& */n
-    COMMON_SEP = { ";" => /; */n, ";," => /[;,] */n, "&" => /& */n }
+    DEFAULT_SEP = "&"
+    COMMON_SEP = { ";" => ";", ";," => /[;,]/n, "&" => "&" }
 
     # ParameterTypeError is the error that is raised when incoming structural
     # parameters (parsed by parse_nested_query) contain conflicting types.
@@ -44,6 +44,7 @@ module Rack
     attr_reader :param_depth_limit
 
     env_int = lambda do |key, val|
+      # simplecov:disable
       if str_val = ENV[key]
         begin
           val = Integer(str_val, 10)
@@ -53,6 +54,7 @@ module Rack
       end
 
       val if val >= 0
+      # simplecov:enable
     end
 
     BYTESIZE_LIMIT = env_int.call("RACK_QUERY_PARSER_BYTESIZE_LIMIT", 4194304)
@@ -216,10 +218,17 @@ module Rack
     def params_hash_has_key?(hash, key)
       return false if /\[\]/.match?(key)
 
-      key.split(/[\[\]]+/).inject(hash) do |h, part|
-        next h if part == ''
-        return false unless params_hash_type?(h) && h.key?(part)
-        h[part]
+      # Equivalent to walking key.split(/[\[\]]+/), but a quantified regexp
+      # allocates backtracking state for every bracket matched, so find the
+      # segments with single character searches instead, which do not
+      # backtrack.
+      pos = 0
+      while (start = key.index(/[^\[\]]/, pos))
+        stop = key.index(/[\[\]]/, start) || key.length
+        part = key[start, stop - start]
+        return false unless params_hash_type?(hash) && hash.key?(part)
+        hash = hash[part]
+        pos = stop
       end
 
       true
@@ -232,8 +241,15 @@ module Rack
         raise QueryLimitError, "total query size exceeds limit (#{@bytesize_limit})"
       end
 
-      sep = separator ? (COMMON_SEP[separator] || /[#{separator}] */n) : DEFAULT_SEP
+      sep = separator ? (COMMON_SEP[separator] || /[#{separator}]/n) : DEFAULT_SEP
       pairs = @params_limit ? qs.split(sep, @params_limit + 1) : qs.split(sep)
+
+      # Remove spaces following the separator. A quantified regexp such as
+      # /& */ allocates backtracking state for every space matched, so find
+      # the first non-space character instead, which does not backtrack.
+      pairs.each do |pair|
+        pair.slice!(0, pair.index(/[^ ]/) || pair.length) if pair.getbyte(0) == 32
+      end
 
       if @params_limit && pairs.size > @params_limit
         param_count = pairs.size + pairs.last.count(separator || "&")
