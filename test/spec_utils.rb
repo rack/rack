@@ -642,6 +642,8 @@ describe Rack::Utils, "cookies" do
     Rack::Utils.set_cookie_header('name', 'value').must_equal 'name=value'
     Rack::Utils.set_cookie_header('name', %w[value]).must_equal 'name=value'
     Rack::Utils.set_cookie_header('name', %w[va ue]).must_equal 'name=va&ue'
+    Rack::Utils.set_cookie_header('name', "a b;c\r\n").must_equal 'name=a+b%3Bc%0D%0A'
+    Rack::Utils.set_cookie_header('name', value: "a b;c", path: '/').must_equal 'name=a+b%3Bc; path=/'
   end
 
   it "sets and deletes cookies in header hash" do
