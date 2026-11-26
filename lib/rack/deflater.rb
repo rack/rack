@@ -75,7 +75,13 @@ module Rack
       when "gzip"
         headers['content-encoding'] = "gzip"
         headers.delete(CONTENT_LENGTH)
-        response[2] = GzipStream.new(body, GZIP_MTIME, @sync)
+        # A body that responds to #call and not #each is a streaming body, and
+        # iterating it with GzipStream would raise NoMethodError.
+        response[2] = if body.respond_to?(:each)
+          GzipStream.new(body, GZIP_MTIME, @sync)
+        else
+          GzipStreamingBody.new(body, GZIP_MTIME, @sync)
+        end
         response
       when "identity"
         response
@@ -142,6 +148,128 @@ module Rack
       # Close the original body if possible.
       def close
         @body.close if @body.respond_to?(:close)
+      end
+    end
+
+    # Body class used for gzip encoded responses whose body is a streaming body,
+    # that is one that responds to #call and not #each.
+    #
+    # The body writes plain text to the stream it is handed, so it is handed a
+    # stream that gzips what is written and forwards the result to the server's
+    # stream. It responds to #call only: a body that also responded to #each
+    # would be treated as an enumerable body.
+    class GzipStreamingBody
+
+      # Initialize the gzip streaming body.  Arguments:
+      # body :: Response body to compress with gzip
+      # mtime :: The modification time of the body, used to set the
+      #          modification time in the gzip header.
+      # sync :: Whether to flush each gzip chunk as soon as it is ready.
+      def initialize(body, mtime, sync)
+        @body = body
+        @mtime = mtime
+        @sync = sync
+      end
+
+      # Run the streaming body against a stream that compresses what it is
+      # written and finishes the gzip stream afterwards, whether the body
+      # closed the stream itself or not.
+      def call(stream)
+        compressed = CompressedStream.new(stream, @mtime, @sync)
+
+        begin
+          @body.call(compressed)
+        ensure
+          compressed.finish
+        end
+      end
+
+      # Close the original body if possible.
+      def close
+        @body.close if @body.respond_to?(:close)
+      end
+
+      # The stream a streaming body writes to, as described in the Streaming
+      # Body section of SPEC.rdoc. Everything written is gzipped into the
+      # server's stream.
+      class CompressedStream
+        def initialize(stream, mtime, sync)
+          @stream = stream
+          @sync = sync
+          @gzip = ::Zlib::GzipWriter.new(Sink.new(stream))
+          @gzip.mtime = mtime if mtime
+          @finished = false
+          @closed = false
+        end
+
+        def write(data)
+          data = data.to_s
+          return 0 if data.empty?
+
+          @gzip.write(data)
+          @gzip.flush if @sync
+          data.bytesize
+        end
+
+        def <<(data)
+          write(data)
+          self
+        end
+
+        def flush
+          @gzip.flush
+          @stream.flush if @stream.respond_to?(:flush)
+          self
+        end
+
+        # Writes the gzip trailer. Called by the streaming body's stream, and by
+        # GzipStreamingBody when the body returns without closing the stream.
+        def finish
+          return if @finished
+
+          @finished = true
+          @gzip.finish
+        end
+
+        def close
+          return if @closed
+
+          @closed = true
+          finish
+          @stream.close if @stream.respond_to?(:close)
+        end
+
+        def close_read
+          @stream.close_read if @stream.respond_to?(:close_read)
+        end
+
+        def close_write
+          close
+        end
+
+        def closed?
+          @closed
+        end
+
+        def read(*arguments)
+          @stream.read(*arguments)
+        end
+
+        # Where the gzip writer puts its output. It only needs to write, but
+        # Zlib flushes through the underlying object too.
+        class Sink
+          def initialize(stream)
+            @stream = stream
+          end
+
+          def write(data)
+            @stream.write(data)
+          end
+
+          def flush
+            @stream.flush if @stream.respond_to?(:flush)
+          end
+        end
       end
     end
 

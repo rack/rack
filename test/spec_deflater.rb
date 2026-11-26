@@ -134,6 +134,121 @@ describe Rack::Deflater do
     end
   end
 
+  describe 'with a body that responds to call and not each' do
+    def streaming_body(chunks, close: true)
+      body = Object.new
+      body.define_singleton_method(:call) do |stream|
+        chunks.each { |chunk| stream.write(chunk) }
+        stream.close if close
+      end
+      body
+    end
+
+    # The stream a server hands a streaming body, as described in SPEC.rdoc,
+    # collecting what it is written.
+    class CollectingStream
+      attr_reader :output
+
+      def initialize
+        @output = String.new
+        @closed = false
+      end
+
+      def write(data)
+        @output << data
+      end
+
+      def <<(data)
+        write(data)
+        self
+      end
+
+      def read(*)
+        nil
+      end
+
+      def flush
+        self
+      end
+
+      def close
+        @closed = true
+      end
+
+      def close_read
+      end
+
+      def close_write
+        close
+      end
+
+      def closed?
+        @closed
+      end
+    end
+
+    # Runs the streaming body against a stream that collects what it writes,
+    # and returns the decompressed result.
+    def gzip_text(body)
+      stream = CollectingStream.new
+
+      body.call(stream)
+
+      Zlib::GzipReader.new(StringIO.new(stream.output)).read
+    end
+
+    it 'gzips what the body writes to the stream' do
+      status, headers, body = build_response(200, streaming_body(%w[foo bar]), 'gzip')
+
+      status.must_equal 200
+      headers['content-encoding'].must_equal 'gzip'
+      headers.wont_include 'content-length'
+      gzip_text(body).must_equal 'foobar'
+    end
+
+    it 'gzips a body that writes with << and never writes an empty chunk' do
+      body = Object.new
+      body.define_singleton_method(:call) do |stream|
+        stream << 'foo'
+        stream.write('')
+        stream << 'bar'
+        stream.close
+      end
+
+      _status, _headers, response_body = build_response(200, body, 'gzip')
+
+      gzip_text(response_body).must_equal 'foobar'
+    end
+
+    it 'finishes the gzip stream when the body does not close it' do
+      _status, _headers, body = build_response(200, streaming_body(%w[foo bar], close: false), 'gzip')
+
+      gzip_text(body).must_equal 'foobar'
+    end
+
+    it 'returns a body that responds to call only' do
+      app = lambda { |env| [200, { 'content-type' => 'text/plain' }, streaming_body(['foo'])] }
+      request = Rack::MockRequest.env_for('', 'HTTP_ACCEPT_ENCODING' => 'gzip')
+
+      _status, headers, body = Rack::Deflater.new(app).call(request)
+
+      headers['content-encoding'].must_equal 'gzip'
+      body.must_respond_to :call
+      body.wont_respond_to :each
+      gzip_text(body).must_equal 'foo'
+    end
+
+    it 'leaves the streaming body alone when no encoding is applied' do
+      body = streaming_body(['foo'])
+      app = lambda { |env| [200, { 'content-type' => 'text/plain' }, body] }
+      request = Rack::MockRequest.env_for('')
+
+      _status, _headers, returned = Rack::Deflater.new(app).call(request)
+
+      returned.must_be_same_as body
+    end
+  end
+
   it 'flush deflated chunks to the client as they become ready' do
     app_body = Object.new
     class << app_body; def each; yield('foo'); yield('bar'); end; end
