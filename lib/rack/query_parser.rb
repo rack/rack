@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'bad_request'
-require 'uri'
-require 'cgi/escape'
+require_relative 'unescape'
 
 module Rack
   class QueryParser
+    include Unescape
+
     DEFAULT_SEP = "&"
     COMMON_SEP = { ";" => ";", ";," => /[;,]/n, "&" => "&" }
 
@@ -272,13 +273,6 @@ module Rack
       end
     rescue ArgumentError => e
       raise InvalidParameterError, e.message, e.backtrace
-    end
-
-    def unescape(string, encoding = Encoding::UTF_8)
-      return URI.decode_www_form_component(string, encoding) unless string.instance_of?(String) && string.encoding.ascii_compatible?
-
-      raise ArgumentError, "invalid %-encoding (#{string})" if /%(?!\h\h)/.match?(string)
-      CGI.unescape(string, Encoding::BINARY).force_encoding(encoding)
     end
 
     class Params < Hash

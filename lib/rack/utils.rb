@@ -10,6 +10,7 @@ require 'time'
 require 'erb'
 
 require_relative 'query_parser'
+require_relative 'unescape'
 require_relative 'mime'
 require_relative 'constants'
 
@@ -59,15 +60,22 @@ module Rack
       URI_PARSER.unescape s
     end
 
+    include Unescape
+
+    ##
+    # :method: unescape
+    # :call-seq:
+    #   unescape(s, encoding = Encoding::UTF_8)
+    #
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    def unescape(s, encoding = Encoding::UTF_8)
-      return URI.decode_www_form_component(s, encoding) unless s.instance_of?(String) && s.encoding.ascii_compatible?
+    module_function :unescape
 
-      raise ArgumentError, "invalid %-encoding (#{s})" if /%(?!\h\h)/.match?(s)
-      CGI.unescape(s, Encoding::BINARY).force_encoding(encoding)
-    end
+    # @!method self.unescape(s, encoding = Encoding::UTF_8)
+    #   Unescapes a URI escaped string with +encoding+. +encoding+ will be the
+    #   target encoding of the string returned, and it defaults to UTF-8
 
+    ##
     class << self
       attr_accessor :multipart_total_part_limit
 
