@@ -1,10 +1,12 @@
 # frozen_string_literal: true
 
 require_relative 'bad_request'
-require 'uri'
+require_relative 'unescape'
 
 module Rack
   class QueryParser
+    include Unescape
+
     DEFAULT_SEP = "&"
     COMMON_SEP = { ";" => ";", ";," => /[;,]/n, "&" => "&" }
 
@@ -271,10 +273,6 @@ module Rack
       end
     rescue ArgumentError => e
       raise InvalidParameterError, e.message, e.backtrace
-    end
-
-    def unescape(string, encoding = Encoding::UTF_8)
-      URI.decode_www_form_component(string, encoding)
     end
 
     class Params < Hash

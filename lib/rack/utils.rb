@@ -2,6 +2,7 @@
 # frozen_string_literal: true
 
 require 'uri'
+require 'cgi/escape'
 require 'fileutils'
 require 'set'
 require 'tempfile'
@@ -9,6 +10,7 @@ require 'time'
 require 'erb'
 
 require_relative 'query_parser'
+require_relative 'unescape'
 require_relative 'mime'
 require_relative 'constants'
 
@@ -37,7 +39,13 @@ module Rack
 
     # URI escapes. (CGI style space to +)
     def escape(s)
-      URI.encode_www_form_component(s)
+      # On MRI before 4.0, CGI.escape needs cgi/util for ASCII-incompatible strings.
+      return URI.encode_www_form_component(s) unless s.instance_of?(String) && s.encoding.ascii_compatible?
+
+      escaped = CGI.escape(s).force_encoding(Encoding::US_ASCII)
+      escaped.gsub!("%2A", "*")
+      escaped.gsub!("~", "%7E")
+      escaped
     end
 
     # Like URI escaping, but with %20 instead of +. Strictly speaking this is
@@ -52,12 +60,22 @@ module Rack
       URI_PARSER.unescape s
     end
 
+    include Unescape
+
+    ##
+    # :method: unescape
+    # :call-seq:
+    #   unescape(s, encoding = Encoding::UTF_8)
+    #
     # Unescapes a URI escaped string with +encoding+. +encoding+ will be the
     # target encoding of the string returned, and it defaults to UTF-8
-    def unescape(s, encoding = Encoding::UTF_8)
-      URI.decode_www_form_component(s, encoding)
-    end
+    module_function :unescape
 
+    # @!method self.unescape(s, encoding = Encoding::UTF_8)
+    #   Unescapes a URI escaped string with +encoding+. +encoding+ will be the
+    #   target encoding of the string returned, and it defaults to UTF-8
+
+    ##
     class << self
       attr_accessor :multipart_total_part_limit
 
@@ -244,7 +262,6 @@ module Rack
     # Ruby 3.2/ERB 4.0 added ERB::Escape#html_escape, so the else
     # branch cannot be hit on the current Ruby version.
     else
-      require 'cgi/escape'
       # Escape ampersands, brackets and quotes to their HTML/XML entities.
       def escape_html(string)
         CGI.escapeHTML(string.to_s)
