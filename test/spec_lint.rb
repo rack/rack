@@ -467,7 +467,7 @@ describe Rack::Lint do
     #                 / "+" / "-" / "." / "^" / "_" / "`" / "|" / "~"
     #                 / DIGIT / ALPHA
     #                 ; any VCHAR, except delimiters
-    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F>
+    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F> + [" ", '"', "x y", "x\"y", "caf\u00e9", ""]
     invalid_headers.each do |invalid_header|
       lambda {
         Rack::Lint.new(lambda { |env|
@@ -541,7 +541,7 @@ describe Rack::Lint do
     app("status" => "404").must_raise(Rack::Lint::LintError).
       message.must_match(/must not contain status/)
 
-    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F>
+    invalid_headers = 0.upto(31).map(&:chr) + %W<( ) , / : ; < = > ? @ [ \\ ] { } \x7F> + [" ", '"', "x y", "x\"y", "caf\u00e9", ""]
     invalid_headers.each do |invalid_header|
       app(invalid_header => "text/plain").
         must_raise(Rack::Lint::LintError, "on invalid header: #{invalid_header}").
