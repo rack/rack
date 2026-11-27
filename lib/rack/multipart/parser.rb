@@ -253,9 +253,17 @@ module Rack
         io = BoundedIO.new(io, content_length) if content_length
 
         parser = new(boundary, tmpfile, bufsize, qp)
-        parser.parse(io)
 
-        parser.result
+        begin
+          parser.parse(io)
+          parser.result
+        rescue
+          # A parse or normalize error raises before parse_from_env registers
+          # the files in env["rack.tempfiles"], so TempfileReaper never sees
+          # them. Release them here instead of waiting for GC.
+          parser.release_tempfiles
+          raise
+        end
       end
 
       class Collector
@@ -289,7 +297,12 @@ module Rack
 
         class TempfilePart < MimePart
           def file?; true; end
-          def close; body.close; end
+          def close
+            # The file-part and total-part limit checks call close on parts
+            # that were never registered in rack.tempfiles, so unlink the
+            # file as well as closing it when the tempfile supports it.
+            body.respond_to?(:close!) ? body.close! : body.close
+          end
         end
 
         include Enumerable
@@ -400,6 +413,12 @@ module Rack
 
           read_data(io, outbuf) if status == :want_read
         end
+      end
+
+      # Close and unlink every tempfile created so far. Used when a parse
+      # raises before the files are registered for TempfileReaper cleanup.
+      def release_tempfiles
+        @collector.each(&:close)
       end
 
       def result

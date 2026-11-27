@@ -1809,4 +1809,55 @@ content-type: image/png\r
     env.delete("CONTENT_TYPE")
     Rack::Multipart.parse_multipart(env).must_be_nil
   end
+
+  def recording_tempfile_factory
+    created = []
+    factory = lambda do |filename, content_type|
+      tempfile = Rack::Multipart::Parser::TEMPFILE_FACTORY.call(filename, content_type)
+      created << tempfile
+      tempfile
+    end
+    [created, factory]
+  end
+
+  it "unlinks tempfiles created before a multipart file limit is reached" do
+    created, factory = recording_tempfile_factory
+    begin
+      previous_limit = Rack::Utils.multipart_part_limit
+      Rack::Utils.multipart_part_limit = 3
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      env[Rack::RACK_MULTIPART_TEMPFILE_FACTORY] = factory
+      lambda { Rack::Multipart.parse_multipart(env) }.must_raise Rack::Multipart::MultipartPartLimitError
+    ensure
+      Rack::Utils.multipart_part_limit = previous_limit
+    end
+
+    created.wont_be_empty
+    # The limit check closed these parts, which were never registered in
+    # rack.tempfiles, so they must also be unlinked from disk.
+    created.each { |tempfile| tempfile.path.must_be_nil }
+  end
+
+  it "releases tempfiles when a multipart parse raises after files are created" do
+    created, factory = recording_tempfile_factory
+    begin
+      previous_limit = Rack::Utils.param_depth_limit
+      Rack::Utils.param_depth_limit = 0
+
+      env = Rack::MockRequest.env_for '/', multipart_fixture(:three_files_three_fields)
+      env[Rack::RACK_MULTIPART_TEMPFILE_FACTORY] = factory
+      lambda { Rack::Multipart.parse_multipart(env) }.must_raise Rack::Utils::ParamsTooDeepError
+    ensure
+      Rack::Utils.param_depth_limit = previous_limit
+    end
+
+    created.wont_be_empty
+    # The parse raised before env["rack.tempfiles"] was set, so the parser
+    # must have closed and unlinked the files itself.
+    created.each do |tempfile|
+      tempfile.must_be :closed?
+      tempfile.path.must_be_nil
+    end
+  end
 end
