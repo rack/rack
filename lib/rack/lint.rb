@@ -760,7 +760,7 @@ module Rack
           ## * The headers must not contain a <tt>"status"</tt> key.
           raise LintError, "headers must not contain status" if key == "status"
           ## * Header keys must conform to {RFC7230}[https://tools.ietf.org/html/rfc7230] token specification, i.e. cannot contain non-printable ASCII, <tt>DQUOTE</tt> or <tt>(),/:;<=>?@[\]{}</tt>.
-          raise LintError, "invalid header name: #{key}" if key =~ /[\(\),\/:;<=>\?@\[\\\]{}[:cntrl:]]/
+          raise LintError, "invalid header name: #{key}" unless key.match?(/\A[!#$%&'*+\-.^_`|~0-9A-Za-z]+\z/)
           ## * Header keys must not contain uppercase ASCII characters (A-Z).
           raise LintError, "uppercase character in header name: #{key}" if key =~ /[A-Z]/
 
