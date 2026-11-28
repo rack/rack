@@ -931,6 +931,17 @@ class RackRequestTest < Minitest::Spec
       message.must_equal "invalid %-encoding (a%)"
   end
 
+  it "raise if input params have a name with an invalid byte sequence" do
+    mr = Rack::MockRequest.env_for("/",
+      "REQUEST_METHOD" => 'POST',
+      :input => "a[][x]=1&a[][%FF]=1"
+    )
+    req = make_request mr
+
+    lambda { req.POST }.must_raise(Rack::Utils::InvalidParameterError).
+      message.must_equal "invalid byte sequence in UTF-8"
+  end
+
   it "return empty POST data if rack.input is missing" do
     req = make_request({})
     req.POST.must_be_empty
