@@ -673,7 +673,7 @@ module Rack
         if content_type
           list         = content_type.split(';')
           type_subtype = list.first
-          type_subtype.strip!
+          type_subtype&.strip!
           if TEXT_PLAIN == type_subtype
             rest = list.drop 1
             rest.each do |param|

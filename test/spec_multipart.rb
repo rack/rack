@@ -1705,6 +1705,20 @@ content-type: image/png\r
     params["field"].must_equal "data"
   end
 
+  it "handles Content-Type without a media type" do
+    ["", ";", ";;"].each do |content_type|
+      body = "--boundary\r\nContent-Disposition: form-data; name=\"field\"\r\nContent-Type: #{content_type}\r\n\r\ndata\r\n--boundary--\r\n"
+      env = Rack::MockRequest.env_for("/", {
+        "CONTENT_TYPE" => "multipart/form-data; boundary=boundary",
+        "CONTENT_LENGTH" => body.bytesize.to_s,
+        :input => StringIO.new(body)
+      })
+      params = Rack::Multipart.parse_multipart(env)
+      params["field"].must_equal "data"
+      params["field"].encoding.must_equal Encoding::UTF_8
+    end
+  end
+
   it "prevents CRLF injection in parameter values via obs-fold" do
     data = <<~EOF
       --AaB03x\r
