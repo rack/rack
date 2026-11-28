@@ -124,11 +124,14 @@ module Rack
 
     # normalize_params recursively expands parameters into structural types. If
     # the structural types represented by two different parameter names are in
-    # conflict, a ParameterTypeError is raised.  The depth argument is deprecated
-    # and should no longer be used, it is kept for backwards compatibility with
-    # earlier versions of rack.
+    # conflict, a ParameterTypeError is raised. If a parameter name has an
+    # invalid byte sequence, an InvalidParameterError is raised.  The depth
+    # argument is deprecated and should no longer be used, it is kept for
+    # backwards compatibility with earlier versions of rack.
     def normalize_params(params, name, v, _depth=nil)
       _normalize_params(params, name, v, 0)
+    rescue ArgumentError => e
+      raise InvalidParameterError, e.message, e.backtrace
     end
 
     private def _normalize_params(params, name, v, depth)

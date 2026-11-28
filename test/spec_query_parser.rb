@@ -65,6 +65,15 @@ describe Rack::QueryParser do
     }.must_raise(::Rack::QueryParser::IncompatibleEncodingError)
   end
 
+  it "raises when normalizing params whose name has an invalid byte sequence" do
+    query_parser = Rack::QueryParser.make_default(8)
+    params = query_parser.make_params
+    query_parser.normalize_params(params, "a[][x]", "1")
+    lambda {
+      query_parser.normalize_params(params, "a[][\xFF]", "1")
+    }.must_raise(::Rack::QueryParser::InvalidParameterError)
+  end
+
   it "ignores nil name when normalizing params" do
     params = Rack::QueryParser.make_default(32).make_params
     Rack::QueryParser.make_default(32).normalize_params(params, nil, "v").must_be_nil

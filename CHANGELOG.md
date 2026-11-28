@@ -38,6 +38,7 @@ All notable changes to this project will be documented in this file. For info on
 - Multipart parser: limit MIME header size check to the unread buffer region to avoid false `multipart mime part header too large` errors when previously read data accumulates in the scan buffer. ([#2392](https://github.com/rack/rack/pull/2392), [@alpaca-tc](https://github.com/alpaca-tc), [@willnet](https://github.com/willnet), [@krororo](https://github.com/krororo))
 - Multipart parser: add nil guards to prevent `NoMethodError` crashes when handling `Content-Disposition` without parameters and `Content-Type` parameters without '='. ([@haruki0409](https://github.com/haruki0409))
 - Multipart parser: only use a parameter named `boundary` as the boundary, not one whose name merely ends in `boundary`. ([#2542](https://github.com/rack/rack/pull/2542))
+- `Rack::QueryParser#normalize_params` now raises `Rack::QueryParser::InvalidParameterError` for a parameter name with an invalid byte sequence, as `parse_nested_query` already did, so `Rack::Request#POST` no longer raises `ArgumentError` for such a form body. ([#2575](https://github.com/rack/rack/pull/2575), [@darronschall](https://github.com/darronschall))
 
 ## [3.2.9] - 2026-11-20
 
